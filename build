@@ -1,0 +1,25 @@
+#!/bin/bash
+#| Cleaner builder script, than plain usage of the Makefile
+
+dir="Build"
+
+#| If directory doesn't exist
+if [ ! -d $dir ]; then
+	mkdir -p $dir
+	for file in {Makefile,*.c,*.h}; do
+		ln -s "`pwd`/$file" $dir/.
+	done
+fi
+
+cd $dir
+make "$@"
+cd $OLDPWD
+
+#| On make clean, make it really clean
+if [ "${1}" = "clean" ]; then
+	rm -r $dir
+	echo "Cleaned"
+fi
+
+exit 0
+
