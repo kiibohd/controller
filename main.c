@@ -32,10 +32,11 @@
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
 
 // Sleep defined in milliseconds
-#define PRE_DRIVE_SLEEP  50
-#define POST_DRIVE_SLEEP 50
+#define PRE_DRIVE_SLEEP  1
+#define POST_DRIVE_SLEEP 1
 
 
+// Drive Pin Defines
 #define DRIVE_reg_1 PORTB
 #define DRIVE_reg_2 PORTB
 #define DRIVE_reg_3 PORTB
@@ -62,6 +63,7 @@
 #define DRIVE_pin_11 <blank>
 #define DRIVE_pin_12 <blank>
 
+// Detect Pin/Group Defines
 #define DETECT_group_1 1
 #define DETECT_group_2 2
 #define DETECT_group_3 3
@@ -91,33 +93,19 @@
 #define DETECT_group_array_1 {{KEY_SLASH,KEY_RIGHT_BRACE,KEY_ENTER,KEY_D,KEY_2,KEY_Q,KEY_C},{0,0,0,0,0,0,0}}
 #define DETECT_group_array_2 {{KEY_TILDE,KEY_DELETE,KEY_LEFT,KEY_SPACE,KEY_X,KEY_S,KEY_TAB,KEY_1},{0,0,0,0,0,0,0,0}}
 #define DETECT_group_array_3 {{KEY_BACKSPACE,KEY_UP,KEY_DOWN,KEY_A,KEY_INSERT,KEY_ALT,KEY_Z,KEY_RIGHT},{0,0,0,0,0,1,0,0}}
-#define DETECT_group_array_4 {{KEY_ESC  ,KEY_CTRL,KEY_CAPS_LOCK,KEY_SHIFT}                  ,{0,1,0,1}}
-#define DETECT_group_array_5 0
-#define DETECT_group_array_6 0
-#define DETECT_group_array_7 {{KEY_L    ,KEY_O   ,KEY_0        ,KEY_N    ,KEY_H,KEY_R,KEY_5},{0,0,0,0,0,0,0}}
-#define DETECT_group_array_8 0
-#define DETECT_group_array_9 0
+#define DETECT_group_array_4 {{KEY_ESC,KEY_CTRL,KEY_CAPS_LOCK,KEY_SHIFT},{0,1,0,1}}
+#define DETECT_group_array_5 {{KEY_MINUS,KEY_P,KEY_SEMICOLON,KEY_G,KEY_4,KEY_E,KEY_B,KEY_BACKSLASH},{0,0,0,0,0,0,0,0}}
+#define DETECT_group_array_6 {{KEY_EQUAL,KEY_LEFT_BRACE,KEY_QUOTE,KEY_F,KEY_3,KEY_W,KEY_V},{0,0,0,0,0,0,0}}
+#define DETECT_group_array_7 {{KEY_0,KEY_O,KEY_L,KEY_H,KEY_5,KEY_R,KEY_N},{0,0,0,0,0,0,0}}
+#define DETECT_group_array_8 {{KEY_8,KEY_U,KEY_K,KEY_7,KEY_Y,KEY_COMMA},{0,0,0,0,0,0}}
+#define DETECT_group_array_9 {{KEY_9,KEY_I,KEY_PERIOD,KEY_J,KEY_6,KEY_T,KEY_M},{0,0,0,0,0,0,0}}
 #define DETECT_group_array_10 <blank>
 #define DETECT_group_array_11 <blank>
 #define DETECT_group_array_12 <blank>
 
 
 
-
-
-
-
-// XXX Change number of ORDs if number of lines differ
-#define DD_LOOP \
-			for ( int c = 1;; c++ ) { \
-				switch ( c ) { \
-					DD_CASE_ORD(1) \
-					DD_CASE_ORD(2) \
-					DD_CASE_ORD(3) \
-					DD_CASE_END(4,c) \
-				} \
-			}
-
+// Drive Macros (Generally don't need to be changed), except for maybe DRIVE_DETECT
 #define DRIVE_DETECT(reg,pin,group) \
 			reg &= ~(1 << pin); \
 			detection(group); \
@@ -137,6 +125,8 @@
 			var = -1; \
 			break;
 
+
+// Detection Macros (Probably don't need to be changed, but depending the matrix, may have to be)
 // Determine if key is either normal or a modifier
 #define DET_GROUP_CHECK(index) \
 			{ \
@@ -145,6 +135,7 @@
 			else \
 				curDetect.keyDetectArray[curDetect.keyDetectCount++] = groupArray[0][index]; \
 			}
+
 
 // XXX - Detection Groups
 // Checks each of the specified pins, and then if press detected, determine if the key is normal or a modifier
@@ -184,14 +175,14 @@
 				DET_GROUP_CHECK(0) \
 			if ( !( PINC & (1 << 1) ) ) \
 				DET_GROUP_CHECK(1) \
-			if ( !( PINC & (1 << 2) ) ) \
-				DET_GROUP_CHECK(3) \
+			if ( !( PINC & (1 << 3) ) ) \
+				DET_GROUP_CHECK(2) \
 			if ( !( PINC & (1 << 4) ) ) \
-				DET_GROUP_CHECK(4) \
+				DET_GROUP_CHECK(3) \
 			if ( !( PINC & (1 << 5) ) ) \
-				DET_GROUP_CHECK(5) \
+				DET_GROUP_CHECK(4) \
 			if ( !( PINC & (1 << 6) ) ) \
-				DET_GROUP_CHECK(6) \
+				DET_GROUP_CHECK(5) \
 
 // Used for 3 detection groups
 #define DET_GROUP_4 \
@@ -239,11 +230,11 @@ void detection( int group )
 		DET_GROUP(2,4)
 		DET_GROUP(3,4)
 		DET_GROUP(4,1)
-		//DET_GROUP(5,4)
-		//DET_GROUP(6,2)
-		//DET_GROUP(7,2)
-		//DET_GROUP(8,3)
-		//DET_GROUP(9,2)
+		DET_GROUP(5,4)
+		DET_GROUP(6,2)
+		DET_GROUP(7,2)
+		DET_GROUP(8,3)
+		DET_GROUP(9,2)
 	}
 
 
@@ -278,11 +269,11 @@ void pinSetup(void)
 
 	// Setting pins to either high or pull-up resistor
 	PORTA = 0x00;
-	PORTB = 0xFF;
+	PORTB = 0x0F;
 	PORTC = 0xFF;
 	PORTD = 0x00;
-	PORTE = 0xFF;
-	PORTF = 0xFF;
+	PORTE = 0xC2;
+	PORTF = 0x3F;
 }
 
 int main( void )
@@ -304,7 +295,20 @@ int main( void )
 	_delay_ms(1000);
 
 	// Main Detection Loop
-	DD_LOOP
+	// XXX Change number of ORDs if number of lines differ
+	for ( int c = 1;;c++ ) {
+		switch ( c ) {
+			DD_CASE_ORD(1)
+			DD_CASE_ORD(2)
+			DD_CASE_ORD(3)
+			DD_CASE_ORD(4)
+			DD_CASE_ORD(5)
+			DD_CASE_ORD(6)
+			DD_CASE_ORD(7)
+			DD_CASE_ORD(8)
+			DD_CASE_END(9,c)
+		}
+	}
 
 	// usb_keyboard_press(KEY_B, KEY_SHIFT);
 	return 0;
