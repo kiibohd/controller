@@ -23,12 +23,17 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
-#include "usb_keyboard.h"
+//#include "usb_keyboard.h"
+
+// TEMP INCLUDES
+#include "usb_keyboard_debug.h"
+#include <print.h>
 
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
 
-#define PRE_DRIVE_SLEEP
-#define POST_DRIVE_SLEEP
+// Sleep defined in milliseconds
+#define PRE_DRIVE_SLEEP  50
+#define POST_DRIVE_SLEEP 50
 
 
 #define DRIVE_reg_1 PORTB
@@ -57,39 +62,67 @@
 #define DRIVE_pin_11 <blank>
 #define DRIVE_pin_12 <blank>
 
-#define DETECT_group_1 0
-#define DETECT_group_2 0
-#define DETECT_group_3 0
-#define DETECT_group_4 0
-#define DETECT_group_5 0
-#define DETECT_group_6 0
-#define DETECT_group_7 0
-#define DETECT_group_8 0
-#define DETECT_group_9 0
+#define DETECT_group_1 1
+#define DETECT_group_2 2
+#define DETECT_group_3 3
+#define DETECT_group_4 4
+#define DETECT_group_5 5
+#define DETECT_group_6 6
+#define DETECT_group_7 7
+#define DETECT_group_8 8
+#define DETECT_group_9 9
 #define DETECT_group_10 <blank>
 #define DETECT_group_11 <blank>
 #define DETECT_group_12 <blank>
 
-// Change number of ORDs if number of lines differ
+#define DETECT_group_size_1 7
+#define DETECT_group_size_2 8
+#define DETECT_group_size_3 8
+#define DETECT_group_size_4 4
+#define DETECT_group_size_5 8
+#define DETECT_group_size_6 7
+#define DETECT_group_size_7 7
+#define DETECT_group_size_8 6
+#define DETECT_group_size_9 7
+#define DETECT_group_size_10 <blank>
+#define DETECT_group_size_11 <blank>
+#define DETECT_group_size_12 <blank>
+
+#define DETECT_group_array_1 {{KEY_SLASH,KEY_RIGHT_BRACE,KEY_ENTER,KEY_D,KEY_2,KEY_Q,KEY_C},{0,0,0,0,0,0,0}}
+#define DETECT_group_array_2 {{KEY_TILDE,KEY_DELETE,KEY_LEFT,KEY_SPACE,KEY_X,KEY_S,KEY_TAB,KEY_1},{0,0,0,0,0,0,0,0}}
+#define DETECT_group_array_3 {{KEY_BACKSPACE,KEY_UP,KEY_DOWN,KEY_A,KEY_INSERT,KEY_ALT,KEY_Z,KEY_RIGHT},{0,0,0,0,0,1,0,0}}
+#define DETECT_group_array_4 {{KEY_ESC  ,KEY_CTRL,KEY_CAPS_LOCK,KEY_SHIFT}                  ,{0,1,0,1}}
+#define DETECT_group_array_5 0
+#define DETECT_group_array_6 0
+#define DETECT_group_array_7 {{KEY_L    ,KEY_O   ,KEY_0        ,KEY_N    ,KEY_H,KEY_R,KEY_5},{0,0,0,0,0,0,0}}
+#define DETECT_group_array_8 0
+#define DETECT_group_array_9 0
+#define DETECT_group_array_10 <blank>
+#define DETECT_group_array_11 <blank>
+#define DETECT_group_array_12 <blank>
+
+
+
+
+
+
+
+// XXX Change number of ORDs if number of lines differ
 #define DD_LOOP \
-			for ( int c = 0;; c++ ) { \
+			for ( int c = 1;; c++ ) { \
 				switch ( c ) { \
 					DD_CASE_ORD(1) \
 					DD_CASE_ORD(2) \
 					DD_CASE_ORD(3) \
-					DD_CASE_ORD(4) \
-					DD_CASE_ORD(5) \
-					DD_CASE_ORD(6) \
-					DD_CASE_ORD(7) \
-					DD_CASE_ORD(8) \
-					DD_CASE_END(9,c) \
+					DD_CASE_END(4,c) \
 				} \
 			}
 
 #define DRIVE_DETECT(reg,pin,group) \
-			reg |= (1 << pin);\
-			detection(group);\
-			reg &= (0 << pin);
+			reg &= ~(1 << pin); \
+			detection(group); \
+			reg |= (1 << pin); \
+			_delay_ms(POST_DRIVE_SLEEP);
 
 #define DD_CASE(number) \
 			case number:\
@@ -101,18 +134,164 @@
 
 #define DD_CASE_END(number,var) \
 			DD_CASE(number) \
-			default: \
 			var = -1; \
 			break;
 
-int main(void)
+// Determine if key is either normal or a modifier
+#define DET_GROUP_CHECK(index) \
+			{ \
+			if ( groupArray[1][index] ) \
+				curDetect.modifiers |= groupArray[0][index]; \
+			else \
+				curDetect.keyDetectArray[curDetect.keyDetectCount++] = groupArray[0][index]; \
+			}
+
+// XXX - Detection Groups
+// Checks each of the specified pins, and then if press detected, determine if the key is normal or a modifier
+// Inverse logic applies for the PINs
+
+// Used for 1 detection group
+#define DET_GROUP_1 \
+			if ( !( PINB & (1 << 3) ) ) \
+				DET_GROUP_CHECK(3) \
+			if ( !( PINF & (1 << 1) ) ) \
+				DET_GROUP_CHECK(2) \
+			if ( !( PINF & (1 << 2) ) ) \
+				DET_GROUP_CHECK(1) \
+			if ( !( PINF & (1 << 3) ) ) \
+				DET_GROUP_CHECK(0)
+
+// Used for 4 detection groups
+#define DET_GROUP_2 \
+			if ( !( PINC & (1 << 0) ) ) \
+				DET_GROUP_CHECK(0) \
+			if ( !( PINC & (1 << 1) ) ) \
+				DET_GROUP_CHECK(1) \
+			if ( !( PINC & (1 << 2) ) ) \
+				DET_GROUP_CHECK(2) \
+			if ( !( PINC & (1 << 3) ) ) \
+				DET_GROUP_CHECK(3) \
+			if ( !( PINC & (1 << 4) ) ) \
+				DET_GROUP_CHECK(4) \
+			if ( !( PINC & (1 << 5) ) ) \
+				DET_GROUP_CHECK(5) \
+			if ( !( PINC & (1 << 6) ) ) \
+				DET_GROUP_CHECK(6) \
+
+// Used for 1 detection group
+#define DET_GROUP_3 \
+			if ( !( PINC & (1 << 0) ) ) \
+				DET_GROUP_CHECK(0) \
+			if ( !( PINC & (1 << 1) ) ) \
+				DET_GROUP_CHECK(1) \
+			if ( !( PINC & (1 << 2) ) ) \
+				DET_GROUP_CHECK(3) \
+			if ( !( PINC & (1 << 4) ) ) \
+				DET_GROUP_CHECK(4) \
+			if ( !( PINC & (1 << 5) ) ) \
+				DET_GROUP_CHECK(5) \
+			if ( !( PINC & (1 << 6) ) ) \
+				DET_GROUP_CHECK(6) \
+
+// Used for 3 detection groups
+#define DET_GROUP_4 \
+			if ( !( PINC & (1 << 0) ) ) \
+				DET_GROUP_CHECK(0) \
+			if ( !( PINC & (1 << 1) ) ) \
+				DET_GROUP_CHECK(1) \
+			if ( !( PINC & (1 << 2) ) ) \
+				DET_GROUP_CHECK(2) \
+			if ( !( PINC & (1 << 3) ) ) \
+				DET_GROUP_CHECK(3) \
+			if ( !( PINC & (1 << 4) ) ) \
+				DET_GROUP_CHECK(4) \
+			if ( !( PINC & (1 << 5) ) ) \
+				DET_GROUP_CHECK(5) \
+			if ( !( PINC & (1 << 6) ) ) \
+				DET_GROUP_CHECK(6) \
+			if ( !( PINE & (1 << 1) ) ) \
+				DET_GROUP_CHECK(7) \
+
+// Combines the DET_GROUP_Xs above for the given groupArray
+#define DET_GROUP(group,det_group) \
+			case group: \
+				{ \
+					uint8_t groupArray[2][DETECT_group_size##_##group] = DETECT_group_array##_##group; \
+					DET_GROUP##_##det_group \
+				} \
+				break;
+
+struct keys {
+	uint8_t keyDetectCount;
+	uint8_t keyDetectArray[40];
+	uint8_t modifiers;
+} curDetect, prevDetect;
+
+void detection( int group )
+{
+	_delay_ms(PRE_DRIVE_SLEEP);
+	curDetect.keyDetectCount = 0;
+	curDetect.modifiers = 0;
+
+	// XXX Modify for different detection groups <-> groupArray mappings
+	switch ( group ) {
+		DET_GROUP(1,2)
+		DET_GROUP(2,4)
+		DET_GROUP(3,4)
+		DET_GROUP(4,1)
+		//DET_GROUP(5,4)
+		//DET_GROUP(6,2)
+		//DET_GROUP(7,2)
+		//DET_GROUP(8,3)
+		//DET_GROUP(9,2)
+	}
+
+
+	// Print out the current keys pressed
+	if ( curDetect.keyDetectCount > 0 ) {
+		print("Keys: ");
+		for ( int c = 0; c < curDetect.keyDetectCount; c++ ) {
+			phex( curDetect.keyDetectArray[c] );
+			print(" ");
+		}
+		print("\n");
+	}
+	if ( curDetect.modifiers ) {
+		print("Modifiers: ");
+		phex( curDetect.modifiers );
+		print("\n");
+	}
+}
+
+
+
+// XXX This part is configurable
+void pinSetup(void)
+{
+	// For each pin, 0=input, 1=output
+	DDRA = 0x00;
+	DDRB = 0x07;
+	DDRC = 0x80;
+	DDRD = 0x00;
+	DDRE = 0xC0;
+	DDRF = 0x31;
+
+	// Setting pins to either high or pull-up resistor
+	PORTA = 0x00;
+	PORTB = 0xFF;
+	PORTC = 0xFF;
+	PORTD = 0x00;
+	PORTE = 0xFF;
+	PORTF = 0xFF;
+}
+
+int main( void )
 {
 	// set for 16 MHz clock
 	CPU_PRESCALE( 0 );
 
 	// Configuring Pins
-
-	// TODO
+	pinSetup();
 
 	// Initialize the USB, and then wait for the host to set configuration.
 	// If the Teensy is powered without a PC connected to the USB port,
