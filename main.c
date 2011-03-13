@@ -32,33 +32,33 @@
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
 
 // Sleep defined in milliseconds
-#define PRE_DRIVE_SLEEP  1
-#define POST_DRIVE_SLEEP 1
+#define PRE_DRIVE_SLEEP  10
+#define POST_DRIVE_SLEEP 10
 
 
 // Drive Pin Defines
-#define DRIVE_reg_1 PORTB
-#define DRIVE_reg_2 PORTB
-#define DRIVE_reg_3 PORTB
-#define DRIVE_reg_4 PORTC
-#define DRIVE_reg_5 PORTE
-#define DRIVE_reg_6 PORTE
-#define DRIVE_reg_7 PORTF
-#define DRIVE_reg_8 PORTF
-#define DRIVE_reg_9 PORTF
+#define DRIVE_reg_1 PORTD
+#define DRIVE_reg_2 PORTD
+#define DRIVE_reg_3 PORTD
+#define DRIVE_reg_4 PORTD
+#define DRIVE_reg_5 PORTD
+#define DRIVE_reg_6 PORTD
+#define DRIVE_reg_7 PORTE
+#define DRIVE_reg_8 PORTE
+#define DRIVE_reg_9 PORTE
 #define DRIVE_reg_10 <blank>
 #define DRIVE_reg_11 <blank>
 #define DRIVE_reg_12 <blank>
 
-#define DRIVE_pin_1 0
-#define DRIVE_pin_2 1
-#define DRIVE_pin_3 2
-#define DRIVE_pin_4 7
+#define DRIVE_pin_1 2
+#define DRIVE_pin_2 3
+#define DRIVE_pin_3 4
+#define DRIVE_pin_4 5
 #define DRIVE_pin_5 6
 #define DRIVE_pin_6 7
 #define DRIVE_pin_7 0
-#define DRIVE_pin_8 4
-#define DRIVE_pin_9 5
+#define DRIVE_pin_8 1
+#define DRIVE_pin_9 6
 #define DRIVE_pin_10 <blank>
 #define DRIVE_pin_11 <blank>
 #define DRIVE_pin_12 <blank>
@@ -77,28 +77,28 @@
 #define DETECT_group_11 <blank>
 #define DETECT_group_12 <blank>
 
-#define DETECT_group_size_1 7
+#define DETECT_group_size_1 4
 #define DETECT_group_size_2 8
 #define DETECT_group_size_3 8
-#define DETECT_group_size_4 4
-#define DETECT_group_size_5 8
-#define DETECT_group_size_6 7
-#define DETECT_group_size_7 7
-#define DETECT_group_size_8 6
+#define DETECT_group_size_4 7
+#define DETECT_group_size_5 7
+#define DETECT_group_size_6 8
+#define DETECT_group_size_7 6
+#define DETECT_group_size_8 7
 #define DETECT_group_size_9 7
 #define DETECT_group_size_10 <blank>
 #define DETECT_group_size_11 <blank>
 #define DETECT_group_size_12 <blank>
 
-#define DETECT_group_array_1 {{KEY_SLASH,KEY_RIGHT_BRACE,KEY_ENTER,KEY_D,KEY_2,KEY_Q,KEY_C},{0,0,0,0,0,0,0}}
-#define DETECT_group_array_2 {{KEY_TILDE,KEY_DELETE,KEY_LEFT,KEY_SPACE,KEY_X,KEY_S,KEY_TAB,KEY_1},{0,0,0,0,0,0,0,0}}
-#define DETECT_group_array_3 {{KEY_BACKSPACE,KEY_UP,KEY_DOWN,KEY_A,KEY_INSERT,KEY_ALT,KEY_Z,KEY_RIGHT},{0,0,0,0,0,1,0,0}}
-#define DETECT_group_array_4 {{KEY_ESC,KEY_CTRL,KEY_CAPS_LOCK,KEY_SHIFT},{0,1,0,1}}
-#define DETECT_group_array_5 {{KEY_MINUS,KEY_P,KEY_SEMICOLON,KEY_G,KEY_4,KEY_E,KEY_B,KEY_BACKSLASH},{0,0,0,0,0,0,0,0}}
-#define DETECT_group_array_6 {{KEY_EQUAL,KEY_LEFT_BRACE,KEY_QUOTE,KEY_F,KEY_3,KEY_W,KEY_V},{0,0,0,0,0,0,0}}
-#define DETECT_group_array_7 {{KEY_0,KEY_O,KEY_L,KEY_H,KEY_5,KEY_R,KEY_N},{0,0,0,0,0,0,0}}
-#define DETECT_group_array_8 {{KEY_8,KEY_U,KEY_K,KEY_7,KEY_Y,KEY_COMMA},{0,0,0,0,0,0}}
-#define DETECT_group_array_9 {{KEY_9,KEY_I,KEY_PERIOD,KEY_J,KEY_6,KEY_T,KEY_M},{0,0,0,0,0,0,0}}
+#define DETECT_group_array_1 {{KEY_ESC,KEY_CTRL,KEY_CAPS_LOCK,KEY_SHIFT},{0,1,0,1}}
+#define DETECT_group_array_2 {{KEY_BACKSPACE,KEY_UP,KEY_DOWN,KEY_A,KEY_INSERT,KEY_ALT,KEY_Z,KEY_RIGHT},{0,0,0,0,0,1,0,0}}
+#define DETECT_group_array_3 {{KEY_TILDE,KEY_DELETE,KEY_LEFT,KEY_SPACE,KEY_X,KEY_S,KEY_TAB,KEY_1},{0,0,0,0,0,0,0,0}}
+#define DETECT_group_array_4 {{KEY_SLASH,KEY_RIGHT_BRACE,KEY_ENTER,KEY_D,KEY_2,KEY_Q,KEY_C},{0,0,0,0,0,0,0}}
+#define DETECT_group_array_5 {{KEY_EQUAL,KEY_LEFT_BRACE,KEY_QUOTE,KEY_F,KEY_3,KEY_W,KEY_V},{0,0,0,0,0,0,0}}
+#define DETECT_group_array_6 {{KEY_MINUS,KEY_P,KEY_SEMICOLON,KEY_G,KEY_4,KEY_E,KEY_B,KEY_BACKSLASH},{0,0,0,0,0,0,0,0}}
+#define DETECT_group_array_7 {{KEY_8,KEY_U,KEY_K,KEY_7,KEY_Y,KEY_COMMA},{0,0,0,0,0,0}}
+#define DETECT_group_array_8 {{KEY_9,KEY_I,KEY_PERIOD,KEY_J,KEY_6,KEY_T,KEY_M},{0,0,0,0,0,0,0}}
+#define DETECT_group_array_9 {{KEY_0,KEY_O,KEY_L,KEY_H,KEY_5,KEY_R,KEY_N},{0,0,0,0,0,0,0}}
 #define DETECT_group_array_10 <blank>
 #define DETECT_group_array_11 <blank>
 #define DETECT_group_array_12 <blank>
@@ -143,13 +143,13 @@
 
 // Used for 1 detection group
 #define DET_GROUP_1 \
-			if ( !( PINB & (1 << 3) ) ) \
+			if ( !( PINC & (1 << 0) ) ) \
 				DET_GROUP_CHECK(3) \
-			if ( !( PINF & (1 << 1) ) ) \
+			if ( !( PINE & (1 << 1) ) ) \
 				DET_GROUP_CHECK(2) \
-			if ( !( PINF & (1 << 2) ) ) \
+			if ( !( PINE & (1 << 0) ) ) \
 				DET_GROUP_CHECK(1) \
-			if ( !( PINF & (1 << 3) ) ) \
+			if ( !( PINB & (1 << 7) ) ) \
 				DET_GROUP_CHECK(0)
 
 // Used for 4 detection groups
@@ -221,12 +221,11 @@ struct keys {
 void detection( int group )
 {
 	_delay_ms(PRE_DRIVE_SLEEP);
-	curDetect.keyDetectCount = 0;
-	curDetect.modifiers = 0;
 
 	// XXX Modify for different detection groups <-> groupArray mappings
 	switch ( group ) {
-		DET_GROUP(1,2)
+		DET_GROUP(1,1)
+		/*
 		DET_GROUP(2,4)
 		DET_GROUP(3,4)
 		DET_GROUP(4,1)
@@ -235,6 +234,7 @@ void detection( int group )
 		DET_GROUP(7,2)
 		DET_GROUP(8,3)
 		DET_GROUP(9,2)
+		*/
 	}
 
 
@@ -294,10 +294,16 @@ int main( void )
 	// and do whatever it does to actually be ready for input
 	_delay_ms(1000);
 
+	// Make sure variables are properly initialized
+	curDetect.keyDetectCount = 0;
+	curDetect.modifiers = 0;
+
 	// Main Detection Loop
 	// XXX Change number of ORDs if number of lines differ
-	for ( int c = 1;;c++ ) {
-		switch ( c ) {
+	for ( int group = 1;;group++ ) {
+		// Determine which keys are being pressed
+		switch ( group ) {
+			/*
 			DD_CASE_ORD(1)
 			DD_CASE_ORD(2)
 			DD_CASE_ORD(3)
@@ -306,8 +312,28 @@ int main( void )
 			DD_CASE_ORD(6)
 			DD_CASE_ORD(7)
 			DD_CASE_ORD(8)
-			DD_CASE_END(9,c)
+			*/
+			DD_CASE_END(9,group)
 		}
+
+		if ( group != -1 )
+			continue;
+
+		// After going through each of the key groups, send the detected keys and modifiers
+		// Currently limited to the USB spec (6 keys + modifiers)
+		// Making sure to pass zeros when there are no keys being pressed
+		for ( int c = 0; c < 6 && c < curDetect.keyDetectCount; c++ )
+			keyboard_keys[c] = c < curDetect.keyDetectCount ? curDetect.keyDetectArray[c] : 0;
+
+		// Modifiers
+		keyboard_modifier_keys = curDetect.modifiers;
+
+		// Send keypresses
+		usb_keyboard_send();
+
+		// Cleanup
+		curDetect.keyDetectCount = 0;
+		curDetect.modifiers = 0;
 	}
 
 	// usb_keyboard_press(KEY_B, KEY_SHIFT);
