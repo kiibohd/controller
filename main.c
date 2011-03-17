@@ -32,8 +32,20 @@
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
 
 // Sleep defined in milliseconds
-#define PRE_DRIVE_SLEEP  50
-#define POST_DRIVE_SLEEP 50
+
+
+// Number of keys
+#define KEYBOARD_SIZE 63
+#define KEYPAD_SIZE 16
+
+
+// Debouncing Defines
+#define SAMPLE_THRESHOLD 100
+#define MAX_SAMPLES 127 // Max is 127, reaching 128 is very bad
+
+
+// Verified Keypress Defines
+#define USB_TRANSFER_DIVIDER 10 // 1024 == 1 Send of keypresses per second, 1 == 1 Send of keypresses per ~1 millisecond
 
 
 // Drive Pin Defines
@@ -102,15 +114,15 @@
 #define DETECT_group_array_9 {{KEY_0,KEY_O,KEY_L,KEY_H,KEY_5,KEY_R,KEY_N},{0,0,0,0,0,0,0}}
 */
 // Switch Codes
-#define DETECT_group_array_1 {11,27,43,40,6, 22,55}
-#define DETECT_group_array_2 {10,26,58,41,7, 23,56}
-#define DETECT_group_array_3 {9, 25,42,8, 24,57}
-#define DETECT_group_array_4 {12,28,44,39,5, 21,54,59}
-#define DETECT_group_array_5 {13,29,45,38,4, 20,53}
-#define DETECT_group_array_6 {14,30,46,37,3, 19,52}
-#define DETECT_group_array_7 {15,31,61,63,51,36,18,2}
-#define DETECT_group_array_8 {16,32,47,35,1, 17,50,62}
-#define DETECT_group_array_9 {48,34,33,49} // 49/60 are the same line
+#define DETECT_group_array_1 {55,22,6 ,40,43,27,11}
+#define DETECT_group_array_2 {56,23,7 ,41,58,26,10}
+#define DETECT_group_array_3 {57,24,8 ,42,25,9}
+#define DETECT_group_array_4 {54,21,5 ,39,44,28,12,59}
+#define DETECT_group_array_5 {53,20,4 ,38,45,29,13}
+#define DETECT_group_array_6 {52,19,3 ,37,46,30,14}
+#define DETECT_group_array_7 {51,18,2 ,36,61,31,15,63}
+#define DETECT_group_array_8 {50,17,1 ,35,47,32,16,62}
+#define DETECT_group_array_9 {48,49,33,34} // 49/60 are the same line
 #define DETECT_group_array_10 <blank>
 #define DETECT_group_array_11 <blank>
 #define DETECT_group_array_12 <blank>
@@ -121,8 +133,7 @@
 #define DRIVE_DETECT(reg,pin,group) \
 			reg &= ~(1 << pin); \
 			detection(group); \
-			reg |= (1 << pin); \
-			_delay_ms(POST_DRIVE_SLEEP);
+			reg |= (1 << pin);
 
 #define DD_CASE(number) \
 			case number:\
@@ -138,10 +149,13 @@
 			break;
 
 
+// Updates the current detection sample and last sample bit
 // Detection Macros (Probably don't need to be changed, but depending the matrix, may have to be)
 // Determine if key is either normal or a modifier
-#define DET_GROUP_CHECK(index) \
-			curDetect.keyDetectArray[curDetect.keyDetectCount++] = groupArray[index];
+#define DET_GROUP_CHECK(index,test) \
+			if ( test ) { \
+				keyDetectArray[groupArray[index]]++; \
+			}
 
 
 // XXX - Detection Groups
@@ -150,147 +164,135 @@
 
 // Used for 1 detection group (Special group)
 #define DET_GROUP_1 \
-			if ( !( PINB & (1 << 7) ) ) \
-				DET_GROUP_CHECK(0) \
-			if ( !( PINC & (1 << 0) ) ) \
-				DET_GROUP_CHECK(1) \
-			if ( !( PIND & (1 << 0) ) ) \
-				DET_GROUP_CHECK(2) \
-			if ( !( PIND & (1 << 1) ) ) \
-				DET_GROUP_CHECK(3)
+			DET_GROUP_CHECK(0,!( PINB & (1 << 7) )) \
+			DET_GROUP_CHECK(1,!( PINC & (1 << 0) )) \
+			DET_GROUP_CHECK(2,!( PIND & (1 << 0) )) \
+			DET_GROUP_CHECK(3,!( PIND & (1 << 1) )) \
 
 // Used for 4 detection groups (Skips J1 P9)
 #define DET_GROUP_2 \
-			if ( !( PINE & (1 << 7) ) ) \
-				DET_GROUP_CHECK(0) \
-			if ( !( PINB & (1 << 0) ) ) \
-				DET_GROUP_CHECK(1) \
-			if ( !( PINB & (1 << 1) ) ) \
-				DET_GROUP_CHECK(2) \
-			if ( !( PINB & (1 << 2) ) ) \
-				DET_GROUP_CHECK(3) \
-			if ( !( PINB & (1 << 3) ) ) \
-				DET_GROUP_CHECK(4) \
-			if ( !( PINB & (1 << 4) ) ) \
-				DET_GROUP_CHECK(5) \
-			if ( !( PINB & (1 << 5) ) ) \
-				DET_GROUP_CHECK(6) \
+			DET_GROUP_CHECK(0,!( PINE & (1 << 7) )) \
+			DET_GROUP_CHECK(1,!( PINB & (1 << 0) )) \
+			DET_GROUP_CHECK(2,!( PINB & (1 << 1) )) \
+			DET_GROUP_CHECK(3,!( PINB & (1 << 2) )) \
+			DET_GROUP_CHECK(4,!( PINB & (1 << 3) )) \
+			DET_GROUP_CHECK(5,!( PINB & (1 << 4) )) \
+			DET_GROUP_CHECK(6,!( PINB & (1 << 5) )) \
 
 // Used for 1 detection group (Skips J1 P6 and J1 P9)
 #define DET_GROUP_3 \
-			if ( !( PINE & (1 << 7) ) ) \
-				DET_GROUP_CHECK(0) \
-			if ( !( PINB & (1 << 0) ) ) \
-				DET_GROUP_CHECK(1) \
-			if ( !( PINB & (1 << 1) ) ) \
-				DET_GROUP_CHECK(2) \
-			if ( !( PINB & (1 << 2) ) ) \
-				DET_GROUP_CHECK(3) \
-			if ( !( PINB & (1 << 4) ) ) \
-				DET_GROUP_CHECK(4) \
-			if ( !( PINB & (1 << 5) ) ) \
-				DET_GROUP_CHECK(5) \
+			DET_GROUP_CHECK(0,!( PINE & (1 << 7) )) \
+			DET_GROUP_CHECK(1,!( PINB & (1 << 0) )) \
+			DET_GROUP_CHECK(2,!( PINB & (1 << 1) )) \
+			DET_GROUP_CHECK(3,!( PINB & (1 << 2) )) \
+			DET_GROUP_CHECK(4,!( PINB & (1 << 4) )) \
+			DET_GROUP_CHECK(5,!( PINB & (1 << 5) )) \
 
 // Used for 3 detection groups (No skips, except special group 1)
 #define DET_GROUP_4 \
-			if ( !( PINE & (1 << 7) ) ) \
-				DET_GROUP_CHECK(0) \
-			if ( !( PINB & (1 << 0) ) ) \
-				DET_GROUP_CHECK(1) \
-			if ( !( PINB & (1 << 1) ) ) \
-				DET_GROUP_CHECK(2) \
-			if ( !( PINB & (1 << 2) ) ) \
-				DET_GROUP_CHECK(3) \
-			if ( !( PINB & (1 << 3) ) ) \
-				DET_GROUP_CHECK(4) \
-			if ( !( PINB & (1 << 4) ) ) \
-				DET_GROUP_CHECK(5) \
-			if ( !( PINB & (1 << 5) ) ) \
-				DET_GROUP_CHECK(6) \
-			if ( !( PINB & (1 << 6) ) ) \
-				DET_GROUP_CHECK(7) \
+			DET_GROUP_CHECK(0,!( PINE & (1 << 7) )) \
+			DET_GROUP_CHECK(1,!( PINB & (1 << 0) )) \
+			DET_GROUP_CHECK(2,!( PINB & (1 << 1) )) \
+			DET_GROUP_CHECK(3,!( PINB & (1 << 2) )) \
+			DET_GROUP_CHECK(4,!( PINB & (1 << 3) )) \
+			DET_GROUP_CHECK(5,!( PINB & (1 << 4) )) \
+			DET_GROUP_CHECK(6,!( PINB & (1 << 5) )) \
+			DET_GROUP_CHECK(7,!( PINB & (1 << 6) )) \
 
 // Combines the DET_GROUP_Xs above for the given groupArray
 #define DET_GROUP(group,det_group) \
 			case group: \
 				{ \
 					uint8_t groupArray[DETECT_group_size_##group] = DETECT_group_array_##group; \
+					_delay_us(1); \
 					DET_GROUP_##det_group \
 				} \
 				break;
 
-struct keys {
-	uint8_t keyDetectCount;
-	uint8_t keyDetectArray[40];
-	uint8_t modifiers;
-} curDetect, prevDetect;
 
+// Loop over all of the sampled keys of the given array
+// If the number of samples is higher than the sample threshold, flag the high bit, clear otherwise
+// This should be resetting VERY quickly, cutting off a potentially valid keypress is not an issue
+#define DEBOUNCE_ASSESS(table,size) \
+			for ( uint8_t key = 1; key < size + 1; key++ ) {\
+				table[key] = ( table[key] & ~(1 << 7) ) > SAMPLE_THRESHOLD ? (1 << 7) : 0x00; \
+			} \
+
+
+// NOTE: Highest Bit: Valid keypress (0x80 is valid keypress)
+//        Other Bits: Pressed state sample counter
+uint8_t keyDetectArray[KEYBOARD_SIZE + 1];
+uint8_t keypadDetectArray[KEYPAD_SIZE + 1];
+
+uint16_t sendKeypressCounter = 0;
+volatile uint8_t sendKeypresses = 0;
+
+static const uint8_t defaultMap[] = { 0,
+				KEY_INSERT,
+				KEY_1,
+				KEY_2,
+				KEY_3,
+				KEY_4,
+				KEY_5,
+				KEY_6,
+				KEY_7,
+				KEY_8,
+				KEY_9,
+				KEY_0,
+				KEY_MINUS,
+				KEY_EQUAL,
+				KEY_BACKSLASH,
+				KEY_ALT,
+				KEY_TAB,
+				KEY_Q,
+				KEY_W,
+				KEY_E,
+				KEY_R,
+				KEY_T,
+				KEY_Y,
+				KEY_U,
+				KEY_I,
+				KEY_O,
+				KEY_P,
+				KEY_LEFT_BRACE,
+				KEY_RIGHT_BRACE,
+				KEY_DELETE,
+				KEY_UP,
+				KEY_CTRL,
+				KEY_CAPS_LOCK,
+				KEY_A,
+				KEY_S,
+				KEY_D,
+				KEY_F,
+				KEY_G,
+				KEY_H,
+				KEY_J,
+				KEY_K,
+				KEY_L,
+				KEY_SEMICOLON,
+				KEY_QUOTE,
+				KEY_ENTER,
+				KEY_DOWN,
+				KEY_ESC,
+				KEY_LEFT_SHIFT,
+				KEY_Z,
+				KEY_X,
+				KEY_C,
+				KEY_V,
+				KEY_B,
+				KEY_N,
+				KEY_M,
+				KEY_COMMA,
+				KEY_PERIOD,
+				KEY_SLASH,
+				KEY_RIGHT_SHIFT,
+				KEY_LEFT,
+				KEY_RIGHT,
+				KEY_SPACE };
 
 // Scan Code Decoder (for debug)
 void printDecodeScancode( int code )
 {
-	static const uint8_t defaultMap[] = { 0,
-					KEY_INSERT,
-					KEY_1,
-					KEY_2,
-					KEY_3,
-					KEY_4,
-					KEY_5,
-					KEY_6,
-					KEY_7,
-					KEY_8,
-					KEY_9,
-					KEY_0,
-					KEY_MINUS,
-					KEY_EQUAL,
-					KEY_BACKSLASH,
-					KEY_ALT,
-					KEY_TAB,
-					KEY_Q,
-					KEY_W,
-					KEY_E,
-					KEY_R,
-					KEY_T,
-					KEY_Y,
-					KEY_U,
-					KEY_I,
-					KEY_O,
-					KEY_P,
-					KEY_LEFT_BRACE,
-					KEY_RIGHT_BRACE,
-					KEY_DELETE,
-					KEY_UP,
-					KEY_CTRL,
-					KEY_CAPS_LOCK,
-					KEY_A,
-					KEY_S,
-					KEY_D,
-					KEY_F,
-					KEY_G,
-					KEY_H,
-					KEY_J,
-					KEY_K,
-					KEY_L,
-					KEY_SEMICOLON,
-					KEY_QUOTE,
-					KEY_ENTER,
-					KEY_DOWN,
-					KEY_ESC,
-					KEY_LEFT_SHIFT,
-					KEY_Z,
-					KEY_X,
-					KEY_C,
-					KEY_V,
-					KEY_B,
-					KEY_N,
-					KEY_M,
-					KEY_COMMA,
-					KEY_PERIOD,
-					KEY_SLASH,
-					KEY_RIGHT_SHIFT,
-					KEY_LEFT,
-					KEY_RIGHT,
-					KEY_SPACE };
 
 	static const char* decodeArray[] = { "", "", "", "", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "Enter", "Esc", "Backspace", "Tab", "Space", "-_", "=+", "[{", "]}", "\\", "#", ";:", "'\"", "`~", ",<", ".>", "/?", "Caps Lock", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Print Screen", "Scroll Lock", "Pause", "Insert", "Home", "Page Up", "Delete", "End", "Page Down", "Right", "Left", "Down", "Up", "Num Lock", "K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "K9", "K0", "K." };
 	print_P( decodeArray[ defaultMap[code] ] );
@@ -298,8 +300,6 @@ void printDecodeScancode( int code )
 
 void detection( int group )
 {
-	_delay_ms(PRE_DRIVE_SLEEP);
-
 	// XXX Modify for different detection groups <-> groupArray mappings
 	switch ( group ) {
 		DET_GROUP(1,2)
@@ -317,7 +317,7 @@ void detection( int group )
 
 
 // XXX This part is configurable
-void pinSetup(void)
+inline void pinSetup(void)
 {
 	// For each pin, 0=input, 1=output
 	DDRA = 0x00;
@@ -327,18 +327,19 @@ void pinSetup(void)
 	DDRE = 0x43;
 	DDRF = 0x00;
 
+
 	// Setting pins to either high or pull-up resistor
-	PORTA = 0x00;
+	PORTA = 0xFF;
 	PORTB = 0xFF;
 	PORTC = 0x01;
 	PORTD = 0xFF;
 	PORTE = 0xC3;
-	PORTF = 0x00;
+	PORTF = 0xFF;
 }
 
 int main( void )
 {
-	// set for 16 MHz clock
+	// Setup with 16 MHz clock
 	CPU_PRESCALE( 0 );
 
 	// Configuring Pins
@@ -354,13 +355,18 @@ int main( void )
 	// and do whatever it does to actually be ready for input
 	_delay_ms(1000);
 
-	// Make sure variables are properly initialized
-	curDetect.keyDetectCount = 0;
-	curDetect.modifiers = 0;
+	// Setup ISR Timer for flagging a kepress send to USB
+	// Set to 256 * 1024 (8 bit timer with Clock/1024 prescalar) timer
+	// 
+	TCCR0A = 0x00;
+	TCCR0B = 0x03;
+	TIMSK0 = (1 << TOIE0);
 
 	// Main Detection Loop
-	// XXX Change number of ORDs if number of lines differ
-	for ( int group = 1;;group++ ) {
+	int8_t group = 1;
+	uint8_t count = 0;
+	for ( ;;group++ ) {
+		// XXX Change number of ORDs if number of lines (RowsxColumns) differ
 		// Determine which keys are being pressed
 		switch ( group ) {
 			DD_CASE_ORD(1)
@@ -374,45 +380,110 @@ int main( void )
 			DD_CASE_END(9,group)
 		}
 
+		// Check all Keyboard keys first
 		if ( group != -1 )
 			continue;
 
-		// Print out the current keys pressed
-		if ( curDetect.keyDetectCount > 0 ) {
-			print("Switch: ");
-			for ( int c = 0; c < curDetect.keyDetectCount; c++ ) {
-				print("0x");
-				phex( curDetect.keyDetectArray[c] );
-				print("|");
-				//printDecodeScancode( curDetect.keyDetectArray[c] );
+		// Check Keypad keys
+		// TODO
+
+		// Check count to see if the sample threshold may have been reached, otherwise collect more data
+		count++;
+		if ( count < MAX_SAMPLES )
+			continue;
+
+		// Reset Sample Counter
+		count = 0;
+
+		// Assess debouncing sample table
+		DEBOUNCE_ASSESS(keyDetectArray,KEYBOARD_SIZE)
+		//DEBOUNCE_ASSESS(keypadDetectArray,KEYPAD_SIZE)
+
+		// Send keypresses over USB if the ISR has signalled that it's time
+		if ( !sendKeypresses )
+			continue;
+
+
+		// Detect Valid Keypresses - TODO
+		uint8_t validKeys = 0;
+		for ( uint8_t key = 0; key < KEYBOARD_SIZE + 1; key++ ) {
+			//phex(keyDetectArray[key]);
+			//print ("|");
+			if ( keyDetectArray[key] & (1 << 7) ) {
+				//print("0x");
+				//phex( key );
+				pint8( key );
 				print(" ");
+
+				// Too many keys
+				if ( validKeys == 6 )
+					break;
+				keyboard_keys[validKeys++] = defaultMap[key];
+			}
+		}
+		print(":\n");
+
+		// TODO undo potentially old keys
+		for ( uint8_t c = validKeys; c < 6; c++ )
+			keyboard_keys[c] = 0;
+
+
+		// Debugging Output
+		//phex(PINA);
+		//phex(PINF);
+		//print("\n");
+
+
+
+		// Print out the current keys pressed
+		/*
+		if ( keyDetectCount > 0 ) {
+			print("Switch: ");
+			for ( int c = 0; c < keyDetectCount; c++ ) {
+				print("0x");
+				phex( keyDetectArray[c] );
+				print("|");
+				//printDecodeScancode( keyDetectArray[c] );
+				print(" ");
+
 			}
 			print("\n");
 		}
-		if ( curDetect.modifiers ) {
+		if ( modifiers ) {
 			print("Modifiers: ");
-			phex( curDetect.modifiers );
+			phex( modifiers );
 			print("\n");
 		}
+		*/
 
 		// After going through each of the key groups, send the detected keys and modifiers
 		// Currently limited to the USB spec (6 keys + modifiers)
 		// Making sure to pass zeros when there are no keys being pressed
-		for ( int c = 0; c < 6 && c < curDetect.keyDetectCount; c++ )
-			keyboard_keys[c] = c < curDetect.keyDetectCount ? curDetect.keyDetectArray[c] : 0;
+		/*
+		for ( int c = 0; c < 6 && c < keyDetectCount; c++ )
+			keyboard_keys[c] = c < keyDetectCount ? keyDetectArray[c] : 0;
 
 		// Modifiers
-		keyboard_modifier_keys = curDetect.modifiers;
+		keyboard_modifier_keys = modifiers;
+		*/
 
 		// Send keypresses
-		//usb_keyboard_send();
+		usb_keyboard_send();
 
-		// Cleanup
-		curDetect.keyDetectCount = 0;
-		curDetect.modifiers = 0;
+		// Clear sendKeypresses Flag
+		sendKeypresses = 0;
 	}
 
 	// usb_keyboard_press(KEY_B, KEY_SHIFT);
 	return 0;
+}
+
+ISR( TIMER0_OVF_vect )
+{
+	sendKeypressCounter++;
+	if ( sendKeypressCounter > USB_TRANSFER_DIVIDER ) {
+		sendKeypressCounter = 0;
+		sendKeypresses = 1;
+	}
 }
 

@@ -57,6 +57,18 @@ void phex16(unsigned int i)
 	phex(i);
 }
 
+void pint8(unsigned char c)
+{
+	// 100's
+	if ( c > 99 )
+		usb_debug_putchar( c / 100 + '0' );
 
+	// 10's - Note: Uses dropping of decimal of float/double types
+	if ( c > 9 )
+		usb_debug_putchar( c / 10 - (c / 100) * 10 + '0' );
+
+	// 1's
+	usb_debug_putchar( c % 10 + '0' );
+}
 
 

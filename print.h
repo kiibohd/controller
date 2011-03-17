@@ -12,5 +12,6 @@
 void print_P(const char *s);
 void phex(unsigned char c);
 void phex16(unsigned int i);
+void pint8(unsigned char c);
 
 #endif
