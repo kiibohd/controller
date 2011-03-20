@@ -102,17 +102,6 @@
 #define DETECT_group_size_11 <blank>
 #define DETECT_group_size_12 <blank>
 
-/*
-#define DETECT_group_array_1 {{KEY_ESC,KEY_CTRL,KEY_CAPS_LOCK,KEY_SHIFT},{0,1,0,1}}
-#define DETECT_group_array_2 {{KEY_BACKSPACE,KEY_UP,KEY_DOWN,KEY_A,KEY_INSERT,KEY_ALT,KEY_Z,KEY_RIGHT},{0,0,0,0,0,1,0,0}}
-#define DETECT_group_array_3 {{KEY_TILDE,KEY_DELETE,KEY_LEFT,KEY_SPACE,KEY_X,KEY_S,KEY_TAB,KEY_1},{0,0,0,0,0,0,0,0}}
-#define DETECT_group_array_4 {{KEY_SLASH,KEY_RIGHT_BRACE,KEY_ENTER,KEY_D,KEY_2,KEY_Q,KEY_C},{0,0,0,0,0,0,0}}
-#define DETECT_group_array_5 {{KEY_EQUAL,KEY_LEFT_BRACE,KEY_QUOTE,KEY_F,KEY_3,KEY_W,KEY_V},{0,0,0,0,0,0,0}}
-#define DETECT_group_array_6 {{KEY_MINUS,KEY_P,KEY_SEMICOLON,KEY_G,KEY_4,KEY_E,KEY_B,KEY_BACKSLASH},{0,0,0,0,0,0,0,0}}
-#define DETECT_group_array_7 {{KEY_8,KEY_U,KEY_K,KEY_7,KEY_Y,KEY_COMMA},{0,0,0,0,0,0}}
-#define DETECT_group_array_8 {{KEY_9,KEY_I,KEY_PERIOD,KEY_J,KEY_6,KEY_T,KEY_M},{0,0,0,0,0,0,0}}
-#define DETECT_group_array_9 {{KEY_0,KEY_O,KEY_L,KEY_H,KEY_5,KEY_R,KEY_N},{0,0,0,0,0,0,0}}
-*/
 // Switch Codes
 #define DETECT_group_array_1 {55,22,6 ,40,43,27,11}
 #define DETECT_group_array_2 {56,23,7 ,41,58,26,10}
@@ -216,6 +205,14 @@
 #define DEBOUNCE_ASSESS(table,size) \
 			for ( uint8_t key = 1; key < size + 1; key++ ) {\
 				table[key] = ( table[key] & ~(1 << 7) ) > SAMPLE_THRESHOLD ? (1 << 7) : 0x00; \
+			} \
+
+
+// Keypad detection
+// Each switch has it's own detection line
+#define KEYPAD_DETECT(test,switch_code) \
+			if ( test ) { \
+				keypadDetectArray[switch_code]++; \
 			} \
 
 
@@ -337,6 +334,24 @@ inline void pinSetup(void)
 	PORTF = 0xFF;
 }
 
+void keyPressDetection( uint8_t *keys, uint8_t *validKeys) {
+	for ( uint8_t key = 0; key < KEYBOARD_SIZE + 1; key++ ) {
+		//phex(keyDetectArray[key]);
+		//print ("|");
+		if ( keyDetectArray[key] & (1 << 7) ) {
+			//print("0x");
+			//phex( key );
+			pint8( key );
+			print(" ");
+
+			// Too many keys
+			if ( validKeys == 6 )
+				break;
+			keyboard_keys[validKeys++] = defaultMap[key];
+		}
+	}
+}
+
 int main( void )
 {
 	// Setup with 16 MHz clock
@@ -357,7 +372,6 @@ int main( void )
 
 	// Setup ISR Timer for flagging a kepress send to USB
 	// Set to 256 * 1024 (8 bit timer with Clock/1024 prescalar) timer
-	// 
 	TCCR0A = 0x00;
 	TCCR0B = 0x03;
 	TIMSK0 = (1 << TOIE0);
@@ -385,7 +399,22 @@ int main( void )
 			continue;
 
 		// Check Keypad keys
-		// TODO
+		KEYPAD_DETECT(PINA & (1 << 0,1))
+		KEYPAD_DETECT(PINA & (1 << 1,1))
+		KEYPAD_DETECT(PINA & (1 << 2,1))
+		KEYPAD_DETECT(PINA & (1 << 3,1))
+		KEYPAD_DETECT(PINA & (1 << 4,1))
+		KEYPAD_DETECT(PINA & (1 << 5,1))
+		KEYPAD_DETECT(PINA & (1 << 6,1))
+		KEYPAD_DETECT(PINA & (1 << 7,1))
+		KEYPAD_DETECT(PINF & (1 << 0,1))
+		KEYPAD_DETECT(PINF & (1 << 1,1))
+		KEYPAD_DETECT(PINF & (1 << 2,1))
+		KEYPAD_DETECT(PINF & (1 << 3,1))
+		KEYPAD_DETECT(PINF & (1 << 4,1))
+		KEYPAD_DETECT(PINF & (1 << 5,1))
+		KEYPAD_DETECT(PINF & (1 << 6,1))
+		KEYPAD_DETECT(PINF & (1 << 7,1))
 
 		// Check count to see if the sample threshold may have been reached, otherwise collect more data
 		count++;
@@ -397,7 +426,7 @@ int main( void )
 
 		// Assess debouncing sample table
 		DEBOUNCE_ASSESS(keyDetectArray,KEYBOARD_SIZE)
-		//DEBOUNCE_ASSESS(keypadDetectArray,KEYPAD_SIZE)
+		DEBOUNCE_ASSESS(keypadDetectArray,KEYPAD_SIZE)
 
 		// Send keypresses over USB if the ISR has signalled that it's time
 		if ( !sendKeypresses )
@@ -406,21 +435,8 @@ int main( void )
 
 		// Detect Valid Keypresses - TODO
 		uint8_t validKeys = 0;
-		for ( uint8_t key = 0; key < KEYBOARD_SIZE + 1; key++ ) {
-			//phex(keyDetectArray[key]);
-			//print ("|");
-			if ( keyDetectArray[key] & (1 << 7) ) {
-				//print("0x");
-				//phex( key );
-				pint8( key );
-				print(" ");
-
-				// Too many keys
-				if ( validKeys == 6 )
-					break;
-				keyboard_keys[validKeys++] = defaultMap[key];
-			}
-		}
+		keyPressDetection( &keyDetectArray, &validKeys );
+		//keyPressDetection( &keypadDetectArray, &validKeys );
 		print(":\n");
 
 		// TODO undo potentially old keys
