@@ -334,8 +334,8 @@ inline void pinSetup(void)
 	PORTF = 0xFF;
 }
 
-void keyPressDetection( uint8_t *keys, uint8_t *validKeys) {
-	for ( uint8_t key = 0; key < KEYBOARD_SIZE + 1; key++ ) {
+void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys ) {
+	for ( uint8_t key = 0; key < numberOfKeys + 1; key++ ) {
 		if ( keys[key] & (1 << 7) ) {
 			pint8( key );
 			print(" ");
@@ -431,8 +431,8 @@ int main( void )
 
 		// Detect Valid Keypresses - TODO
 		uint8_t validKeys = 0;
-		keyPressDetection( keyDetectArray, &validKeys );
-		keyPressDetection( keypadDetectArray, &validKeys );
+		keyPressDetection( keyDetectArray, &validKeys, KEYBOARD_SIZE );
+		keyPressDetection( keypadDetectArray, &validKeys, KEYPAD_SIZE );
 		print(":\n");
 
 		// TODO undo potentially old keys
