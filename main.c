@@ -209,9 +209,9 @@
 
 
 // Keypad detection
-// Each switch has it's own detection line
+// Each switch has it's own detection line, inverse logic
 #define KEYPAD_DETECT(test,switch_code) \
-			if ( test ) { \
+			if ( !(test) ) { \
 				keypadDetectArray[switch_code]++; \
 			} \
 
@@ -336,18 +336,14 @@ inline void pinSetup(void)
 
 void keyPressDetection( uint8_t *keys, uint8_t *validKeys) {
 	for ( uint8_t key = 0; key < KEYBOARD_SIZE + 1; key++ ) {
-		//phex(keyDetectArray[key]);
-		//print ("|");
-		if ( keyDetectArray[key] & (1 << 7) ) {
-			//print("0x");
-			//phex( key );
+		if ( keys[key] & (1 << 7) ) {
 			pint8( key );
 			print(" ");
 
 			// Too many keys
-			if ( validKeys == 6 )
+			if ( *validKeys == 6 )
 				break;
-			keyboard_keys[validKeys++] = defaultMap[key];
+			keyboard_keys[*validKeys++] = defaultMap[key];
 		}
 	}
 }
@@ -399,22 +395,22 @@ int main( void )
 			continue;
 
 		// Check Keypad keys
-		KEYPAD_DETECT(PINA & (1 << 0,1))
-		KEYPAD_DETECT(PINA & (1 << 1,1))
-		KEYPAD_DETECT(PINA & (1 << 2,1))
-		KEYPAD_DETECT(PINA & (1 << 3,1))
-		KEYPAD_DETECT(PINA & (1 << 4,1))
-		KEYPAD_DETECT(PINA & (1 << 5,1))
-		KEYPAD_DETECT(PINA & (1 << 6,1))
-		KEYPAD_DETECT(PINA & (1 << 7,1))
-		KEYPAD_DETECT(PINF & (1 << 0,1))
-		KEYPAD_DETECT(PINF & (1 << 1,1))
-		KEYPAD_DETECT(PINF & (1 << 2,1))
-		KEYPAD_DETECT(PINF & (1 << 3,1))
-		KEYPAD_DETECT(PINF & (1 << 4,1))
-		KEYPAD_DETECT(PINF & (1 << 5,1))
-		KEYPAD_DETECT(PINF & (1 << 6,1))
-		KEYPAD_DETECT(PINF & (1 << 7,1))
+		KEYPAD_DETECT(PINA & (1 << 0),11)
+		KEYPAD_DETECT(PINA & (1 << 1),3)
+		KEYPAD_DETECT(PINA & (1 << 2),7)
+		KEYPAD_DETECT(PINA & (1 << 3),4)
+		KEYPAD_DETECT(PINA & (1 << 4),15)
+		KEYPAD_DETECT(PINA & (1 << 5),6)
+		KEYPAD_DETECT(PINA & (1 << 6),2)
+		KEYPAD_DETECT(PINA & (1 << 7),10)
+		KEYPAD_DETECT(PINF & (1 << 0),8)
+		KEYPAD_DETECT(PINF & (1 << 1),12)
+		KEYPAD_DETECT(PINF & (1 << 2),16)
+		KEYPAD_DETECT(PINF & (1 << 3),13)
+		KEYPAD_DETECT(PINF & (1 << 4),1)
+		KEYPAD_DETECT(PINF & (1 << 5),5)
+		KEYPAD_DETECT(PINF & (1 << 6),9)
+		KEYPAD_DETECT(PINF & (1 << 7),14)
 
 		// Check count to see if the sample threshold may have been reached, otherwise collect more data
 		count++;
@@ -435,20 +431,13 @@ int main( void )
 
 		// Detect Valid Keypresses - TODO
 		uint8_t validKeys = 0;
-		keyPressDetection( &keyDetectArray, &validKeys );
-		//keyPressDetection( &keypadDetectArray, &validKeys );
+		keyPressDetection( keyDetectArray, &validKeys );
+		keyPressDetection( keypadDetectArray, &validKeys );
 		print(":\n");
 
 		// TODO undo potentially old keys
 		for ( uint8_t c = validKeys; c < 6; c++ )
 			keyboard_keys[c] = 0;
-
-
-		// Debugging Output
-		//phex(PINA);
-		//phex(PINF);
-		//print("\n");
-
 
 
 		// Print out the current keys pressed
