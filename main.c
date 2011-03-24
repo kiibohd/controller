@@ -23,6 +23,7 @@
 #include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 #include <util/delay.h>
+#include "usb_keys.h"
 //#include "usb_keyboard.h"
 
 // TEMP INCLUDES
@@ -224,6 +225,25 @@ uint8_t keypadDetectArray[KEYPAD_SIZE + 1];
 uint16_t sendKeypressCounter = 0;
 volatile uint8_t sendKeypresses = 0;
 
+// Default 1-indexed key mappings
+static const uint8_t keypadDefaultMap[] = { 0,
+				KEYPAD_ASTERIX,
+				KEYPAD_MINUS,
+				KEYPAD_PLUS,
+				KEYPAD_ENTER,
+				KEYPAD_9,
+				KEYPAD_6,
+				KEYPAD_3,
+				KEYPAD_0,
+				KEYPAD_8,
+				KEYPAD_5,
+				KEYPAD_2,
+				KEYPAD_PERIOD,
+				KEYPAD_7,
+				KEYPAD_4,
+				KEYPAD_1,
+				KEYPAD_SLASH };
+
 static const uint8_t defaultMap[] = { 0,
 				KEY_INSERT,
 				KEY_1,
@@ -239,6 +259,8 @@ static const uint8_t defaultMap[] = { 0,
 				KEY_MINUS,
 				KEY_EQUAL,
 				KEY_BACKSLASH,
+				KEY_TILDE,
+				KEY_BACKSPACE,
 				KEY_ALT,
 				KEY_TAB,
 				KEY_Q,
@@ -256,7 +278,7 @@ static const uint8_t defaultMap[] = { 0,
 				KEY_DELETE,
 				KEY_UP,
 				KEY_CTRL,
-				KEY_CAPS_LOCK,
+				KEY_CAPS_LLOCK,
 				KEY_A,
 				KEY_S,
 				KEY_D,
@@ -334,6 +356,8 @@ inline void pinSetup(void)
 	PORTF = 0xFF;
 }
 
+// Given a sampling array, and the current number of detected keypress
+// Add as many keypresses from the sampling array to the USB key send array as possible.
 void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys ) {
 	for ( uint8_t key = 0; key < numberOfKeys + 1; key++ ) {
 		if ( keys[key] & (1 << 7) ) {
@@ -343,7 +367,7 @@ void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys 
 			// Too many keys
 			if ( *validKeys == 6 )
 				break;
-			keyboard_keys[*validKeys++] = defaultMap[key];
+			keyboard_keys[(*validKeys)++] = defaultMap[key];
 		}
 	}
 }
@@ -436,30 +460,10 @@ int main( void )
 		print(":\n");
 
 		// TODO undo potentially old keys
+		pint8(validKeys);
 		for ( uint8_t c = validKeys; c < 6; c++ )
 			keyboard_keys[c] = 0;
 
-
-		// Print out the current keys pressed
-		/*
-		if ( keyDetectCount > 0 ) {
-			print("Switch: ");
-			for ( int c = 0; c < keyDetectCount; c++ ) {
-				print("0x");
-				phex( keyDetectArray[c] );
-				print("|");
-				//printDecodeScancode( keyDetectArray[c] );
-				print(" ");
-
-			}
-			print("\n");
-		}
-		if ( modifiers ) {
-			print("Modifiers: ");
-			phex( modifiers );
-			print("\n");
-		}
-		*/
 
 		// After going through each of the key groups, send the detected keys and modifiers
 		// Currently limited to the USB spec (6 keys + modifiers)
@@ -479,10 +483,10 @@ int main( void )
 		sendKeypresses = 0;
 	}
 
-	// usb_keyboard_press(KEY_B, KEY_SHIFT);
 	return 0;
 }
 
+// Timer Interrupt for flagging a send of the sampled key detection data to the USB host
 ISR( TIMER0_OVF_vect )
 {
 	sendKeypressCounter++;
