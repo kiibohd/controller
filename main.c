@@ -32,8 +32,6 @@
 
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
 
-// Sleep defined in milliseconds
-
 
 // Number of keys
 #define KEYBOARD_SIZE 63
@@ -225,8 +223,15 @@ uint8_t keypadDetectArray[KEYPAD_SIZE + 1];
 uint16_t sendKeypressCounter = 0;
 volatile uint8_t sendKeypresses = 0;
 
+
+// Modifier Mask
+#define MODIFIERS_KEYPAD   0
+#define MODIFIERS_KEYBOARD 4
+static uint8_t   keypad_modifierMask[] = {};
+static uint8_t keyboard_modifierMask[] = { 1, 17, 33, 49 };
+
 // Default 1-indexed key mappings
-static const uint8_t keypadDefaultMap[] = { 0,
+static uint8_t keypadDefaultMap[] = { 0,
 				KEYPAD_ASTERIX,
 				KEYPAD_MINUS,
 				KEYPAD_PLUS,
@@ -244,8 +249,8 @@ static const uint8_t keypadDefaultMap[] = { 0,
 				KEYPAD_1,
 				KEYPAD_SLASH };
 
-static const uint8_t defaultMap[] = { 0,
-				KEY_INSERT,
+static uint8_t defaultMap[] = { 0,
+				KEY_GUI,
 				KEY_1,
 				KEY_2,
 				KEY_3,
@@ -309,13 +314,6 @@ static const uint8_t defaultMap[] = { 0,
 				KEY_RIGHT,
 				KEY_SPACE };
 
-// Scan Code Decoder (for debug)
-void printDecodeScancode( int code )
-{
-
-	static const char* decodeArray[] = { "", "", "", "", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", "Enter", "Esc", "Backspace", "Tab", "Space", "-_", "=+", "[{", "]}", "\\", "#", ";:", "'\"", "`~", ",<", ".>", "/?", "Caps Lock", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "Print Screen", "Scroll Lock", "Pause", "Insert", "Home", "Page Up", "Delete", "End", "Page Down", "Right", "Left", "Down", "Up", "Num Lock", "K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "K9", "K0", "K." };
-	print_P( decodeArray[ defaultMap[code] ] );
-}
 
 void detection( int group )
 {
@@ -358,16 +356,29 @@ inline void pinSetup(void)
 
 // Given a sampling array, and the current number of detected keypress
 // Add as many keypresses from the sampling array to the USB key send array as possible.
-void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys ) {
+void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys, uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t *map ) {
 	for ( uint8_t key = 0; key < numberOfKeys + 1; key++ ) {
 		if ( keys[key] & (1 << 7) ) {
 			pint8( key );
 			print(" ");
+			uint8_t modFound = 0;
+
+			// Determine if the key is a modifier
+			for ( uint8_t mod = 0; mod < numberOfModifiers; mod++ ) {
+				// Modifier found
+				if ( modifiers[mod] == key ) {
+					keyboard_modifier_keys |= map[key];
+					modFound = 1;
+					break;
+				}
+			}
+			if ( modFound )
+				continue;
 
 			// Too many keys
 			if ( *validKeys == 6 )
 				break;
-			keyboard_keys[(*validKeys)++] = defaultMap[key];
+			keyboard_keys[(*validKeys)++] = map[key];
 		}
 	}
 }
@@ -455,32 +466,22 @@ int main( void )
 
 		// Detect Valid Keypresses - TODO
 		uint8_t validKeys = 0;
-		keyPressDetection( keyDetectArray, &validKeys, KEYBOARD_SIZE );
-		keyPressDetection( keypadDetectArray, &validKeys, KEYPAD_SIZE );
+		keyPressDetection( keyDetectArray, &validKeys, KEYBOARD_SIZE, keyboard_modifierMask, MODIFIERS_KEYBOARD, defaultMap );
+		keyPressDetection( keypadDetectArray, &validKeys, KEYPAD_SIZE, keypad_modifierMask, MODIFIERS_KEYPAD, keypadDefaultMap );
 		print(":\n");
 
 		// TODO undo potentially old keys
-		pint8(validKeys);
 		for ( uint8_t c = validKeys; c < 6; c++ )
 			keyboard_keys[c] = 0;
-
-
-		// After going through each of the key groups, send the detected keys and modifiers
-		// Currently limited to the USB spec (6 keys + modifiers)
-		// Making sure to pass zeros when there are no keys being pressed
-		/*
-		for ( int c = 0; c < 6 && c < keyDetectCount; c++ )
-			keyboard_keys[c] = c < keyDetectCount ? keyDetectArray[c] : 0;
-
-		// Modifiers
-		keyboard_modifier_keys = modifiers;
-		*/
 
 		// Send keypresses
 		usb_keyboard_send();
 
 		// Clear sendKeypresses Flag
 		sendKeypresses = 0;
+
+		// Clear modifiers
+		keyboard_modifier_keys = 0;
 	}
 
 	return 0;
