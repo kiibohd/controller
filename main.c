@@ -24,6 +24,7 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include "usb_keys.h"
+#include "layouts.h"
 //#include "usb_keyboard.h"
 
 // TEMP INCLUDES
@@ -31,7 +32,6 @@
 #include <print.h>
 
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
-
 
 // Number of keys
 #define KEYBOARD_SIZE 63
@@ -220,99 +220,9 @@
 uint8_t keyDetectArray[KEYBOARD_SIZE + 1];
 uint8_t keypadDetectArray[KEYPAD_SIZE + 1];
 
+// Interrupt Variables
 uint16_t sendKeypressCounter = 0;
 volatile uint8_t sendKeypresses = 0;
-
-
-// Modifier Mask
-#define MODIFIERS_KEYPAD   0
-#define MODIFIERS_KEYBOARD 4
-static uint8_t   keypad_modifierMask[] = {};
-static uint8_t keyboard_modifierMask[] = { 1, 17, 33, 49 };
-
-// Default 1-indexed key mappings
-static uint8_t keypadDefaultMap[] = { 0,
-				KEYPAD_ASTERIX,
-				KEYPAD_MINUS,
-				KEYPAD_PLUS,
-				KEYPAD_ENTER,
-				KEYPAD_9,
-				KEYPAD_6,
-				KEYPAD_3,
-				KEYPAD_0,
-				KEYPAD_8,
-				KEYPAD_5,
-				KEYPAD_2,
-				KEYPAD_PERIOD,
-				KEYPAD_7,
-				KEYPAD_4,
-				KEYPAD_1,
-				KEYPAD_SLASH };
-
-static uint8_t defaultMap[] = { 0,
-				KEY_GUI,
-				KEY_1,
-				KEY_2,
-				KEY_3,
-				KEY_4,
-				KEY_5,
-				KEY_6,
-				KEY_7,
-				KEY_8,
-				KEY_9,
-				KEY_0,
-				KEY_MINUS,
-				KEY_EQUAL,
-				KEY_BACKSLASH,
-				KEY_TILDE,
-				KEY_BACKSPACE,
-				KEY_ALT,
-				KEY_TAB,
-				KEY_Q,
-				KEY_W,
-				KEY_E,
-				KEY_R,
-				KEY_T,
-				KEY_Y,
-				KEY_U,
-				KEY_I,
-				KEY_O,
-				KEY_P,
-				KEY_LEFT_BRACE,
-				KEY_RIGHT_BRACE,
-				KEY_DELETE,
-				KEY_UP,
-				KEY_CTRL,
-				KEY_CAPS_LLOCK,
-				KEY_A,
-				KEY_S,
-				KEY_D,
-				KEY_F,
-				KEY_G,
-				KEY_H,
-				KEY_J,
-				KEY_K,
-				KEY_L,
-				KEY_SEMICOLON,
-				KEY_QUOTE,
-				KEY_ENTER,
-				KEY_DOWN,
-				KEY_ESC,
-				KEY_LEFT_SHIFT,
-				KEY_Z,
-				KEY_X,
-				KEY_C,
-				KEY_V,
-				KEY_B,
-				KEY_N,
-				KEY_M,
-				KEY_COMMA,
-				KEY_PERIOD,
-				KEY_SLASH,
-				KEY_RIGHT_SHIFT,
-				KEY_LEFT,
-				KEY_RIGHT,
-				KEY_SPACE };
 
 
 void detection( int group )
@@ -466,8 +376,17 @@ int main( void )
 
 		// Detect Valid Keypresses - TODO
 		uint8_t validKeys = 0;
-		keyPressDetection( keyDetectArray, &validKeys, KEYBOARD_SIZE, keyboard_modifierMask, MODIFIERS_KEYBOARD, defaultMap );
-		keyPressDetection( keypadDetectArray, &validKeys, KEYPAD_SIZE, keypad_modifierMask, MODIFIERS_KEYPAD, keypadDefaultMap );
+
+		// Map selection
+		if ( keyDetectArray[34] & (1 << 7) ) { // CapsLock FN Modifier
+			keyPressDetection( keyDetectArray, &validKeys, KEYBOARD_SIZE, keyboard_modifierMask, MODIFIERS_KEYBOARD, colemakMap );
+			keyPressDetection( keypadDetectArray, &validKeys, KEYPAD_SIZE, keypad_modifierMask, MODIFIERS_KEYPAD, keypadDefaultMap );
+		}
+		else {
+			keyPressDetection( keyDetectArray, &validKeys, KEYBOARD_SIZE, keyboard_modifierMask, MODIFIERS_KEYBOARD, defaultMap );
+			keyPressDetection( keypadDetectArray, &validKeys, KEYPAD_SIZE, keypad_modifierMask, MODIFIERS_KEYPAD, keypadDefaultMap );
+		}
+
 		print(":\n");
 
 		// TODO undo potentially old keys
