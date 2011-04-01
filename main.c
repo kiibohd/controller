@@ -39,7 +39,7 @@
 
 
 // Debouncing Defines
-#define SAMPLE_THRESHOLD 100
+#define SAMPLE_THRESHOLD 110
 #define MAX_SAMPLES 127 // Max is 127, reaching 128 is very bad
 
 
@@ -288,7 +288,10 @@ void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys,
 			// Too many keys
 			if ( *validKeys == 6 )
 				break;
-			keyboard_keys[(*validKeys)++] = map[key];
+
+			// Allow ignoring keys with 0's
+			if ( map[key] != 0 )
+				keyboard_keys[(*validKeys)++] = map[key];
 		}
 	}
 }
@@ -374,19 +377,37 @@ int main( void )
 			continue;
 
 
+		// XXX TODO HACK REMOVEME KILL_WITH_FIRE
+		// Too lazy to find (electrical?) issue, so I'm adding a software fix (case is impossible anyways without moar diodes)
+		if ( keyDetectArray[20] & (1 << 7) && keyDetectArray[21] & (1 << 7) && keyDetectArray[38] & (1 << 7) ) {
+			keyDetectArray[20] &= ~(1 << 7);
+			print("HACK!! - Fixme sometime");
+		}
+
 		// Detect Valid Keypresses - TODO
 		uint8_t validKeys = 0;
 
-		// Map selection
+		uint8_t *keyboard_MODMASK = keyboard_modifierMask;
+		uint8_t  keyboard_NUMMODS = MODIFIERS_KEYBOARD;
+		uint8_t *keyboard_MAP     = defaultMap;
+		uint8_t *keypad_MODMASK   = keypad_modifierMask;
+		uint8_t  keypad_NUMMODS   = MODIFIERS_KEYPAD;
+		uint8_t *keypad_MAP       = keypadDefaultMap;
+
+		// Map selection - CapsLock FN
 		if ( keyDetectArray[34] & (1 << 7) ) { // CapsLock FN Modifier
-			keyPressDetection( keyDetectArray, &validKeys, KEYBOARD_SIZE, keyboard_modifierMask, MODIFIERS_KEYBOARD, colemakMap );
-			keyPressDetection( keypadDetectArray, &validKeys, KEYPAD_SIZE, keypad_modifierMask, MODIFIERS_KEYPAD, keypadDefaultMap );
-		}
-		else {
-			keyPressDetection( keyDetectArray, &validKeys, KEYBOARD_SIZE, keyboard_modifierMask, MODIFIERS_KEYBOARD, defaultMap );
-			keyPressDetection( keypadDetectArray, &validKeys, KEYPAD_SIZE, keypad_modifierMask, MODIFIERS_KEYPAD, keypadDefaultMap );
+				keyboard_MAP     = colemakMap;
+				keyboard_MODMASK = alternate_modifierMask;
+				keyboard_NUMMODS = 5;
+
+			// Function Key
+			if ( keyDetectArray[61] & (1 << 7) ) {
+				keyboard_MAP     = navigationMap;
+			}
 		}
 
+		keyPressDetection( keyDetectArray, &validKeys, KEYBOARD_SIZE, keyboard_MODMASK, keyboard_NUMMODS, keyboard_MAP );
+		keyPressDetection( keypadDetectArray, &validKeys, KEYPAD_SIZE, keypad_MODMASK, keypad_NUMMODS, keypad_MAP );
 		print(":\n");
 
 		// TODO undo potentially old keys
