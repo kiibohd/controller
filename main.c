@@ -118,10 +118,12 @@
 
 
 // Drive Macros (Generally don't need to be changed), except for maybe DRIVE_DETECT
+// Sleep is for signal debouncing
 #define DRIVE_DETECT(reg,pin,group) \
 			reg &= ~(1 << pin); \
 			detection(group); \
-			reg |= (1 << pin);
+			reg |= (1 << pin); \
+			_delay_us(1);
 
 #define DD_CASE(number) \
 			case number:\
@@ -375,14 +377,6 @@ int main( void )
 		// Send keypresses over USB if the ISR has signalled that it's time
 		if ( !sendKeypresses )
 			continue;
-
-
-		// XXX TODO HACK REMOVEME KILL_WITH_FIRE
-		// Too lazy to find (electrical?) issue, so I'm adding a software fix (case is impossible anyways without moar diodes)
-		if ( keyDetectArray[20] & (1 << 7) && keyDetectArray[21] & (1 << 7) && keyDetectArray[38] & (1 << 7) ) {
-			keyDetectArray[20] &= ~(1 << 7);
-			print("HACK!! - Fixme sometime");
-		}
 
 		// Detect Valid Keypresses - TODO
 		uint8_t validKeys = 0;
