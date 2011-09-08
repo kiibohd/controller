@@ -272,7 +272,7 @@ void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys,
 	for ( uint8_t key = 0; key < numberOfKeys + 1; key++ ) {
 		if ( keys[key] & (1 << 7) ) {
 			pint8( key );
-			print(" ");
+			//print(" ");
 			uint8_t modFound = 0;
 
 			// Determine if the key is a modifier
@@ -402,7 +402,7 @@ int main( void )
 
 		keyPressDetection( keyDetectArray, &validKeys, KEYBOARD_SIZE, keyboard_MODMASK, keyboard_NUMMODS, keyboard_MAP );
 		keyPressDetection( keypadDetectArray, &validKeys, KEYPAD_SIZE, keypad_MODMASK, keypad_NUMMODS, keypad_MAP );
-		print(":\n");
+		//print(":\n");
 
 		// TODO undo potentially old keys
 		for ( uint8_t c = validKeys; c < 6; c++ )
