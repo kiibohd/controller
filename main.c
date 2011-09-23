@@ -24,7 +24,8 @@
 #include <avr/interrupt.h>
 #include <util/delay.h>
 #include "usb_keys.h"
-#include "layouts.h"
+#include "scan_loop.h"
+//#include "layouts.h"
 //#include "usb_keyboard.h"
 
 // TEMP INCLUDES
@@ -32,10 +33,6 @@
 #include <print.h>
 
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
-
-// Number of keys
-#define KEYBOARD_SIZE 63
-#define KEYPAD_SIZE 16
 
 
 // Debouncing Defines
@@ -46,6 +43,10 @@
 // Verified Keypress Defines
 #define USB_TRANSFER_DIVIDER 10 // 1024 == 1 Send of keypresses per second, 1 == 1 Send of keypresses per ~1 millisecond
 
+/*
+// Number of keys
+#define KEYBOARD_SIZE 63
+#define KEYPAD_SIZE 16
 
 // Drive Pin Defines
 #define DRIVE_reg_1 PORTD
@@ -219,8 +220,7 @@
 
 // NOTE: Highest Bit: Valid keypress (0x80 is valid keypress)
 //        Other Bits: Pressed state sample counter
-uint8_t keyDetectArray[KEYBOARD_SIZE + 1];
-uint8_t keypadDetectArray[KEYPAD_SIZE + 1];
+uint8_t keyboardDetectArray[KEYBOARD_SIZE + 1];
 
 // Interrupt Variables
 uint16_t sendKeypressCounter = 0;
@@ -242,30 +242,47 @@ void detection( int group )
 		DET_GROUP(9,1)
 	}
 }
+*/
+
+// Error LED Control
+void errorLED( uint8_t on )
+{
+	// Error LED On
+	if ( on ) {
+		DDRD  |= (1<<6);
+		PORTD |= (1<<6);
+	}
+	// Error LED Off
+	else {
+		DDRD  &= ~(1<<6);
+		PORTD &= ~(1<<6);
+	}
+}
 
 
 
-// XXX This part is configurable
+// Initial Pin Setup
+// If the matrix is properly set, this function does not need to be changed
 inline void pinSetup(void)
 {
 	// For each pin, 0=input, 1=output
 	DDRA = 0x00;
 	DDRB = 0x00;
 	DDRC = 0x00;
-	DDRD = 0xFC;
-	DDRE = 0x43;
+	DDRD = 0x40; // LED Setup
+	DDRE = 0x00;
 	DDRF = 0x00;
 
 
 	// Setting pins to either high or pull-up resistor
-	PORTA = 0xFF;
-	PORTB = 0xFF;
-	PORTC = 0x01;
-	PORTD = 0xFF;
-	PORTE = 0xC3;
-	PORTF = 0xFF;
+	PORTA = 0x00;
+	PORTB = 0x00;
+	PORTC = 0x00;
+	PORTD = 0x40; // LED Enable
+	PORTE = 0x00;
+	PORTF = 0x00;
 }
-
+/*
 // Given a sampling array, and the current number of detected keypress
 // Add as many keypresses from the sampling array to the USB key send array as possible.
 void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys, uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t *map ) {
@@ -297,6 +314,7 @@ void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys,
 		}
 	}
 }
+*/
 
 int main( void )
 {
@@ -323,6 +341,16 @@ int main( void )
 	TIMSK0 = (1 << TOIE0);
 
 	// Main Detection Loop
+	while ( 1 ) {
+		scan_loop();
+
+		// Loop should never get here (indicate error)
+		errorLED( 1 );
+
+		// TODO HID Debug message
+	}
+}
+/*
 	int8_t group = 1;
 	uint8_t count = 0;
 	for ( ;;group++ ) {
@@ -420,6 +448,7 @@ int main( void )
 
 	return 0;
 }
+*/
 
 // Timer Interrupt for flagging a send of the sampled key detection data to the USB host
 ISR( TIMER0_OVF_vect )
