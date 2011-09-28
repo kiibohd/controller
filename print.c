@@ -1,6 +1,4 @@
-/* Very basic print functions, intended to be used with usb_debug_only.c
- * http://www.pjrc.com/teensy/
- * Copyright (c) 2008 PJRC.COM, LLC
+/* Copyright (C) 2011 by Jacob Alexander
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,54 +19,172 @@
  * THE SOFTWARE.
  */
 
-// Version 1.0: Initial Release
+// Compiler Includes
+#include <stdarg.h>
 
+// AVR Includes
 #include <avr/io.h>
 #include <avr/pgmspace.h>
 
+// Project Includes
 #include "print.h"
 
-void print_P(const char *s)
+// Defines
+
+
+// USB HID String Output
+void usb_debug_putstr( char* s )
+{
+	while ( *s != '\0' )
+		usb_debug_putchar( *s++ );
+}
+
+// Multiple string Output
+void usb_debug_putstrs( char* first, ... )
+{
+	// Initialize the variadic function parameter list
+	va_list ap;
+
+	// Get the first parameter
+	va_start( ap, first );
+	char *cur = first;
+
+	// Loop through the variadic list until "\0\0\0" is found
+	while ( !( cur[0] == '\0' && cur[1] == '\0' && cur[2] == '\0' ) )
+	{
+		// Print out the given string
+		usb_debug_putstr( cur );
+
+		// Get the next argument ready
+		cur = va_arg( ap, char* );
+	}
+
+	va_end( ap ); // Not required, but good practice
+}
+
+// Print a constant string
+void _print(const char *s)
 {
 	char c;
 
-	while (1) {
-		c = pgm_read_byte(s++);
-		if (!c) break;
-		if (c == '\n') usb_debug_putchar('\r');
+	// Acquire the character from flash, and print it, as long as it's not NULL
+	// Also, if a newline is found, print a carrige return as well
+	while ( ( c = pgm_read_byte(s++) ) != '\0' )
+	{
+		if ( c == '\n' )
+			usb_debug_putchar('\r');
 		usb_debug_putchar(c);
 	}
 }
 
-void phex1(unsigned char c)
+
+
+
+// String Functions
+void int8ToStr( uint8_t in, char* out )
 {
-	usb_debug_putchar(c + ((c < 10) ? '0' : 'A' - 10));
+	// Position and sign containers
+	uint8_t pos;
+	pos = 0;
+
+	// Evaluate through digits as decimal
+	do
+	{
+		out[pos++] = in % 10 + '0';
+	}
+	while ( (in /= 10) > 0 );
+
+	// Append null
+	out[pos] = '\0';
+
+	// Reverse the string to the correct order
+	revsStr(out);
 }
 
-void phex(unsigned char c)
+
+void int16ToStr( uint16_t in, char* out )
 {
-	phex1(c >> 4);
-	phex1(c & 15);
+	// Position and sign containers
+	uint16_t pos;
+	pos = 0;
+
+	// Evaluate through digits as decimal
+	do
+	{
+		out[pos++] = in % 10 + '0';
+	}
+	while ( (in /= 10) > 0 );
+
+	// Append null
+	out[pos] = '\0';
+
+	// Reverse the string to the correct order
+	revsStr(out);
 }
 
-void phex16(unsigned int i)
+
+void hexToStr_op( uint16_t in, char* out, uint8_t op )
 {
-	phex(i >> 8);
-	phex(i);
+	// Position container
+	uint16_t pos = 0;
+
+	// Evaluate through digits as hex
+	do
+	{
+		uint16_t cur = in % 16;
+		out[pos++] = cur + (( cur < 10 ) ? '0' : 'A' - 10);
+	}
+	while ( (in /= 16) > 0 );
+
+	// Output formatting options
+	switch ( op )
+	{
+	case 1: // Add 0x
+		out[pos++] = 'x';
+		out[pos++] = '0';
+		break;
+	case 2: //  8-bit padding
+	case 4: // 16-bit padding
+		while ( pos < op )
+			out[pos++] = '0';
+		break;
+	}
+
+	// Append null
+	out[pos] = '\0';
+
+	// Reverse the string to the correct order
+	revsStr(out);
 }
 
-void pint8(unsigned char c)
+
+void revsStr( char* in )
 {
-	// 100's
-	if ( c > 99 )
-		usb_debug_putchar( c / 100 + '0' );
+	// Iterators
+	int i, j;
 
-	// 10's - Note: Uses dropping of decimal of float/double types
-	if ( c > 9 )
-		usb_debug_putchar( c / 10 - (c / 100) * 10 + '0' );
+	// Temp storage
+	char c;
 
-	// 1's
-	usb_debug_putchar( c % 10 + '0' );
+	// Loop through the string, and reverse the order of the characters
+	for ( i = 0, j = lenStr( in ) - 1; i < j; i++, j-- )
+	{
+		c = in[i];
+		in[i] = in[j];
+		in[j] = c;
+	}
 }
 
+
+uint16_t lenStr( char* in )
+{
+	// Iterator
+	char *pos;
+
+	// Loop until null is found
+	for ( pos = in; *pos; pos++ );
+
+	// Return the difference between the pointers of in and pos (which is the string length)
+	return (pos - in);
+}
 

@@ -48,6 +48,7 @@ TARGET = main
 SRC =	$(TARGET).c \
 	print.c \
 	usb_keyboard_debug.c \
+	scan_loop.c
 	#usb_keyboard.c 
 
 

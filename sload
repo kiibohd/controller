@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#| Loads the hex file onto the teensy 2.0
+
+sudo teensy-loader-cli -mmcu=atmega32u4 -w Build/main.hex
+
+exit 0
+
