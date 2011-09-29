@@ -81,19 +81,19 @@ endmacro( PathPrepend )
 
 
 #| Scan Module
-include(  "${ScanModulePath}/setup.cmake" )
+include    (          "${ScanModulePath}/setup.cmake" )
 PathPrepend( SCAN_SRCS ${ScanModulePath} ${SCAN_SRCS} )
 
 #| Macro Module
-include( "${MacroModulePath}/setup.cmake" )
+include    (           "${MacroModulePath}/setup.cmake" )
 PathPrepend( MACRO_SRCS ${MacroModulePath} ${MACRO_SRCS} )
 
 #| USB Module
-include(   "${USBModulePath}/setup.cmake" )
+include    (         "${USBModulePath}/setup.cmake" )
 PathPrepend( USB_SRCS ${USBModulePath} ${USB_SRCS} )
 
 #| Debugging Module
-include( "${DebugModulePath}/setup.cmake" )
+include    (           "${DebugModulePath}/setup.cmake" )
 PathPrepend( DEBUG_SRCS ${DebugModulePath} ${DEBUG_SRCS} )
 
 

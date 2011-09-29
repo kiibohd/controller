@@ -1,8 +1,0 @@
-#!/bin/bash
-
-#| Loads the hex file onto the teensy++ 2.0
-
-sudo teensy-loader-cli -mmcu=at90usb1286 -w Build/main.hex
-
-exit 0
-
