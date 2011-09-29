@@ -7,32 +7,31 @@
 #
 ###
 
-##| TODO List |##
-# - Add avr-gcc as requirement
-# - Add avr-objcopy as a requirement
-# - Generate .lst files
-# - Extend .lst to .lss
-# - Autoloader to Teensy
-# - specify on commandline which atmel mcu
-
-#| Set the Compilers
+#| Set the Compilers (must be set first)
 include( CMakeForceCompiler )
 set( CMAKE_SYSTEM_NAME Generic )
 cmake_force_c_compiler  ( avr-gcc AVRCCompiler )
 cmake_force_cxx_compiler( avr-g++ AVRCxxCompiler )
 
 
+###
+# Project Description
+#
+
 #| Project
 project( kiibohd_controller )
 
+#| Target Name (output name)
+set( TARGET kiibohd )
 
 #| General Settings
 cmake_minimum_required( VERSION 2.8 )
 
 
 
-
-
+###
+# Source Defines
+#
 
 #| Sources 
 set( SRCS
@@ -42,13 +41,21 @@ set( SRCS
 	./scan_loop.c
 )
 
-#| Target Name
-set( TARGET kiibohd )
 
 
+###
+# Atmel Defines and Linker Options
+#
 
-
-
+#| MCU Name
+#| You _MUST_ set this to match the board you are using
+#| type "make clean" after changing this, so all files will be rebuilt
+#|
+#| "at90usb162"       # Teensy   1.0
+#| "atmega32u4"       # Teensy   2.0
+#| "at90usb646"       # Teensy++ 1.0
+#| "at90usb1286"      # Teensy++ 2.0
+set( MCU "at90usb1286" )
 
 
 #| Compiler flag to set the C Standard level.
@@ -80,24 +87,12 @@ set( OPT "s" )
 set( FORMAT "ihex" )
 
 
-#| MCU Name
-#| You MUST set this to match the board you are using
-#| type "make clean" after changing this, so all files will be rebuilt
-#|
-#| "at90usb162"       # Teensy   1.0
-#| "atmega32u4"       # Teensy   2.0
-#| "at90usb646"       # Teensy++ 1.0
-#| "at90usb1286"      # Teensy++ 2.0
-set( MCU "at90usb1286" )
-
-
 #| Processor frequency.
 #|   Normally the first thing your program should do is set the clock prescaler,
 #|   so your program will run at the correct speed.  You should also set this
 #|   variable to same clock speed.  The _delay_ms() macro uses this, and many
 #|   examples use this variable to calculate timings.  Do not add a "UL" here.
 set( F_CPU "16000000" )
-set( CDEFS "-DF_CPU=${F_CPU}" )
 
 
 #| Dependency Files
@@ -110,7 +105,7 @@ set( TARGET_LST ${TARGET}.lst )
 
 
 #| Compiler Flags
-add_definitions( "-mmcu=${MCU} -DF_CPU=${F_CPU} -O${OPT} ${TUNING} ${WARN} -Wa,-adhlns ${CSTANDARD} ${GENDEPFLAGS}" )
+add_definitions( "-mmcu=${MCU} -DF_CPU=${F_CPU} -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS}" )
 
 
 #| Linker Flags
@@ -130,11 +125,9 @@ set( LSS_FLAGS -h -S -z )
 
 
 
-
-
-
-
-
+###
+# Build Targets
+#
 
 #| Create the .ELF file
 set( TARGET_ELF ${TARGET}.elf )
@@ -163,10 +156,10 @@ add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 )
 
 
-#| Generate the Extended .LSS TODO Incomplete
+#| Generate the Extended .LSS
 set( TARGET_LSS ${TARGET}.lss )
 add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-	COMMAND avr-objcopy ${LSS_FLAGS} ${TARGET_ELF} > ${TARGET_LSS}
+	COMMAND avr-objdump ${LSS_FLAGS} ${TARGET_ELF} > ${TARGET_LSS}
 	COMMENT "Creating Extended Listing:     ${TARGET_LSS}"
 )
 
@@ -180,20 +173,13 @@ add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 
 
 
-
-
-
-#| Before Changes Size Information (and make sure it is run before ${TARGET_ELF} is generated) TODO Only call if the files exist
-#add_dependencies( ${TARGET_ELF} SizeBefore )
-#add_custom_target( SizeBefore ALL avr-size --target=${FORMAT} ${TARGET_HEX} ${TARGET_ELF}
-#	COMMENT "Size before generation:"
-#)
-
+###
+# Size Information
+#
 
 #| After Changes Size Information
 add_custom_target( SizeAfter ALL avr-size --target=${FORMAT} ${TARGET_HEX} ${TARGET_ELF}
 	DEPENDS ${TARGET_ELF}
 	COMMENT "Size after generation:"
 )
-
 
