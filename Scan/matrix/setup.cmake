@@ -17,7 +17,7 @@ set( SCAN_SRCS
 
 
 ###
-# Module Specific Options TODO Fixme!! (../)
+# Module Specific Options
 #
-add_definitions( -I../Keymap )
+add_definitions( -I${HEAD_DIR}/Keymap )
 

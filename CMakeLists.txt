@@ -12,6 +12,8 @@ include( CMakeForceCompiler )
 set( CMAKE_SYSTEM_NAME Generic )
 cmake_force_c_compiler  ( avr-gcc AVRCCompiler )
 cmake_force_cxx_compiler( avr-g++ AVRCxxCompiler )
+set( CMAKE_CROSSCOMPILING on )
+message( STATUS ${CMAKE_CROSSCOMPILING})
 
 
 ###
