@@ -33,13 +33,13 @@ cmake_minimum_required( VERSION 2.8 )
 # Source Defines
 #
 
-#| Sources 
-set( SRCS
-	./main.c
-        ./print.c
-	./usb_keyboard_debug.c
-	./scan_loop.c
-)
+#| Sources (see setup.h for configuring in/away code blocks or other complete modules)
+#| XXX Not set here in this project, see setup.cmake
+#set( SRCS ./main.c )
+
+#| Instead, include the module source selector
+include( setup.cmake )
+set( SRCS main.c ${SCAN_SRCS} ${MACRO_SRCS} ${USB_SRCS} ${DEBUG_SRCS} )
 
 
 
