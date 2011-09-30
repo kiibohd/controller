@@ -19,18 +19,17 @@
  * THE SOFTWARE.
  */
 
+// ----- Includes -----
+
 // Compiler Includes
 #include <stdarg.h>
-
-// AVR Includes
-#include <avr/io.h>
-#include <avr/pgmspace.h>
 
 // Project Includes
 #include "print.h"
 
-// Defines
 
+
+// ----- Functions -----
 
 // USB HID String Output
 void usb_debug_putstr( char* s )

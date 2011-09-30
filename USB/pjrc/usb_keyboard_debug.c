@@ -33,19 +33,6 @@
  *
  **************************************************************************/
 
-// You can change these to give your code its own name.
-#define STR_MANUFACTURER	L"MfgName"
-#define STR_PRODUCT		L"Keyboard"
-
-
-// Mac OS-X and Linux automatically load the correct drivers.  On
-// Windows, even though the driver is supplied by Microsoft, an
-// INF file is needed to load the driver.  These numbers need to
-// match the INF file.
-#define VENDOR_ID		0x16C0
-#define PRODUCT_ID		0x047D
-
-
 // USB devices are supposed to implment a halt feature, which is
 // rarely (if ever) used.  If you comment this line out, the halt
 // code will be removed, saving 102 bytes of space (gcc 4.3.0).
@@ -286,14 +273,6 @@ static volatile uint8_t usb_configuration=0;
 // packet, or send a zero length packet.
 static volatile uint8_t debug_flush_timer=0;
 
-// which modifier keys are currently pressed
-// 1=left ctrl,    2=left shift,   4=left alt,    8=left gui
-// 16=right ctrl, 32=right shift, 64=right alt, 128=right gui
-uint8_t keyboard_modifier_keys=0;
-
-// which keys are currently pressed, up to 6 keys may be down at once
-uint8_t keyboard_keys[6]={0,0,0,0,0,0};
-
 // protocol setting from the host.  We use exactly the same report
 // either way, so this variable only stores the setting since we
 // are required to be able to report which setting is in use.
@@ -305,9 +284,6 @@ static uint8_t keyboard_idle_config=125;
 
 // count until idle timeout
 static uint8_t keyboard_idle_count=0;
-
-// 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
-volatile uint8_t keyboard_leds=0;
 
 
 /**************************************************************************
@@ -344,16 +320,16 @@ int8_t usb_keyboard_press(uint8_t key, uint8_t modifier)
 {
 	int8_t r;
 
-	keyboard_modifier_keys = modifier;
-	keyboard_keys[0] = key;
+	USBKeys_Modifiers = modifier;
+	USBKeys_Array[0] = key;
 	r = usb_keyboard_send();
 	if (r) return r;
-	keyboard_modifier_keys = 0;
-	keyboard_keys[0] = 0;
+	USBKeys_Modifiers = 0;
+	USBKeys_Array[0] = 0;
 	return usb_keyboard_send();
 }
 
-// send the contents of keyboard_keys and keyboard_modifier_keys
+// send the contents of USBKeys_Array and USBKeys_Modifiers
 int8_t usb_keyboard_send(void)
 {
 	uint8_t i, intr_state, timeout;
@@ -376,10 +352,10 @@ int8_t usb_keyboard_send(void)
 		cli();
 		UENUM = KEYBOARD_ENDPOINT;
 	}
-	UEDATX = keyboard_modifier_keys;
+	UEDATX = USBKeys_Modifiers;
 	UEDATX = 0;
 	for (i=0; i<6; i++) {
-		UEDATX = keyboard_keys[i];
+		UEDATX = USBKeys_Array[i];
 	}
 	UEINTX = 0x3A;
 	keyboard_idle_count = 0;
@@ -505,10 +481,10 @@ ISR(USB_GEN_vect)
 				keyboard_idle_count++;
 				if (keyboard_idle_count == keyboard_idle_config) {
 					keyboard_idle_count = 0;
-					UEDATX = keyboard_modifier_keys;
+					UEDATX = USBKeys_Modifiers;
 					UEDATX = 0;
 					for (i=0; i<6; i++) {
-						UEDATX = keyboard_keys[i];
+						UEDATX = USBKeys_Array[i];
 					}
 					UEINTX = 0x3A;
 				}
@@ -679,10 +655,10 @@ ISR(USB_COM_vect)
 			if (bmRequestType == 0xA1) {
 				if (bRequest == HID_GET_REPORT) {
 					usb_wait_in_ready();
-					UEDATX = keyboard_modifier_keys;
+					UEDATX = USBKeys_Modifiers;
 					UEDATX = 0;
 					for (i=0; i<6; i++) {
-						UEDATX = keyboard_keys[i];
+						UEDATX = USBKeys_Array[i];
 					}
 					usb_send_in();
 					return;
@@ -703,7 +679,7 @@ ISR(USB_COM_vect)
 			if (bmRequestType == 0x21) {
 				if (bRequest == HID_SET_REPORT) {
 					usb_wait_receive_out();
-					keyboard_leds = UEDATX;
+					USBKeys_LEDs = UEDATX;
 					usb_ack_out();
 					usb_send_in();
 					return;

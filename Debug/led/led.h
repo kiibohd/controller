@@ -19,19 +19,20 @@
  * THE SOFTWARE.
  */
 
-#ifndef __SCAN_LOOP_H
-#define __SCAN_LOOP_H
+#ifndef __led_h
+#define __led_h
 
 // ----- Includes -----
 
-// Local Includes
-#include "matrix.h"
+// AVR Includes
+#include <avr/io.h>
 
 
 
 // ----- Functions -----
 
-void scan_loop( void );
+void init_errorLED( void );
+void errorLED( uint8_t on );
 
-#endif // __SCAN_LOOP_H
+#endif
 

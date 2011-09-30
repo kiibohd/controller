@@ -19,19 +19,34 @@
  * THE SOFTWARE.
  */
 
-#ifndef __SCAN_LOOP_H
-#define __SCAN_LOOP_H
-
 // ----- Includes -----
 
-// Local Includes
-#include "matrix.h"
+// AVR Includes
+
+// Project Includes
+#include "led.h"
 
 
 
 // ----- Functions -----
 
-void scan_loop( void );
+// Error LED Setup
+void init_errorLED()
+{
+	// Use pin D6 as an output (LED)
+	DDRD |= (1<<6);
+}
 
-#endif // __SCAN_LOOP_H
+// Error LED Control
+void errorLED( uint8_t on )
+{
+	// Error LED On (D6)
+	if ( on ) {
+		PORTD |= (1<<6);
+	}
+	// Error LED Off
+	else {
+		PORTD &= ~(1<<6);
+	}
+}
 

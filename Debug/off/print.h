@@ -19,19 +19,52 @@
  * THE SOFTWARE.
  */
 
-#ifndef __SCAN_LOOP_H
-#define __SCAN_LOOP_H
+#ifndef print_h__
+#define print_h__
 
-// ----- Includes -----
+// ----- Disabler Defines -----
 
-// Local Includes
-#include "matrix.h"
+#define dPrint(c)
+#define dPrintStr(c)
+#define dPrintStrs(...)
+#define dPrintStrNL(c)
+#define dPrintStrsNL(...)
 
+// Special Msg Constructs (Uses VT100 tags)
+#define dPrintMsg(colour_code_str,msg,...)
+#define printMsg(colour_code_str,msg,str)
 
+// Info Messages
+#define info_dPrint(...)
+#define info_print(str)
 
-// ----- Functions -----
+// Warning Messages
+#define warn_dPrint(...)
+#define warn_print(str)
 
-void scan_loop( void );
+// Error Messages
+#define erro_dPrint(...)
+#define erro_print(str)
 
-#endif // __SCAN_LOOP_H
+// Debug Messages
+#define dbug_dPrint(...)
+#define dbug_print(str)
+
+// Static String Printing
+#define print(s) _print(PSTR(s))
+
+// Output Functions
+#define _print(s)
+#define usb_debug_putstr(s)
+#define usb_debug_putstrs(s, ...)
+
+// String Functions
+#define hexToStr(hex, out)
+#define int8ToStr(in, out)
+#define int16ToStr(in, out)
+#define hexToStr_op(in, out, op)
+#define revsStr(in)
+#define lenStr(in)
+
+#endif
 

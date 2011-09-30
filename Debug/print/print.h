@@ -22,15 +22,22 @@
 #ifndef print_h__
 #define print_h__
 
+// ----- Includes -----
+
 // AVR Includes
 #include <avr/pgmspace.h>
 
 // Project Includes
 #include "usb_keyboard_debug.h"
 
-// Defines
+
+
+// ----- Defines -----
 #define NL "\r\n"
 
+
+
+// ----- Functions and Corresponding Function Aliases -----
 
 /* XXX
  * Note that all the variadic functions below, take comma separated string lists, they are purposely not printf style (simplicity)

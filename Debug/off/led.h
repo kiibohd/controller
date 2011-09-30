@@ -19,19 +19,12 @@
  * THE SOFTWARE.
  */
 
-#ifndef __SCAN_LOOP_H
-#define __SCAN_LOOP_H
+#ifndef __led_h
+#define __led_h
 
-// ----- Includes -----
+// ----- Disabler Defines -----
+#define init_errorLED()
+#define errorLED(on)
 
-// Local Includes
-#include "matrix.h"
-
-
-
-// ----- Functions -----
-
-void scan_loop( void );
-
-#endif // __SCAN_LOOP_H
+#endif
 

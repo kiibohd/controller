@@ -19,19 +19,20 @@
  * THE SOFTWARE.
  */
 
-#ifndef __SCAN_LOOP_H
-#define __SCAN_LOOP_H
+#ifndef __macro_h
+#define __macro_h
 
 // ----- Includes -----
 
-// Local Includes
-#include "matrix.h"
+// Compiler Includes
+#include <stdint.h>
 
 
 
 // ----- Functions -----
 
-void scan_loop( void );
+void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys, uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t *map );
+void process_macros(void);
 
-#endif // __SCAN_LOOP_H
+#endif
 

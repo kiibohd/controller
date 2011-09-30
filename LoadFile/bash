@@ -1,0 +1,8 @@
+#!/bin/bash
+
+#| Loads the hex file onto the teensy
+
+sudo teensy-loader-cli -mmcu=@MCU@ -w @TARGET_HEX@
+
+exit 0
+

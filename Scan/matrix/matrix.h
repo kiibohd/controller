@@ -22,6 +22,12 @@
 #ifndef __MATRIX_H
 #define __MATRIX_H
 
+// ----- Includes -----
+
+// Compiler Includes
+#include <stdint.h>
+
+
 // ----- Quick Map (don't change) -----
 #define pinA0  0
 #define pinA1  1
@@ -97,12 +103,13 @@
 
 
 // ----- Key Settings -----
-#define keyboardSize 16  // # of keys
+#define KEYBOARD_SIZE 16 // # of keys
+#define MAX_ROW_SIZE  16 // # of keys in the largest row
 
 
 
 // ----- Matrix Configuration -----
-static uint8_t matrix_pinout[][] = {
+static const uint8_t matrix_pinout[][MAX_ROW_SIZE + 1] = {
 
 
 
@@ -111,6 +118,7 @@ static uint8_t matrix_pinout[][] = {
 // The mode allows for optimization in the kind of scanning algorithms that are done
 // 
 // The key numbers are used to translate into the keymap table (array) (and always start from 1, not 0).
+// Thus if a row doesn't use all the key positions, you can denote it as 0, which will be ignored/skipped on each scan
 // See the keymap.h file for the various preconfigured arrays.
 
 // Scan Mode | Col 1 | Col 2 | Col 3 | Col 4 | Col 4 | ...
@@ -135,11 +143,13 @@ static uint8_t matrix_pinout[][] = {
 };
 
 
+
 // ----- Variables -----
 
 // NOTE: Highest Bit: Valid keypress (0x80 is valid keypress)
 //        Other Bits: Pressed state sample counter
-uint8_t keyboardDetectArray[keyboardSize + 1];
+extern              uint8_t KeyIndex_Array [KEYBOARD_SIZE + 1];
+       static const uint8_t KeyIndex_Size = KEYBOARD_SIZE;
 
 
 

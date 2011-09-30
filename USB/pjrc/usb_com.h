@@ -19,57 +19,55 @@
  * THE SOFTWARE.
  */
 
+#ifndef __usb_com_h
+#define __usb_com_h
+
 // ----- Includes -----
 
+// AVR Includes
+
+// Compiler Includes
+#include <stdint.h>
+
 // Local Includes
-#include "scan_loop.h"
 
 
 
 // ----- Defines -----
 
-// Debouncing Defines
-#define SAMPLE_THRESHOLD 110
-#define MAX_SAMPLES      127 // Max is 127, reaching 128 is very bad
+// Indicator for other modules through USBKeys_MaxSize for how capable the USB module is when sending large number of keypresses
+#define USB_MAX_KEY_SEND 6
 
 
+// You can change these to give your code its own name.
+#define STR_MANUFACTURER	L"MfgName"
+#define STR_PRODUCT		L"Keyboard"
 
-// ----- Macros -----
 
-// Loop over all of the sampled keys of the given array
-// If the number of samples is higher than the sample threshold, flag the high bit, clear otherwise
-// This should be resetting VERY quickly, cutting off a potentially valid keypress is not an issue
-#define DEBOUNCE_ASSESS(table,size) \
-			for ( uint8_t key = 1; key < size + 1; key++ ) {\
-				table[key] = ( table[key] & ~(1 << 7) ) > SAMPLE_THRESHOLD ? (1 << 7) : 0x00; \
-			} \
+// Mac OS-X and Linux automatically load the correct drivers.  On
+// Windows, even though the driver is supplied by Microsoft, an
+// INF file is needed to load the driver.  These numbers need to
+// match the INF file.
+#define VENDOR_ID		0x16C0
+#define PRODUCT_ID		0x047D
 
 
 
 // ----- Variables -----
 
-// Keeps track of the number of scans, so we only do a debounce assess when it would be valid (as it throws away data)
-uint8_t scan_count = 0;
+// Variables used to communciate to the usb module
+extern                       uint8_t USBKeys_Modifiers;
+extern                       uint8_t USBKeys_Array[USB_MAX_KEY_SEND];
+extern                       uint8_t USBKeys_Sent;
+extern volatile              uint8_t USBKeys_LEDs;
+                static const uint8_t USBKeys_MaxSize = USB_MAX_KEY_SEND;
 
 
 
 // ----- Functions -----
 
-// Main Detection Loop
-void scan_loop()
-{
-	//matrix_pinSetup( matrix_pinout );
+void usb_setup(void);
+void usb_send(void);
 
-	//matrix_scan( matrix_pinout, keyboardDetectArray );
-
-	// Check count to see if the sample threshold may have been reached, otherwise collect more data
-	if ( scan_count++ < MAX_SAMPLES )
-		return;
-
-	// Reset Sample Counter
-	scan_count = 0;
-
-	// Assess debouncing sample table
-	//DEBOUNCE_ASSESS(keyDetectArray,KEYBOARD_SIZE)
-}
+#endif
 

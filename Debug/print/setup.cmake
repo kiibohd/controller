@@ -20,3 +20,9 @@ set( DEBUG_SRCS
 # Module Specific Options
 #
 
+
+###
+# Just in case, you only want this module and are using others as well
+#
+add_definitions( -I${HEAD_DIR}/Debug/off )
+

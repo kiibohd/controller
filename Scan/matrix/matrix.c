@@ -19,7 +19,14 @@
  * THE SOFTWARE.
  */
 
+// ----- Includes -----
+
+// Local Includes
 #include "matrix.h"
+
+
+
+// ----- Macros -----
 
 #define REG_SET(reg)	reg |= (1 << ( matrix[row][col] % 10 ) )
 			
@@ -58,6 +65,15 @@
 				detectArray[matrix[row][col]]++; \
 			break
 
+
+
+// ----- Variables -----
+
+uint8_t KeyIndex_Array[KEYBOARD_SIZE + 1];
+
+
+
+// ----- Functions -----
 
 void matrix_pinSetup( uint8_t *matrix )
 {

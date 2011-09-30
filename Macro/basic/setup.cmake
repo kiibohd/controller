@@ -12,6 +12,7 @@
 #
 
 set( MACRO_SRCS
+	macro.c
 )
 
 

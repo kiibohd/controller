@@ -1,4 +1,4 @@
-###| CMake Kiibohd Controller USB Module |###
+###| CMake Kiibohd Controller Debug Module |###
 #
 # Written by Jacob Alexander in 2011 for the Kiibohd Controller
 #
@@ -10,11 +10,7 @@
 ###
 # Module C files
 #
-
-set( USB_SRCS
-	usb_com.c
-	usb_keyboard_debug.c
-)
+#| None!
 
 
 ###

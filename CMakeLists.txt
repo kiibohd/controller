@@ -9,11 +9,8 @@
 
 #| Set the Compilers (must be set first)
 include( CMakeForceCompiler )
-set( CMAKE_SYSTEM_NAME Generic )
 cmake_force_c_compiler  ( avr-gcc AVRCCompiler )
 cmake_force_cxx_compiler( avr-g++ AVRCxxCompiler )
-set( CMAKE_CROSSCOMPILING on )
-message( STATUS ${CMAKE_CROSSCOMPILING})
 
 
 ###
@@ -184,4 +181,21 @@ add_custom_target( SizeAfter ALL avr-size --target=${FORMAT} ${TARGET_HEX} ${TAR
 	DEPENDS ${TARGET_ELF}
 	COMMENT "Size after generation:"
 )
+
+
+
+###
+# Setup Loader Script
+#
+
+#| Provides the user with the correct teensy-loader-cli command for the built .HEX file
+#| teensy-loader-cli must be in the user's path
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+	configure_file( LoadFile/bash load )
+endif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+
+#| TODO Windows
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+	message( STATUS "Load Script is on my TODO List for Windows..." )
+endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 

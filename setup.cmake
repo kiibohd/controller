@@ -29,7 +29,7 @@ set( MacroModule  "basic"  )
 set(   USBModule  "pjrc"   )
 
 ##| Debugging source to use, each module has it's own set of defines that it sets
-set( DebugModule  "basic"  )
+set( DebugModule  "full"   )
 
 
 
