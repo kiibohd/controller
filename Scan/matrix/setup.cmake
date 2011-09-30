@@ -12,6 +12,7 @@
 #
 
 set( SCAN_SRCS
+	matrix.c
 	scan_loop.c
 )
 

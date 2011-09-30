@@ -24,9 +24,9 @@
 // AVR Includes
 
 // Project Includes
-#include <usb_com.h>
-#include <scan_loop.h>
 #include <print.h>
+#include <scan_loop.h>
+#include <usb_com.h>
 
 // Keymaps
 #include <keymap.h>

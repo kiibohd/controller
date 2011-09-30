@@ -21,6 +21,9 @@
 
 // ----- Includes -----
 
+// AVR Includes
+#include <avr/io.h>
+
 // Local Includes
 #include "matrix.h"
 
@@ -93,9 +96,10 @@ void matrix_pinSetup( uint8_t *matrix )
 	uint8_t ddrF = 0x00;
 
 	// Loop through all the pin assignments, for the initial pin settings
-	int row, col;
+	//int row, col;
 
 	// Rows
+	/*
 	for ( row = 1; row < sizeof(matrix); row++ ) {
 		switch ( matrix[row][col] ) {
 		PIN_CASE(A):
@@ -136,6 +140,7 @@ void matrix_pinSetup( uint8_t *matrix )
 			continue;
 		}
 	}
+	*/
 
 	// Setting the pins
 	DDRA = ddrA;
@@ -158,6 +163,7 @@ void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 {
 	// Column Scan
 #if scanMode == scanCol
+	/*
 	uint8_t col = 1;
 	uint8_t row = 1;
 	for ( ; col < sizeof(matrix[1]); col++ ) {
@@ -176,6 +182,7 @@ void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 			PIN_TEST_COL(PINF);
 		}
 	}
+	*/
 #endif
 
 	// Row Scan

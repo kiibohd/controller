@@ -23,18 +23,15 @@
 
 // AVR Includes
 #include <avr/io.h>
-#include <avr/pgmspace.h>
 #include <avr/interrupt.h>
 
 // Project Includes
-//#include "usb_keys.h"
-#include "scan_loop.h"
-//#include "layouts.h"
-//#include "usb_keyboard.h"
+#include <macro.h>
+#include <scan_loop.h>
+#include <usb_com.h>
 
-#include "usb_keyboard_debug.h"
-#include "print.h"
-#include "led.h"
+#include <led.h>
+#include <print.h>
 
 
 
@@ -90,6 +87,7 @@ int main(void)
 
 	// Configuring Pins
 	pinSetup();
+	init_errorLED();
 
 	// Setup USB Module
 	usb_setup();
@@ -101,24 +99,36 @@ int main(void)
 	TIMSK0 = (1 << TOIE0);
 
 	// Main Detection Loop
-	while ( 1 ) {
-		//scan_loop();
+	uint8_t ledTimer = 15; // Enable LED for a short time
+	while ( 1 )
+	{
+		while ( 1 )
+		{
+			// Acquire Key Indices
+			scan_loop();
+
+			// Send keypresses over USB if the ISR has signalled that it's time
+			if ( !sendKeypresses )
+				continue;
+
+			// Run Macros over Key Indices and convert to USB Keys
+			process_macros();
+
+			// Send USB Data
+			usb_send();
+
+			// Clear sendKeypresses Flag
+			sendKeypresses = 0;
+
+			// Indicate Error, if valid
+			errorLED( ledTimer );
+		}
 
 		// Loop should never get here (indicate error)
-		errorLED( 1 );
+		ledTimer = 255;
 
 		// HID Debug Error message
 		erro_print("Detection loop error, this is very bad...bug report!");
-
-		// Send keypresses over USB if the ISR has signalled that it's time
-		if ( !sendKeypresses )
-			continue;
-
-		// Send USB Data
-		usb_send();
-
-		// Clear sendKeypresses Flag
-		sendKeypresses = 0;
 	}
 }
 
