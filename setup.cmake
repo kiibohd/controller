@@ -20,7 +20,7 @@
 #| Please the {Scan,Macro,USB,Debug}/module.txt for information on the modules and how to create new ones
 
 ##| Deals with acquiring the keypress information and turning it into a key index
-set(  ScanModule  "matrix" )
+set(  ScanModule  "Tandy1000" )
 
 ##| Uses the key index and potentially applies special conditions to it, mapping it to a usb key code
 set( MacroModule  "basic"  )
@@ -104,8 +104,12 @@ PathPrepend( DEBUG_SRCS ${DebugModulePath} ${DEBUG_SRCS} )
 
 
 #| Print list of all module sources
-message( STATUS "Detected Scan Module Source Files:  \n${SCAN_SRCS}")
-message( STATUS "Detected Macro Module Source Files:\n${MACRO_SRCS}")
-message( STATUS "Detected USB Module Source Files:    \n${USB_SRCS}")
-message( STATUS "Detected Debug Module Source Files:\n${DEBUG_SRCS}")
+message( STATUS "Detected Scan Module Source Files:" )
+message( "${SCAN_SRCS}" )
+message( STATUS "Detected Macro Module Source Files:" )
+message( "${MACRO_SRCS}" )
+message( STATUS "Detected USB Module Source Files:" )
+message( "${USB_SRCS}" )
+message( STATUS "Detected Debug Module Source Files:" )
+message( "${DEBUG_SRCS}" )
 

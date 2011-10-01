@@ -31,6 +31,7 @@
 
 // ----- Functions -----
 
+void scan_setup( void );
 void scan_loop( void );
 
 #endif // __SCAN_LOOP_H

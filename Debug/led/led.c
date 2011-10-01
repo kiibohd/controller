@@ -31,14 +31,14 @@
 // ----- Functions -----
 
 // Error LED Setup
-void init_errorLED()
+inline void init_errorLED()
 {
 	// Use pin D6 as an output (LED)
 	DDRD |= (1<<6);
 }
 
 // Error LED Control
-void errorLED( uint8_t on )
+inline void errorLED( uint8_t on )
 {
 	// Error LED On (D6)
 	if ( on ) {

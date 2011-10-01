@@ -55,11 +55,15 @@ uint8_t scan_count = 0;
 
 // ----- Functions -----
 
+// Setup
+void scan_setup()
+{
+	//matrix_pinSetup( matrix_pinout );
+}
+
 // Main Detection Loop
 void scan_loop()
 {
-	//matrix_pinSetup( matrix_pinout );
-
 	//matrix_scan( matrix_pinout, keyboardDetectArray );
 
 	// Check count to see if the sample threshold may have been reached, otherwise collect more data

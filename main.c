@@ -102,10 +102,16 @@ int main(void)
 	uint8_t ledTimer = 15; // Enable LED for a short time
 	while ( 1 )
 	{
+		// Setup the scanning module
+		scan_setup();
+
 		while ( 1 )
 		{
 			// Acquire Key Indices
-			scan_loop();
+			// Loop continuously until scan_loop returns 0
+			cli();
+			while ( scan_loop() );
+			sei();
 
 			// Send keypresses over USB if the ISR has signalled that it's time
 			if ( !sendKeypresses )
@@ -122,6 +128,9 @@ int main(void)
 
 			// Indicate Error, if valid
 			errorLED( ledTimer );
+
+			if ( ledTimer > 0 )
+				ledTimer--;
 		}
 
 		// Loop should never get here (indicate error)

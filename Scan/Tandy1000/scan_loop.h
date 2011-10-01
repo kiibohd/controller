@@ -19,20 +19,37 @@
  * THE SOFTWARE.
  */
 
-#ifndef __macro_h
-#define __macro_h
+#ifndef __SCAN_LOOP_H
+#define __SCAN_LOOP_H
 
 // ----- Includes -----
 
 // Compiler Includes
 #include <stdint.h>
 
+// Local Includes
+
+
+
+// ----- Defines -----
+
+#define KEYBOARD_SIZE 0x5A // 90 - Size of the array space for the keyboardr(max index)
+
+
+
+// ----- Variables -----
+
+// NOTE: Highest Bit: Valid keypress (0x80 is valid keypress)
+//        Other Bits: Pressed state sample counter
+extern              uint8_t KeyIndex_Array [KEYBOARD_SIZE + 1];
+       static const uint8_t KeyIndex_Size = KEYBOARD_SIZE;
+
 
 
 // ----- Functions -----
 
-void keyPressDetection( uint8_t *keys, uint8_t numberOfKeys, uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t *map );
-void process_macros(void);
+void scan_setup( void );
+uint8_t scan_loop( void );
 
-#endif
+#endif // __SCAN_LOOP_H
 

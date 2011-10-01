@@ -24,6 +24,7 @@
 // AVR Includes
 
 // Project Includes
+#include <led.h>
 #include <print.h>
 #include <scan_loop.h>
 #include <usb_com.h>
@@ -41,11 +42,17 @@
 
 // Given a sampling array, and the current number of detected keypress
 // Add as many keypresses from the sampling array to the USB key send array as possible.
-void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys, uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t *map )
+void keyPressDetection( uint8_t *keys, uint8_t numberOfKeys, uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t *map )
+//void keyPressDetection( uint8_t *keys, uint8_t numberOfKeys, uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t *map )
 {
-	for ( uint8_t key = 0; key < numberOfKeys + 1; key++ ) {
-		if ( keys[key] & (1 << 7) ) {
-			// TODO Debug Out
+	USBKeys_Sent = 0;
+
+	for ( uint8_t key = 1; key < numberOfKeys + 1; key++ )
+	//for ( uint8_t key = 0; key < numberOfKeys + 1; key++ )
+	{
+		//if ( keys[key] & (1 << 7) )
+		if ( keys[key] )
+		{
 			uint8_t modFound = 0;
 
 			// Determine if the key is a modifier
@@ -57,30 +64,35 @@ void keyPressDetection( uint8_t *keys, uint8_t *validKeys, uint8_t numberOfKeys,
 					break;
 				}
 			}
+
+			// Modifier, already done this loop
 			if ( modFound )
 				continue;
 
 			// Too many keys
-			if ( *validKeys >= USBKeys_MaxSize )
+			if ( USBKeys_Sent >= USBKeys_MaxSize )
+			{
+				info_print("USB Key limit reached");
+				errorLED( 1 );
 				break;
+			}
 
 			// Allow ignoring keys with 0's
 			if ( map[key] != 0 )
-				USBKeys_Array[(*validKeys)++] = map[key];
+				USBKeys_Array[USBKeys_Sent++] = map[key];
+
+			/*
+			char tmpStr[3];
+			hexToStr_op( USBKeys_Array[0], tmpStr, 2 );
+			warn_dPrint("Found key: 0x", tmpStr );
+			*/
 		}
 	}
 }
 
 void process_macros(void)
 {
-	// Layout Setup
-	uint8_t validKeys = 0;
-
-	uint8_t *keyboard_MODMASK = keyboard_modifierMask;
-	uint8_t  keyboard_NUMMODS = MODIFIERS_KEYBOARD;
-	uint8_t *keyboard_MAP     = defaultMap;
-
 	// Debounce Sampling Array to USB Data Array
-	keyPressDetection( KeyIndex_Array, &validKeys, KeyIndex_Size, keyboard_MODMASK, keyboard_NUMMODS, keyboard_MAP );
+	keyPressDetection( KeyIndex_Array, KeyIndex_Size, MODIFIER_MASK, sizeof(MODIFIER_MASK), KEYINDEX_MASK );
 }
 
