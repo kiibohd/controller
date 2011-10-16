@@ -79,7 +79,8 @@ inline void usb_send(void)
 		// Send keypresses
 		usb_keyboard_send();
 
-		// Clear modifiers
+		// Clear modifiers and keys
 		USBKeys_Modifiers = 0;
+		USBKeys_Sent      = 0;
 }
 

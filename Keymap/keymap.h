@@ -34,9 +34,13 @@
 
 // ----- Variables -----
 
+// Lots of these variables are not used, so ignore gcc unused warnings
+// But just for the variables in this file (and those included into it)
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic push
+
 static uint8_t tandy1000_modifierMask[] = { 0x1D, 0x2A, 0x36, 0x38, 0x46 };
 
-/*
 static uint8_t tandy1000_map[] = { 0,
 				KEY_ESC,
 				KEY_1,
@@ -129,7 +133,6 @@ static uint8_t tandy1000_map[] = { 0,
 				KEY_F11,
 				KEY_F12, // 0x5A
 };
-*/
 
 static uint8_t tandy1000_colemak[] = { 0,
 				KEY_ESC,
@@ -449,5 +452,9 @@ static uint8_t colemakMap[] = { 0,
 				KEY_RIGHT_ALT,
 				KEY_SPACE };
 */
+
+// Only ignore unused warnings for the above variables
+#pragma GCC diagnostic pop
+
 #endif
 
