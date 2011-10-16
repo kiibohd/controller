@@ -19,36 +19,54 @@
  * THE SOFTWARE.
  */
 
-#ifndef __KEYMAP_H
-#define __KEYMAP_H
+#ifndef __BUDKEYPAD_H
+#define __BUDKEYPAD_H
 
-// ----- Includes -----
-
-#include "usb_keys.h"
-
-
-
-// ----- Defines -----
-
+// This file contains various key layouts for the Bud Hall Effect Keypad (16 key)
 
 
 // ----- Variables -----
 
-// Lots of these variables are not used, so ignore gcc unused warnings
-// But just for the variables in this file (and those included into it)
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic push
+static uint8_t budkeypad_ModifierMask[] = {};
 
+// Default 1-indexed key mappings
+static uint8_t budkeypad_DefaultMap[] = { 0,
+				KEYPAD_7,
+				KEYPAD_8,
+				KEYPAD_9,
+				KEYPAD_SLASH,
+				KEYPAD_4,
+				KEYPAD_5,
+				KEYPAD_6,
+				KEYPAD_ASTERIX,
+				KEYPAD_1,
+				KEYPAD_2,
+				KEYPAD_3,
+				KEYPAD_MINUS,
+				KEYPAD_ENTER,
+				KEYPAD_0,
+				KEYPAD_PERIOD,
+				KEYPAD_PLUS,
+};
 
-// See files for full layout descriptions
-#include "budkeypad.h"
-#include "heathzenith.h"
-#include "tandy1000.h"
-
-
-
-// Only ignore unused warnings for the above variables
-#pragma GCC diagnostic pop
+static uint8_t budkeypad_TheProfosistMap[] = { 0,
+				KEY_7,
+				KEY_8,
+				KEY_9,
+				KEYPAD_SLASH,
+				KEY_4,
+				KEY_5,
+				KEY_6,
+				KEYPAD_ASTERIX,
+				KEY_1,
+				KEY_2,
+				KEY_3,
+				KEYPAD_MINUS,
+				KEY_0,
+				KEYPAD_PERIOD,
+				KEYPAD_ENTER,
+				KEYPAD_PLUS,
+};
 
 
 
