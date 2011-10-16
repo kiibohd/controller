@@ -54,7 +54,7 @@ set( SRCS main.c ${SCAN_SRCS} ${MACRO_SRCS} ${USB_SRCS} ${DEBUG_SRCS} )
 #| "atmega32u4"       # Teensy   2.0
 #| "at90usb646"       # Teensy++ 1.0
 #| "at90usb1286"      # Teensy++ 2.0
-set( MCU "at90usb1286" )
+set( MCU "atmega32u4" )
 
 
 #| Compiler flag to set the C Standard level.

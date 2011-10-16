@@ -62,8 +62,11 @@ volatile uint8_t sendKeypresses = 0;
 // Initial Pin Setup, make sure they are sane
 inline void pinSetup(void)
 {
+
 	// For each pin, 0=input, 1=output
+#if defined(__AVR_AT90USB1286__)
 	DDRA = 0x00;
+#endif
 	DDRB = 0x00;
 	DDRC = 0x00;
 	DDRD = 0x00;
@@ -72,7 +75,9 @@ inline void pinSetup(void)
 
 
 	// Setting pins to either high or pull-up resistor
+#if defined(__AVR_AT90USB1286__)
 	PORTA = 0x00;
+#endif
 	PORTB = 0x00;
 	PORTC = 0x00;
 	PORTD = 0x00;
@@ -113,12 +118,12 @@ int main(void)
 			while ( scan_loop() );
 			sei();
 
+			// Run Macros over Key Indices and convert to USB Keys
+			process_macros();
+
 			// Send keypresses over USB if the ISR has signalled that it's time
 			if ( !sendKeypresses )
 				continue;
-
-			// Run Macros over Key Indices and convert to USB Keys
-			process_macros();
 
 			// Send USB Data
 			usb_send();

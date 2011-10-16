@@ -12,7 +12,7 @@
 #
 
 set( SCAN_SRCS
-	matrix.c
+	matrix_scan.c
 	scan_loop.c
 )
 
@@ -21,4 +21,10 @@ set( SCAN_SRCS
 # Module Specific Options
 #
 add_definitions( -I${HEAD_DIR}/Keymap )
+
+#| Keymap Settings
+add_definitions(
+	-DMODIFIER_MASK=tandy1000_modifierMask
+	-DKEYINDEX_MASK=tandy1000_colemak
+)
 

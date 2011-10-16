@@ -24,15 +24,34 @@
 
 // ----- Includes -----
 
+// Compiler Includes
+#include <stdint.h>
+
 // Local Includes
-#include "matrix.h"
+#include "matrix_scan.h"
+
+// Matrix Configuration
+#include <matrix.h>
+
+
+
+// ----- Defines -----
+
+
+
+// ----- Variables -----
+
+// NOTE: Highest Bit: Valid keypress (0x80 is valid keypress)
+//        Other Bits: Pressed state sample counter
+extern              uint8_t KeyIndex_Array [KEYBOARD_SIZE + 1];
+       static const uint8_t KeyIndex_Size = KEYBOARD_SIZE;
 
 
 
 // ----- Functions -----
 
 void scan_setup( void );
-void scan_loop( void );
+uint8_t scan_loop( void );
 
 #endif // __SCAN_LOOP_H
 

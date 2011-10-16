@@ -42,24 +42,26 @@
 
 // Given a sampling array, and the current number of detected keypress
 // Add as many keypresses from the sampling array to the USB key send array as possible.
-void keyPressDetection( uint8_t *keys, uint8_t numberOfKeys, uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t *map )
-//void keyPressDetection( uint8_t *keys, uint8_t numberOfKeys, uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t *map )
+inline void keyPressDetection( uint8_t *keys, uint8_t numberOfKeys, uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t *map )
 {
 	USBKeys_Sent = 0;
 
-	for ( uint8_t key = 1; key < numberOfKeys + 1; key++ )
-	//for ( uint8_t key = 0; key < numberOfKeys + 1; key++ )
+	// Parse the detection array starting from 1 (all keys are purposefully mapped from 1 -> total as per typical PCB labels)
+	for ( uint8_t key = 0; key < numberOfKeys + 1; key++ )
 	{
-		//if ( keys[key] & (1 << 7) )
-		if ( keys[key] )
+		if ( keys[key] & (1 << 7) )
 		{
-			uint8_t modFound = 0;
+			// Display the detected scancode
+			char tmpStr[4];
+			int8ToStr( key, tmpStr );
+			dPrintStrs( tmpStr, " " );
 
 			// Determine if the key is a modifier
+			uint8_t modFound = 0;
 			for ( uint8_t mod = 0; mod < numberOfModifiers; mod++ ) {
 				// Modifier found
 				if ( modifiers[mod] == key ) {
-					USBKeys_Modifiers |= map[key];
+					//USBKeys_Modifiers |= map[key];
 					modFound = 1;
 					break;
 				}
@@ -80,17 +82,15 @@ void keyPressDetection( uint8_t *keys, uint8_t numberOfKeys, uint8_t *modifiers,
 			// Allow ignoring keys with 0's
 			if ( map[key] != 0 )
 				USBKeys_Array[USBKeys_Sent++] = map[key];
-
-			/*
-			char tmpStr[3];
-			hexToStr_op( USBKeys_Array[0], tmpStr, 2 );
-			warn_dPrint("Found key: 0x", tmpStr );
-			*/
 		}
 	}
+
+	// Add debug separator if keys sent via USB
+	if ( USBKeys_Sent > 0 )
+		print("\033[1;32m|\033[0m\n");
 }
 
-void process_macros(void)
+inline void process_macros(void)
 {
 	// Debounce Sampling Array to USB Data Array
 	keyPressDetection( KeyIndex_Array, KeyIndex_Size, MODIFIER_MASK, sizeof(MODIFIER_MASK), KEYINDEX_MASK );
