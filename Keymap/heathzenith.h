@@ -27,11 +27,11 @@
 
 // ----- Variables -----
 
-static uint8_t  keyboard_modifierMask[] = { 1, 17, 33, 49 };
-static uint8_t alternate_modifierMask[] = { 1, 17, 33, 49, 62 };
+static uint8_t  heathzenith_ModifierMask [] = { 1, 17, 33, 49 };
+static uint8_t  heathzenith_AlternateMask[] = { 1, 17, 33, 49, 62 };
 
 // Default 1-indexed key mappings
-static uint8_t defaultMap[] = { 0,
+static uint8_t heathzenith_DefaultMap[] = { 0,
 				KEY_GUI,
 				KEY_1,
 				KEY_2,
@@ -96,7 +96,7 @@ static uint8_t defaultMap[] = { 0,
 				KEY_RIGHT,
 				KEY_SPACE
 };
-static uint8_t navigationMap[] = { 0,
+static uint8_t heathzenith_NavigationMap[] = { 0,
 				KEY_GUI,
 				KEY_F1,
 				KEY_F2,
@@ -162,7 +162,7 @@ static uint8_t navigationMap[] = { 0,
 				KEY_SPACE
 };
 
-static uint8_t colemakMap[] = { 0,
+static uint8_t heathzenith_ColemakMap[] = { 0,
 				KEY_GUI,
 				KEY_1,
 				KEY_2,

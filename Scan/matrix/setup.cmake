@@ -6,6 +6,13 @@
 #
 ###
 
+###
+# Warning, that this module is not meant to be built stand-alone
+#
+message( FATAL_ERROR
+"The 'matrix' module is not a stand-alone module, and requires further setup.
+See BudKeypad module for as an example module."
+)
 
 ###
 # Module C files
@@ -22,10 +29,8 @@ set( SCAN_SRCS
 #
 add_definitions( -I${HEAD_DIR}/Keymap )
 
-#| Keymap Settings
 add_definitions(
-	-DMODIFIER_MASK=budkeypad_ModifierMask
-	#-DKEYINDEX_MASK=budkeypad_TheProfosistMap
-	-DKEYINDEX_MASK=budkeypad_DefaultMap
+	#-DMODIFIER_MASK=
+	#-DKEYINDEX_MASK=
 )
 

@@ -1,0 +1,69 @@
+/* Copyright (C) 2011 by Jacob Alexander
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+#ifndef __MATRIX_H
+#define __MATRIX_H
+
+// ----- Includes -----
+
+// Compiler Includes
+#include <stdint.h>
+
+
+
+// ----- Scan Mode Setting (See matrix_scan.h for more details) -----
+#define scanMode scanDual
+
+
+
+// ----- Key Settings -----
+
+#define KEYBOARD_SIZE 63 // # of keys
+#define MAX_ROW_SIZE  12 // # of keys in the largest row
+#define MAX_COL_SIZE   9 // # of keys in the largest column
+
+
+
+// ----- Matrix Configuration -----
+static const uint8_t matrix_pinout[][MAX_ROW_SIZE + 1] = {
+
+
+// TODO Pinout
+// Note: Pins 49 and 60 are connected together, by row AND column, why? dunno...(shift)
+  { scanMode, pinF0, pinF4, pinB7, pinD3, pinF5, pinF1, pinD1, pinD2, pinE0, pinE1, pinE2, pinE3 },
+  { pinF6,    1,     2,     3,     4,     5,     6,     7,     8,     0,     0,     0,     0     },
+  { pinF7,    16,    15,    14,    13,    12,    11,    10,    9,     0,     0,     0,     0     },
+  { pinB2,    17,    18,    19,    20,    21,    22,    23,    24,    0,     0,     0,     0     },
+  { pinD0,    32,    31,    30,    29,    28,    27,    26,    25,    0,     0,     0,     0     },
+  { pinB6,    35,    36,    37,    38,    39,    40,    41,    42,    0,     0,     0,     0     },
+  { pinB3,    47,    61,    46,    45,    44,    43,    58,    0,     0,     0,     0,     0     },
+  { pinA0,    50,    51,    52,    53,    54,    55,    56,    57,    0,     0,     0,     0     },
+  { pinB0,    62,    63,    0,     0,     59,    0,     0,     0,     0,     0,     0,     0     },
+  { pinB0,    0,     0,     0,     0,     0,     0,     0,     0,     33,    34,    48,    49    },
+
+
+
+};
+
+
+
+#endif // __MATRIX_H
+

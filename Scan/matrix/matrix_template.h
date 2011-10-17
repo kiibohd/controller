@@ -53,9 +53,11 @@
 
 
 // -- Example for scanRow_powrCol, scanCol_powrRow, and scanDual --
+/*
 #define KEYBOARD_SIZE 69 // # of keys
 #define MAX_ROW_SIZE   8 // # of keys in the largest row
 #define MAX_COL_SIZE   9 // # of keys in the largest column
+*/
 
 
 
@@ -113,6 +115,7 @@ static const uint8_t matrix_pinout[][MAX_ROW_SIZE + 1] = {
 
 // -- scanRow_powrCol Example and scanCol_powrRow Example --
 // The example is the same, as the difference is whether the row or col is powered, and the other is used to detect the signal
+/*
   { scanMode, pinF0, pinF4, pinB7, pinD3, pinF5, pinF1, pinD1, pinD2 },
   { pinF6,    1,     2,     3,     4,     5,     6,     7,     8     },
   { pinF7,    9,     10,    11,    12,    13,    14,    15,    16    },
@@ -123,6 +126,7 @@ static const uint8_t matrix_pinout[][MAX_ROW_SIZE + 1] = {
   { pinB1,    28,    24,    34,    44,    54,    64,    0,     49    }, // 0 signifies no key at that location
   { pinB3,    29,    25,    35,    45,    55,    65,    0,     57    },
   { pinA0,    37,    26,    36,    46,    56,    66,    0,     58    },
+*/
 
 
 // -- scanDual Example --
