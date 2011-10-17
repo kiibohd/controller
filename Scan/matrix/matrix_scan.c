@@ -37,6 +37,7 @@
 
 // ----- Macros -----
 
+// -- pinSetup Macros --
 #define REG_SET(reg)	reg |= (1 << ( matrix[row*(MAX_ROW_SIZE+1)+col] % 10 ) )
 			
 #define PIN_SET_COL(pin) \
@@ -69,9 +70,34 @@
 			case pin##pinLetter##6: \
 			case pin##pinLetter##7
 
+// -- Column Scan Macros --
 #define PIN_TEST_COL(pin) \
-			if ( !( pin & ( 1 << ( matrix[0*(MAX_ROW_SIZE+1)+col] % 10 ) ) ) ) \
-				detectArray[matrix[row*(MAX_ROW_SIZE+1)+col]]++; \
+			scanCode = matrix[row*(MAX_ROW_SIZE+1)+col]; \
+			if ( scanCode && !( pin & ( 1 << ( matrix[0*(MAX_ROW_SIZE+1)+col] % 10 ) ) ) ) \
+				detectArray[scanCode]++; \
+			break
+
+// -- Row Scan Macros --
+#define PIN_TEST_ROW(pin) \
+			scanCode = matrix[row*(MAX_ROW_SIZE+1)+col]; \
+			if ( scanCode && !( pin & ( 1 << ( matrix[row*(MAX_ROW_SIZE+1)+0] % 10 ) ) ) ) \
+				detectArray[scanCode]++; \
+			break
+
+// -- Scan Dual Macros --
+#define PIN_DUALTEST_ROW(pin) \
+			scanCode = matrix[row*(MAX_ROW_SIZE+1)+col]; \
+			if ( scanCode \
+			  && !( pin & ( 1 << ( matrix[row*(MAX_ROW_SIZE+1)+0] % 10 ) ) ) \
+			  && detectArray[scanCode] & 0x01 ) \
+			{ \
+				detectArray[scanCode]++; \
+			} \
+			else \
+			{ \
+				if ( detectArray[scanCode] & 0x01 ) \
+					detectArray[scanCode]--; \
+			} \
 			break
 
 
@@ -193,15 +219,21 @@ inline void matrix_pinSetup( uint8_t *matrix )
 	PORTF = portF;
 }
 
-// TODO Proper matrix scanning
+// Scans the given matrix determined by the scanMode method
 inline void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 {
-	// Column Scan
-#if scanMode == scanCol
+	// Loop variables for all modes
 	uint16_t col = 1;
 	uint16_t row = 1;
-	for ( ; col < (MAX_ROW_SIZE+1) + 1; col++ ) 
+	uint16_t scanCode = 0;
+
+
+	// Column Scan and Column Scan, Power Row
+#if scanMode == scanCol || scanMode == scanCol_powrRow
+	for ( ; row < (MAX_COL_SIZE+1); row++ ) for ( ; col < (MAX_ROW_SIZE+1); col++ )
 	{
+		// Scan over the pins for each of the columns, and using the pin alias to determine which pin to set
+		// (e.g. / 10 is for the pin name (A,B,C,etc.) and % 10 is for the position of the pin (A1,A2,etc.))
 		switch ( matrix[0*(MAX_ROW_SIZE+1)+col] / 10 )
 		{
 #if defined(__AVR_AT90USB1286__)
@@ -220,22 +252,88 @@ inline void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 			PIN_TEST_COL(PINF);
 		}
 	}
-#endif
+#endif // scanMode
 
-	// Row Scan
-#if scanMode == scanRow
-#endif
 
-	// Column Scan, Power Row
-#if scanMode == scanCol_powrRow
+	// Row Scan and Row Scan, Power Row
+#if scanMode == scanRow || scanMode == scanRow_powrCol
+	for ( ; col < (MAX_ROW_SIZE+1); col++ ) for ( ; row < (MAX_COL_SIZE+1); row++ ) 
+	{
+		// Scan over the pins for each of the rows, and using the pin alias to determine which pin to set
+		// (e.g. / 10 is for the pin name (A,B,C,etc.) and % 10 is for the position of the pin (A1,A2,etc.))
+		switch ( matrix[row*(MAX_ROW_SIZE+1)+0] / 10 )
+		{
+#if defined(__AVR_AT90USB1286__)
+		case 0: // PINA
+			PIN_TEST_ROW(PINA);
 #endif
+		case 1: // PINB
+			PIN_TEST_ROW(PINB);
+		case 2: // PINC
+			PIN_TEST_ROW(PINC);
+		case 3: // PIND
+			PIN_TEST_ROW(PIND);
+		case 4: // PINE
+			PIN_TEST_ROW(PINE);
+		case 5: // PINF
+			PIN_TEST_ROW(PINF);
+		}
+	}
+#endif // scanMode
 
-	// Row Scan, Power Column
-#if scanMode == scanRow_powrCol
-#endif
 
 	// Dual Scan
 #if scanMode == scanDual
+	// First do a scan of all of the columns, marking each one
+	for ( ; row < (MAX_COL_SIZE+1); row++ ) for ( ; col < (MAX_ROW_SIZE+1); col++ )
+	{
+		// Scan over the pins for each of the columns, and using the pin alias to determine which pin to set
+		// (e.g. / 10 is for the pin name (A,B,C,etc.) and % 10 is for the position of the pin (A1,A2,etc.))
+		switch ( matrix[0*(MAX_ROW_SIZE+1)+col] / 10 )
+		{
+#if defined(__AVR_AT90USB1286__)
+		case 0: // PINA
+			PIN_TEST_COL(PINA);
+#endif
+		case 1: // PINB
+			PIN_TEST_COL(PINB);
+		case 2: // PINC
+			PIN_TEST_COL(PINC);
+		case 3: // PIND
+			PIN_TEST_COL(PIND);
+		case 4: // PINE
+			PIN_TEST_COL(PINE);
+		case 5: // PINF
+			PIN_TEST_COL(PINF);
+		}
+	}
+
+	// Next, do a scan of all of the rows, clearing any "vague" keys (only detected on row, but not column, or vice-versa)
+	// And marking any keys that are detected on the row and column
+	col = 1;
+	row = 1;
+	for ( ; col < (MAX_ROW_SIZE+1); col++ ) for ( ; row < (MAX_COL_SIZE+1); row++ ) 
+	{
+		// Scan over the pins for each of the rows, and using the pin alias to determine which pin to set
+		// (e.g. / 10 is for the pin name (A,B,C,etc.) and % 10 is for the position of the pin (A1,A2,etc.))
+		switch ( matrix[row*(MAX_ROW_SIZE+1)+0] / 10 )
+		{
+#if defined(__AVR_AT90USB1286__)
+		case 0: // PINA
+			PIN_DUALTEST_ROW(PINA);
+#endif
+		case 1: // PINB
+			PIN_DUALTEST_ROW(PINB);
+		case 2: // PINC
+			PIN_DUALTEST_ROW(PINC);
+		case 3: // PIND
+			PIN_DUALTEST_ROW(PIND);
+		case 4: // PINE
+			PIN_DUALTEST_ROW(PINE);
+		case 5: // PINF
+			PIN_DUALTEST_ROW(PINF);
+		}
+	}
 #endif
 }
-
+ 

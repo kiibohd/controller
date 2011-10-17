@@ -76,9 +76,16 @@ inline void scan_setup()
 inline uint8_t scan_loop()
 {
 	// Check count to see if the sample threshold may have been reached, otherwise collect more data
-	if ( scan_count++ < MAX_SAMPLES )
+	if ( scan_count < MAX_SAMPLES )
 	{
 		matrix_scan( (uint8_t*)matrix_pinout, KeyIndex_Array );
+
+		// scanDual requires 2 passes, and thus needs more memory per matrix_scan pass
+#if scanMode == scanDual
+		scan_count += 2;
+#else
+		scan_count++;
+#endif
 
 		// Signal Main Detection Loop to continue scanning
 		return 0;
