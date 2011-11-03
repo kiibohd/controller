@@ -23,7 +23,7 @@
 set(  ScanModule  "Kaypro1" )
 
 ##| Uses the key index and potentially applies special conditions to it, mapping it to a usb key code
-set( MacroModule  "basic"  )
+set( MacroModule  "buffer"  )
 
 ##| Sends the current list of usb key codes through USB HID
 set(   USBModule  "pjrc"   )

@@ -40,11 +40,17 @@
 
 // ----- Macros -----
 
+// Make sure we haven't overflowed the buffer
+#define bufferAdd(byte) \
+		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
+			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
+
 
 
 // ----- Variables -----
 
-uint8_t KeyIndex_Array[KEYBOARD_SIZE + 1];
+volatile uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
+volatile uint8_t KeyIndex_BufferUsed;
 
 
 // Known signals
@@ -83,112 +89,12 @@ inline void scan_setup()
 
 
 // Main Detection Loop
+// Nothing is needed here for the Kaypro, but the function is available as part of the api to be called in a polling fashion
+// TODO
+//  - Add songs :D
 inline uint8_t scan_loop()
 {
-	/*
-	// Packet Read
-	if ( packet_index == 8 )
-	{
-		// Disable Error LED, proper key found
-		errorLED( 0 );
-
-//#ifdef MAX_DEBUG
-		// Crazy Debug (Read the Scan Code)
-		char tmpStr[3];
-		hexToStr_op( inputData, tmpStr, 2 );
-		dPrintStrsNL( "Read Data: 0x", tmpStr );
-//#endif
-		// - Map the scan code to the index array -
-		// If the 8th bit is high, remove the keypress, else, add the keypress
-		// The lower 7 bits are the array index
-		KeyIndex_Array[(inputData & 0x7F)] = (inputData & 0x80) ? 0x00 : 0x80;
-
-		// Reset Containers
-		packet_index = 0;
-		inputData = 0xFF;
-	}
-	// Bad Packet
-	else if ( packet_index > 8 )
-	{
-		// Signal Error
-		errorLED( 1 );
-
-		char tmpStr[3];
-		int8ToStr( packet_index, tmpStr );
-		erro_dPrint( "Big packet? Mismatched... ", tmpStr );
-
-		packet_index = 0;
-		inputData = 0xFF;
-	}
-	*/
-	/*
-	// Disable keyboard interrupt (does nothing if already off)
-	UNSET_INTR();
-
-	// Read the clock 8 times
-	if ( READ_CLK )
-	{
-		// Mis-read packet, set back to 0
-		if ( packet_index == -1 )
-			packet_index = 0;
-
-		// Append 1 bit of data
-		inputData &= ~(READ_DATA << packet_index);
-		packet_index++;
-
-		// 8 Bits have been read
-		if ( packet_index == 8 )
-		{
-			// Wait till clock edge falls
-			while ( READ_CLK );
-
-			// Sample both lines to make sure this is not a data value
-			//  and definitely the end of packet data blip
-			uint16_t badDataCounter = 0;
-			while ( !( READ_DATA ) && !( READ_CLK ) )
-					badDataCounter++;
-
-			if ( badDataCounter < 25 )
-			{
-//#ifdef MAX_DEBUG
-				// Crazy Debug (Read the Scan Code)
-				char tmpStr[3];
-				hexToStr_op( inputData, tmpStr, 2 );
-				dbug_dPrint( "Read Data: 0x", tmpStr );
-//#endif
-				// - Map the scan code to the index array -
-				// If the 8th bit is high, remove the keypress, else, add the keypress
-				// The lower 7 bits are the array index
-				KeyIndex_Array[(inputData & 0x7F)] = (inputData & 0x80) ? 0x00 : 0x80;
-			}
-			// Even though this is a mis-read packet, we still know what the value is
-			else
-			{
-				// Signal Error
-				errorLED( 1 );
-				char tmpStr[3];
-				hexToStr_op( inputData, tmpStr, 2 );
-				erro_dPrint( "Bad packet? Mismatched... 0x", tmpStr );
-			}
-
-			// Reset Containers
-			inputData = 0xFF;
-			packet_index = 0;
-
-			// Interrupt the keyboard, so we don't get packet pieces...
-			SET_INTR();
-
-			// Do not wait for next clock, let USB do it's thing (if desired)
-			return packet_index;
-		}
-
-		// Wait till clock edge falls
-		while ( READ_CLK );
-	}
-
-	// Interrupt keyboard if there is no pending packet
-	SET_INTR();
-	*/
+	// We *could* do extra offline processing here, but, it's not really needed for the Kaypro 1 keyboard
 	return 0;
 }
 
@@ -197,10 +103,149 @@ ISR(USART1_RX_vect)
 {
 	cli(); // Disable Interrupts
 
+	// Get key from USART
 	uint8_t keyValue = UDR1;
+
+//#ifdef MAX_DEBUG
+	// Debug print key
 	char tmpStr1[6];
 	hexToStr( keyValue, tmpStr1 );
 	dPrintStrs( tmpStr1, " " );
+//#endif
+
+	// Add key(s) to processing buffer
+	// First split out Shift and Ctrl
+	//  Reserved Codes:
+	//   Shift - 0xF5
+	//   Ctrl  - 0xF6
+	switch ( keyValue )
+	{
+	// - Ctrl Keys -
+	// Exception keys
+	case 0x08: // ^H
+	case 0x09: // ^I
+	case 0x0D: // ^M
+	case 0x1B: // ^[
+		bufferAdd( keyValue );
+		break;
+	// 0x40 Offset Keys
+	// Add Ctrl key and offset to the lower alphabet
+	case 0x00: // ^@
+	case 0x1C: // "^\"
+	case 0x1D: // ^]
+	case 0x1E: // ^^
+	case 0x1F: // ^_
+		bufferAdd( 0xF6 );
+		bufferAdd( keyValue + 0x40 );
+		break;
+
+	// - Add Shift key and offset to non-shifted key -
+	// 0x10 Offset Keys
+	case 0x21: // !
+	case 0x23: // #
+	case 0x24: // $
+	case 0x25: // %
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x10 );
+		break;
+	// 0x11 Offset Keys
+	case 0x26: // &
+	case 0x28: // (
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x11 );
+		break;
+	// 0x07 Offset Keys
+	case 0x29: // )
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x07 );
+		break;
+	// -0x0E Offset Keys
+	case 0x40: // @
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x0E );
+		break;
+	// 0x0E Offset Keys
+	case 0x2A: // *
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x0E );
+		break;
+	// 0x12 Offset Keys
+	case 0x2B: // +
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x12 );
+		break;
+	// 0x05 Offset Keys
+	case 0x22: // "
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x05 );
+		break;
+	// 0x01 Offset Keys
+	case 0x3A: // :
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x01 );
+		break;
+	// -0x10 Offset Keys
+	case 0x3C: // <
+	case 0x3E: // >
+	case 0x3F: // ?
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x10 );
+		break;
+	// -0x28 Offset Keys
+	case 0x5E: // ^
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x28 );
+		break;
+	// -0x32 Offset Keys
+	case 0x5F: // _
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x32 );
+		break;
+	// -0x20 Offset Keys
+	case 0x7B: // {
+	case 0x7C: // |
+	case 0x7D: // }
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x20 );
+		break;
+	// -0x1E Offset Keys
+	case 0x7E: // ~
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x1E );
+		break;
+	// All other keys
+	default:
+		// Ctrl Characters are from 0x00 to 0x1F, excluding:
+		//  0x08 - Backspace
+		//  0x09 - [Horizontal] Tab
+		//  0x0D - [Carriage] Return
+		//  0x1B - Escape
+		//  0x7F - Delete (^?) (Doesn't need to be split out)
+
+		// 0x60 Offset Keys
+		// Add Ctrl key and offset to the lower alphabet
+		if ( keyValue >= 0x00 && keyValue <= 0x1F )
+		{
+			bufferAdd( 0xF6 );
+			bufferAdd( keyValue + 0x60 );
+		}
+
+		// Shift Characters are from 0x41 to 0x59
+		//  No exceptions here :D
+		// Add Shift key and offset to the lower alphabet
+		else if ( keyValue >= 0x41 && keyValue <= 0x5A )
+		{
+			bufferAdd( 0xF5 );
+			bufferAdd( keyValue + 0x20 );
+		}
+
+		// Everything else
+		else
+		{
+			bufferAdd( keyValue );
+		}
+		break;
+	}
 
 	// Special keys - For communication to the keyboard
 	// TODO Try to push this functionality into the macros...somehow
@@ -224,8 +269,6 @@ ISR(USART1_RX_vect)
 		UDR1 = cmd_ACK_AA;
 		break;
 	}
-
-	// Add key to processing buffer
 
 	sei(); // Re-enable Interrupts
 }

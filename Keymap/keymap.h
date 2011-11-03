@@ -43,6 +43,7 @@
 // See files for full layout descriptions
 #include "budkeypad.h"
 #include "heathzenith.h"
+#include "kaypro1.h"
 #include "tandy1000.h"
 
 
