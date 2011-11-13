@@ -49,6 +49,7 @@
 
 // ----- Variables -----
 
+// Buffer used to inform the macro processing module which keys have been detected as pressed
 volatile uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
 volatile uint8_t KeyIndex_BufferUsed;
 

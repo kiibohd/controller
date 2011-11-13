@@ -24,7 +24,7 @@ add_definitions( -I${HEAD_DIR}/Keymap )
 #| Keymap Settings
 add_definitions(
 	-DMODIFIER_MASK=kaypro1_ModifierMask
-	-DKEYINDEX_MASK=kaypro1_ColemakMap
-	#-DKEYINDEX_MASK=kaypro1_DefaultMap
+	#-DKEYINDEX_MASK=kaypro1_ColemakMap
+	-DKEYINDEX_MASK=kaypro1_DefaultMap
 )
 
