@@ -146,6 +146,7 @@ int main(void)
 	}
 }
 
+// USB Keyboard Data Send Counter Interrupt
 ISR( TIMER0_OVF_vect )
 {
 	sendKeypressCounter++;

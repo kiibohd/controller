@@ -13,6 +13,10 @@ cmake_force_c_compiler  ( avr-gcc AVRCCompiler )
 cmake_force_cxx_compiler( avr-g++ AVRCxxCompiler )
 
 
+#| Add Dependency Macro
+include( AddFileDependencies )
+
+
 ###
 # Project Description
 #
@@ -38,7 +42,13 @@ cmake_minimum_required( VERSION 2.8 )
 
 #| Instead, include the module source selector
 include( setup.cmake )
-set( SRCS main.c ${SCAN_SRCS} ${MACRO_SRCS} ${USB_SRCS} ${DEBUG_SRCS} )
+set( SRCS
+	main.c
+	${SCAN_SRCS}
+	${MACRO_SRCS}
+	${USB_SRCS}
+	${DEBUG_SRCS}
+)
 
 
 
@@ -54,7 +64,7 @@ set( SRCS main.c ${SCAN_SRCS} ${MACRO_SRCS} ${USB_SRCS} ${DEBUG_SRCS} )
 #| "atmega32u4"       # Teensy   2.0
 #| "at90usb646"       # Teensy++ 1.0
 #| "at90usb1286"      # Teensy++ 2.0
-set( MCU "at90usb1286" )
+set( MCU "atmega32u4" )
 
 
 #| Compiler flag to set the C Standard level.

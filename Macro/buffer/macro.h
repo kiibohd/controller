@@ -19,40 +19,20 @@
  * THE SOFTWARE.
  */
 
-#ifndef __KEYMAP_H
-#define __KEYMAP_H
+#ifndef __macro_h
+#define __macro_h
 
 // ----- Includes -----
 
-#include "usb_keys.h"
+// Compiler Includes
+#include <stdint.h>
 
 
 
-// ----- Defines -----
+// ----- Functions -----
 
-
-
-// ----- Variables -----
-
-// Lots of these variables are not used, so ignore gcc unused warnings
-// But just for the variables in this file (and those included into it)
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic push
-
-
-// See files for full layout descriptions
-#include "budkeypad.h"
-#include "heathzenith.h"
-#include "kaypro1.h"
-#include "microswitch8304.h"
-#include "tandy1000.h"
-
-
-
-// Only ignore unused warnings for the above variables
-#pragma GCC diagnostic pop
-
-
+void keyPressDetection( uint8_t *keys, uint8_t numberOfKeys, uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t *map );
+void process_macros(void);
 
 #endif
 
