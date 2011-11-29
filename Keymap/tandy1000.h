@@ -27,9 +27,9 @@
 
 // ----- Variables -----
 
-static uint8_t tandy1000_modifierMask[] = { 0x1D, 0x2A, 0x36, 0x38, 0x46 };
+static uint8_t tandy1000_ModifierMask[] = { 0x1D, 0x2A, 0x36, 0x38, 0x46 };
 
-static uint8_t tandy1000_map[] = { 0,
+static uint8_t tandy1000_DefaultMap[] = { 0,
 				KEY_ESC,
 				KEY_1,
 				KEY_2,
@@ -122,7 +122,7 @@ static uint8_t tandy1000_map[] = { 0,
 				KEY_F12, // 0x5A
 };
 
-static uint8_t tandy1000_colemak[] = { 0,
+static uint8_t tandy1000_ColemakMap[] = { 0,
 				KEY_ESC,
 				KEY_1,
 				KEY_2,

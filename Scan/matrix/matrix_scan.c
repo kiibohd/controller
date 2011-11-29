@@ -23,6 +23,7 @@
 
 // AVR Includes
 #include <avr/io.h>
+#include <util/delay.h>
 
 // Project Includes
 #include <print.h>
@@ -40,23 +41,23 @@
 // -- pinSetup Macros --
 #define REG_SET(reg)	reg |= (1 << ( matrix[row*(MAX_ROW_SIZE+1)+col] % 10 ) )
 			
-#define PIN_SET_COL(pin) \
-			switch ( scanMode ) { \
+#define PIN_SET_COL(pin,scan) \
+			switch ( scan ) { \
 			case scanCol: \
-			case scanCol_powrRow: \
-			case scanDual: \
-				REG_SET(port##pin); break; \
-			case scanRow_powrCol: REG_SET(ddr##pin); REG_SET(port##pin); break; \
-			} \
-			break
-
-#define PIN_SET_ROW(pin) \
-			switch ( scanMode ) { \
-			case scanRow: \
 			case scanRow_powrCol: \
 			case scanDual: \
 				REG_SET(port##pin); break; \
 			case scanCol_powrRow: REG_SET(ddr##pin); REG_SET(port##pin); break; \
+			} \
+			break
+
+#define PIN_SET_ROW(pin,scan) \
+			switch ( scan ) { \
+			case scanRow: \
+			case scanCol_powrRow: \
+			case scanDual: \
+				REG_SET(port##pin); break; \
+			case scanRow_powrCol: REG_SET(ddr##pin); REG_SET(port##pin); break; \
 			} \
 			break
 
@@ -74,7 +75,10 @@
 #define PIN_TEST_COL(pin) \
 			scanCode = matrix[row*(MAX_ROW_SIZE+1)+col]; \
 			if ( scanCode && !( pin & ( 1 << ( matrix[0*(MAX_ROW_SIZE+1)+col] % 10 ) ) ) ) \
+			{ \
+				warn_print("YAY!"); \
 				detectArray[scanCode]++; \
+			} \
 			break
 
 // -- Row Scan Macros --
@@ -109,7 +113,7 @@
 // ----- Functions -----
 
 // Goes through the defined matrix and matrix mode, and sets the initial state of all of the available pins
-inline void matrix_pinSetup( uint8_t *matrix )
+void matrix_pinSetup( uint8_t *matrix, uint8_t scanType )
 {
 	// Setup the variables
 	uint8_t portA = 0x00;
@@ -136,17 +140,17 @@ inline void matrix_pinSetup( uint8_t *matrix )
 		switch ( matrix[row*(MAX_ROW_SIZE+1)+col] )
 		{
 		PIN_CASE(A):
-			PIN_SET_ROW(A);
+			PIN_SET_ROW(A, scanType);
 		PIN_CASE(B):
-			PIN_SET_ROW(B);
+			PIN_SET_ROW(B, scanType);
 		PIN_CASE(C):
-			PIN_SET_ROW(C);
+			PIN_SET_ROW(C, scanType);
 		PIN_CASE(D):
-			PIN_SET_ROW(D);
+			PIN_SET_ROW(D, scanType);
 		PIN_CASE(E):
-			PIN_SET_ROW(E);
+			PIN_SET_ROW(E, scanType);
 		PIN_CASE(F):
-			PIN_SET_ROW(F);
+			PIN_SET_ROW(F, scanType);
 
 		default:
 			continue;
@@ -160,17 +164,17 @@ inline void matrix_pinSetup( uint8_t *matrix )
 		switch ( matrix[row*(MAX_ROW_SIZE+1)+col] )
 		{
 		PIN_CASE(A):
-			PIN_SET_COL(A);
+			PIN_SET_COL(A, scanType);
 		PIN_CASE(B):
-			PIN_SET_COL(B);
+			PIN_SET_COL(B, scanType);
 		PIN_CASE(C):
-			PIN_SET_COL(C);
+			PIN_SET_COL(C, scanType);
 		PIN_CASE(D):
-			PIN_SET_COL(D);
+			PIN_SET_COL(D, scanType);
 		PIN_CASE(E):
-			PIN_SET_COL(E);
+			PIN_SET_COL(E, scanType);
 		PIN_CASE(F):
-			PIN_SET_COL(F);
+			PIN_SET_COL(F, scanType);
 
 		default:
 			continue;
@@ -178,26 +182,30 @@ inline void matrix_pinSetup( uint8_t *matrix )
 	}
 
 	// Pin Status
-	char tmpStr[6];
-	info_print("Initial Matrix Pin Setup");
-	info_print(" ddrA  ddrB  ddrC  ddrD  ddrE  ddrF");
-	print("      ");
-	hexToStr_op( ddrA, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	hexToStr_op( ddrB, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	hexToStr_op( ddrC, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	hexToStr_op( ddrD, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	hexToStr_op( ddrE, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	hexToStr_op( ddrF, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	print("\n");
-	info_print("portA portB portC portD portE portF");
-	print("      ");
-	hexToStr_op( portA, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	hexToStr_op( portB, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	hexToStr_op( portC, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	hexToStr_op( portD, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	hexToStr_op( portE, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	hexToStr_op( portF, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
-	print("\n");
+	if ( scanType == scanMode )
+	{
+		char tmpStr[6];
+		info_print("Initial Matrix Pin Setup");
+		info_print(" ddrA  ddrB  ddrC  ddrD  ddrE  ddrF");
+		print("      ");
+		hexToStr_op( ddrA, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		hexToStr_op( ddrB, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		hexToStr_op( ddrC, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		hexToStr_op( ddrD, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		hexToStr_op( ddrE, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		hexToStr_op( ddrF, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		print("\n");
+		info_print("portA portB portC portD portE portF");
+		print("      ");
+		hexToStr_op( portA, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		hexToStr_op( portB, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		hexToStr_op( portC, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		hexToStr_op( portD, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		hexToStr_op( portE, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		hexToStr_op( portF, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
+		print("\n");
+		int8ToStr( scanType, tmpStr );
+	}
 
 	// Setting the pins
 #if defined(__AVR_AT90USB1286__)
@@ -235,6 +243,7 @@ inline void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 		// Scan over the pins for each of the columns, and using the pin alias to determine which pin to set
 		// (e.g. / 10 is for the pin name (A,B,C,etc.) and % 10 is for the position of the pin (A1,A2,etc.))
 		switch ( matrix[0*(MAX_ROW_SIZE+1)+col] / 10 )
+				REG_SET(port##pin); break; \
 		{
 #if defined(__AVR_AT90USB1286__)
 		case 0: // PINA
@@ -285,6 +294,8 @@ inline void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 	// Dual Scan
 #if scanMode == scanDual
 	// First do a scan of all of the columns, marking each one
+	matrix_pinSetup( matrix, scanCol_powrRow );
+	_delay_us( 1 );
 	for ( ; row < (MAX_COL_SIZE+1); row++ ) for ( ; col < (MAX_ROW_SIZE+1); col++ )
 	{
 		// Scan over the pins for each of the columns, and using the pin alias to determine which pin to set
@@ -310,6 +321,8 @@ inline void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 
 	// Next, do a scan of all of the rows, clearing any "vague" keys (only detected on row, but not column, or vice-versa)
 	// And marking any keys that are detected on the row and column
+	matrix_pinSetup( matrix, scanRow_powrCol );
+	_delay_us( 1 );
 	col = 1;
 	row = 1;
 	for ( ; col < (MAX_ROW_SIZE+1); col++ ) for ( ; row < (MAX_COL_SIZE+1); row++ ) 

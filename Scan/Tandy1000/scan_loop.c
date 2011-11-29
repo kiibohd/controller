@@ -23,6 +23,8 @@
 
 // AVR Includes
 #include <avr/interrupt.h>
+#include <avr/io.h>
+#include <util/delay.h>
 
 // Project Includes
 #include <led.h>
@@ -53,17 +55,24 @@
 
 
 // ----- Macros -----
+
 #define READ_CLK       CLK_READ &   (1 <<  CLK_PIN) ? 1 : 0
 #define READ_DATA     DATA_READ &   (1 << DATA_PIN) ? 0 : 1
 
 #define UNSET_INTR()  INTR_DDR &= ~(1 << INTR_PIN)
 #define   SET_INTR()  INTR_DDR |=  (1 << INTR_PIN)
 
+#define bufferAdd(byte) \
+		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
+			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
 
 
 // ----- Variables -----
 
-uint8_t KeyIndex_Array[KEYBOARD_SIZE + 1];
+// Buffer used to inform the macro processing module which keys have been detected as pressed
+volatile uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
+volatile uint8_t KeyIndex_BufferUsed;
+
 
 // Scan Code Retrieval Variables
 uint8_t inputData    = 0xFF;
@@ -76,6 +85,12 @@ uint8_t packet_index = 0;
 // Setup
 inline void scan_setup()
 {
+	// Initially reset the keyboard (just in case we are in a wierd state)
+	scan_resetKeyboard();
+
+	// Setup SPI for data input using the clock and data inputs
+	// TODO
+	/*
 	// Setup inputs
 	CLK_DDR  &= ~(1 << CLK_PIN);
 	DATA_DDR &= ~(1 << DATA_PIN);
@@ -83,22 +98,14 @@ inline void scan_setup()
 	// Setup Pull-up's
 	CLK_PORT  &= ~(1 << CLK_PIN);  // (CLK)
 	DATA_PORT &= ~(1 << DATA_PIN); // (/DATA)
+	*/
 
 	// Setup Keyboard Interrupt
 	INTR_DDR  &= ~(1 << INTR_PIN);
 	INTR_PORT &= ~(1 << INTR_PIN);
 
-	/* Interrupt Style (Not working fully)
-	cli();
-	// Setup interrupt on the CLK pin TODO Better defines
-	EICRA |= 0x03; // Rising Edge Interrupt
-	EIMSK |= (1 << INT0);
-
-	// Setup interrupt on the DATA pin TODO Better defines
-	EICRA |= 0x08; // Falling Edge Interrupt
-	EIMSK |= (1 << INT1);
-	sei();
-	*/
+	// Setup Keyboard Reset Line
+	// TODO
 }
 
 
@@ -212,28 +219,35 @@ inline uint8_t scan_loop()
 	return packet_index;
 }
 
-// Detection interrupt, signalled by a clock pulse from CLK_PIN
-ISR(INT0_vect)
+// Send data
+// XXX Not used with the Tandy1000
+uint8_t scan_sendData( uint8_t dataPayload )
 {
-	//cli(); // Disable Interrupts
-
-	// Append 1 bit of data
-	//inputData &= ~(READ_DATA << packet_index);
-	packet_index++;
-
-	//sei(); // Re-enable Interrupts
+	return 0;
 }
 
-// Data Detected
-ISR(INT1_vect)
+// Signal KeyIndex_Buffer that it has been properly read
+// TODO
+void scan_finishedWithBuffer( void )
 {
-	// Append 1 bit of data
-	inputData &= ~(1 << packet_index);
-	packet_index++;
-
-	// Disable Clk Signal (Not needed if there's a data signal)
-	EIFR |= (1 << INTF0);
 }
 
+// Reset/Hold keyboard
+// Warning! This will cause the keyboard to not send any data, so you can't disable with a keypress
+// The Tandy 1000 keyboard has a dedicated hold/processor interrupt line
+void scan_lockKeyboard( void )
+{
+	UNSET_INTR();
+}
 
+void scan_unlockKeyboard( void )
+{
+	SET_INTR();
+}
+
+// Reset Keyboard
+void scan_resetKeyboard( void )
+{
+	// TODO Tandy1000 has a dedicated reset line
+}
 

@@ -19,6 +19,13 @@ set( DEBUG_SRCS
 
 
 ###
+# Setup File Dependencies
+#
+add_file_dependencies( ../led/led.c ../led/led.h )
+add_file_dependencies( ../led/print.c ../led/print.h )
+
+
+###
 # Module Specific Options
 #
 add_definitions(

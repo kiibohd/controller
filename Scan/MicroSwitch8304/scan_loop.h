@@ -33,7 +33,7 @@
 
 // ----- Defines -----
 
-#define KEYBOARD_SIZE 0x62 // 76 - Size of the array space for the keyboard(max index)
+#define KEYBOARD_SIZE 0x62 // 98 - Size of the array space for the keyboard(max index)
 #define KEYBOARD_BUFFER 24 // Max number of key signals to buffer
 
 
@@ -58,6 +58,7 @@ uint8_t scan_sendData( uint8_t dataPayload );
 void scan_finishedWithBuffer( void );
 void scan_lockKeyboard( void );
 void scan_unlockKeyboard( void );
+void scan_resetKeyboard( void );
 
 
 #endif // __SCAN_LOOP_H

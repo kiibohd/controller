@@ -34,22 +34,32 @@
 // ----- Defines -----
 
 #define KEYBOARD_SIZE 0x5A // 90 - Size of the array space for the keyboardr(max index)
+#define KEYBOARD_BUFFER 24 // Max number of key signals to buffer
 
 
 
 // ----- Variables -----
 
-// NOTE: Highest Bit: Valid keypress (0x80 is valid keypress)
-//        Other Bits: Pressed state sample counter
-extern              uint8_t KeyIndex_Array [KEYBOARD_SIZE + 1];
-       static const uint8_t KeyIndex_Size = KEYBOARD_SIZE;
+extern volatile     uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
+extern volatile     uint8_t KeyIndex_BufferUsed;
 
 
 
 // ----- Functions -----
 
+// Functions used by main.c
 void scan_setup( void );
 uint8_t scan_loop( void );
+
+
+// Functions available to macro.c
+uint8_t scan_sendData( uint8_t dataPayload );
+
+void scan_finishedWithBuffer( void );
+void scan_lockKeyboard( void );
+void scan_unlockKeyboard( void );
+void scan_resetKeyboard( void );
+
 
 #endif // __SCAN_LOOP_H
 

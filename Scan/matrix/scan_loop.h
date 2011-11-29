@@ -37,14 +37,19 @@
 
 // ----- Defines -----
 
+#define KEYBOARD_BUFFER 24 // Max number of key signals to buffer
+
 
 
 // ----- Variables -----
 
 // NOTE: Highest Bit: Valid keypress (0x80 is valid keypress)
 //        Other Bits: Pressed state sample counter
-extern              uint8_t KeyIndex_Array [KEYBOARD_SIZE + 1];
-       static const uint8_t KeyIndex_Size = KEYBOARD_SIZE;
+extern                       uint8_t KeyIndex_Array [KEYBOARD_SIZE + 1];
+                static const uint8_t KeyIndex_Size = KEYBOARD_SIZE;
+
+extern volatile              uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
+extern volatile              uint8_t KeyIndex_BufferUsed;
 
 
 

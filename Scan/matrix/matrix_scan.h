@@ -108,7 +108,7 @@
 
 // ----- Functions -----
 
-void matrix_pinSetup( uint8_t *matrix );
+void matrix_pinSetup( uint8_t *matrix, uint8_t scanType );
 void matrix_scan( uint8_t *matrix, uint8_t *detectArray );
 
 #endif // __MATRIX_SCAN_H

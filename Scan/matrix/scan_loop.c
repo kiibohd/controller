@@ -44,16 +44,19 @@
 
 // ----- Macros -----
 
-// Loop over all of the sampled keys of the given array
-// If the number of samples is higher than the sample threshold, flag the high bit, clear otherwise
-// This should be resetting VERY quickly, cutting off a potentially valid keypress is not an issue
-#define DEBOUNCE_ASSESS(table,size) \
-			for ( uint8_t key = 1; key < size + 1; key++ ) \
-				table[key] = ( table[key] & ~(1 << 7) ) > SAMPLE_THRESHOLD ? (1 << 7) : 0x00
+// Make sure we haven't overflowed the buffer
+#define bufferAdd(byte) \
+		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
+			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
 
 
 
 // ----- Variables -----
+
+// Buffer used to inform the macro processing module which keys have been detected as pressed
+volatile uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
+volatile uint8_t KeyIndex_BufferUsed;
+
 
 // Keeps track of the number of scans, so we only do a debounce assess when it would be valid (as it throws away data)
 uint8_t scan_count = 0;
@@ -69,7 +72,7 @@ uint8_t KeyIndex_Array[KEYBOARD_SIZE + 1];
 // Setup
 inline void scan_setup()
 {
-	matrix_pinSetup( (uint8_t*)matrix_pinout );
+	matrix_pinSetup( (uint8_t*)matrix_pinout, scanMode );
 }
 
 // Main Detection Loop
@@ -95,7 +98,18 @@ inline uint8_t scan_loop()
 	scan_count = 0;
 
 	// Assess debouncing sample table
-	DEBOUNCE_ASSESS( KeyIndex_Array, KeyIndex_Size );
+	// Loop over all of the sampled keys of the given array
+	// If the number of samples is higher than the sample threshold, flag the high bit, clear otherwise
+	// This should be resetting VERY quickly, cutting off a potentially valid keypress is not an issue
+	for ( uint8_t key = 1; key < KeyIndex_Size + 1; key++ ) if ( ( KeyIndex_Array[key] & ~(1 << 7) ) > SAMPLE_THRESHOLD )
+	{
+		bufferAdd( key );
+		KeyIndex_Array[key] = (1 << 7);
+	}
+	else
+	{
+		KeyIndex_Array[key] = 0x00;
+	}
 
 	// Ready to allow for USB send
 	return 1;

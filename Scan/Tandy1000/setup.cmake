@@ -23,7 +23,8 @@ add_definitions( -I${HEAD_DIR}/Keymap )
 
 #| Keymap Settings
 add_definitions(
-	-DMODIFIER_MASK=tandy1000_modifierMask
-	-DKEYINDEX_MASK=tandy1000_colemak
+	-DMODIFIER_MASK=tandy1000_ModifierMask
+	-DKEYINDEX_MASK=tandy1000_ColemakMap
+	#-DKEYINDEX_MASK=tandy1000_DefaultMap
 )
 

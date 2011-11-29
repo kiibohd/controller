@@ -94,6 +94,10 @@ inline void scan_setup()
 
 	// Initially buffer doesn't need to be cleared (it's empty...)
 	BufferReadyToClear = 0;
+
+	// Reset the keyboard before scanning, we might be in a wierd state
+	// Note: This should be run asap, but we need the USART setup to run this command on the 8304
+	scan_resetKeyboard();
 }
 
 
@@ -221,5 +225,12 @@ void scan_lockKeyboard( void )
 void scan_unlockKeyboard( void )
 {
 	SET_RESET();
+}
+
+// Reset Keyboard
+void scan_resetKeyboard( void )
+{
+	// Reset command for the 8304
+	scan_sendData( 0x92 );
 }
 
