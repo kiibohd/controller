@@ -62,10 +62,6 @@ volatile uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
 volatile uint8_t KeyIndex_BufferUsed;
 
 
-// Buffer Signals
-volatile uint8_t BufferReadyToClear;
-
-
 
 // ----- Functions -----
 
@@ -73,36 +69,33 @@ volatile uint8_t BufferReadyToClear;
 inline void scan_setup()
 {
 	// Setup the the USART interface for keyboard data input
-	// NOTE: The input data signal needs to be inverted for the Teensy USART to properly work
 	
 	// Setup baud rate
 	// 16 MHz / ( 16 * Baud ) = UBRR
-	// Baud <- 0.82020 ms per bit, thus 1000 / 0.82020 = 1219.2
-	// Thus baud setting = 820
-	uint16_t baud = 820; // Max setting of 4095
+	// Baud <- 0.10450 ms per bit, thus 1000 / 0.10450 = 9569.4
+	// Thus UBRR = 104.50
+	// To deal with the 0.5, setting to double speed, which means UBRR = 209
+	uint16_t baud = 209; // Max setting of 4095
 	UBRR1H = (uint8_t)(baud >> 8);
 	UBRR1L = (uint8_t)baud;
+
+	// Enable Double Read Speed
+	UCSR1A = 0x02;
 
 	// Enable the receiver, transitter, and RX Complete Interrupt
 	UCSR1B = 0x98;
 
 	// Set frame format: 8 data, no stop bits or parity
 	// Asynchrounous USART mode
-	// 8304 sends encoded scancodes (for example Alphanumeric 0-9 follows their keypad encoding scheme)
-	// Separate line is for reset
 	UCSR1C = 0x06;
 
-	// Initially buffer doesn't need to be cleared (it's empty...)
-	BufferReadyToClear = 0;
-
 	// Reset the keyboard before scanning, we might be in a wierd state
-	// Note: This should be run asap, but we need the USART setup to run this command on the 8304
 	scan_resetKeyboard();
 }
 
 
 // Main Detection Loop
-// Not needed for the Micro Switch 8304, this is just a busy loop
+// Not needed for the Sony NEWS, this is just a busy loop
 inline uint8_t scan_loop()
 {
 	return 0;
@@ -110,24 +103,46 @@ inline uint8_t scan_loop()
 
 void processKeyValue( uint8_t keyValue )
 {
+	// Detect release condition
+	uint8_t release = keyValue & 0x80;
+
 	// Finalize output buffer
 	// Mask 8th bit
 	keyValue &= 0x7F;
 
-	// Interpret scan code
-	switch ( keyValue )
+	// Key Release
+	if ( release )
 	{
-	case 0x40: // Clear buffer command
-		info_print("CLEAR!");
+		// Check for the released key, and shift the other keys lower on the buffer
+		uint8_t c;
+		for ( c = 0; c < KeyIndex_BufferUsed; c++ )
+		{
+			// Key to release found
+			if ( KeyIndex_Buffer[c] == keyValue )
+			{
+				// Shift keys from c position
+				for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
+					KeyIndex_Buffer[k] = KeyIndex_Buffer[k + 1];
 
-		BufferReadyToClear = 1;
-		break;
-	case 0x7F:
-		scan_lockKeyboard();
-		_delay_ms(3000);
-		scan_unlockKeyboard();
+				// Decrement Buffer
+				KeyIndex_BufferUsed--;
 
-	default:
+				break;
+			}
+		}
+
+		// Error case (no key to release)
+		if ( c == KeyIndex_BufferUsed + 1 )
+		{
+			errorLED( 1 );
+			char tmpStr[6];
+			hexToStr( keyValue, tmpStr );
+			erro_dPrint( "Could not find key to release: ", tmpStr );
+		}
+	}
+	// Press or Repeat Rate
+	else
+	{
 		// Make sure the key isn't already in the buffer
 		for ( uint8_t c = 0; c < KeyIndex_BufferUsed + 1; c++ )
 		{
@@ -142,7 +157,6 @@ void processKeyValue( uint8_t keyValue )
 			if ( KeyIndex_Buffer[c] == keyValue )
 				break;
 		}
-		break;
 	}
 }
 
@@ -153,41 +167,22 @@ ISR(USART1_RX_vect)
 
 	uint8_t keyValue = 0x00;
 
-	// The interrupt is always for the first item of the packet set, reset the buffer
-	KeyIndex_BufferUsed = 0;
+	// One scancode at a time (fastest interval ~3.95 ms - recorded, should still be ok for interrupt polling)
+	// Read the raw packet from the USART
+	keyValue = UDR1;
 
-	// Only the first 7 bits have scancode data
-	// The last packet of the packet set has the 8th bit high, all the others are low
-	//
-	// Interrupts are too slow for the rest of the packet set, poll for the rest
-	while ( 1 )
-	{
-		// Read the raw packet from the USART
-		keyValue = UDR1;
+	// Debug
+	char tmpStr[6];
+	hexToStr( keyValue, tmpStr );
+	dPrintStrs( tmpStr, " " );
 
-		// Debug
-		char tmpStr[6];
-		hexToStr( keyValue, tmpStr );
-		dPrintStrs( tmpStr, " " );
-
-		// Process the scancode
-		processKeyValue( keyValue );
-
-		// Last packet of the set
-		if ( keyValue & 0x80 )
-		{
-			dPrintStrs( "**" );
-			break;
-		}
-
-		// Delay enough so we don't run into the same packet (or the previous buffered packet)
-		_delay_us(10000);
-	}
+	// Process the scancode
+	processKeyValue( keyValue );
 
 	sei(); // Re-enable Interrupts
 }
 
-// Send data 
+// Send data TODO
 //
 // Keyboard Input Guide for Micro Switch 8304
 // 0xBX is for LED F1,F2,Over Type,Lock
@@ -203,34 +198,32 @@ uint8_t scan_sendData( uint8_t dataPayload )
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-// In the case of the Micro Switch 8304, we leave the buffer alone until more scancode data comes in
+// Not needed as a signal is sent to remove key-presses
 void scan_finishedWithBuffer( void )
 {
-	// We received a Clear code from the 8304, clear the buffer now that we've used it
-	if ( BufferReadyToClear )
-	{
-		KeyIndex_BufferUsed = 0;
-		BufferReadyToClear = 0;
-	}
+	return;
 }
 
-// Reset/Hold keyboard
+// Reset/Hold keyboard TODO
 // Warning! This will cause the keyboard to not send any data, so you can't disable with a keypress
 // The Micro Switch 8304 has a dedicated reset line
 void scan_lockKeyboard( void )
 {
-	UNSET_RESET();
+	//UNSET_RESET();
 }
 
 void scan_unlockKeyboard( void )
 {
-	SET_RESET();
+	//SET_RESET();
 }
 
-// Reset Keyboard
+// Reset Keyboard TODO
 void scan_resetKeyboard( void )
 {
 	// Reset command for the 8304
-	scan_sendData( 0x92 );
+	//scan_sendData( 0x92 );
+
+	// Empty buffer, now that keyboard has been reset
+	KeyIndex_BufferUsed = 0;
 }
 

@@ -170,17 +170,17 @@
 #define KEY_SCROLL_LLOCK   132
 #define KEYPAD_COMMA       133 // Brazillian (See spec)
 #define KEYPAD_EQUAL_AS    134 // AS/400 Keyboard (See spec)
-#define KEY_INTER1         135 // Brazillian and Japanese "Ru"
-#define KEY_INTER2         136 // Japanese Katakana/Hiragana
-#define KEY_INTER3         137 // Japanese Yen
-#define KEY_INTER4         138 // Japanese Henkan
-#define KEY_INTER5         139 // Japanese Muhenkan
-#define KEY_INTER6         140 // PC98 Comma (Ka-m-ma)
-#define KEY_INTER7         141 // Double-Byte/Single-Byte Toggle
-#define KEY_INTER8         142 // Undefined
-#define KEY_INTER9         143 // Undefined
+#define KEY_INTER1         135 // KANJI1 - Brazillian and Japanese "Ru" and "-"
+#define KEY_INTER2         136 // KANJI2 - Japanese Katakana/Hiragana
+#define KEY_INTER3         137 // KANJI3 - Japanese Yen
+#define KEY_INTER4         138 // KANJI4 - Japanese Henkan
+#define KEY_INTER5         139 // KANJI5 - Japanese Muhenkan
+#define KEY_INTER6         140 // KANJI6 - PC98 Comma (Ka-m-ma)
+#define KEY_INTER7         141 // KANJI7 - Double-Byte/Single-Byte Toggle
+#define KEY_INTER8         142 // KANJI8 - Undefined
+#define KEY_INTER9         143 // KANJI9 - Undefined
 #define KEY_LANG1          144 // Korean Hangul/English Toggle
-#define KEY_LANG2          145 // Korean Hanja Conversion
+#define KEY_LANG2          145 // Korean Hanja Conversion - Japanese Eisu
 #define KEY_LANG3          146 // Japanese Katakana Key (USB)
 #define KEY_LANG4          147 // Japanese Hiragana Key (USB)
 #define KEY_LANG5          148 // Japanese Zenkaku/Hankaku Key (USB)

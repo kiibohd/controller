@@ -74,7 +74,7 @@ inline void scan_setup()
 	// Setup baud rate
 	// 16 MHz / ( 16 * Baud ) = UBRR
 	// Baud <- 3.358 ms per bit, thus 1000 / 3.358 = 297.80
-	// Thus baud = 3357
+	// Thus USBRR = 3357
 	uint16_t baud = 3357; // Max setting of 4095
 	UBRR1H = (uint8_t)(baud >> 8);
 	UBRR1L = (uint8_t)baud;

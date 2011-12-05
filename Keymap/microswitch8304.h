@@ -19,10 +19,10 @@
  * THE SOFTWARE.
  */
 
-#ifndef __TANDY1000_H
-#define __TANDY1000_H
+#ifndef __MICROSWITCH8304_H
+#define __MICROSWITCH8304_H
 
-// This file contains various key layouts for the Tandy 1000 keyboard
+// This file contains various key layouts for the Convergent microswitch8304 keyboard
 
 
 // ----- Variables -----
