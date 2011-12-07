@@ -64,7 +64,8 @@ set( SRCS
 #| "atmega32u4"       # Teensy   2.0
 #| "at90usb646"       # Teensy++ 1.0
 #| "at90usb1286"      # Teensy++ 2.0
-set( MCU "at90usb1286" )
+set( MCU "atmega32u4" )
+#set( MCU "at90usb1286" )
 
 
 #| Compiler flag to set the C Standard level.

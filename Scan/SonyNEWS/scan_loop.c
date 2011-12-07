@@ -177,6 +177,7 @@ ISR(USART1_RX_vect)
 	dPrintStrs( tmpStr, " " );
 
 	// Process the scancode
+	if ( keyValue != 0x00 )
 	processKeyValue( keyValue );
 
 	sei(); // Re-enable Interrupts
@@ -193,6 +194,11 @@ ISR(USART1_RX_vect)
 // 0x8C Acks the keyboard and gets 0x70 sent back (delayed)
 uint8_t scan_sendData( uint8_t dataPayload )
 {
+	// Debug
+	char tmpStr[6];
+	hexToStr( dataPayload, tmpStr );
+	info_dPrint( tmpStr, " " );
+
 	UDR1 = dataPayload;
 	return 0;
 }

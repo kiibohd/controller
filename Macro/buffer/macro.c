@@ -174,6 +174,61 @@ inline void keyPressDetection( uint8_t *keys, uint8_t numberOfKeys, uint8_t *mod
 }
 */
 
+// Scancode Macro Detection
+int scancodeMacro( uint8_t scanCode )
+{
+	/*
+	if ( scanCode == 0x7A )
+	{
+		scan_resetKeyboard();
+	}
+	else
+	{
+		scan_sendData( scanCode );
+		_delay_ms( 200 );
+		scan_sendData( 0x80 | scanCode );
+	}
+	return 1;
+	*/
+	return 0;
+}
+
+uint8_t sendCode = 0;
+
+// USBCode Macro Detection
+int usbcodeMacro( uint8_t usbCode )
+{
+	// Keyboard Input Test Macro
+	switch ( usbCode )
+	{
+	case KEY_F1:
+		sendCode--;
+		scan_sendData( 0x90 );
+		scan_sendData( sendCode );
+		_delay_ms( 200 );
+		break;
+
+	case KEY_F2:
+		scan_sendData( 0x90 );
+		scan_sendData( sendCode );
+		_delay_ms( 200 );
+		break;
+
+	case KEY_F3:
+		sendCode++;
+		scan_sendData( 0x90 );
+		scan_sendData( sendCode );
+		_delay_ms( 200 );
+		break;
+
+	default:
+		return 0;
+	}
+	
+	return 1;
+}
+
+
 // Given a list of keypresses, translate into the USB key codes
 // The buffer is cleared after running
 // If the buffer doesn't fit into the USB send array, the extra keys are dropped
@@ -184,6 +239,16 @@ void keyPressBufferRead( uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t 
 	{
 		// Get the keycode from the buffer
 		uint8_t key = KeyIndex_Buffer[index];
+
+		// Check key for special usages using the scancode
+		// If non-zero return, ignore normal processing of the scancode
+		if ( scancodeMacro( key ) )
+			continue;
+
+		// Check key for special usages using the usbcode
+		// If non-zero return, ignore normal processing of the usbcode
+		if ( usbcodeMacro( map[key] ) )
+			continue;
 
 		// Determine if the key is a modifier
 		uint8_t modFound = 0;
