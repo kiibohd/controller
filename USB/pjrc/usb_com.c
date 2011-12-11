@@ -27,6 +27,7 @@
 // AVR Includes
 
 // Project Includes
+#include <scan_loop.h>
 #include "usb_keyboard_debug.h"
 
 // Local Includes
@@ -82,5 +83,8 @@ inline void usb_send(void)
 		// Clear modifiers and keys
 		USBKeys_Modifiers = 0;
 		USBKeys_Sent      = 0;
+
+		// Signal Scan Module we are finishedA
+		scan_finishedWithUSBBuffer();
 }
 

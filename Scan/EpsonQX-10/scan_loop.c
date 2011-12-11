@@ -147,6 +147,7 @@ inline void scan_setup()
 	// Prescaler is 1
 	// Twice every 1200 baud (actually 1200.1, timer isn't accurate enough)
 	// This is close to 820 us, but a bit slower
+	cli();
 	TCCR1B = 0x09;
 	OCR1AH = 0x1A;
 	OCR1AL = 0x09;
@@ -171,16 +172,19 @@ inline void scan_setup()
 	// Synchrounous USART mode
 	// Tx Data on Falling Edge, Rx on Rising
 	UCSR1C = 0x47;
+	sei();
 
 	// Reset the keyboard before scanning, we might be in a wierd state
-	_delay_ms( 1 );
+	_delay_ms( 50 );
 	scan_resetKeyboard();
 
+	_delay_ms( 5000 ); // Wait for the reset command to finish enough for new settings to take hold afterwards
 	scan_setRepeatRate( 0x00 ); // Set the fastest repeat rate
 }
 
 
 // Main Detection Loop
+// Nothing is required here with the Epson QX-10 Keyboards as the interrupts take care of the inputs
 inline uint8_t scan_loop()
 {
 	return 0;
@@ -251,12 +255,14 @@ void processKeyValue( uint8_t keyValue )
 		// Modifier Release Detected
 		else
 		{
+			uint8_t actualKeyValue = keyValue | 0x01;
+
 			// Check for the released key, and shift the other keys lower on the buffer
 			uint8_t c;
 			for ( c = 0; c < KeyIndex_BufferUsed; c++ )
 			{
 				// Key to release found
-				if ( KeyIndex_Buffer[c] == keyValue )
+				if ( KeyIndex_Buffer[c] == actualKeyValue )
 				{
 					// Shift keys from c position
 					for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
@@ -376,13 +382,19 @@ uint8_t scan_sendData( uint8_t dataPayload )
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
+inline void scan_finishedWithBuffer( void )
+{
+	return;
+}
+
+// Signal that the keys have been properly sent over USB
 // For the Epson QX-10 only the modifier keys have release signals
 // Therefore, only 5 keys could possibly be assigned as a modifiers
 // The rest of the keys are single press (like the Kaypro keyboards)
 //
 // However, this differentiation causes complications on how the key signals are discarded and used
 // The single keypresses must be discarded immediately, while the modifiers must be kept
-inline void scan_finishedWithBuffer( void )
+inline void scan_finishedWithUSBBuffer( void )
 {
 	uint8_t foundModifiers = 0;
 
@@ -401,7 +413,13 @@ inline void scan_finishedWithBuffer( void )
 	// Adjust the size of the new Key Buffer
 	KeyIndex_BufferUsed = foundModifiers;
 
-	return;
+	/* Non-working, too slow (too much traffic on the bus)
+	// Poll the modifiers using an input command
+	uint8_t oldBuffer = KeyIndex_BufferUsed;
+	KeyIndex_BufferUsed = 0;
+	if ( oldBuffer )
+		scan_readSwitchStatus();
+	*/
 }
 
 // Reset/Hold keyboard

@@ -322,7 +322,7 @@ static uint8_t epsonqx10_ColemakMap[] = {
 				0, // 0x8C
 				KEY_GUI, // 0x8D
 				0, // 0x8E
-				KEY_RIGHT_CTRL, // 0x8F
+				KEY_ALT, // 0x8F
 };
 
 
