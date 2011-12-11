@@ -108,7 +108,9 @@ int main(void)
 	while ( 1 )
 	{
 		// Setup the scanning module
+		cli();
 		scan_setup();
+		sei();
 
 		while ( 1 )
 		{

@@ -198,6 +198,7 @@ uint8_t sendCode = 0;
 // USBCode Macro Detection
 int usbcodeMacro( uint8_t usbCode )
 {
+	/*
 	// Keyboard Input Test Macro
 	switch ( usbCode )
 	{
@@ -226,6 +227,8 @@ int usbcodeMacro( uint8_t usbCode )
 	}
 	
 	return 1;
+	*/
+	return 0;
 }
 
 
