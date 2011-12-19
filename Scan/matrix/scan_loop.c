@@ -103,15 +103,69 @@ inline uint8_t scan_loop()
 	// This should be resetting VERY quickly, cutting off a potentially valid keypress is not an issue
 	for ( uint8_t key = 1; key < KeyIndex_Size + 1; key++ ) if ( ( KeyIndex_Array[key] & ~(1 << 7) ) > SAMPLE_THRESHOLD )
 	{
-		bufferAdd( key );
+		// Debug output (keypress detected)
+		char tmpStr[6];
+		hexToStr( key, tmpStr );
+		dPrintStrs( tmpStr, " " );
+
+		// Add the key to the buffer, if it isn't already in the current Key Buffer
+		for ( uint8_t c = 0; c < KeyIndex_BufferUsed + 1; c++ )
+		{
+			// Key isn't in the buffer yet
+			if ( c == KeyIndex_BufferUsed )
+			{
+				bufferAdd( key );
+				break;
+			}
+
+			// Key already in the buffer
+			if ( KeyIndex_Buffer[c] == key )
+				break;
+		}
+
 		KeyIndex_Array[key] = (1 << 7);
 	}
 	else
 	{
+		// Remove the key from the buffer only if it was previously known to be pressed
+		if ( KeyIndex_Array[key] & (1 << 7 ) )
+		{
+			// Check for the released key, and shift the other keys lower on the buffer
+			for ( uint8_t c = 0; c < KeyIndex_BufferUsed; c++ )
+			{
+				// Key to release found
+				if ( KeyIndex_Buffer[c] == key )
+				{
+					// Shift keys from c position
+					for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
+						KeyIndex_Buffer[k] = KeyIndex_Buffer[k + 1];
+
+					// Decrement Buffer
+					KeyIndex_BufferUsed--;
+
+					break;
+				}
+			}
+		}
+
 		KeyIndex_Array[key] = 0x00;
 	}
 
 	// Ready to allow for USB send
 	return 1;
+}
+
+
+// Signal that the keys have been properly sent over USB
+inline void scan_finishedWithUSBBuffer( void )
+{
+	return;
+}
+
+
+// Signal KeyIndex_Buffer that it has been fully scanned using the macro module
+inline void scan_finishedWithBuffer( void )
+{
+	return;
 }
 

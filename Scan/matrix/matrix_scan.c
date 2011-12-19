@@ -76,7 +76,6 @@
 			scanCode = matrix[row*(MAX_ROW_SIZE+1)+col]; \
 			if ( scanCode && !( pin & ( 1 << ( matrix[0*(MAX_ROW_SIZE+1)+col] % 10 ) ) ) ) \
 			{ \
-				warn_print("YAY!"); \
 				detectArray[scanCode]++; \
 			} \
 			break
@@ -243,7 +242,6 @@ inline void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 		// Scan over the pins for each of the columns, and using the pin alias to determine which pin to set
 		// (e.g. / 10 is for the pin name (A,B,C,etc.) and % 10 is for the position of the pin (A1,A2,etc.))
 		switch ( matrix[0*(MAX_ROW_SIZE+1)+col] / 10 )
-				REG_SET(port##pin); break; \
 		{
 #if defined(__AVR_AT90USB1286__)
 		case 0: // PINA
