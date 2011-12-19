@@ -46,10 +46,33 @@
 static uint8_t Bootloader_ConditionSequence[] = {1,16,6,11};
        uint8_t Bootloader_ConditionState      = 0;
        uint8_t Bootloader_NextPositionReady   = 1;
+       uint8_t Bootloader_KeyDetected         = 0;
 
 
 
 // ----- Functions -----
+
+inline void macro_finishedWithBuffer(void)
+{
+	// Boot loader sequence state handler
+	switch ( KeyIndex_BufferUsed )
+	{
+	// The next bootloader key can now be pressed, if there were no keys processed
+	case 0:
+		Bootloader_NextPositionReady = 1;
+		break;
+	// If keys were detected, and it wasn't in the sequence (or there was multiple keys detected), start bootloader sequence over
+	// This case purposely falls through
+	case 1:
+		if ( Bootloader_KeyDetected )
+			break;
+	default:
+		Bootloader_ConditionState = 0;
+		break;
+	}
+
+	Bootloader_KeyDetected = 0;
+}
 
 void jumpToBootloader(void)
 {
@@ -190,7 +213,21 @@ int scancodeMacro( uint8_t scanCode )
 	}
 	return 1;
 	*/
-	return 0;
+	// Is this a bootloader sequence key?
+	if ( !Bootloader_KeyDetected
+	   && Bootloader_NextPositionReady
+	   && scanCode == Bootloader_ConditionSequence[Bootloader_ConditionState] )
+	{
+		Bootloader_KeyDetected = 1;
+		Bootloader_NextPositionReady = 0;
+		Bootloader_ConditionState++;
+	}
+	else if ( Bootloader_ConditionState > 0 && scanCode == Bootloader_ConditionSequence[Bootloader_ConditionState - 1] )
+	{
+		Bootloader_KeyDetected = 1;
+	}
+
+	return 1;
 }
 
 uint8_t sendCode = 0;
@@ -292,6 +329,9 @@ void keyPressBufferRead( uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t 
 		}
 	}
 
+	// Signal Macro processor that all of the buffered keys have been processed
+	macro_finishedWithBuffer();
+
 	// Signal buffer that we've used it
 	scan_finishedWithBuffer();
 }
@@ -306,7 +346,7 @@ inline void process_macros(void)
 	keyPressBufferRead( MODIFIER_MASK, sizeof(MODIFIER_MASK), KEYINDEX_MASK );
 
 	// Check for bootloader condition
-	//if ( Bootloader_ConditionState == sizeof( Bootloader_ConditionSequence ) )
-	//	jumpToBootloader();
+	if ( Bootloader_ConditionState == sizeof( Bootloader_ConditionSequence ) )
+		jumpToBootloader();
 }
 
