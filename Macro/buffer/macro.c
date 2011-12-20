@@ -54,6 +54,7 @@ static uint8_t Bootloader_ConditionSequence[] = {1,16,6,11};
 
 inline void macro_finishedWithBuffer(void)
 {
+	/* BudKeypad
 	// Boot loader sequence state handler
 	switch ( KeyIndex_BufferUsed )
 	{
@@ -72,6 +73,7 @@ inline void macro_finishedWithBuffer(void)
 	}
 
 	Bootloader_KeyDetected = 0;
+	*/
 }
 
 void jumpToBootloader(void)
@@ -213,6 +215,7 @@ int scancodeMacro( uint8_t scanCode )
 	}
 	return 1;
 	*/
+	/* BudKeypad
 	// Is this a bootloader sequence key?
 	if ( !Bootloader_KeyDetected
 	   && Bootloader_NextPositionReady
@@ -226,8 +229,8 @@ int scancodeMacro( uint8_t scanCode )
 	{
 		Bootloader_KeyDetected = 1;
 	}
-
-	return 1;
+	*/
+	return 0;
 }
 
 uint8_t sendCode = 0;
@@ -346,7 +349,7 @@ inline void process_macros(void)
 	keyPressBufferRead( MODIFIER_MASK, sizeof(MODIFIER_MASK), KEYINDEX_MASK );
 
 	// Check for bootloader condition
-	if ( Bootloader_ConditionState == sizeof( Bootloader_ConditionSequence ) )
-		jumpToBootloader();
+	//if ( Bootloader_ConditionState == sizeof( Bootloader_ConditionSequence ) )
+	//	jumpToBootloader();
 }
 

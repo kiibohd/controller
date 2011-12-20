@@ -38,9 +38,14 @@
 // ----- Defines -----
 
 // Pinout Defines
-#define RESET_PORT PORTB
-#define RESET_DDR   DDRD
-#define RESET_PIN      0
+#define SPKR_PORT PORTD
+#define SPKR_DDR   DDRD
+#define SPKR_POS      1
+
+#define POWR_PORT PORTC
+#define POWR_DDR   DDRC
+#define POWR_POS      7
+
 
 
 // ----- Macros -----
@@ -49,9 +54,6 @@
 #define bufferAdd(byte) \
 		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
 			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
-
-#define UNSET_RESET()   RESET_DDR &= ~(1 << RESET_PIN)
-#define   SET_RESET()   RESET_DDR |=  (1 << RESET_PIN)
 
 
 
@@ -89,10 +91,19 @@ inline void scan_setup()
 	// Asynchrounous USART mode
 	UCSR1C = 0x06;
 
+	// Set Speaker Pin to Pull-Up gives a low-volume click (XXX no other setting does, why?)
+	SPKR_DDR  &= ~(1 << SPKR_POS);
+	SPKR_PORT |= (1 << SPKR_POS);
+
+	// Set Power Pin (I've traced this back to the "Power On" Switch, but I don't really know what it's for)
+	// Configured as a Pull-up Input - This pin "can" be read as well, it will go to GND when the "Power On" switch is pressed, and will read ~5V otherwise
+	// XXX Currently not used by the controller
+	POWR_DDR  &= ~(1 << POWR_POS);
+	POWR_PORT |= (1 << POWR_POS); 
+
 	// Reset the keyboard before scanning, we might be in a wierd state
 	scan_resetKeyboard();
 }
-
 
 // Main Detection Loop
 // Not needed for the Sony NEWS, this is just a busy loop
@@ -140,7 +151,7 @@ void processKeyValue( uint8_t keyValue )
 			erro_dPrint( "Could not find key to release: ", tmpStr );
 		}
 	}
-	// Press or Repeat Rate
+	// Press or Repeated Key
 	else
 	{
 		// Make sure the key isn't already in the buffer
@@ -178,20 +189,12 @@ ISR(USART1_RX_vect)
 
 	// Process the scancode
 	if ( keyValue != 0x00 )
-	processKeyValue( keyValue );
+		processKeyValue( keyValue );
 
 	sei(); // Re-enable Interrupts
 }
 
-// Send data TODO
-//
-// Keyboard Input Guide for Micro Switch 8304
-// 0xBX is for LED F1,F2,Over Type,Lock
-// 0xAX is for LED F3,F8,F9,F10
-// 0x92 resets keyboard (LED off, echo scancode mode off)
-// 0x9E sets echo scancode mode from (0x81 to 0xFF; translates to 0x01 to 0x7F)
-// Other echos: 0x15~0x19 send 0x15~0x19, 0x40 sends 0x40 (as well as 0x44,0x45, 0x80)
-// 0x8C Acks the keyboard and gets 0x70 sent back (delayed)
+// Send data to keyboard
 uint8_t scan_sendData( uint8_t dataPayload )
 {
 	// Debug
@@ -212,24 +215,23 @@ void scan_finishedWithBuffer( void )
 
 // Reset/Hold keyboard TODO
 // Warning! This will cause the keyboard to not send any data, so you can't disable with a keypress
-// The Micro Switch 8304 has a dedicated reset line
 void scan_lockKeyboard( void )
 {
-	//UNSET_RESET();
 }
 
 void scan_unlockKeyboard( void )
 {
-	//SET_RESET();
 }
 
-// Reset Keyboard TODO
+// Reset Keyboard
 void scan_resetKeyboard( void )
 {
-	// Reset command for the 8304
-	//scan_sendData( 0x92 );
-
 	// Empty buffer, now that keyboard has been reset
 	KeyIndex_BufferUsed = 0;
+}
+
+void scan_finishedWithUSBBuffer( void )
+{
+	return;
 }
 

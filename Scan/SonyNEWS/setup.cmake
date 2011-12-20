@@ -42,7 +42,7 @@ add_definitions( -I${HEAD_DIR}/Keymap )
 #| Keymap Settings
 add_definitions(
 	-DMODIFIER_MASK=sonynews_ModifierMask
-	-DKEYINDEX_MASK=sonynews_ColemakMap
-	#-DKEYINDEX_MASK=sonynews_DefaultMap
+	#-DKEYINDEX_MASK=sonynews_ColemakMap
+	-DKEYINDEX_MASK=sonynews_DefaultMap
 )
 
