@@ -215,7 +215,7 @@ int scancodeMacro( uint8_t scanCode )
 	}
 	return 1;
 	*/
-	/* BudKeypad
+	// BudKeypad
 	// Is this a bootloader sequence key?
 	if ( !Bootloader_KeyDetected
 	   && Bootloader_NextPositionReady
@@ -224,12 +224,23 @@ int scancodeMacro( uint8_t scanCode )
 		Bootloader_KeyDetected = 1;
 		Bootloader_NextPositionReady = 0;
 		Bootloader_ConditionState++;
+		erro_dPrint("detect");
 	}
 	else if ( Bootloader_ConditionState > 0 && scanCode == Bootloader_ConditionSequence[Bootloader_ConditionState - 1] )
 	{
-		Bootloader_KeyDetected = 1;
+		Bootloader_KeyDetected = 0;
+		Bootloader_NextPositionReady = 1;
+		erro_dPrint("detect-again!");
 	}
-	*/
+	// Cancel sequence
+	else
+	{
+		Bootloader_KeyDetected = 0;
+		Bootloader_NextPositionReady = 1;
+		Bootloader_ConditionState = 0;
+		erro_dPrint("Arg");
+	}
+
 	return 0;
 }
 
@@ -349,7 +360,7 @@ inline void process_macros(void)
 	keyPressBufferRead( MODIFIER_MASK, sizeof(MODIFIER_MASK), KEYINDEX_MASK );
 
 	// Check for bootloader condition
-	//if ( Bootloader_ConditionState == sizeof( Bootloader_ConditionSequence ) )
-	//	jumpToBootloader();
+	if ( Bootloader_ConditionState == sizeof( Bootloader_ConditionSequence ) )
+		jumpToBootloader();
 }
 
