@@ -135,8 +135,8 @@ static const uint8_t PROGMEM keyboard_hid_report_desc[] = {
 };
 
 static const uint8_t PROGMEM debug_hid_report_desc[] = {
-	//0x06, 0x30, 0xFF,			// Usage Page 0xFF31 (vendor defined)
-	0x06, 0x31, 0xFF,			// Usage Page 0xFF31 (vendor defined)
+	0x06, 0x30, 0xFF,			// Usage Page 0xFF31 (vendor defined)
+	//0x06, 0x31, 0xFF,			// Usage Page 0xFF31 (vendor defined)
 	0x09, 0x74,				// Usage 0x74
 	0xA1, 0x53,				// Collection 0x53
 	0x75, 0x08,				// report size = 8 bits
