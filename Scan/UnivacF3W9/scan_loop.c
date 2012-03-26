@@ -99,12 +99,22 @@ inline void scan_setup()
 	DATA_PORT |=  (1 << DATA_PIN); // Set to pull-up resistor
 
 	// Setup the REQUEST pin
-	REQUEST_DDR |= (1 << REQUEST_PIN); // Set to output
+	REQUEST_PORT |= (1 << REQUEST_PIN); // Set to output
 	STOP_DATA(); // Set the line high to stop incoming data
+	REQUEST_DATA();
+
+	DDRD |= (1 << 4);
+	PORTD &= ~(1 << 4);
+
+	// Message
+	info_print("Pins Setup");
 
 	// Reset the keyboard before scanning, we might be in a wierd state
 	_delay_ms( 50 );
-	scan_resetKeyboard();
+	//scan_resetKeyboard();
+
+	// Message
+	info_print("Keyboard Buffer Flushed");
 }
 
 
@@ -127,6 +137,7 @@ inline void scan_setup()
 //  we were using (but can't...) a hardware decoder like a USART.
 inline uint8_t scan_loop()
 {
+	return 0;
 	// Protocol Notes:
 	// - Packets are 20 bits long, including the start bit
 	// - Each bit is ~105 usecs in length
