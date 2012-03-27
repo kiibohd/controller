@@ -215,6 +215,7 @@ int scancodeMacro( uint8_t scanCode )
 	}
 	return 1;
 	*/
+	/*
 	// BudKeypad
 	// Is this a bootloader sequence key?
 	if ( !Bootloader_KeyDetected
@@ -240,6 +241,7 @@ int scancodeMacro( uint8_t scanCode )
 		Bootloader_ConditionState = 0;
 		erro_dPrint("Arg");
 	}
+	*/
 
 	return 0;
 }

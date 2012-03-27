@@ -67,6 +67,7 @@ volatile uint8_t BufferReadyToClear;
 // ----- Function Declarations -----
 
 void processKeyValue( uint8_t keyValue );
+void  removeKeyValue( uint8_t keyValue );
 
 
 
@@ -78,36 +79,37 @@ ISR(USART1_RX_vect)
 	cli(); // Disable Interrupts
 
 	uint8_t keyValue = 0x00;
+	uint8_t keyState = 0x00;
 
-	// The interrupt is always for the first item of the packet set, reset the buffer
-	KeyIndex_BufferUsed = 0;
+	// Read the scancode packet from the USART (1st to 8th bits)
+	keyValue = UDR1;
 
-	// Only the first 7 bits have scancode data
-	// The last packet of the packet set has the 8th bit high, all the others are low
-	//
-	// Interrupts are too slow for the rest of the packet set, poll for the rest
-	while ( 1 )
+	// Read the release/press bit (9th bit) XXX Unnecessary, and wrong it seems, parity bit? or something else?
+	keyState = UCSR1B & 0x02;
+
+	// High bit of keyValue, also represents press/release
+	keyState = keyValue & 0x80 ? 0x00 : 0x02;
+
+	// Debug
+	char tmpStr[6];
+	hexToStr( keyValue & 0x7F, tmpStr );
+
+	// Process the scancode
+	switch ( keyState )
 	{
-		// Read the raw packet from the USART
-		keyValue = UDR1;
+	case 0x00: // Released
+		dPrintStrs( tmpStr, "R  " ); // Debug
 
-		// Debug
-		char tmpStr[6];
-		hexToStr( keyValue, tmpStr );
-		dPrintStrs( tmpStr, " " );
+		// Remove key from press buffer
+		removeKeyValue( keyValue & 0x7F );
+		break;
 
-		// Process the scancode
-		processKeyValue( keyValue );
+	case 0x02: // Pressed
+		dPrintStrs( tmpStr, "P " ); // Debug
 
-		// Last packet of the set
-		if ( keyValue & 0x80 )
-		{
-			dPrintStrs( "**" );
-			break;
-		}
-
-		// Delay enough so we don't run into the same packet (or the previous buffered packet)
-		_delay_us(10000);
+		// New key to process
+		processKeyValue( keyValue & 0x7F );
+		break;
 	}
 
 	sei(); // Re-enable Interrupts
@@ -156,23 +158,9 @@ inline uint8_t scan_loop()
 // TODO
 void processKeyValue( uint8_t keyValue )
 {
-	// Finalize output buffer
-	// Mask 8th bit
-	keyValue &= 0x7F;
-
 	// Interpret scan code
 	switch ( keyValue )
 	{
-	case 0x40: // Clear buffer command
-		info_print("CLEAR!");
-
-		BufferReadyToClear = 1;
-		break;
-	case 0x7F:
-		scan_lockKeyboard();
-		_delay_ms(3000);
-		scan_unlockKeyboard();
-
 	default:
 		// Make sure the key isn't already in the buffer
 		for ( uint8_t c = 0; c < KeyIndex_BufferUsed + 1; c++ )
@@ -189,6 +177,36 @@ void processKeyValue( uint8_t keyValue )
 				break;
 		}
 		break;
+	}
+}
+
+void removeKeyValue( uint8_t keyValue )
+{
+	// Check for the released key, and shift the other keys lower on the buffer
+	uint8_t c;
+	for ( c = 0; c < KeyIndex_BufferUsed; c++ )
+	{
+		// Key to release found
+		if ( KeyIndex_Buffer[c] == keyValue )
+		{
+			// Shift keys from c position
+			for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
+				KeyIndex_Buffer[k] = KeyIndex_Buffer[k + 1];
+
+			// Decrement Buffer
+			KeyIndex_BufferUsed--;
+
+			break;
+		}
+	}
+
+	// Error case (no key to release)
+	if ( c == KeyIndex_BufferUsed + 1 )
+	{
+		errorLED( 1 );
+		char tmpStr[6];
+		hexToStr( keyValue, tmpStr );
+		erro_dPrint( "Could not find key to release: ", tmpStr );
 	}
 }
 
@@ -210,24 +228,6 @@ void scan_finishedWithBuffer( void )
 // TODO
 void scan_finishedWithUSBBuffer( void )
 {
-	/*
-	uint8_t foundModifiers = 0;
-
-	// Look for all of the modifiers present, there is a max of 8 (but only keys for 5 on the HASCI version)
-	for ( uint8_t c = 0; c < KeyIndex_BufferUsed; c++ )
-	{
-		// The modifier range is from 0x80 to 0x8F (well, the last bit is the ON/OFF signal, but whatever...)
-		if ( KeyIndex_Buffer[c] <= 0x8F && KeyIndex_Buffer[c] >= 0x80 )
-		{
-			// Add the modifier back into the the Key Buffer
-			KeyIndex_Buffer[foundModifiers] = KeyIndex_Buffer[c];
-			foundModifiers++;
-		}
-	}
-
-	// Adjust the size of the new Key Buffer
-	KeyIndex_BufferUsed = foundModifiers;
-	*/
 }
 
 // Reset/Hold keyboard
