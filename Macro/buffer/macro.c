@@ -251,27 +251,51 @@ uint8_t sendCode = 0;
 // USBCode Macro Detection
 int usbcodeMacro( uint8_t usbCode )
 {
-	/*
 	// Keyboard Input Test Macro
 	switch ( usbCode )
 	{
 	case KEY_F1:
 		sendCode--;
-		scan_sendData( 0x90 );
+		//scan_sendData( 0x90 );
 		scan_sendData( sendCode );
 		_delay_ms( 200 );
 		break;
 
 	case KEY_F2:
-		scan_sendData( 0x90 );
+		//scan_sendData( 0x90 );
 		scan_sendData( sendCode );
 		_delay_ms( 200 );
 		break;
 
 	case KEY_F3:
 		sendCode++;
-		scan_sendData( 0x90 );
+		//scan_sendData( 0x90 );
 		scan_sendData( sendCode );
+		_delay_ms( 200 );
+		break;
+
+	case KEY_F4:
+		sendCode += 0x10;
+		//scan_sendData( 0x90 );
+		scan_sendData( sendCode );
+		_delay_ms( 200 );
+		break;
+
+	case KEY_F5:
+		// Set 9th bit to 0
+		UCSR1B &= ~(1 << 0);
+		_delay_ms( 200 );
+		break;
+
+	case KEY_F6:
+		// Set 9th bit to 1
+		UCSR1B |=  (1 << 0);
+		_delay_ms( 200 );
+		break;
+
+	case KEY_F11:
+		// Set click code
+		KeyIndex_Add_InputSignal = sendCode;
 		_delay_ms( 200 );
 		break;
 
@@ -280,8 +304,7 @@ int usbcodeMacro( uint8_t usbCode )
 	}
 	
 	return 1;
-	*/
-	return 0;
+	//return 0;
 }
 
 

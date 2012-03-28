@@ -42,6 +42,7 @@
 
 extern volatile     uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
 extern volatile     uint8_t KeyIndex_BufferUsed;
+extern volatile     uint8_t KeyIndex_Add_InputSignal;
 
 
 

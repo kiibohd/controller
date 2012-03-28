@@ -38,9 +38,9 @@
 // ----- Defines -----
 
 // Pinout Defines
-#define RESET_PORT PORTB
-#define RESET_DDR   DDRD
-#define RESET_PIN      0
+#define HOLD_PORT PORTD
+#define HOLD_DDR   DDRD
+#define HOLD_PIN      3
 
 
 // ----- Macros -----
@@ -57,6 +57,7 @@
 // Buffer used to inform the macro processing module which keys have been detected as pressed
 volatile uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
 volatile uint8_t KeyIndex_BufferUsed;
+volatile uint8_t KeyIndex_Add_InputSignal; // Used to pass the (click/input value) to the keyboard for the clicker
 
 
 // Buffer Signals
@@ -133,8 +134,13 @@ inline void scan_setup()
 	UBRR1H = (uint8_t)(baud >> 8);
 	UBRR1L = (uint8_t)baud;
 
-	// Enable the receiver, transitter, and RX Complete Interrupt as well as 9 bit data
-	UCSR1B = 0x9C;
+	// Enable the receiver, and RX Complete Interrupt as well as 9 bit data
+	UCSR1B = 0x94;
+
+	// The transmitter is only to be enabled when needed
+	// Set the pin to be pull-up otherwise (use the lowered voltage inverter in order to sink)
+	HOLD_DDR  &= ~(1 << HOLD_PIN);
+	HOLD_PORT |=  (1 << HOLD_PIN);
 
 	// Set frame format: 9 data, 1 stop bit, no parity
 	// Asynchrounous USART mode
@@ -142,6 +148,9 @@ inline void scan_setup()
 
 	// Initially buffer doesn't need to be cleared (it's empty...)
 	BufferReadyToClear = 0;
+
+	// InputSignal is off by default
+	KeyIndex_Add_InputSignal = 0x00;
 
 	// Reset the keyboard before scanning, we might be in a wierd state
 	scan_resetKeyboard();
@@ -155,12 +164,13 @@ inline uint8_t scan_loop()
 	return 0;
 }
 
-// TODO
 void processKeyValue( uint8_t keyValue )
 {
 	// Interpret scan code
 	switch ( keyValue )
 	{
+	case 0x00: // Break code from input?
+		break;
 	default:
 		// Make sure the key isn't already in the buffer
 		for ( uint8_t c = 0; c < KeyIndex_BufferUsed + 1; c++ )
@@ -169,6 +179,10 @@ void processKeyValue( uint8_t keyValue )
 			if ( c == KeyIndex_BufferUsed )
 			{
 				bufferAdd( keyValue );
+
+				// Only send data if enabled
+				if ( KeyIndex_Add_InputSignal )
+					scan_sendData( KeyIndex_Add_InputSignal );
 				break;
 			}
 
@@ -213,19 +227,31 @@ void removeKeyValue( uint8_t keyValue )
 // Send data 
 uint8_t scan_sendData( uint8_t dataPayload )
 {
+	// Enable the USART Transmitter
+	UCSR1B |=  (1 << 3);
+
+	// Debug
+	char tmpStr[6];
+	hexToStr( dataPayload, tmpStr );
+	info_dPrint( "Sending - ", tmpStr );
+
 	UDR1 = dataPayload;
+
+	// Wait for the payload
+	_delay_us( 800 );
+
+	// Disable the USART Transmitter
+	UCSR1B &= ~(1 << 3);
+
 	return 0;
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-// TODO
 void scan_finishedWithBuffer( void )
 {
-	return;
 }
 
 // Signal that the keys have been properly sent over USB
-// TODO
 void scan_finishedWithUSBBuffer( void )
 {
 }
@@ -242,19 +268,9 @@ void scan_unlockKeyboard( void )
 }
 
 // Reset Keyboard
-// TODO?
-// - Holds the input read line high to flush the buffer
-// - This does not actually reset the keyboard, but always seems brings it to a sane state
-// - Won't work fully if keys are being pressed done at the same time
 void scan_resetKeyboard( void )
 {
-	// Initiate data request line, but don't read the incoming data
-	//REQUEST_DATA(); TODO
-
 	// Not a calculated valued...
 	_delay_ms( 50 );
-
-	// Stop request line
-	//STOP_DATA(); TODO
 }
 

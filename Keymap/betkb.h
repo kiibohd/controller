@@ -92,7 +92,7 @@ static uint8_t betkb_DefaultMap[] = {
 				0, // 0x3C
 				KEY_ENTER, // 0x3D
 				KEY_RIGHT_GUI, // 0x3E
-				KEYPAD_1, // 0x3F
+				KEY_LEFT, // 0x3F (KEYPAD_1)
 				KEY_TAB, // 0x40
 				KEY_Q, // 0x41
 				KEY_W, // 0x42
@@ -147,10 +147,10 @@ static uint8_t betkb_DefaultMap[] = {
 				KEYPAD_7, // 0x73
 				KEYPAD_8, // 0x74
 				KEYPAD_9, // 0x75
-				KEYPAD_5, // 0x76
+				KEY_UP, // 0x76 (KEYPAD_5)
 				KEYPAD_6, // 0x77
-				KEYPAD_2, // 0x78
-				KEYPAD_3, // 0x79
+				KEY_DOWN, // 0x78 (KEYPAD_2)
+				KEY_RIGHT, // 0x79 (KEYPAD_3)
 				KEYPAD_0, // 0x7A
 				KEYPAD_00, // 0x7B
 				KEYPAD_ENTER, // 0x7C
@@ -223,7 +223,7 @@ static uint8_t betkb_ColemakMap[] = {
 				0, // 0x3C
 				KEY_ENTER, // 0x3D
 				KEY_RIGHT_GUI, // 0x3E
-				KEYPAD_1, // 0x3F
+				KEY_LEFT, // 0x3F (KEYPAD_1)
 				KEY_TAB, // 0x40
 				KEY_Q, // 0x41
 				KEY_W, // 0x42
@@ -278,10 +278,10 @@ static uint8_t betkb_ColemakMap[] = {
 				KEYPAD_7, // 0x73
 				KEYPAD_8, // 0x74
 				KEYPAD_9, // 0x75
-				KEYPAD_5, // 0x76
+				KEY_UP, // 0x76 (KEYPAD_5)
 				KEYPAD_6, // 0x77
-				KEYPAD_2, // 0x78
-				KEYPAD_3, // 0x79
+				KEY_DOWN, // 0x78 (KEYPAD_2)
+				KEY_RIGHT, // 0x79 (KEYPAD_3)
 				KEYPAD_0, // 0x7A
 				KEYPAD_00, // 0x7B
 				KEYPAD_ENTER, // 0x7C
