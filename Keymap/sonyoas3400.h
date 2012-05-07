@@ -38,7 +38,7 @@ static uint8_t sonyoas3400_DefaultMap[] = {
 				0, // 0x06
 				0, // 0x07
 				KEY_BACKSPACE, // 0x08
-				0, // 0x09
+				KEY_TAB, // 0x09
 				0, // 0x0A
 				0, // 0x0B
 				0, // 0x0C
@@ -190,7 +190,7 @@ static uint8_t sonyoas3400_DefaultMap[] = {
 				0, // 0x9E
 				0, // 0x9F
 				0, // 0xA0
-				KEY_TAB, // 0xA1
+				0, // 0xA1
 				0, // 0xA2
 				0, // 0xA3
 				0, // 0xA4
@@ -297,7 +297,7 @@ static uint8_t sonyoas3400_ColemakMap[] = {
 				0, // 0x06
 				0, // 0x07
 				KEY_BACKSPACE, // 0x08
-				0, // 0x09
+				KEY_TAB, // 0x09
 				0, // 0x0A
 				0, // 0x0B
 				0, // 0x0C
@@ -449,7 +449,7 @@ static uint8_t sonyoas3400_ColemakMap[] = {
 				0, // 0x9E
 				0, // 0x9F
 				0, // 0xA0
-				KEY_TAB, // 0xA1
+				0, // 0xA1
 				0, // 0xA2
 				0, // 0xA3
 				0, // 0xA4

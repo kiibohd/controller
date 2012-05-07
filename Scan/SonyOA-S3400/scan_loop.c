@@ -342,6 +342,17 @@ void processKeyValue( uint8_t keyValue )
 		}
 	}
 
+	// TODO Move to Macro Section
+	switch ( keyValue )
+	{
+	case 0xD3: // F11
+		scan_sendData( 0x01 );
+		break;
+	case 0xD4: // F12
+		scan_sendData( 0x02 );
+		break;
+	}
+
 	// Scan code is now finalized, and ready to add to buffer
 	// Note: Scan codes come from 3 different interrupts and a manual key scan into this function
 
@@ -389,6 +400,9 @@ void processKeyValue( uint8_t keyValue )
 
 					// Decrement Buffer
 					KeyIndex_BufferUsed--;
+
+					// Start at this position again for the next loop
+					c--;
 
 					break;
 				}
@@ -485,8 +499,21 @@ ISR(INT7_vect)
 
 // Send data to keyboard
 // Sony OA-S3400 has no serial/parallel dataport to send data too...
+// Using this function for LED enable/disable
 uint8_t scan_sendData( uint8_t dataPayload )
 {
+	switch ( dataPayload )
+	{
+	case 0x01:
+		LED1_PORT ^= (1 << LED1_POS);
+		break;
+	case 0x02:
+		LED2_PORT ^= (1 << LED2_POS);
+		break;
+	default:
+		erro_print("Invalid data send attempt");
+		break;
+	}
 	return 0;
 }
 

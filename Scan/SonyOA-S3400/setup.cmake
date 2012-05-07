@@ -41,7 +41,7 @@ add_definitions( -I${HEAD_DIR}/Keymap )
 #| Keymap Settings
 add_definitions(
 	-DMODIFIER_MASK=sonyoas3400_ModifierMask
-	#-DKEYINDEX_MASK=sonyoas3400_ColemakMap
-	-DKEYINDEX_MASK=sonyoas3400_DefaultMap
+	-DKEYINDEX_MASK=sonyoas3400_ColemakMap
+	#-DKEYINDEX_MASK=sonyoas3400_DefaultMap
 )
 
