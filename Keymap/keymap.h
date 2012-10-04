@@ -47,6 +47,7 @@
 #include "heathzenith.h"
 #include "kaypro1.h"
 #include "microswitch8304.h"
+#include "skm67001.h"
 #include "sonynews.h"
 #include "sonyoas3400.h"
 #include "tandy1000.h"

@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 by Jacob Alexander
+/* Copyright (C) 2011-2012 by Jacob Alexander
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,8 +37,11 @@
 // ----- Defines -----
 
 // Debouncing Defines
-#define SAMPLE_THRESHOLD 110
-#define MAX_SAMPLES      127 // Max is 127, reaching 128 is very bad
+// Old
+//#define SAMPLE_THRESHOLD 110
+//#define MAX_SAMPLES      127 // Max is 127, reaching 128 is very bad
+#define SAMPLE_THRESHOLD 6
+#define MAX_SAMPLES      10 // Max is 127, reaching 128 is very bad
 
 
 
@@ -56,6 +59,7 @@
 // Buffer used to inform the macro processing module which keys have been detected as pressed
 volatile uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
 volatile uint8_t KeyIndex_BufferUsed;
+volatile uint8_t KeyIndex_Add_InputSignal; // Used to pass the (click/input value) to the keyboard for the clicker
 
 
 // Keeps track of the number of scans, so we only do a debounce assess when it would be valid (as it throws away data)
@@ -167,5 +171,12 @@ inline void scan_finishedWithUSBBuffer( void )
 inline void scan_finishedWithBuffer( void )
 {
 	return;
+}
+
+// Send data to keyboard
+// Not used in this module
+uint8_t scan_sendData( uint8_t dataPayload )
+{
+	return 0;
 }
 

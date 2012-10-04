@@ -100,6 +100,14 @@
 #define scanCol_powrRow 3  // Opposite of scanRow_powrCol
 #define scanDual        4  // Typical ~2KRO matrix
 
+#define powrRow         5  // Matrix setup for powering a row, initially the row would be set low
+#define powrCol         6  // Like powrRow but for columns
+
+
+// ----- Direction -----
+#define columnSet       0  // PIN_SET_COL for PIN_SET
+#define rowSet          1  // PIN_SET_ROW for PIN_SET
+
 
 
 // ----- Variables -----
