@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2012 by Jacob Alexander
+/* Copyright (C) 2012 by Jacob Alexander
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,48 +19,49 @@
  * THE SOFTWARE.
  */
 
-#ifndef __KEYMAP_H
-#define __KEYMAP_H
+#ifndef __SCAN_LOOP_H
+#define __SCAN_LOOP_H
 
 // ----- Includes -----
 
-#include "usb_keys.h"
+// Compiler Includes
+#include <stdint.h>
+
+// Local Includes
 
 
 
 // ----- Defines -----
 
+#define KEYBOARD_SIZE 0x7F // 127 - Size of the array space for the keyboard(max index)
+#define KEYBOARD_BUFFER 24 // Max number of key signals to buffer
+
 
 
 // ----- Variables -----
 
-// Lots of these variables are not used, so ignore gcc unused warnings
-// But just for the variables in this file (and those included into it)
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#pragma GCC diagnostic push
-
-
-// See files for full layout descriptions
-#include "betkb.h"
-#include "budkeypad.h"
-#include "epsonqx10.h"
-#include "heathzenith.h"
-#include "hp150.h"
-#include "ibmconvertible.h"
-#include "kaypro1.h"
-#include "microswitch8304.h"
-#include "skm67001.h"
-#include "sonynews.h"
-#include "sonyoas3400.h"
-#include "tandy1000.h"
-#include "univacf3w9.h"
+extern volatile     uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
+extern volatile     uint8_t KeyIndex_BufferUsed;
+extern volatile     uint8_t KeyIndex_Add_InputSignal;
 
 
 
-// Only ignore unused warnings for the above variables
-#pragma GCC diagnostic pop
+// ----- Functions -----
+
+// Functions used by main.c
+void scan_setup( void );
+uint8_t scan_loop( void );
 
 
+// Functions available to macro.c
+uint8_t scan_sendData( uint8_t dataPayload );
 
-#endif
+void scan_finishedWithBuffer( void );
+void scan_finishedWithUSBBuffer( void );
+void scan_lockKeyboard( void );
+void scan_unlockKeyboard( void );
+void scan_resetKeyboard( void );
+
+
+#endif // __SCAN_LOOP_H
 

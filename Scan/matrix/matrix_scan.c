@@ -145,6 +145,8 @@ uint8_t ddrF = 0x00;
 
 
 // ----- Functions -----
+void matrix_debugPins(void);
+
 // Pin Setup Debug
 inline void matrix_debugPins()
 {
