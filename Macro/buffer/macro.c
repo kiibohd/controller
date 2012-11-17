@@ -252,6 +252,7 @@ uint8_t sendCode = 0;
 int usbcodeMacro( uint8_t usbCode )
 {
 	// Keyboard Input Test Macro
+	/*
 	switch ( usbCode )
 	{
 	case KEY_F1:
@@ -304,7 +305,8 @@ int usbcodeMacro( uint8_t usbCode )
 	}
 	
 	return 1;
-	//return 0;
+	*/
+	return 0;
 }
 
 

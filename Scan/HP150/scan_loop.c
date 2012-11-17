@@ -41,6 +41,7 @@
 #define DATA_PORT PORTC
 #define DATA_DDR   DDRC
 #define DATA_PIN      7
+#define DATA_OUT   PINC
 
 #define CLOCK_PORT PORTC
 #define CLOCK_DDR   DDRC
@@ -68,6 +69,8 @@ volatile uint8_t KeyIndex_BufferUsed;
 volatile uint8_t KeyIndex_Add_InputSignal; // Used to pass the (click/input value) to the keyboard for the clicker
 
 volatile uint8_t currentWaveState = 0;
+volatile uint8_t currentWaveDone = 0;
+volatile uint8_t positionCounter = 0;
 
 
 // Buffer Signals
@@ -90,7 +93,9 @@ ISR( TIMER1_COMPA_vect )
 	if ( currentWaveState )
 	{
 		CLOCK_PORT &= ~(1 << CLOCK_PIN);
-		currentWaveState--;
+		currentWaveState--; // Keeps track of the clock value (for direct clock output)
+		currentWaveDone--;  // Keeps track of whether the current falling edge has been processed
+		positionCounter++;  // Counts the number of falling edges, reset is done by the controlling section (reset, or main scan)
 	}
 	else
 	{
@@ -109,14 +114,15 @@ inline void scan_setup()
 	// Setup Timer Pulse (16 bit)
 
 	// TODO Clock can be adjusted to whatever (read chip datasheets for limits)
-	// 16 MHz / (2 * Prescaler * (1 + OCR1A)) = 1200.1 baud
+	// This seems like a good scan speed, as there don't seem to be any periodic
+	//  de-synchronization events, and is fast enough for scanning keys
+	// Anything much more (100k baud), tends to cause a lot of de-synchronization
+	// 16 MHz / (2 * Prescaler * (1 + OCR1A)) = 10k baud
 	// Prescaler is 1
-	// Twice every 1200 baud (actually 1200.1, timer isn't accurate enough)
-	// This is close to 820 us, but a bit slower
 	cli();
 	TCCR1B = 0x09;
-	OCR1AH = 0x01;
-	OCR1AL = 0x09;
+	OCR1AH = 0x03;
+	OCR1AL = 0x1F;
 	TIMSK1 = (1 << OCIE1A);
 	CLOCK_DDR = (1 << CLOCK_PIN);
 	sei();
@@ -124,9 +130,6 @@ inline void scan_setup()
 
 	// Initially buffer doesn't need to be cleared (it's empty...)
 	BufferReadyToClear = 0;
-
-	// InputSignal is off by default
-	KeyIndex_Add_InputSignal = 0x00;
 
 	// Reset the keyboard before scanning, we might be in a wierd state
 	scan_resetKeyboard();
@@ -141,67 +144,75 @@ inline void scan_setup()
 // Once the end of the packet has been detected (always the same length), decode the pressed keys
 inline uint8_t scan_loop()
 {
-	return 0;
-}
-
-void processKeyValue( uint8_t keyValue )
-{
-	// Interpret scan code
-	switch ( keyValue )
+	// Read on each falling edge/after the falling edge of the clock
+	if ( !currentWaveDone )
 	{
-	case 0x00: // Break code from input?
-		break;
-	default:
-		// Make sure the key isn't already in the buffer
-		for ( uint8_t c = 0; c < KeyIndex_BufferUsed + 1; c++ )
+		// Sample the current value 50 times
+		// If there is a signal for 40/50 of the values, then it is active
+		// This works as a very simple debouncing mechanism
+		// XXX Could be done more intelligently:
+		//  Take into account the frequency of the clock + overhead, and space out the reads
+		//  Or do something like "dual edge" statistics, where you query the stats from both rising and falling edges
+		//   then make a decision (probably won't do much better against the last source of noise, but would do well for debouncing)
+		uint8_t total = 0;
+		uint8_t c = 0;
+		for ( ; c < 50; c++ )
+			if ( DATA_OUT & (1 << DATA_PIN) )
+				total++;
+
+
+		// Only use as a valid signal
+		if ( total >= 40 )
 		{
-			// Key isn't in the buffer yet
-			if ( c == KeyIndex_BufferUsed )
+			// Reset the scan counter, all the keys have been iterated over
+			// Ideally this should reset at 128, however
+			//  due to noise in the cabling, this often moves around
+			// The minimum this can possibly set to is 124 as there
+			//  are keys to service at 123 (0x78)
+			// Usually, unless there is lots of interference,
+			//  this should limit most of the noise.
+			if ( positionCounter >= 124 )
 			{
-				bufferAdd( keyValue );
+				positionCounter = 0;
 
-				// Only send data if enabled
-				if ( KeyIndex_Add_InputSignal )
-					scan_sendData( KeyIndex_Add_InputSignal );
-				break;
+				// Clear key buffer
+				KeyIndex_BufferUsed = 0;
 			}
+			// Key Press Detected
+			else
+			{
+				char tmp[15];
+				hexToStr( positionCounter, tmp );
+				dPrintStrsNL( "Key: ", tmp );
 
-			// Key already in the buffer
-			if ( KeyIndex_Buffer[c] == keyValue )
-				break;
+				bufferAdd( positionCounter );
+			}
 		}
-		break;
-	}
-}
 
-void removeKeyValue( uint8_t keyValue )
-{
-	// Check for the released key, and shift the other keys lower on the buffer
-	uint8_t c;
-	for ( c = 0; c < KeyIndex_BufferUsed; c++ )
-	{
-		// Key to release found
-		if ( KeyIndex_Buffer[c] == keyValue )
-		{
-			// Shift keys from c position
-			for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
-				KeyIndex_Buffer[k] = KeyIndex_Buffer[k + 1];
-
-			// Decrement Buffer
-			KeyIndex_BufferUsed--;
-
-			break;
-		}
+		// Wait until the next falling clock edge for the next DATA scan
+		currentWaveDone++;
 	}
 
-	// Error case (no key to release)
-	if ( c == KeyIndex_BufferUsed + 1 )
+	// Check if the clock de-synchronized
+	// And reset
+	if ( positionCounter > 128 )
 	{
+		char tmp[15];
+		hexToStr( positionCounter, tmp );
+		erro_dPrint( "De-synchronization detected at: ", tmp );
 		errorLED( 1 );
-		char tmpStr[6];
-		hexToStr( keyValue, tmpStr );
-		erro_dPrint( "Could not find key to release: ", tmpStr );
+
+		positionCounter = 0;
+		KeyIndex_BufferUsed = 0;
+
+		// A keyboard reset requires interrupts to be enabled
+		sei();
+		scan_resetKeyboard();
+		cli();
 	}
+
+	// Regardless of what happens, always return 0
+	return 0;
 }
 
 // Send data 
@@ -221,12 +232,12 @@ void scan_finishedWithUSBBuffer( void )
 }
 
 // Reset/Hold keyboard
-// NOTE: Does nothing with the BETKB
+// NOTE: Does nothing with the HP150
 void scan_lockKeyboard( void )
 {
 }
 
-// NOTE: Does nothing with the BETKB
+// NOTE: Does nothing with the HP150
 void scan_unlockKeyboard( void )
 {
 }
@@ -234,6 +245,37 @@ void scan_unlockKeyboard( void )
 // Reset Keyboard
 void scan_resetKeyboard( void )
 {
-	// TODO Determine the scan period, and the interval to scan each bit
+	info_print("Attempting to synchronize the keyboard, do not press any keys...");
+	errorLED( 1 );
+
+	// Do a proper keyboard reset (flushes the ripple counters)
+	RESET_PORT |=  (1 << RESET_PIN);
+	_delay_us(10);
+	RESET_PORT &= ~(1 << RESET_PIN);
+
+	// Delay main keyboard scanning, until the bit counter is synchronized
+	uint8_t synchronized = 0;
+	while ( !synchronized )
+	{
+		// Read on each falling edge/after the falling edge of the clock
+		if ( !currentWaveDone )
+		{
+			// Read the current data value
+			if ( DATA_OUT & (1 << DATA_PIN) )
+			{
+				// Check if synchronized
+				// There are 128 positions to scan for with the HP150 keyboard protocol
+				if ( positionCounter == 128 )
+					synchronized = 1;
+
+				positionCounter = 0;
+			}
+
+			// Wait until the next falling clock edge for the next DATA scan
+			currentWaveDone++;
+		}
+	}
+
+	info_print("Keyboard Synchronized!");
 }
 

@@ -42,7 +42,7 @@ add_definitions( -I${HEAD_DIR}/Keymap )
 #| Keymap Settings
 add_definitions(
 	-DMODIFIER_MASK=hp150_ModifierMask
-	#-DKEYINDEX_MASK=hp150_ColemakMap
-	-DKEYINDEX_MASK=hp150_DefaultMap
+	-DKEYINDEX_MASK=hp150_ColemakMap
+	#-DKEYINDEX_MASK=hp150_DefaultMap
 )
 
