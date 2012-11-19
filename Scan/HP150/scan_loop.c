@@ -69,8 +69,11 @@ volatile uint8_t KeyIndex_BufferUsed;
 volatile uint8_t KeyIndex_Add_InputSignal; // Used to pass the (click/input value) to the keyboard for the clicker
 
 volatile uint8_t currentWaveState = 0;
-volatile uint8_t currentWaveDone = 0;
 volatile uint8_t positionCounter = 0;
+
+volatile uint8_t statePositionCounter = 0;
+volatile uint16_t stateSamplesTotal = 0;
+volatile uint16_t stateSamples = 0;
 
 
 // Buffer Signals
@@ -94,7 +97,7 @@ ISR( TIMER1_COMPA_vect )
 	{
 		CLOCK_PORT &= ~(1 << CLOCK_PIN);
 		currentWaveState--; // Keeps track of the clock value (for direct clock output)
-		currentWaveDone--;  // Keeps track of whether the current falling edge has been processed
+		statePositionCounter = positionCounter;
 		positionCounter++;  // Counts the number of falling edges, reset is done by the controlling section (reset, or main scan)
 	}
 	else
@@ -124,7 +127,9 @@ inline void scan_setup()
 	OCR1AH = 0x03;
 	OCR1AL = 0x1F;
 	TIMSK1 = (1 << OCIE1A);
-	CLOCK_DDR = (1 << CLOCK_PIN);
+
+	CLOCK_DDR |= (1 << CLOCK_PIN); // Set the clock pin as an output
+	DATA_PORT |= (1 << DATA_PIN);  // Pull-up resistor for input the data line
 	sei();
 
 
@@ -144,25 +149,12 @@ inline void scan_setup()
 // Once the end of the packet has been detected (always the same length), decode the pressed keys
 inline uint8_t scan_loop()
 {
-	// Read on each falling edge/after the falling edge of the clock
-	if ( !currentWaveDone )
+	// Only use as a valid signal
+	// Check if there was a position change
+	if ( positionCounter != statePositionCounter )
 	{
-		// Sample the current value 50 times
-		// If there is a signal for 40/50 of the values, then it is active
-		// This works as a very simple debouncing mechanism
-		// XXX Could be done more intelligently:
-		//  Take into account the frequency of the clock + overhead, and space out the reads
-		//  Or do something like "dual edge" statistics, where you query the stats from both rising and falling edges
-		//   then make a decision (probably won't do much better against the last source of noise, but would do well for debouncing)
-		uint8_t total = 0;
-		uint8_t c = 0;
-		for ( ; c < 50; c++ )
-			if ( DATA_OUT & (1 << DATA_PIN) )
-				total++;
-
-
-		// Only use as a valid signal
-		if ( total >= 40 )
+		// At least 80% of the samples must be valid
+		if ( stateSamples * 100 / stateSamplesTotal >= 80 )
 		{
 			// Reset the scan counter, all the keys have been iterated over
 			// Ideally this should reset at 128, however
@@ -174,24 +166,59 @@ inline uint8_t scan_loop()
 			if ( positionCounter >= 124 )
 			{
 				positionCounter = 0;
-
-				// Clear key buffer
-				KeyIndex_BufferUsed = 0;
 			}
 			// Key Press Detected
-			else
+			//  - Skip 0x00 to 0x0B (11) for better jitter immunity (as there are no keys mapped to those scancodes)
+			else if ( positionCounter > 0x0B )
 			{
 				char tmp[15];
 				hexToStr( positionCounter, tmp );
 				dPrintStrsNL( "Key: ", tmp );
 
-				bufferAdd( positionCounter );
+				// Make sure there aren't any duplicate keys
+				uint8_t c;
+				for ( c = 0; c < KeyIndex_BufferUsed; c++ )
+					if ( KeyIndex_Buffer[c] == positionCounter )
+						break;
+
+				// No duplicate keys, add it to the buffer
+				if ( c == KeyIndex_BufferUsed )
+					bufferAdd( positionCounter );
+			}
+		}
+		// Remove the key from the buffer
+		else if ( positionCounter < 124 && positionCounter > 0x0B )
+		{
+			// Check for the released key, and shift the other keys lower on the buffer
+			uint8_t c;
+			for ( c = 0; c < KeyIndex_BufferUsed; c++ )
+			{
+				// Key to release found
+				if ( KeyIndex_Buffer[c] == positionCounter )
+				{
+					// Shift keys from c position
+					for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
+						KeyIndex_Buffer[k] = KeyIndex_Buffer[k + 1];
+
+					// Decrement Buffer
+					KeyIndex_BufferUsed--;
+
+					break;
+				}
 			}
 		}
 
-		// Wait until the next falling clock edge for the next DATA scan
-		currentWaveDone++;
+
+		// Clear the state counters
+		stateSamples = 0;
+		stateSamplesTotal = 0;
+		statePositionCounter = positionCounter;
 	}
+
+	// Pull in a data sample for this read instance
+	if ( DATA_OUT & (1 <<DATA_PIN) )
+		stateSamples++;
+	stateSamplesTotal++;
 
 	// Check if the clock de-synchronized
 	// And reset
@@ -204,6 +231,10 @@ inline uint8_t scan_loop()
 
 		positionCounter = 0;
 		KeyIndex_BufferUsed = 0;
+
+		// Clear the state counters
+		stateSamples = 0;
+		stateSamplesTotal = 0;
 
 		// A keyboard reset requires interrupts to be enabled
 		sei();
@@ -257,22 +288,29 @@ void scan_resetKeyboard( void )
 	uint8_t synchronized = 0;
 	while ( !synchronized )
 	{
-		// Read on each falling edge/after the falling edge of the clock
-		if ( !currentWaveDone )
+		// Only use as a valid signal
+		// Check if there was a position change
+		if ( positionCounter != statePositionCounter )
 		{
-			// Read the current data value
-			if ( DATA_OUT & (1 << DATA_PIN) )
+			// At least 80% of the samples must be valid
+			if ( stateSamples * 100 / stateSamplesTotal >= 80 )
 			{
-				// Check if synchronized
-				// There are 128 positions to scan for with the HP150 keyboard protocol
-				if ( positionCounter == 128 )
-					synchronized = 1;
+				// Read the current data value
+				if ( DATA_OUT & (1 << DATA_PIN) )
+				{
+					// Check if synchronized
+					// There are 128 positions to scan for with the HP150 keyboard protocol
+					if ( positionCounter == 128 )
+						synchronized = 1;
 
-				positionCounter = 0;
+					positionCounter = 0;
+				}
 			}
 
-			// Wait until the next falling clock edge for the next DATA scan
-			currentWaveDone++;
+			// Clear the state counters
+			stateSamples = 0;
+			stateSamplesTotal = 0;
+			statePositionCounter = positionCounter;
 		}
 	}
 
