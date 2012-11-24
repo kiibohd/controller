@@ -7,6 +7,11 @@
 #
 ###
 
+#| Windows / Cygwin Compatibility options
+set( CMAKE_LEGACY_CYGWIN_WIN32 0 )
+set( CMAKE_USE_RELATIVE_PATHS  1 )
+
+
 #| Set the Compilers (must be set first)
 include( CMakeForceCompiler )
 cmake_force_c_compiler  ( avr-gcc AVRCCompiler )
@@ -147,6 +152,7 @@ add_executable( ${TARGET_ELF} ${SRCS} )
 #| .ELF Properties
 set_target_properties( ${TARGET_ELF} PROPERTIES
 	LINK_FLAGS ${LINKER_FLAGS}
+	SUFFIX ""                               # XXX Force Windows to keep the .exe off
 )
 
 
@@ -207,6 +213,6 @@ endif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "Dar
 
 #| TODO Windows
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
-	message( STATUS "Load Script is on my TODO List for Windows..." )
+	configure_file( LoadFile/bash load )
 endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 
