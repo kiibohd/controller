@@ -152,6 +152,8 @@ inline uint8_t scan_loop()
 	// Disable keyboard interrupt (does nothing if already off)
 	UNSET_INTR();
 
+	/* XXX OLD CODE - Somewhat worked, has glitches, and is not compatible with the current API
+
 	// Read the clock 8 times
 	if ( READ_CLK )
 	{
@@ -213,6 +215,8 @@ inline uint8_t scan_loop()
 		while ( READ_CLK );
 	}
 
+	*/
+
 	// Interrupt keyboard if there is no pending packet
 	SET_INTR();
 
@@ -229,6 +233,11 @@ uint8_t scan_sendData( uint8_t dataPayload )
 // Signal KeyIndex_Buffer that it has been properly read
 // TODO
 void scan_finishedWithBuffer( void )
+{
+}
+
+// Signal that the keys have been properly sent over USB
+void scan_finishedWithUSBBuffer( void )
 {
 }
 
