@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 by Jacob Alexander
+/* Copyright (C) 2011-2013 by Jacob Alexander
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -255,22 +255,55 @@ ISR(USART1_RX_vect)
 	case 0xC3: // Keypad Enter
 		print("\n");
 		info_print("BEEEEP! - Clicker on");
-		UDR1 = cmd_clickON;
+		scan_sendData( cmd_clickON );
 		break;
 
 	case 0xB2: // Keypad Decimal
 		print("\n");
 		info_print("BEEP! - Clicker off");
-		UDR1 = cmd_clickOFF;
+		scan_sendData( cmd_clickOFF );
 		break;
 
 	case 0x0A: // Line Feed
 		print("\n");
 		info_print("ACK!!");
-		UDR1 = cmd_ACK_AA;
+		scan_sendData( cmd_ACK_AA );
 		break;
 	}
 
 	sei(); // Re-enable Interrupts
+}
+
+// Send data
+uint8_t scan_sendData( uint8_t dataPayload )
+{
+	UDR1 = dataPayload;
+	return 0;
+}
+
+// Signal KeyIndex_Buffer that it has been properly read
+void scan_finishedWithBuffer( void )
+{
+}
+
+// Signal that the keys have been properly sent over USB
+void scan_finishedWithUSBBuffer( void )
+{
+}
+
+// Reset/Hold keyboard
+// NOTE: Does nothing with the BETKB
+void scan_lockKeyboard( void )
+{
+}
+
+// NOTE: Does nothing with the BETKB
+void scan_unlockKeyboard( void )
+{
+}
+
+// Reset Keyboard
+void scan_resetKeyboard( void )
+{
 }
 
