@@ -349,7 +349,7 @@ inline void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 	// Dual Scan
 #if scanMode == scanDual
 	// First do a scan of all of the columns, marking each one
-	matrix_pinSetup( matrix, scanCol_powrRow, 0, MAX_ROW_SIZE, MAX_COL_SIZE );
+	//matrix_pinSetup( matrix, scanCol_powrRow, 0, MAX_ROW_SIZE, MAX_COL_SIZE ); TODO
 	_delay_us( 1 );
 	for ( ; row < (MAX_COL_SIZE+1); row++ ) for ( ; col < (MAX_ROW_SIZE+1); col++ )
 	{
@@ -376,7 +376,7 @@ inline void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 
 	// Next, do a scan of all of the rows, clearing any "vague" keys (only detected on row, but not column, or vice-versa)
 	// And marking any keys that are detected on the row and column
-	matrix_pinSetup( matrix, scanRow_powrCol, 0, MAX_ROW_SIZE, MAX_COL_SIZE );
+	//matrix_pinSetup( matrix, scanRow_powrCol, 0, MAX_ROW_SIZE, MAX_COL_SIZE ); TODO
 	_delay_us( 1 );
 	col = 1;
 	row = 1;
