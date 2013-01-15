@@ -42,6 +42,7 @@
 
 extern volatile     uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
 extern volatile     uint8_t KeyIndex_BufferUsed;
+extern volatile     uint8_t KeyIndex_Add_InputSignal;
 
 
 
@@ -56,6 +57,7 @@ uint8_t scan_loop( void );
 uint8_t scan_sendData( uint8_t dataPayload );
 
 void scan_finishedWithBuffer( void );
+void scan_finishedWithUSBBuffer( void );
 void scan_lockKeyboard( void );
 void scan_unlockKeyboard( void );
 void scan_resetKeyboard( void );

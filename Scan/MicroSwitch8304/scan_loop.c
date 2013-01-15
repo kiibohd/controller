@@ -214,6 +214,11 @@ void scan_finishedWithBuffer( void )
 	}
 }
 
+// Signal that the keys have been properly sent over USB
+void scan_finishedWithUSBBuffer( void )
+{
+}
+
 // Reset/Hold keyboard
 // Warning! This will cause the keyboard to not send any data, so you can't disable with a keypress
 // The Micro Switch 8304 has a dedicated reset line
