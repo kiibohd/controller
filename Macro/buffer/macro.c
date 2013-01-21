@@ -52,7 +52,7 @@ static uint8_t Bootloader_ConditionSequence[] = {1,16,6,11};
 
 // ----- Functions -----
 
-inline void macro_finishedWithBuffer(void)
+inline void macro_finishedWithBuffer( uint8_t sentKeys )
 {
 	/* BudKeypad
 	// Boot loader sequence state handler
@@ -371,10 +371,10 @@ void keyPressBufferRead( uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t 
 	}
 
 	// Signal Macro processor that all of the buffered keys have been processed
-	macro_finishedWithBuffer();
+	macro_finishedWithBuffer( KeyIndex_BufferUsed );
 
 	// Signal buffer that we've used it
-	scan_finishedWithBuffer();
+	scan_finishedWithBuffer( KeyIndex_BufferUsed );
 }
 
 inline void process_macros(void)

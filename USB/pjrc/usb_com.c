@@ -85,6 +85,6 @@ inline void usb_send(void)
 		USBKeys_Sent      = 0;
 
 		// Signal Scan Module we are finishedA
-		scan_finishedWithUSBBuffer();
+		scan_finishedWithUSBBuffer( USBKeys_Sent <= USBKeys_MaxSize ? USBKeys_Sent : USBKeys_MaxSize );
 }
 

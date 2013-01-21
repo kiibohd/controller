@@ -94,8 +94,8 @@ static uint8_t facom6684_DefaultMap[] = {
 				KEYPAD_9, // 0x3E
 				KEYPAD_TAB, // 0x3F
 				0, // 0x40
-				0, // 0x41
-				KEY_TILDE, // 0x42
+				KEY_TILDE, // 0x41
+				KEY_ESC, // 0x42
 				KEY_1, // 0x43
 				KEY_2, // 0x44
 				KEY_3, // 0x45
@@ -121,10 +121,10 @@ static uint8_t facom6684_DefaultMap[] = {
 				KEY_P, // 0x59
 				KEY_SEMICOLON, // 0x5A
 				KEY_PERIOD, // 0x5B
-				0, // 0x5C
+				KEY_INSERT, // 0x5C
 				KEY_LEFT, // 0x5D
 				0, // 0x5E
-				0, // 0x5F
+				KEY_DELETE, // 0x5F
 				KEY_F13, // 0x60
 				KEY_F14, // 0x61
 				KEY_F15, // 0x62
@@ -137,10 +137,10 @@ static uint8_t facom6684_DefaultMap[] = {
 				KEY_LEFT_BRACE, // 0x69
 				KEY_QUOTE, // 0x6A
 				KEY_SLASH, // 0x6B
-				0, // 0x6C
+				KEY_HOME, // 0x6C
 				KEY_DOWN, // 0x6D
 				0, // 0x6E
-				0, // 0x6F
+				KEY_END, // 0x6F
 				KEY_F19, // 0x70
 				KEY_F20, // 0x71
 				KEY_F21, // 0x72
@@ -153,10 +153,10 @@ static uint8_t facom6684_DefaultMap[] = {
 				KEY_RIGHT_BRACE, // 0x79
 				KEY_BACKSLASH, // 0x7A
 				KEY_UP, // 0x7B
-				0, // 0x7C
+				KEY_PAGE_UP, // 0x7C
 				KEY_RIGHT, // 0x7D
 				0, // 0x7E
-				0, // 0x7F
+				KEY_PAGE_DOWN, // 0x7F
 };
 
 static uint8_t facom6684_ColemakMap[] = {
@@ -225,8 +225,8 @@ static uint8_t facom6684_ColemakMap[] = {
 				KEYPAD_9, // 0x3E
 				KEYPAD_TAB, // 0x3F
 				0, // 0x40
-				0, // 0x41
-				KEY_TILDE, // 0x42
+				KEY_TILDE, // 0x41
+				KEY_ESC, // 0x42
 				KEY_1, // 0x43
 				KEY_2, // 0x44
 				KEY_3, // 0x45
@@ -252,10 +252,10 @@ static uint8_t facom6684_ColemakMap[] = {
 				KEY_SEMICOLON, // 0x59
 				KEY_O, // 0x5A
 				KEY_PERIOD, // 0x5B
-				0, // 0x5C
+				KEY_INSERT, // 0x5C
 				KEY_LEFT, // 0x5D
 				0, // 0x5E
-				0, // 0x5F
+				KEY_DELETE, // 0x5F
 				KEY_F13, // 0x60
 				KEY_F14, // 0x61
 				KEY_F15, // 0x62
@@ -268,10 +268,10 @@ static uint8_t facom6684_ColemakMap[] = {
 				KEY_LEFT_BRACE, // 0x69
 				KEY_QUOTE, // 0x6A
 				KEY_SLASH, // 0x6B
-				0, // 0x6C
+				KEY_HOME, // 0x6C
 				KEY_DOWN, // 0x6D
 				0, // 0x6E
-				0, // 0x6F
+				KEY_END, // 0x6F
 				KEY_F19, // 0x70
 				KEY_F20, // 0x71
 				KEY_F21, // 0x72
@@ -284,10 +284,10 @@ static uint8_t facom6684_ColemakMap[] = {
 				KEY_RIGHT_BRACE, // 0x79
 				KEY_BACKSLASH, // 0x7A
 				KEY_UP, // 0x7B
-				0, // 0x7C
+				KEY_PAGE_UP, // 0x7C
 				KEY_RIGHT, // 0x7D
 				0, // 0x7E
-				0, // 0x7F
+				KEY_PAGE_DOWN, // 0x7F
 };
 
 

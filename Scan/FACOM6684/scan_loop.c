@@ -53,8 +53,11 @@
 volatile uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
 volatile uint8_t KeyIndex_BufferUsed;
 
+volatile uint8_t KeyBufferRemove[6];
+volatile uint8_t KeyBufferRemoveCount = 0;
+
 static uint8_t KeyBuffer[3];
-static uint8_t KeyBufferCount = 0;
+volatile static uint8_t KeyBufferCount = 0;
 
 
 
@@ -72,14 +75,11 @@ ISR(USART1_RX_vect)
 {
 	cli(); // Disable Interrupts
 
-
 	// Read part of the scan code (3 8bit chunks) from USART
 	KeyBuffer[KeyBufferCount] = UDR1;
 
 	if ( KeyBufferCount >= 2 )
 	{
-		KeyBufferCount = 0;
-
 		// Debug
 		for ( uint8_t c = 0; c <= 2; c++ )
 		{
@@ -91,6 +91,8 @@ ISR(USART1_RX_vect)
 		print("\n");
 
 		processKeyValue( KeyBuffer[1], KeyBuffer[2] );
+
+		KeyBufferCount = 0;
 	}
 	else
 	{
@@ -133,6 +135,14 @@ inline void scan_setup()
 // Main Detection Loop
 inline uint8_t scan_loop()
 {
+	// Remove any "released keys", this is delayed due to buffer release synchronization issues
+	for ( uint8_t c = 0; c < KeyBufferRemoveCount; c++ )
+	{
+		removeKeyValue( KeyBufferRemove[c] );
+	}
+
+	KeyBufferRemoveCount = 0;
+
 	return 0;
 }
 
@@ -148,7 +158,7 @@ void processKeyValue( uint8_t valueType, uint8_t keyValue )
 		break;
 	// Modifier Key Release
 	case 0x02:
-		removeKeyValue( keyValue );
+		KeyBufferRemove[KeyBufferRemoveCount++] = keyValue;
 		return;
 	}
 
@@ -212,30 +222,32 @@ uint8_t scan_sendData( uint8_t dataPayload )
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-void scan_finishedWithBuffer( void )
+void scan_finishedWithBuffer( uint8_t sentKeys )
 {
-}
+	// Make sure we aren't in the middle of a receiving a new scancode
+	while ( KeyBufferCount != 0 );
 
-// Signal that the keys have been properly sent over USB
-void scan_finishedWithUSBBuffer( void )
-{
+	cli(); // Disable Interrupts
+
 	// Count for number of modifiers to maintain in the buffer
 	uint8_t filled = 0;
 	uint8_t latched = 0;
 	uint8_t latchBuffer[13]; // There are only 13 keys that can possibly be latched at the same time...
 	uint8_t normal = 0;
+	uint8_t prevBuffer = KeyIndex_BufferUsed;
 
 	// Clean out all keys except "special" keys (designated modifiers)
-	for ( uint8_t c = 0; c < KeyIndex_BufferUsed; c++ )
+	uint8_t key;
+	for ( key = 0; key < sentKeys; key++ )
 	{
-		switch ( KeyIndex_Buffer[c] )
+		switch ( KeyIndex_Buffer[key] )
 		{
 		// Dedicated Modifier Keys
 		// NOTE: Both shifts are represented as the same scan code
 		case 0x04:
 		case 0x05:
 		case 0x12:
-			KeyIndex_Buffer[filled++] = KeyIndex_Buffer[c];
+			KeyIndex_Buffer[filled++] = KeyIndex_Buffer[key];
 			break;
 		// Latched Keys, only released if a non-modifier is pressed along with it
 		// NOTE: This keys do not have a built in repeating
@@ -251,8 +263,8 @@ void scan_finishedWithUSBBuffer( void )
 		case 0x30:
 		case 0x31:
 		case 0x40:
-		case 0x41:
-			latchBuffer[latched++] = KeyIndex_Buffer[c];
+		//case 0x41: // XXX Being used as ESC
+			latchBuffer[latched++] = KeyIndex_Buffer[key];
 			break;
 		// Allow the scancode to be removed, normal keys
 		default:
@@ -264,6 +276,13 @@ void scan_finishedWithUSBBuffer( void )
 	// Reset the buffer counter
 	KeyIndex_BufferUsed = filled;
 
+	// Add back lost keys, so they are processed on the next USB send
+	for ( ; key < prevBuffer; key++ )
+	{
+		bufferAdd( KeyIndex_Buffer[key] );
+		info_print("Re-appending lost key after USB send...");
+	}
+
 	// Only "re-add" the latched keys if they weren't used
 	if ( latched > 0 && normal == 0 )
 	{
@@ -272,6 +291,13 @@ void scan_finishedWithUSBBuffer( void )
 			bufferAdd( latchBuffer[c] );
 		}
 	}
+
+	sei(); // Re-enable Interrupts
+}
+
+// Signal that the keys have been properly sent over USB
+void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+{
 }
 
 // Reset/Hold keyboard
@@ -292,6 +318,7 @@ void scan_resetKeyboard( void )
 	_delay_ms( 50 );
 
 	KeyBufferCount = 0;
+	KeyBufferRemoveCount = 0;
 	KeyIndex_BufferUsed = 0;
 }
 
