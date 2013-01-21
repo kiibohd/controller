@@ -37,11 +37,6 @@
 
 // ----- Defines -----
 
-// Pinout Defines
-#define HOLD_PORT PORTD
-#define HOLD_DDR   DDRD
-#define HOLD_PIN      3
-
 
 // ----- Macros -----
 
@@ -57,17 +52,15 @@
 // Buffer used to inform the macro processing module which keys have been detected as pressed
 volatile uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
 volatile uint8_t KeyIndex_BufferUsed;
-volatile uint8_t KeyIndex_Add_InputSignal; // Used to pass the (click/input value) to the keyboard for the clicker
 
-
-// Buffer Signals
-volatile uint8_t BufferReadyToClear;
+static uint8_t KeyBuffer[3];
+static uint8_t KeyBufferCount = 0;
 
 
 
 // ----- Function Declarations -----
 
-void processKeyValue( uint8_t keyValue );
+void processKeyValue( uint8_t valueType, uint8_t keyValue );
 void  removeKeyValue( uint8_t keyValue );
 
 
@@ -79,38 +72,29 @@ ISR(USART1_RX_vect)
 {
 	cli(); // Disable Interrupts
 
-	uint8_t keyValue = 0x00;
-	uint8_t keyState = 0x00;
 
-	// Read the scancode packet from the USART (1st to 8th bits)
-	keyValue = UDR1;
+	// Read part of the scan code (3 8bit chunks) from USART
+	KeyBuffer[KeyBufferCount] = UDR1;
 
-	// Read the release/press bit (9th bit) XXX Unnecessary, and wrong it seems, parity bit? or something else?
-	keyState = UCSR1B & 0x02;
-
-	// High bit of keyValue, also represents press/release
-	keyState = keyValue & 0x80 ? 0x00 : 0x02;
-
-	// Debug
-	char tmpStr[6];
-	hexToStr( keyValue & 0x7F, tmpStr );
-
-	// Process the scancode
-	switch ( keyState )
+	if ( KeyBufferCount >= 2 )
 	{
-	case 0x00: // Released
-		dPrintStrs( tmpStr, "R  " ); // Debug
+		KeyBufferCount = 0;
 
-		// Remove key from press buffer
-		removeKeyValue( keyValue & 0x7F );
-		break;
+		// Debug
+		for ( uint8_t c = 0; c <= 2; c++ )
+		{
+			// Debug
+			char tmpStr[6];
+			hexToStr( KeyBuffer[c], tmpStr );
+			dPrintStrs( tmpStr, " " ); // Debug
+		}
+		print("\n");
 
-	case 0x02: // Pressed
-		dPrintStrs( tmpStr, "P " ); // Debug
-
-		// New key to process
-		processKeyValue( keyValue & 0x7F );
-		break;
+		processKeyValue( KeyBuffer[1], KeyBuffer[2] );
+	}
+	else
+	{
+		KeyBufferCount++;
 	}
 
 	sei(); // Re-enable Interrupts
@@ -128,29 +112,18 @@ inline void scan_setup()
 	
 	// Setup baud rate
 	// 16 MHz / ( 16 * Baud ) = UBRR
-	// Baud <- 0.823284 ms per bit, thus 1000 / 0.823284 = 1214.65004 -> 823.2824
-	// Thus baud setting = 823
-	uint16_t baud = 823; // Max setting of 4095
+	// Baud: 4817 -> 16 MHz / ( 16 * 4817 ) = 207.5981
+	// Thus baud setting = 208
+	uint16_t baud = 208; // Max setting of 4095
 	UBRR1H = (uint8_t)(baud >> 8);
 	UBRR1L = (uint8_t)baud;
 
-	// Enable the receiver, and RX Complete Interrupt as well as 9 bit data
-	UCSR1B = 0x94;
+	// Enable the receiver, transmitter, and RX Complete Interrupt
+	UCSR1B = 0x98;
 
-	// The transmitter is only to be enabled when needed
-	// Set the pin to be pull-up otherwise (use the lowered voltage inverter in order to sink)
-	HOLD_DDR  &= ~(1 << HOLD_PIN);
-	HOLD_PORT |=  (1 << HOLD_PIN);
-
-	// Set frame format: 9 data, 1 stop bit, no parity
+	// Set frame format: 8 data, 1 stop bit, odd parity
 	// Asynchrounous USART mode
-	UCSR1C = 0x06;
-
-	// Initially buffer doesn't need to be cleared (it's empty...)
-	BufferReadyToClear = 0;
-
-	// InputSignal is off by default
-	KeyIndex_Add_InputSignal = 0x00;
+	UCSR1C = 0x36;
 
 	// Reset the keyboard before scanning, we might be in a wierd state
 	scan_resetKeyboard();
@@ -158,39 +131,40 @@ inline void scan_setup()
 
 
 // Main Detection Loop
-// Not needed for the BETKB, this is just a busy loop
 inline uint8_t scan_loop()
 {
 	return 0;
 }
 
-void processKeyValue( uint8_t keyValue )
+void processKeyValue( uint8_t valueType, uint8_t keyValue )
 {
-	// Interpret scan code
-	switch ( keyValue )
+	switch ( valueType )
 	{
-	case 0x00: // Break code from input?
+	// Single Key Press
+	case 0x00:
 		break;
-	default:
-		// Make sure the key isn't already in the buffer
-		for ( uint8_t c = 0; c < KeyIndex_BufferUsed + 1; c++ )
+	// Repeated Key Press
+	case 0x01:
+		break;
+	// Modifier Key Release
+	case 0x02:
+		removeKeyValue( keyValue );
+		return;
+	}
+
+	// Make sure the key isn't already in the buffer
+	for ( uint8_t c = 0; c < KeyIndex_BufferUsed + 1; c++ )
+	{
+		// Key isn't in the buffer yet
+		if ( c == KeyIndex_BufferUsed )
 		{
-			// Key isn't in the buffer yet
-			if ( c == KeyIndex_BufferUsed )
-			{
-				bufferAdd( keyValue );
-
-				// Only send data if enabled
-				if ( KeyIndex_Add_InputSignal )
-					scan_sendData( KeyIndex_Add_InputSignal );
-				break;
-			}
-
-			// Key already in the buffer
-			if ( KeyIndex_Buffer[c] == keyValue )
-				break;
+			bufferAdd( keyValue );
+			break;
 		}
-		break;
+
+		// Key already in the buffer
+		if ( KeyIndex_Buffer[c] == keyValue )
+			break;
 	}
 }
 
@@ -227,21 +201,12 @@ void removeKeyValue( uint8_t keyValue )
 // Send data 
 uint8_t scan_sendData( uint8_t dataPayload )
 {
-	// Enable the USART Transmitter
-	UCSR1B |=  (1 << 3);
-
 	// Debug
 	char tmpStr[6];
 	hexToStr( dataPayload, tmpStr );
 	info_dPrint( "Sending - ", tmpStr );
 
 	UDR1 = dataPayload;
-
-	// Wait for the payload
-	_delay_us( 800 );
-
-	// Disable the USART Transmitter
-	UCSR1B &= ~(1 << 3);
 
 	return 0;
 }
@@ -254,15 +219,68 @@ void scan_finishedWithBuffer( void )
 // Signal that the keys have been properly sent over USB
 void scan_finishedWithUSBBuffer( void )
 {
+	// Count for number of modifiers to maintain in the buffer
+	uint8_t filled = 0;
+	uint8_t latched = 0;
+	uint8_t latchBuffer[13]; // There are only 13 keys that can possibly be latched at the same time...
+	uint8_t normal = 0;
+
+	// Clean out all keys except "special" keys (designated modifiers)
+	for ( uint8_t c = 0; c < KeyIndex_BufferUsed; c++ )
+	{
+		switch ( KeyIndex_Buffer[c] )
+		{
+		// Dedicated Modifier Keys
+		// NOTE: Both shifts are represented as the same scan code
+		case 0x04:
+		case 0x05:
+		case 0x12:
+			KeyIndex_Buffer[filled++] = KeyIndex_Buffer[c];
+			break;
+		// Latched Keys, only released if a non-modifier is pressed along with it
+		// NOTE: This keys do not have a built in repeating
+		case 0x00:
+		case 0x01:
+		case 0x03:
+		case 0x0B:
+		case 0x22:
+		case 0x10:
+		case 0x11:
+		case 0x20:
+		case 0x21:
+		case 0x30:
+		case 0x31:
+		case 0x40:
+		case 0x41:
+			latchBuffer[latched++] = KeyIndex_Buffer[c];
+			break;
+		// Allow the scancode to be removed, normal keys
+		default:
+			normal++;
+			break;
+		}
+	}
+
+	// Reset the buffer counter
+	KeyIndex_BufferUsed = filled;
+
+	// Only "re-add" the latched keys if they weren't used
+	if ( latched > 0 && normal == 0 )
+	{
+		for ( uint8_t c = 0; c < latched; c++ )
+		{
+			bufferAdd( latchBuffer[c] );
+		}
+	}
 }
 
 // Reset/Hold keyboard
-// NOTE: Does nothing with the BETKB
+// NOTE: Does nothing with the FACOM6684
 void scan_lockKeyboard( void )
 {
 }
 
-// NOTE: Does nothing with the BETKB
+// NOTE: Does nothing with the FACOM6684
 void scan_unlockKeyboard( void )
 {
 }
@@ -272,5 +290,8 @@ void scan_resetKeyboard( void )
 {
 	// Not a calculated valued...
 	_delay_ms( 50 );
+
+	KeyBufferCount = 0;
+	KeyIndex_BufferUsed = 0;
 }
 
