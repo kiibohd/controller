@@ -40,7 +40,7 @@ static uint8_t facom6684_DefaultMap[] = {
 				KEY_BACKSPACE, // 0x08
 				KEY_ENTER, // 0x09
 				0, // 0x0A
-				0, // 0x0B
+				KEY_ENTER, // 0x0B
 				KEYPAD_0, // 0x0C
 				KEYPAD_00, // 0x0D
 				KEYPAD_000, // 0x0E
@@ -171,7 +171,7 @@ static uint8_t facom6684_ColemakMap[] = {
 				KEY_BACKSPACE, // 0x08
 				KEY_ENTER, // 0x09
 				0, // 0x0A
-				0, // 0x0B
+				KEY_ENTER, // 0x0B
 				KEYPAD_0, // 0x0C
 				KEYPAD_00, // 0x0D
 				KEYPAD_000, // 0x0E

@@ -254,7 +254,7 @@ void scan_finishedWithBuffer( uint8_t sentKeys )
 		case 0x00:
 		case 0x01:
 		case 0x03:
-		case 0x0B:
+		//case 0x0B: // XXX Being used as an alternate Enter, since it is labelled as such
 		case 0x22:
 		case 0x10:
 		case 0x11:
