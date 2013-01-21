@@ -519,7 +519,7 @@ uint8_t scan_sendData( uint8_t dataPayload )
 
 // Signal KeyIndex_Buffer that it has been properly read
 // Not needed as a signal is sent to remove key-presses
-void scan_finishedWithBuffer( void )
+void scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	return;
 }
@@ -551,7 +551,7 @@ void scan_resetKeyboard( void )
 
 // USB module is finished with buffer
 // Not needed as a signal is sent to remove key-presses
-void scan_finishedWithUSBBuffer( void )
+void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 	return;
 }

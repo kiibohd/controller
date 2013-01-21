@@ -204,7 +204,7 @@ uint8_t scan_sendData( uint8_t dataPayload )
 
 // Signal KeyIndex_Buffer that it has been properly read
 // In the case of the Micro Switch 8304, we leave the buffer alone until more scancode data comes in
-void scan_finishedWithBuffer( void )
+void scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	// We received a Clear code from the 8304, clear the buffer now that we've used it
 	if ( BufferReadyToClear )
@@ -215,7 +215,7 @@ void scan_finishedWithBuffer( void )
 }
 
 // Signal that the keys have been properly sent over USB
-void scan_finishedWithUSBBuffer( void )
+void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 }
 

@@ -247,12 +247,12 @@ uint8_t scan_sendData( uint8_t dataPayload )
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-void scan_finishedWithBuffer( void )
+void scan_finishedWithBuffer( uint8_t sentKeys )
 {
 }
 
 // Signal that the keys have been properly sent over USB
-void scan_finishedWithUSBBuffer( void )
+void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 }
 

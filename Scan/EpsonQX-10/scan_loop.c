@@ -382,7 +382,7 @@ uint8_t scan_sendData( uint8_t dataPayload )
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-inline void scan_finishedWithBuffer( void )
+inline void scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	return;
 }
@@ -394,7 +394,7 @@ inline void scan_finishedWithBuffer( void )
 //
 // However, this differentiation causes complications on how the key signals are discarded and used
 // The single keypresses must be discarded immediately, while the modifiers must be kept
-inline void scan_finishedWithUSBBuffer( void )
+inline void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 	uint8_t foundModifiers = 0;
 

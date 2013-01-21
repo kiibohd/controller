@@ -323,14 +323,14 @@ uint8_t scan_sendData( uint8_t dataPayload )
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-inline void scan_finishedWithBuffer( void )
+inline void scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	return;
 }
 
 // Signal that the keys have been properly sent over USB
 // TODO
-inline void scan_finishedWithUSBBuffer( void )
+inline void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 	/*
 	uint8_t foundModifiers = 0;

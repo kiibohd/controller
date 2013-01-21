@@ -161,14 +161,14 @@ inline uint8_t scan_loop()
 
 
 // Signal that the keys have been properly sent over USB
-inline void scan_finishedWithUSBBuffer( void )
+inline void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 	return;
 }
 
 
 // Signal KeyIndex_Buffer that it has been fully scanned using the macro module
-inline void scan_finishedWithBuffer( void )
+inline void scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	return;
 }
