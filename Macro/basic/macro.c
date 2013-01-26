@@ -21,9 +21,8 @@
 
 // ----- Includes -----
 
-// AVR Includes
-#include <util/delay.h>
-#include <avr/interrupt.h>
+// Compiler Includes
+#include <Lib/MacroLib.h>
 
 // Project Includes
 #include <led.h>

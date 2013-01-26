@@ -91,7 +91,7 @@ set( GENDEPFLAGS "-MMD -MP" )
 
 
 #| Compiler Flags
-add_definitions( "-mmcu=${MCU} -DF_CPU=${F_CPU} -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS}" )
+add_definitions( "-mmcu=${MCU} -DF_CPU=${F_CPU} -D_${MCU}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}" )
 
 
 #| Linker Flags
@@ -102,7 +102,7 @@ set( LINKER_FLAGS "-mmcu=${MCU} -Wl,-Map=${TARGET}.map,--cref -Wl,--relax -Wl,--
 set( HEX_FLAGS -O ${FORMAT} -R .eeprom -R .fuse -R .lock -R .signature )
 
 
-#| Eep Flags
+#| Eep Flags (XXX, I've removed this target from the builds, but keeping the set line as a note)
 set( EEP_FLAGS -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0 --no-change-warnings -O ${FORMAT} )
 
 

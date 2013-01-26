@@ -315,21 +315,6 @@ uint8_t usb_configured(void)
 	return usb_configuration;
 }
 
-
-// perform a single keystroke
-int8_t usb_keyboard_press(uint8_t key, uint8_t modifier)
-{
-	int8_t r;
-
-	USBKeys_Modifiers = modifier;
-	USBKeys_Array[0] = key;
-	r = usb_keyboard_send();
-	if (r) return r;
-	USBKeys_Modifiers = 0;
-	USBKeys_Array[0] = 0;
-	return usb_keyboard_send();
-}
-
 // send the contents of USBKeys_Array and USBKeys_Modifiers
 int8_t usb_keyboard_send(void)
 {

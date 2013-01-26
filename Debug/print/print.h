@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 by Jacob Alexander
+/* Copyright (C) 2011-2013 by Jacob Alexander
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,8 +27,12 @@
 // AVR Includes
 #include <avr/pgmspace.h>
 
-// Project Includes
-#include "usb_keyboard_debug.h"
+// USB Includes
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+#include "avr/usb_keyboard_debug.h"
+#elif defined(_mk20dx128_)
+#include "arm/usb_keyboard.h"
+#endif
 
 
 

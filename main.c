@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 by Jacob Alexander
+/* Copyright (C) 2011-2013 by Jacob Alexander
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,9 +21,8 @@
 
 // ----- Includes -----
 
-// AVR Includes
-#include <avr/io.h>
-#include <avr/interrupt.h>
+// Compiler Includes
+#include <Lib/MainLib.h>
 
 // Project Includes
 #include <macro.h>
@@ -43,7 +42,9 @@
 
 
 // ----- Macros -----
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 #define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
+#endif
 
 
 
@@ -62,6 +63,9 @@ volatile uint8_t sendKeypresses = 0;
 // Initial Pin Setup, make sure they are sane
 inline void pinSetup(void)
 {
+
+// AVR
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 
 	// For each pin, 0=input, 1=output
 #if defined(__AVR_AT90USB1286__)
@@ -83,13 +87,37 @@ inline void pinSetup(void)
 	PORTD = 0x00;
 	PORTE = 0x00;
 	PORTF = 0x00;
+
+// ARM
+#elif defined(_mk20dx128_)
+	// TODO
+#endif
 }
 
-int main(void)
+
+inline void usbTimerSetup(void)
 {
+// AVR
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+
 	// Setup with 16 MHz clock
 	CPU_PRESCALE( 0 );
 
+	// Setup ISR Timer for flagging a kepress send to USB
+	// Set to 256 * 1024 (8 bit timer with Clock/1024 prescalar) timer
+	TCCR0A = 0x00;
+	TCCR0B = 0x03;
+	TIMSK0 = (1 << TOIE0);
+
+// ARM
+#elif defined(_mk20dx128_)
+	// TODO
+#endif
+}
+
+
+int main(void)
+{
 	// Configuring Pins
 	pinSetup();
 	init_errorLED();
@@ -98,10 +126,7 @@ int main(void)
 	usb_setup();
 
 	// Setup ISR Timer for flagging a kepress send to USB
-	// Set to 256 * 1024 (8 bit timer with Clock/1024 prescalar) timer
-	TCCR0A = 0x00;
-	TCCR0B = 0x03;
-	TIMSK0 = (1 << TOIE0);
+	usbTimerSetup();
 
 	// Main Detection Loop
 	uint8_t ledTimer = 15; // Enable LED for a short time
@@ -146,7 +171,12 @@ int main(void)
 	}
 }
 
-// USB Keyboard Data Send Counter Interrupt
+
+// ----- Interrupts -----
+
+// AVR - USB Keyboard Data Send Counter Interrupt
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+
 ISR( TIMER0_OVF_vect )
 {
 	sendKeypressCounter++;
@@ -155,4 +185,9 @@ ISR( TIMER0_OVF_vect )
 		sendKeypresses = 1;
 	}
 }
+
+// ARM - USB Keyboard Data Send Counter Interrupt
+#elif defined(_mk20dx128_)
+	// TODO
+#endif
 

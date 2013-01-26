@@ -21,8 +21,8 @@
 
 // ----- Includes -----
 
-// AVR Includes
-#include <avr/interrupt.h>
+// Compiler Includes
+#include <Lib/ScanLib.h>
 
 // Project Includes
 #include <led.h>

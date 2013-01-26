@@ -95,7 +95,7 @@ set( GENDEPFLAGS "-MMD" )
 
 
 #| Compiler Flags
-add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS}" )
+add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}" )
 
 
 #| Linker Flags

@@ -24,8 +24,6 @@
 
 // ----- Includes -----
 
-// AVR Includes
-
 // Compiler Includes
 #include <stdint.h>
 
