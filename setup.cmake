@@ -37,9 +37,9 @@ set( DebugModule  "full"   )
 ###
 # Module Overrides (Used in the buildall.bash script)
 #
-if ( EXISTS ${PROJECT_SOURCE_DIR}/Scan/${ScanModuleOverride} )
+if ( ( DEFINED ${ScanModuleOverride} ) AND ( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Scan/${ScanModuleOverride} ) )
 	set( ScanModule ${ScanModuleOverride} )
-endif ( EXISTS ${PROJECT_SOURCE_DIR}/Scan/${ScanModuleOverride} )
+endif ( ( DEFINED ${ScanModuleOverride} ) AND ( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Scan/${ScanModuleOverride} ) )
 
 
 
@@ -52,7 +52,7 @@ set(   USBModulePath   "USB/${USBModule}"   )
 set( DebugModulePath "Debug/${DebugModule}" )
 
 #| Top-level directory adjustment
-set( HEAD_DIR "${PROJECT_SOURCE_DIR}" )
+set( HEAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
 
 
 

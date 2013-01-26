@@ -40,7 +40,7 @@ main() {
 		cmake -DScanModuleOverride=$module ../.. && make || let failCount++
 
 		# Cleanup, for the next build
-		cd -
+		cd - > /dev/null
 	done
 
 	totalModules=$(echo $scanModules | wc -w)
