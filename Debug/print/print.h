@@ -24,14 +24,16 @@
 
 // ----- Includes -----
 
-// AVR Includes
-#include <avr/pgmspace.h>
-
-// USB Includes
+// Compiler Includes
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+
+#include <avr/pgmspace.h>
 #include "avr/usb_keyboard_debug.h"
+
 #elif defined(_mk20dx128_)
+
 #include "arm/usb_keyboard.h"
+
 #endif
 
 

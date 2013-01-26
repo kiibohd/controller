@@ -21,7 +21,9 @@
 
 // ----- Includes -----
 
-// AVR Includes
+// Compiler Includes
+#include <Lib/MainLib.h>
+
 
 // Project Includes
 #include "led.h"
@@ -33,13 +35,29 @@
 // Error LED Setup
 inline void init_errorLED()
 {
+// AVR
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+
 	// Use pin D6 as an output (LED)
 	DDRD |= (1<<6);
+
+// ARM
+#elif defined(_mk20dx128_)
+
+	// Setup pin - Pin 11 -> C5 - See Lib/pin_map.teensy3 for more details on pins
+	PORTC_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	// Enable pin
+	GPIO_BITBAND_MODREG( GPIOC_PDOR, 5 ) = 1;
+
+#endif
 }
 
 // Error LED Control
 inline void errorLED( uint8_t on )
 {
+// AVR
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+
 	// Error LED On (D6)
 	if ( on ) {
 		PORTD |= (1<<6);
@@ -48,5 +66,19 @@ inline void errorLED( uint8_t on )
 	else {
 		PORTD &= ~(1<<6);
 	}
+
+// ARM
+#elif defined(_mk20dx128_)
+
+	// Error LED On (C5)
+	if ( on ) {
+		GPIOC_PSOR |= (1<<5);
+	}
+	// Error LED Off
+	else {
+		GPIOC_PCOR |= (1<<5);
+	}
+
+#endif
 }
 

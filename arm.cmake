@@ -36,6 +36,9 @@ set( SIZE    "arm-none-eabi-size"    )
 #| "mk20dx128"        # Teensy   3.0
 set( CHIP "mk20dx128" )
 
+message( STATUS "Chip Selected:" )
+message( "${CHIP}" )
+
 
 #| CPU Type
 #| You _MUST_ set this to match the board you are using
@@ -43,6 +46,9 @@ set( CHIP "mk20dx128" )
 #|
 #| "cortex-m4"        # Teensy   3.0
 set( CPU "cortex-m4" )
+
+message( STATUS "CPU Selected:" )
+message( "${CPU}" )
 
 
 #| Extra Compiler Sources

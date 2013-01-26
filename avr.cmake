@@ -40,6 +40,9 @@ set( SIZE    "avr-size"    )
 #set( MCU "atmega32u4" )
 set( MCU "at90usb1286" )
 
+message( STATUS "MCU Selected:" )
+message( "${MCU}" )
+
 
 #| Extra Compiler Sources
 #| Mostly for convenience functions like interrupt handlers

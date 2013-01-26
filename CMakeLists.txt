@@ -30,6 +30,9 @@ include( AddFileDependencies )
 #set( COMPILER_FAMILY "arm" )
 set( COMPILER_FAMILY "avr" )
 
+message( STATUS "Compiler Family:" )
+message( "${COMPILER_FAMILY}" )
+
 
 
 #| Load the compiler family specific configurations
