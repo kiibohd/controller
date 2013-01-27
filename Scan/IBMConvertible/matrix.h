@@ -36,7 +36,7 @@
 
 // ----- Key Settings -----
 
-#define KEYBOARD_SIZE 90 // # of keys (It actually has 78, but there are markings up to 81 on the PCB and scan lines enough for 90
+#define KEYBOARD_KEYS 90 // # of keys (It actually has 78, but there are markings up to 81 on the PCB and scan lines enough for 90
 #define MAX_ROW_SIZE   6 // # of rows
 #define MAX_COL_SIZE  15 // # of columns
 

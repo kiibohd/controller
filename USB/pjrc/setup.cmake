@@ -29,6 +29,7 @@ elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 		arm/usb_dev.c
 		arm/usb_keyboard.c
 		arm/usb_mem.c
+		arm/usb_serial.c
 	)
 
 endif ( ${COMPILER_FAMILY} MATCHES "avr" )

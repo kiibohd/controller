@@ -38,6 +38,7 @@
 
 
 // You can change these to give your code its own name.
+// TODO Add to Teensy 3
 #define STR_MANUFACTURER	L"MfgName"
 #define STR_PRODUCT		L"Keyboard"
 
@@ -47,7 +48,8 @@
 // INF file is needed to load the driver.  These numbers need to
 // match the INF file.
 #define VENDOR_ID		0x16C0
-#define PRODUCT_ID		0x047D
+#define PRODUCT_ID		0x0487 // New ID for Teensy 3
+//#define PRODUCT_ID		0x047D // Old ID for Teensy 2
 
 
 

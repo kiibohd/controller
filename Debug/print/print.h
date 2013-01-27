@@ -32,7 +32,7 @@
 
 #elif defined(_mk20dx128_)
 
-#include "arm/usb_keyboard.h"
+#include "arm/usb_serial.h"
 
 #endif
 

@@ -77,6 +77,7 @@ inline void macro_finishedWithBuffer( uint8_t sentKeys )
 
 void jumpToBootloader(void)
 {
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	cli();
 	// disable watchdog, if enabled
 	// disable all peripherals
@@ -109,6 +110,7 @@ void jumpToBootloader(void)
 	DDRA = 0; DDRB = 0; DDRC = 0; DDRD = 0; DDRE = 0; DDRF = 0;
 	PORTA = 0; PORTB = 0; PORTC = 0; PORTD = 0; PORTE = 0; PORTF = 0;
 	asm volatile("jmp 0x1FC00");
+#endif
 #endif
 }
 

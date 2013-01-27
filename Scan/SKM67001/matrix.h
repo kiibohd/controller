@@ -36,7 +36,7 @@
 
 // ----- Key Settings -----
 
-#define KEYBOARD_SIZE 85 // # of keys (It actually has 66, but there are markings up to 80 on the PCB); 85 due to there being 5 "switch" keys, that have no numbers
+#define KEYBOARD_KEYS 85 // # of keys (It actually has 66, but there are markings up to 80 on the PCB); 85 due to there being 5 "switch" keys, that have no numbers
 #define MAX_ROW_SIZE   9 // # of keys in the largest row
 #define MAX_COL_SIZE   9 // # of keys in the largest column
 

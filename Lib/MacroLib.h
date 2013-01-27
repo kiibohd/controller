@@ -24,10 +24,14 @@
 // Additional includes should only be added to this file if they should be added to *all* Macro modules.
 
 
-// ----- Includes -----
-
 #ifndef __MACROLIB_H
 #define __MACROLIB_H
+
+// ----- Includes -----
+
+#include <Lib/Interrupts.h>
+
+
 
 // ARM
 #if defined(_mk20dx128_)
@@ -43,7 +47,6 @@
 // AVR
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 
-#include <avr/interrupt.h>
 #include <util/delay.h>
 
 #endif

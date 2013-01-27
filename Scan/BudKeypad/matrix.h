@@ -36,7 +36,7 @@
 
 // ----- Key Settings -----
 
-#define KEYBOARD_SIZE 16 // # of keys
+#define KEYBOARD_KEYS 16 // # of keys
 #define MAX_ROW_SIZE  16 // # of keys in the largest row
 #define MAX_COL_SIZE   1 // # of keys in the largest column
 

@@ -108,7 +108,6 @@ ISR(USART1_RX_vect)
 inline void scan_setup()
 {
 	// Setup the the USART interface for keyboard data input
-	// NOTE: The input data signal needs to be inverted for the Teensy USART to properly work
 	
 	// Setup baud rate
 	// 16 MHz / ( 16 * Baud ) = UBRR

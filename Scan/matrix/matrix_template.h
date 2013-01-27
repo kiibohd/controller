@@ -38,7 +38,7 @@
 
 // -- Example for scanCol --
 /*
-#define KEYBOARD_SIZE 16 // # of keys
+#define KEYBOARD_KEYS 16 // # of keys
 #define MAX_ROW_SIZE  16 // # of keys in the largest row
 #define MAX_COL_SIZE   1 // # of keys in the largest column
 */
@@ -46,7 +46,7 @@
 
 // -- Example for scanRow --
 /*
-#define KEYBOARD_SIZE 16 // # of keys
+#define KEYBOARD_KEYS 16 // # of keys
 #define MAX_ROW_SIZE   1 // # of keys in the largest row
 #define MAX_COL_SIZE  16 // # of keys in the largest column
 */
@@ -54,7 +54,7 @@
 
 // -- Example for scanRow_powrCol, scanCol_powrRow, and scanDual --
 /*
-#define KEYBOARD_SIZE 69 // # of keys
+#define KEYBOARD_KEYS 69 // # of keys
 #define MAX_ROW_SIZE   8 // # of keys in the largest row
 #define MAX_COL_SIZE   9 // # of keys in the largest column
 */

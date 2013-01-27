@@ -33,7 +33,7 @@
 
 // ----- Defines -----
 
-#define KEYBOARD_SIZE 0x62 // 98 - Size of the array space for the keyboard(max index)
+#define KEYBOARD_KEYS 0x62 // 98 - Size of the array space for the keyboard(max index)
 #define KEYBOARD_BUFFER 24 // Max number of key signals to buffer
 
 

@@ -24,10 +24,10 @@
 // Additional includes should only be added to this file if they should be added to *all* Scan modules.
 
 
-// ----- Includes -----
+#ifndef __USBLIB_H
+#define __USBLIB_H
 
-#ifndef __MACROLIB_H
-#define __MACROLIB_H
+// ----- Includes -----
 
 // ARM
 #if defined(_mk20dx128_)

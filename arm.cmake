@@ -55,6 +55,7 @@ message( "${CPU}" )
 #| Mostly for convenience functions like interrupt handlers
 set( COMPILER_SRCS
 	Lib/${CHIP}.c
+	Lib/delay.c
 )
 
 

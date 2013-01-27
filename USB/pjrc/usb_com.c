@@ -32,6 +32,7 @@
 #include "avr/usb_keyboard_debug.h"
 #elif defined(_mk20dx128_)
 #include "arm/usb_keyboard.h"
+#include "arm/usb_dev.h"
 #endif
 
 // Local Includes

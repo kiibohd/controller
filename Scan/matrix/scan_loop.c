@@ -67,7 +67,7 @@ uint8_t scan_count = 0;
 
 // This is where the matrix scan data is held, as well as debouncing is evaluated to, which (depending on the read value) is handled
 //  by the macro module
-uint8_t KeyIndex_Array[KEYBOARD_SIZE + 1];
+uint8_t KeyIndex_Array[KEYBOARD_KEYS + 1];
 
 
 
