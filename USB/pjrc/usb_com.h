@@ -60,7 +60,13 @@ extern                       uint8_t USBKeys_Modifiers;
 extern                       uint8_t USBKeys_Array[USB_MAX_KEY_SEND];
 extern                       uint8_t USBKeys_Sent;
 extern volatile              uint8_t USBKeys_LEDs;
+
                 static const uint8_t USBKeys_MaxSize = USB_MAX_KEY_SEND;
+
+// Misc variables (XXX Some are only properly utilized using AVR)
+extern                       uint8_t USBKeys_Protocol;
+extern                       uint8_t USBKeys_Idle_Config;
+extern                       uint8_t USBKeys_Idle_Count;
 
 
 

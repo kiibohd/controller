@@ -274,18 +274,6 @@ static volatile uint8_t usb_configuration=0;
 // packet, or send a zero length packet.
 static volatile uint8_t debug_flush_timer=0;
 
-// protocol setting from the host.  We use exactly the same report
-// either way, so this variable only stores the setting since we
-// are required to be able to report which setting is in use.
-static uint8_t keyboard_protocol=1;
-
-// the idle configuration, how often we send the report to the
-// host (ms * 4) even when it hasn't changed
-static uint8_t keyboard_idle_config=125;
-
-// count until idle timeout
-static uint8_t keyboard_idle_count=0;
-
 
 /**************************************************************************
  *
@@ -344,7 +332,7 @@ int8_t usb_keyboard_send(void)
 		UEDATX = USBKeys_Array[i];
 	}
 	UEINTX = 0x3A;
-	keyboard_idle_count = 0;
+	USBKeys_Idle_Count = 0;
 	SREG = intr_state;
 	return 0;
 }
@@ -461,12 +449,12 @@ ISR(USB_GEN_vect)
 				UEINTX = 0x3A;
 			}
 		}
-		if (keyboard_idle_config && (++div4 & 3) == 0) {
+		if (USBKeys_Idle_Config && (++div4 & 3) == 0) {
 			UENUM = KEYBOARD_ENDPOINT;
 			if (UEINTX & (1<<RWAL)) {
-				keyboard_idle_count++;
-				if (keyboard_idle_count == keyboard_idle_config) {
-					keyboard_idle_count = 0;
+				USBKeys_Idle_Count++;
+				if (USBKeys_Idle_Count == USBKeys_Idle_Config) {
+					USBKeys_Idle_Count = 0;
 					UEDATX = USBKeys_Modifiers;
 					UEDATX = 0;
 					for (i=0; i<6; i++) {
@@ -651,13 +639,13 @@ ISR(USB_COM_vect)
 				}
 				if (bRequest == HID_GET_IDLE) {
 					usb_wait_in_ready();
-					UEDATX = keyboard_idle_config;
+					UEDATX = USBKeys_Idle_Config;
 					usb_send_in();
 					return;
 				}
 				if (bRequest == HID_GET_PROTOCOL) {
 					usb_wait_in_ready();
-					UEDATX = keyboard_protocol;
+					UEDATX = USBKeys_Protocol;
 					usb_send_in();
 					return;
 				}
@@ -671,14 +659,14 @@ ISR(USB_COM_vect)
 					return;
 				}
 				if (bRequest == HID_SET_IDLE) {
-					keyboard_idle_config = (wValue >> 8);
-					keyboard_idle_count = 0;
+					USBKeys_Idle_Config = (wValue >> 8);
+					USBKeys_Idle_Count = 0;
 					//usb_wait_in_ready();
 					usb_send_in();
 					return;
 				}
 				if (bRequest == HID_SET_PROTOCOL) {
-					keyboard_protocol = wValue;
+					USBKeys_Protocol = wValue;
 					//usb_wait_in_ready();
 					usb_send_in();
 					return;

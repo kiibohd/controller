@@ -56,6 +56,18 @@
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t USBKeys_LEDs = 0;
 
+// protocol setting from the host.  We use exactly the same report
+// either way, so this variable only stores the setting since we
+// are required to be able to report which setting is in use.
+         uint8_t USBKeys_Protocol = 1;
+
+// the idle configuration, how often we send the report to the
+// host (ms * 4) even when it hasn't changed
+         uint8_t USBKeys_Idle_Config = 125;
+
+// count until idle timeout
+         uint8_t USBKeys_Idle_Count = 0;
+
 
 
 // ----- Functions -----

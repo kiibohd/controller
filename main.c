@@ -111,7 +111,17 @@ inline void usbTimerSetup(void)
 
 // ARM
 #elif defined(_mk20dx128_)
-	// TODO
+	// 48 MHz clock by default
+
+	// Enable Timers
+	/* TODO Fixme!!
+	PIT_MCR = 0x00;
+
+	// Setup ISR Timer for flagging a kepress send to USB
+	// 1 ms / (1 / 48 MHz) - 1 = 47999 cycles -> 0xBB7F
+	PIT_LDVAL0 = 0x0000BB7F;
+	PIT_TCTRL0 = 0x3; // Enable Timer 0 interrupts, and Enable Timer 0
+	*/
 #endif
 }
 
@@ -125,6 +135,7 @@ int main(void)
 	// Setup USB Module
 	usb_setup();
 
+	print("TEST");
 	// Setup ISR Timer for flagging a kepress send to USB
 	usbTimerSetup();
 
@@ -142,6 +153,10 @@ int main(void)
 			cli();
 			while ( scan_loop() );
 			sei();
+
+			// XXX DEBUG
+			dPrint("AAAAAAA\r\n");
+			print("AAAAAAB\r\n");
 
 			// Run Macros over Key Indices and convert to USB Keys
 			process_macros();
@@ -174,10 +189,12 @@ int main(void)
 
 // ----- Interrupts -----
 
-// AVR - USB Keyboard Data Send Counter Interrupt
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-
+// USB Keyboard Data Send Counter Interrupt
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 ISR( TIMER0_OVF_vect )
+#elif defined(_mk20dx128_) // ARM
+void pit0_isr(void)
+#endif
 {
 	sendKeypressCounter++;
 	if ( sendKeypressCounter > USB_TRANSFER_DIVIDER ) {
@@ -185,9 +202,4 @@ ISR( TIMER0_OVF_vect )
 		sendKeypresses = 1;
 	}
 }
-
-// ARM - USB Keyboard Data Send Counter Interrupt
-#elif defined(_mk20dx128_)
-	// TODO
-#endif
 

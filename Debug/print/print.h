@@ -50,7 +50,11 @@
  */
 
 // Function Aliases
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 #define dPrint(c)         usb_debug_putchar(c)
+#elif defined(_mk20dx128_) // ARM
+#define dPrint(c)         usb_debug_putstr (c)
+#endif
 #define dPrintStr(c)      usb_debug_putstr (c)
 #define dPrintStrs(...)   usb_debug_putstrs(__VA_ARGS__, "\0\0\0")      // Convenience Variadic Macro
 #define dPrintStrNL(c)    dPrintStrs       (c, NL)                      // Appends New Line Macro

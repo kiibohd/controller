@@ -58,6 +58,9 @@ set( COMPILER_SRCS
 	Lib/delay.c
 )
 
+message( STATUS "Compiler Source Files:" )
+message( "${COMPILER_SRCS}" )
+
 
 #| Compiler flag to set the C Standard level.
 #|     c89   = "ANSI" C
