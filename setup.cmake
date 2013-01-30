@@ -56,6 +56,25 @@ set( HEAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
 
 
 
+###
+# Module Check Function
+#
+
+#| Usage:
+#|  PathPrepend( ModulePath <ListOfFamiliesSupported> )
+#| Uses the ${COMPILER_FAMILY} variable
+function( ModuleCompatibility ModulePath )
+	foreach( mod_var ${ARGN} )
+		if ( ${mod_var} STREQUAL ${COMPILER_FAMILY} )
+			# Module found, no need to scan further
+			return()
+		endif ( ${mod_var} STREQUAL ${COMPILER_FAMILY} )
+	endforeach( mod_var ${ARGN} )
+
+	message( FATAL_ERROR "${ModulePath} does not support the ${COMPILER_FAMILY} family..." )
+endfunction( ModuleCompatibility ModulePath )
+
+
 
 ###
 # Module Configuration

@@ -28,3 +28,11 @@ add_definitions(
 	-DKEYINDEX_MASK=kaypro1_DefaultMap
 )
 
+
+###
+# Compiler Family Compatibility
+#
+set( ScanModuleCompatibility
+	avr
+)
+

@@ -20,3 +20,12 @@ set( MACRO_SRCS
 # Module Specific Options
 #
 
+
+###
+# Compiler Family Compatibility
+#
+set( MacroModuleCompatibility
+	arm
+	avr
+)
+

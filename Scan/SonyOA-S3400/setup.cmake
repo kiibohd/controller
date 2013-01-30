@@ -45,3 +45,11 @@ add_definitions(
 	#-DKEYINDEX_MASK=sonyoas3400_DefaultMap
 )
 
+
+###
+# Compiler Family Compatibility
+#
+set( ScanModuleCompatibility
+	avr
+)
+

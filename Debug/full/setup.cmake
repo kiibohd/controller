@@ -33,3 +33,12 @@ add_definitions(
 	-I${HEAD_DIR}/Debug/print
 )
 
+
+###
+# Compiler Family Compatibility
+#
+set( DebugModuleCompatibility
+	arm
+	avr
+)
+

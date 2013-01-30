@@ -46,3 +46,11 @@ add_definitions(
 	#-DKEYINDEX_MASK=epsonqx10_DefaultMap
 )
 
+
+###
+# Compiler Family Compatibility
+#
+set( ScanModuleCompatibility
+	avr
+)
+

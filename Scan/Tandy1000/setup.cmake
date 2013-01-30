@@ -28,3 +28,11 @@ add_definitions(
 	#-DKEYINDEX_MASK=tandy1000_DefaultMap
 )
 
+
+###
+# Compiler Family Compatibility
+#
+set( ScanModuleCompatibility
+	avr
+)
+

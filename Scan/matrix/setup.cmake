@@ -34,3 +34,11 @@ add_definitions(
 	#-DKEYINDEX_MASK=
 )
 
+
+###
+# Compiler Family Compatibility
+#
+set( ScanModuleCompatibility
+	avr
+)
+

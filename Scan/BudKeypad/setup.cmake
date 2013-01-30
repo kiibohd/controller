@@ -33,3 +33,11 @@ add_definitions(
 	-DKEYINDEX_MASK=budkeypad_DefaultMap
 )
 
+
+###
+# Compiler Family Compatibility
+#
+set( ScanModuleCompatibility
+	avr
+)
+

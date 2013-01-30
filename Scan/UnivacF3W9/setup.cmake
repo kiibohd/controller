@@ -44,3 +44,11 @@ add_definitions(
 	#-DKEYINDEX_MASK=univacf3w9_DefaultMap
 )
 
+
+###
+# Compiler Family Compatibility
+#
+set( ScanModuleCompatibility
+	avr
+)
+

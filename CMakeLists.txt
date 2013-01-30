@@ -77,6 +77,18 @@ set( SRCS
 
 
 ###
+# Module Compatibility Check
+#
+
+#| Check for whether the set modules are compatible with the specified compiler family
+ModuleCompatibility( ${ScanModulePath}  ${ScanModuleCompatibility}  )
+ModuleCompatibility( ${MacroModulePath} ${MacroModuleCompatibility} )
+ModuleCompatibility( ${USBModulePath}   ${USBModuleCompatibility}   )
+ModuleCompatibility( ${DebugModulePath} ${DebugModuleCompatibility} )
+
+
+
+###
 # Build Targets
 #
 

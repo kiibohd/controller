@@ -17,3 +17,12 @@
 # Module Specific Options
 #
 
+
+###
+# Compiler Family Compatibility
+#
+set( DebugModuleCompatibility
+	arm
+	avr
+)
+

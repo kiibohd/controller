@@ -33,3 +33,11 @@ add_definitions(
 	-DKEYINDEX_MASK=ibmconv_ColemakMap
 )
 
+
+###
+# Compiler Family Compatibility
+#
+set( ScanModuleCompatibility
+	avr
+)
+

@@ -46,3 +46,11 @@ add_definitions(
 	#-DKEYINDEX_MASK=microswitch8304_DefaultMap
 )
 
+
+###
+# Compiler Family Compatibility
+#
+set( ScanModuleCompatibility
+	avr
+)
+

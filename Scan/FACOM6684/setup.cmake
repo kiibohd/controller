@@ -46,3 +46,11 @@ add_definitions(
 	#-DKEYINDEX_MASK=facom6684_DefaultMap
 )
 
+
+###
+# Compiler Family Compatibility
+#
+set( ScanModuleCompatibility
+	avr
+)
+

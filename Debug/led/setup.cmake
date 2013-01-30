@@ -32,3 +32,12 @@ add_file_dependencies( ../led/led.c ../led/led.h )
 #
 add_definitions( -I${HEAD_DIR}/Debug/off )
 
+
+###
+# Compiler Family Compatibility
+#
+set( DebugModuleCompatibility
+	arm
+	avr
+)
+

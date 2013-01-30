@@ -39,3 +39,11 @@ endif ( ${COMPILER_FAMILY} MATCHES "avr" )
 # Module Specific Options
 #
 
+###
+# Compiler Family Compatibility
+#
+set( USBModuleCompatibility
+	arm
+	avr
+)
+
