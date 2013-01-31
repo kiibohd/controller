@@ -90,7 +90,7 @@ inline void pinSetup(void)
 
 // ARM
 #elif defined(_mk20dx128_)
-	// TODO
+	// TODO - Should be cleared, but not that necessary due to the pin layout
 #endif
 }
 
@@ -113,15 +113,19 @@ inline void usbTimerSetup(void)
 #elif defined(_mk20dx128_)
 	// 48 MHz clock by default
 
+	// System Clock Gating Register Disable
+	SIM_SCGC6 |= SIM_SCGC6_PIT;
+
 	// Enable Timers
-	/* TODO Fixme!!
 	PIT_MCR = 0x00;
 
 	// Setup ISR Timer for flagging a kepress send to USB
 	// 1 ms / (1 / 48 MHz) - 1 = 47999 cycles -> 0xBB7F
 	PIT_LDVAL0 = 0x0000BB7F;
 	PIT_TCTRL0 = 0x3; // Enable Timer 0 interrupts, and Enable Timer 0
-	*/
+
+	// Insert the required vector for Timer 0
+	NVIC_ENABLE_IRQ( IRQ_PIT_CH0 );
 #endif
 }
 
@@ -135,12 +139,11 @@ int main(void)
 	// Setup USB Module
 	usb_setup();
 
-	print("TEST");
 	// Setup ISR Timer for flagging a kepress send to USB
 	usbTimerSetup();
 
 	// Main Detection Loop
-	uint8_t ledTimer = 15; // Enable LED for a short time
+	uint8_t ledTimer = F_CPU / 1000000; // Enable LED for a short time
 	while ( 1 )
 	{
 		// Setup the scanning module
@@ -153,10 +156,6 @@ int main(void)
 			cli();
 			while ( scan_loop() );
 			sei();
-
-			// XXX DEBUG
-			dPrint("AAAAAAA\r\n");
-			print("AAAAAAB\r\n");
 
 			// Run Macros over Key Indices and convert to USB Keys
 			process_macros();
@@ -201,5 +200,10 @@ void pit0_isr(void)
 		sendKeypressCounter = 0;
 		sendKeypresses = 1;
 	}
+
+#if defined(_mk20dx128_) // ARM
+	// Clear the interrupt flag
+	PIT_TFLG0 = 1;
+#endif
 }
 
