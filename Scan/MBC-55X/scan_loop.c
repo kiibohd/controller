@@ -75,14 +75,24 @@ void uart0_status_isr(void)
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	uint8_t tmp = UDR1;
 #elif defined(_mk20dx128_) // ARM
-	// TODO
-	uint8_t tmp = 0;
+	// Exit out if nothing to do
+	/*
+	if ( !(UART0_S1 & UART_S1_RDRF ) )
+	{
+		sei();
+		return;
+	}
+	*/
+
+	// Only doing single byte FIFO here
+	uint8_t tmp = UART0_D;
+	print("YAYA");
 #endif
 
 	// Debug
 	char tmpStr[6];
 	hexToStr( tmp, tmpStr );
-	dPrintStrs( tmpStr, " " ); // Debug
+	dPrintStrsNL( tmpStr, " " ); // Debug
 
 	// TODO
 
@@ -99,20 +109,21 @@ inline void scan_setup()
 {
 	// Setup the the USART interface for keyboard data input
 
-	// TODO
-	// Setup baud rate
+	// Setup baud rate - 1205 Baud
 	// 16 MHz / ( 16 * Baud ) = UBRR
-	// Baud: 4817 -> 16 MHz / ( 16 * 4817 ) = 207.5981
-	// Thus baud setting = 208
-	uint16_t baud = 208; // Max setting of 4095
+	// Baud: 1205 -> 16 MHz / ( 16 * 1205 ) = 829.8755
+	// Thus baud setting = 830
+	uint16_t baud = 830; // Max setting of 4095
 	UBRR1H = (uint8_t)(baud >> 8);
 	UBRR1L = (uint8_t)baud;
 
 	// Enable the receiver, transmitter, and RX Complete Interrupt
+	// TODO - Only receiver, and rx interrupt
 	UCSR1B = 0x98;
 
 	// Set frame format: 8 data, 1 stop bit, odd parity
 	// Asynchrounous USART mode
+	// TODO - Even parity
 	UCSR1C = 0x36;
 
 	// Reset the keyboard before scanning, we might be in a wierd state
@@ -121,9 +132,48 @@ inline void scan_setup()
 #elif defined(_mk20dx128_) // ARM
 {
 	// Setup the the UART interface for keyboard data input
+	SIM_SCGC4 |= SIM_SCGC4_UART0; // Disable clock gating
 
-	// Setup baud rate
-	// TODO
+	// Pin Setup for UART0
+	PORTB_PCR16 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(3); // RX Pin
+	PORTB_PCR17 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
+
+	// Setup baud rate - 1205 Baud
+	// 48 MHz / ( 16 * Baud ) = BDH/L
+	// Baud: 1205 -> 48 MHz / ( 16 * 1205 ) = 2489.6266
+	// Thus baud setting = 2490
+	// NOTE: If finer baud adjustment is needed see UARTx_C4 -> BRFA in the datasheet
+	uint16_t baud = 2490; // Max setting of 8191
+	UART0_BDH = (uint8_t)(baud >> 8);
+	UART0_BDL = (uint8_t)baud;
+
+	// 8 bit, Even Parity, Idle Character bit after stop
+	UART0_C1 = ~UART_C1_M | UART_C1_PE | ~UART_C1_PT | UART_C1_ILT;
+
+	// Number of bytes in FIFO before TX Interrupt
+	UART0_TWFIFO = 1;
+
+	// Number of bytes in FIFO before RX Interrupt
+	UART0_RWFIFO = 1;
+
+	// TX FIFO Disabled, TX FIFO Size 1 (Max 8 datawords), RX FIFO Enabled, RX FIFO Size 1 (Max 8 datawords)
+	// TX/RX FIFO Size:
+	//  0x0 - 1 dataword
+	//  0x1 - 4 dataword
+	//  0x2 - 8 dataword
+	UART0_PFIFO = ~UART_PFIFO_TXFE | /*TXFIFOSIZE*/ (0x0 << 4) | ~UART_PFIFO_RXFE | /*RXFIFOSIZE*/ (0x0);
+
+	// TX Disabled, RX Enabled, RX Interrupt Enabled
+	UART0_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE;
+
+	// Reciever Inversion Disabled
+	UART0_S2 = ~UART_S2_RXINV;
+
+	// Transmit Inversion Disabled
+	UART0_C3 = ~UART_S2_TXINV;
+
+	// Add interrupt to the vector table
+	NVIC_ENABLE_IRQ( IRQ_UART0_STATUS );
 
 	// Reset the keyboard before scanning, we might be in a wierd state
 	scan_resetKeyboard();
@@ -134,6 +184,8 @@ inline void scan_setup()
 // Main Detection Loop
 inline uint8_t scan_loop()
 {
+	UART0_D = 0x56;
+	_delay_ms( 100 );
 	return 0;
 }
 
@@ -187,7 +239,8 @@ void removeKeyValue( uint8_t keyValue )
 	}
 }
 
-// Send data 
+// Send data
+// NOTE: Example only, MBC-55X cannot receive user data
 uint8_t scan_sendData( uint8_t dataPayload )
 {
 	// Debug
@@ -198,7 +251,7 @@ uint8_t scan_sendData( uint8_t dataPayload )
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	UDR1 = dataPayload;
 #elif defined(_mk20dx128_) // ARM
-	// TODO
+	UART0_D = dataPayload;
 #endif
 
 	return 0;
