@@ -71,28 +71,24 @@ void uart0_status_isr(void)
 {
 	cli(); // Disable Interrupts
 
-	// Read part of the scan code (3 8bit chunks) from USART
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
-	uint8_t tmp = UDR1;
-#elif defined(_mk20dx128_) // ARM
-	// Exit out if nothing to do
-	/*
-	if ( !(UART0_S1 & UART_S1_RDRF ) )
-	{
-		sei();
-		return;
-	}
-	*/
+	// Variable for UART data read
+	uint8_t tmp = 0x00;
 
-	// Only doing single byte FIFO here
-	uint8_t tmp = UART0_D;
-	print("YAYA");
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+	tmp = UDR1;
+#elif defined(_mk20dx128_) // ARM
+	// UART0_S1 must be read for the interrupt to be cleared
+	if ( UART0_S1 & UART_S1_RDRF )
+	{
+		// Only doing single byte FIFO here
+		tmp = UART0_D;
+	}
 #endif
 
 	// Debug
 	char tmpStr[6];
 	hexToStr( tmp, tmpStr );
-	dPrintStrsNL( tmpStr, " " ); // Debug
+	dPrintStrs( tmpStr, " " ); // Debug
 
 	// TODO
 
@@ -148,7 +144,10 @@ inline void scan_setup()
 	UART0_BDL = (uint8_t)baud;
 
 	// 8 bit, Even Parity, Idle Character bit after stop
-	UART0_C1 = ~UART_C1_M | ~UART_C1_PE | UART_C1_PT | UART_C1_ILT;
+	// NOTE: For 8 bit with Parity you must enable 9 bit transmission (pg. 1065)
+	//       You only need to use UART0_D for 8 bit reading/writing though
+	// UART_C1_M UART_C1_PE UART_C1_PT UART_C1_ILT
+	UART0_C1 = UART_C1_M | UART_C1_PE | UART_C1_ILT;
 
 	// Number of bytes in FIFO before TX Interrupt
 	UART0_TWFIFO = 1;
@@ -161,15 +160,18 @@ inline void scan_setup()
 	//  0x0 - 1 dataword
 	//  0x1 - 4 dataword
 	//  0x2 - 8 dataword
-	UART0_PFIFO = ~UART_PFIFO_TXFE | /*TXFIFOSIZE*/ (0x0 << 4) | ~UART_PFIFO_RXFE | /*RXFIFOSIZE*/ (0x0);
+	//UART0_PFIFO = UART_PFIFO_TXFE | /*TXFIFOSIZE*/ (0x0 << 4) | UART_PFIFO_RXFE | /*RXFIFOSIZE*/ (0x0);
 
 	// Reciever Inversion Disabled, LSBF
-	UART0_S2 = ~UART_S2_RXINV | UART_S2_MSBF;
+	// UART_S2_RXINV UART_S2_MSBF
+	UART0_S2 |= 0x00;
 
 	// Transmit Inversion Disabled
-	UART0_C3 = ~UART_S2_TXINV;
+	// UART_C3_TXINV
+	UART0_C3 |= 0x00;
 
 	// TX Disabled, RX Enabled, RX Interrupt Enabled
+	// UART_C2_TE UART_C2_RE UART_C2_RIE
 	UART0_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE;
 
 	// Add interrupt to the vector table
@@ -185,6 +187,7 @@ inline void scan_setup()
 inline uint8_t scan_loop()
 {
 	UART0_D = 0x56;
+	_delay_ms( 10 );
 	UART0_D = 0x1C;
 	_delay_ms( 100 );
 	return 0;
