@@ -77,7 +77,7 @@ set( WARN "-Wall -g" )
 
 #| Tuning Options
 #|  -f...:        tuning, see GCC manual
-set( TUNING "-mthumb -nostdlib" )
+set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections" )
 
 
 #| Optimization level, can be [0, 1, 2, 3, s]. 
