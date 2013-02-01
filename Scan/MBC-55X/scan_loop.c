@@ -72,25 +72,26 @@ void uart0_status_isr(void)
 	cli(); // Disable Interrupts
 
 	// Variable for UART data read
-	uint8_t tmp = 0x00;
+	uint8_t keyValue = 0x00;
 
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
-	tmp = UDR1;
+	keyValue = UDR1;
 #elif defined(_mk20dx128_) // ARM
 	// UART0_S1 must be read for the interrupt to be cleared
 	if ( UART0_S1 & UART_S1_RDRF )
 	{
 		// Only doing single byte FIFO here
-		tmp = UART0_D;
+		keyValue = UART0_D;
 	}
 #endif
 
 	// Debug
 	char tmpStr[6];
-	hexToStr( tmp, tmpStr );
+	hexToStr( keyValue, tmpStr );
 	dPrintStrs( tmpStr, " " ); // Debug
 
-	// TODO
+	// Decipher scan value
+	processKeyValue( keyValue );
 
 	sei(); // Re-enable Interrupts
 }
@@ -113,14 +114,12 @@ inline void scan_setup()
 	UBRR1H = (uint8_t)(baud >> 8);
 	UBRR1L = (uint8_t)baud;
 
-	// Enable the receiver, transmitter, and RX Complete Interrupt
-	// TODO - Only receiver, and rx interrupt
-	UCSR1B = 0x98;
+	// Enable the receiver, and RX Complete Interrupt
+	UCSR1B = 0x90;
 
-	// Set frame format: 8 data, 1 stop bit, odd parity
+	// Set frame format: 8 data, 1 stop bit, even parity
 	// Asynchrounous USART mode
-	// TODO - Even parity
-	UCSR1C = 0x36;
+	UCSR1C = 0x26;
 
 	// Reset the keyboard before scanning, we might be in a wierd state
 	scan_resetKeyboard();
@@ -172,7 +171,7 @@ inline void scan_setup()
 
 	// TX Disabled, RX Enabled, RX Interrupt Enabled
 	// UART_C2_TE UART_C2_RE UART_C2_RIE
-	UART0_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE;
+	UART0_C2 = UART_C2_RE | UART_C2_RIE;
 
 	// Add interrupt to the vector table
 	NVIC_ENABLE_IRQ( IRQ_UART0_STATUS );
@@ -186,60 +185,147 @@ inline void scan_setup()
 // Main Detection Loop
 inline uint8_t scan_loop()
 {
-	UART0_D = 0x56;
-	_delay_ms( 10 );
-	UART0_D = 0x1C;
-	_delay_ms( 100 );
 	return 0;
 }
 
 void processKeyValue( uint8_t keyValue )
 {
-	// TODO Process ASCII
+	// XXX NOTE: The key processing is not complete for this keyboard
+	//           Mostly due to laziness, and that the keyboard can't really be useful on a modern computer
+	//           Basic typing will work, but some of the keys and the Graph mode changes things around
 
-	// Make sure the key isn't already in the buffer
-	for ( uint8_t c = 0; c < KeyIndex_BufferUsed + 1; c++ )
+	// Add key(s) to processing buffer
+	// First split out Shift and Ctrl
+	//  Reserved Codes:
+	//   Shift - 0xF5
+	//   Ctrl  - 0xF6
+	switch ( keyValue )
 	{
-		// Key isn't in the buffer yet
-		if ( c == KeyIndex_BufferUsed )
+	// - Ctrl Keys -
+	// Exception keys
+	case 0x08: // ^H
+	case 0x09: // ^I
+	case 0x0D: // ^M
+	case 0x1B: // ^[
+		bufferAdd( keyValue );
+		break;
+	// 0x40 Offset Keys
+	// Add Ctrl key and offset to the lower alphabet
+	case 0x00: // ^@
+	case 0x1C: // "^\"
+	case 0x1D: // ^]
+	case 0x1E: // ^^
+	case 0x1F: // ^_
+		bufferAdd( 0xF6 );
+		bufferAdd( keyValue + 0x40 );
+		break;
+
+	// - Add Shift key and offset to non-shifted key -
+	// 0x10 Offset Keys
+	case 0x21: // !
+	case 0x23: // #
+	case 0x24: // $
+	case 0x25: // %
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x10 );
+		break;
+	// 0x11 Offset Keys
+	case 0x26: // &
+	case 0x28: // (
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x11 );
+		break;
+	// 0x07 Offset Keys
+	case 0x29: // )
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x07 );
+		break;
+	// -0x0E Offset Keys
+	case 0x40: // @
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x0E );
+		break;
+	// 0x0E Offset Keys
+	case 0x2A: // *
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x0E );
+		break;
+	// 0x12 Offset Keys
+	case 0x2B: // +
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x12 );
+		break;
+	// 0x05 Offset Keys
+	case 0x22: // "
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x05 );
+		break;
+	// 0x01 Offset Keys
+	case 0x3A: // :
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue + 0x01 );
+		break;
+	// -0x10 Offset Keys
+	case 0x3C: // <
+	case 0x3E: // >
+	case 0x3F: // ?
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x10 );
+		break;
+	// -0x28 Offset Keys
+	case 0x5E: // ^
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x28 );
+		break;
+	// -0x32 Offset Keys
+	case 0x5F: // _
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x32 );
+		break;
+	// -0x20 Offset Keys
+	case 0x7B: // {
+	case 0x7C: // |
+	case 0x7D: // }
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x20 );
+		break;
+	// -0x1E Offset Keys
+	case 0x7E: // ~
+		bufferAdd( 0xF5 );
+		bufferAdd( keyValue - 0x1E );
+		break;
+	// All other keys
+	default:
+		// Ctrl Characters are from 0x00 to 0x1F, excluding:
+		//  0x08 - Backspace
+		//  0x09 - [Horizontal] Tab
+		//  0x0D - [Carriage] Return
+		//  0x1B - Escape
+		//  0x7F - Delete (^?) (Doesn't need to be split out)
+
+		// 0x60 Offset Keys
+		// Add Ctrl key and offset to the lower alphabet
+		if ( keyValue >= 0x00 && keyValue <= 0x1F )
+		{
+			bufferAdd( 0xF6 );
+			bufferAdd( keyValue + 0x60 );
+		}
+
+		// Shift Characters are from 0x41 to 0x59
+		//  No exceptions here :D
+		// Add Shift key and offset to the lower alphabet
+		else if ( keyValue >= 0x41 && keyValue <= 0x5A )
+		{
+			bufferAdd( 0xF5 );
+			bufferAdd( keyValue + 0x20 );
+		}
+
+		// Everything else
+		else
 		{
 			bufferAdd( keyValue );
-			break;
 		}
-
-		// Key already in the buffer
-		if ( KeyIndex_Buffer[c] == keyValue )
-			break;
-	}
-}
-
-void removeKeyValue( uint8_t keyValue )
-{
-	// Check for the released key, and shift the other keys lower on the buffer
-	uint8_t c;
-	for ( c = 0; c < KeyIndex_BufferUsed; c++ )
-	{
-		// Key to release found
-		if ( KeyIndex_Buffer[c] == keyValue )
-		{
-			// Shift keys from c position
-			for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
-				KeyIndex_Buffer[k] = KeyIndex_Buffer[k + 1];
-
-			// Decrement Buffer
-			KeyIndex_BufferUsed--;
-
-			break;
-		}
-	}
-
-	// Error case (no key to release)
-	if ( c == KeyIndex_BufferUsed + 1 )
-	{
-		errorLED( 1 );
-		char tmpStr[6];
-		hexToStr( keyValue, tmpStr );
-		erro_dPrint( "Could not find key to release: ", tmpStr );
+		break;
 	}
 }
 
@@ -269,15 +355,21 @@ void scan_finishedWithBuffer( uint8_t sentKeys )
 // Signal that the keys have been properly sent over USB
 void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
+	cli(); // Disable Interrupts
+
+	// Reset the buffer counter
+	KeyIndex_BufferUsed = 0;
+
+	sei(); // Re-enable Interrupts
 }
 
 // Reset/Hold keyboard
-// NOTE: Does nothing with the FACOM6684
+// NOTE: Does nothing with the MBC-55x
 void scan_lockKeyboard( void )
 {
 }
 
-// NOTE: Does nothing with the FACOM6684
+// NOTE: Does nothing with the MBC-55x
 void scan_unlockKeyboard( void )
 {
 }

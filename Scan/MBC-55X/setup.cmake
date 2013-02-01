@@ -41,9 +41,9 @@ add_definitions( -I${HEAD_DIR}/Keymap )
 
 #| Keymap Settings
 add_definitions(
-	-DMODIFIER_MASK=facom6684_ModifierMask
-	#-DKEYINDEX_MASK=facom6684_ColemakMap
-	-DKEYINDEX_MASK=facom6684_DefaultMap
+	-DMODIFIER_MASK=mbc55x_ModifierMask
+	#-DKEYINDEX_MASK=mbc55x_ColemakMap
+	-DKEYINDEX_MASK=mbc55x_DefaultMap
 )
 
 

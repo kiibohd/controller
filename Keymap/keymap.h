@@ -49,6 +49,7 @@
 #include "hp150.h"
 #include "ibmconvertible.h"
 #include "kaypro1.h"
+#include "mbc55x.h"
 #include "microswitch8304.h"
 #include "skm67001.h"
 #include "sonynews.h"
