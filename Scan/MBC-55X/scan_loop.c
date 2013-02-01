@@ -148,7 +148,7 @@ inline void scan_setup()
 	UART0_BDL = (uint8_t)baud;
 
 	// 8 bit, Even Parity, Idle Character bit after stop
-	UART0_C1 = ~UART_C1_M | UART_C1_PE | ~UART_C1_PT | UART_C1_ILT;
+	UART0_C1 = ~UART_C1_M | ~UART_C1_PE | UART_C1_PT | UART_C1_ILT;
 
 	// Number of bytes in FIFO before TX Interrupt
 	UART0_TWFIFO = 1;
@@ -163,14 +163,14 @@ inline void scan_setup()
 	//  0x2 - 8 dataword
 	UART0_PFIFO = ~UART_PFIFO_TXFE | /*TXFIFOSIZE*/ (0x0 << 4) | ~UART_PFIFO_RXFE | /*RXFIFOSIZE*/ (0x0);
 
-	// TX Disabled, RX Enabled, RX Interrupt Enabled
-	UART0_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE;
-
-	// Reciever Inversion Disabled
-	UART0_S2 = ~UART_S2_RXINV;
+	// Reciever Inversion Disabled, LSBF
+	UART0_S2 = ~UART_S2_RXINV | UART_S2_MSBF;
 
 	// Transmit Inversion Disabled
 	UART0_C3 = ~UART_S2_TXINV;
+
+	// TX Disabled, RX Enabled, RX Interrupt Enabled
+	UART0_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE;
 
 	// Add interrupt to the vector table
 	NVIC_ENABLE_IRQ( IRQ_UART0_STATUS );
@@ -185,6 +185,7 @@ inline void scan_setup()
 inline uint8_t scan_loop()
 {
 	UART0_D = 0x56;
+	UART0_D = 0x1C;
 	_delay_ms( 100 );
 	return 0;
 }

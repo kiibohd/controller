@@ -1085,6 +1085,7 @@ extern "C" {
 #define UART_S1_PF			(uint8_t)0x01			// Parity Error Flag
 #define UART0_S2                *(volatile uint8_t  *)0x4006A005 // UART Status Register 2
 #define UART_S2_RXINV			(uint8_t)0x10			// RX Line Inversion Enable
+#define UART_S2_MSBF			(uint8_t)0x20			// MSBF Format Enabled
 #define UART0_C3                *(volatile uint8_t  *)0x4006A006 // UART Control Register 3
 #define UART_S2_TXINV			(uint8_t)0x10			// TX Line Inversion Enable
 #define UART0_D                 *(volatile uint8_t  *)0x4006A007 // UART Data Register
