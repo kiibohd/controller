@@ -20,7 +20,7 @@
 #| Please the {Scan,Macro,USB,Debug}/module.txt for information on the modules and how to create new ones
 
 ##| Deals with acquiring the keypress information and turning it into a key index
-set(  ScanModule  "MBC-55X" )
+set(  ScanModule  "FACOM6684" )
 
 ##| Uses the key index and potentially applies special conditions to it, mapping it to a usb key code
 set( MacroModule  "buffer"  )

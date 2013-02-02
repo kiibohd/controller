@@ -87,3 +87,4 @@ void usb_debug_flush_output(void);	// immediately transmit any buffered output
 #define CDC_SET_CONTROL_LINE_STATE	0x22
 #endif
 #endif
+

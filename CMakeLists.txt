@@ -27,8 +27,8 @@ include( AddFileDependencies )
 #| "avr"       # Teensy++ 1.0
 #| "avr"       # Teensy++ 2.0
 #| "arm"       # Teensy   3.0
-set( COMPILER_FAMILY "arm" )
-#set( COMPILER_FAMILY "avr" )
+#set( COMPILER_FAMILY "arm" )
+set( COMPILER_FAMILY "avr" )
 
 message( STATUS "Compiler Family:" )
 message( "${COMPILER_FAMILY}" )

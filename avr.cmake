@@ -72,7 +72,7 @@ set( WARN "-Wall -Wstrict-prototypes" )
 #| Tuning Options
 #|  -f...:        tuning, see GCC manual and avr-libc documentation
 #| NOTE: -fshort-wchar is specified to allow USB strings be passed conveniently
-set( TUNING "-funsigned-char -funsigned-bitfields -ffunction-sections -fpack-struct -fshort-enums -fshort-wchar" )
+set( TUNING "-funsigned-char -funsigned-bitfields -ffunction-sections -fpack-struct -fshort-enums" )
 
 
 #| Optimization level, can be [0, 1, 2, 3, s]. 
