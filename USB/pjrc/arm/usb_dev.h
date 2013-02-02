@@ -28,11 +28,6 @@ extern volatile uint8_t usb_cdc_transmit_flush_timer;
 extern void usb_serial_flush_callback(void);
 #endif
 
-#ifdef SEREMU_INTERFACE
-extern volatile uint8_t usb_seremu_transmit_flush_timer;
-extern void usb_seremu_flush_callback(void);
-#endif
-
 
 #endif
 

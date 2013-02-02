@@ -25,7 +25,7 @@
 #define DEVICE_PROTOCOL	0x01
 #define EP0_SIZE		64
 #define NUM_ENDPOINTS		15
-#define NUM_INTERFACE		5
+#define NUM_INTERFACE		4
 #define CDC_IAD_DESCRIPTOR	1
 #define CDC_STATUS_INTERFACE	0
 #define CDC_DATA_INTERFACE	1	// Serial
@@ -43,20 +43,14 @@
 #define MOUSE_ENDPOINT        5
 #define MOUSE_SIZE            8
 #define MOUSE_INTERVAL        2
-#define JOYSTICK_INTERFACE    4	// Joystick
-#define JOYSTICK_ENDPOINT     6
-#define JOYSTICK_SIZE         16
-#define JOYSTICK_INTERVAL     1
 #define KEYBOARD_DESC_OFFSET	(9+8 + 9+5+5+4+5+7+9+7+7 + 9)
 #define MOUSE_DESC_OFFSET	(9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9)
-#define JOYSTICK_DESC_OFFSET	(9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7 + 9)
-#define CONFIG_DESC_SIZE	(9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7 + 9+9+7)
+#define CONFIG_DESC_SIZE	(9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7)
 #define ENDPOINT1_CONFIG	ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT2_CONFIG	ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT3_CONFIG	ENDPOINT_RECEIVE_ONLY
 #define ENDPOINT4_CONFIG	ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT5_CONFIG	ENDPOINT_TRANSIMIT_ONLY
-#define ENDPOINT6_CONFIG	ENDPOINT_TRANSIMIT_ONLY
 
 
 
@@ -74,3 +68,4 @@ extern const usb_descriptor_list_t usb_descriptor_list[];
 
 
 #endif
+

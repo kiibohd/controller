@@ -20,7 +20,7 @@
 #| Please the {Scan,Macro,USB,Debug}/module.txt for information on the modules and how to create new ones
 
 ##| Deals with acquiring the keypress information and turning it into a key index
-set(  ScanModule  "FACOM6684" )
+set(  ScanModule  "MBC-55X" )
 
 ##| Uses the key index and potentially applies special conditions to it, mapping it to a usb key code
 set( MacroModule  "buffer"  )
@@ -68,8 +68,8 @@ function( ModuleCompatibility ModulePath )
 		if ( ${mod_var} STREQUAL ${COMPILER_FAMILY} )
 			# Module found, no need to scan further
 			return()
-		endif ( ${mod_var} STREQUAL ${COMPILER_FAMILY} )
-	endforeach( mod_var ${ARGN} )
+		endif ()
+	endforeach()
 
 	message( FATAL_ERROR "${ModulePath} does not support the ${COMPILER_FAMILY} family..." )
 endfunction()
@@ -108,11 +108,11 @@ macro( PathPrepend Output SourcesPath )
 	foreach( item ${ARGN} )
 		# Set the path
 		set( tmpSource ${tmpSource} "${SourcesPath}/${item}" )
-	endforeach( item )
+	endforeach()
 
 	# Finalize by writing the new list back over the old one
 	set( ${Output} ${tmpSource} )
-endmacro( PathPrepend )
+endmacro()
 
 
 #| Scan Module
@@ -156,7 +156,7 @@ set( MANUFACTURER "Kiibohd" )
 #| Attempt to call Git to get the branch, last commit date, and whether code modified since last commit
 
 #| Modified
-#| Takes a bit of work to extract the "M " using CMake, and not using it if there are not modifications
+#| Takes a bit of work to extract the "M " using CMake, and not using it if there are no modifications
 execute_process( COMMAND git status -s -uno --porcelain
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Modified_INFO

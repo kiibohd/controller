@@ -245,7 +245,7 @@ static void usbdev_setup(void)
 #endif
 
 // TODO: this does not work... why?
-#if defined(SEREMU_INTERFACE) || defined(KEYBOARD_INTERFACE)
+#if defined(KEYBOARD_INTERFACE)
 	  case 0x0921: // HID SET_REPORT
 		//serial_print(":)\n");
 		return;
@@ -379,8 +379,9 @@ static void usb_control(uint32_t stat)
 			}
 			//serial_phex32(*(uint32_t *)usb_cdc_line_coding);
 			//serial_print("\n");
-			// TODO - Fix this warning
-			if (*(uint32_t *)usb_cdc_line_coding == 134) usb_reboot_timer = 15;
+			// XXX - Not sure why this was casted to uint32_t... -HaaTa
+			//if (*(uint32_t *)usb_cdc_line_coding == 134) usb_reboot_timer = 15;
+			if (*usb_cdc_line_coding == 134) usb_reboot_timer = 15;
 			endpoint0_transmit(NULL, 0);
 		}
 #endif
@@ -863,5 +864,4 @@ uint8_t usb_configured(void)
 {
 	return usb_configuration;
 }
-
 

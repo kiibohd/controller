@@ -152,53 +152,6 @@ static uint8_t mouse_report_desc[] = {
 };
 #endif
 
-#ifdef JOYSTICK_INTERFACE
-static uint8_t joystick_report_desc[] = {
-        0x05, 0x01,                     // Usage Page (Generic Desktop)
-        0x09, 0x04,                     // Usage (Joystick)
-        0xA1, 0x01,                     // Collection (Application)
-        0x15, 0x00,                     // Logical Minimum (0)
-        0x25, 0x01,                     // Logical Maximum (1)
-        0x75, 0x01,                     // Report Size (1)
-        0x95, 0x20,                     // Report Count (32)
-        0x05, 0x09,                     // Usage Page (Button)
-        0x19, 0x01,                     // Usage Minimum (Button #1)
-        0x29, 0x20,                     // Usage Maximum (Button #32)
-        0x81, 0x02,                     // Input (variable,absolute)
-        0x15, 0x00,                     // Logical Minimum (0)
-        0x25, 0x07,                     // Logical Maximum (7)
-        0x35, 0x00,                     // Physical Minimum (0)
-        0x46, 0x3B, 0x01,               // Physical Maximum (315)
-        0x75, 0x04,                     // Report Size (4)
-        0x95, 0x01,                     // Report Count (1)
-        0x65, 0x14,                     // Unit (20)
-        0x05, 0x01,                     // Usage Page (Generic Desktop)
-        0x09, 0x39,                     // Usage (Hat switch)
-        0x81, 0x42,                     // Input (variable,absolute,null_state)
-        0x05, 0x01,                     // Usage Page (Generic Desktop)
-        0x09, 0x01,                     // Usage (Pointer)
-        0xA1, 0x00,                     // Collection ()
-        0x15, 0x00,                     //   Logical Minimum (0)
-        0x26, 0xFF, 0x03,               //   Logical Maximum (1023)
-        0x75, 0x0A,                     //   Report Size (10)
-        0x95, 0x04,                     //   Report Count (4)
-        0x09, 0x30,                     //   Usage (X)
-        0x09, 0x31,                     //   Usage (Y)
-        0x09, 0x32,                     //   Usage (Z)
-        0x09, 0x35,                     //   Usage (Rz)
-        0x81, 0x02,                     //   Input (variable,absolute)
-        0xC0,                           // End Collection
-        0x15, 0x00,                     // Logical Minimum (0)
-        0x26, 0xFF, 0x03,               // Logical Maximum (1023)
-        0x75, 0x0A,                     // Report Size (10)
-        0x95, 0x02,                     // Report Count (2)
-        0x09, 0x36,                     // Usage (Slider)
-        0x09, 0x36,                     // Usage (Slider)
-        0x81, 0x02,                     // Input (variable,absolute)
-        0xC0                            // End Collection
-};
-#endif
-
 
 
 // **************************************************************
@@ -354,35 +307,6 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
         MOUSE_SIZE, 0,                          // wMaxPacketSize
         MOUSE_INTERVAL,                         // bInterval
 #endif // MOUSE_INTERFACE
-
-#ifdef JOYSTICK_INTERFACE
-        // interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
-        9,                                      // bLength
-        4,                                      // bDescriptorType
-        JOYSTICK_INTERFACE,                     // bInterfaceNumber
-        0,                                      // bAlternateSetting
-        1,                                      // bNumEndpoints
-        0x03,                                   // bInterfaceClass (0x03 = HID)
-        0x00,                                   // bInterfaceSubClass
-        0x00,                                   // bInterfaceProtocol
-        0,                                      // iInterface
-        // HID interface descriptor, HID 1.11 spec, section 6.2.1
-        9,                                      // bLength
-        0x21,                                   // bDescriptorType
-        0x11, 0x01,                             // bcdHID
-        0,                                      // bCountryCode
-        1,                                      // bNumDescriptors
-        0x22,                                   // bDescriptorType
-        LSB(sizeof(joystick_report_desc)),      // wDescriptorLength
-        MSB(sizeof(joystick_report_desc)),
-        // endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-        7,                                      // bLength
-        5,                                      // bDescriptorType
-        JOYSTICK_ENDPOINT | 0x80,               // bEndpointAddress
-        0x03,                                   // bmAttributes (0x03=intr)
-        JOYSTICK_SIZE, 0,                       // wMaxPacketSize
-        JOYSTICK_INTERVAL,                      // bInterval
-#endif
 };
 
 
@@ -441,10 +365,6 @@ const usb_descriptor_list_t usb_descriptor_list[] = {
 #ifdef MOUSE_INTERFACE
         {0x2200, MOUSE_INTERFACE, mouse_report_desc, sizeof(mouse_report_desc)},
         {0x2100, MOUSE_INTERFACE, config_descriptor+MOUSE_DESC_OFFSET, 9},
-#endif
-#ifdef JOYSTICK_INTERFACE
-        {0x2200, JOYSTICK_INTERFACE, joystick_report_desc, sizeof(joystick_report_desc)},
-        {0x2100, JOYSTICK_INTERFACE, config_descriptor+JOYSTICK_DESC_OFFSET, 9},
 #endif
         {0x0300, 0x0000, (const uint8_t *)&string0, 4},
         {0x0301, 0x0409, (const uint8_t *)&string1, sizeof(STR_MANUFACTURER)},
@@ -550,7 +470,4 @@ const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS] =
 	ENDPOINT_UNUSED,
 #endif
 };
-
-
-
 

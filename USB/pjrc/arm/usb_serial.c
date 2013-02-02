@@ -237,12 +237,5 @@ void usb_serial_flush_callback(void)
 	//serial_print("usb_flush_callback end\n");
 }
 
-
-
-
-
-
-
-
-
 #endif // CDC_STATUS_INTERFACE && CDC_DATA_INTERFACE
+
