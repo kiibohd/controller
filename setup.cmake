@@ -37,9 +37,9 @@ set( DebugModule  "full"   )
 ###
 # Module Overrides (Used in the buildall.bash script)
 #
-if ( ( DEFINED ${ScanModuleOverride} ) AND ( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Scan/${ScanModuleOverride} ) )
+if ( ( DEFINED ScanModuleOverride ) AND ( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Scan/${ScanModuleOverride} ) )
 	set( ScanModule ${ScanModuleOverride} )
-endif ( ( DEFINED ${ScanModuleOverride} ) AND ( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Scan/${ScanModuleOverride} ) )
+endif ()
 
 
 
@@ -72,7 +72,7 @@ function( ModuleCompatibility ModulePath )
 	endforeach( mod_var ${ARGN} )
 
 	message( FATAL_ERROR "${ModulePath} does not support the ${COMPILER_FAMILY} family..." )
-endfunction( ModuleCompatibility ModulePath )
+endfunction()
 
 
 
@@ -166,7 +166,7 @@ execute_process( COMMAND git status -s -uno --porcelain
 string( LENGTH "${Git_Modified_INFO}" Git_Modified_LENGTH )
 if ( ${Git_Modified_LENGTH} GREATER 2 )
 	string( SUBSTRING "${Git_Modified_INFO}" 1 2 Git_Modified_Flag_INFO )
-endif ( ${Git_Modified_LENGTH} GREATER 2 )
+endif ()
 
 #| Branch
 execute_process( COMMAND git rev-parse --abbrev-ref HEAD
@@ -189,10 +189,10 @@ execute_process( COMMAND git show -s --format=%ci
 #| Only use Git variables if we were successful in calling the commands
 if ( ${Git_RETURN} EQUAL 0 )
 	set( GitLastCommitDate "${Git_Modified_Flag_INFO}${Git_Branch_INFO} - ${Git_Date_INFO}" )
-else ( ${Git_RETURN} EQUAL 0 )
+else ()
 	# TODO Figure out a good way of finding the current branch + commit date + modified
 	set( GitLastCommitDate "Pft...Windows Build" )
-endif ( ${Git_RETURN} EQUAL 0 )
+endif ()
 
 
 #| Uses CMake variables to include as defines

@@ -152,10 +152,10 @@ add_custom_target( SizeAfter ALL ${SIZE} --target=${FORMAT} ${TARGET_HEX} ${TARG
 #| teensy-loader-cli must be in the user's path
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
 	configure_file( LoadFile/bash load )
-endif( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+endif()
 
 #| TODO Windows
 if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 	configure_file( LoadFile/bash load )
-endif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+endif()
 
