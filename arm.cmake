@@ -62,6 +62,11 @@ message( STATUS "Compiler Source Files:" )
 message( "${COMPILER_SRCS}" )
 
 
+#| USB Defines
+set( VENDOR_ID  "0x16C0" )
+set( PRODUCT_ID "0x0487" )
+
+
 #| Compiler flag to set the C Standard level.
 #|     c89   = "ANSI" C
 #|     gnu89 = c89 plus GCC extensions
@@ -77,7 +82,8 @@ set( WARN "-Wall -g" )
 
 #| Tuning Options
 #|  -f...:        tuning, see GCC manual
-set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections" )
+#| NOTE: -fshort-wchar is specified to allow USB strings be passed conveniently
+set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar" )
 
 
 #| Optimization level, can be [0, 1, 2, 3, s]. 
@@ -105,11 +111,11 @@ set( GENDEPFLAGS "-MMD" )
 
 
 #| Compiler Flags
-add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}" )
+add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS}" )
 
 
 #| Linker Flags
-set( LINKER_FLAGS "-mcpu=${CPU} -Wl,-Map=${TARGET}.map,--cref -Wl,--gc-sections -mthumb -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
+set( LINKER_FLAGS "-mcpu=${CPU} -Wl,-Map=${TARGET}.map,--cref -Wl,--gc-sections -mthumb -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
 
 
 #| Hex Flags (XXX, CMake seems to have issues if you quote the arguments for the custom commands...)

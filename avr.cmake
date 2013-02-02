@@ -51,6 +51,11 @@ set( COMPILER_SRCS
 )
 
 
+#| USB Defines
+set( VENDOR_ID  "0x16C0" )
+set( PRODUCT_ID "0x047D" )
+
+
 #| Compiler flag to set the C Standard level.
 #|     c89   = "ANSI" C
 #|     gnu89 = c89 plus GCC extensions
@@ -66,7 +71,8 @@ set( WARN "-Wall -Wstrict-prototypes" )
 
 #| Tuning Options
 #|  -f...:        tuning, see GCC manual and avr-libc documentation
-set( TUNING "-funsigned-char -funsigned-bitfields -ffunction-sections -fpack-struct -fshort-enums" )
+#| NOTE: -fshort-wchar is specified to allow USB strings be passed conveniently
+set( TUNING "-funsigned-char -funsigned-bitfields -ffunction-sections -fpack-struct -fshort-enums -fshort-wchar" )
 
 
 #| Optimization level, can be [0, 1, 2, 3, s]. 
@@ -94,7 +100,7 @@ set( GENDEPFLAGS "-MMD -MP" )
 
 
 #| Compiler Flags
-add_definitions( "-mmcu=${MCU} -DF_CPU=${F_CPU} -D_${MCU}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS} -I${CMAKE_CURRENT_SOURCE_DIR}" )
+add_definitions( "-mmcu=${MCU} -DF_CPU=${F_CPU} -D_${MCU}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS}" )
 
 
 #| Linker Flags

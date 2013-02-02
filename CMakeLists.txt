@@ -74,6 +74,9 @@ set( SRCS
 	${DEBUG_SRCS}
 )
 
+#| Directories to include by default
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} )
+
 
 
 ###

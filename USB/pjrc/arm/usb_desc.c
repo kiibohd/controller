@@ -408,19 +408,19 @@ static struct usb_string_descriptor_struct string0 = {
 };
 
 static struct usb_string_descriptor_struct string1 = {
-        2 + MANUFACTURER_NAME_LEN * 2,
+        sizeof(STR_MANUFACTURER),
         3,
-        MANUFACTURER_NAME
+        STR_MANUFACTURER
 };
 static struct usb_string_descriptor_struct string2 = {
-	2 + PRODUCT_NAME_LEN * 2,
+	sizeof(STR_PRODUCT),
         3,
-        PRODUCT_NAME
+        STR_PRODUCT
 };
 static struct usb_string_descriptor_struct string3 = {
-        12,
+	sizeof(STR_SERIAL),
         3,
-        {'1','2','3','4','5'}
+	STR_SERIAL
 };
 
 
@@ -447,9 +447,9 @@ const usb_descriptor_list_t usb_descriptor_list[] = {
         {0x2100, JOYSTICK_INTERFACE, config_descriptor+JOYSTICK_DESC_OFFSET, 9},
 #endif
         {0x0300, 0x0000, (const uint8_t *)&string0, 4},
-        {0x0301, 0x0409, (const uint8_t *)&string1, 2 + MANUFACTURER_NAME_LEN * 2},
-        {0x0302, 0x0409, (const uint8_t *)&string2, 2 + PRODUCT_NAME_LEN * 2},
-        {0x0303, 0x0409, (const uint8_t *)&string3, 12},
+        {0x0301, 0x0409, (const uint8_t *)&string1, sizeof(STR_MANUFACTURER)},
+        {0x0302, 0x0409, (const uint8_t *)&string2, sizeof(STR_PRODUCT)},
+        {0x0303, 0x0409, (const uint8_t *)&string3, sizeof(STR_SERIAL)},
 	{0, 0, NULL, 0}
 };
 

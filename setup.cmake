@@ -142,3 +142,60 @@ message( "${USB_SRCS}" )
 message( STATUS "Detected Debug Module Source Files:" )
 message( "${DEBUG_SRCS}" )
 
+
+
+###
+# Generate USB Defines
+#
+
+#| Manufacturer name
+set( MANUFACTURER "Kiibohd" )
+
+
+#| Serial Number
+#| Attempt to call Git to get the branch, last commit date, and whether code modified since last commit
+
+#| Modified
+#| Takes a bit of work to extract the "M " using CMake, and not using it if there are not modifications
+execute_process( COMMAND git status -s -uno --porcelain
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+	OUTPUT_VARIABLE Git_Modified_INFO
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+string( LENGTH "${Git_Modified_INFO}" Git_Modified_LENGTH )
+if ( ${Git_Modified_LENGTH} GREATER 2 )
+	string( SUBSTRING "${Git_Modified_INFO}" 1 2 Git_Modified_Flag_INFO )
+endif ( ${Git_Modified_LENGTH} GREATER 2 )
+
+#| Branch
+execute_process( COMMAND git rev-parse --abbrev-ref HEAD
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+	OUTPUT_VARIABLE Git_Branch_INFO
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+#| Date
+execute_process( COMMAND git show -s --format=%ci
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+	OUTPUT_VARIABLE Git_Date_INFO
+	RESULT_VARIABLE Git_RETURN
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+
+#| Only use Git variables if we were successful in calling the commands
+if ( ${Git_RETURN} EQUAL 0 )
+	set( GitLastCommitDate "${Git_Modified_Flag_INFO}${Git_Branch_INFO} - ${Git_Date_INFO}" )
+else ( ${Git_RETURN} EQUAL 0 )
+	# TODO Figure out a good way of finding the current branch + commit date + modified
+	set( GitLastCommitDate "Pft...Windows Build" )
+endif ( ${Git_RETURN} EQUAL 0 )
+
+
+#| Uses CMake variables to include as defines
+#| Primarily for USB configuration
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/Lib/_buildvars.h buildvars.h )
+
