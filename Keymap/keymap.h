@@ -41,6 +41,7 @@
 
 
 // See files for full layout descriptions
+#include "avrcapsense.h"
 #include "betkb.h"
 #include "budkeypad.h"
 #include "epsonqx10.h"

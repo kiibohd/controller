@@ -78,6 +78,7 @@
 #define dbug_dPrint(...)  dPrintMsg        ("1;35",   "DEBUG",   __VA_ARGS__) // Debug Msg
 #define dbug_print(str)   printMsg         ("1;35",   "DEBUG",   str)         // Debug Msg
 
+
 // Static String Printing
 #define print(s) _print(PSTR(s))
 
@@ -97,9 +98,9 @@ void printHex_op( uint16_t in, uint8_t op );
 // String Functions
 #define hexToStr(hex, out) hexToStr_op(hex, out, 1)
 
-void int8ToStr  ( uint8_t  in,   char*  out );
-void int16ToStr ( uint16_t in,   char*  out );
-void hexToStr_op( uint16_t in,   char*  out, uint8_t op );
+void int8ToStr  ( uint8_t  in, char*  out );
+void int16ToStr ( uint16_t in, char*  out );
+void hexToStr_op( uint16_t in, char*  out, uint8_t op );
 void revsStr    ( char*  in );
 uint16_t lenStr ( char*  in );
 
