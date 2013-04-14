@@ -91,6 +91,46 @@ void _print(const char *s)
 
 
 
+// Number Printing Functions
+void printInt8( uint8_t in )
+{
+	// Max number of characters is 3 + 1 for null
+	char tmpStr[4];
+
+	// Convert number
+	int8ToStr( in, tmpStr );
+
+	// Print number
+	dPrintStr( tmpStr );
+}
+
+void printInt16( uint16_t in )
+{
+	// Max number of characters is 5 + 1 for null
+	char tmpStr[6];
+
+	// Convert number
+	int16ToStr( in, tmpStr );
+
+	// Print number
+	dPrintStr( tmpStr );
+}
+
+void printHex_op( uint16_t in, uint8_t op )
+{
+	// With an op of 1, the max number of characters is 6 + 1 for null
+	// e.g. "0xFFFF\0"
+	// op 2 and 4 require fewer characters (2+1 and 4+1 respectively)
+	char tmpStr[7];
+
+	// Convert number
+	hexToStr_op( in, tmpStr, op );
+
+	// Print number
+	dPrintStr( tmpStr );
+}
+
+
 
 // String Functions
 void int8ToStr( uint8_t in, char* out )

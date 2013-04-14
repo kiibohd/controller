@@ -86,6 +86,13 @@ void usb_debug_putstr( char* s );
 void usb_debug_putstrs( char* first, ... );
 
 
+// Printing numbers
+#define printHex(hex) printHex_op(hex, 1)
+
+void printInt8  ( uint8_t  in );
+void printInt16 ( uint16_t in );
+void printHex_op( uint16_t in, uint8_t op );
+
 
 // String Functions
 #define hexToStr(hex, out) hexToStr_op(hex, out, 1)
