@@ -1,0 +1,281 @@
+The Kiibohd Controller
+----------------------
+
+TODO, write some insightful/informative :P
+
+Please give authors credit for modules used if you use in a distributed product :D
+
+
+
+----------------------
+Dependencies
+----------------------
+
+Below listed are the Arch Linux pacman names, AUR packages may be required.
+
+These depend a bit on which targets you are trying to build, but the general one:
+- cmake (2.8 and higher)
+- Teensy Loader (http://pjrc.com/teensy/loader.html)
+
+
+AVR Specific (Teensy 1.0/++,2.0/++) (try to use something recent, suggested versions below)
+- avr-gcc      (4.8.0)
+- avr-binutils (2.23.2)
+- avr-libc     (1.8.0)
+
+
+ARM Specific (Teensy 3.0) (Sourcery CodeBench Lite for ARM EABI
+(http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/)
+- arm-none-eabi
+- TODO?
+
+
+
+----------------------
+Selecting Architecture
+----------------------
+
+This is where you choose which architecture you want to build for.
+The options are:
+ - Teensy 1.0   (Not tested)
+ - Teensy 1.0++ (Not tested)
+ - Teensy 2.0
+ - Teensy 2.0++
+ - Teensy 3.0
+
+Open up CMakeLists.txt in your favourite text editor.
+You are looking for:
+
+	###
+	Compiler Family
+	#
+
+	#| Specify the compiler family to use
+	#| Currently only supports AVR and ARM
+	#| "avr"       # Teensy   1.0
+	#| "avr"       # Teensy   2.0
+	#| "avr"       # Teensy++ 1.0
+	#| "avr"       # Teensy++ 2.0
+	#| "arm"       # Teensy   3.0
+
+	set( COMPILER_FAMILY "avr" )
+
+
+Just change the COMPILER_FAMILY variable to whatever you are trying to build for.
+
+NOTE: If you change this option, you will *may* to delete the build directory that is created in the Building sections below. 
+
+
+
+----------------------
+Selecting Microcontroller
+----------------------
+
+Even if you selected the "avr" family of microcontroller architectures, you will still need to specify a target microcontroller (or once more ARM microcontrollers are supported).
+
+Open up avr.cmake (or arm.cmake) in your favourite text editor.
+You are looking for:
+
+	###
+	# Atmel Defines and Linker Options
+	#
+
+	#| MCU Name
+	#| You _MUST_ set this to match the board you are using
+	#| type "make clean" after changing this, so all files will be rebuilt
+	#|
+	#| "at90usb162"       # Teensy   1.0
+	#| "atmega32u4"       # Teensy   2.0
+	#| "at90usb646"       # Teensy++ 1.0
+	#| "at90usb1286"      # Teensy++ 2.0
+
+	set( MCU "at90usb1286" )
+
+*OR*
+
+	###
+	# ARM Defines and Linker Options
+	#
+
+	#| Chip Name (Linker)
+	#| You _MUST_ set this to match the board you are using
+	#| type "make clean" after changing this, so all files will be rebuilt
+	#|
+	#| "mk20dx128"        # Teensy   3.0
+
+	set( CHIP "mk20dx128" )
+
+
+Just change the CHIP variable to the microcontroller you are trying to build for.
+
+NOTE: If you change this option, you will *need* to delete the build directory that is created in the Building sections below.
+
+
+
+----------------------
+Selecting Modules
+----------------------
+
+WARNING: Not all modules are compatible, and some modules may have dependencies on other modules.
+
+This is where the options start getting interesting.
+The Kiibohd Controller is designed around a set of 4 types of modules that correspond to different functionality:
+
+- Scan Module
+- Macro Module
+- USB Module
+- Debug Module
+
+The Scan Module is where the most interesting stuff happens. These modules take in "keypress data".
+A converter Scan Module will interpret a protocol into key press/releases.
+A matrix Scan Module may inherit from the matrix module to scan keypress from a matrix
+This module just has to give press/release codes, but does have some callback control to other modules depending on the lifecycle for press/release codes (this can be very complicated depending on the protocol).
+Each Scan Module has it's own default keymap/modifier map. (TODO recommend keymap changing in the Macro Module).
+
+
+The Macro Module takes care of the mapping of the key press/release code into a USB scan code.
+Any layering, macros, keypress intelligence/reaction is done here.
+
+
+The USB Module is the output module of the microcontroller. Currently USB is the only output protocol.
+Different USB output implementations are available, pjrc being the safest/least featureful one.
+Debug capabilities may depend on the module selected.
+
+
+The Debug Module enables various things like the Teensy LED on errors, debug terminal output.
+(TODO get true UART working in avr, not just arm)
+
+
+
+Open up setup.cmake in your favourite text editor.
+Look for:
+
+	###
+	# Project Modules
+	#
+
+	#| Note: This is the only section you probably want to modify
+	#| Each module is defined by it's own folder (e.g. Scan/Matrix represents the "Matrix" module)
+	#| All of the modules must be specified, as they generate the sources list of files to compile
+	#| Any modifications to this file will cause a complete rebuild of the project
+
+	#| Please look at the {Scan,Macro,USB,Debug}/module.txt for information on the modules and how to create new ones
+
+	##| Deals with acquiring the keypress information and turning it into a key index
+	set(  ScanModule  "avr-capsense" )
+
+	##| Uses the key index and potentially applies special conditions to it, mapping it to a usb key code
+	set( MacroModule  "buffer"  )
+
+	##| Sends the current list of usb key codes through USB HID
+	set(   USBModule  "pjrc"   )
+
+	##| Debugging source to use, each module has it's own set of defines that it sets
+	set( DebugModule  "full"   )
+
+
+Look at each module individually for it's requirements. There is chip/architecture dependency checking but some permutations of modules may not be tested/compile.
+
+
+There are also CMake options for temporarily selecting modules. But it's easier to just edit the file.
+e.g. cmake -DScanModuleOverride=<module name>
+
+
+
+----------------------
+Linux Building
+----------------------
+
+From this directory.
+mkdir build
+cd build
+cmake ..
+make
+
+
+Example output:
+
+	[master]: cmake ..                 [...sy/avr-capsense-haata/build](hyatt@901Mas:pts/4)
+	-- Compiler Family:
+	avr
+	-- MCU Selected:
+	at90usb1286
+	-- Detected Scan Module Source Files:
+	Scan/avr-capsense/scan_loop.c
+	-- Detected Macro Module Source Files:
+	Macro/buffer/macro.c
+	-- Detected USB Module Source Files:
+	USB/pjrc/usb_com.c;USB/pjrc/avr/usb_keyboard_debug.c
+	-- Detected Debug Module Source Files:
+	Debug/full/../led/led.c;Debug/full/../print/print.c
+	-- Configuring done
+	-- Generating done
+	-- Build files have been written to: /home/hyatt/Source/Teensy/avr-capsense-haata/build
+	[master]: make                     [...sy/avr-capsense-haata/build](hyatt@901Mas:pts/4)
+	Scanning dependencies of target kiibohd.elf
+	[ 12%] Building C object CMakeFiles/kiibohd.elf.dir/main.c.o
+	[ 25%] Building C object CMakeFiles/kiibohd.elf.dir/Scan/avr-capsense/scan_loop.c.o
+	[ 37%] Building C object CMakeFiles/kiibohd.elf.dir/Macro/buffer/macro.c.o
+	[ 50%] Building C object CMakeFiles/kiibohd.elf.dir/USB/pjrc/usb_com.c.o
+	[ 62%] Building C object CMakeFiles/kiibohd.elf.dir/USB/pjrc/avr/usb_keyboard_debug.c.o
+	[ 75%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/led/led.c.o
+	[ 87%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/print/print.c.o
+	Linking C executable kiibohd.elf
+	Creating load file for Flash:  kiibohd.hex
+	Creating Extended Listing:     kiibohd.lss
+	Creating Symbol Table:         kiibohd.sym
+	[ 87%] Built target kiibohd.elf
+	Scanning dependencies of target SizeAfter
+	[100%] Size after generation:
+	   text    data     bss     dec     hex filename
+	      0    6112       0    6112    17e0 kiibohd.hex
+	   5792     320     852    6964    1b34 kiibohd.elf
+	[100%] Built target SizeAfter
+
+
+
+----------------------
+Linux Loading Firmware
+----------------------
+
+The 'load' script that is created during the build can load the firmware over USB.
+It uses sudo, so make sure you have the priviledges.
+
+(TODO, not complete, avr and arm are different currently, need to be unified)
+./load
+
+
+
+----------------------
+Windows Building
+----------------------
+
+TODO
+
+----------------------
+Windows Loading Firmware
+----------------------
+
+TODO
+
+----------------------
+Mac OS X Building
+----------------------
+
+TODO
+
+----------------------
+Mac OS X Loading Firmware
+----------------------
+
+TODO
+
+
+
+----------------------
+Debugging
+----------------------
+
+TODO
+
+
