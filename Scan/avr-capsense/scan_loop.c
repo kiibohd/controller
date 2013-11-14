@@ -21,10 +21,26 @@
 // ----- Defines -----
 
 // TODO dfj defines...needs cleaning up and commenting...
-#define THRESHOLD 0x0a
+#define LED_CONFIG	(DDRD |= (1<<6))
+#define LED_ON		(PORTD &= ~(1<<6))
+#define LED_OFF		(PORTD |= (1<<6))
+#define CPU_PRESCALE(n)	(CLKPR = 0x80, CLKPR = (n))
+
+#define MAX_PRESS_DELTA_MV 470
+#define THRESHOLD_MV (MAX_PRESS_DELTA_MV >> 1)
+//(2560 / (0x3ff/2)) ~= 5
+#define MV_PER_ADC 5
+// 5
+
+#define THRESHOLD (THRESHOLD_MV / MV_PER_ADC)
+
+#define BUMP_DETECTION 0
 #define BUMP_THRESHOLD 0x50
 //((THRESHOLD) * 3)
 #define BUMP_REST_US 1200
+
+#define STROBE_SETTLE 1
+#define MUX_SETTLE 1
 
 #define HYST 1
 #define HYST_T 0x10
@@ -42,7 +58,7 @@
 
 // rough offset voltage: one diode drop, about 50mV = 0x3ff * 50/3560 = 20
 //#define OFFSET_VOLTAGE 0x14
-#define OFFSET_VOLTAGE 0x28
+//#define OFFSET_VOLTAGE 0x28
 
 
 #define RIGHT_JUSTIFY 0
@@ -64,6 +80,9 @@
 
 // F0-f7 pins only muxmask.
 #define MUX_MASK ((1 << MUX0) | (1 << MUX1) | (1 << MUX2))
+
+#define SET_MUX(X) ((ADMUX) = (((ADMUX) & ~(MUX_MASK)) | ((X) & (MUX_MASK))))
+#define SET_FULL_MUX(X) ((ADMUX) = (((ADMUX) & ~(FULL_MUX_MASK)) | ((X) & (FULL_MUX_MASK))))
 
 #define MUX_1_1 0x1e
 #define MUX_GND 0x1f
@@ -93,7 +112,7 @@
 
 #define WARMUP_LOOPS ( 1024 )
 
-#define RECOVERY_US 6
+#define RECOVERY_US 2
 
 #define SAMPLES 10
 
@@ -102,6 +121,9 @@
 //#define SAMPLE_OFFSET 9
 #define STROBE_OFFSET 0
 
+#define SAMPLE_CONTROL 3
+
+#define DEFAULT_KEY_BASE 0x95
 
 #define KEY_COUNT ((STROBE_LINES) * (MUXES_COUNT))
 
@@ -114,15 +136,18 @@
 #define RECOVERY_SINK 2
 #define RECOVERY_MASK 0x03
 
+#define ON 1
+#define OFF 0
+
 
 // mix in 1/4 of the current average to the running average. -> (@mux_mix = 2)
 #define MUX_MIX 2
 
 
 #define IDLE_COUNT_MASK 0xff
-#define MAX_ICS 8
+#define IDLE_COUNT_MAX (IDLE_COUNT_MASK + 1)
+#define IDLE_COUNT_SHIFT 8
 
-#define IDLE_COUNT_SHIFT 4
 #define KEYS_AVERAGES_MIX 2
 
 
@@ -196,27 +221,28 @@ volatile uint8_t KeyIndex_BufferUsed;
 
 // TODO dfj variables...needs cleaning up and commenting
          uint8_t  blink = 0;
-volatile uint8_t  idle_count = 1;
 volatile uint16_t full_av = 0;
 
 /**/ uint8_t ze_strober = 0;
 
-int16_t samples [SAMPLES];
+uint16_t samples [SAMPLES];
 
 //int16_t gsamples [SAMPLES];
 
-/**/ int16_t adc_mux_averages[MUXES_COUNT];
-/**/ int16_t adc_strobe_averages[STROBE_LINES];
+int16_t adc_mux_averages[MUXES_COUNT];
+int16_t adc_strobe_averages[STROBE_LINES];
 
 
-/**/ uint8_t cur_keymap[STROBE_LINES];
+uint8_t cur_keymap[STROBE_LINES];
 // /**/ int8_t last_keymap[STROBE_LINES];
-/**/ uint8_t usb_keymap[STROBE_LINES];
+uint8_t usb_keymap[STROBE_LINES];
+uint16_t keys_down=0;
+
 uint8_t dirty;
 uint8_t unstable;
 uint8_t usb_dirty;
 
-int16_t threshold = THRESHOLD;
+uint16_t threshold = THRESHOLD;
 uint16_t tests = 0;
 
 uint8_t col_a=0;
@@ -226,32 +252,20 @@ uint8_t col_c=0;
 uint8_t column=0;
 
 
-int16_t keys_averages_acc[KEY_COUNT];
+uint16_t keys_averages_acc[KEY_COUNT];
 uint16_t keys_averages[KEY_COUNT];
+uint16_t keys_averages_acc_count=0;
 
 uint8_t full_samples[KEY_COUNT];
 
-/* viable starting biases for near 0.830V offset. and adc PRESCALE 3
-0017 0016 001B 001A 0016 0016 000F 000E 001B 001E 001E 0018 0017 0015 000E 001D
-001B 001A 0016 0016 000F 000E 001C 001B 001E 0018 0017 0015 000E 001D 0024 001F
-0016 0016 000F 000E 001C 001B 001E 001E 0017 0015 000E 001D 0024 001F 0020 001F
-000F 000E 001C 001B 001E 001E 0018 0017 000E 001D 0024 001F 0020 001F 0020 0017
-001C 001B 001E 001E 0018 0017 0015 000E 0024 001F 0020 001F 0020 0017 0010 001D
-001E 001E 0018 0017 0015 000E 001D 0024 0020 001F 0020 0017 0010 001D 0024 0021
-0018 0017 0015 000E 001D 0024 001F 0020 0020 0017 0010 001D 0024 0021 0021 0021
-0015 000E 001D 0024 001F 0020 001F 0020 0010 001D 0024 0021 0021 0021 0021 0018
-*/
+// 0x9f...f
+// #define COUNT_MASK 0x9fff
+// #define COUNT_HIGH_BIT (INT16_MIN)
+// TODO: change this to 'booting', then count down.
+uint16_t boot_count = 0;
 
-/*** starting bias relative to fixed offset estimate of 820mV (0x50)
- *   77 69 65 5B 50 4E 4C 45   66 53 4D 49 45 3F 3E 35
- *   68 54 4F 49 45 40 3F 34   74 66 5F 56 4E 4D 4C 3F
- *   6D 5D 53 4C 49 46 45 38   6D 5A 53 4E 49 48 45 3E
- *   6F 5D 56 4E 4B 48 48 3A   6D 5C 54 4E 48 48 45 37
- *   75 68 5F 57 4F 4D 4C 3F   60 4E 48 41 3C 3C 39 2F
- *   65 53 4E 49 41 3F 3E 34   65 54 4E 49 43 3F 3E 34
- *   60 51 4A 45 3F 3E 3C 30   57 4C 45 3E 3B 37 37 2E
- *   64 4E 48 44 3C 3B 39 2F   5D 4F 48 45 3E 3C 3B 30
- */
+uint16_t idle_count=0;
+uint8_t idle = 1;
 
 /*volatile*/ uint16_t count = 0;
 
@@ -263,6 +277,12 @@ int16_t mux_averages[MUXES_COUNT];
 int16_t strobe_averages[STROBE_LINES];
 
 uint8_t dump_count = 0;
+
+
+//uint8_t column =0;
+uint16_t db_delta = 0;
+uint8_t db_sample = 0;
+uint16_t db_threshold = 0;
 
 
 
@@ -329,8 +349,8 @@ inline void scan_setup()
 	}
 
 	for(int i=0; i< KEY_COUNT; ++i) {
-		keys_averages[i] = 0x40;
-		keys_averages_acc[i] = (0x400);
+		keys_averages[i] = DEFAULT_KEY_BASE;
+		keys_averages_acc[i] = (DEFAULT_KEY_BASE);
 	}
 
 	/** warm things up a bit before we start collecting data, taking real samples. */
@@ -359,35 +379,48 @@ inline uint8_t scan_loop()
 		tries = 1;
 		while (tries++ && sampleColumn(strober)) { tries &= 0x7; } // don't waste this one just because the last one was poop.
 		column = testColumn(strober);
+		idle |= column; // if column has any pressed keys, then we are not idle.
 
 		if( column != cur_keymap[strober] && (count >= WARMUP_LOOPS) ) {
 			tests++;
 
+#if 0
 			tries = 1;
-			while (tries++ && sampleColumn(strober)) { tries &= 0x7; } // don't waste this one just because the last one was poop.
+			while (tries++ && sampleColumn(strober)) { tries &= 0x7; }
 			col_a = testColumn(strober);
 
 			tries = 1;
-			while (tries++ && sampleColumn(strober)) { tries &= 0x7; } // don't waste this one just because the last one was poop.
+			while (tries++ && sampleColumn(strober)) { tries &= 0x7; }
 			col_b = testColumn(strober);
 
 			tries = 1;
-			while (tries++ && sampleColumn(strober)) { tries &= 0x7; } // don't waste this one just because the last one was poop.
+			while (tries++ && sampleColumn(strober)) { tries &= 0x7; }
 			col_c = testColumn(strober);
 
 			if( (col_a == col_b) && (col_b == col_c) && (cur_keymap[strober] != col_a) ) {
 				cur_keymap[strober] = col_a;
 				usb_dirty = 1;
 			}
+#else
+			cur_keymap[strober] = column;
+			usb_dirty = 1;
+#endif
 		}
+
+		idle |= usb_dirty; // if any keys have changed inc. released, then we are not idle.
 
 		if(error == 0x50) {
 			error_data |= (((uint16_t)strober) << 12);
 		}
 
+		uint8_t strobe_line = strober << MUXES_COUNT_XSHIFT;
 		for(int i=0; i<MUXES_COUNT; ++i) {
-			full_samples[(strober << MUXES_COUNT_XSHIFT) + i] = samples[SAMPLE_OFFSET + i];
+			// discard sketchy low bit, and meaningless high bits.
+			uint8_t sample = samples[SAMPLE_OFFSET + i] >> 1;
+			full_samples[strobe_line + i] = sample;
+			keys_averages_acc[strobe_line + i] += sample;
 		}
+		keys_averages_acc_count++;
 
 		strobe_averages[strober] = 0;
 		for (uint8_t i = SAMPLE_OFFSET; i < (SAMPLE_OFFSET + MUXES_COUNT); ++i) {
@@ -395,36 +428,28 @@ inline uint8_t scan_loop()
 			//samples[i] -= OFFSET_VOLTAGE; // moved to sampleColumn.
 
 			full_av_acc += (samples[i]);
+#ifdef COLLECT_STROBE_AVERAGES
 			mux_averages[i - SAMPLE_OFFSET] += samples[i];
 			strobe_averages[strober] += samples[i];
+#endif
 			//samples[i] -= (full_av - HYST_T);
 
 			//++count;
 		}
+
+#ifdef COLLECT_STROBE_AVERAGES
 		adc_strobe_averages[strober] += strobe_averages[strober] >> 3;
 		adc_strobe_averages[strober] >>= 1;
 
 		/** test if we went negative. */
-		if ((adc_strobe_averages[strober] & 0xFF00) && (count
+		if ((adc_strobe_averages[strober] & 0xFF00) && (boot_count
 				>= WARMUP_LOOPS)) {
-			//count = 0; // TODO : constrain properly.
 			error = 0xf; error_data = adc_strobe_averages[strober];
 		}
-
-		uint8_t strobe_line = strober << MUXES_COUNT_XSHIFT;
-		for (int i = 0; i < MUXES_COUNT; ++i) {
-			keys_averages_acc[strobe_line + i]
-					+= samples[SAMPLE_OFFSET + i];
-		}
-
+#endif
 	} // for strober
 
-	if (count < WARMUP_LOOPS) {
-		error = 0x0C;
-		error_data = count;
-		count++;
-	}
-
+#ifdef VERIFY_TEST_PAD
 	// verify test key is not down.
 	if((cur_keymap[TEST_KEY_STROBE] & TEST_KEY_MASK) ) {
 		//count=0;
@@ -433,58 +458,84 @@ inline uint8_t scan_loop()
 		error_data += full_samples[TEST_KEY_STROBE * 8];
 		//threshold++;
 	}
+#endif
 
+#ifdef COLLECT_STROBE_AVERAGES
 	// calc mux averages.
-	if (count < WARMUP_LOOPS) {
+	if (boot_count < WARMUP_LOOPS) {
 		full_av += (full_av_acc >> (7));
 		full_av >>= 1;
 		//full_av = full_av_acc / count;
 		full_av_acc = 0;
-		for (int i=0; i < MUXES_COUNT; ++i) {
 
+		for (int i=0; i < MUXES_COUNT; ++i) {
+#define MUX_MIX 2 // mix in 1/4 of the current average to the running average. -> (@mux_mix = 2)
 			adc_mux_averages[i] = (adc_mux_averages[i] << MUX_MIX) - adc_mux_averages[i];
 			adc_mux_averages[i] += (mux_averages[i] >> 4);
 			adc_mux_averages[i] >>= MUX_MIX;
 
 			mux_averages[i] = 0;
 		}
-
 	}
+#endif
+
+// av = (av << shift) - av + sample; av >>= shift
+// e.g. 1 -> (av + sample) / 2 simple average of new and old
+//      2 -> (3 * av + sample) / 4 i.e. 3:1 mix of old to new.
+//      3 -> (7 * av + sample) / 8 i.e. 7:1 mix of old to new.
+#define KEYS_AVERAGES_MIX_SHIFT 3
+
+	/** aggregate if booting, or if idle;
+	 * else, if not booting, check for dirty USB.
+	 * */
 
 	idle_count++;
 	idle_count &= IDLE_COUNT_MASK;
 
-	if (/*usb_dirty &&*/ (count >= WARMUP_LOOPS) ) {
-		for (int i=0; i<STROBE_LINES; ++i) {
-			usb_keymap[i] = cur_keymap[i];
+	idle = idle && !keys_down;
+
+	if (boot_count < WARMUP_LOOPS) {
+		error = 0x0C;
+		error_data = boot_count;
+		boot_count++;
+	} else { // count >= WARMUP_LOOPS
+		if (usb_dirty) {
+			for (int i=0; i<STROBE_LINES; ++i) {
+				usb_keymap[i] = cur_keymap[i];
+			}
+
+			dumpkeys();
+			usb_dirty=0;
+			memset(((void *)keys_averages_acc), 0, (size_t)(KEY_COUNT * sizeof (uint16_t)));
+			keys_averages_acc_count = 0;
+			idle_count = 0;
+			idle = 0;
+			_delay_us(100);
 		}
 
-		dumpkeys();
-		usb_dirty=0;
-		_delay_ms(2);
-	}
+		if (!idle_count) {
+			if(idle) {
+				// aggregate
+				for (uint8_t i = 0; i < KEY_COUNT; ++i) {
+					uint16_t acc = keys_averages_acc[i] >> IDLE_COUNT_SHIFT;
+					uint32_t av = keys_averages[i];
 
-	if (count < WARMUP_LOOPS) {
-		for (uint8_t i = 0; i < KEY_COUNT; ++i) {
-			uint16_t acc = keys_averages_acc[i];
-			uint32_t av = keys_averages[i];
+					av = (av << KEYS_AVERAGES_MIX_SHIFT) - av + acc;
+					av >>= KEYS_AVERAGES_MIX_SHIFT;
 
-			av = av + av + av + acc;
-			av >>= 2;
+					keys_averages[i] = av;
+					keys_averages_acc[i] = 0;
+				}
+			}
+			keys_averages_acc_count = 0;
 
-			keys_averages[i] = av;
-			keys_averages_acc[i] = 0;
-		}
-	}
+			if(boot_count >= WARMUP_LOOPS) {
+				dump();
+			}
 
-
-	if(!idle_count) {
-
-		for (int i=0; i< KEY_COUNT; ++i) {
-			keys_averages_acc[i] = 0;
+			sampleColumn(0x0); // to resync us if we dumped a mess 'o text.
 		}
 
-		sampleColumn(0x0); // to resync us if we dumped a mess 'o text.
 	}
 
 
@@ -542,8 +593,7 @@ void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 }
 
 
-void
-_delay_loop(uint8_t __count)
+void _delay_loop(uint8_t __count)
 {
 	__asm__ volatile (
 		"1: dec %0" "\n\t"
@@ -606,7 +656,6 @@ void setup_ADC (void) {
 
 	ADCSRA |= (1 << ADEN); // ADC enable
 	ADCSRA |= (1 << ADSC); // start conversions q
-
 }
 
 
@@ -617,15 +666,23 @@ void recovery(uint8_t on) {
 	DDRB &= ~(1 << RECOVERY_SOURCE);  // SOURCE high imp
 
 	if(on) {
-		DDRB |= (1 << RECOVERY_SINK);	// SINK pull
+		// set strobes to sink to gnd.
+		DDRC |= C_MASK;
+		DDRD |= D_MASK;
+		DDRE |= E_MASK;
 
+		PORTC &= ~C_MASK;
+		PORTD &= ~D_MASK;
+		PORTE &= ~E_MASK;
+
+		DDRB |= (1 << RECOVERY_SINK);	// SINK pull
 
 		PORTB |= (1 << RECOVERY_CONTROL);
 
 		PORTB |= (1 << RECOVERY_SOURCE); // SOURCE high
 		DDRB |= (1 << RECOVERY_SOURCE);
 	} else {
-		_delay_loop(10);
+//		_delay_loop(10);
 		PORTB &= ~(1 << RECOVERY_CONTROL);
 
 		DDRB &= ~(1 << RECOVERY_SOURCE);
@@ -633,6 +690,17 @@ void recovery(uint8_t on) {
 		DDRB &= ~(1 << RECOVERY_SINK);	// SINK high-imp
 
 		//DDRB &= ~(1 << RECOVERY_SINK);
+	}
+}
+
+
+void hold_sample(uint8_t on) {
+	if (!on) {
+		PORTB |= (1 << SAMPLE_CONTROL);
+		DDRB |= (1 << SAMPLE_CONTROL);
+	} else {
+		DDRB |= (1 << SAMPLE_CONTROL);
+		PORTB &= ~(1 << SAMPLE_CONTROL);
 	}
 }
 
@@ -729,193 +797,168 @@ void strobe_w(uint8_t strobe_num) {
 		break;
 	}
 
-}
 
-#if 0
-int sampleColumn_i(uint8_t column, uint8_t muxes, int16_t * buffer) {
+#if 0 // New code from dfj -> still needs redoing for kishsaver and autodetection of strobes
+#ifdef SHORT_C
+	strobe_num = 15 - strobe_num;
+#endif
 
-	// ensure all probe lines are driven low, and chill for recovery delay.
-	PORTC &= ~C_MASK;
-	PORTD &= ~D_MASK;
-	PORTE &= ~E_MASK;
-	recovery(1);
-	_delay_us(RECOVERY_US);
-	recovery(0);
+#ifdef SINGLE_COLUMN_TEST
+	strobe_num = 5;
+#endif
 
-	//uint8_t index = 0;
+	switch(strobe_num) {
 
-	for (uint8_t i=0; i<8; ++i) {
-		if(muxes & (1 << i)) {
-			buffer[index++] = i;
-		}
+	case 0: PORTD |= (1 << 0); DDRD &= ~(1 << 0); break;
+	case 1: PORTD |= (1 << 1); DDRD &= ~(1 << 1); break;
+	case 2: PORTD |= (1 << 2); DDRD &= ~(1 << 2); break;
+	case 3: PORTD |= (1 << 3); DDRD &= ~(1 << 3); break;
+	case 4: PORTD |= (1 << 4); DDRD &= ~(1 << 4); break;
+	case 5: PORTD |= (1 << 5); DDRD &= ~(1 << 5); break;
+
+#ifdef ALL_D
+
+	case 6: PORTD |= (1 << 6); break;
+	case 7: PORTD |= (1 << 7); break;
+
+	case 8:  PORTC |= (1 << 0); break;
+	case 9:  PORTC |= (1 << 1); break;
+	case 10: PORTC |= (1 << 2); break;
+	case 11: PORTC |= (1 << 3); break;
+	case 12: PORTC |= (1 << 4); break;
+	case 13: PORTC |= (1 << 5); break;
+	case 14: PORTC |= (1 << 6); break;
+	case 15: PORTC |= (1 << 7); break;
+
+	case 16: PORTE |= (1 << 0); break;
+	case 17: PORTE |= (1 << 1); break;
+
+#else
+#ifdef SHORT_D
+
+	case 6: PORTE |= (1 << 0); break;
+	case 7: PORTE |= (1 << 1); break;
+
+	case 8:  PORTC |= (1 << 0); break;
+	case 9:  PORTC |= (1 << 1); break;
+	case 10: PORTC |= (1 << 2); break;
+	case 11: PORTC |= (1 << 3); break;
+	case 12: PORTC |= (1 << 4); break;
+	case 13: PORTC |= (1 << 5); break;
+	case 14: PORTC |= (1 << 6); break;
+	case 15: PORTC |= (1 << 7); break;
+
+#else
+#ifdef SHORT_C
+
+	case 6: PORTD |= (1 << 6); DDRD &= ~(1 << 6); break;
+	case 7: PORTD |= (1 << 7); DDRD &= ~(1 << 7); break;
+
+	case 8: PORTE |= (1 << 0); DDRE &= ~(1 << 0); break;
+	case 9: PORTE |= (1 << 1); DDRE &= ~(1 << 1); break;
+
+	case 10:  PORTC |= (1 << 0); DDRC &= ~(1 << 0); break;
+	case 11:  PORTC |= (1 << 1); DDRC &= ~(1 << 1); break;
+	case 12: PORTC |= (1 << 2); DDRC &= ~(1 << 2); break;
+	case 13: PORTC |= (1 << 3); DDRC &= ~(1 << 3); break;
+	case 14: PORTC |= (1 << 4); DDRC &= ~(1 << 4); break;
+	case 15: PORTC |= (1 << 5); DDRC &= ~(1 << 5); break;
+
+	case 16: PORTC |= (1 << 6); DDRC &= ~(1 << 6); break;
+	case 17: PORTC |= (1 << 7); DDRC &= ~(1 << 7); break;
+
+#endif
+#endif
+#endif
+
+	default:
+		break;
 	}
 
-	SET_FULL_MUX(MUX_1_1); // crap sample will use this.
-	ADCSRA |= (1 << ADEN) | (1 << ADSC); // enable and start conversions
-	ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
-
-	//uint16_t sample;
-
-	while (! (ADCSRA & (1 << ADIF))); // wait until ready.
-	sample = ADC; // 1st sample, icky.
-	//ADC; // 1st sample, icky. XXX Not sure if the compiler throws this away, but less compiler warnings -HaaTa
-
-	strobe_w(column);
-	//recovery(0);
-
-	/**
-	 * we are running in continuous mode, so we must setup the next
-	 * read _before_ the current read completes.
-	 *
-	 * setup 0,
-	 * read garbage,
-	 * do not store
-	 *
-	 * setup 1,
-	 * read 0,
-	 * store 0,
-	 *
-	 * ...
-	 *
-	 * setup junk,
-	 * read n
-	 * store n
-	 *
-	 * */
+#endif
 
 
+}
+
+
+inline uint16_t getADC() {
 	ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
 	//wait for last read to complete.
 	while (! (ADCSRA & (1 << ADIF)));
-	sample = ADC; // throw away strobe'd value.
-	//ADC; // throw away strobe'd value.
-
-#if 0
-	for (uint8_t i=0; i <= index; ++i) {
-
-		// setup i'th read.
-		SET_FULL_MUX(buffer[i]); // _next_ read will use this.
-		// wait for i-1'th read to complete:
-		ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
-		while (! (ADCSRA & (1 << ADIF)));
-
-		// retrieve last (i-1'th) read.
-		if (i) {
-			buffer[i-1] = ADC - OFFSET_VOLTAGE;
-		} /*else {
-			buffer[0] = ADC - OFFSET_VOLTAGE;
-		}*/
-
-		//index++;
-	}
-#else
-	for (uint8_t i=0; i < index; ++i) {
-
-		// setup i'th read.
-		SET_FULL_MUX(buffer[i]); // _next_ read will use this.
-
-		ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
-		while (! (ADCSRA & (1 << ADIF)));
-		sample = ADC; // throw away warmup value.
-		//ADC; // throw away warmup value.
-
-
-
-		/*
-		ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
-		while (! (ADCSRA & (1 << ADIF)));
-		//sample = ADC; // throw away warmup value.
-		ADC; // throw away warmup value.
-*/
-
-		ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
-		while (! (ADCSRA & (1 << ADIF)));
-
-		// retrieve current read.
-		buffer[i] = ADC - OFFSET_VOLTAGE;
-
-
-	}
-#endif
-
-
-	// turn off adc.
-	ADCSRA &= ~(1 << ADEN);
-
-	// pull all columns' probe-lines low.
-	PORTC &= ~C_MASK;
-	PORTD &= ~D_MASK;
-	PORTE &= ~E_MASK;
-
-	// test for humps. :/
-	/*uint16_t delta = full_av;
-	if(buffer[0] > BUMP_THRESHOLD + delta) {
-		// ze horror.
-		return 1;
-	} else {
-		return 0; //all good.
-	}*/
-	return 0;
-
+	return ADC; // return sample
 }
-#endif
 
 
-int sampleColumn_k(uint8_t column, int16_t * buffer) {
+int sampleColumn_8x(uint8_t column, uint16_t * buffer) {
 	// ensure all probe lines are driven low, and chill for recovery delay.
 	uint16_t sample;
 
 	ADCSRA |= (1 << ADEN) | (1 << ADSC); // enable and start conversions
-	ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
 
 	// sync up with adc clock:
-	while (! (ADCSRA & (1 << ADIF))); // wait until ready.
-	//ADC; // throw it away. // XXX Not sure if the compiler throws this away, but less compiler warnings -HaaTa
-	sample = ADC; // throw it away.
+	//sample = getADC();
 
+	PORTC &= ~C_MASK;
+	PORTD &= ~D_MASK;
+	PORTE &= ~E_MASK;
+
+	PORTF = 0;
+	DDRF = 0;
+
+	recovery(OFF);
+	strobe_w(column);
+
+	hold_sample(OFF);
+	SET_FULL_MUX(0);
+	for(uint8_t i=0; i < STROBE_SETTLE; ++i) {
+		sample = getADC();
+	}
+	hold_sample(ON);
+
+#undef MUX_SETTLE
+
+#if (MUX_SETTLE)
 	for(uint8_t mux=0; mux < 8; ++mux) {
 
-		PORTC &= ~C_MASK;
-		PORTD &= ~D_MASK;
-		PORTE &= ~E_MASK;
-
 		SET_FULL_MUX(mux); // our sample will use this
-
-		for(uint8_t i=0; i < 2; ++i) {
-			ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
-			//wait for last read to complete.
-			while (! (ADCSRA & (1 << ADIF)));
-			sample = ADC; // throw away strobe'd value.
-			//ADC; // throw away strobe'd value.
+		// wait for mux to settle.
+		for(uint8_t i=0; i < MUX_SETTLE; ++i) {
+			sample = getADC();
 		}
 
-		recovery(0);
-		strobe_w(column);
-
-		ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
-		//wait for last read to complete.
-		while (! (ADCSRA & (1 << ADIF)));
-		sample = ADC; // throw away strobe'd value.
-		//ADC; // throw away strobe'd value.
-
-		ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
-		while (! (ADCSRA & (1 << ADIF)));
 
 		// retrieve current read.
-		buffer[mux] = ADC - OFFSET_VOLTAGE;
-		recovery(1);
+		buffer[mux] = getADC();// - OFFSET_VOLTAGE;
 
 	}
+#else
+	uint8_t mux=0;
+	SET_FULL_MUX(mux);
+	sample = getADC(); // throw away; unknown mux.
+	do {
+		SET_FULL_MUX(mux + 1); // our *next* sample will use this
+
+		// retrieve current read.
+		buffer[mux] = getADC();// - OFFSET_VOLTAGE;
+		mux++;
+
+	} while (mux < 8);
+
+#endif
+	hold_sample(OFF);
+	recovery(ON);
 
 	// turn off adc.
 	ADCSRA &= ~(1 << ADEN);
 
-	// pull all columns' probe-lines low.
+	// pull all columns' strobe-lines low.
+	DDRC |= C_MASK;
+	DDRD |= D_MASK;
+	DDRE |= E_MASK;
+
 	PORTC &= ~C_MASK;
 	PORTD &= ~D_MASK;
 	PORTE &= ~E_MASK;
-//		recovery(1);
-
 
 	return 0;
 }
@@ -924,14 +967,10 @@ int sampleColumn_k(uint8_t column, int16_t * buffer) {
 int sampleColumn(uint8_t column) {
 	int rval = 0;
 
-	/*
-	sampleColumn_i(column, 0x0f, samples+SAMPLE_OFFSET);
-	sampleColumn_i(column, 0xf0, samples+SAMPLE_OFFSET + 4 );
-*/
+	//rval = sampleColumn_k(column, samples+SAMPLE_OFFSET);
+	rval = sampleColumn_8x(column, samples+SAMPLE_OFFSET);
 
-	rval = sampleColumn_k(column, samples+SAMPLE_OFFSET);
-
-	//for(uint8_t i=0; i<1; ++i) { // TODO REMOVEME
+#if (BUMP_DETECTION)
 	for(uint8_t i=0; i<8; ++i) {
 		if(samples[SAMPLE_OFFSET + i] - adc_mux_averages[i] > BUMP_THRESHOLD) {
 			// was a hump
@@ -943,34 +982,36 @@ int sampleColumn(uint8_t column) {
 			return rval;
 		}
 	}
+#endif
 
 	return rval;
 }
 
 
 uint8_t testColumn(uint8_t strobe) {
-    uint8_t column = 0;
-    uint8_t bit = 1;
-    for (uint8_t i=0; i < MUXES_COUNT; ++i) {
+	uint8_t column = 0;
+	uint8_t bit = 1;
+	for (uint8_t i=0; i < MUXES_COUNT; ++i) {
 		uint16_t delta = keys_averages[(strobe << MUXES_COUNT_XSHIFT) + i];
-		if ((int16_t)samples[SAMPLE_OFFSET + i] > threshold + delta) {
+		if ((db_sample = samples[SAMPLE_OFFSET + i] >> 1) > (db_threshold = threshold)  + (db_delta = delta)) {
 			column |= bit;
 		}
 		bit <<= 1;
 	}
-    return column;
+	return column;
 }
 
 
 void dumpkeys(void) {
 	//print(" \n");
 	if(error) {
+		/*
 		if (count >= WARMUP_LOOPS && error) {
 			dump();
 		}
+		*/
 
 		// Key scan debug
-		/*
 		for (uint8_t i=0; i < STROBE_LINES; ++i) {
 				printHex(usb_keymap[i]);
 				print(" ");
@@ -983,7 +1024,6 @@ void dumpkeys(void) {
 		printHex(error_data);
 		error_data = 0;
 		print(" : " NL);
-		*/
 	}
 
 	// XXX Will be cleaned up eventually, but this will do for now :P -HaaTa
@@ -1013,6 +1053,8 @@ void dumpkeys(void) {
 
 void dump(void) {
 
+#define DEBUG_FULL_SAMPLES_AVERAGES
+#ifdef DEBUG_FULL_SAMPLES_AVERAGES
 	if(!dump_count) {  // we don't want to debug-out during the measurements.
 
 		// Averages currently set per key
@@ -1023,7 +1065,6 @@ void dump(void) {
 				print("  ");
 			}
 			print(" ");
-			//printHex (keys_averages[(i >> MUXES_COUNT_XSHIFT) + (i & STROBE_LINES_MASK) ]);
 			printHex (keys_averages[i]);
 		}
 
@@ -1037,20 +1078,18 @@ void dump(void) {
 				print("  ");
 			}
 			print(" ");
-			//printHex (keys_averages[(i >> MUXES_COUNT_XSHIFT) + (i & STROBE_LINES_MASK) ]);
-			//printHex (keys_averages_acc[i]);
 			printHex(full_samples[i]);
 		}
 	}
+#endif
 
+#ifdef DEBUG_STROBE_SAMPLES_AVERAGES
 	// Per strobe information
-//	uint8_t cur_strober = 0xe;
 	uint8_t cur_strober = ze_strober;
 	print("\n");
 
 	printHex(cur_strober);
-	//print(":         ");
-#if 1
+
 	// Previously read ADC scans on current strobe
 	print(" :");
 	for (uint8_t i=0; i < MUXES_COUNT; ++i) {
@@ -1060,88 +1099,43 @@ void dump(void) {
 
 	// Averages current set on current strobe
 	print(" :");
-//	printHex(threshold);
+
 	for (uint8_t i=0; i < MUXES_COUNT; ++i) {
 		print(" ");
 		printHex(keys_averages[(cur_strober << MUXES_COUNT_XSHIFT) + i]);
 	}
 
 #endif
-	/*
-	for (uint8_t i=0; i< SAMPLES; ++i) {
-		print(" ");
-		printHex(samples[i]);
-		//printHex(ADC);
-	}*/
-	//print(" : ");
-	//dPrint((was_active)?" ":"*");
 
-	//printHex(keymap[TEST_KEY_STROBE] & TEST_KEY_MASK);
-	/*print(" "); */
-	//printHex(keymap[TEST_KEY_STROBE]);
+#ifdef DEBUG_DELTA_SAMPLE_THRESHOLD
+	print("\n");
+	//uint16_t db_delta = 0;
+	//uint16_t db_sample = 0;
+	//uint16_t db_threshold = 0;
+	printHex( db_delta );
+	print(" ");
+	printHex( db_sample );
+	print(" ");
+	printHex( db_threshold );
+	print(" ");
+	printHex( column );
+#endif
 
-
-	//print("\n");
-	//print(":");
-	//printHex(full_av);
-	//printHex(count);
-	//print(" : ");
+#define DEBUG_USB_KEYMAP
+#ifdef DEBUG_USB_KEYMAP
 	print("\n      ");
 
 	// Current keymap values
 	for (uint8_t i=0; i < STROBE_LINES; ++i) {
 		printHex(cur_keymap[i]);
 		print(" ");
-
-		//print(" ");
 	}
-
-
-	//print(": ");
-	//printHex(adc_strobe_averages[ze_strober]);
-	//print(" ");
-
-
-	/* Already printing this above...
-	for (uint8_t i=0; i < MUXES_COUNT; ++i) {
-		print(" ");
-		//printHex(adc_mux_averages[i] + adc_strobe_averages[ze_strober] - full_av);
-		//printHex((adc_mux_averages[i] + adc_strobe_averages[ze_strober]) >> 1);
-		//printHex((adc_mux_averages[i] * 3  + adc_strobe_averages[ze_strober]) >> 2);
-		//printHex(adc_mux_averages[i] + threshold);
-		//printHex(gsamples[i + SAMPLE_OFFSET] - (adc_mux_averages[i] + threshold) + 0x100);
-		//printHex(keys_averages[(ze_strober << MUXES_COUNT_XSHIFT) + i] + (uint8_t)threshold);
-		printHex(keys_averages[(ze_strober << MUXES_COUNT_XSHIFT) + i]);
-	}
-	*/
-
-	/* Being printed in dumpkeys()
-	if(error) {
-		print(" ");
-		printHex(error);
-		print(" ");
-		printHex(error_data);
-		error = 0;
-		error_data = 0;
-	}
-	//print("\n");
-	*/
+#endif
 
 	ze_strober++;
 	ze_strober &= 0xf;
 
-
 	dump_count++;
 	dump_count &= 0x0f;
-
-
-
-	//ze_strobe = (1 << (ze_strober ) );
-
-
-
-	//printHex(ADCSRA);
-	//print(" ");
-	//print("\n");
 }
 
