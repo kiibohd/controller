@@ -83,7 +83,7 @@ inline void usb_setup(void)
 
 	// Wait an extra second for the PC's operating system to load drivers
 	// and do whatever it does to actually be ready for input
-	_delay_ms(1000);
+	//_delay_ms(1000); // TODO
 }
 
 

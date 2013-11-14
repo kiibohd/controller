@@ -274,7 +274,7 @@ void dumpkeys( void );
 void recovery( uint8_t on );
 
 int sampleColumn  ( uint8_t column );
-int sampleColumn_i( uint8_t column, uint8_t muxes, int16_t * buffer); // XXX Not currently used
+//int sampleColumn_i( uint8_t column, uint8_t muxes, int16_t * buffer); // XXX Not currently used
 int sampleColumn_k( uint8_t column, int16_t *buffer );
 
 void setup_ADC( void );
@@ -639,23 +639,36 @@ void recovery(uint8_t on) {
 
 void strobe_w(uint8_t strobe_num) {
 
-	PORTC &= ~(D_MASK);
+	PORTC &= ~(C_MASK);
 	PORTD &= ~(D_MASK);
 	PORTE &= ~(E_MASK);
 
 #ifdef SHORT_C
 	strobe_num = 15 - strobe_num;
 #endif
+	/*
+	printHex( strobe_num );
+	print(" ");
+	strobe_num = 9 - strobe_num;
+	printHex( strobe_num );
+	print("\n");
+	*/
 
 	switch(strobe_num) {
 
-	case 0: PORTD |= (1 << 0); break;
-	case 1: PORTD |= (1 << 1); break;
+	// XXX Kishsaver strobe (note that D0, D1 are not used)
 	case 2: PORTD |= (1 << 2); break;
 	case 3: PORTD |= (1 << 3); break;
 	case 4: PORTD |= (1 << 4); break;
 	case 5: PORTD |= (1 << 5); break;
 
+	// TODO REMOVEME
+	case 6: PORTD |= (1 << 6); break;
+	case 7: PORTD |= (1 << 7); break;
+	case 8: PORTE |= (1 << 0); break;
+	case 9: PORTE |= (1 << 1); break;
+	case 15: PORTC |= (1 << 5); break;
+/*
 #ifdef ALL_D
 
 	case 6: PORTD |= (1 << 6); break;
@@ -710,6 +723,7 @@ void strobe_w(uint8_t strobe_num) {
 #endif
 #endif
 #endif
+*/
 
 	default:
 		break;
@@ -717,7 +731,7 @@ void strobe_w(uint8_t strobe_num) {
 
 }
 
-
+#if 0
 int sampleColumn_i(uint8_t column, uint8_t muxes, int16_t * buffer) {
 
 	// ensure all probe lines are driven low, and chill for recovery delay.
@@ -728,7 +742,7 @@ int sampleColumn_i(uint8_t column, uint8_t muxes, int16_t * buffer) {
 	_delay_us(RECOVERY_US);
 	recovery(0);
 
-	uint8_t index = 0;
+	//uint8_t index = 0;
 
 	for (uint8_t i=0; i<8; ++i) {
 		if(muxes & (1 << i)) {
@@ -743,8 +757,8 @@ int sampleColumn_i(uint8_t column, uint8_t muxes, int16_t * buffer) {
 	//uint16_t sample;
 
 	while (! (ADCSRA & (1 << ADIF))); // wait until ready.
-	//sample = ADC; // 1st sample, icky.
-	ADC; // 1st sample, icky. XXX Not sure if the compiler throws this away, but less compiler warnings -HaaTa
+	sample = ADC; // 1st sample, icky.
+	//ADC; // 1st sample, icky. XXX Not sure if the compiler throws this away, but less compiler warnings -HaaTa
 
 	strobe_w(column);
 	//recovery(0);
@@ -773,8 +787,8 @@ int sampleColumn_i(uint8_t column, uint8_t muxes, int16_t * buffer) {
 	ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
 	//wait for last read to complete.
 	while (! (ADCSRA & (1 << ADIF)));
-	//sample = ADC; // throw away strobe'd value.
-	ADC; // throw away strobe'd value.
+	sample = ADC; // throw away strobe'd value.
+	//ADC; // throw away strobe'd value.
 
 #if 0
 	for (uint8_t i=0; i <= index; ++i) {
@@ -802,8 +816,8 @@ int sampleColumn_i(uint8_t column, uint8_t muxes, int16_t * buffer) {
 
 		ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
 		while (! (ADCSRA & (1 << ADIF)));
-		//sample = ADC; // throw away warmup value.
-		ADC; // throw away warmup value.
+		sample = ADC; // throw away warmup value.
+		//ADC; // throw away warmup value.
 
 
 
@@ -844,19 +858,20 @@ int sampleColumn_i(uint8_t column, uint8_t muxes, int16_t * buffer) {
 	return 0;
 
 }
+#endif
 
 
 int sampleColumn_k(uint8_t column, int16_t * buffer) {
 	// ensure all probe lines are driven low, and chill for recovery delay.
-	//uint16_t sample;
+	uint16_t sample;
 
 	ADCSRA |= (1 << ADEN) | (1 << ADSC); // enable and start conversions
 	ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
 
 	// sync up with adc clock:
 	while (! (ADCSRA & (1 << ADIF))); // wait until ready.
-	ADC; // throw it away. // XXX Not sure if the compiler throws this away, but less compiler warnings -HaaTa
-	//sample = ADC; // throw it away.
+	//ADC; // throw it away. // XXX Not sure if the compiler throws this away, but less compiler warnings -HaaTa
+	sample = ADC; // throw it away.
 
 	for(uint8_t mux=0; mux < 8; ++mux) {
 
@@ -870,8 +885,8 @@ int sampleColumn_k(uint8_t column, int16_t * buffer) {
 			ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
 			//wait for last read to complete.
 			while (! (ADCSRA & (1 << ADIF)));
-			//sample = ADC; // throw away strobe'd value.
-			ADC; // throw away strobe'd value.
+			sample = ADC; // throw away strobe'd value.
+			//ADC; // throw away strobe'd value.
 		}
 
 		recovery(0);
@@ -880,8 +895,8 @@ int sampleColumn_k(uint8_t column, int16_t * buffer) {
 		ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
 		//wait for last read to complete.
 		while (! (ADCSRA & (1 << ADIF)));
-		//sample = ADC; // throw away strobe'd value.
-		ADC; // throw away strobe'd value.
+		sample = ADC; // throw away strobe'd value.
+		//ADC; // throw away strobe'd value.
 
 		ADCSRA |= (1 << ADIF); // clear int flag by writing 1.
 		while (! (ADCSRA & (1 << ADIF)));
@@ -916,6 +931,7 @@ int sampleColumn(uint8_t column) {
 
 	rval = sampleColumn_k(column, samples+SAMPLE_OFFSET);
 
+	//for(uint8_t i=0; i<1; ++i) { // TODO REMOVEME
 	for(uint8_t i=0; i<8; ++i) {
 		if(samples[SAMPLE_OFFSET + i] - adc_mux_averages[i] > BUMP_THRESHOLD) {
 			// was a hump
@@ -949,14 +965,15 @@ uint8_t testColumn(uint8_t strobe) {
 void dumpkeys(void) {
 	//print(" \n");
 	if(error) {
+		if (count >= WARMUP_LOOPS && error) {
+			dump();
+		}
+
+		// Key scan debug
+		/*
 		for (uint8_t i=0; i < STROBE_LINES; ++i) {
 				printHex(usb_keymap[i]);
 				print(" ");
-
-				//print(" ");
-		}
-		if (count >= WARMUP_LOOPS && error) {
-			dump();
 		}
 
 		print(" : ");
@@ -966,6 +983,7 @@ void dumpkeys(void) {
 		printHex(error_data);
 		error_data = 0;
 		print(" : " NL);
+		*/
 	}
 
 	// XXX Will be cleaned up eventually, but this will do for now :P -HaaTa
@@ -976,16 +994,19 @@ void dumpkeys(void) {
 
 				// Add to the Macro processing buffer
 				// Automatically handles converting to a USB code and sending off to the PC
-				bufferAdd( key );
+				//bufferAdd( key );
 
-				if(usb_dirty) {
+				if(usb_dirty)
+				{
+				/*
 					printHex( key );
 					print(" ");
+				*/
 				}
 			}
 		}
 	}
-	if(usb_dirty) print("\n");
+	//if(usb_dirty) print("\n");
 	usb_keyboard_send();
 }
 
@@ -994,6 +1015,7 @@ void dump(void) {
 
 	if(!dump_count) {  // we don't want to debug-out during the measurements.
 
+		// Averages currently set per key
 		for(int i =0; i< KEY_COUNT; ++i) {
 			if(!(i & 0x0f)) {
 				print("\n");
@@ -1007,6 +1029,7 @@ void dump(void) {
 
 		print("\n");
 
+		// Previously read full ADC scans?
 		for(int i =0; i< KEY_COUNT; ++i) {
 			if(!(i & 0x0f)) {
 				print("\n");
@@ -1020,27 +1043,24 @@ void dump(void) {
 		}
 	}
 
-
-	//}
-
+	// Per strobe information
 //	uint8_t cur_strober = 0xe;
 	uint8_t cur_strober = ze_strober;
 	print("\n");
 
 	printHex(cur_strober);
 	//print(":         ");
-	print(": ");
 #if 1
-	print("\n");
+	// Previously read ADC scans on current strobe
+	print(" :");
 	for (uint8_t i=0; i < MUXES_COUNT; ++i) {
 		print(" ");
 		printHex(full_samples[(cur_strober << MUXES_COUNT_XSHIFT) + i]);
 	}
 
-	print("\n");
+	// Averages current set on current strobe
+	print(" :");
 //	printHex(threshold);
-//	print(": ");
-
 	for (uint8_t i=0; i < MUXES_COUNT; ++i) {
 		print(" ");
 		printHex(keys_averages[(cur_strober << MUXES_COUNT_XSHIFT) + i]);
@@ -1066,8 +1086,9 @@ void dump(void) {
 	//printHex(full_av);
 	//printHex(count);
 	//print(" : ");
-	print("\n");
+	print("\n      ");
 
+	// Current keymap values
 	for (uint8_t i=0; i < STROBE_LINES; ++i) {
 		printHex(cur_keymap[i]);
 		print(" ");
@@ -1081,7 +1102,7 @@ void dump(void) {
 	//print(" ");
 
 
-
+	/* Already printing this above...
 	for (uint8_t i=0; i < MUXES_COUNT; ++i) {
 		print(" ");
 		//printHex(adc_mux_averages[i] + adc_strobe_averages[ze_strober] - full_av);
@@ -1092,7 +1113,9 @@ void dump(void) {
 		//printHex(keys_averages[(ze_strober << MUXES_COUNT_XSHIFT) + i] + (uint8_t)threshold);
 		printHex(keys_averages[(ze_strober << MUXES_COUNT_XSHIFT) + i]);
 	}
+	*/
 
+	/* Being printed in dumpkeys()
 	if(error) {
 		print(" ");
 		printHex(error);
@@ -1102,6 +1125,7 @@ void dump(void) {
 		error_data = 0;
 	}
 	//print("\n");
+	*/
 
 	ze_strober++;
 	ze_strober &= 0xf;
@@ -1118,6 +1142,6 @@ void dump(void) {
 
 	//printHex(ADCSRA);
 	//print(" ");
-			//print("\n");
+	//print("\n");
 }
 
