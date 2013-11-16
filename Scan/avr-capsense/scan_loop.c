@@ -123,6 +123,7 @@
 
 #define SAMPLE_CONTROL 3
 
+//#define DEFAULT_KEY_BASE 0xc8
 #define DEFAULT_KEY_BASE 0x95
 
 #define KEY_COUNT ((STROBE_LINES) * (MUXES_COUNT))
@@ -242,7 +243,9 @@ uint8_t dirty;
 uint8_t unstable;
 uint8_t usb_dirty;
 
-uint16_t threshold = THRESHOLD;
+uint16_t threshold = 0x25; // HaaTa Hack -TODO
+//uint16_t threshold = 0x16; // HaaTa Hack -TODO
+//uint16_t threshold = THRESHOLD;
 uint16_t tests = 0;
 
 uint8_t col_a=0;
@@ -267,9 +270,9 @@ uint16_t boot_count = 0;
 uint16_t idle_count=0;
 uint8_t idle = 1;
 
-/*volatile*/ uint16_t count = 0;
+uint16_t count = 0;
 
-/*volatile*/ uint8_t error = 0;
+uint8_t error = 0;
 uint16_t error_data = 0;
 
 
@@ -293,9 +296,7 @@ void dumpkeys( void );
 
 void recovery( uint8_t on );
 
-int sampleColumn  ( uint8_t column );
-//int sampleColumn_i( uint8_t column, uint8_t muxes, int16_t * buffer); // XXX Not currently used
-int sampleColumn_k( uint8_t column, int16_t *buffer );
+int sampleColumn( uint8_t column );
 
 void setup_ADC( void );
 
@@ -313,14 +314,6 @@ inline void scan_setup()
 	// TODO dfj code...needs cleanup + commenting...
 	setup_ADC();
 
-	// Configure timer 0 to generate a timer overflow interrupt every
-	// 256*1024 clock cycles, or approx 61 Hz when using 16 MHz clock
-	// This demonstrates how to use interrupts to implement a simple
-	// inactivity timeout.
-	//TCCR0A = 0x00;
-	//TCCR0B = 0x05;
-	//TIMSK0 = (1<<TOIE0);
-
 	DDRC = C_MASK;
 	PORTC = 0;
 	DDRD = D_MASK;
@@ -335,7 +328,7 @@ inline void scan_setup()
 
 
 	// TODO all this code should probably be in scan_resetKeyboard
-	for (int i=0; i< STROBE_LINES; ++i) {
+	for (int i=0; i < STROBE_LINES; ++i) {
 		cur_keymap[i] = 0;
 		//last_keymap[i] = 0;
 		usb_keymap[i] = 0;
@@ -348,13 +341,13 @@ inline void scan_setup()
 		adc_strobe_averages[i] = 0x20; // yup.
 	}
 
-	for(int i=0; i< KEY_COUNT; ++i) {
+	for(int i=0; i < KEY_COUNT; ++i) {
 		keys_averages[i] = DEFAULT_KEY_BASE;
 		keys_averages_acc[i] = (DEFAULT_KEY_BASE);
 	}
 
 	/** warm things up a bit before we start collecting data, taking real samples. */
-	for(uint8_t i = 0; i< STROBE_LINES; ++i) {
+	for(uint8_t i = 0; i < STROBE_LINES; ++i) {
 		sampleColumn(i);
 	}
 
@@ -379,32 +372,14 @@ inline uint8_t scan_loop()
 		tries = 1;
 		while (tries++ && sampleColumn(strober)) { tries &= 0x7; } // don't waste this one just because the last one was poop.
 		column = testColumn(strober);
+
 		idle |= column; // if column has any pressed keys, then we are not idle.
 
-		if( column != cur_keymap[strober] && (count >= WARMUP_LOOPS) ) {
+		if( column != cur_keymap[strober] && (boot_count >= WARMUP_LOOPS) ) {
 			tests++;
 
-#if 0
-			tries = 1;
-			while (tries++ && sampleColumn(strober)) { tries &= 0x7; }
-			col_a = testColumn(strober);
-
-			tries = 1;
-			while (tries++ && sampleColumn(strober)) { tries &= 0x7; }
-			col_b = testColumn(strober);
-
-			tries = 1;
-			while (tries++ && sampleColumn(strober)) { tries &= 0x7; }
-			col_c = testColumn(strober);
-
-			if( (col_a == col_b) && (col_b == col_c) && (cur_keymap[strober] != col_a) ) {
-				cur_keymap[strober] = col_a;
-				usb_dirty = 1;
-			}
-#else
 			cur_keymap[strober] = column;
 			usb_dirty = 1;
-#endif
 		}
 
 		idle |= usb_dirty; // if any keys have changed inc. released, then we are not idle.
@@ -500,7 +475,7 @@ inline uint8_t scan_loop()
 		boot_count++;
 	} else { // count >= WARMUP_LOOPS
 		if (usb_dirty) {
-			for (int i=0; i<STROBE_LINES; ++i) {
+			for (int i=0; i < STROBE_LINES; ++i) {
 				usb_keymap[i] = cur_keymap[i];
 			}
 
@@ -712,7 +687,7 @@ void strobe_w(uint8_t strobe_num) {
 	PORTE &= ~(E_MASK);
 
 #ifdef SHORT_C
-	strobe_num = 15 - strobe_num;
+	//strobe_num = 15 - strobe_num;
 #endif
 	/*
 	printHex( strobe_num );
@@ -725,6 +700,8 @@ void strobe_w(uint8_t strobe_num) {
 	switch(strobe_num) {
 
 	// XXX Kishsaver strobe (note that D0, D1 are not used)
+	case 0: PORTD |= (1 << 0); break;
+	case 1: PORTD |= (1 << 1); break;
 	case 2: PORTD |= (1 << 2); break;
 	case 3: PORTD |= (1 << 3); break;
 	case 4: PORTD |= (1 << 4); break;
@@ -735,7 +712,22 @@ void strobe_w(uint8_t strobe_num) {
 	case 7: PORTD |= (1 << 7); break;
 	case 8: PORTE |= (1 << 0); break;
 	case 9: PORTE |= (1 << 1); break;
-	case 15: PORTC |= (1 << 5); break;
+	//case 15: PORTC |= (1 << 5); break; // Test strobe on kishsaver
+
+#if 0
+	// XXX Kishsaver strobe (note that D0, D1 are not used)
+	case 0: PORTD |= (1 << 2); break;
+	case 1: PORTD |= (1 << 3); break;
+	case 2: PORTD |= (1 << 4); break;
+	case 3: PORTD |= (1 << 5); break;
+
+	// TODO REMOVEME
+	case 4: PORTD |= (1 << 6); break;
+	case 5: PORTD |= (1 << 7); break;
+	case 6: PORTE |= (1 << 0); break;
+	case 7: PORTE |= (1 << 1); break;
+	case 15: PORTC |= (1 << 5); break; // Test strobe on kishsaver
+#endif
 /*
 #ifdef ALL_D
 
@@ -967,7 +959,6 @@ int sampleColumn_8x(uint8_t column, uint16_t * buffer) {
 int sampleColumn(uint8_t column) {
 	int rval = 0;
 
-	//rval = sampleColumn_k(column, samples+SAMPLE_OFFSET);
 	rval = sampleColumn_8x(column, samples+SAMPLE_OFFSET);
 
 #if (BUMP_DETECTION)
@@ -988,14 +979,35 @@ int sampleColumn(uint8_t column) {
 }
 
 
-uint8_t testColumn(uint8_t strobe) {
+uint8_t testColumn(uint8_t strobe)
+{
 	uint8_t column = 0;
 	uint8_t bit = 1;
-	for (uint8_t i=0; i < MUXES_COUNT; ++i) {
+	for (uint8_t i = 0; i < MUXES_COUNT; ++i)
+	{
 		uint16_t delta = keys_averages[(strobe << MUXES_COUNT_XSHIFT) + i];
-		if ((db_sample = samples[SAMPLE_OFFSET + i] >> 1) > (db_threshold = threshold)  + (db_delta = delta)) {
+
+		if ((db_sample = samples[SAMPLE_OFFSET + i] >> 1) > (db_threshold = threshold) + (db_delta = delta))
+		{
 			column |= bit;
 		}
+
+#ifdef THRESHOLD_VERIFICATION
+		if ( db_sample > 0xA0 )
+		{
+			printHex( db_sample );
+			print(" : ");
+			printHex( db_threshold );
+			print(" : ");
+			printHex( db_delta );
+			print(" :: ");
+			printHex( column );
+			print(" : ");
+			printHex( strobe );
+			print(NL);
+		}
+#endif
+
 		bit <<= 1;
 	}
 	return column;
@@ -1038,10 +1050,8 @@ void dumpkeys(void) {
 
 				if(usb_dirty)
 				{
-				/*
 					printHex( key );
-					print(" ");
-				*/
+					print("\n");
 				}
 			}
 		}
@@ -1053,7 +1063,7 @@ void dumpkeys(void) {
 
 void dump(void) {
 
-#define DEBUG_FULL_SAMPLES_AVERAGES
+//#define DEBUG_FULL_SAMPLES_AVERAGES
 #ifdef DEBUG_FULL_SAMPLES_AVERAGES
 	if(!dump_count) {  // we don't want to debug-out during the measurements.
 
@@ -1107,6 +1117,7 @@ void dump(void) {
 
 #endif
 
+//#define DEBUG_DELTA_SAMPLE_THRESHOLD
 #ifdef DEBUG_DELTA_SAMPLE_THRESHOLD
 	print("\n");
 	//uint16_t db_delta = 0;
@@ -1121,7 +1132,7 @@ void dump(void) {
 	printHex( column );
 #endif
 
-#define DEBUG_USB_KEYMAP
+//#define DEBUG_USB_KEYMAP
 #ifdef DEBUG_USB_KEYMAP
 	print("\n      ");
 
