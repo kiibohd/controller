@@ -132,6 +132,8 @@ A matrix Scan Module may inherit from the matrix module to scan keypress from a 
 This module just has to give press/release codes, but does have some callback control to other modules depending on the lifecycle for press/release codes (this can be very complicated depending on the protocol).
 Each Scan Module has it's own default keymap/modifier map. (TODO recommend keymap changing in the Macro Module).
 
+Some scan modules have very specialized hardware requirements, each module directory should have at least a link to the needed parts and/or schematics (TODO!).
+
 
 The Macro Module takes care of the mapping of the key press/release code into a USB scan code.
 Any layering, macros, keypress intelligence/reaction is done here.
