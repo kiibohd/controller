@@ -32,17 +32,11 @@
 // ----- Defines -----
 
 // TODO dfj defines...needs commenting and maybe some cleaning...
-#define MAX_PRESS_DELTA_MV 470
+#define MAX_PRESS_DELTA_MV 380
 #define THRESHOLD_MV (MAX_PRESS_DELTA_MV >> 1)
 //(2560 / (0x3ff/2)) ~= 5
 #define MV_PER_ADC 5
-// 5
-
 #define THRESHOLD (THRESHOLD_MV / MV_PER_ADC)
-
-#define BUMP_DETECTION 0
-#define BUMP_THRESHOLD 0x50
-#define BUMP_REST_US 1200
 
 #define STROBE_SETTLE 1
 #define MUX_SETTLE 1
@@ -81,8 +75,9 @@
 #define PRESCALE_SHIFT (ADPS0)
 #define PRESCALE 3
 
-// TODO Remove this define when unnecessary -HaaTa
-#define STROBE_LINES 16
+// Max number of strobes supported by the hardware
+// Strobe lines are detected at startup, extra strobes cause anomalies like phantom keypresses
+#define MAX_STROBES 18
 
 #define MUXES_COUNT 8
 #define MUXES_COUNT_XSHIFT 3
@@ -94,11 +89,12 @@
 #define SAMPLE_OFFSET ((SAMPLES) - MUXES_COUNT)
 #define SAMPLE_CONTROL 3
 
-// TODO Figure out calculation or best way to determine at startup -HaaTa
-//#define DEFAULT_KEY_BASE 0xc8
-#define DEFAULT_KEY_BASE 0x95
+// Starting average for keys, per key will adjust during runtime
+// XXX - A better method is needed to choose this value (i.e. not experimental)
+//       The ideal average is not always found for weak keys if this is set too high...
+#define DEFAULT_KEY_BASE 0xB0
 
-#define KEY_COUNT ((STROBE_LINES) * (MUXES_COUNT))
+#define KEY_COUNT ((MAX_STROBES) * (MUXES_COUNT))
 
 #define RECOVERY_CONTROL 1
 #define RECOVERY_SOURCE  0
@@ -147,21 +143,16 @@ uint8_t ze_strober = 0;
 
 uint16_t samples [SAMPLES];
 
-uint16_t adc_mux_averages   [MUXES_COUNT];
-uint16_t adc_strobe_averages[STROBE_LINES];
-
-uint8_t cur_keymap[STROBE_LINES];
+uint8_t cur_keymap[MAX_STROBES];
 
 uint8_t keymap_change;
 
-uint16_t threshold = 0x25; // HaaTa Hack -TODO
-//uint16_t threshold = 0x16; // HaaTa Hack -TODO
-//uint16_t threshold = THRESHOLD;
+uint16_t threshold = THRESHOLD;
 
 uint8_t column = 0;
 
 uint16_t keys_averages_acc[KEY_COUNT];
-uint16_t keys_averages[KEY_COUNT];
+uint16_t keys_averages    [KEY_COUNT];
 
 uint8_t full_samples[KEY_COUNT];
 
@@ -174,8 +165,8 @@ uint8_t idle = 1;
 uint8_t error = 0;
 uint16_t error_data = 0;
 
-uint16_t mux_averages[MUXES_COUNT];
-uint16_t strobe_averages[STROBE_LINES];
+uint8_t total_strobes = MAX_STROBES;
+uint8_t strobe_map[MAX_STROBES];
 
 uint8_t dump_count = 0;
 
@@ -216,27 +207,44 @@ inline void scan_setup()
 	DDRE  = E_MASK;
 	PORTE = 0 ;
 
+	// Hardcoded strobes for debugging
+	// Strobes start at 0 and go to 17 (18), not all Model Fs use all of the available strobes
+	// The single row ribbon connector Model Fs only have a max of 16 strobes
+#define KISHSAVER_STROBE
+#ifdef KISHSAVER_STROBE
+	total_strobes = 10;
+
+	strobe_map[0] = 1; // Kishsaver doesn't use strobe 0
+	strobe_map[1] = 2;
+	strobe_map[2] = 3;
+	strobe_map[3] = 4;
+	strobe_map[4] = 5;
+	strobe_map[5] = 6;
+	strobe_map[6] = 7;
+	strobe_map[7] = 8;
+	strobe_map[8] = 9;
+	strobe_map[9] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
+#else
+	// Strobe detection
+	// TODO
+#endif
 
 	// TODO all this code should probably be in scan_resetKeyboard
-	for (int i=0; i < STROBE_LINES; ++i) {
+	for ( int i = 0; i < total_strobes; ++i)
+	{
 		cur_keymap[i] = 0;
 	}
 
-	for(int i=0; i < MUXES_COUNT; ++i) {
-		adc_mux_averages[i] = 0x20; // experimentally determined.
-	}
-	for(int i=0; i < STROBE_LINES; ++i) {
-		adc_strobe_averages[i] = 0x20; // yup.
-	}
-
-	for(int i=0; i < KEY_COUNT; ++i) {
+	for ( int i = 0; i < KEY_COUNT; ++i )
+	{
 		keys_averages[i] = DEFAULT_KEY_BASE;
 		keys_averages_acc[i] = (DEFAULT_KEY_BASE);
 	}
 
 	/** warm things up a bit before we start collecting data, taking real samples. */
-	for(uint8_t i = 0; i < STROBE_LINES; ++i) {
-		sampleColumn(i);
+	for ( uint8_t i = 0; i < total_strobes; ++i )
+	{
+		sampleColumn( strobe_map[i] );
 	}
 
 
@@ -254,35 +262,20 @@ inline uint8_t scan_loop()
 	uint8_t strober = 0;
 	uint32_t full_av_acc = 0;
 
-	for (strober = 0; strober < STROBE_LINES; ++strober)
+	for (strober = 0; strober < total_strobes; ++strober)
 	{
 
 		uint8_t tries = 1;
-		while ( tries++ && sampleColumn( strober ) ) { tries &= 0x7; } // don't waste this one just because the last one was poop.
+		while ( tries++ && sampleColumn( strobe_map[strober] ) ) { tries &= 0x7; } // don't waste this one just because the last one was poop.
 		column = testColumn(strober);
 
 		idle |= column; // if column has any pressed keys, then we are not idle.
 
+		// TODO Is this needed anymore? Really only helps debug -HaaTa
 		if( column != cur_keymap[strober] && ( boot_count >= WARMUP_LOOPS ) )
 		{
 			cur_keymap[strober] = column;
 			keymap_change = 1;
-
-			// The keypresses on this strobe are now know, send them right away
-			for ( uint8_t mux = 0; mux < MUXES_COUNT; ++mux )
-			{
-				if ( column & (1 << mux) )
-				{
-					uint8_t key = (strober << MUXES_COUNT_XSHIFT) + mux;
-
-					// Add to the Macro processing buffer
-					// Automatically handles converting to a USB code and sending off to the PC
-					//bufferAdd( key );
-
-					printHex( key );
-					print("\n");
-				}
-			}
 		}
 
 		idle |= keymap_change; // if any keys have changed inc. released, then we are not idle.
@@ -301,26 +294,10 @@ inline uint8_t scan_loop()
 			keys_averages_acc[strobe_line + i] += sample;
 		}
 
-		strobe_averages[strober] = 0;
 		for ( uint8_t i = SAMPLE_OFFSET; i < ( SAMPLE_OFFSET + MUXES_COUNT ); ++i )
 		{
 			full_av_acc += (samples[i]);
-#ifdef COLLECT_STROBE_AVERAGES
-			mux_averages[i - SAMPLE_OFFSET] += samples[i];
-			strobe_averages[strober] += samples[i];
-#endif
 		}
-
-#ifdef COLLECT_STROBE_AVERAGES
-		adc_strobe_averages[strober] += strobe_averages[strober] >> 3;
-		adc_strobe_averages[strober] >>= 1;
-
-		/** test if we went negative. */
-		if ( ( adc_strobe_averages[strober] & 0xFF00 ) && ( boot_count >= WARMUP_LOOPS ) )
-		{
-			error = 0xf; error_data = adc_strobe_averages[strober];
-		}
-#endif
 	} // for strober
 
 #ifdef VERIFY_TEST_PAD
@@ -330,26 +307,6 @@ inline uint8_t scan_loop()
 		error = 0x05;
 		error_data = cur_keymap[TEST_KEY_STROBE] << 8;
 		error_data += full_samples[TEST_KEY_STROBE * 8];
-		//threshold++;
-	}
-#endif
-
-#ifdef COLLECT_STROBE_AVERAGES
-	// calc mux averages.
-	if ( boot_count < WARMUP_LOOPS )
-	{
-		full_av += (full_av_acc >> (7));
-		full_av >>= 1;
-		full_av_acc = 0;
-
-		for ( int i = 0; i < MUXES_COUNT; ++i )
-		{
-			adc_mux_averages[i] = (adc_mux_averages[i] << MUX_MIX) - adc_mux_averages[i];
-			adc_mux_averages[i] += (mux_averages[i] >> 4);
-			adc_mux_averages[i] >>= MUX_MIX;
-
-			mux_averages[i] = 0;
-		}
 	}
 #endif
 
@@ -422,8 +379,6 @@ inline uint8_t scan_loop()
 			{
 				dump();
 			}
-
-			sampleColumn(0x0); // to resync us if we dumped a mess 'o text.
 		}
 
 	}
@@ -434,7 +389,7 @@ inline uint8_t scan_loop()
 		erro_msg("Problem detected... ");
 
 		// Keymap scan debug
-		for ( uint8_t i = 0; i < STROBE_LINES; ++i )
+		for ( uint8_t i = 0; i < total_strobes; ++i )
 		{
 				printHex(cur_keymap[i]);
 				print(" ");
@@ -506,17 +461,6 @@ void scan_finishedWithBuffer( uint8_t sentKeys )
 void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 	return;
-}
-
-
-void _delay_loop( uint8_t __count )
-{
-	__asm__ volatile (
-		"1: dec %0" "\n\t"
-		"brne 1b"
-		: "=r" (__count)
-		: "0" (__count)
-	);
 }
 
 
@@ -607,190 +551,35 @@ void strobe_w( uint8_t strobe_num )
 	PORTD &= ~(D_MASK);
 	PORTE &= ~(E_MASK);
 
-#ifdef SHORT_C
-	//strobe_num = 15 - strobe_num;
-#endif
-	/*
-	printHex( strobe_num );
-	print(" ");
-	strobe_num = 9 - strobe_num;
-	printHex( strobe_num );
-	print("\n");
-	*/
+	// Strobe table
+	// Not all strobes are used depending on which are detected
+	switch ( strobe_num )
+	{
 
-	switch(strobe_num) {
+	case 0:  PORTD |= (1 << 0); break;
+	case 1:  PORTD |= (1 << 1); break;
+	case 2:  PORTD |= (1 << 2); break;
+	case 3:  PORTD |= (1 << 3); break;
+	case 4:  PORTD |= (1 << 4); break;
+	case 5:  PORTD |= (1 << 5); break;
+	case 6:  PORTD |= (1 << 6); break;
+	case 7:  PORTD |= (1 << 7); break;
 
-	// XXX Kishsaver strobe (note that D0, D1 are not used)
-	case 0: PORTD |= (1 << 0); break;
-	case 1: PORTD |= (1 << 1); break;
-	case 2: PORTD |= (1 << 2); break;
-	case 3: PORTD |= (1 << 3); break;
-	case 4: PORTD |= (1 << 4); break;
-	case 5: PORTD |= (1 << 5); break;
+	case 8:  PORTE |= (1 << 0); break;
+	case 9:  PORTE |= (1 << 1); break;
 
-	// TODO REMOVEME
-	case 6: PORTD |= (1 << 6); break;
-	case 7: PORTD |= (1 << 7); break;
-	case 8: PORTE |= (1 << 0); break;
-	case 9: PORTE |= (1 << 1); break;
-	//case 15: PORTC |= (1 << 5); break; // Test strobe on kishsaver
-
-#if 0
-	// XXX Kishsaver strobe (note that D0, D1 are not used)
-	case 0: PORTD |= (1 << 2); break;
-	case 1: PORTD |= (1 << 3); break;
-	case 2: PORTD |= (1 << 4); break;
-	case 3: PORTD |= (1 << 5); break;
-
-	// TODO REMOVEME
-	case 4: PORTD |= (1 << 6); break;
-	case 5: PORTD |= (1 << 7); break;
-	case 6: PORTE |= (1 << 0); break;
-	case 7: PORTE |= (1 << 1); break;
-	case 15: PORTC |= (1 << 5); break; // Test strobe on kishsaver
-#endif
-/*
-#ifdef ALL_D
-
-	case 6: PORTD |= (1 << 6); break;
-	case 7: PORTD |= (1 << 7); break;
-
-	case 8:  PORTC |= (1 << 0); break;
-	case 9:  PORTC |= (1 << 1); break;
-	case 10: PORTC |= (1 << 2); break;
-	case 11: PORTC |= (1 << 3); break;
-	case 12: PORTC |= (1 << 4); break;
-	case 13: PORTC |= (1 << 5); break;
-	case 14: PORTC |= (1 << 6); break;
-	case 15: PORTC |= (1 << 7); break;
-
-	case 16: PORTE |= (1 << 0); break;
-	case 17: PORTE |= (1 << 1); break;
-
-#else
-#ifdef SHORT_D
-
-	case 6: PORTE |= (1 << 0); break;
-	case 7: PORTE |= (1 << 1); break;
-
-	case 8:  PORTC |= (1 << 0); break;
-	case 9:  PORTC |= (1 << 1); break;
-	case 10: PORTC |= (1 << 2); break;
-	case 11: PORTC |= (1 << 3); break;
-	case 12: PORTC |= (1 << 4); break;
-	case 13: PORTC |= (1 << 5); break;
-	case 14: PORTC |= (1 << 6); break;
-	case 15: PORTC |= (1 << 7); break;
-
-#else
-#ifdef SHORT_C
-
-	case 6: PORTD |= (1 << 6); break;
-	case 7: PORTD |= (1 << 7); break;
-
-	case 8: PORTE |= (1 << 0); break;
-	case 9: PORTE |= (1 << 1); break;
-
-	case 10:  PORTC |= (1 << 0); break;
-	case 11:  PORTC |= (1 << 1); break;
+	case 10: PORTC |= (1 << 0); break;
+	case 11: PORTC |= (1 << 1); break;
 	case 12: PORTC |= (1 << 2); break;
 	case 13: PORTC |= (1 << 3); break;
 	case 14: PORTC |= (1 << 4); break;
 	case 15: PORTC |= (1 << 5); break;
-
 	case 16: PORTC |= (1 << 6); break;
 	case 17: PORTC |= (1 << 7); break;
 
-#endif
-#endif
-#endif
-*/
-
 	default:
 		break;
 	}
-
-
-#if 0 // New code from dfj -> still needs redoing for kishsaver and autodetection of strobes
-#ifdef SHORT_C
-	strobe_num = 15 - strobe_num;
-#endif
-
-#ifdef SINGLE_COLUMN_TEST
-	strobe_num = 5;
-#endif
-
-	switch(strobe_num) {
-
-	case 0: PORTD |= (1 << 0); DDRD &= ~(1 << 0); break;
-	case 1: PORTD |= (1 << 1); DDRD &= ~(1 << 1); break;
-	case 2: PORTD |= (1 << 2); DDRD &= ~(1 << 2); break;
-	case 3: PORTD |= (1 << 3); DDRD &= ~(1 << 3); break;
-	case 4: PORTD |= (1 << 4); DDRD &= ~(1 << 4); break;
-	case 5: PORTD |= (1 << 5); DDRD &= ~(1 << 5); break;
-
-#ifdef ALL_D
-
-	case 6: PORTD |= (1 << 6); break;
-	case 7: PORTD |= (1 << 7); break;
-
-	case 8:  PORTC |= (1 << 0); break;
-	case 9:  PORTC |= (1 << 1); break;
-	case 10: PORTC |= (1 << 2); break;
-	case 11: PORTC |= (1 << 3); break;
-	case 12: PORTC |= (1 << 4); break;
-	case 13: PORTC |= (1 << 5); break;
-	case 14: PORTC |= (1 << 6); break;
-	case 15: PORTC |= (1 << 7); break;
-
-	case 16: PORTE |= (1 << 0); break;
-	case 17: PORTE |= (1 << 1); break;
-
-#else
-#ifdef SHORT_D
-
-	case 6: PORTE |= (1 << 0); break;
-	case 7: PORTE |= (1 << 1); break;
-
-	case 8:  PORTC |= (1 << 0); break;
-	case 9:  PORTC |= (1 << 1); break;
-	case 10: PORTC |= (1 << 2); break;
-	case 11: PORTC |= (1 << 3); break;
-	case 12: PORTC |= (1 << 4); break;
-	case 13: PORTC |= (1 << 5); break;
-	case 14: PORTC |= (1 << 6); break;
-	case 15: PORTC |= (1 << 7); break;
-
-#else
-#ifdef SHORT_C
-
-	case 6: PORTD |= (1 << 6); DDRD &= ~(1 << 6); break;
-	case 7: PORTD |= (1 << 7); DDRD &= ~(1 << 7); break;
-
-	case 8: PORTE |= (1 << 0); DDRE &= ~(1 << 0); break;
-	case 9: PORTE |= (1 << 1); DDRE &= ~(1 << 1); break;
-
-	case 10:  PORTC |= (1 << 0); DDRC &= ~(1 << 0); break;
-	case 11:  PORTC |= (1 << 1); DDRC &= ~(1 << 1); break;
-	case 12: PORTC |= (1 << 2); DDRC &= ~(1 << 2); break;
-	case 13: PORTC |= (1 << 3); DDRC &= ~(1 << 3); break;
-	case 14: PORTC |= (1 << 4); DDRC &= ~(1 << 4); break;
-	case 15: PORTC |= (1 << 5); DDRC &= ~(1 << 5); break;
-
-	case 16: PORTC |= (1 << 6); DDRC &= ~(1 << 6); break;
-	case 17: PORTC |= (1 << 7); DDRC &= ~(1 << 7); break;
-
-#endif
-#endif
-#endif
-
-	default:
-		break;
-	}
-
-#endif
-
-
 }
 
 
@@ -852,8 +641,8 @@ int sampleColumn_8x( uint8_t column, uint16_t * buffer )
 		mux++;
 
 	} while (mux < 8);
-
 #endif
+
 	hold_sample(OFF);
 	recovery(ON);
 
@@ -879,21 +668,6 @@ int sampleColumn( uint8_t column )
 
 	rval = sampleColumn_8x( column, samples + SAMPLE_OFFSET );
 
-#if (BUMP_DETECTION)
-	for ( uint8_t i = 0; i < 8; ++i )
-	{
-		if ( samples[SAMPLE_OFFSET + i] - adc_mux_averages[i] > BUMP_THRESHOLD )
-		{
-			// was a hump
-			_delay_us(BUMP_REST_US);
-			rval++;
-			error = 0x50;
-			error_data = samples[SAMPLE_OFFSET +i]; //  | ((uint16_t)i << 8);
-			return rval;
-		}
-	}
-#endif
-
 	return rval;
 }
 
@@ -902,30 +676,49 @@ uint8_t testColumn( uint8_t strobe )
 {
 	uint8_t column = 0;
 	uint8_t bit = 1;
-	for ( uint8_t i = 0; i < MUXES_COUNT; ++i )
+	for ( uint8_t mux = 0; mux < MUXES_COUNT; ++mux )
 	{
-		uint16_t delta = keys_averages[(strobe << MUXES_COUNT_XSHIFT) + i];
+		uint16_t delta = keys_averages[(strobe << MUXES_COUNT_XSHIFT) + mux];
 
-		if ( (db_sample = samples[SAMPLE_OFFSET + i] >> 1) > (db_threshold = threshold) + (db_delta = delta) )
+		// Keypress detected
+		if ( (db_sample = samples[SAMPLE_OFFSET + mux] >> 1) > (db_threshold = threshold) + (db_delta = delta) )
 		{
 			column |= bit;
-		}
 
-#ifdef THRESHOLD_VERIFICATION
-		if ( db_sample > 0xA0 )
-		{
-			printHex( db_sample );
-			print(" : ");
-			printHex( db_threshold );
-			print(" : ");
-			printHex( db_delta );
-			print(" :: ");
-			printHex( column );
-			print(" : ");
-			printHex( strobe );
-			print(NL);
-		}
+			// Only register keypresses once the warmup is complete
+			if ( boot_count >= WARMUP_LOOPS )
+			{
+				uint8_t key = (strobe << MUXES_COUNT_XSHIFT) + mux;
+
+				// TODO Add debounce first
+				// Add to the Macro processing buffer
+				// Automatically handles converting to a USB code and sending off to the PC
+				//bufferAdd( key );
+
+#define KEYSCAN_THRESHOLD_DEBUG
+#ifdef KEYSCAN_THRESHOLD_DEBUG
+				// Debug message
+				// <key> [<strobe>:<mux>] : <sense val> : <delta + threshold> : <margin>
+				dbug_msg("0x");
+				printHex_op( key, 2 );
+				print(" [");
+				printInt8( strobe );
+				print(":");
+				printInt8( mux );
+				print("] : ");
+				printHex( db_sample ); // Sense
+				print(" : ");
+				printHex( db_threshold );
+				print("+");
+				printHex( db_delta );
+				print("=");
+				printHex( db_threshold + db_delta ); // Sense compare
+				print(" : ");
+				printHex( db_sample - ( db_threshold + db_delta ) ); // Margin
+				print("\n");
 #endif
+			}
+		}
 
 		bit <<= 1;
 	}
@@ -1016,7 +809,7 @@ void dump(void) {
 	print("\n      ");
 
 	// Current keymap values
-	for ( uint8_t i = 0; i < STROBE_LINES; ++i )
+	for ( uint8_t i = 0; i < total_strobes; ++i )
 	{
 		printHex(cur_keymap[i]);
 		print(" ");
