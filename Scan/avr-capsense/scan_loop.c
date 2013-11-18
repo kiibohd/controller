@@ -88,6 +88,7 @@
 #define MUXES_COUNT_XSHIFT 3
 
 #define WARMUP_LOOPS ( 1024 )
+#define WARMUP_STOP (WARMUP_LOOPS - 1)
 
 #define SAMPLES 10
 #define SAMPLE_OFFSET ((SAMPLES) - MUXES_COUNT)
@@ -150,9 +151,8 @@ uint16_t adc_mux_averages   [MUXES_COUNT];
 uint16_t adc_strobe_averages[STROBE_LINES];
 
 uint8_t cur_keymap[STROBE_LINES];
-uint8_t usb_keymap[STROBE_LINES];
 
-uint8_t usb_dirty;
+uint8_t keymap_change;
 
 uint16_t threshold = 0x25; // HaaTa Hack -TODO
 //uint16_t threshold = 0x16; // HaaTa Hack -TODO
@@ -162,7 +162,6 @@ uint8_t column = 0;
 
 uint16_t keys_averages_acc[KEY_COUNT];
 uint16_t keys_averages[KEY_COUNT];
-uint16_t keys_averages_acc_count=0;
 
 uint8_t full_samples[KEY_COUNT];
 
@@ -188,8 +187,7 @@ uint16_t db_threshold = 0;
 
 // ----- Function Declarations -----
 
-void dump    ( void );
-void dumpkeys( void );
+void dump( void );
 
 void recovery( uint8_t on );
 
@@ -222,7 +220,6 @@ inline void scan_setup()
 	// TODO all this code should probably be in scan_resetKeyboard
 	for (int i=0; i < STROBE_LINES; ++i) {
 		cur_keymap[i] = 0;
-		usb_keymap[i] = 0;
 	}
 
 	for(int i=0; i < MUXES_COUNT; ++i) {
@@ -269,10 +266,26 @@ inline uint8_t scan_loop()
 		if( column != cur_keymap[strober] && ( boot_count >= WARMUP_LOOPS ) )
 		{
 			cur_keymap[strober] = column;
-			usb_dirty = 1;
+			keymap_change = 1;
+
+			// The keypresses on this strobe are now know, send them right away
+			for ( uint8_t mux = 0; mux < MUXES_COUNT; ++mux )
+			{
+				if ( column & (1 << mux) )
+				{
+					uint8_t key = (strober << MUXES_COUNT_XSHIFT) + mux;
+
+					// Add to the Macro processing buffer
+					// Automatically handles converting to a USB code and sending off to the PC
+					//bufferAdd( key );
+
+					printHex( key );
+					print("\n");
+				}
+			}
 		}
 
-		idle |= usb_dirty; // if any keys have changed inc. released, then we are not idle.
+		idle |= keymap_change; // if any keys have changed inc. released, then we are not idle.
 
 		if ( error == 0x50 )
 		{
@@ -287,7 +300,6 @@ inline uint8_t scan_loop()
 			full_samples[strobe_line + i] = sample;
 			keys_averages_acc[strobe_line + i] += sample;
 		}
-		keys_averages_acc_count++;
 
 		strobe_averages[strober] = 0;
 		for ( uint8_t i = SAMPLE_OFFSET; i < ( SAMPLE_OFFSET + MUXES_COUNT ); ++i )
@@ -348,28 +360,44 @@ inline uint8_t scan_loop()
 	idle_count++;
 	idle_count &= IDLE_COUNT_MASK;
 
+	// Warm up voltage references
 	if ( boot_count < WARMUP_LOOPS )
 	{
-		error = 0x0C;
-		error_data = boot_count;
 		boot_count++;
+
+		switch ( boot_count )
+		{
+		// First loop
+		case 1:
+			// Show msg at first iteration only
+			info_msg("Warming up the voltage references");
+			break;
+		// Middle iterations
+		case 300:
+		case 600:
+		case 900:
+		case 1200:
+			print(".");
+			break;
+		// Last loop
+		case WARMUP_STOP:
+			print("\n");
+			info_msg("Warmup finished using ");
+			printInt16( WARMUP_LOOPS );
+			print(" iterations\n");
+			break;
+		}
 	}
 	else
 	{
-		if ( usb_dirty )
+		// Reset accumulators and idle flag/counter
+		if ( keymap_change )
 		{
-			for ( int i = 0; i < STROBE_LINES; ++i )
-			{
-				usb_keymap[i] = cur_keymap[i];
-			}
-
-			dumpkeys();
-			usb_dirty = 0;
-			memset(((void *)keys_averages_acc), 0, (size_t)(KEY_COUNT * sizeof (uint16_t)));
-			keys_averages_acc_count = 0;
+			for ( uint8_t c = 0; c < KEY_COUNT; ++c ) { keys_averages_acc[c] = 0; }
 			idle_count = 0;
 			idle = 0;
-			_delay_us(100);
+
+			keymap_change = 0;
 		}
 
 		if ( !idle_count )
@@ -389,7 +417,6 @@ inline uint8_t scan_loop()
 					keys_averages_acc[i] = 0;
 				}
 			}
-			keys_averages_acc_count = 0;
 
 			if ( boot_count >= WARMUP_LOOPS )
 			{
@@ -399,6 +426,32 @@ inline uint8_t scan_loop()
 			sampleColumn(0x0); // to resync us if we dumped a mess 'o text.
 		}
 
+	}
+
+	// Error case, should not occur in normal operation
+	if ( error )
+	{
+		erro_msg("Problem detected... ");
+
+		// Keymap scan debug
+		for ( uint8_t i = 0; i < STROBE_LINES; ++i )
+		{
+				printHex(cur_keymap[i]);
+				print(" ");
+		}
+
+		print(" : ");
+		printHex(error);
+		error = 0;
+		print(" : ");
+		printHex(error_data);
+		error_data = 0;
+
+		// Display keymaps and other debug information if warmup completede
+		if ( boot_count >= WARMUP_LOOPS )
+		{
+			dump();
+		}
 	}
 
 
@@ -877,59 +930,6 @@ uint8_t testColumn( uint8_t strobe )
 		bit <<= 1;
 	}
 	return column;
-}
-
-
-void dumpkeys()
-{
-	if ( error )
-	{
-		erro_print("Problem detected...");
-
-		if ( boot_count >= WARMUP_LOOPS )
-		{
-			dump();
-		}
-
-		// Key scan debug
-		for ( uint8_t i = 0; i < STROBE_LINES; ++i )
-		{
-				printHex(usb_keymap[i]);
-				print(" ");
-		}
-
-		print(" : ");
-		printHex(error);
-		error = 0;
-		print(" : ");
-		printHex(error_data);
-		error_data = 0;
-		print(" : " NL);
-	}
-
-	// XXX Will be cleaned up eventually, but this will do for now :P -HaaTa
-	for ( uint8_t i = 0; i < STROBE_LINES; ++i )
-	{
-		for ( uint8_t j = 0; j < MUXES_COUNT; ++j )
-		{
-			if ( usb_keymap[i] & (1 << j) )
-			{
-				uint8_t key = (i << MUXES_COUNT_XSHIFT) + j;
-
-				// Add to the Macro processing buffer
-				// Automatically handles converting to a USB code and sending off to the PC
-				//bufferAdd( key );
-
-				if ( usb_dirty )
-				{
-					printHex( key );
-					print("\n");
-				}
-			}
-		}
-	}
-
-	usb_keyboard_send();
 }
 
 
