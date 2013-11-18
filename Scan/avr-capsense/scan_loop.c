@@ -210,7 +210,8 @@ inline void scan_setup()
 	// Hardcoded strobes for debugging
 	// Strobes start at 0 and go to 17 (18), not all Model Fs use all of the available strobes
 	// The single row ribbon connector Model Fs only have a max of 16 strobes
-#define KISHSAVER_STROBE
+//#define KISHSAVER_STROBE
+#define TERMINAL_6110668_STROBE
 #ifdef KISHSAVER_STROBE
 	total_strobes = 10;
 
@@ -224,6 +225,25 @@ inline void scan_setup()
 	strobe_map[7] = 8;
 	strobe_map[8] = 9;
 	strobe_map[9] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
+#elif defined(TERMINAL_6110668_STROBE)
+	total_strobes = 16;
+
+	strobe_map[0] = 0;
+	strobe_map[1] = 1;
+	strobe_map[2] = 2;
+	strobe_map[3] = 3;
+	strobe_map[4] = 4;
+	strobe_map[5] = 5;
+	strobe_map[6] = 6;
+	strobe_map[7] = 7;
+	strobe_map[8] = 8;
+	strobe_map[9] = 9;
+	strobe_map[10] = 10;
+	strobe_map[11] = 11;
+	strobe_map[12] = 12;
+	strobe_map[13] = 13;
+	strobe_map[14] = 14;
+	strobe_map[15] = 15;
 #else
 	// Strobe detection
 	// TODO
