@@ -79,6 +79,9 @@
 // Strobe lines are detected at startup, extra strobes cause anomalies like phantom keypresses
 #define MAX_STROBES 18
 
+// Number of consecutive samples required to pass debounce
+#define DEBOUNCE_THRESHOLD 5
+
 #define MUXES_COUNT 8
 #define MUXES_COUNT_XSHIFT 3
 
@@ -153,6 +156,7 @@ uint8_t column = 0;
 
 uint16_t keys_averages_acc[KEY_COUNT];
 uint16_t keys_averages    [KEY_COUNT];
+uint8_t  keys_debounce    [KEY_COUNT];
 
 uint8_t full_samples[KEY_COUNT];
 
@@ -184,6 +188,8 @@ void recovery( uint8_t on );
 
 int sampleColumn( uint8_t column );
 
+void capsense_scan( void );
+
 void setup_ADC( void );
 
 void strobe_w( uint8_t strobe_num );
@@ -210,8 +216,8 @@ inline void scan_setup()
 	// Hardcoded strobes for debugging
 	// Strobes start at 0 and go to 17 (18), not all Model Fs use all of the available strobes
 	// The single row ribbon connector Model Fs only have a max of 16 strobes
-//#define KISHSAVER_STROBE
-#define TERMINAL_6110668_STROBE
+#define KISHSAVER_STROBE
+//#define TERMINAL_6110668_STROBE
 //#define UNSAVER_STROBE
 #ifdef KISHSAVER_STROBE
 	total_strobes = 10;
@@ -225,7 +231,8 @@ inline void scan_setup()
 	strobe_map[6] = 7;
 	strobe_map[7] = 8;
 	strobe_map[8] = 9;
-	strobe_map[9] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
+	// XXX - Disabling for now, not sure how to deal with test points yet (without spamming the debug)
+	//strobe_map[9] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
 #elif defined(TERMINAL_6110668_STROBE)
 	total_strobes = 16;
 
@@ -277,6 +284,9 @@ inline void scan_setup()
 	{
 		keys_averages[i] = DEFAULT_KEY_BASE;
 		keys_averages_acc[i] = (DEFAULT_KEY_BASE);
+
+		// Reset debounce table
+		keys_debounce[i] = 0;
 	}
 
 	/** warm things up a bit before we start collecting data, taking real samples. */
@@ -295,6 +305,91 @@ inline void scan_setup()
 // Main Detection Loop
 // This is where the important stuff happens
 inline uint8_t scan_loop()
+{
+	capsense_scan();
+
+	// Error case, should not occur in normal operation
+	if ( error )
+	{
+		erro_msg("Problem detected... ");
+
+		// Keymap scan debug
+		for ( uint8_t i = 0; i < total_strobes; ++i )
+		{
+				printHex(cur_keymap[i]);
+				print(" ");
+		}
+
+		print(" : ");
+		printHex(error);
+		error = 0;
+		print(" : ");
+		printHex(error_data);
+		error_data = 0;
+
+		// Display keymaps and other debug information if warmup completede
+		if ( boot_count >= WARMUP_LOOPS )
+		{
+			dump();
+		}
+	}
+
+
+	// Return non-zero if macro and USB processing should be delayed
+	// Macro processing will always run if returning 0
+	// USB processing only happens once the USB send timer expires, if it has not, scan_loop will be called
+	//  after the macro processing has been completed
+	return 0;
+}
+
+
+// Reset Keyboard
+void scan_resetKeyboard( void )
+{
+	// Empty buffer, now that keyboard has been reset
+	KeyIndex_BufferUsed = 0;
+}
+
+
+// Send data to keyboard
+// NOTE: Only used for converters, since the scan module shouldn't handle sending data in a controller
+uint8_t scan_sendData( uint8_t dataPayload )
+{
+	return 0;
+}
+
+
+// Reset/Hold keyboard
+// NOTE: Only used for converters, not needed for full controllers
+void scan_lockKeyboard( void )
+{
+}
+
+// NOTE: Only used for converters, not needed for full controllers
+void scan_unlockKeyboard( void )
+{
+}
+
+
+// Signal KeyIndex_Buffer that it has been properly read
+// NOTE: Only really required for implementing "tricks" in converters for odd protocols
+void scan_finishedWithBuffer( uint8_t sentKeys )
+{
+	// Convenient place to clear the KeyIndex_Buffer
+	KeyIndex_BufferUsed = 0;
+	return;
+}
+
+
+// Signal KeyIndex_Buffer that it has been properly read and sent out by the USB module
+// NOTE: Only really required for implementing "tricks" in converters for odd protocols
+void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+{
+	return;
+}
+
+
+inline void capsense_scan()
 {
 	// TODO dfj code...needs commenting + cleanup...
 	uint8_t strober = 0;
@@ -420,85 +515,6 @@ inline uint8_t scan_loop()
 		}
 
 	}
-
-	// Error case, should not occur in normal operation
-	if ( error )
-	{
-		erro_msg("Problem detected... ");
-
-		// Keymap scan debug
-		for ( uint8_t i = 0; i < total_strobes; ++i )
-		{
-				printHex(cur_keymap[i]);
-				print(" ");
-		}
-
-		print(" : ");
-		printHex(error);
-		error = 0;
-		print(" : ");
-		printHex(error_data);
-		error_data = 0;
-
-		// Display keymaps and other debug information if warmup completede
-		if ( boot_count >= WARMUP_LOOPS )
-		{
-			dump();
-		}
-	}
-
-
-	// Return non-zero if macro and USB processing should be delayed
-	// Macro processing will always run if returning 0
-	// USB processing only happens once the USB send timer expires, if it has not, scan_loop will be called
-	//  after the macro processing has been completed
-	return 0;
-}
-
-
-// Reset Keyboard
-void scan_resetKeyboard( void )
-{
-	// Empty buffer, now that keyboard has been reset
-	KeyIndex_BufferUsed = 0;
-}
-
-
-// Send data to keyboard
-// NOTE: Only used for converters, since the scan module shouldn't handle sending data in a controller
-uint8_t scan_sendData( uint8_t dataPayload )
-{
-	return 0;
-}
-
-
-// Reset/Hold keyboard
-// NOTE: Only used for converters, not needed for full controllers
-void scan_lockKeyboard( void )
-{
-}
-
-// NOTE: Only used for converters, not needed for full controllers
-void scan_unlockKeyboard( void )
-{
-}
-
-
-// Signal KeyIndex_Buffer that it has been properly read
-// NOTE: Only really required for implementing "tricks" in converters for odd protocols
-void scan_finishedWithBuffer( uint8_t sentKeys )
-{
-	// Convenient place to clear the KeyIndex_Buffer
-	KeyIndex_BufferUsed = 0;
-	return;
-}
-
-
-// Signal KeyIndex_Buffer that it has been properly read and sent out by the USB module
-// NOTE: Only really required for implementing "tricks" in converters for odd protocols
-void scan_finishedWithUSBBuffer( uint8_t sentKeys )
-{
-	return;
 }
 
 
@@ -718,22 +734,38 @@ uint8_t testColumn( uint8_t strobe )
 	{
 		uint16_t delta = keys_averages[(strobe << MUXES_COUNT_XSHIFT) + mux];
 
+		uint8_t key = (strobe << MUXES_COUNT_XSHIFT) + mux;
+
 		// Keypress detected
 		if ( (db_sample = samples[SAMPLE_OFFSET + mux] >> 1) > (db_threshold = threshold) + (db_delta = delta) )
 		{
 			column |= bit;
 
-			// Only register keypresses once the warmup is complete
-			if ( boot_count >= WARMUP_LOOPS )
+			// Only register keypresses once the warmup is complete, or not enough debounce info
+			if ( boot_count >= WARMUP_LOOPS && keys_debounce[key] <= DEBOUNCE_THRESHOLD )
 			{
-				uint8_t key = (strobe << MUXES_COUNT_XSHIFT) + mux;
-
-				// TODO Add debounce first
-				// Add to the Macro processing buffer
+				// Add to the Macro processing buffer if debounce criteria met
 				// Automatically handles converting to a USB code and sending off to the PC
-				//bufferAdd( key );
+				if ( keys_debounce[key] == DEBOUNCE_THRESHOLD )
+				{
+#define KEYSCAN_DEBOUNCE_DEBUG
+#ifdef KEYSCAN_DEBOUNCE_DEBUG
+					// Debug message
+					// <key> [<strobe>:<mux>] : <sense val> : <delta + threshold> : <margin>
+					print("0x");
+					printHex_op( key, 2 );
+					print(" ");
+#endif
 
-#define KEYSCAN_THRESHOLD_DEBUG
+					// Only add the key to the buffer once
+					// NOTE: Buffer can easily handle multiple adds, just more efficient
+					//        and nicer debug messages :P
+					//bufferAdd( key );
+				}
+
+				keys_debounce[key]++;
+
+//#define KEYSCAN_THRESHOLD_DEBUG
 #ifdef KEYSCAN_THRESHOLD_DEBUG
 				// Debug message
 				// <key> [<strobe>:<mux>] : <sense val> : <delta + threshold> : <margin>
@@ -756,6 +788,30 @@ uint8_t testColumn( uint8_t strobe )
 				print("\n");
 #endif
 			}
+		}
+		// Clear debounce entry if no keypress detected
+		else
+		{
+			// If the key was previously pressed, remove from the buffer
+			for ( uint8_t c = 0; c < KeyIndex_BufferUsed; c++ )
+                        {
+                                // Key to release found
+                                if ( KeyIndex_Buffer[c] == key )
+                                {
+                                        // Shift keys from c position
+                                        for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
+                                                KeyIndex_Buffer[k] = KeyIndex_Buffer[k + 1];
+
+                                        // Decrement Buffer
+                                        KeyIndex_BufferUsed--;
+
+                                        break;
+                                }
+                        }
+
+
+			// Clear debounce entry
+			keys_debounce[key] = 0;
 		}
 
 		bit <<= 1;
