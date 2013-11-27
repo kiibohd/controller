@@ -222,15 +222,14 @@ inline void scan_setup()
 #ifdef KISHSAVER_STROBE
 	total_strobes = 10;
 
-	strobe_map[0] = 1; // Kishsaver doesn't use strobe 0
-	strobe_map[1] = 2;
-	strobe_map[2] = 3;
-	strobe_map[3] = 4;
-	strobe_map[4] = 5;
-	strobe_map[5] = 6;
-	strobe_map[6] = 7;
-	strobe_map[7] = 8;
-	strobe_map[8] = 9;
+	strobe_map[0] = 2; // Kishsaver doesn't use strobe 0 and 1
+	strobe_map[1] = 3;
+	strobe_map[2] = 4;
+	strobe_map[3] = 5;
+	strobe_map[4] = 6;
+	strobe_map[5] = 7;
+	strobe_map[6] = 8;
+	strobe_map[7] = 9;
 	// XXX - Disabling for now, not sure how to deal with test points yet (without spamming the debug)
 	//strobe_map[9] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
 #elif defined(TERMINAL_6110668_STROBE)
@@ -316,7 +315,7 @@ inline uint8_t scan_loop()
 		// Keymap scan debug
 		for ( uint8_t i = 0; i < total_strobes; ++i )
 		{
-				printHex(cur_keymap[i]);
+				printHex(cur_keymap[strobe_map[i]]);
 				print(" ");
 		}
 
@@ -397,17 +396,18 @@ inline void capsense_scan()
 
 	for (strober = 0; strober < total_strobes; ++strober)
 	{
+		uint8_t map_strobe = strobe_map[strober];
 
 		uint8_t tries = 1;
-		while ( tries++ && sampleColumn( strobe_map[strober] ) ) { tries &= 0x7; } // don't waste this one just because the last one was poop.
-		column = testColumn(strober);
+		while ( tries++ && sampleColumn( map_strobe ) ) { tries &= 0x7; } // don't waste this one just because the last one was poop.
+		column = testColumn( map_strobe );
 
 		idle |= column; // if column has any pressed keys, then we are not idle.
 
 		// TODO Is this needed anymore? Really only helps debug -HaaTa
-		if( column != cur_keymap[strober] && ( boot_count >= WARMUP_LOOPS ) )
+		if( column != cur_keymap[map_strobe] && ( boot_count >= WARMUP_LOOPS ) )
 		{
-			cur_keymap[strober] = column;
+			cur_keymap[map_strobe] = column;
 			keymap_change = 1;
 		}
 
@@ -415,10 +415,10 @@ inline void capsense_scan()
 
 		if ( error == 0x50 )
 		{
-			error_data |= (((uint16_t)strober) << 12);
+			error_data |= (((uint16_t)map_strobe) << 12);
 		}
 
-		uint8_t strobe_line = strober << MUXES_COUNT_XSHIFT;
+		uint8_t strobe_line = map_strobe << MUXES_COUNT_XSHIFT;
 		for ( int i = 0; i < MUXES_COUNT; ++i )
 		{
 			// discard sketchy low bit, and meaningless high bits.
