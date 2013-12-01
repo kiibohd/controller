@@ -32,7 +32,7 @@
 // ----- Defines -----
 
 // TODO dfj defines...needs commenting and maybe some cleaning...
-#define MAX_PRESS_DELTA_MV 380
+#define MAX_PRESS_DELTA_MV 450 // As measured from the Teensy ADC pin
 #define THRESHOLD_MV (MAX_PRESS_DELTA_MV >> 1)
 //(2560 / (0x3ff/2)) ~= 5
 #define MV_PER_ADC 5
@@ -232,7 +232,7 @@ inline void scan_setup()
 	strobe_map[6] = 8;
 	strobe_map[7] = 9;
 	// XXX - Disabling for now, not sure how to deal with test points yet (without spamming the debug)
-	//strobe_map[9] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
+	//strobe_map[8] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
 #elif defined(TERMINAL_6110668_STROBE)
 	total_strobes = 16;
 
