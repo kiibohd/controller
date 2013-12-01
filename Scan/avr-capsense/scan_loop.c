@@ -220,7 +220,8 @@ inline void scan_setup()
 //#define TERMINAL_6110668_STROBE
 //#define UNSAVER_STROBE
 #ifdef KISHSAVER_STROBE
-	total_strobes = 10;
+	total_strobes = 8;
+	//total_strobes = 9;
 
 	strobe_map[0] = 2; // Kishsaver doesn't use strobe 0 and 1
 	strobe_map[1] = 3;
@@ -391,10 +392,9 @@ void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 inline void capsense_scan()
 {
 	// TODO dfj code...needs commenting + cleanup...
-	uint8_t strober = 0;
 	uint32_t full_av_acc = 0;
 
-	for (strober = 0; strober < total_strobes; ++strober)
+	for ( uint8_t strober = 0; strober < total_strobes; ++strober )
 	{
 		uint8_t map_strobe = strobe_map[strober];
 
@@ -751,7 +751,6 @@ uint8_t testColumn( uint8_t strobe )
 #define KEYSCAN_DEBOUNCE_DEBUG
 #ifdef KEYSCAN_DEBOUNCE_DEBUG
 					// Debug message
-					// <key> [<strobe>:<mux>] : <sense val> : <delta + threshold> : <margin>
 					print("0x");
 					printHex_op( key, 2 );
 					print(" ");
