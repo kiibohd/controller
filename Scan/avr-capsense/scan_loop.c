@@ -39,7 +39,6 @@
 #define THRESHOLD (THRESHOLD_MV / MV_PER_ADC)
 
 #define STROBE_SETTLE 1
-#define MUX_SETTLE 1
 
 #define TEST_KEY_STROBE (0x05)
 #define TEST_KEY_MASK (1 << 0)
@@ -88,14 +87,7 @@
 #define WARMUP_LOOPS ( 1024 )
 #define WARMUP_STOP (WARMUP_LOOPS - 1)
 
-#define SAMPLES 10
-#define SAMPLE_OFFSET ((SAMPLES) - MUXES_COUNT)
 #define SAMPLE_CONTROL 3
-
-// Starting average for keys, per key will adjust during runtime
-// XXX - A better method is needed to choose this value (i.e. not experimental)
-//       The ideal average is not always found for weak keys if this is set too high...
-#define DEFAULT_KEY_BASE 0xB0
 
 #define KEY_COUNT ((MAX_STROBES) * (MUXES_COUNT))
 
@@ -140,11 +132,19 @@ volatile uint8_t KeyIndex_BufferUsed;
 
 
 // TODO dfj variables...needs cleaning up and commenting
-volatile uint16_t full_av = 0;
+
+// Variables used to calculate the starting sense value (averaging)
+uint32_t full_avg = 0;
+uint32_t high_avg = 0;
+uint32_t  low_avg = 0;
+
+uint8_t  high_count = 0;
+uint8_t   low_count = 0;
+
 
 uint8_t ze_strober = 0;
 
-uint16_t samples [SAMPLES];
+uint16_t samples[MUXES_COUNT];
 
 uint8_t cur_keymap[MAX_STROBES];
 
@@ -156,7 +156,8 @@ uint8_t column = 0;
 
 uint16_t keys_averages_acc[KEY_COUNT];
 uint16_t keys_averages    [KEY_COUNT];
-uint8_t  keys_debounce    [KEY_COUNT];
+uint8_t  keys_debounce    [KEY_COUNT]; // Contains debounce statistics
+uint8_t  keys_problem     [KEY_COUNT]; // Marks keys that should be ignored (determined by averaging at startup)
 
 uint8_t full_samples[KEY_COUNT];
 
@@ -173,10 +174,6 @@ uint8_t total_strobes = MAX_STROBES;
 uint8_t strobe_map[MAX_STROBES];
 
 uint8_t dump_count = 0;
-
-uint16_t db_delta = 0;
-uint8_t  db_sample = 0;
-uint16_t db_threshold = 0;
 
 
 
@@ -221,7 +218,6 @@ inline void scan_setup()
 //#define UNSAVER_STROBE
 #ifdef KISHSAVER_STROBE
 	total_strobes = 8;
-	//total_strobes = 9;
 
 	strobe_map[0] = 2; // Kishsaver doesn't use strobe 0 and 1
 	strobe_map[1] = 3;
@@ -232,7 +228,8 @@ inline void scan_setup()
 	strobe_map[6] = 8;
 	strobe_map[7] = 9;
 	// XXX - Disabling for now, not sure how to deal with test points yet (without spamming the debug)
-	//strobe_map[8] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
+	total_strobes = 9;
+	strobe_map[8] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
 #elif defined(TERMINAL_6110668_STROBE)
 	total_strobes = 16;
 
@@ -280,16 +277,13 @@ inline void scan_setup()
 		cur_keymap[i] = 0;
 	}
 
+	// Reset debounce table
 	for ( int i = 0; i < KEY_COUNT; ++i )
 	{
-		keys_averages[i] = DEFAULT_KEY_BASE;
-		keys_averages_acc[i] = (DEFAULT_KEY_BASE);
-
-		// Reset debounce table
 		keys_debounce[i] = 0;
 	}
 
-	/** warm things up a bit before we start collecting data, taking real samples. */
+	// Warm things up a bit before we start collecting data, taking real samples.
 	for ( uint8_t i = 0; i < total_strobes; ++i )
 	{
 		sampleColumn( strobe_map[i] );
@@ -316,8 +310,8 @@ inline uint8_t scan_loop()
 		// Keymap scan debug
 		for ( uint8_t i = 0; i < total_strobes; ++i )
 		{
-				printHex(cur_keymap[strobe_map[i]]);
-				print(" ");
+			printHex(cur_keymap[strobe_map[i]]);
+			print(" ");
 		}
 
 		print(" : ");
@@ -391,27 +385,40 @@ void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 
 inline void capsense_scan()
 {
-	// TODO dfj code...needs commenting + cleanup...
-	uint32_t full_av_acc = 0;
+	// Accumulated average used for the next scan
+	uint32_t cur_full_avg = 0;
+	uint32_t cur_high_avg = 0;
 
+	// Reset average counters
+	low_avg = 0;
+	low_count = 0;
+
+	high_count = 0;
+
+	// Scan each of the mapped strobes in the matrix
 	for ( uint8_t strober = 0; strober < total_strobes; ++strober )
 	{
 		uint8_t map_strobe = strobe_map[strober];
 
 		uint8_t tries = 1;
 		while ( tries++ && sampleColumn( map_strobe ) ) { tries &= 0x7; } // don't waste this one just because the last one was poop.
-		column = testColumn( map_strobe );
 
-		idle |= column; // if column has any pressed keys, then we are not idle.
-
-		// TODO Is this needed anymore? Really only helps debug -HaaTa
-		if( column != cur_keymap[map_strobe] && ( boot_count >= WARMUP_LOOPS ) )
+		// Only process sense data if warmup is finished
+		if ( boot_count >= WARMUP_LOOPS )
 		{
-			cur_keymap[map_strobe] = column;
-			keymap_change = 1;
-		}
+			column = testColumn( map_strobe );
 
-		idle |= keymap_change; // if any keys have changed inc. released, then we are not idle.
+			idle |= column; // if column has any pressed keys, then we are not idle.
+
+			// TODO Is this needed anymore? Really only helps debug -HaaTa
+			if( column != cur_keymap[map_strobe] && ( boot_count >= WARMUP_LOOPS ) )
+			{
+				cur_keymap[map_strobe] = column;
+				keymap_change = 1;
+			}
+
+			idle |= keymap_change; // if any keys have changed inc. released, then we are not idle.
+		}
 
 		if ( error == 0x50 )
 		{
@@ -422,16 +429,59 @@ inline void capsense_scan()
 		for ( int i = 0; i < MUXES_COUNT; ++i )
 		{
 			// discard sketchy low bit, and meaningless high bits.
-			uint8_t sample = samples[SAMPLE_OFFSET + i] >> 1;
+			uint8_t sample = samples[i] >> 1;
 			full_samples[strobe_line + i] = sample;
 			keys_averages_acc[strobe_line + i] += sample;
 		}
 
-		for ( uint8_t i = SAMPLE_OFFSET; i < ( SAMPLE_OFFSET + MUXES_COUNT ); ++i )
+		// Accumulate 3 total averages (used for determining starting average during warmup)
+		//     full_avg - Average of all sampled lines on the previous scan set
+		// cur_full_avg - Average of all sampled lines for this scan set
+		//     high_avg - Average of all sampled lines above full_avg on the previous scan set
+		// cur_high_avg - Average of all sampled lines above full_avg
+		//      low_avg - Average of all sampled lines below or equal to full_avg
+		if ( boot_count < WARMUP_LOOPS )
 		{
-			full_av_acc += (samples[i]);
+			for ( uint8_t i = 0; i < MUXES_COUNT; ++i )
+			{
+				uint8_t sample = samples[i] >> 1;
+
+				// Sample is high, add it to high avg
+				if ( sample > full_avg )
+				{
+					high_count++;
+					cur_high_avg += sample;
+				}
+				// Sample is low, add it to low avg
+				else
+				{
+					low_count++;
+					low_avg += sample;
+				}
+
+				// If sample is higher than previous high_avg, then mark as "problem key"
+				keys_problem[strobe_line + i] = sample > high_avg ? sample : 0;
+
+				// Prepare for next average
+				cur_full_avg += sample;
+			}
 		}
 	} // for strober
+
+	// Update total sense average (only during warm-up)
+	if ( boot_count < WARMUP_LOOPS )
+	{
+		full_avg = cur_full_avg / (total_strobes * MUXES_COUNT);
+		high_avg = cur_high_avg / high_count;
+		low_avg /= low_count;
+
+		// Update the base average value using the low_avg (best chance of not ignoring a keypress)
+		for ( int i = 0; i < KEY_COUNT; ++i )
+		{
+			keys_averages[i] = low_avg;
+			keys_averages_acc[i] = low_avg;
+		}
+	}
 
 #ifdef VERIFY_TEST_PAD
 	// verify test key is not down.
@@ -475,6 +525,38 @@ inline void capsense_scan()
 			info_msg("Warmup finished using ");
 			printInt16( WARMUP_LOOPS );
 			print(" iterations\n");
+
+			// Display the final calculated averages of all the sensed strobes
+			info_msg("Full average (");
+			printInt8( total_strobes * MUXES_COUNT );
+			print("): ");
+			printHex( full_avg );
+
+			print("  High average (");
+			printInt8( high_count );
+			print("): ");
+			printHex( high_avg );
+
+			print("  Low average (");
+			printInt8( low_count );
+			print("): ");
+			printHex( low_avg );
+			print("\n");
+
+			// Display problem keys, and the sense value at the time
+			for ( uint8_t key = 0; key < KEY_COUNT; key++ )
+			{
+				if ( keys_problem[key] )
+				{
+					warn_msg("Problem key detected: ");
+					printHex( key );
+					print(" (");
+					printHex( keys_problem[key] );
+					print(")\n");
+				}
+			}
+
+			info_print("If problem keys were detected, and were being held down, they will be reset as soon as let go");
 			break;
 		}
 	}
@@ -670,20 +752,6 @@ int sampleColumn_8x( uint8_t column, uint16_t * buffer )
 
 	hold_sample(ON);
 
-#undef MUX_SETTLE
-
-#if (MUX_SETTLE)
-	for ( uint8_t mux = 0; mux < 8; ++mux )
-	{
-		SET_FULL_MUX(mux); // our sample will use this
-
-		// wait for mux to settle.
-		for ( uint8_t i = 0; i < MUX_SETTLE; ++i ) { getADC(); }
-
-		// retrieve current read.
-		buffer[mux] = getADC();
-	}
-#else
 	uint8_t mux = 0;
 	SET_FULL_MUX(mux);
 	getADC(); // throw away; unknown mux.
@@ -695,7 +763,6 @@ int sampleColumn_8x( uint8_t column, uint16_t * buffer )
 		mux++;
 
 	} while (mux < 8);
-#endif
 
 	hold_sample(OFF);
 	recovery(ON);
@@ -720,7 +787,7 @@ int sampleColumn( uint8_t column )
 {
 	int rval = 0;
 
-	rval = sampleColumn_8x( column, samples + SAMPLE_OFFSET );
+	rval = sampleColumn_8x( column, samples );
 
 	return rval;
 }
@@ -728,27 +795,53 @@ int sampleColumn( uint8_t column )
 
 uint8_t testColumn( uint8_t strobe )
 {
+	uint16_t db_delta = 0;
+	uint8_t  db_sample = 0;
+	uint16_t db_threshold = 0;
+
 	uint8_t column = 0;
 	uint8_t bit = 1;
+
 	for ( uint8_t mux = 0; mux < MUXES_COUNT; ++mux )
 	{
 		uint16_t delta = keys_averages[(strobe << MUXES_COUNT_XSHIFT) + mux];
 
 		uint8_t key = (strobe << MUXES_COUNT_XSHIFT) + mux;
 
+		// Check if this is a bad key (e.g. test point, or non-existent key)
+		if ( keys_problem[key] )
+		{
+			// If the sample value of the problem key goes below full_avg (overall initial average)
+			//  re-enable the key
+			if ( (db_sample = samples[mux] >> 1) < full_avg )
+			{
+				info_msg("Re-enabling problem key: ");
+				printHex( key );
+				print("\n");
+
+				keys_problem[key] = 0;
+			}
+			// Otherwise, don't waste any more cycles processing the problem key
+			else
+			{
+				continue;
+			}
+		}
+
 		// Keypress detected
-		if ( (db_sample = samples[SAMPLE_OFFSET + mux] >> 1) > (db_threshold = threshold) + (db_delta = delta) )
+		//  db_sample (uint8_t), discard meaningless high bit, and garbage low bit
+		if ( (db_sample = samples[mux] >> 1) > (db_threshold = threshold) + (db_delta = delta) )
 		{
 			column |= bit;
 
 			// Only register keypresses once the warmup is complete, or not enough debounce info
-			if ( boot_count >= WARMUP_LOOPS && keys_debounce[key] <= DEBOUNCE_THRESHOLD )
+			if ( keys_debounce[key] <= DEBOUNCE_THRESHOLD )
 			{
 				// Add to the Macro processing buffer if debounce criteria met
 				// Automatically handles converting to a USB code and sending off to the PC
 				if ( keys_debounce[key] == DEBOUNCE_THRESHOLD )
 				{
-#define KEYSCAN_DEBOUNCE_DEBUG
+//#define KEYSCAN_DEBOUNCE_DEBUG
 #ifdef KEYSCAN_DEBOUNCE_DEBUG
 					// Debug message
 					print("0x");
@@ -764,7 +857,7 @@ uint8_t testColumn( uint8_t strobe )
 
 				keys_debounce[key]++;
 
-//#define KEYSCAN_THRESHOLD_DEBUG
+#define KEYSCAN_THRESHOLD_DEBUG
 #ifdef KEYSCAN_THRESHOLD_DEBUG
 				// Debug message
 				// <key> [<strobe>:<mux>] : <sense val> : <delta + threshold> : <margin>
@@ -885,17 +978,6 @@ void dump(void) {
 		printHex(keys_averages[(cur_strober << MUXES_COUNT_XSHIFT) + i]);
 	}
 
-#endif
-
-#ifdef DEBUG_DELTA_SAMPLE_THRESHOLD
-	print("\n");
-	printHex( db_delta );
-	print(" ");
-	printHex( db_sample );
-	print(" ");
-	printHex( db_threshold );
-	print(" ");
-	printHex( column );
 #endif
 
 #ifdef DEBUG_USB_KEYMAP
