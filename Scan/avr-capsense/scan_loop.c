@@ -217,7 +217,7 @@ inline void scan_setup()
 //#define TERMINAL_6110668_STROBE
 //#define UNSAVER_STROBE
 #ifdef KISHSAVER_STROBE
-	total_strobes = 8;
+	total_strobes = 9;
 
 	strobe_map[0] = 2; // Kishsaver doesn't use strobe 0 and 1
 	strobe_map[1] = 3;
@@ -227,8 +227,6 @@ inline void scan_setup()
 	strobe_map[5] = 7;
 	strobe_map[6] = 8;
 	strobe_map[7] = 9;
-	// XXX - Disabling for now, not sure how to deal with test points yet (without spamming the debug)
-	total_strobes = 9;
 	strobe_map[8] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
 #elif defined(TERMINAL_6110668_STROBE)
 	total_strobes = 16;
@@ -742,30 +740,31 @@ int sampleColumn_8x( uint8_t column, uint16_t * buffer )
 	PORTF = 0;
 	DDRF  = 0;
 
-	recovery(OFF);
-	strobe_w(column);
+	recovery( OFF );
+	strobe_w( column );
 
-	hold_sample(OFF);
-	SET_FULL_MUX(0);
+	hold_sample( OFF );
+	SET_FULL_MUX( 0 );
 
+	// Allow strobes to settle
 	for ( uint8_t i = 0; i < STROBE_SETTLE; ++i ) { getADC(); }
 
-	hold_sample(ON);
+	hold_sample( ON );
 
 	uint8_t mux = 0;
-	SET_FULL_MUX(mux);
+	SET_FULL_MUX( mux );
 	getADC(); // throw away; unknown mux.
 	do {
-		SET_FULL_MUX(mux + 1); // our *next* sample will use this
+		SET_FULL_MUX( mux + 1 ); // our *next* sample will use this
 
 		// retrieve current read.
 		buffer[mux] = getADC();
 		mux++;
 
-	} while (mux < 8);
+	} while ( mux < 8 );
 
-	hold_sample(OFF);
-	recovery(ON);
+	hold_sample( OFF );
+	recovery( ON );
 
 	// turn off adc.
 	ADCSRA &= ~(1 << ADEN);

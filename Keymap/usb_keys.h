@@ -39,6 +39,10 @@
 #define KEY_RIGHT_GUI     0x80
 
 // List of Keycodes
+#define KEY_NOEVENT          0 // Event, not a physical key
+#define KEY_ERRORROLLOVER    1 // Event, not a physical key
+#define KEY_POSTFAIL         2 // Event, not a physical key
+#define KEY_ERRORUNDEFINED   3 // Event, not a physical key
 #define KEY_A                4
 #define KEY_B                5
 #define KEY_C                6
