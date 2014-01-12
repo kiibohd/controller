@@ -214,9 +214,10 @@ inline void scan_setup()
 	// Strobes start at 0 and go to 17 (18), not all Model Fs use all of the available strobes
 	// The single row ribbon connector Model Fs only have a max of 16 strobes
 #define KISHSAVER_STROBE
-//#define TERMINAL_6110668_STROBE
-//#define UNSAVER_STROBE
-#ifdef KISHSAVER_STROBE
+//#define KISHSAVER_OLD_STROBE
+//#define TERMINAL_6110668_OLD_STROBE
+//#define UNSAVER_OLD_STROBE
+#ifdef KISHSAVER_OLD_STROBE
 	total_strobes = 9;
 
 	strobe_map[0] = 2; // Kishsaver doesn't use strobe 0 and 1
@@ -228,7 +229,19 @@ inline void scan_setup()
 	strobe_map[6] = 8;
 	strobe_map[7] = 9;
 	strobe_map[8] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
-#elif defined(TERMINAL_6110668_STROBE)
+#elif defined(KISHSAVER_STROBE)
+	total_strobes = 9;
+
+	strobe_map[0] = 15; // Kishsaver doesn't use strobe 0 and 1
+	strobe_map[1] = 14;
+	strobe_map[2] = 13;
+	strobe_map[3] = 12;
+	strobe_map[4] = 11;
+	strobe_map[5] = 10;
+	strobe_map[6] = 9;
+	strobe_map[7] = 8;
+	strobe_map[8] = 2; // Test point strobe (3 test points, sense 1, 4, 5)
+#elif defined(TERMINAL_6110668_OLD_STROBE)
 	total_strobes = 16;
 
 	strobe_map[0] = 0;
@@ -247,7 +260,7 @@ inline void scan_setup()
 	strobe_map[13] = 13;
 	strobe_map[14] = 14;
 	strobe_map[15] = 15;
-#elif defined(UNSAVER_STROBE)
+#elif defined(UNSAVER_OLD_STROBE)
 	total_strobes = 14;
 
 	strobe_map[0] = 0;
