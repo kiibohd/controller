@@ -38,6 +38,7 @@ set( CHIP "mk20dx128" )
 
 message( STATUS "Chip Selected:" )
 message( "${CHIP}" )
+set( MCU "${CHIP}" ) # For loading script compatibility
 
 
 #| CPU Type
