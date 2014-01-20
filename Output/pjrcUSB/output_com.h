@@ -19,8 +19,8 @@
  * THE SOFTWARE.
  */
 
-#ifndef __usb_com_h
-#define __usb_com_h
+#ifndef __output_com_h
+#define __output_com_h
 
 // ----- Includes -----
 

@@ -15,16 +15,16 @@
 #| AVR Compiler
 if ( ${COMPILER_FAMILY} MATCHES "avr" )
 
-	set( USB_SRCS
-		usb_com.c
+	set( OUTPUT_SRCS
+		output_com.c
 		avr/usb_keyboard_debug.c
 	)
 
 #| ARM Compiler
 elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 
-	set( USB_SRCS
-		usb_com.c
+	set( OUTPUT_SRCS
+		output_com.c
 		arm/usb_desc.c
 		arm/usb_dev.c
 		arm/usb_keyboard.c
@@ -42,7 +42,7 @@ endif ( ${COMPILER_FAMILY} MATCHES "avr" )
 ###
 # Compiler Family Compatibility
 #
-set( USBModuleCompatibility
+set( OutputModuleCompatibility
 	arm
 	avr
 )

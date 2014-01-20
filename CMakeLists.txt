@@ -70,7 +70,7 @@ set( SRCS
 	${COMPILER_SRCS}
 	${SCAN_SRCS}
 	${MACRO_SRCS}
-	${USB_SRCS}
+	${OUTPUT_SRCS}
 	${DEBUG_SRCS}
 )
 
@@ -84,10 +84,10 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} )
 #
 
 #| Check for whether the set modules are compatible with the specified compiler family
-ModuleCompatibility( ${ScanModulePath}  ${ScanModuleCompatibility}  )
-ModuleCompatibility( ${MacroModulePath} ${MacroModuleCompatibility} )
-ModuleCompatibility( ${USBModulePath}   ${USBModuleCompatibility}   )
-ModuleCompatibility( ${DebugModulePath} ${DebugModuleCompatibility} )
+ModuleCompatibility( ${ScanModulePath}   ${ScanModuleCompatibility}   )
+ModuleCompatibility( ${MacroModulePath}  ${MacroModuleCompatibility}  )
+ModuleCompatibility( ${OutputModulePath} ${OutputModuleCompatibility} )
+ModuleCompatibility( ${DebugModulePath}  ${DebugModuleCompatibility}  )
 
 
 

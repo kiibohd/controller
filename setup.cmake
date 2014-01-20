@@ -26,10 +26,10 @@ set(  ScanModule  "MBC-55X" )
 set( MacroModule  "buffer"  )
 
 ##| Sends the current list of usb key codes through USB HID
-set(   USBModule  "pjrc"   )
+set( OutputModule  "pjrcUSB" )
 
 ##| Debugging source to use, each module has it's own set of defines that it sets
-set( DebugModule  "full"   )
+set( DebugModule   "full"    )
 
 
 
@@ -45,11 +45,12 @@ endif ()
 
 ###
 # Path Setup
-# 
-set(  ScanModulePath  "Scan/${ScanModule}"  )
-set( MacroModulePath "Macro/${MacroModule}" )
-set(   USBModulePath   "USB/${USBModule}"   )
-set( DebugModulePath "Debug/${DebugModule}" )
+#
+set(  ScanModulePath   "Scan/${ScanModule}"  )
+set( MacroModulePath  "Macro/${MacroModule}" )
+set( OutputModulePath "Output/${OutputModule}" )
+set(   USBModulePath    "USB/${USBModule}"   )
+set( DebugModulePath  "Debug/${DebugModule}" )
 
 #| Top-level directory adjustment
 set( HEAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
@@ -87,7 +88,7 @@ add_definitions()
 add_definitions(
 	-I${HEAD_DIR}/${ScanModulePath}
 	-I${HEAD_DIR}/${MacroModulePath}
-	-I${HEAD_DIR}/${USBModulePath}
+	-I${HEAD_DIR}/${OutputModulePath}
 	-I${HEAD_DIR}/${DebugModulePath}
 )
 
@@ -123,9 +124,9 @@ PathPrepend(  SCAN_SRCS  ${ScanModulePath} ${SCAN_SRCS}  )
 include    (           "${MacroModulePath}/setup.cmake"  )
 PathPrepend( MACRO_SRCS ${MacroModulePath} ${MACRO_SRCS} )
 
-#| USB Module
-include    (             "${USBModulePath}/setup.cmake"  )
-PathPrepend(   USB_SRCS   ${USBModulePath} ${USB_SRCS}   )
+#| Output Module
+include    (             "${OutputModulePath}/setup.cmake"   )
+PathPrepend( OUTPUT_SRCS  ${OutputModulePath} ${OUTPUT_SRCS} )
 
 #| Debugging Module
 include    (           "${DebugModulePath}/setup.cmake"  )
@@ -138,7 +139,7 @@ message( "${SCAN_SRCS}" )
 message( STATUS "Detected Macro Module Source Files:" )
 message( "${MACRO_SRCS}" )
 message( STATUS "Detected USB Module Source Files:" )
-message( "${USB_SRCS}" )
+message( "${OUTPUT_SRCS}" )
 message( STATUS "Detected Debug Module Source Files:" )
 message( "${DEBUG_SRCS}" )
 
