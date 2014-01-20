@@ -31,7 +31,7 @@
 
 // ----- Functions -----
 
-void initCLI()
+void init_cli()
 {
 }
 

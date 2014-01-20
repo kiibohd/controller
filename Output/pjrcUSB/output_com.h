@@ -58,8 +58,7 @@ extern                       uint8_t USBKeys_Idle_Count;
 
 // ----- Functions -----
 
-void usb_setup(void);
-void usb_send(void);
+void output_setup(void);
 
 #endif
 

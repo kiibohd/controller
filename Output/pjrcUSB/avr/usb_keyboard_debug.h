@@ -2,7 +2,7 @@
 #define usb_serial_h__
 
 #include <stdint.h>
-#include "usb_com.h"
+#include "output_com.h"
 
 void usb_init(void);			// initialize everything
 uint8_t usb_configured(void);		// is the USB port configured

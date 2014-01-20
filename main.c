@@ -27,7 +27,7 @@
 // Project Includes
 #include <macro.h>
 #include <scan_loop.h>
-#include <usb_com.h>
+#include <output_com.h>
 
 #include <led.h>
 #include <print.h>
@@ -136,8 +136,11 @@ int main(void)
 	pinSetup();
 	init_errorLED();
 
-	// Setup USB Module
-	usb_setup();
+	// Setup Output Module
+	output_setup();
+
+	// Enable CLI
+	init_cli();
 
 	// Setup ISR Timer for flagging a kepress send to USB
 	usbTimerSetup();

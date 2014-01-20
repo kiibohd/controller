@@ -73,7 +73,7 @@ volatile uint8_t USBKeys_LEDs = 0;
 // ----- Functions -----
 
 // USB Module Setup
-inline void usb_setup(void)
+inline void output_setup(void)
 {
 	// Initialize the USB, and then wait for the host to set configuration.
 	// If the Teensy is powered without a PC connected to the USB port,

@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include "usb_com.h"
+#include "output_com.h"
 
 #define ENDPOINT_UNUSED			0x00
 #define ENDPOINT_TRANSIMIT_ONLY		0x15

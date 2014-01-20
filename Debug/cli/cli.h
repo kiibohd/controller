@@ -41,7 +41,7 @@
 
 // ----- Functions and Corresponding Function Aliases -----
 
-void initCLI();
+void init_cli();
 
 
 
