@@ -69,6 +69,7 @@ uint8_t CLIDictionariesUsed;
 void init_cli();
 void process_cli();
 void registerDictionary_cli( CLIDictItem *cmdDict );
+void argumentIsolation_cli( char* string, char** first, char** second );
 
 void commandLookup_cli();
 

@@ -34,7 +34,7 @@
 
 // Basic command dictionary
 CLIDictItem basicCLIDict[] = {
-	{ "help",    "This command :P", cliFunc_help },
+	{ "help",    "You're looking at it :P", cliFunc_help },
 	{ "version", "Version information about this firmware.", cliFunc_version },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
@@ -172,18 +172,15 @@ void process_cli()
 	}
 }
 
-void commandLookup_cli()
+// Takes a string, returns two pointers
+//  One to the first non-space character
+//  The second to the next argument (first NULL if there isn't an argument). delimited by a space
+//  Places a NULL at the first space after the first argument
+inline void argumentIsolation_cli( char* string, char** first, char** second )
 {
-	// Ignore command if buffer is 0 length
-	if ( CLILineBufferCurrent == 0 )
-		return;
-
-	// Set the last+1 character of the buffer to NULL for string processing
-	CLILineBuffer[CLILineBufferCurrent] = '\0';
-
 	// Mark out the first argument
 	// This is done by finding the first space after a list of non-spaces and setting it NULL
-	char* cmdPtr = CLILineBuffer - 1;
+	char* cmdPtr = string - 1;
 	while ( *++cmdPtr == ' ' ); // Skips leading spaces, and points to first character of cmd
 
 	// Locates first space delimiter
@@ -193,6 +190,26 @@ void commandLookup_cli()
 
 	// Point to the first character of args or a NULL (no args) and set the space delimiter as a NULL
 	(++argPtr)[-1] = '\0';
+
+	// Set return variables
+	*first = cmdPtr;
+	*second = argPtr;
+}
+
+void commandLookup_cli()
+{
+	// Ignore command if buffer is 0 length
+	if ( CLILineBufferCurrent == 0 )
+		return;
+
+	// Set the last+1 character of the buffer to NULL for string processing
+	CLILineBuffer[CLILineBufferCurrent] = '\0';
+
+	// Retrieve pointers to command and beginning of arguments
+	// Places a NULL at the first space after the command
+	char* cmdPtr;
+	char* argPtr;
+	argumentIsolation_cli( CLILineBuffer, &cmdPtr, &argPtr );
 
 	// Scan array of dictionaries for a valid command match
 	for ( uint8_t dict = 0; dict < CLIDictionariesUsed; dict++ )
@@ -214,10 +231,10 @@ void commandLookup_cli()
 
 	// No match for the command...
 	print( NL );
-	erro_dPrint("\"", CLILineBuffer, "\" is not a valid command...try help");
+	erro_dPrint("\"", CLILineBuffer, "\" is not a valid command...type \033[35mhelp\033[0m");
 }
 
-void registerDictionary_cli( CLIDictItem *cmdDict )
+inline void registerDictionary_cli( CLIDictItem *cmdDict )
 {
 	// Make sure this max limit of dictionaries hasn't been reached
 	if ( CLIDictionariesUsed >= CLIMaxDictionaries )
@@ -236,9 +253,20 @@ void registerDictionary_cli( CLIDictItem *cmdDict )
 
 void cliFunc_help( char* args )
 {
-	print( NL );
-	print("Help!");
-	dPrint( args );
+	// Scan array of dictionaries and print every description
+	//  (no alphabetical here, too much processing/memory to sort...)
+	for ( uint8_t dict = 0; dict < CLIDictionariesUsed; dict++ )
+	{
+		print( NL "\033[1;32mCOMMAND SET\033[0m " );
+		printInt8( dict + 1 );
+		print( NL );
+
+		// Parse each cmd/description until a null command entry is found
+		for ( uint8_t cmd = 0; CLIDict[dict][cmd].name != 0; cmd++ )
+		{
+			dPrintStrs( " \033[35m", CLIDict[dict][cmd].name, NL, "\033[0m    ", CLIDict[dict][cmd].description, NL );
+		}
+	}
 }
 
 void cliFunc_version( char* args )
