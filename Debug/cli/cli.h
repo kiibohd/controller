@@ -37,12 +37,44 @@
 
 // ----- Defines -----
 
+#define CLILineBufferMaxSize 100
+#define CLIMaxDictionaries   5
+
+
+// ----- Structs -----
+
+// Each item has a name, description, and function pointer with an argument for arguments
+typedef struct CLIDictItem {
+	char*  name;
+	char*  description;
+	void (*function)(char*);
+} CLIDictItem;
+
+
+
+// ----- Variables -----
+
+char    CLILineBuffer[CLILineBufferMaxSize+1]; // +1 for an additional NULL
+uint8_t CLILineBufferCurrent;
+
+// Main command dictionary
+CLIDictItem *CLIDict[CLIMaxDictionaries];
+uint8_t CLIDictionariesUsed;
+
+
 
 
 // ----- Functions and Corresponding Function Aliases -----
 
 void init_cli();
+void process_cli();
+void registerDictionary_cli( CLIDictItem *cmdDict );
 
+void commandLookup_cli();
+
+// CLI Command Functions
+void cliFunc_help   ( char* args );
+void cliFunc_version( char* args );
 
 
 #endif

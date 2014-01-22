@@ -240,3 +240,13 @@ uint16_t lenStr( char* in )
 	return (pos - in);
 }
 
+
+uint8_t eqStr( char* str1, char* str2 )
+{
+	// Scan each string for NULLs and whether they are the same
+	while( *str1 != '\0' && *str1++ == *str2++ );
+
+	// If the strings are still identical (i.e. both NULL), then return 1, otherwise 0
+	return *--str1 == *--str2 ? 1 : 0;
+}
+
