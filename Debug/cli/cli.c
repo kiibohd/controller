@@ -186,14 +186,13 @@ void commandLookup_cli()
 	char* cmdPtr = CLILineBuffer - 1;
 	while ( *++cmdPtr == ' ' ); // Skips leading spaces, and points to first character of cmd
 
-	// Locates first space delimiter, and points to first character of args or a NULL (no args)
-	char* argPtr = cmdPtr;
-	do {
+	// Locates first space delimiter
+	char* argPtr = cmdPtr + 1;
+	while ( *argPtr != ' ' && *argPtr != '\0' )
 		argPtr++;
-	} while ( *argPtr != ' ' && *argPtr != '\0' );
 
-	// Set the space delimiter as a NULL
-	argPtr[-1] = '\0';
+	// Point to the first character of args or a NULL (no args) and set the space delimiter as a NULL
+	(++argPtr)[-1] = '\0';
 
 	// Scan array of dictionaries for a valid command match
 	for ( uint8_t dict = 0; dict < CLIDictionariesUsed; dict++ )
