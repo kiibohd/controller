@@ -41,7 +41,7 @@
 #define CLI_RepoOrigin          "@Git_Origin_URL@"
 #define CLI_CommitDate          "@Git_Date_INFO@"
 #define CLI_CommitAuthor        @Git_Commit_Author@
-#define CLI_Modules             "@OutputModule@ @DebugModule@"
+#define CLI_Modules             "Output(@OutputModule@) Debug(@DebugModule@)"
 #define CLI_BuildDate           "@Build_Date@"
 #define CLI_BuildOS             "@CMAKE_SYSTEM@"
 #define CLI_Arch                "@COMPILER_FAMILY@"

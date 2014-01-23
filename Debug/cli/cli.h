@@ -59,7 +59,7 @@ CLIDictItem *CLIDict[CLIMaxDictionaries];
 uint8_t CLIDictionariesUsed;
 
 uint8_t CLILEDState;
-
+uint8_t CLIHexDebugMode;
 
 
 
@@ -81,6 +81,7 @@ void cliFunc_help    ( char* args );
 void cliFunc_led     ( char* args );
 void cliFunc_reload  ( char* args );
 void cliFunc_reset   ( char* args );
+void cliFunc_restart ( char* args );
 void cliFunc_version ( char* args );
 
 

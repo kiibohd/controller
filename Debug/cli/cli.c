@@ -40,7 +40,8 @@ CLIDictItem basicCLIDict[] = {
 	{ "help",     "You're looking at it :P", cliFunc_help },
 	{ "led",      "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules...", cliFunc_led },
 	{ "reload",   "Signals microcontroller to reflash/reload.", cliFunc_reload },
-	{ "reset",    "Sends a software reset, should be similar to powering on the device.", cliFunc_reset },
+	{ "reset",    "Resets the terminal back to initial settings.", cliFunc_reset },
+	{ "restart",  "Sends a software restart, should be similar to powering on the device.", cliFunc_restart },
 	{ "version",  "Version information about this firmware.", cliFunc_version },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
@@ -51,9 +52,11 @@ CLIDictItem basicCLIDict[] = {
 
 inline void prompt()
 {
+	print("\033[2K"); // Erases the current line
 	print(": ");
 }
 
+// Initialize the CLI
 inline void init_cli()
 {
 	// Reset the Line Buffer
@@ -69,8 +72,12 @@ inline void init_cli()
 	// Initialize main LED
 	init_errorLED();
 	CLILEDState = 0;
+
+	// Hex debug mode is off by default
+	CLIHexDebugMode = 0;
 }
 
+// Query the serial input buffer for any new characters
 void process_cli()
 {
 	// Current buffer position
@@ -104,6 +111,22 @@ void process_cli()
 
 		// Place into line buffer
 		CLILineBuffer[CLILineBufferCurrent++] = cur_char;
+	}
+
+	// Display Hex Key Input if enabled
+	if ( CLIHexDebugMode && CLILineBufferCurrent > prev_buf_pos )
+	{
+		print("\033[s\r\n"); // Save cursor position, and move to the next line
+		print("\033[2K");    // Erases the current line
+
+		uint8_t pos = prev_buf_pos;
+		while ( CLILineBufferCurrent > pos )
+		{
+			printHex( CLILineBuffer[pos++] );
+			print(" ");
+		}
+
+		print("\033[u"); // Restore cursor position
 	}
 
 	// If buffer has changed, output to screen while there are still characters in the buffer not displayed
@@ -168,17 +191,6 @@ void process_cli()
 
 			break;
 		}
-
-		/* TODO Enable via option
-		uint8_t pos = prev_buf_pos;
-		while ( CLILineBuffer[pos] != 0 )
-		{
-			printHex( CLILineBuffer[pos++] );
-			print(" ");
-		}
-
-		print( NL );
-		*/
 	}
 }
 
@@ -206,6 +218,7 @@ inline void argumentIsolation_cli( char* string, char** first, char** second )
 	*second = argPtr;
 }
 
+// Scans the CLILineBuffer for any valid commands
 void commandLookup_cli()
 {
 	// Ignore command if buffer is 0 length
@@ -244,6 +257,7 @@ void commandLookup_cli()
 	erro_dPrint("\"", CLILineBuffer, "\" is not a valid command...type \033[35mhelp\033[0m");
 }
 
+// Registers a command dictionary with the CLI
 inline void registerDictionary_cli( CLIDictItem *cmdDict )
 {
 	// Make sure this max limit of dictionaries hasn't been reached
@@ -263,6 +277,19 @@ inline void registerDictionary_cli( CLIDictItem *cmdDict )
 
 void cliFunc_cliDebug( char* args )
 {
+	// Toggle Hex Debug Mode
+	if ( CLIHexDebugMode )
+	{
+		print( NL );
+		info_print("Hex debug mode disabled...");
+		CLIHexDebugMode = 0;
+	}
+	else
+	{
+		print( NL );
+		info_print("Hex debug mode enabled...");
+		CLIHexDebugMode = 1;
+	}
 }
 
 void cliFunc_help( char* args )
@@ -303,6 +330,11 @@ void cliFunc_reload( char* args )
 }
 
 void cliFunc_reset( char* args )
+{
+	print("\033c"); // Resets the terminal
+}
+
+void cliFunc_restart( char* args )
 {
 	// Trigger an overall software reset
 	SOFTWARE_RESET();
