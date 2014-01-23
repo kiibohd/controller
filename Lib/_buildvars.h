@@ -1,15 +1,15 @@
-/* Copyright (C) 2013 by Jacob Alexander
- * 
+/* Copyright (C) 2013-2014 by Jacob Alexander
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -30,8 +30,24 @@
 
 // You can change these to give your code its own name.
 #define STR_MANUFACTURER	L"@MANUFACTURER@"
-#define STR_PRODUCT		L"Keyboard - @ScanModule@ @MacroModule@ @USBModule@ @DebugModule@"
+#define STR_PRODUCT		L"ForceGauge - @OutputModule@ @DebugModule@"
 #define STR_SERIAL              L"@GitLastCommitDate@"
+
+
+// Strings used in the CLI module
+#define CLI_Revision            "@Git_Commit_Revision@"
+#define CLI_Branch              "@Git_Branch_INFO@"
+#define CLI_ModifiedStatus      "@Git_Modified_Status@"
+#define CLI_RepoOrigin          "@Git_Origin_URL@"
+#define CLI_CommitDate          "@Git_Date_INFO@"
+#define CLI_CommitAuthor        @Git_Commit_Author@
+#define CLI_Modules             "@OutputModule@ @DebugModule@"
+#define CLI_BuildDate           "@Build_Date@"
+#define CLI_BuildOS             "@CMAKE_SYSTEM@"
+#define CLI_Arch                "@COMPILER_FAMILY@"
+#define CLI_Chip                "@MCU@"
+#define CLI_CPU                 "@CPU@"
+#define CLI_Device              "ForceGauge"
 
 
 // Mac OS-X and Linux automatically load the correct drivers.  On

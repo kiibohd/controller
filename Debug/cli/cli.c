@@ -25,7 +25,9 @@
 //#include <stdarg.h>
 
 // Project Includes
+#include <buildvars.h>
 #include "cli.h"
+#include <led.h>
 #include <print.h>
 
 
@@ -34,8 +36,12 @@
 
 // Basic command dictionary
 CLIDictItem basicCLIDict[] = {
-	{ "help",    "You're looking at it :P", cliFunc_help },
-	{ "version", "Version information about this firmware.", cliFunc_version },
+	{ "cliDebug", "Enables/Disables hex output of the most recent cli input.", cliFunc_cliDebug },
+	{ "help",     "You're looking at it :P", cliFunc_help },
+	{ "led",      "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules...", cliFunc_led },
+	{ "reload",   "Signals microcontroller to reflash/reload.", cliFunc_reload },
+	{ "reset",    "Sends a software reset, should be similar to powering on the device.", cliFunc_reset },
+	{ "version",  "Version information about this firmware.", cliFunc_version },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -59,6 +65,10 @@ inline void init_cli()
 	// Register first dictionary
 	CLIDictionariesUsed = 0;
 	registerDictionary_cli( basicCLIDict );
+
+	// Initialize main LED
+	init_errorLED();
+	CLILEDState = 0;
 }
 
 void process_cli()
@@ -251,6 +261,10 @@ inline void registerDictionary_cli( CLIDictItem *cmdDict )
 
 // ----- CLI Command Functions -----
 
+void cliFunc_cliDebug( char* args )
+{
+}
+
 void cliFunc_help( char* args )
 {
 	// Scan array of dictionaries and print every description
@@ -264,15 +278,51 @@ void cliFunc_help( char* args )
 		// Parse each cmd/description until a null command entry is found
 		for ( uint8_t cmd = 0; CLIDict[dict][cmd].name != 0; cmd++ )
 		{
-			dPrintStrs( " \033[35m", CLIDict[dict][cmd].name, NL, "\033[0m    ", CLIDict[dict][cmd].description, NL );
+			dPrintStrs(" \033[35m", CLIDict[dict][cmd].name, "\033[0m");
+
+			// Determine number of spaces to tab by the length of the command and TabAlign
+			uint8_t padLength = CLIEntryTabAlign - lenStr( CLIDict[dict][cmd].name );
+			while ( padLength-- > 0 )
+				print(" ");
+
+			dPrintStrNL( CLIDict[dict][cmd].description );
 		}
 	}
+}
+
+void cliFunc_led( char* args )
+{
+	CLILEDState ^= 1 << 1; // Toggle between 0 and 1
+	errorLED( CLILEDState ); // Enable/Disable error LED
+}
+
+void cliFunc_reload( char* args )
+{
+	// Request to output module to be set into firmware reload mode
+	output_firmwareReload();
+}
+
+void cliFunc_reset( char* args )
+{
+	// Trigger an overall software reset
+	SOFTWARE_RESET();
 }
 
 void cliFunc_version( char* args )
 {
 	print( NL );
-	print("Version!");
-	dPrint( args );
+	print( " \033[1mRevision:\033[0m      " CLI_Revision       NL );
+	print( " \033[1mBranch:\033[0m        " CLI_Branch         NL );
+	print( " \033[1mTree Status:\033[0m   " CLI_ModifiedStatus NL );
+	print( " \033[1mRepo Origin:\033[0m   " CLI_RepoOrigin     NL );
+	print( " \033[1mCommit Date:\033[0m   " CLI_CommitDate     NL );
+	print( " \033[1mCommit Author:\033[0m " CLI_CommitAuthor   NL );
+	print( " \033[1mBuild Date:\033[0m    " CLI_BuildDate      NL );
+	print( " \033[1mBuild OS:\033[0m      " CLI_BuildOS        NL );
+	print( " \033[1mArchitecture:\033[0m  " CLI_Arch           NL );
+	print( " \033[1mChip:\033[0m          " CLI_Chip           NL );
+	print( " \033[1mCPU:\033[0m           " CLI_CPU            NL );
+	print( " \033[1mDevice:\033[0m        " CLI_Device         NL );
+	print( " \033[1mModules:\033[0m       " CLI_Modules        NL );
 }
 

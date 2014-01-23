@@ -1424,6 +1424,9 @@ extern "C" {
 #define ARM_DWT_CTRL_CYCCNTENA          (1 << 0)                // Enable cycle count
 #define ARM_DWT_CYCCNT          *(volatile uint32_t *)0xE0001004 // Cycle count register
 
+// Software Reset
+#define SOFTWARE_RESET()        SCB_AIRCR = 0x5FA0004
+
 
 extern void nmi_isr(void);
 extern void hard_fault_isr(void);

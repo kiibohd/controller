@@ -165,8 +165,10 @@ execute_process( COMMAND git status -s -uno --porcelain
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 string( LENGTH "${Git_Modified_INFO}" Git_Modified_LENGTH )
+set( Git_Modified_Status "Clean" )
 if ( ${Git_Modified_LENGTH} GREATER 2 )
 	string( SUBSTRING "${Git_Modified_INFO}" 1 2 Git_Modified_Flag_INFO )
+	set( Git_Modified_Status "Dirty" )
 endif ()
 
 #| Branch
@@ -185,6 +187,46 @@ execute_process( COMMAND git show -s --format=%ci
 	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
+
+#| Commit Author and Email
+execute_process( COMMAND git show -s --format="%cn <%ce>"
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+	OUTPUT_VARIABLE Git_Commit_Author
+	RESULT_VARIABLE Git_RETURN
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+#| Commit Revision
+execute_process( COMMAND git show -s --format=%H
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+	OUTPUT_VARIABLE Git_Commit_Revision
+	RESULT_VARIABLE Git_RETURN
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+#| Origin URL
+execute_process( COMMAND git config --get remote.origin.url
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+	OUTPUT_VARIABLE Git_Origin_URL
+	RESULT_VARIABLE Git_RETURN
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+#| Date Macro
+macro ( dateNow RESULT )
+	if ( WIN32 )
+		execute_process( COMMAND "cmd" " /C date /T" OUTPUT_VARIABLE ${RESULT} OUTPUT_STRIP_TRAILING_WHITESPACE )
+	elseif ( UNIX )
+		execute_process( COMMAND "date" "+%Y-%m-%d %T %z" OUTPUT_VARIABLE ${RESULT} OUTPUT_STRIP_TRAILING_WHITESPACE )
+	else ()
+		message( send_error "date not implemented" )
+		set( ${RESULT} 000000 )
+	endif ()
+endmacro (dateNow)
+dateNow( Build_Date )
 
 
 #| Only use Git variables if we were successful in calling the commands

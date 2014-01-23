@@ -19,6 +19,8 @@ uint32_t usb_tx_packet_count(uint32_t endpoint);
 void usb_tx(uint32_t endpoint, usb_packet_t *packet);
 void usb_tx_isr(uint32_t endpoint, usb_packet_t *packet);
 
+void usb_device_reload();
+
 extern volatile uint8_t usb_configuration;
 
 #ifdef CDC_DATA_INTERFACE

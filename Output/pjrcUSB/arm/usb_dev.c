@@ -596,7 +596,10 @@ void usb_tx(uint32_t endpoint, usb_packet_t *packet)
 
 
 
-
+void usb_device_reload()
+{
+	asm volatile("bkpt");
+}
 
 
 void _reboot_Teensyduino_(void)

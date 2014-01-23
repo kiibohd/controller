@@ -58,7 +58,9 @@ extern                       uint8_t USBKeys_Idle_Count;
 
 // ----- Functions -----
 
-void output_setup(void);
+void output_setup();
+
+void output_firmwareReload();
 
 #endif
 

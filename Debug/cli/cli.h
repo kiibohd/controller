@@ -25,20 +25,17 @@
 // ----- Includes -----
 
 // Compiler Includes
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+#include <Lib/MainLib.h>
 
-#elif defined(_mk20dx128_)
-
-#include "arm/usb_serial.h"
-
-#endif
-
+// Project Includes
+#include <output_com.h>
 
 
 // ----- Defines -----
 
 #define CLILineBufferMaxSize 100
 #define CLIMaxDictionaries   5
+#define CLIEntryTabAlign     12
 
 
 // ----- Structs -----
@@ -61,6 +58,8 @@ uint8_t CLILineBufferCurrent;
 CLIDictItem *CLIDict[CLIMaxDictionaries];
 uint8_t CLIDictionariesUsed;
 
+uint8_t CLILEDState;
+
 
 
 
@@ -74,8 +73,15 @@ void argumentIsolation_cli( char* string, char** first, char** second );
 void commandLookup_cli();
 
 // CLI Command Functions
-void cliFunc_help   ( char* args );
-void cliFunc_version( char* args );
+void cliFunc_arch    ( char* args );
+void cliFunc_chip    ( char* args );
+void cliFunc_cliDebug( char* args );
+void cliFunc_device  ( char* args );
+void cliFunc_help    ( char* args );
+void cliFunc_led     ( char* args );
+void cliFunc_reload  ( char* args );
+void cliFunc_reset   ( char* args );
+void cliFunc_version ( char* args );
 
 
 #endif
