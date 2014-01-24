@@ -72,6 +72,7 @@ void registerDictionary_cli( CLIDictItem *cmdDict, char* dictName );
 void argumentIsolation_cli( char* string, char** first, char** second );
 
 void commandLookup_cli();
+void tabCompletion_cli();
 
 // CLI Command Functions
 void cliFunc_arch    ( char* args );

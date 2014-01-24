@@ -241,12 +241,13 @@ uint16_t lenStr( char* in )
 }
 
 
-uint8_t eqStr( char* str1, char* str2 )
+int16_t eqStr( char* str1, char* str2 )
 {
 	// Scan each string for NULLs and whether they are the same
 	while( *str1 != '\0' && *str1++ == *str2++ );
 
-	// If the strings are still identical (i.e. both NULL), then return 1, otherwise 0
-	return *--str1 == *--str2 ? 1 : 0;
+	// If the strings are still identical (i.e. both NULL), then return -1, otherwise current *str1
+	// If *str1 is 0, then str1 ended (and str1 is "like" str2), otherwise strings are different
+	return *--str1 == *--str2 ? -1 : *++str1;
 }
 

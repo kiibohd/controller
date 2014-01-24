@@ -53,8 +53,8 @@ CLIDictItem basicCLIDict[] = {
 
 inline void prompt()
 {
-	print("\033[2K"); // Erases the current line
-	print("\033[1;34m:\033[0m ");
+	print("\033[2K\r"); // Erases the current line and resets cursor to beginning of line
+	print("\033[1;34m:\033[0m "); // Blue bold prompt
 }
 
 // Initialize the CLI
@@ -155,7 +155,12 @@ void process_cli()
 
 		case 0x09: // Tab
 			// Tab completion for the current command
-			// TODO
+			tabCompletion_cli();
+
+			CLILineBufferCurrent--; // Remove the Tab
+
+			// XXX There is a potential bug here when resetting the buffer (losing valid keypresses)
+			//     Doesn't look like it will happen *that* often, so not handling it for now -HaaTa
 			return;
 
 		case 0x1B: // Esc
@@ -242,7 +247,7 @@ void commandLookup_cli()
 		for ( uint8_t cmd = 0; CLIDict[dict][cmd].name != 0; cmd++ )
 		{
 			// Compare the first argument and each command entry
-			if ( eqStr( cmdPtr, CLIDict[dict][cmd].name ) )
+			if ( eqStr( cmdPtr, CLIDict[dict][cmd].name ) == -1 )
 			{
 				// Run the specified command function pointer
 				//   argPtr is already pointing at the first character of the arguments
@@ -271,6 +276,64 @@ inline void registerDictionary_cli( CLIDictItem *cmdDict, char* dictName )
 	// Add dictionary
 	CLIDictNames[CLIDictionariesUsed] = dictName;
 	CLIDict[CLIDictionariesUsed++] = cmdDict;
+}
+
+inline void tabCompletion_cli()
+{
+	// Ignore command if buffer is 0 length
+	if ( CLILineBufferCurrent == 0 )
+		return;
+
+	// Set the last+1 character of the buffer to NULL for string processing
+	CLILineBuffer[CLILineBufferCurrent] = '\0';
+
+	// Retrieve pointers to command and beginning of arguments
+	// Places a NULL at the first space after the command
+	char* cmdPtr;
+	char* argPtr;
+	argumentIsolation_cli( CLILineBuffer, &cmdPtr, &argPtr );
+
+	// Tab match pointer
+	char* tabMatch = 0;
+	uint8_t matches = 0;
+
+	// Scan array of dictionaries for a valid command match
+	for ( uint8_t dict = 0; dict < CLIDictionariesUsed; dict++ )
+	{
+		// Parse each cmd until a null command entry is found, or an argument match
+		for ( uint8_t cmd = 0; CLIDict[dict][cmd].name != 0; cmd++ )
+		{
+			// Compare the first argument piece to each command entry to see if it is "like"
+			// NOTE: To save on processing, we only care about the commands and ignore the arguments
+			//       If there are arguments, and a valid tab match is found, buffer is cleared (args lost)
+			//       Also ignores full matches
+			if ( eqStr( cmdPtr, CLIDict[dict][cmd].name ) == 0 )
+			{
+				// TODO Make list of commands if multiple matches
+				matches++;
+				tabMatch = CLIDict[dict][cmd].name;
+			}
+		}
+	}
+
+	// Only tab complete if there was 1 match
+	if ( matches == 1 )
+	{
+		// Reset the buffer
+		CLILineBufferCurrent = 0;
+
+		// Reprint the prompt (automatically clears the line)
+		prompt();
+
+		// Display the command
+		dPrint( tabMatch );
+
+		// There are no index counts, so just copy the whole string to the input buffer
+		while ( *tabMatch != '\0' )
+		{
+			CLILineBuffer[CLILineBufferCurrent++] = *tabMatch++;
+		}
+	}
 }
 
 
