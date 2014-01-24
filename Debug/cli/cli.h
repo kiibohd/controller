@@ -35,7 +35,7 @@
 
 #define CLILineBufferMaxSize 100
 #define CLIMaxDictionaries   5
-#define CLIEntryTabAlign     12
+#define CLIEntryTabAlign     13
 
 
 // ----- Structs -----

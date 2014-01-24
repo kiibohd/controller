@@ -49,6 +49,17 @@
 
 
 
+// ----- Function Declarations -----
+
+void cliFunc_free        ( char* args );
+void cliFunc_gaugeHelp   ( char* args );
+void cliFunc_single      ( char* args );
+void cliFunc_start       ( char* args );
+void cliFunc_zeroForce   ( char* args );
+void cliFunc_zeroPosition( char* args );
+
+
+
 // ----- Variables -----
 
 // Timer Interrupt for flagging a send of the sampled key detection data to the USB host
@@ -209,5 +220,37 @@ void pit0_isr(void)
 	// Clear the interrupt flag
 	PIT_TFLG0 = 1;
 #endif
+}
+
+
+// ----- CLI Command Functions -----
+
+void cliFunc_free( char* args )
+{
+}
+
+
+void cliFunc_gaugeHelp( char* args )
+{
+}
+
+
+void cliFunc_single( char* args )
+{
+}
+
+
+void cliFunc_start( char* args )
+{
+}
+
+
+void cliFunc_zeroForce( char* args )
+{
+}
+
+
+void cliFunc_zeroPosition( char* args )
+{
 }
 
