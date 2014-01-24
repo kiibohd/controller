@@ -54,7 +54,7 @@ CLIDictItem basicCLIDict[] = {
 inline void prompt()
 {
 	print("\033[2K"); // Erases the current line
-	print(": ");
+	print("\033[1;34m:\033[0m ");
 }
 
 // Initialize the CLI
