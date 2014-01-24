@@ -35,6 +35,7 @@
 // ----- Variables -----
 
 // Basic command dictionary
+char*       basicCLIDictName = "General Commands";
 CLIDictItem basicCLIDict[] = {
 	{ "cliDebug", "Enables/Disables hex output of the most recent cli input.", cliFunc_cliDebug },
 	{ "help",     "You're looking at it :P", cliFunc_help },
@@ -67,7 +68,7 @@ inline void init_cli()
 
 	// Register first dictionary
 	CLIDictionariesUsed = 0;
-	registerDictionary_cli( basicCLIDict );
+	registerDictionary_cli( basicCLIDict, basicCLIDictName );
 
 	// Initialize main LED
 	init_errorLED();
@@ -258,7 +259,7 @@ void commandLookup_cli()
 }
 
 // Registers a command dictionary with the CLI
-inline void registerDictionary_cli( CLIDictItem *cmdDict )
+inline void registerDictionary_cli( CLIDictItem *cmdDict, char* dictName )
 {
 	// Make sure this max limit of dictionaries hasn't been reached
 	if ( CLIDictionariesUsed >= CLIMaxDictionaries )
@@ -268,6 +269,7 @@ inline void registerDictionary_cli( CLIDictItem *cmdDict )
 	}
 
 	// Add dictionary
+	CLIDictNames[CLIDictionariesUsed] = dictName;
 	CLIDict[CLIDictionariesUsed++] = cmdDict;
 }
 
@@ -298,9 +300,8 @@ void cliFunc_help( char* args )
 	//  (no alphabetical here, too much processing/memory to sort...)
 	for ( uint8_t dict = 0; dict < CLIDictionariesUsed; dict++ )
 	{
-		print( NL "\033[1;32mCOMMAND SET\033[0m " );
-		printInt8( dict + 1 );
-		print( NL );
+		// Print the name of each dictionary as a title
+		dPrintStrsNL( NL, "\033[1;32m", CLIDictNames[dict], "\033[0m" );
 
 		// Parse each cmd/description until a null command entry is found
 		for ( uint8_t cmd = 0; CLIDict[dict][cmd].name != 0; cmd++ )

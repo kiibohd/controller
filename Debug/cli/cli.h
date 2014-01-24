@@ -55,8 +55,9 @@ char    CLILineBuffer[CLILineBufferMaxSize+1]; // +1 for an additional NULL
 uint8_t CLILineBufferCurrent;
 
 // Main command dictionary
-CLIDictItem *CLIDict[CLIMaxDictionaries];
-uint8_t CLIDictionariesUsed;
+CLIDictItem *CLIDict     [CLIMaxDictionaries];
+char*        CLIDictNames[CLIMaxDictionaries];
+uint8_t      CLIDictionariesUsed;
 
 uint8_t CLILEDState;
 uint8_t CLIHexDebugMode;
@@ -67,7 +68,7 @@ uint8_t CLIHexDebugMode;
 
 void init_cli();
 void process_cli();
-void registerDictionary_cli( CLIDictItem *cmdDict );
+void registerDictionary_cli( CLIDictItem *cmdDict, char* dictName );
 void argumentIsolation_cli( char* string, char** first, char** second );
 
 void commandLookup_cli();
