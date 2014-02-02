@@ -98,6 +98,7 @@ void usb_debug_putstrs( char* first, ... );
 
 void printInt8  ( uint8_t  in );
 void printInt16 ( uint16_t in );
+void printInt32 ( uint32_t in );
 void printHex_op( uint16_t in, uint8_t op );
 
 
@@ -106,6 +107,7 @@ void printHex_op( uint16_t in, uint8_t op );
 
 void int8ToStr  ( uint8_t  in, char*  out );
 void int16ToStr ( uint16_t in, char*  out );
+void int32ToStr ( uint32_t in, char*  out );
 void hexToStr_op( uint16_t in, char*  out, uint8_t op );
 void revsStr    ( char*  in );
 uint16_t lenStr ( char*  in );

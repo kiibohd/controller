@@ -116,6 +116,18 @@ void printInt16( uint16_t in )
 	dPrintStr( tmpStr );
 }
 
+void printInt32( uint32_t in )
+{
+	// Max number of characters is 10 + 1 for null
+	char tmpStr[11];
+
+	// Convert number
+	int32ToStr( in, tmpStr );
+
+	// Print number
+	dPrintStr( tmpStr );
+}
+
 void printHex_op( uint16_t in, uint8_t op )
 {
 	// With an op of 1, the max number of characters is 6 + 1 for null
@@ -158,6 +170,27 @@ void int16ToStr( uint16_t in, char* out )
 {
 	// Position and sign containers
 	uint16_t pos;
+	pos = 0;
+
+	// Evaluate through digits as decimal
+	do
+	{
+		out[pos++] = in % 10 + '0';
+	}
+	while ( (in /= 10) > 0 );
+
+	// Append null
+	out[pos] = '\0';
+
+	// Reverse the string to the correct order
+	revsStr(out);
+}
+
+
+void int32ToStr( uint32_t in, char* out )
+{
+	// Position and sign containers
+	uint32_t pos;
 	pos = 0;
 
 	// Evaluate through digits as decimal
