@@ -28,8 +28,8 @@
  * SOFTWARE.
  */
 
-#ifndef _mk20dx128_h_
-#define _mk20dx128_h_
+#ifndef _mk20dx_h_
+#define _mk20dx_h_
 
 //#define F_CPU 96000000
 //#define F_CPU 48000000

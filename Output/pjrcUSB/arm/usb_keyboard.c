@@ -30,7 +30,7 @@
 
 #include "usb_dev.h"
 #include "usb_keyboard.h"
-#include <Lib/USBLib.h>
+#include <Lib/OutputLib.h>
 #include <string.h> // for memcpy()
 
 

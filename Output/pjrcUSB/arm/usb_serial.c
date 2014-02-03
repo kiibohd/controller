@@ -30,7 +30,7 @@
 
 #include "usb_dev.h"
 #include "usb_serial.h"
-#include <Lib/USBLib.h>
+#include <Lib/OutputLib.h>
 #include <string.h> // For memcpy
 
 // defined by usb_dev.h -> usb_desc.h

@@ -1,6 +1,6 @@
 
 #include "delay.h"
-#include "mk20dx128.h"
+#include "mk20dx.h"
 
 // the systick interrupt is supposed to increment this at 1 kHz rate
 volatile uint32_t systick_millis_count = 0;

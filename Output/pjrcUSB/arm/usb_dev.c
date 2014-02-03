@@ -28,7 +28,7 @@
  * SOFTWARE.
  */
 
-#include <Lib/USBLib.h>
+#include <Lib/OutputLib.h>
 #include "usb_dev.h"
 #include "usb_mem.h"
 

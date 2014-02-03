@@ -22,7 +22,7 @@
 // ----- Includes -----
 
 // Compiler Includes
-#include <Lib/USBLib.h>
+#include <Lib/OutputLib.h>
 
 // Project Includes
 #include <scan_loop.h>

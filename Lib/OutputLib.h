@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 by Jacob Alexander
+/* Copyright (C) 2013-2014 by Jacob Alexander
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,15 +24,15 @@
 // Additional includes should only be added to this file if they should be added to *all* Scan modules.
 
 
-#ifndef __USBLIB_H
-#define __USBLIB_H
+#ifndef __OUTPUTLIB_H
+#define __OUTPUTLIB_H
 
 // ----- Includes -----
 
 // ARM
-#if defined(_mk20dx128_)
+#if defined(_mk20dx128_) || defined(_mk20dx256_)
 
-#include <Lib/mk20dx128.h>
+#include <Lib/mk20dx.h>
 #include <Lib/delay.h>
 
 #endif

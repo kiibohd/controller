@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2013
+# Jacob Alexander 2011-2014
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -34,18 +34,31 @@ set( SIZE    "arm-none-eabi-size"    )
 #| type "make clean" after changing this, so all files will be rebuilt
 #|
 #| "mk20dx128"        # Teensy   3.0
+#| "mk20dx256"        # Teensy   3.1
 set( CHIP "mk20dx128" )
+#set( CHIP "mk20dx256" )
 
 message( STATUS "Chip Selected:" )
 message( "${CHIP}" )
 set( MCU "${CHIP}" ) # For loading script compatibility
 
 
+#| Chip Base Type
+#| Automatically chosed based on the chip name.
+if ( "${CHIP}" MATCHES "^mk20dx.*$" )
+	set( CHIP_FAMILY "mk20dx" )
+	message( STATUS "Chip Family:" )
+	message( "${CHIP_FAMILY}" )
+else ()
+	message( FATAL_ERROR "Unknown chip family: ${CHIP}" )
+endif ()
+
+
 #| CPU Type
 #| You _MUST_ set this to match the board you are using
 #| type "make clean" after changing this, so all files will be rebuilt
 #|
-#| "cortex-m4"        # Teensy   3.0
+#| "cortex-m4"        # Teensy   3.0, 3.1
 set( CPU "cortex-m4" )
 
 message( STATUS "CPU Selected:" )
@@ -55,7 +68,7 @@ message( "${CPU}" )
 #| Extra Compiler Sources
 #| Mostly for convenience functions like interrupt handlers
 set( COMPILER_SRCS
-	Lib/${CHIP}.c
+	Lib/${CHIP_FAMILY}.c
 	Lib/delay.c
 )
 
@@ -87,7 +100,7 @@ set( WARN "-Wall -g" )
 set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar" )
 
 
-#| Optimization level, can be [0, 1, 2, 3, s]. 
+#| Optimization level, can be [0, 1, 2, 3, s].
 #|     0 = turn off optimization. s = optimize for size.
 #|     (Note: 3 is not always the best optimization level.)
 set( OPT "s" )

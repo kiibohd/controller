@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 by Jacob Alexander
+/* Copyright (C) 2013-2014 by Jacob Alexander
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,9 +29,9 @@
 #define __INTERRUPTS_H
 
 // ARM
-#if defined(_mk20dx128_)
+#if defined(_mk20dx128_) || defined(_mk20dx256_)
 
-#include <Lib/mk20dx128.h>
+#include <Lib/mk20dx.h>
 
 // AVR
 #elif defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
@@ -45,7 +45,7 @@
 // ----- Defines -----
 
 // ARM
-#if defined(_mk20dx128_)
+#if defined(_mk20dx128_) || defined(_mk20dx256_)
 
 // Map the Interrupt Enable/Disable to the AVR names
 #define cli() __disable_irq()

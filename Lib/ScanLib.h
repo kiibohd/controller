@@ -1,4 +1,4 @@
-/* Copyright (C) 2013 by Jacob Alexander
+/* Copyright (C) 2013-2014 by Jacob Alexander
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,9 +34,9 @@
 
 
 // ARM
-#if defined(_mk20dx128_)
+#if defined(_mk20dx128_) || defined(_mk20dx256_)
 
-#include <Lib/mk20dx128.h>
+#include <Lib/mk20dx.h>
 #include <Lib/aliased_bitband.h>
 #include <Lib/delay.h>
 
