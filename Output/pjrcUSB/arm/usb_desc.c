@@ -358,23 +358,30 @@ struct usb_string_descriptor_struct {
         uint16_t wString[];
 };
 
-static struct usb_string_descriptor_struct string0 = {
+extern struct usb_string_descriptor_struct usb_string_manufacturer_name
+        __attribute__ ((weak, alias("usb_string_manufacturer_name_default")));
+extern struct usb_string_descriptor_struct usb_string_product_name
+        __attribute__ ((weak, alias("usb_string_product_name_default")));
+extern struct usb_string_descriptor_struct usb_string_serial_number
+        __attribute__ ((weak, alias("usb_string_serial_number_default")));
+
+struct usb_string_descriptor_struct string0 = {
         4,
         3,
         {0x0409}
 };
 
-static struct usb_string_descriptor_struct string1 = {
+struct usb_string_descriptor_struct usb_string_manufacturer_name_default = {
         sizeof(STR_MANUFACTURER),
         3,
         STR_MANUFACTURER
 };
-static struct usb_string_descriptor_struct string2 = {
+struct usb_string_descriptor_struct usb_string_product_name_default = {
 	sizeof(STR_PRODUCT),
         3,
         STR_PRODUCT
 };
-static struct usb_string_descriptor_struct string3 = {
+struct usb_string_descriptor_struct usb_string_serial_number_default = {
 	sizeof(STR_SERIAL),
         3,
 	STR_SERIAL
@@ -399,10 +406,10 @@ const usb_descriptor_list_t usb_descriptor_list[] = {
         {0x2200, MOUSE_INTERFACE, mouse_report_desc, sizeof(mouse_report_desc)},
         {0x2100, MOUSE_INTERFACE, config_descriptor+MOUSE_DESC_OFFSET, 9},
 #endif
-        {0x0300, 0x0000, (const uint8_t *)&string0, 4},
-        {0x0301, 0x0409, (const uint8_t *)&string1, sizeof(STR_MANUFACTURER)},
-        {0x0302, 0x0409, (const uint8_t *)&string2, sizeof(STR_PRODUCT)},
-        {0x0303, 0x0409, (const uint8_t *)&string3, sizeof(STR_SERIAL)},
+        {0x0300, 0x0000, (const uint8_t *)&string0, 0},
+        {0x0301, 0x0409, (const uint8_t *)&usb_string_manufacturer_name, 0},
+        {0x0302, 0x0409, (const uint8_t *)&usb_string_product_name, 0},
+        {0x0303, 0x0409, (const uint8_t *)&usb_string_serial_number, 0},
 	{0, 0, NULL, 0}
 };
 

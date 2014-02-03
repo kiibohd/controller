@@ -45,16 +45,49 @@
 #define ENDPOINT_RECEIVE_ONLY		0x19
 #define ENDPOINT_TRANSMIT_AND_RECEIVE	0x1D
 
-// Some operating systems, especially Windows, may cache USB device
-// info.  Changes to the device name may not update on the same
-// computer unless the vendor or product ID numbers change, or the
-// "bcdDevice" revision code is increased.
+/*
+To modify a USB Type to have different interfaces, start in this
+file.  Delete the XYZ_INTERFACE lines for any interfaces you
+wish to remove, and copy them from another USB Type for any you
+want to add.
+
+Give each interface a unique number, and edit NUM_INTERFACE to
+reflect the number of interfaces.
+
+Within each interface, make sure it uses a unique set of endpoints.
+Edit NUM_ENDPOINTS to be at least the largest endpoint number used.
+Then edit the ENDPOINT*_CONFIG lines so each endpoint is configured
+the proper way (transmit, receive, or both).
+
+The CONFIG_DESC_SIZE and any XYZ_DESC_OFFSET numbers must be
+edited to the correct sizes.  See usb_desc.c for the giant array
+of bytes.  Someday these may be done automatically..... (but how?)
+
+If you are using existing interfaces, the code in each file should
+automatically adapt to the changes you specify.  If you need to
+create a new type of interface, you'll need to write the code which
+sends and receives packets, and presents an API to the user.
+
+Finally, edit usb_inst.cpp, which creats instances of the C++
+objects for each combination.
+
+Some operating systems, especially Windows, may cache USB device
+info.  Changes to the device name may not update on the same
+computer unless the vendor or product ID numbers change, or the
+"bcdDevice" revision code is increased.
+
+If these instructions are missing steps or could be improved, please
+let me know?  http://forum.pjrc.com/forums/4-Suggestions-amp-Bug-Reports
+*/
+
+
 
 #define DEVICE_CLASS		0xEF
 #define DEVICE_SUBCLASS	0x02
 #define DEVICE_PROTOCOL	0x01
 #define EP0_SIZE		64
-#define NUM_ENDPOINTS		15
+#define NUM_ENDPOINTS		6
+#define NUM_USB_BUFFERS	30
 #define NUM_INTERFACE		4
 #define CDC_IAD_DESCRIPTOR	1
 #define CDC_STATUS_INTERFACE	0
@@ -73,15 +106,20 @@
 #define MOUSE_ENDPOINT        5
 #define MOUSE_SIZE            8
 #define MOUSE_INTERVAL        2
+#define JOYSTICK_INTERFACE    4	// Joystick
+#define JOYSTICK_ENDPOINT     6
+#define JOYSTICK_SIZE         16
+#define JOYSTICK_INTERVAL     1
 #define KEYBOARD_DESC_OFFSET	(9+8 + 9+5+5+4+5+7+9+7+7 + 9)
 #define MOUSE_DESC_OFFSET	(9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9)
-#define CONFIG_DESC_SIZE	(9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7)
+#define JOYSTICK_DESC_OFFSET	(9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7 + 9)
+#define CONFIG_DESC_SIZE	(9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7 + 9+9+7)
 #define ENDPOINT1_CONFIG	ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT2_CONFIG	ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT3_CONFIG	ENDPOINT_RECEIVE_ONLY
 #define ENDPOINT4_CONFIG	ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT5_CONFIG	ENDPOINT_TRANSIMIT_ONLY
-
+#define ENDPOINT6_CONFIG	ENDPOINT_TRANSIMIT_ONLY
 
 
 // NUM_ENDPOINTS = number of non-zero endpoints (0 to 15)

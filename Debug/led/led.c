@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 by Jacob Alexander
+/* Copyright (C) 2011-2014 by Jacob Alexander
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,7 +42,7 @@ inline void init_errorLED()
 	DDRD |= (1<<6);
 
 // ARM
-#elif defined(_mk20dx128_)
+#elif defined(_mk20dx128_) || defined(_mk20dx256_)
 
 	// Setup pin - Pin 11 -> C5 - See Lib/pin_map.teensy3 for more details on pins
 	PORTC_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
@@ -68,7 +68,7 @@ inline void errorLED( uint8_t on )
 	}
 
 // ARM
-#elif defined(_mk20dx128_)
+#elif defined(_mk20dx128_) || defined(_mk20dx256_)
 
 	// Error LED On (C5)
 	if ( on ) {

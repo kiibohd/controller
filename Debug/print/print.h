@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2013 by Jacob Alexander
+/* Copyright (C) 2011-2014 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@
 #include <avr/pgmspace.h>
 #include "avr/usb_keyboard_debug.h"
 
-#elif defined(_mk20dx128_)
+#elif defined(_mk20dx128_) || defined(_mk20dx256_)
 
 #include "arm/usb_serial.h"
 

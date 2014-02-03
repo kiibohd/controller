@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2013 by Jacob Alexander
+/* Copyright (C) 2011-2014 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,7 @@ void usb_debug_putstr( char* s )
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	while ( *s != '\0' )
 		usb_debug_putchar( *s++ );
-#elif defined(_mk20dx128_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
 	// Count characters until NULL character, then send the amount counted
 	uint32_t count = 0;
 	while ( s[count] != '\0' )
@@ -84,7 +84,7 @@ void _print(const char *s)
 			usb_debug_putchar('\r');
 		usb_debug_putchar(c);
 	}
-#elif defined(_mk20dx128_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
 	usb_debug_putstr( (char*)s );
 #endif
 }

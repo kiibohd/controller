@@ -32,11 +32,8 @@
 #include "usb_dev.h"
 #include "usb_mem.h"
 
-#define NUM_BUF 30
-
 __attribute__ ((section(".usbbuffers"), used))
-//static unsigned char usb_buffer_memory[NUM_BUF * sizeof(usb_packet_t)];
-unsigned char usb_buffer_memory[NUM_BUF * sizeof(usb_packet_t)];
+unsigned char usb_buffer_memory[NUM_USB_BUFFERS * sizeof(usb_packet_t)];
 
 static uint32_t usb_buffer_available = 0xFFFFFFFF;
 
@@ -53,7 +50,7 @@ usb_packet_t * usb_malloc(void)
 	__disable_irq();
 	avail = usb_buffer_available;
 	n = __builtin_clz(avail); // clz = count leading zeros
-	if (n >= NUM_BUF) {
+	if (n >= NUM_USB_BUFFERS) {
 		__enable_irq();
 		return NULL;
 	}
@@ -82,7 +79,7 @@ void usb_free(usb_packet_t *p)
 
 	//serial_print("free:");
 	n = ((uint8_t *)p - usb_buffer_memory) / sizeof(usb_packet_t);
-	if (n >= NUM_BUF) return;
+	if (n >= NUM_USB_BUFFERS) return;
 	//serial_phex(n);
 	//serial_print("\n");
 
