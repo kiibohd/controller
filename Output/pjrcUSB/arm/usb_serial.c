@@ -1,11 +1,42 @@
+/* Teensyduino Core Library
+ * http://www.pjrc.com/teensy/
+ * Copyright (c) 2013 PJRC.COM, LLC.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * 1. The above copyright notice and this permission notice shall be 
+ * included in all copies or substantial portions of the Software.
+ *
+ * 2. If the Software is incorporated into a build system that allows 
+ * selection among a list of target devices, then similar target
+ * devices manufactured by PJRC.COM must be included in the list of
+ * target devices and selectable in the same manner.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #include "usb_dev.h"
 #include "usb_serial.h"
 #include <Lib/USBLib.h>
+#include <string.h> // For memcpy
 
 // defined by usb_dev.h -> usb_desc.h
 #if defined(CDC_STATUS_INTERFACE) && defined(CDC_DATA_INTERFACE)
 
-uint8_t usb_cdc_line_coding[7];
+uint32_t usb_cdc_line_coding[2];
 volatile uint8_t usb_cdc_line_rtsdtr=0;
 volatile uint8_t usb_cdc_transmit_flush_timer=0;
 
@@ -15,27 +46,17 @@ static volatile uint8_t tx_noautoflush=0;
 
 #define TRANSMIT_FLUSH_TIMEOUT	5   /* in milliseconds */
 
-static void usb_serial_receive(void)
-{
-	if (!usb_configuration) return;
-	if (rx_packet) return;
-	while (1) {
-		rx_packet = usb_rx(CDC_RX_ENDPOINT);
-		if (rx_packet == NULL) return;
-		if (rx_packet->len > 0) return;
-		usb_free(rx_packet);
-		rx_packet = NULL;
-	}
-}
-
 // get the next character, or -1 if nothing received
 int usb_serial_getchar(void)
 {
 	unsigned int i;
 	int c;
 
-	usb_serial_receive();
-	if (!rx_packet) return -1;
+	if (!rx_packet) {
+		if (!usb_configuration) return -1;
+		rx_packet = usb_rx(CDC_RX_ENDPOINT);
+		if (!rx_packet) return -1;
+	}
 	i = rx_packet->index;
 	c = rx_packet->buf[i++];
 	if (i >= rx_packet->len) {
@@ -50,7 +71,11 @@ int usb_serial_getchar(void)
 // peek at the next character, or -1 if nothing received
 int usb_serial_peekchar(void)
 {
-	usb_serial_receive();
+	if (!rx_packet) {
+		if (!usb_configuration) return -1;
+		rx_packet = usb_rx(CDC_RX_ENDPOINT);
+		if (!rx_packet) return -1;
+	}
 	if (!rx_packet) return -1;
 	return rx_packet->buf[rx_packet->index];
 }
@@ -58,12 +83,41 @@ int usb_serial_peekchar(void)
 // number of bytes available in the receive buffer
 int usb_serial_available(void)
 {
-	int count=0;
-
-	if (usb_configuration) {
-		count = usb_rx_byte_count(CDC_RX_ENDPOINT);
-	}
+	int count;
+	count = usb_rx_byte_count(CDC_RX_ENDPOINT);
 	if (rx_packet) count += rx_packet->len - rx_packet->index;
+	return count;
+}
+
+// read a block of bytes to a buffer
+int usb_serial_read(void *buffer, uint32_t size)
+{
+	uint8_t *p = (uint8_t *)buffer;
+	uint32_t qty, count=0;
+
+	while (size) {
+		if (!usb_configuration) break;
+		if (!rx_packet) {
+			rx:
+			rx_packet = usb_rx(CDC_RX_ENDPOINT);
+			if (!rx_packet) break;
+			if (rx_packet->len == 0) {
+				usb_free(rx_packet);
+				goto rx;
+			}
+		}
+		qty = rx_packet->len - rx_packet->index;
+		if (qty > size) qty = size;
+		memcpy(p, rx_packet->buf + rx_packet->index, qty);
+		p += qty;
+		count += qty;
+		size -= qty;
+		rx_packet->index += qty;
+		if (rx_packet->index >= rx_packet->len) {
+			usb_free(rx_packet);
+			rx_packet = NULL;
+		}
+	}
 	return count;
 }
 
@@ -110,51 +164,12 @@ static uint8_t transmit_previous_timeout=0;
 // transmit a character.  0 returned on success, -1 on error
 int usb_serial_putchar(uint8_t c)
 {
-#if 1
 	return usb_serial_write(&c, 1);
-#endif
-#if 0
-	uint32_t wait_count;
-
-	tx_noautoflush = 1;
-	if (!tx_packet) {
-		wait_count = 0;
-		while (1) {
-			if (!usb_configuration) {
-				tx_noautoflush = 0;
-				return -1;
-			}
-			if (usb_tx_packet_count(CDC_TX_ENDPOINT) < TX_PACKET_LIMIT) {
-				tx_noautoflush = 1;
-				tx_packet = usb_malloc();
-				if (tx_packet) break;
-				tx_noautoflush = 0;
-			}
-			if (++wait_count > TX_TIMEOUT || transmit_previous_timeout) {
-				transmit_previous_timeout = 1;
-				return -1;
-			}
-		}
-	}
-	transmit_previous_timeout = 0;
-	tx_packet->buf[tx_packet->index++] = c;
-	if (tx_packet->index < CDC_TX_SIZE) {
-		usb_cdc_transmit_flush_timer = TRANSMIT_FLUSH_TIMEOUT;
-	} else {
-		tx_packet->len = CDC_TX_SIZE;
-		usb_cdc_transmit_flush_timer = 0;
-		usb_tx(CDC_TX_ENDPOINT, tx_packet);
-		tx_packet = NULL;
-	}
-	tx_noautoflush = 0;
-	return 0;
-#endif
 }
 
 
 int usb_serial_write(const void *buffer, uint32_t size)
 {
-#if 1
 	uint32_t len;
 	uint32_t wait_count;
 	const uint8_t *src = (const uint8_t *)buffer;
@@ -189,52 +204,53 @@ int usb_serial_write(const void *buffer, uint32_t size)
 		tx_packet->index += len;
 		size -= len;
 		while (len-- > 0) *dest++ = *src++;
-		if (tx_packet->index < CDC_TX_SIZE) {
-			usb_cdc_transmit_flush_timer = TRANSMIT_FLUSH_TIMEOUT;
-		} else {
+		if (tx_packet->index >= CDC_TX_SIZE) {
 			tx_packet->len = CDC_TX_SIZE;
-			usb_cdc_transmit_flush_timer = 0;
 			usb_tx(CDC_TX_ENDPOINT, tx_packet);
 			tx_packet = NULL;
 		}
+		usb_cdc_transmit_flush_timer = TRANSMIT_FLUSH_TIMEOUT;
 	}
 	tx_noautoflush = 0;
 	return 0;
-#endif
-#if 0
-	const uint8_t *p = (const uint8_t *)buffer;
-	int r;
-
-	while (size) {
-		r = usb_serial_putchar(*p++);
-		if (r < 0) return -1;
-		size--;
-	}
-	return 0;
-#endif
 }
 
 void usb_serial_flush_output(void)
 {
 	if (!usb_configuration) return;
-	//serial_print("usb_serial_flush_output\n");
-	if (tx_packet && tx_packet->index > 0) {
+	tx_noautoflush = 1;
+	if (tx_packet) {
 		usb_cdc_transmit_flush_timer = 0;
 		tx_packet->len = tx_packet->index;
 		usb_tx(CDC_TX_ENDPOINT, tx_packet);
 		tx_packet = NULL;
+	} else {
+		usb_packet_t *tx = usb_malloc();
+		if (tx) {
+			usb_cdc_transmit_flush_timer = 0;
+			usb_tx(CDC_TX_ENDPOINT, tx);
+		} else {
+			usb_cdc_transmit_flush_timer = 1;
+		}
 	}
-	// while (usb_tx_byte_count(CDC_TX_ENDPOINT) > 0) ; // wait
+	tx_noautoflush = 0;
 }
 
 void usb_serial_flush_callback(void)
 {
 	if (tx_noautoflush) return;
-	//serial_print("usb_flush_callback \n");
-	tx_packet->len = tx_packet->index;
-	usb_tx(CDC_TX_ENDPOINT, tx_packet);
-	tx_packet = NULL;
-	//serial_print("usb_flush_callback end\n");
+	if (tx_packet) {
+		tx_packet->len = tx_packet->index;
+		usb_tx(CDC_TX_ENDPOINT, tx_packet);
+		tx_packet = NULL;
+	} else {
+		usb_packet_t *tx = usb_malloc();
+		if (tx) {
+			usb_tx(CDC_TX_ENDPOINT, tx);
+		} else {
+			usb_cdc_transmit_flush_timer = 1;
+		}
+	}
 }
 
 #endif // CDC_STATUS_INTERFACE && CDC_DATA_INTERFACE
