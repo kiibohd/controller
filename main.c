@@ -226,34 +226,25 @@ void pit0_isr(void)
 
 // ----- CLI Command Functions -----
 
-void cliFunc_distRead( char* args )
+uint32_t readDistanceGauge()
 {
-	// Prepare to print output
-	print( NL );
-	info_msg("Distance: ");
-
-	// Data
-	uint32_t distInput = 0;
-
 	// Setup distance read parameters for iGaging Distance Scale
 	//       freq = 9kHz
 	// duty_cycle = 20%
 	// high_delay = (1/freq) *       (duty_cycle/100)
 	//  low_delay = (1/freq) * ((100-duty_cycle)/100)
 	uint8_t  bits       = 21; // 21 clock pulses, for 21 bits
-	//uint32_t high_delay = 22; // Clock high time per pulse
-	//uint32_t  low_delay = 89; // Clock low  time per pulse
-	uint32_t high_delay = 40; // Clock high time per pulse
-	uint32_t  low_delay = 60; // Clock low  time per pulse
+	uint32_t high_delay = 22; // Clock high time per pulse
+	uint32_t  low_delay = 89; // Clock low  time per pulse
+
+	// Data
+	uint32_t distInput = 0;
 
 	// Make sure clock is low initially
 	GPIOC_PCOR |= (1<<2); // Set Clock low
-/*
-while(1)
-{
-*/
+
 	// Scan each of the bits
-	for ( uint8_t bit = bits; bit > 0; bit-- )
+	for ( uint8_t bit = 0; bit < bits; bit++ )
 	{
 		// Begin clock pulse
 		GPIOC_PSOR |= (1<<2); // Set Clock high
@@ -265,70 +256,85 @@ while(1)
 		GPIOC_PCOR |= (1<<2); // Set Clock low
 
 		// Read Data Bit
-		//distInput |= GPIOD_PDIR & (1<<6) ? (1 << (bit - 1)) : 0;
-		//if ( GPIOD_PDIR )
-		if ( GPIOD_PDIR & (1<<6) )
-		{
-			print("1");
-		}
-		else
-		{
-			print("0");
-		}
+		distInput |= GPIOC_PDIR & (1<<1) ? (1 << bit) : 0;
 
 		// Delay for duty cycle
 		delayMicroseconds( low_delay );
 	}
-	print("  ");
 
-	// Output result
-	printInt32( distInput );
-
-	// Convert to mm
-	// As per http://www.shumatech.com/web/21bit_protocol?page=0,1
-	// 21 bits is 2560 CPI (counts per inch) (C/inch)
-	// 1 inch is 25.4 mm
-	// 2560 / 25.4 = 100.7874016... CPMM (C/mm)
-	// Or
-	// 1 count is 1/2560 = 0.000390625... inches
-	// 1 count is (1/2560) * 25.4 = 0.0000153789370078740 mm = 0.0153789370078740 um = 15.3789370078740 nm
-	// Since there are 21 bits (2 097 152 positions) converting to um is possible by multiplying by 1000
-	//    which is 2 097 152 000, and within 32 bits (4 294 967 295).
-	// However, um is still not convenient, so 64 bits (18 446 744 073 709 551 615) is a more accurate alternative.
-	// For each nm there are 2 097 152 000 000 positions.
-	// And for shits:
-	//    pm is 2 097 152                 :          0.000 015 378 937 007 874 0 mm : 32 bit
-	//    pm is 2 097 152 000             :          0.015 378 937 007 874 0     um : 32 bit (ideal acc. for 32 bit)
-	//    pm is 2 097 152 000 000         :         15.378 937 007 874 0         nm : 64 bit
-	//    pm is 2 097 152 000 000 000     :     15 378.937 007 874 0             pm : 64 bit
-	//    fm is 2 097 152 000 000 000 000 : 15 378 937.007 874 0                 fm : 64 bit (ideal acc. for 64 bit)
-	//uint64_t distNM = distInput * 15;
-	//uint64_t distPM = distInput * 15378;
-	uint64_t distFM = distInput * 15378937;
-
-	// Calculate um and mm
-	//uint32_t distNM = distInput * 15; // XXX
-	//uint32_t distUM = distNM / 1000;
-	//uint32_t distMM = distNM / 1000000;
-	uint32_t distNM = distFM * 1000000;
-	uint32_t distUM = distNM / 1000;
-	uint32_t distMM = distUM / 1000;
-
-	print("  ");
-	printInt32( distMM );
-	print(" mm  ");
-	printInt32( distUM );
-	print(" um  ");
-	printInt32( distNM );
-	print(" nm");
-
-/*
-//Wait
-print(NL);
-delay( 7 );
-distInput = 0;
+	return distInput;
 }
-*/
+
+void cliFunc_distRead( char* args )
+{
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	argumentIsolation_cli( args, &arg1Ptr, &arg2Ptr );
+
+	// Convert the argument into an int
+	int read_count = decToInt( arg1Ptr ) + 1;
+
+	// If no argument specified, default to 1 read
+	if ( *arg1Ptr == '\0' )
+	{
+		read_count = 2;
+	}
+
+	// Repeat reading as many times as specified in the argument
+	print( NL );
+	while ( --read_count > 0 )
+	{
+		// Prepare to print output
+		info_msg("Distance: ");
+
+		// Data
+		uint32_t distInput = readDistanceGauge();
+
+		// Output result
+		printInt32( distInput );
+
+		// Convert to mm
+		// As per http://www.shumatech.com/web/21bit_protocol?page=0,1
+		// 21 bits is 2560 CPI (counts per inch) (C/inch)
+		// 1 inch is 25.4 mm
+		// 2560 / 25.4 = 100.7874016... CPMM (C/mm)
+		// Or
+		// 1 count is 1/2560 = 0.000390625... inches
+		// 1 count is (1/2560) * 25.4 = 0.00992187500000000 mm = 9.92187500000000 um = 9921.87500000000 nm
+		// Since there are 21 bits (2 097 152 positions) converting to um is possible by multiplying by 1000
+		//    which is 2 097 152 000, and within 32 bits (4 294 967 295).
+		// However, um is still not convenient, so 64 bits (18 446 744 073 709 551 615) is a more accurate alternative.
+		// For each nm there are 2 097 152 000 000 positions.
+		// And for shits:
+		//    mm is 2 097 152                 :          0.009 921 875 000 mm : 32 bit
+		//    um is 2 097 152 000             :          9.921 875 000     um : 32 bit (ideal acc. for 32 bit)
+		//    nm is 2 097 152 000 000         :      9 921.875 000         nm : 64 bit
+		//    pm is 2 097 152 000 000 000     :  9 921 875.000             pm : 64 bit (ideal acc. for 64 bit)
+
+		// XXX Apparently shumatech was sorta wrong about the 21 bits of usage
+		// Yes there are 21 bits, but the values only go from ~338 to ~30681 which is less than 16 bits...
+		// This means that the conversion at NM can use 32 bits :D
+		// It's been noted that the multiplier should be 100.6 (and that it could vary from scale to scale)
+		uint32_t distNM = distInput * 9921;;
+		uint32_t distUM = distNM / 1000;
+		uint32_t distMM = distUM / 1000;
+
+		print("  ");
+		printInt32( distMM );
+		print(" mm  ");
+		printInt32( distUM );
+		print(" um  ");
+		printInt32( distNM );
+		print(" nm  ");
+
+		print( NL );
+
+		// Only delay if still counting
+		if ( read_count > 1 )
+			delay( 50 );
+	}
 }
 
 

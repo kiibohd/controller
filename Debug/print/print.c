@@ -284,3 +284,36 @@ int16_t eqStr( char* str1, char* str2 )
 	return *--str1 == *--str2 ? -1 : *++str1;
 }
 
+int decToInt( char* in )
+{
+	// Pointers to the LSD (Least Significant Digit) and MSD
+	char* lsd = in;
+	char* msd = in;
+
+	int total = 0;
+	int sign = 1; // Default to positive
+
+	// Scan the string once to determine the length
+	while ( *lsd != '\0' )
+	{
+		// Check for positive/negative
+		switch ( *lsd++ )
+		{
+		// Fall through is intentional, only do something on negative, ignore the rest
+		// Update the MSD to remove leading spaces and signs
+		case '-': sign = -1;
+		case '+':
+		case ' ':
+			msd = lsd;
+			break;
+		}
+	}
+
+	// Rescan the string from the LSD to MSD to convert it to a decimal number
+	for ( unsigned int digit = 1; lsd > msd ; digit *= 10 )
+		total += ( (*--lsd) - '0' ) * digit;
+
+	// Propagate sign and return
+	return total * sign;
+}
+

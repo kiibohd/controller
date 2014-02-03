@@ -112,6 +112,7 @@ void hexToStr_op( uint16_t in, char*  out, uint8_t op );
 void revsStr    ( char*  in );
 uint16_t lenStr ( char*  in );
 int16_t eqStr   ( char*  str1, char* str2 ); // Returns -1 if identical, last character of str1 comparison (0 if str1 is like str2)
+int decToInt    ( char* in ); // Returns the int representation of a string
 
 #endif
 
