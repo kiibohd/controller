@@ -1,3 +1,33 @@
+/* Teensyduino Core Library
+ * http://www.pjrc.com/teensy/
+ * Copyright (c) 2013 PJRC.COM, LLC.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * 1. The above copyright notice and this permission notice shall be 
+ * included in all copies or substantial portions of the Software.
+ *
+ * 2. If the Software is incorporated into a build system that allows 
+ * selection among a list of target devices, then similar target
+ * devices manufactured by PJRC.COM must be included in the list of
+ * target devices and selectable in the same manner.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ * ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #ifndef _mk20dx128_h_
 #define _mk20dx128_h_
 
@@ -25,9 +55,6 @@
 #endif
 
 #include <stdint.h>
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 // chapter 11: Port control and interrupts (PORT)
 #define PORTA_PCR0              *(volatile uint32_t *)0x40049000 // Pin Control Register n
@@ -228,17 +255,23 @@ extern "C" {
 #define SIM_SOPT2_PTD7PAD		(uint32_t)0x00000800		// 0=normal, 1=double drive PTD7
 #define SIM_SOPT2_CLKOUTSEL(n)		(uint32_t)(((n) & 7) << 5)	// Selects the clock to output on the CLKOUT pin.
 #define SIM_SOPT2_RTCCLKOUTSEL		(uint32_t)0x00000010		// RTC clock out select
-#define SIM_SOPT4               *(volatile uint32_t *)0x4004800C // System Options Register 4
-#define SIM_SOPT5               *(volatile uint32_t *)0x40048010 // System Options Register 5
-#define SIM_SOPT7               *(volatile uint32_t *)0x40048018 // System Options Register 7
-#define SIM_SDID                *(const    uint32_t *)0x40048024 // System Device Identification Register
-#define SIM_SCGC4               *(volatile uint32_t *)0x40048034 // System Clock Gating Control Register 4
+#define SIM_SOPT4		*(volatile uint32_t *)0x4004800C // System Options Register 4
+#define SIM_SOPT5		*(volatile uint32_t *)0x40048010 // System Options Register 5
+#define SIM_SOPT7		*(volatile uint32_t *)0x40048018 // System Options Register 7
+#define SIM_SDID		*(const	   uint32_t *)0x40048024 // System Device Identification Register
+#define SIM_SCGC2		*(volatile uint32_t *)0x4004802C // System Clock Gating Control Register 2
+#define SIM_SCGC2_DAC0			(uint32_t)0x00001000		// DAC0 Clock Gate Control
+#define SIM_SCGC3		*(volatile uint32_t *)0x40048030 // System Clock Gating Control Register 3
+#define SIM_SCGC3_ADC1			(uint32_t)0x08000000		// ADC1 Clock Gate Control
+#define SIM_SCGC3_FTM2			(uint32_t)0x01000000		// FTM2 Clock Gate Control
+#define SIM_SCGC4		*(volatile uint32_t *)0x40048034 // System Clock Gating Control Register 4
 #define SIM_SCGC4_VREF			(uint32_t)0x00100000		// VREF Clock Gate Control
 #define SIM_SCGC4_CMP			(uint32_t)0x00080000		// Comparator Clock Gate Control
 #define SIM_SCGC4_USBOTG		(uint32_t)0x00040000		// USB Clock Gate Control
 #define SIM_SCGC4_UART2			(uint32_t)0x00001000		// UART2 Clock Gate Control
 #define SIM_SCGC4_UART1			(uint32_t)0x00000800		// UART1 Clock Gate Control
 #define SIM_SCGC4_UART0			(uint32_t)0x00000400		// UART0 Clock Gate Control
+#define SIM_SCGC4_I2C1			(uint32_t)0x00000080		// I2C1 Clock Gate Control
 #define SIM_SCGC4_I2C0			(uint32_t)0x00000040		// I2C0 Clock Gate Control
 #define SIM_SCGC4_CMT			(uint32_t)0x00000004		// CMT Clock Gate Control
 #define SIM_SCGC4_EWM			(uint32_t)0x00000002		// EWM Clock Gate Control
@@ -260,11 +293,14 @@ extern "C" {
 #define SIM_SCGC6_USBDCD		(uint32_t)0x00200000		// USB DCD Clock Gate Control
 #define SIM_SCGC6_CRC			(uint32_t)0x00040000		// CRC Clock Gate Control
 #define SIM_SCGC6_I2S			(uint32_t)0x00008000		// I2S Clock Gate Control
+#define SIM_SCGC6_SPI1			(uint32_t)0x00002000		// SPI1 Clock Gate Control
 #define SIM_SCGC6_SPI0			(uint32_t)0x00001000		// SPI0 Clock Gate Control
+#define SIM_SCGC6_FLEXCAN0		(uint32_t)0x00000010		// FlexCAN0 Clock Gate Control
 #define SIM_SCGC6_DMAMUX		(uint32_t)0x00000002		// DMA Mux Clock Gate Control
 #define SIM_SCGC6_FTFL			(uint32_t)0x00000001		// Flash Memory Clock Gate Control
-#define SIM_SCGC7               *(volatile uint32_t *)0x40048040 // System Clock Gating Control Register 7
-#define SIM_CLKDIV1             *(volatile uint32_t *)0x40048044 // System Clock Divider Register 1
+#define SIM_SCGC7		*(volatile uint32_t *)0x40048040 // System Clock Gating Control Register 7
+#define SIM_SCGC7_DMA			(uint32_t)0x00000002		// DMA Clock Gate Control
+#define SIM_CLKDIV1		*(volatile uint32_t *)0x40048044 // System Clock Divider Register 1
 #define SIM_CLKDIV1_OUTDIV1(n)		(uint32_t)(((n) & 0x0F) << 28)	// divide value for the core/system clock
 #define SIM_CLKDIV1_OUTDIV2(n)		(uint32_t)(((n) & 0x0F) << 24)	// divide value for the peripheral clock
 #define SIM_CLKDIV1_OUTDIV4(n)		(uint32_t)(((n) & 0x0F) << 16)	// divide value for the flash clock
@@ -286,15 +322,44 @@ extern "C" {
 #define RCM_MR                  *(volatile uint8_t  *)0x4007F007 // Mode Register
 
 // Chapter 14: System Mode Controller
-#define SMC_PMPROT              *(volatile uint8_t  *)0x4007E000 // Power Mode Protection Register
-#define SMC_PMCTRL              *(volatile uint8_t  *)0x4007E001 // Power Mode Control Register
-#define SMC_VLLSCTRL            *(volatile uint8_t  *)0x4007E002 // VLLS Control Register
-#define SMC_PMSTAT              *(volatile uint8_t  *)0x4007E003 // Power Mode Status Register
+#define SMC_PMPROT		*(volatile uint8_t  *)0x4007E000 // Power Mode Protection Register
+#define SMC_PMPROT_AVLP			(uint8_t)0x20			// Allow very low power modes
+#define SMC_PMPROT_ALLS			(uint8_t)0x08			// Allow low leakage stop mode
+#define SMC_PMPROT_AVLLS		(uint8_t)0x02			// Allow very low leakage stop mode
+#define SMC_PMCTRL		*(volatile uint8_t  *)0x4007E001 // Power Mode Control Register
+#define SMC_PMCTRL_LPWUI		(uint8_t)0x80			// Low Power Wake Up on Interrupt
+#define SMC_PMCTRL_RUNM(n)		(uint8_t)(((n) & 0x03) << 5)	// Run Mode Control
+#define SMC_PMCTRL_STOPA		(uint8_t)0x08			// Stop Aborted
+#define SMC_PMCTRL_STOPM(n)		(uint8_t)((n) & 0x07)		// Stop Mode Control
+#define SMC_VLLSCTRL		*(volatile uint8_t  *)0x4007E002 // VLLS Control Register
+#define SMC_VLLSCTRL_PORPO		(uint8_t)0x20			// POR Power Option
+#define SMC_VLLSCTRL_VLLSM(n)		(uint8_t)((n) & 0x07)		// VLLS Mode Control
+#define SMC_PMSTAT		*(volatile uint8_t  *)0x4007E003 // Power Mode Status Register
+#define SMC_PMSTAT_RUN			(uint8_t)0x01			// Current power mode is RUN
+#define SMC_PMSTAT_STOP			(uint8_t)0x02			// Current power mode is STOP
+#define SMC_PMSTAT_VLPR			(uint8_t)0x04			// Current power mode is VLPR
+#define SMC_PMSTAT_VLPW			(uint8_t)0x08			// Current power mode is VLPW
+#define SMC_PMSTAT_VLPS			(uint8_t)0x10			// Current power mode is VLPS
+#define SMC_PMSTAT_LLS			(uint8_t)0x20			// Current power mode is LLS
+#define SMC_PMSTAT_VLLS			(uint8_t)0x40			// Current power mode is VLLS
 
 // Chapter 15: Power Management Controller
-#define PMC_LVDSC1              *(volatile uint8_t  *)0x4007D000 // Low Voltage Detect Status And Control 1 register
-#define PMC_LVDSC2              *(volatile uint8_t  *)0x4007D001 // Low Voltage Detect Status And Control 2 register
-#define PMC_REGSC               *(volatile uint8_t  *)0x4007D002 // Regulator Status And Control register
+#define PMC_LVDSC1		*(volatile uint8_t  *)0x4007D000 // Low Voltage Detect Status And Control 1 register
+#define PMC_LVDSC1_LVDF			(uint8_t)0x80			// Low-Voltage Detect Flag
+#define PMC_LVDSC1_LVDACK		(uint8_t)0x40			// Low-Voltage Detect Acknowledge
+#define PMC_LVDSC1_LVDIE		(uint8_t)0x20			// Low-Voltage Detect Interrupt Enable
+#define PMC_LVDSC1_LVDRE		(uint8_t)0x10			// Low-Voltage Detect Reset Enable
+#define PMC_LVDSC1_LVDV(n)		(uint8_t)((n) & 0x03)		// Low-Voltage Detect Voltage Select
+#define PMC_LVDSC2		*(volatile uint8_t  *)0x4007D001 // Low Voltage Detect Status And Control 2 register
+#define PMC_LVDSC2_LVWF			(uint8_t)0x80			// Low-Voltage Warning Flag
+#define PMC_LVDSC2_LVWACK		(uint8_t)0x40			// Low-Voltage Warning Acknowledge
+#define PMC_LVDSC2_LVWIE		(uint8_t)0x20			// Low-Voltage Warning Interrupt Enable
+#define PMC_LVDSC2_LVWV(n)		(uint8_t)((n) & 0x03)		// Low-Voltage Warning Voltage Select
+#define PMC_REGSC		*(volatile uint8_t  *)0x4007D002 // Regulator Status And Control register
+#define PMC_REGSC_BGEN			(uint8_t)0x10			// Bandgap Enable In VLPx Operation
+#define PMC_REGSC_ACKISO		(uint8_t)0x08			// Acknowledge Isolation
+#define PMC_REGSC_REGONS		(uint8_t)0x04			// Regulator In Run Regulation Status
+#define PMC_REGSC_BGBE			(uint8_t)0x01			// Bandgap Buffer Enable
 
 // Chapter 16: Low-Leakage Wakeup Unit (LLWU)
 #define LLWU_PE1                *(volatile uint8_t  *)0x4007C000 // LLWU Pin Enable 1 register
@@ -310,108 +375,289 @@ extern "C" {
 #define LLWU_RST                *(volatile uint8_t  *)0x4007C00A // LLWU Reset Enable register
 
 // Chapter 17: Miscellaneous Control Module (MCM)
-#define MCM_PLASC               *(volatile uint16_t *)0xE0080008 // Crossbar Switch (AXBS) Slave Configuration
-#define MCM_PLAMC               *(volatile uint16_t *)0xE008000A // Crossbar Switch (AXBS) Master Configuration
-#define MCM_PLACR               *(volatile uint32_t *)0xE008000C // Crossbar Switch (AXBS) Control Register
+#define MCM_PLASC		*(volatile uint16_t *)0xE0080008 // Crossbar Switch (AXBS) Slave Configuration
+#define MCM_PLAMC		*(volatile uint16_t *)0xE008000A // Crossbar Switch (AXBS) Master Configuration
+#define MCM_PLACR		*(volatile uint32_t *)0xE008000C // Crossbar Switch (AXBS) Control Register (MK20DX128)
+#define MCM_PLACR_ARG			(uint32_t)0x00000200		// Arbitration select, 0=fixed, 1=round-robin
+#define MCM_CR			*(volatile uint32_t *)0xE008000C // RAM arbitration control register (MK20DX256)
+#define MCM_CR_SRAMLWP			(uint32_t)0x40000000		// SRAM_L write protect
+#define MCM_CR_SRAMLAP(n)		(uint32_t)(((n) & 0x03) << 28)	// SRAM_L priority, 0=RR, 1=favor DMA, 2=CPU, 3=DMA
+#define MCM_CR_SRAMUWP			(uint32_t)0x04000000		// SRAM_U write protect
+#define MCM_CR_SRAMUAP(n)		(uint32_t)(((n) & 0x03) << 24)	// SRAM_U priority, 0=RR, 1=favor DMA, 2=CPU, 3=DMA
+
+// Crossbar Switch (AXBS) - only programmable on MK20DX256
+#define AXBS_PRS0		*(volatile uint32_t *)0x40004000 // Priority Registers Slave 0
+#define AXBS_CRS0		*(volatile uint32_t *)0x40004010 // Control Register 0
+#define AXBS_PRS1		*(volatile uint32_t *)0x40004100 // Priority Registers Slave 1
+#define AXBS_CRS1		*(volatile uint32_t *)0x40004110 // Control Register 1
+#define AXBS_PRS2		*(volatile uint32_t *)0x40004200 // Priority Registers Slave 2
+#define AXBS_CRS2		*(volatile uint32_t *)0x40004210 // Control Register 2
+#define AXBS_PRS3		*(volatile uint32_t *)0x40004300 // Priority Registers Slave 3
+#define AXBS_CRS3		*(volatile uint32_t *)0x40004310 // Control Register 3
+#define AXBS_PRS4		*(volatile uint32_t *)0x40004400 // Priority Registers Slave 4
+#define AXBS_CRS4		*(volatile uint32_t *)0x40004410 // Control Register 4
+#define AXBS_PRS5		*(volatile uint32_t *)0x40004500 // Priority Registers Slave 5
+#define AXBS_CRS5		*(volatile uint32_t *)0x40004510 // Control Register 5
+#define AXBS_PRS6		*(volatile uint32_t *)0x40004600 // Priority Registers Slave 6
+#define AXBS_CRS6		*(volatile uint32_t *)0x40004610 // Control Register 6
+#define AXBS_PRS7		*(volatile uint32_t *)0x40004700 // Priority Registers Slave 7
+#define AXBS_CRS7		*(volatile uint32_t *)0x40004710 // Control Register 7
+#define AXBS_MGPCR0		*(volatile uint32_t *)0x40004800 // Master 0 General Purpose Control Register
+#define AXBS_MGPCR1		*(volatile uint32_t *)0x40004900 // Master 1 General Purpose Control Register
+#define AXBS_MGPCR2		*(volatile uint32_t *)0x40004A00 // Master 2 General Purpose Control Register
+#define AXBS_MGPCR3		*(volatile uint32_t *)0x40004B00 // Master 3 General Purpose Control Register
+#define AXBS_MGPCR4		*(volatile uint32_t *)0x40004C00 // Master 4 General Purpose Control Register
+#define AXBS_MGPCR5		*(volatile uint32_t *)0x40004D00 // Master 5 General Purpose Control Register
+#define AXBS_MGPCR6		*(volatile uint32_t *)0x40004E00 // Master 6 General Purpose Control Register
+#define AXBS_MGPCR7		*(volatile uint32_t *)0x40004F00 // Master 7 General Purpose Control Register
+#define AXBS_CRS_READONLY		(uint32_t)0x80000000
+#define AXBS_CRS_HALTLOWPRIORITY	(uint32_t)0x40000000
+#define AXBS_CRS_ARB_FIXED		(uint32_t)0x00000000
+#define AXBS_CRS_ARB_ROUNDROBIN		(uint32_t)0x00010000
+#define AXBS_CRS_PARK_FIXED		(uint32_t)0x00000000
+#define AXBS_CRS_PARK_PREVIOUS		(uint32_t)0x00000010
+#define AXBS_CRS_PARK_NONE		(uint32_t)0x00000020
+#define AXBS_CRS_PARK(n)		(uint32_t)(((n) & 7) << 0)
+
+
 
 // Chapter 20: Direct Memory Access Multiplexer (DMAMUX)
-#define DMAMUX0_CHCFG0          *(volatile uint8_t  *)0x40021000 // Channel Configuration register
-#define DMAMUX0_CHCFG1          *(volatile uint8_t  *)0x40021001 // Channel Configuration register
-#define DMAMUX0_CHCFG2          *(volatile uint8_t  *)0x40021002 // Channel Configuration register
-#define DMAMUX0_CHCFG3          *(volatile uint8_t  *)0x40021003 // Channel Configuration register
-#define DMAMUX0_CHCFG4          *(volatile uint8_t  *)0x40021004 // Channel Configuration register
-#define DMAMUX0_CHCFG5          *(volatile uint8_t  *)0x40021005 // Channel Configuration register
-#define DMAMUX0_CHCFG6          *(volatile uint8_t  *)0x40021006 // Channel Configuration register
-#define DMAMUX0_CHCFG7          *(volatile uint8_t  *)0x40021007 // Channel Configuration register
-#define DMAMUX0_CHCFG8          *(volatile uint8_t  *)0x40021008 // Channel Configuration register
-#define DMAMUX0_CHCFG9          *(volatile uint8_t  *)0x40021009 // Channel Configuration register
-#define DMAMUX0_CHCFG10         *(volatile uint8_t  *)0x4002100A // Channel Configuration register
-#define DMAMUX0_CHCFG11         *(volatile uint8_t  *)0x4002100B // Channel Configuration register
-#define DMAMUX0_CHCFG12         *(volatile uint8_t  *)0x4002100C // Channel Configuration register
-#define DMAMUX0_CHCFG13         *(volatile uint8_t  *)0x4002100D // Channel Configuration register
-#define DMAMUX0_CHCFG14         *(volatile uint8_t  *)0x4002100E // Channel Configuration register
-#define DMAMUX0_CHCFG15         *(volatile uint8_t  *)0x4002100F // Channel Configuration register
+#define DMAMUX0_CHCFG0		*(volatile uint8_t  *)0x40021000 // Channel Configuration register
+#define DMAMUX0_CHCFG1		*(volatile uint8_t  *)0x40021001 // Channel Configuration register
+#define DMAMUX0_CHCFG2		*(volatile uint8_t  *)0x40021002 // Channel Configuration register
+#define DMAMUX0_CHCFG3		*(volatile uint8_t  *)0x40021003 // Channel Configuration register
+#define DMAMUX0_CHCFG4		*(volatile uint8_t  *)0x40021004 // Channel Configuration register
+#define DMAMUX0_CHCFG5		*(volatile uint8_t  *)0x40021005 // Channel Configuration register
+#define DMAMUX0_CHCFG6		*(volatile uint8_t  *)0x40021006 // Channel Configuration register
+#define DMAMUX0_CHCFG7		*(volatile uint8_t  *)0x40021007 // Channel Configuration register
+#define DMAMUX0_CHCFG8		*(volatile uint8_t  *)0x40021008 // Channel Configuration register
+#define DMAMUX0_CHCFG9		*(volatile uint8_t  *)0x40021009 // Channel Configuration register
+#define DMAMUX0_CHCFG10		*(volatile uint8_t  *)0x4002100A // Channel Configuration register
+#define DMAMUX0_CHCFG11		*(volatile uint8_t  *)0x4002100B // Channel Configuration register
+#define DMAMUX0_CHCFG12		*(volatile uint8_t  *)0x4002100C // Channel Configuration register
+#define DMAMUX0_CHCFG13		*(volatile uint8_t  *)0x4002100D // Channel Configuration register
+#define DMAMUX0_CHCFG14		*(volatile uint8_t  *)0x4002100E // Channel Configuration register
+#define DMAMUX0_CHCFG15		*(volatile uint8_t  *)0x4002100F // Channel Configuration register
+#define DMAMUX_DISABLE			0
+#define DMAMUX_TRIG			64
+#define DMAMUX_ENABLE			128
+#define DMAMUX_SOURCE_UART0_RX		2
+#define DMAMUX_SOURCE_UART0_TX		3
+#define DMAMUX_SOURCE_UART1_RX		4
+#define DMAMUX_SOURCE_UART1_TX		5
+#define DMAMUX_SOURCE_UART2_RX		6
+#define DMAMUX_SOURCE_UART2_TX		7
+#define DMAMUX_SOURCE_I2S0_RX		14
+#define DMAMUX_SOURCE_I2S0_TX		15
+#define DMAMUX_SOURCE_SPI0_RX		16
+#define DMAMUX_SOURCE_SPI0_TX		17
+#define DMAMUX_SOURCE_I2C0		22
+#define DMAMUX_SOURCE_I2C1		23
+#define DMAMUX_SOURCE_FTM0_CH0		24
+#define DMAMUX_SOURCE_FTM0_CH1		25
+#define DMAMUX_SOURCE_FTM0_CH2		26
+#define DMAMUX_SOURCE_FTM0_CH3		27
+#define DMAMUX_SOURCE_FTM0_CH4		28
+#define DMAMUX_SOURCE_FTM0_CH5		29
+#define DMAMUX_SOURCE_FTM0_CH6		30
+#define DMAMUX_SOURCE_FTM0_CH7		31
+#define DMAMUX_SOURCE_FTM1_CH0		32
+#define DMAMUX_SOURCE_FTM1_CH1		33
+#define DMAMUX_SOURCE_FTM2_CH0		34
+#define DMAMUX_SOURCE_FTM2_CH1		35
+#define DMAMUX_SOURCE_ADC0		40
+#define DMAMUX_SOURCE_ADC1		41
+#define DMAMUX_SOURCE_CMP0		42
+#define DMAMUX_SOURCE_CMP1		43
+#define DMAMUX_SOURCE_CMP2		44
+#define DMAMUX_SOURCE_DAC0		45
+#define DMAMUX_SOURCE_CMT		47
+#define DMAMUX_SOURCE_PDB		48
+#define DMAMUX_SOURCE_PORTA		49
+#define DMAMUX_SOURCE_PORTB		50
+#define DMAMUX_SOURCE_PORTC		51
+#define DMAMUX_SOURCE_PORTD		52
+#define DMAMUX_SOURCE_PORTE		53
+#define DMAMUX_SOURCE_ALWAYS0		54
+#define DMAMUX_SOURCE_ALWAYS1		55
+#define DMAMUX_SOURCE_ALWAYS2		56
+#define DMAMUX_SOURCE_ALWAYS3		57
+#define DMAMUX_SOURCE_ALWAYS4		58
+#define DMAMUX_SOURCE_ALWAYS5		59
+#define DMAMUX_SOURCE_ALWAYS6		60
+#define DMAMUX_SOURCE_ALWAYS7		61
+#define DMAMUX_SOURCE_ALWAYS8		62
+#define DMAMUX_SOURCE_ALWAYS9		63
 
 // Chapter 21: Direct Memory Access Controller (eDMA)
-#define DMA_CR                  *(volatile uint32_t *)0x40008000 // Control Register
-#define DMA_ES                  *(volatile uint32_t *)0x40008004 // Error Status Register
-#define DMA_ERQ                 *(volatile uint32_t *)0x4000800C // Enable Request Register
-#define DMA_EEI                 *(volatile uint32_t *)0x40008014 // Enable Error Interrupt Register
-#define DMA_CEEI                *(volatile uint8_t  *)0x40008018 // Clear Enable Error Interrupt Register
-#define DMA_SEEI                *(volatile uint8_t  *)0x40008019 // Set Enable Error Interrupt Register
-#define DMA_CERQ                *(volatile uint8_t  *)0x4000801A // Clear Enable Request Register
-#define DMA_SERQ                *(volatile uint8_t  *)0x4000801B // Set Enable Request Register
-#define DMA_CDNE                *(volatile uint8_t  *)0x4000801C // Clear DONE Status Bit Register
-#define DMA_SSRT                *(volatile uint8_t  *)0x4000801D // Set START Bit Register
-#define DMA_CERR                *(volatile uint8_t  *)0x4000801E // Clear Error Register
-#define DMA_CINT                *(volatile uint8_t  *)0x4000801F // Clear Interrupt Request Register
-#define DMA_INT                 *(volatile uint32_t *)0x40008024 // Interrupt Request Register
-#define DMA_ERR                 *(volatile uint32_t *)0x4000802C // Error Register
-#define DMA_HRS                 *(volatile uint32_t *)0x40008034 // Hardware Request Status Register
-#define DMA_DCHPRI3             *(volatile uint8_t  *)0x40008100 // Channel n Priority Register
-#define DMA_DCHPRI2             *(volatile uint8_t  *)0x40008101 // Channel n Priority Register
-#define DMA_DCHPRI1             *(volatile uint8_t  *)0x40008102 // Channel n Priority Register
-#define DMA_DCHPRI0             *(volatile uint8_t  *)0x40008103 // Channel n Priority Register
+#define DMA_CR			*(volatile uint32_t *)0x40008000 // Control Register
+#define DMA_CR_CX			((uint32_t)(1<<17))	// Cancel Transfer
+#define DMA_CR_ECX			((uint32_t)(1<<16))	// Error Cancel Transfer
+#define DMA_CR_EMLM			((uint32_t)0x80)	// Enable Minor Loop Mapping
+#define DMA_CR_CLM			((uint32_t)0x40)	// Continuous Link Mode
+#define DMA_CR_HALT			((uint32_t)0x20)	// Halt DMA Operations
+#define DMA_CR_HOE			((uint32_t)0x10)	// Halt On Error
+#define DMA_CR_ERCA			((uint32_t)0x04)	// Enable Round Robin Channel Arbitration
+#define DMA_CR_EDBG			((uint32_t)0x02)	// Enable Debug
+#define DMA_ES			*(volatile uint32_t *)0x40008004 // Error Status Register
+#define DMA_ERQ			*(volatile uint32_t *)0x4000800C // Enable Request Register
+#define DMA_ERQ_ERQ0			((uint32_t)1<<0)	// Enable DMA Request 0
+#define DMA_ERQ_ERQ1			((uint32_t)1<<1)	// Enable DMA Request 1
+#define DMA_ERQ_ERQ2			((uint32_t)1<<2)	// Enable DMA Request 2
+#define DMA_ERQ_ERQ3			((uint32_t)1<<3)	// Enable DMA Request 3
+#define DMA_EEI			*(volatile uint32_t *)0x40008014 // Enable Error Interrupt Register
+#define DMA_EEI_EEI0			((uint32_t)1<<0)	// Enable Error Interrupt 0
+#define DMA_EEI_EEI1			((uint32_t)1<<1)	// Enable Error Interrupt 1
+#define DMA_EEI_EEI2			((uint32_t)1<<2)	// Enable Error Interrupt 2
+#define DMA_EEI_EEI3			((uint32_t)1<<3)	// Enable Error Interrupt 3
+#define DMA_CEEI		*(volatile uint8_t  *)0x40008018 // Clear Enable Error Interrupt Register
+#define DMA_CEEI_CEEI(n)		((uint8_t)(n & 3)<<0)	// Clear Enable Error Interrupt
+#define DMA_CEEI_CAEE			((uint8_t)1<<6)		// Clear All Enable Error Interrupts
+#define DMA_CEEI_NOP			((uint8_t)1<<7)		// NOP
+#define DMA_SEEI		*(volatile uint8_t  *)0x40008019 // Set Enable Error Interrupt Register
+#define DMA_SEEI_SEEI(n)		((uint8_t)(n & 3)<<0)	// Set Enable Error Interrupt
+#define DMA_SEEI_SAEE			((uint8_t)1<<6)		// Set All Enable Error Interrupts
+#define DMA_SEEI_NOP			((uint8_t)1<<7)		// NOP
+#define DMA_CERQ		*(volatile uint8_t  *)0x4000801A // Clear Enable Request Register
+#define DMA_CERQ_CERQ(n)		((uint8_t)(n & 3)<<0)	// Clear Enable Request
+#define DMA_CERQ_CAER			((uint8_t)1<<6)		// Clear All Enable Requests
+#define DMA_CERQ_NOP			((uint8_t)1<<7)		// NOP
+#define DMA_SERQ		*(volatile uint8_t  *)0x4000801B // Set Enable Request Register
+#define DMA_SERQ_SERQ(n)		((uint8_t)(n & 3)<<0)	// Set Enable Request
+#define DMA_SERQ_SAER			((uint8_t)1<<6)		// Set All Enable Requests
+#define DMA_SERQ_NOP			((uint8_t)1<<7)		// NOP
+#define DMA_CDNE		*(volatile uint8_t  *)0x4000801C // Clear DONE Status Bit Register
+#define DMA_CDNE_CDNE(n)		((uint8_t)(n & 3)<<0)	// Clear Done Bit
+#define DMA_CDNE_CADN			((uint8_t)1<<6)		// Clear All Done Bits
+#define DMA_CDNE_NOP			((uint8_t)1<<7)		// NOP
+#define DMA_SSRT		*(volatile uint8_t  *)0x4000801D // Set START Bit Register
+#define DMA_SSRT_SSRT(n)		((uint8_t)(n & 3)<<0)	// Set Start Bit
+#define DMA_SSRT_SAST			((uint8_t)1<<6)		// Set All Start Bits
+#define DMA_SSRT_NOP			((uint8_t)1<<7)		// NOP
+#define DMA_CERR		*(volatile uint8_t  *)0x4000801E // Clear Error Register
+#define DMA_CERR_CERR(n)		((uint8_t)(n & 3)<<0)	// Clear Error Indicator
+#define DMA_CERR_CAEI			((uint8_t)1<<6)		// Clear All Error Indicators
+#define DMA_CERR_NOP			((uint8_t)1<<7)		// NOP
+#define DMA_CINT		*(volatile uint8_t  *)0x4000801F // Clear Interrupt Request Register
+#define DMA_CINT_CINT(n)		((uint8_t)(n & 3)<<0)	// Clear Interrupt Request
+#define DMA_CINT_CAIR			((uint8_t)1<<6)		// Clear All Interrupt Requests
+#define DMA_CINT_NOP			((uint8_t)1<<7)		// NOP
+#define DMA_INT			*(volatile uint32_t *)0x40008024 // Interrupt Request Register
+#define DMA_INT_INT0			((uint32_t)1<<0)	// Interrupt Request 0
+#define DMA_INT_INT1			((uint32_t)1<<1)	// Interrupt Request 1
+#define DMA_INT_INT2			((uint32_t)1<<2)	// Interrupt Request 2
+#define DMA_INT_INT3			((uint32_t)1<<3)	// Interrupt Request 3
+#define DMA_ERR			*(volatile uint32_t *)0x4000802C // Error Register
+#define DMA_ERR_ERR0			((uint32_t)1<<0)	// Error in Channel 0
+#define DMA_ERR_ERR1			((uint32_t)1<<1)	// Error in Channel 1
+#define DMA_ERR_ERR2			((uint32_t)1<<2)	// Error in Channel 2
+#define DMA_ERR_ERR3			((uint32_t)1<<3)	// Error in Channel 3
+#define DMA_HRS			*(volatile uint32_t *)0x40008034 // Hardware Request Status Register
+#define DMA_HRS_HRS0			((uint32_t)1<<0)	// Hardware Request Status Channel 0
+#define DMA_HRS_HRS1			((uint32_t)1<<1)	// Hardware Request Status Channel 1
+#define DMA_HRS_HRS2			((uint32_t)1<<2)	// Hardware Request Status Channel 2
+#define DMA_HRS_HRS3			((uint32_t)1<<3)	// Hardware Request Status Channel 3
+#define DMA_DCHPRI3		*(volatile uint8_t  *)0x40008100 // Channel n Priority Register
+#define DMA_DCHPRI2		*(volatile uint8_t  *)0x40008101 // Channel n Priority Register
+#define DMA_DCHPRI1		*(volatile uint8_t  *)0x40008102 // Channel n Priority Register
+#define DMA_DCHPRI0		*(volatile uint8_t  *)0x40008103 // Channel n Priority Register
+#define DMA_DCHPRI_CHPRI(n)		((uint8_t)(n & 3)<<0)	// Channel Arbitration Priority
+#define DMA_DCHPRI_DPA			((uint8_t)1<<6)		// Disable PreEmpt Ability
+#define DMA_DCHPRI_ECP			((uint8_t)1<<7)		// Enable PreEmption
 
-#define DMA_TCD0_SADDR          *(volatile uint32_t *)0x40009000 // TCD Source Address
-#define DMA_TCD0_SOFF           *(volatile uint16_t *)0x40009004 // TCD Signed Source Address Offset
-#define DMA_TCD0_ATTR           *(volatile uint16_t *)0x40009006 // TCD Transfer Attributes
-#define DMA_TCD0_NBYTES_MLNO    *(volatile uint32_t *)0x40009008 // TCD Minor Byte Count (Minor Loop Disabled)
+
+#define DMA_TCD_ATTR_SMOD(n)		(((n) & 0x1F) << 11)
+#define DMA_TCD_ATTR_SSIZE(n)		(((n) & 0x7) << 8)
+#define DMA_TCD_ATTR_DMOD(n)		(((n) & 0x1F) << 3)
+#define DMA_TCD_ATTR_DSIZE(n)		(((n) & 0x7) << 0)
+#define DMA_TCD_ATTR_SIZE_8BIT		0
+#define DMA_TCD_ATTR_SIZE_16BIT		1
+#define DMA_TCD_ATTR_SIZE_32BIT		2
+#define DMA_TCD_ATTR_SIZE_16BYTE	4
+#define DMA_TCD_ATTR_SIZE_32BYTE	5
+#define DMA_TCD_CSR_BWC(n)		(((n) & 0x3) << 14)
+#define DMA_TCD_CSR_MAJORLINKCH(n)	(((n) & 0x3) << 8)
+#define DMA_TCD_CSR_DONE		0x0080
+#define DMA_TCD_CSR_ACTIVE		0x0040
+#define DMA_TCD_CSR_MAJORELINK		0x0020
+#define DMA_TCD_CSR_ESG			0x0010
+#define DMA_TCD_CSR_DREQ		0x0008
+#define DMA_TCD_CSR_INTHALF		0x0004
+#define DMA_TCD_CSR_INTMAJOR		0x0002
+#define DMA_TCD_CSR_START		0x0001
+#define DMA_TCD_CITER_MASK		    ((uint16_t)0x7FFF)	   // Loop count mask
+#define DMA_TCD_CITER_ELINK		    ((uint16_t)1<<15)	   // Enable channel linking on minor-loop complete
+#define DMA_TCD_BITER_MASK		    ((uint16_t)0x7FFF)	   // Loop count mask
+#define DMA_TCD_BITER_ELINK		    ((uint16_t)1<<15)	   // Enable channel linking on minor-loop complete
+#define DMA_TCD_NBYTES_SMLOE		    ((uint32_t)1<<31)		    // Source Minor Loop Offset Enable
+#define DMA_TCD_NBYTES_DMLOE		    ((uint32_t)1<<30)		    // Destination Minor Loop Offset Enable
+#define DMA_TCD_NBYTES_MLOFFNO_NBYTES(n)    ((uint32_t)(n))		    // NBytes transfer count when minor loop disabled
+#define DMA_TCD_NBYTES_MLOFFYES_NBYTES(n)   ((uint32_t)(n & 0x1F))	    // NBytes transfer count when minor loop enabled
+#define DMA_TCD_NBYTES_MLOFFYES_MLOFF(n)    ((uint32_t)(n & 0xFFFFF)<<10)   // Offset 
+
+#define DMA_TCD0_SADDR		*(volatile const void * volatile *)0x40009000 // TCD Source Address
+#define DMA_TCD0_SOFF		*(volatile int16_t *)0x40009004	 // TCD Signed Source Address Offset
+#define DMA_TCD0_ATTR		*(volatile uint16_t *)0x40009006 // TCD Transfer Attributes
+#define DMA_TCD0_NBYTES_MLNO	*(volatile uint32_t *)0x40009008 // TCD Minor Byte Count (Minor Loop Disabled)
 #define DMA_TCD0_NBYTES_MLOFFNO *(volatile uint32_t *)0x40009008 // TCD Signed Minor Loop Offset (Minor Loop Enabled and Offset Disabled)
 #define DMA_TCD0_NBYTES_MLOFFYES *(volatile uint32_t *)0x40009008 // TCD Signed Minor Loop Offset (Minor Loop and Offset Enabled)
-#define DMA_TCD0_SLAST          *(volatile uint32_t *)0x4000900C // TCD Last Source Address Adjustment
-#define DMA_TCD0_DADDR          *(volatile uint32_t *)0x40009010 // TCD Destination Address
+#define DMA_TCD0_SLAST		*(volatile int32_t *)0x4000900C	 // TCD Last Source Address Adjustment
+#define DMA_TCD0_DADDR		*(volatile void * volatile *)0x40009010 // TCD Destination Address
+#define DMA_TCD0_DOFF		*(volatile int16_t *)0x40009014	 // TCD Signed Destination Address Offset
+#define DMA_TCD0_CITER_ELINKYES *(volatile uint16_t *)0x40009016 // TCD Current Minor Loop Link, Major Loop Count, Channel Linking Enabled
+#define DMA_TCD0_CITER_ELINKNO	*(volatile uint16_t *)0x40009016 // ??
+#define DMA_TCD0_DLASTSGA	*(volatile int32_t *)0x40009018	 // TCD Last Destination Address Adjustment/Scatter Gather Address
+#define DMA_TCD0_CSR		*(volatile uint16_t *)0x4000901C // TCD Control and Status
+#define DMA_TCD0_BITER_ELINKYES *(volatile uint16_t *)0x4000901E // TCD Beginning Minor Loop Link, Major Loop Count, Channel Linking Enabled
+#define DMA_TCD0_BITER_ELINKNO	*(volatile uint16_t *)0x4000901E // TCD Beginning Minor Loop Link, Major Loop Count, Channel Linking Disabled
 
-#define DMA_TCD0_DOFF           0x40009014 // TCD Signed Destination Address Offset
-#define DMA_TCD0_DLASTSGA       0x40009018 // TCD Last Destination Address Adjustment/Scatter Gather Address
-#define DMA_TCD0_CSR            0x4000901C // TCD Control and Status
-#define DMA_TCD0_BITER_ELINKYES 0x4000901E // TCD Beginning Minor Loop Link, Major Loop Count, Channel Linking Enabled
-#define DMA_TCD0_BITER_ELINKNO  0x4000901E // TCD Beginning Minor Loop Link, Major Loop Count, Channel Linking Disabled
-#define DMA_TCD1_SADDR          0x40009020 // TCD Source Address
-#define DMA_TCD1_SOFF           0x40009024 // TCD Signed Source Address Offset
-#define DMA_TCD1_ATTR           0x40009026 // TCD Transfer Attributes
-#define DMA_TCD1_NBYTES_MLNO    0x40009028 // TCD Minor Byte Count, Minor Loop Disabled
-#define DMA_TCD1_NBYTES_MLOFFNO 0x40009028 // TCD Signed Minor Loop Offset, Minor Loop Enabled and Offset Disabled
-#define DMA_TCD1_NBYTES_MLOFFYES 0x40009028 // TCD Signed Minor Loop Offset, Minor Loop and Offset Enabled
-#define DMA_TCD1_SLAST          0x4000902C // TCD Last Source Address Adjustment
-#define DMA_TCD1_DADDR          0x40009030 // TCD Destination Address
-#define DMA_TCD1_DOFF           0x40009034 // TCD Signed Destination Address Offset
-#define DMA_TCD1_CITER_ELINKYES 0x40009036 // TCD Current Minor Loop Link, Major Loop Count, Channel Linking Enabled
-#define DMA_TCD1_CITER_ELINKNO  0x40009036 // ??
-#define DMA_TCD1_DLASTSGA       0x40009038 // TCD Last Destination Address Adjustment/Scatter Gather Address
-#define DMA_TCD1_CSR            0x4000903C // TCD Control and Status
-#define DMA_TCD1_BITER_ELINKYES 0x4000903E // TCD Beginning Minor Loop Link, Major Loop Count Channel Linking Enabled
-#define DMA_TCD1_BITER_ELINKNO  0x4000903E // TCD Beginning Minor Loop Link, Major Loop Count, Channel Linking Disabled
-#define DMA_TCD2_SADDR          0x40009040 // TCD Source Address
-#define DMA_TCD2_SOFF           0x40009044 // TCD Signed Source Address Offset
-#define DMA_TCD2_ATTR           0x40009046 // TCD Transfer Attributes
-#define DMA_TCD2_NBYTES_MLNO    0x40009048 // TCD Minor Byte Count, Minor Loop Disabled
-#define DMA_TCD2_NBYTES_MLOFFNO 0x40009048 // TCD Signed Minor Loop Offset, Minor Loop Enabled and Offset Disabled
-#define DMA_TCD2_NBYTES_MLOFFYES 0x40009048 // TCD Signed Minor Loop Offset, Minor Loop and Offset Enabled
-#define DMA_TCD2_SLAST          0x4000904C // TCD Last Source Address Adjustment
-#define DMA_TCD2_DADDR          0x40009050 // TCD Destination Address
-#define DMA_TCD2_DOFF           0x40009054 // TCD Signed Destination Address Offset
-#define DMA_TCD2_CITER_ELINKYES 0x40009056 // TCD Current Minor Loop Link, Major Loop Count, Channel Linking Enabled
-#define DMA_TCD2_CITER_ELINKNO  0x40009056 // ??
-#define DMA_TCD2_DLASTSGA       0x40009058 // TCD Last Destination Address Adjustment/Scatter Gather Address
-#define DMA_TCD2_CSR            0x4000905C // TCD Control and Status
-#define DMA_TCD2_BITER_ELINKYES 0x4000905E // TCD Beginning Minor Loop Link, Major Loop Count, Channel Linking Enabled
-#define DMA_TCD2_BITER_ELINKNO  0x4000905E // TCD Beginning Minor Loop Link, Major Loop Count, Channel Linking Disabled
-#define DMA_TCD3_SADDR          0x40009060 // TCD Source Address
-#define DMA_TCD3_SOFF           0x40009064 // TCD Signed Source Address Offset
-#define DMA_TCD3_ATTR           0x40009066 // TCD Transfer Attributes
-#define DMA_TCD3_NBYTES_MLOFFNO 0x40009068 // TCD Signed Minor Loop Offset, Minor Loop Enabled and Offset Disabled
-#define DMA_TCD3_NBYTES_MLOFFYES 0x40009068 // TCD Signed Minor Loop Offset, Minor Loop and Offset Enabled
-#define DMA_TCD3_SLAST          0x4000906C // TCD Last Source Address Adjustment
-#define DMA_TCD3_DADDR          0x40009070 // TCD Destination Address
-#define DMA_TCD3_DOFF           0x40009074 // TCD Signed Destination Address Offset
-#define DMA_TCD3_CITER_ELINKYES 0x40009076 // TCD Current Minor Loop Link, Major Loop Count, Channel Linking Enabled
-#define DMA_TCD3_CITER_ELINKNO  0x40009076 // ??
-#define DMA_TCD3_DLASTSGA       0x40009078 // TCD Last Destination Address Adjustment/Scatter Gather Address
-#define DMA_TCD3_CSR            0x4000907C // TCD Control and Status
-#define DMA_TCD3_BITER_ELINKYES 0x4000907E // TCD Beginning Minor Loop Link, Major Loop Count ,Channel Linking Enabled
-#define DMA_TCD3_BITER_ELINKNO  0x4000907E // TCD Beginning Minor Loop Link, Major Loop Count ,Channel Linking Disabled
-#define DMA_TCD4_BITER_ELINKYES 0x4000909E // TCD Beginning Minor Loop Link, Major Loop Count ,Channel Linking Enabled
+#define DMA_TCD1_SADDR		*(volatile const void * volatile *)0x40009020 // TCD Source Address
+#define DMA_TCD1_SOFF		*(volatile int16_t *)0x40009024	 // TCD Signed Source Address Offset
+#define DMA_TCD1_ATTR		*(volatile uint16_t *)0x40009026 // TCD Transfer Attributes
+#define DMA_TCD1_NBYTES_MLNO	*(volatile uint32_t *)0x40009028 // TCD Minor Byte Count, Minor Loop Disabled
+#define DMA_TCD1_NBYTES_MLOFFNO *(volatile uint32_t *)0x40009028 // TCD Signed Minor Loop Offset, Minor Loop Enabled and Offset Disabled
+#define DMA_TCD1_NBYTES_MLOFFYES *(volatile uint32_t *)0x40009028 // TCD Signed Minor Loop Offset, Minor Loop and Offset Enabled
+#define DMA_TCD1_SLAST		*(volatile int32_t *)0x4000902C	 // TCD Last Source Address Adjustment
+#define DMA_TCD1_DADDR		*(volatile void * volatile *)0x40009030 // TCD Destination Address
+#define DMA_TCD1_DOFF		*(volatile int16_t *)0x40009034	 // TCD Signed Destination Address Offset
+#define DMA_TCD1_CITER_ELINKYES *(volatile uint16_t *)0x40009036 // TCD Current Minor Loop Link, Major Loop Count, Channel Linking Enabled
+#define DMA_TCD1_CITER_ELINKNO	*(volatile uint16_t *)0x40009036 // ??
+#define DMA_TCD1_DLASTSGA	*(volatile int32_t *)0x40009038	 // TCD Last Destination Address Adjustment/Scatter Gather Address
+#define DMA_TCD1_CSR		*(volatile uint16_t *)0x4000903C // TCD Control and Status
+#define DMA_TCD1_BITER_ELINKYES *(volatile uint16_t *)0x4000903E // TCD Beginning Minor Loop Link, Major Loop Count Channel Linking Enabled
+#define DMA_TCD1_BITER_ELINKNO	*(volatile uint16_t *)0x4000903E // TCD Beginning Minor Loop Link, Major Loop Count, Channel Linking Disabled
+
+#define DMA_TCD2_SADDR		*(volatile const void * volatile *)0x40009040 // TCD Source Address
+#define DMA_TCD2_SOFF		*(volatile int16_t *)0x40009044	 // TCD Signed Source Address Offset
+#define DMA_TCD2_ATTR		*(volatile uint16_t *)0x40009046 // TCD Transfer Attributes
+#define DMA_TCD2_NBYTES_MLNO	*(volatile uint32_t *)0x40009048 // TCD Minor Byte Count, Minor Loop Disabled
+#define DMA_TCD2_NBYTES_MLOFFNO *(volatile uint32_t *)0x40009048 // TCD Signed Minor Loop Offset, Minor Loop Enabled and Offset Disabled
+#define DMA_TCD2_NBYTES_MLOFFYES *(volatile uint32_t *)0x40009048 // TCD Signed Minor Loop Offset, Minor Loop and Offset Enabled
+#define DMA_TCD2_SLAST		*(volatile int32_t *)0x4000904C	 // TCD Last Source Address Adjustment
+#define DMA_TCD2_DADDR		*(volatile void * volatile *)0x40009050 // TCD Destination Address
+#define DMA_TCD2_DOFF		*(volatile int16_t *)0x40009054	 // TCD Signed Destination Address Offset
+#define DMA_TCD2_CITER_ELINKYES *(volatile uint16_t *)0x40009056 // TCD Current Minor Loop Link, Major Loop Count, Channel Linking Enabled
+#define DMA_TCD2_CITER_ELINKNO	*(volatile uint16_t *)0x40009056 // ??
+#define DMA_TCD2_DLASTSGA	*(volatile int32_t *)0x40009058	 // TCD Last Destination Address Adjustment/Scatter Gather Address
+#define DMA_TCD2_CSR		*(volatile uint16_t *)0x4000905C // TCD Control and Status
+#define DMA_TCD2_BITER_ELINKYES *(volatile uint16_t *)0x4000905E // TCD Beginning Minor Loop Link, Major Loop Count, Channel Linking Enabled
+#define DMA_TCD2_BITER_ELINKNO	*(volatile uint16_t *)0x4000905E // TCD Beginning Minor Loop Link, Major Loop Count, Channel Linking Disabled
+
+#define DMA_TCD3_SADDR		*(volatile const void * volatile *)0x40009060 // TCD Source Address
+#define DMA_TCD3_SOFF		*(volatile int16_t *)0x40009064	 // TCD Signed Source Address Offset
+#define DMA_TCD3_ATTR		*(volatile uint16_t *)0x40009066 // TCD Transfer Attributes
+#define DMA_TCD3_NBYTES_MLNO	*(volatile uint32_t *)0x40009068 // TCD Minor Byte Count, Minor Loop Disabled
+#define DMA_TCD3_NBYTES_MLOFFNO *(volatile uint32_t *)0x40009068 // TCD Signed Minor Loop Offset, Minor Loop Enabled and Offset Disabled
+#define DMA_TCD3_NBYTES_MLOFFYES *(volatile uint32_t *)0x40009068 // TCD Signed Minor Loop Offset, Minor Loop and Offset Enabled
+#define DMA_TCD3_SLAST		*(volatile int32_t *)0x4000906C	 // TCD Last Source Address Adjustment
+#define DMA_TCD3_DADDR		*(volatile void * volatile *)0x40009070 // TCD Destination Address
+#define DMA_TCD3_DOFF		*(volatile int16_t *)0x40009074	 // TCD Signed Destination Address Offset
+#define DMA_TCD3_CITER_ELINKYES *(volatile uint16_t *)0x40009076 // TCD Current Minor Loop Link, Major Loop Count, Channel Linking Enabled
+#define DMA_TCD3_CITER_ELINKNO	*(volatile uint16_t *)0x40009076 // ??
+#define DMA_TCD3_DLASTSGA	*(volatile int32_t *)0x40009078	 // TCD Last Destination Address Adjustment/Scatter Gather Address
+#define DMA_TCD3_CSR		*(volatile uint16_t *)0x4000907C // TCD Control and Status
+#define DMA_TCD3_BITER_ELINKYES *(volatile uint16_t *)0x4000907E // TCD Beginning Minor Loop Link, Major Loop Count ,Channel Linking Enabled
+#define DMA_TCD3_BITER_ELINKNO	*(volatile uint16_t *)0x4000907E // TCD Beginning Minor Loop Link, Major Loop Count ,Channel Linking Disabled
 
 // Chapter 22: External Watchdog Monitor (EWM)
 #define EWM_CTRL                *(volatile uint8_t  *)0x40061000 // Control Register
@@ -604,23 +850,90 @@ extern "C" {
 #define ADC_SC3_ADCO			(uint32_t)0x08			// Continuous conversion enable
 #define ADC_SC3_AVGE			(uint32_t)0x04			// Hardware average enable
 #define ADC_SC3_AVGS(n)			(uint32_t)(((n) & 3) << 0)	// avg select, 0=4 samples, 1=8 samples, 2=16 samples, 3=32 samples
-#define ADC0_OFS                *(volatile uint32_t *)0x4003B028 // ADC offset correction register
-#define ADC0_PG                 *(volatile uint32_t *)0x4003B02C // ADC plus-side gain register
-#define ADC0_MG                 *(volatile uint32_t *)0x4003B030 // ADC minus-side gain register
-#define ADC0_CLPD               *(volatile uint32_t *)0x4003B034 // ADC plus-side general calibration value register
-#define ADC0_CLPS               *(volatile uint32_t *)0x4003B038 // ADC plus-side general calibration value register
-#define ADC0_CLP4               *(volatile uint32_t *)0x4003B03C // ADC plus-side general calibration value register
-#define ADC0_CLP3               *(volatile uint32_t *)0x4003B040 // ADC plus-side general calibration value register
-#define ADC0_CLP2               *(volatile uint32_t *)0x4003B044 // ADC plus-side general calibration value register
-#define ADC0_CLP1               *(volatile uint32_t *)0x4003B048 // ADC plus-side general calibration value register
-#define ADC0_CLP0               *(volatile uint32_t *)0x4003B04C // ADC plus-side general calibration value register
-#define ADC0_CLMD               *(volatile uint32_t *)0x4003B054 // ADC minus-side general calibration value register
-#define ADC0_CLMS               *(volatile uint32_t *)0x4003B058 // ADC minus-side general calibration value register
-#define ADC0_CLM4               *(volatile uint32_t *)0x4003B05C // ADC minus-side general calibration value register
-#define ADC0_CLM3               *(volatile uint32_t *)0x4003B060 // ADC minus-side general calibration value register
-#define ADC0_CLM2               *(volatile uint32_t *)0x4003B064 // ADC minus-side general calibration value register
-#define ADC0_CLM1               *(volatile uint32_t *)0x4003B068 // ADC minus-side general calibration value register
-#define ADC0_CLM0               *(volatile uint32_t *)0x4003B06C // ADC minus-side general calibration value register
+#define ADC0_OFS		*(volatile uint32_t *)0x4003B028 // ADC offset correction register
+#define ADC0_PG			*(volatile uint32_t *)0x4003B02C // ADC plus-side gain register
+#define ADC0_MG			*(volatile uint32_t *)0x4003B030 // ADC minus-side gain register
+#define ADC0_CLPD		*(volatile uint32_t *)0x4003B034 // ADC plus-side general calibration value register
+#define ADC0_CLPS		*(volatile uint32_t *)0x4003B038 // ADC plus-side general calibration value register
+#define ADC0_CLP4		*(volatile uint32_t *)0x4003B03C // ADC plus-side general calibration value register
+#define ADC0_CLP3		*(volatile uint32_t *)0x4003B040 // ADC plus-side general calibration value register
+#define ADC0_CLP2		*(volatile uint32_t *)0x4003B044 // ADC plus-side general calibration value register
+#define ADC0_CLP1		*(volatile uint32_t *)0x4003B048 // ADC plus-side general calibration value register
+#define ADC0_CLP0		*(volatile uint32_t *)0x4003B04C // ADC plus-side general calibration value register
+#define ADC0_CLMD		*(volatile uint32_t *)0x4003B054 // ADC minus-side general calibration value register
+#define ADC0_CLMS		*(volatile uint32_t *)0x4003B058 // ADC minus-side general calibration value register
+#define ADC0_CLM4		*(volatile uint32_t *)0x4003B05C // ADC minus-side general calibration value register
+#define ADC0_CLM3		*(volatile uint32_t *)0x4003B060 // ADC minus-side general calibration value register
+#define ADC0_CLM2		*(volatile uint32_t *)0x4003B064 // ADC minus-side general calibration value register
+#define ADC0_CLM1		*(volatile uint32_t *)0x4003B068 // ADC minus-side general calibration value register
+#define ADC0_CLM0		*(volatile uint32_t *)0x4003B06C // ADC minus-side general calibration value register
+
+#define ADC1_SC1A		*(volatile uint32_t *)0x400BB000 // ADC status and control registers 1
+#define ADC1_SC1B		*(volatile uint32_t *)0x400BB004 // ADC status and control registers 1
+#define ADC1_CFG1		*(volatile uint32_t *)0x400BB008 // ADC configuration register 1
+#define ADC1_CFG2		*(volatile uint32_t *)0x400BB00C // Configuration register 2
+#define ADC1_RA			*(volatile uint32_t *)0x400BB010 // ADC data result register
+#define ADC1_RB			*(volatile uint32_t *)0x400BB014 // ADC data result register
+#define ADC1_CV1		*(volatile uint32_t *)0x400BB018 // Compare value registers
+#define ADC1_CV2		*(volatile uint32_t *)0x400BB01C // Compare value registers
+#define ADC1_SC2		*(volatile uint32_t *)0x400BB020 // Status and control register 2
+#define ADC1_SC3		*(volatile uint32_t *)0x400BB024 // Status and control register 3
+#define ADC1_OFS		*(volatile uint32_t *)0x400BB028 // ADC offset correction register
+#define ADC1_PG			*(volatile uint32_t *)0x400BB02C // ADC plus-side gain register
+#define ADC1_MG			*(volatile uint32_t *)0x400BB030 // ADC minus-side gain register
+#define ADC1_CLPD		*(volatile uint32_t *)0x400BB034 // ADC plus-side general calibration value register
+#define ADC1_CLPS		*(volatile uint32_t *)0x400BB038 // ADC plus-side general calibration value register
+#define ADC1_CLP4		*(volatile uint32_t *)0x400BB03C // ADC plus-side general calibration value register
+#define ADC1_CLP3		*(volatile uint32_t *)0x400BB040 // ADC plus-side general calibration value register
+#define ADC1_CLP2		*(volatile uint32_t *)0x400BB044 // ADC plus-side general calibration value register
+#define ADC1_CLP1		*(volatile uint32_t *)0x400BB048 // ADC plus-side general calibration value register
+#define ADC1_CLP0		*(volatile uint32_t *)0x400BB04C // ADC plus-side general calibration value register
+#define ADC1_CLMD		*(volatile uint32_t *)0x400BB054 // ADC minus-side general calibration value register
+#define ADC1_CLMS		*(volatile uint32_t *)0x400BB058 // ADC minus-side general calibration value register
+#define ADC1_CLM4		*(volatile uint32_t *)0x400BB05C // ADC minus-side general calibration value register
+#define ADC1_CLM3		*(volatile uint32_t *)0x400BB060 // ADC minus-side general calibration value register
+#define ADC1_CLM2		*(volatile uint32_t *)0x400BB064 // ADC minus-side general calibration value register
+#define ADC1_CLM1		*(volatile uint32_t *)0x400BB068 // ADC minus-side general calibration value register
+#define ADC1_CLM0		*(volatile uint32_t *)0x400BB06C // ADC minus-side general calibration value register
+
+#define DAC0_DAT0L		*(volatile uint8_t  *)0x400CC000 // DAC Data Low Register 
+#define DAC0_DATH		*(volatile uint8_t  *)0x400CC001 // DAC Data High Register 
+#define DAC0_DAT1L		*(volatile uint8_t  *)0x400CC002 // DAC Data Low Register 
+#define DAC0_DAT2L		*(volatile uint8_t  *)0x400CC004 // DAC Data Low Register 
+#define DAC0_DAT3L		*(volatile uint8_t  *)0x400CC006 // DAC Data Low Register 
+#define DAC0_DAT4L		*(volatile uint8_t  *)0x400CC008 // DAC Data Low Register 
+#define DAC0_DAT5L		*(volatile uint8_t  *)0x400CC00A // DAC Data Low Register 
+#define DAC0_DAT6L		*(volatile uint8_t  *)0x400CC00C // DAC Data Low Register 
+#define DAC0_DAT7L		*(volatile uint8_t  *)0x400CC00E // DAC Data Low Register 
+#define DAC0_DAT8L		*(volatile uint8_t  *)0x400CC010 // DAC Data Low Register 
+#define DAC0_DAT9L		*(volatile uint8_t  *)0x400CC012 // DAC Data Low Register 
+#define DAC0_DAT10L		*(volatile uint8_t  *)0x400CC014 // DAC Data Low Register 
+#define DAC0_DAT11L		*(volatile uint8_t  *)0x400CC016 // DAC Data Low Register 
+#define DAC0_DAT12L		*(volatile uint8_t  *)0x400CC018 // DAC Data Low Register 
+#define DAC0_DAT13L		*(volatile uint8_t  *)0x400CC01A // DAC Data Low Register 
+#define DAC0_DAT14L		*(volatile uint8_t  *)0x400CC01C // DAC Data Low Register 
+#define DAC0_DAT15L		*(volatile uint8_t  *)0x400CC01E // DAC Data Low Register 
+#define DAC0_SR			*(volatile uint8_t  *)0x400CC020 // DAC Status Register 
+#define DAC0_C0			*(volatile uint8_t  *)0x400CC021 // DAC Control Register 
+#define DAC_C0_DACEN			0x80				// DAC Enable
+#define DAC_C0_DACRFS			0x40				// DAC Reference Select
+#define DAC_C0_DACTRGSEL		0x20				// DAC Trigger Select
+#define DAC_C0_DACSWTRG			0x10				// DAC Software Trigger
+#define DAC_C0_LPEN			0x08				// DAC Low Power Control
+#define DAC_C0_DACBWIEN			0x04				// DAC Buffer Watermark Interrupt Enable
+#define DAC_C0_DACBTIEN			0x02				// DAC Buffer Read Pointer Top Flag Interrupt Enable
+#define DAC_C0_DACBBIEN			0x01				// DAC Buffer Read Pointer Bottom Flag Interrupt Enable
+#define DAC0_C1			*(volatile uint8_t  *)0x400CC022 // DAC Control Register 1 
+#define DAC_C1_DMAEN			0x80				// DMA Enable Select
+#define DAC_C1_DACBFWM(n)		(((n) & 3) << 3)		// DAC Buffer Watermark Select
+#define DAC_C1_DACBFMD(n)		(((n) & 3) << 0)		// DAC Buffer Work Mode Select
+#define DAC_C1_DACBFEN			0x00				// DAC Buffer Enable
+
+#define DAC0_C2			*(volatile uint8_t  *)0x400CC023 // DAC Control Register 2 
+#define DAC_C2_DACBFRP(n)		(((n) & 15) << 4)		// DAC Buffer Read Pointer
+#define DAC_C2_DACBFUP(n)		(((n) & 15) << 0)		// DAC Buffer Upper Limit
+
+
 //#define MCG_C2_RANGE0(n)		(uint8_t)(((n) & 0x03) << 4)	// Frequency Range Select, Selects the frequency range for the crystal oscillator
 //#define MCG_C2_LOCRE0			(uint8_t)0x80			// Loss of Clock Reset Enable, Determines whether an interrupt or a reset request is made following a loss of OSC0 
 
@@ -734,26 +1047,53 @@ extern "C" {
 #define FTM1_C0V		*(volatile uint32_t *)0x40039010 // Channel 0 Value
 #define FTM1_C1SC		*(volatile uint32_t *)0x40039014 // Channel 1 Status And Control
 #define FTM1_C1V		*(volatile uint32_t *)0x40039018 // Channel 1 Value
-#define FTM1_CNTIN              *(volatile uint32_t *)0x4003904C // Counter Initial Value
-#define FTM1_STATUS             *(volatile uint32_t *)0x40039050 // Capture And Compare Status
-#define FTM1_MODE               *(volatile uint32_t *)0x40039054 // Features Mode Selection
-#define FTM1_SYNC               *(volatile uint32_t *)0x40039058 // Synchronization
-#define FTM1_OUTINIT            *(volatile uint32_t *)0x4003905C // Initial State For Channels Output
-#define FTM1_OUTMASK            *(volatile uint32_t *)0x40039060 // Output Mask
-#define FTM1_COMBINE            *(volatile uint32_t *)0x40039064 // Function For Linked Channels
-#define FTM1_DEADTIME           *(volatile uint32_t *)0x40039068 // Deadtime Insertion Control
-#define FTM1_EXTTRIG            *(volatile uint32_t *)0x4003906C // FTM External Trigger
-#define FTM1_POL                *(volatile uint32_t *)0x40039070 // Channels Polarity
-#define FTM1_FMS                *(volatile uint32_t *)0x40039074 // Fault Mode Status
-#define FTM1_FILTER             *(volatile uint32_t *)0x40039078 // Input Capture Filter Control
-#define FTM1_FLTCTRL            *(volatile uint32_t *)0x4003907C // Fault Control
-#define FTM1_QDCTRL             *(volatile uint32_t *)0x40039080 // Quadrature Decoder Control And Status
-#define FTM1_CONF               *(volatile uint32_t *)0x40039084 // Configuration
-#define FTM1_FLTPOL             *(volatile uint32_t *)0x40039088 // FTM Fault Input Polarity
-#define FTM1_SYNCONF            *(volatile uint32_t *)0x4003908C // Synchronization Configuration
-#define FTM1_INVCTRL            *(volatile uint32_t *)0x40039090 // FTM Inverting Control
-#define FTM1_SWOCTRL            *(volatile uint32_t *)0x40039094 // FTM Software Output Control
-#define FTM1_PWMLOAD            *(volatile uint32_t *)0x40039098 // FTM PWM Load
+#define FTM1_CNTIN		*(volatile uint32_t *)0x4003904C // Counter Initial Value
+#define FTM1_STATUS		*(volatile uint32_t *)0x40039050 // Capture And Compare Status
+#define FTM1_MODE		*(volatile uint32_t *)0x40039054 // Features Mode Selection
+#define FTM1_SYNC		*(volatile uint32_t *)0x40039058 // Synchronization
+#define FTM1_OUTINIT		*(volatile uint32_t *)0x4003905C // Initial State For Channels Output
+#define FTM1_OUTMASK		*(volatile uint32_t *)0x40039060 // Output Mask
+#define FTM1_COMBINE		*(volatile uint32_t *)0x40039064 // Function For Linked Channels
+#define FTM1_DEADTIME		*(volatile uint32_t *)0x40039068 // Deadtime Insertion Control
+#define FTM1_EXTTRIG		*(volatile uint32_t *)0x4003906C // FTM External Trigger
+#define FTM1_POL		*(volatile uint32_t *)0x40039070 // Channels Polarity
+#define FTM1_FMS		*(volatile uint32_t *)0x40039074 // Fault Mode Status
+#define FTM1_FILTER		*(volatile uint32_t *)0x40039078 // Input Capture Filter Control
+#define FTM1_FLTCTRL		*(volatile uint32_t *)0x4003907C // Fault Control
+#define FTM1_QDCTRL		*(volatile uint32_t *)0x40039080 // Quadrature Decoder Control And Status
+#define FTM1_CONF		*(volatile uint32_t *)0x40039084 // Configuration
+#define FTM1_FLTPOL		*(volatile uint32_t *)0x40039088 // FTM Fault Input Polarity
+#define FTM1_SYNCONF		*(volatile uint32_t *)0x4003908C // Synchronization Configuration
+#define FTM1_INVCTRL		*(volatile uint32_t *)0x40039090 // FTM Inverting Control
+#define FTM1_SWOCTRL		*(volatile uint32_t *)0x40039094 // FTM Software Output Control
+#define FTM1_PWMLOAD		*(volatile uint32_t *)0x40039098 // FTM PWM Load
+#define FTM2_SC			*(volatile uint32_t *)0x400B8000 // Status And Control
+#define FTM2_CNT		*(volatile uint32_t *)0x400B8004 // Counter
+#define FTM2_MOD		*(volatile uint32_t *)0x400B8008 // Modulo
+#define FTM2_C0SC		*(volatile uint32_t *)0x400B800C // Channel 0 Status And Control
+#define FTM2_C0V		*(volatile uint32_t *)0x400B8010 // Channel 0 Value
+#define FTM2_C1SC		*(volatile uint32_t *)0x400B8014 // Channel 1 Status And Control
+#define FTM2_C1V		*(volatile uint32_t *)0x400B8018 // Channel 1 Value
+#define FTM2_CNTIN		*(volatile uint32_t *)0x400B804C // Counter Initial Value
+#define FTM2_STATUS		*(volatile uint32_t *)0x400B8050 // Capture And Compare Status
+#define FTM2_MODE		*(volatile uint32_t *)0x400B8054 // Features Mode Selection
+#define FTM2_SYNC		*(volatile uint32_t *)0x400B8058 // Synchronization
+#define FTM2_OUTINIT		*(volatile uint32_t *)0x400B805C // Initial State For Channels Output
+#define FTM2_OUTMASK		*(volatile uint32_t *)0x400B8060 // Output Mask
+#define FTM2_COMBINE		*(volatile uint32_t *)0x400B8064 // Function For Linked Channels
+#define FTM2_DEADTIME		*(volatile uint32_t *)0x400B8068 // Deadtime Insertion Control
+#define FTM2_EXTTRIG		*(volatile uint32_t *)0x400B806C // FTM External Trigger
+#define FTM2_POL		*(volatile uint32_t *)0x400B8070 // Channels Polarity
+#define FTM2_FMS		*(volatile uint32_t *)0x400B8074 // Fault Mode Status
+#define FTM2_FILTER		*(volatile uint32_t *)0x400B8078 // Input Capture Filter Control
+#define FTM2_FLTCTRL		*(volatile uint32_t *)0x400B807C // Fault Control
+#define FTM2_QDCTRL		*(volatile uint32_t *)0x400B8080 // Quadrature Decoder Control And Status
+#define FTM2_CONF		*(volatile uint32_t *)0x400B8084 // Configuration
+#define FTM2_FLTPOL		*(volatile uint32_t *)0x400B8088 // FTM Fault Input Polarity
+#define FTM2_SYNCONF		*(volatile uint32_t *)0x400B808C // Synchronization Configuration
+#define FTM2_INVCTRL		*(volatile uint32_t *)0x400B8090 // FTM Inverting Control
+#define FTM2_SWOCTRL		*(volatile uint32_t *)0x400B8094 // FTM Software Output Control
+#define FTM2_PWMLOAD		*(volatile uint32_t *)0x400B8098 // FTM PWM Load
 
 // Chapter 36: Periodic Interrupt Timer (PIT)
 #define PIT_MCR                 *(volatile uint32_t *)0x40037000 // PIT Module Control Register
@@ -999,23 +1339,51 @@ extern "C" {
 #define SPI_SR_TFFF			(uint32_t)0x02000000		// Transmit FIFO Fill Flag
 #define SPI_SR_RFOF			(uint32_t)0x00080000		// Receive FIFO Overflow Flag
 #define SPI_SR_RFDF			(uint32_t)0x00020000		// Receive FIFO Drain Flag
-#define SPI0_RSER               *(volatile uint32_t *)0x4002C030 // DSPI DMA/Interrupt Request Select and Enable Register
-#define SPI0_PUSHR              *(volatile uint32_t *)0x4002C034 // DSPI PUSH TX FIFO Register In Master Mode
-#define SPI0_PUSHR_CONT			(uint32_t)0x80000000		// 
-#define SPI0_PUSHR_CTAS(n)		(((n) & 7) << 28)		// 
-#define SPI0_PUSHR_EOQ			(uint32_t)0x08000000		// 
-#define SPI0_PUSHR_CTCNT		(uint32_t)0x04000000		// 
-#define SPI0_PUSHR_PCS(n)		(((n) & 31) << 16)		//
-#define SPI0_PUSHR_SLAVE        *(volatile uint32_t *)0x4002C034 // DSPI PUSH TX FIFO Register In Slave Mode
-#define SPI0_POPR               *(volatile uint32_t *)0x4002C038 // DSPI POP RX FIFO Register
-#define SPI0_TXFR0              *(volatile uint32_t *)0x4002C03C // DSPI Transmit FIFO Registers
-#define SPI0_TXFR1              *(volatile uint32_t *)0x4002C040 // DSPI Transmit FIFO Registers
-#define SPI0_TXFR2              *(volatile uint32_t *)0x4002C044 // DSPI Transmit FIFO Registers
-#define SPI0_TXFR3              *(volatile uint32_t *)0x4002C048 // DSPI Transmit FIFO Registers
-#define SPI0_RXFR0              *(volatile uint32_t *)0x4002C07C // DSPI Receive FIFO Registers
-#define SPI0_RXFR1              *(volatile uint32_t *)0x4002C080 // DSPI Receive FIFO Registers
-#define SPI0_RXFR2              *(volatile uint32_t *)0x4002C084 // DSPI Receive FIFO Registers
-#define SPI0_RXFR3              *(volatile uint32_t *)0x4002C088 // DSPI Receive FIFO Registers
+#define SPI0_RSER		*(volatile uint32_t *)0x4002C030 // DSPI DMA/Interrupt Request Select and Enable Register
+#define SPI_RSER_TCF_RE			(uint32_t)0x80000000		// Transmission Complete Request Enable
+#define SPI_RSER_EOQF_RE		(uint32_t)0x10000000		// DSPI Finished Request Request Enable
+#define SPI_RSER_TFUF_RE		(uint32_t)0x08000000		// Transmit FIFO Underflow Request Enable
+#define SPI_RSER_TFFF_RE		(uint32_t)0x02000000		// Transmit FIFO Fill Request Enable
+#define SPI_RSER_TFFF_DIRS		(uint32_t)0x01000000		// Transmit FIFO FIll Dma or Interrupt Request Select
+#define SPI_RSER_RFOF_RE		(uint32_t)0x00080000		// Receive FIFO Overflow Request Enable
+#define SPI_RSER_RFDF_RE		(uint32_t)0x00020000		// Receive FIFO Drain Request Enable
+#define SPI_RSER_RFDF_DIRS		(uint32_t)0x00010000		// Receive FIFO Drain DMA or Interrupt Request Select
+#define SPI0_PUSHR		*(volatile uint32_t *)0x4002C034 // DSPI PUSH TX FIFO Register In Master Mode
+#define SPI_PUSHR_CONT			(uint32_t)0x80000000		// 
+#define SPI_PUSHR_CTAS(n)		(((n) & 7) << 28)		// 
+#define SPI_PUSHR_EOQ			(uint32_t)0x08000000		// 
+#define SPI_PUSHR_CTCNT			(uint32_t)0x04000000		// 
+#define SPI_PUSHR_PCS(n)		(((n) & 31) << 16)		//
+#define SPI0_PUSHR_SLAVE	*(volatile uint32_t *)0x4002C034 // DSPI PUSH TX FIFO Register In Slave Mode
+#define SPI0_POPR		*(volatile uint32_t *)0x4002C038 // DSPI POP RX FIFO Register
+#define SPI0_TXFR0		*(volatile uint32_t *)0x4002C03C // DSPI Transmit FIFO Registers
+#define SPI0_TXFR1		*(volatile uint32_t *)0x4002C040 // DSPI Transmit FIFO Registers
+#define SPI0_TXFR2		*(volatile uint32_t *)0x4002C044 // DSPI Transmit FIFO Registers
+#define SPI0_TXFR3		*(volatile uint32_t *)0x4002C048 // DSPI Transmit FIFO Registers
+#define SPI0_RXFR0		*(volatile uint32_t *)0x4002C07C // DSPI Receive FIFO Registers
+#define SPI0_RXFR1		*(volatile uint32_t *)0x4002C080 // DSPI Receive FIFO Registers
+#define SPI0_RXFR2		*(volatile uint32_t *)0x4002C084 // DSPI Receive FIFO Registers
+#define SPI0_RXFR3		*(volatile uint32_t *)0x4002C088 // DSPI Receive FIFO Registers
+typedef struct {
+	volatile uint32_t	MCR;	// 0
+	volatile uint32_t	unused1;// 4
+	volatile uint32_t	TCR;	// 8
+	volatile uint32_t	CTAR0;	// c
+	volatile uint32_t	CTAR1;	// 10
+	volatile uint32_t	CTAR2;	// 14
+	volatile uint32_t	CTAR3;	// 18
+	volatile uint32_t	CTAR4;	// 1c
+	volatile uint32_t	CTAR5;	// 20
+	volatile uint32_t	CTAR6;	// 24
+	volatile uint32_t	CTAR7;	// 28
+	volatile uint32_t	SR;	// 2c
+	volatile uint32_t	RSER;	// 30
+	volatile uint32_t	PUSHR;	// 34
+	volatile uint32_t	POPR;	// 38
+	volatile uint32_t	TXFR[16]; // 3c
+	volatile uint32_t	RXFR[16]; // 7c
+} SPI_t;
+#define SPI0		(*(SPI_t *)0x4002C000)
 
 // Chapter 44: Inter-Integrated Circuit (I2C)
 #define I2C0_A1                 *(volatile uint8_t  *)0x40066000 // I2C Address Register 1
@@ -1083,20 +1451,17 @@ extern "C" {
 #define UART_S1_NF			(uint8_t)0x04			// Noise Flag
 #define UART_S1_FE			(uint8_t)0x02			// Framing Error Flag
 #define UART_S1_PF			(uint8_t)0x01			// Parity Error Flag
-#define UART0_S2                *(volatile uint8_t  *)0x4006A005 // UART Status Register 2
-#define UART_S2_RXINV			(uint8_t)0x10			// RX Line Inversion Enable
-#define UART_S2_MSBF			(uint8_t)0x20			// MSBF Format Enabled
-#define UART0_C3                *(volatile uint8_t  *)0x4006A006 // UART Control Register 3
-#define UART_C3_TXINV			(uint8_t)0x10			// TX Line Inversion Enable
-#define UART0_D                 *(volatile uint8_t  *)0x4006A007 // UART Data Register
-#define UART0_MA1               *(volatile uint8_t  *)0x4006A008 // UART Match Address Registers 1
-#define UART0_MA2               *(volatile uint8_t  *)0x4006A009 // UART Match Address Registers 2
-#define UART0_C4                *(volatile uint8_t  *)0x4006A00A // UART Control Register 4
-#define UART0_C5                *(volatile uint8_t  *)0x4006A00B // UART Control Register 5
-#define UART0_ED                *(volatile uint8_t  *)0x4006A00C // UART Extended Data Register
-#define UART0_MODEM             *(volatile uint8_t  *)0x4006A00D // UART Modem Register
-#define UART0_IR                *(volatile uint8_t  *)0x4006A00E // UART Infrared Register
-#define UART0_PFIFO             *(volatile uint8_t  *)0x4006A010 // UART FIFO Parameters
+#define UART0_S2		*(volatile uint8_t  *)0x4006A005 // UART Status Register 2
+#define UART0_C3		*(volatile uint8_t  *)0x4006A006 // UART Control Register 3
+#define UART0_D			*(volatile uint8_t  *)0x4006A007 // UART Data Register
+#define UART0_MA1		*(volatile uint8_t  *)0x4006A008 // UART Match Address Registers 1
+#define UART0_MA2		*(volatile uint8_t  *)0x4006A009 // UART Match Address Registers 2
+#define UART0_C4		*(volatile uint8_t  *)0x4006A00A // UART Control Register 4
+#define UART0_C5		*(volatile uint8_t  *)0x4006A00B // UART Control Register 5
+#define UART0_ED		*(volatile uint8_t  *)0x4006A00C // UART Extended Data Register
+#define UART0_MODEM		*(volatile uint8_t  *)0x4006A00D // UART Modem Register
+#define UART0_IR		*(volatile uint8_t  *)0x4006A00E // UART Infrared Register
+#define UART0_PFIFO		*(volatile uint8_t  *)0x4006A010 // UART FIFO Parameters
 #define UART_PFIFO_TXFE			(uint8_t)0x80
 #define UART_PFIFO_RXFE			(uint8_t)0x08
 #define UART0_CFIFO             *(volatile uint8_t  *)0x4006A011 // UART FIFO Control Register
@@ -1239,26 +1604,111 @@ extern "C" {
 #define UART2_TIDT              *(volatile uint8_t  *)0x4006C031 // UART CEA709.1-B Transmit Indeterminate Time
 
 // Chapter 46: Synchronous Audio Interface (SAI)
-#define I2S0_TCSR               *(volatile uint32_t *)0x4002F000 // SAI Transmit Control Register
-#define I2S0_TCR1               *(volatile uint32_t *)0x4002F004 // SAI Transmit Configuration 1 Register
-#define I2S0_TCR2               *(volatile uint32_t *)0x4002F008 // SAI Transmit Configuration 2 Register
-#define I2S0_TCR3               *(volatile uint32_t *)0x4002F00C // SAI Transmit Configuration 3 Register
-#define I2S0_TCR4               *(volatile uint32_t *)0x4002F010 // SAI Transmit Configuration 4 Register
-#define I2S0_TCR5               *(volatile uint32_t *)0x4002F014 // SAI Transmit Configuration 5 Register
-#define I2S0_TDR0               *(volatile uint32_t *)0x4002F020 // SAI Transmit Data Register
-#define I2S0_TFR0               *(volatile uint32_t *)0x4002F040 // SAI Transmit FIFO Register
-#define I2S0_TMR                *(volatile uint32_t *)0x4002F060 // SAI Transmit Mask Register
-#define I2S0_RCSR               *(volatile uint32_t *)0x4002F080 // SAI Receive Control Register
-#define I2S0_RCR1               *(volatile uint32_t *)0x4002F084 // SAI Receive Configuration 1 Register
-#define I2S0_RCR2               *(volatile uint32_t *)0x4002F088 // SAI Receive Configuration 2 Register
-#define I2S0_RCR3               *(volatile uint32_t *)0x4002F08C // SAI Receive Configuration 3 Register
-#define I2S0_RCR4               *(volatile uint32_t *)0x4002F090 // SAI Receive Configuration 4 Register
-#define I2S0_RCR5               *(volatile uint32_t *)0x4002F094 // SAI Receive Configuration 5 Register
-#define I2S0_RDR0               *(volatile uint32_t *)0x4002F0A0 // SAI Receive Data Register
-#define I2S0_RFR0               *(volatile uint32_t *)0x4002F0C0 // SAI Receive FIFO Register
-#define I2S0_RMR                *(volatile uint32_t *)0x4002F0E0 // SAI Receive Mask Register
-#define I2S0_MCR                *(volatile uint32_t *)0x4002F100 // SAI MCLK Control Register
-#define I2S0_MDR                *(volatile uint32_t *)0x4002F104 // SAI MCLK Divide Register
+#define I2S0_TCSR		*(volatile uint32_t *)0x4002F000 // SAI Transmit Control Register
+#define I2S_TCSR_TE			(uint32_t)0x80000000	// Transmitter Enable
+#define I2S_TCSR_STOPE			(uint32_t)0x40000000	// Transmitter Enable in Stop mode
+#define I2S_TCSR_DBGE			(uint32_t)0x20000000	// Transmitter Enable in Debug mode
+#define I2S_TCSR_BCE			(uint32_t)0x10000000	// Bit Clock Enable
+#define I2S_TCSR_FR			(uint32_t)0x02000000	// FIFO Reset
+#define I2S_TCSR_SR			(uint32_t)0x01000000	// Software Reset
+#define I2S_TCSR_WSF			(uint32_t)0x00100000	// Word Start Flag
+#define I2S_TCSR_SEF			(uint32_t)0x00080000	// Sync Error Flag
+#define I2S_TCSR_FEF			(uint32_t)0x00040000	// FIFO Error Flag (underrun)
+#define I2S_TCSR_FWF			(uint32_t)0x00020000	// FIFO Warning Flag (empty)
+#define I2S_TCSR_FRF			(uint32_t)0x00010000	// FIFO Request Flag (Data Ready)
+#define I2S_TCSR_WSIE			(uint32_t)0x00001000	// Word Start Interrupt Enable
+#define I2S_TCSR_SEIE			(uint32_t)0x00000800	// Sync Error Interrupt Enable
+#define I2S_TCSR_FEIE			(uint32_t)0x00000400	// FIFO Error Interrupt Enable
+#define I2S_TCSR_FWIE			(uint32_t)0x00000200	// FIFO Warning Interrupt Enable
+#define I2S_TCSR_FRIE			(uint32_t)0x00000100	// FIFO Request Interrupt Enable
+#define I2S_TCSR_FWDE			(uint32_t)0x00000002	// FIFO Warning DMA Enable
+#define I2S_TCSR_FRDE			(uint32_t)0x00000001	// FIFO Request DMA Enable
+#define I2S0_TCR1		*(volatile uint32_t *)0x4002F004 // SAI Transmit Configuration 1 Register
+#define I2S_TCR1_TFW(n)			((uint32_t)n & 0x03)	      // Transmit FIFO watermark
+#define I2S0_TCR2		*(volatile uint32_t *)0x4002F008 // SAI Transmit Configuration 2 Register
+#define I2S_TCR2_DIV(n)			((uint32_t)n & 0xff)	      // Bit clock divide by (DIV+1)*2
+#define I2S_TCR2_BCD			((uint32_t)1<<24)	      // Bit clock direction
+#define I2S_TCR2_BCP			((uint32_t)1<<25)	      // Bit clock polarity
+#define I2S_TCR2_MSEL(n)		((uint32_t)(n & 3)<<26)	      // MCLK select, 0=bus clock, 1=I2S0_MCLK
+#define I2S_TCR2_BCI			((uint32_t)1<<28)	      // Bit clock input
+#define I2S_TCR2_BCS			((uint32_t)1<<29)	      // Bit clock swap
+#define I2S_TCR2_SYNC(n)		((uint32_t)(n & 3)<<30)	      // 0=async 1=sync with receiver
+#define I2S0_TCR3		*(volatile uint32_t *)0x4002F00C // SAI Transmit Configuration 3 Register
+#define I2S_TCR3_WDFL(n)		((uint32_t)n & 0x0f)	      // word flag configuration
+#define I2S_TCR3_TCE			((uint32_t)0x10000)	      // transmit channel enable
+#define I2S0_TCR4		*(volatile uint32_t *)0x4002F010 // SAI Transmit Configuration 4 Register
+#define I2S_TCR4_FSD			((uint32_t)1)		      // Frame Sync Direction
+#define I2S_TCR4_FSP			((uint32_t)2)		      // Frame Sync Polarity
+#define I2S_TCR4_FSE			((uint32_t)8)		      // Frame Sync Early
+#define I2S_TCR4_MF			((uint32_t)0x10)	      // MSB First
+#define I2S_TCR4_SYWD(n)		((uint32_t)(n & 0x1f)<<8)     // Sync Width
+#define I2S_TCR4_FRSZ(n)		((uint32_t)(n & 0x0f)<<16)    // Frame Size
+#define I2S0_TCR5		*(volatile uint32_t *)0x4002F014 // SAI Transmit Configuration 5 Register
+#define I2S_TCR5_FBT(n)			((uint32_t)(n & 0x1f)<<8)     // First Bit Shifted
+#define I2S_TCR5_W0W(n)			((uint32_t)(n & 0x1f)<<16)    // Word 0 Width
+#define I2S_TCR5_WNW(n)			((uint32_t)(n & 0x1f)<<24)    // Word N Width
+#define I2S0_TDR0		*(volatile uint32_t *)0x4002F020 // SAI Transmit Data Register
+#define I2S0_TFR0		*(volatile uint32_t *)0x4002F040 // SAI Transmit FIFO Register
+#define I2S_TFR_RFP(n)			((uint32_t)n & 7)	      // read FIFO pointer
+#define I2S_TFR_WFP(n)			((uint32_t)(n & 7)<<16)	      // write FIFO pointer
+#define I2S0_TMR		*(volatile uint32_t *)0x4002F060 // SAI Transmit Mask Register
+#define I2S_TMR_TWM(n)			((uint32_t)n & 0xFFFFFFFF)
+#define I2S0_RCSR		*(volatile uint32_t *)0x4002F080 // SAI Receive Control Register
+#define I2S_RCSR_RE			(uint32_t)0x80000000	// Receiver Enable
+#define I2S_RCSR_STOPE			(uint32_t)0x40000000	// Receiver Enable in Stop mode
+#define I2S_RCSR_DBGE			(uint32_t)0x20000000	// Receiver Enable in Debug mode
+#define I2S_RCSR_BCE			(uint32_t)0x10000000	// Bit Clock Enable
+#define I2S_RCSR_FR			(uint32_t)0x02000000	// FIFO Reset
+#define I2S_RCSR_SR			(uint32_t)0x01000000	// Software Reset
+#define I2S_RCSR_WSF			(uint32_t)0x00100000	// Word Start Flag
+#define I2S_RCSR_SEF			(uint32_t)0x00080000	// Sync Error Flag
+#define I2S_RCSR_FEF			(uint32_t)0x00040000	// FIFO Error Flag (underrun)
+#define I2S_RCSR_FWF			(uint32_t)0x00020000	// FIFO Warning Flag (empty)
+#define I2S_RCSR_FRF			(uint32_t)0x00010000	// FIFO Request Flag (Data Ready)
+#define I2S_RCSR_WSIE			(uint32_t)0x00001000	// Word Start Interrupt Enable
+#define I2S_RCSR_SEIE			(uint32_t)0x00000800	// Sync Error Interrupt Enable
+#define I2S_RCSR_FEIE			(uint32_t)0x00000400	// FIFO Error Interrupt Enable
+#define I2S_RCSR_FWIE			(uint32_t)0x00000200	// FIFO Warning Interrupt Enable
+#define I2S_RCSR_FRIE			(uint32_t)0x00000100	// FIFO Request Interrupt Enable
+#define I2S_RCSR_FWDE			(uint32_t)0x00000002	// FIFO Warning DMA Enable
+#define I2S_RCSR_FRDE			(uint32_t)0x00000001	// FIFO Request DMA Enable
+#define I2S0_RCR1		*(volatile uint32_t *)0x4002F084 // SAI Receive Configuration 1 Register
+#define I2S_RCR1_RFW(n)			((uint32_t)n & 0x03)	      // Receive FIFO watermark
+#define I2S0_RCR2		*(volatile uint32_t *)0x4002F088 // SAI Receive Configuration 2 Register
+#define I2S_RCR2_DIV(n)			((uint32_t)n & 0xff)	      // Bit clock divide by (DIV+1)*2
+#define I2S_RCR2_BCD			((uint32_t)1<<24)	      // Bit clock direction
+#define I2S_RCR2_BCP			((uint32_t)1<<25)	      // Bit clock polarity
+#define I2S_RCR2_MSEL(n)		((uint32_t)(n & 3)<<26)	      // MCLK select, 0=bus clock, 1=I2S0_MCLK
+#define I2S_RCR2_BCI			((uint32_t)1<<28)	      // Bit clock input
+#define I2S_RCR2_BCS			((uint32_t)1<<29)	      // Bit clock swap
+#define I2S_RCR2_SYNC(n)		((uint32_t)(n & 3)<<30)	      // 0=async 1=sync with receiver
+#define I2S0_RCR3		*(volatile uint32_t *)0x4002F08C // SAI Receive Configuration 3 Register
+#define I2S_RCR3_WDFL(n)		((uint32_t)n & 0x0f)	      // word flag configuration
+#define I2S_RCR3_RCE			((uint32_t)0x10000)	      // receive channel enable
+#define I2S0_RCR4		*(volatile uint32_t *)0x4002F090 // SAI Receive Configuration 4 Register
+#define I2S_RCR4_FSD			((uint32_t)1)		      // Frame Sync Direction
+#define I2S_RCR4_FSP			((uint32_t)2)		      // Frame Sync Polarity
+#define I2S_RCR4_FSE			((uint32_t)8)		      // Frame Sync Early
+#define I2S_RCR4_MF			((uint32_t)0x10)	      // MSB First
+#define I2S_RCR4_SYWD(n)		((uint32_t)(n & 0x1f)<<8)     // Sync Width
+#define I2S_RCR4_FRSZ(n)		((uint32_t)(n & 0x0f)<<16)    // Frame Size
+#define I2S0_RCR5		*(volatile uint32_t *)0x4002F094 // SAI Receive Configuration 5 Register
+#define I2S_RCR5_FBT(n)			((uint32_t)(n & 0x1f)<<8)     // First Bit Shifted
+#define I2S_RCR5_W0W(n)			((uint32_t)(n & 0x1f)<<16)    // Word 0 Width
+#define I2S_RCR5_WNW(n)			((uint32_t)(n & 0x1f)<<24)    // Word N Width
+#define I2S0_RDR0		*(volatile uint32_t *)0x4002F0A0 // SAI Receive Data Register
+#define I2S0_RFR0		*(volatile uint32_t *)0x4002F0C0 // SAI Receive FIFO Register
+#define I2S_RFR_RFP(n)			((uint32_t)n & 7)	      // read FIFO pointer
+#define I2S_RFR_WFP(n)			((uint32_t)(n & 7)<<16)	      // write FIFO pointer
+#define I2S0_RMR		*(volatile uint32_t *)0x4002F0E0 // SAI Receive Mask Register
+#define I2S_RMR_RWM(n)			((uint32_t)n & 0xFFFFFFFF)
+#define I2S0_MCR		*(volatile uint32_t *)0x4002F100 // SAI MCLK Control Register
+#define I2S_MCR_DUF			((uint32_t)1<<31)	      // Divider Update Flag
+#define I2S_MCR_MOE			((uint32_t)1<<30)	      // MCLK Output Enable
+#define I2S_MCR_MICS(n)			((uint32_t)(n & 3)<<24)	      // MCLK Input Clock Select
+#define I2S0_MDR		*(volatile uint32_t *)0x4002F104 // SAI MCLK Divide Register
+#define I2S_MDR_FRACT(n)		((uint32_t)(n & 0xff)<<12)    // MCLK Fraction
+#define I2S_MDR_DIVIDE(n)		((uint32_t)(n & 0xfff))	      // MCLK Divide
 
 // Chapter 47: General-Purpose Input/Output (GPIO)
 #define GPIOA_PDOR              *(volatile uint32_t *)0x400FF000 // Port Data Output Register
@@ -1339,7 +1789,13 @@ extern "C" {
 #define NVIC_ICER0		*(volatile uint32_t *)0xE000E180
 #define NVIC_ICER1		*(volatile uint32_t *)0xE000E184
 
-//#define NVIC_SET_PRIORITY(n, p)	
+// 0 = highest priority
+// Cortex-M4: 0,16,32,48,64,80,96,112,128,144,160,176,192,208,224,240
+// Cortex-M0: 0,64,128,192
+#define NVIC_SET_PRIORITY(irqnum, priority)  (*((volatile uint8_t *)0xE000E400 + (irqnum)) = (uint8_t)(priority))
+#define NVIC_GET_PRIORITY(irqnum) (*((uint8_t *)0xE000E400 + (irqnum)))
+
+#if defined(_mk20dx128_)
 #define IRQ_DMA_CH0		0
 #define IRQ_DMA_CH1		1
 #define IRQ_DMA_CH2		2
@@ -1385,11 +1841,88 @@ extern "C" {
 #define IRQ_PORTD		43
 #define IRQ_PORTE		44
 #define IRQ_SOFTWARE		45
+#define NVIC_NUM_INTERRUPTS	46
+
+#elif defined(_mk20dx256_)
+#define IRQ_DMA_CH0		0
+#define IRQ_DMA_CH1		1
+#define IRQ_DMA_CH2		2
+#define IRQ_DMA_CH3		3
+#define IRQ_DMA_CH4		4
+#define IRQ_DMA_CH5		5
+#define IRQ_DMA_CH6		6
+#define IRQ_DMA_CH7		7
+#define IRQ_DMA_CH8		8
+#define IRQ_DMA_CH9		9
+#define IRQ_DMA_CH10		10
+#define IRQ_DMA_CH11		11
+#define IRQ_DMA_CH12		12
+#define IRQ_DMA_CH13		13
+#define IRQ_DMA_CH14		14
+#define IRQ_DMA_CH15		15
+#define IRQ_DMA_ERROR		16
+#define IRQ_FTFL_COMPLETE	18
+#define IRQ_FTFL_COLLISION	19
+#define IRQ_LOW_VOLTAGE		20
+#define IRQ_LLWU		21
+#define IRQ_WDOG		22
+#define IRQ_I2C0		24
+#define IRQ_I2C1		25
+#define IRQ_SPI0		26
+#define IRQ_SPI1		27
+#define IRQ_CAN_MESSAGE		29
+#define IRQ_CAN_BUS_OFF		30
+#define IRQ_CAN_ERROR		31
+#define IRQ_CAN_TX_WARN		32
+#define IRQ_CAN_RX_WARN		33
+#define IRQ_CAN_WAKEUP		34
+#define IRQ_I2S0_TX		35
+#define IRQ_I2S0_RX		36
+#define IRQ_UART0_LON		44
+#define IRQ_UART0_STATUS	45
+#define IRQ_UART0_ERROR		46
+#define IRQ_UART1_STATUS	47
+#define IRQ_UART1_ERROR		48
+#define IRQ_UART2_STATUS	49
+#define IRQ_UART2_ERROR		50
+#define IRQ_ADC0		57
+#define IRQ_ADC1		58
+#define IRQ_CMP0		59
+#define IRQ_CMP1		60
+#define IRQ_CMP2		61
+#define IRQ_FTM0		62
+#define IRQ_FTM1		63
+#define IRQ_FTM2		64
+#define IRQ_CMT			65
+#define IRQ_RTC_ALARM		66
+#define IRQ_RTC_SECOND		67
+#define IRQ_PIT_CH0		68
+#define IRQ_PIT_CH1		69
+#define IRQ_PIT_CH2		70
+#define IRQ_PIT_CH3		71
+#define IRQ_PDB			72
+#define IRQ_USBOTG		73
+#define IRQ_USBDCD		74
+#define IRQ_DAC0		81
+#define IRQ_TSI			83
+#define IRQ_MCG			84
+#define IRQ_LPTMR		85
+#define IRQ_PORTA		87
+#define IRQ_PORTB		88
+#define IRQ_PORTC		89
+#define IRQ_PORTD		90
+#define IRQ_PORTE		91
+#define IRQ_SOFTWARE		94
+#define NVIC_NUM_INTERRUPTS	95
+
+#endif
+
+
+
 
 
 #define __disable_irq() asm volatile("CPSID i");
-#define __enable_irq()  asm volatile("CPSIE i");
-
+#define __enable_irq()	asm volatile("CPSIE i");
 
 // System Control Space (SCS), ARMv7 ref manual, B3.2, page 708
 #define SCB_CPUID		*(const    uint32_t *)0xE000ED00 // CPUID Base Register
@@ -1424,9 +1957,7 @@ extern "C" {
 #define ARM_DWT_CTRL_CYCCNTENA          (1 << 0)                // Enable cycle count
 #define ARM_DWT_CYCCNT          *(volatile uint32_t *)0xE0001004 // Cycle count register
 
-// Software Reset
-#define SOFTWARE_RESET()        SCB_AIRCR = 0x5FA0004
-
+extern int nvic_execution_priority(void);
 
 extern void nmi_isr(void);
 extern void hard_fault_isr(void);
@@ -1441,14 +1972,38 @@ extern void dma_ch0_isr(void);
 extern void dma_ch1_isr(void);
 extern void dma_ch2_isr(void);
 extern void dma_ch3_isr(void);
+extern void dma_ch4_isr(void);
+extern void dma_ch5_isr(void);
+extern void dma_ch6_isr(void);
+extern void dma_ch7_isr(void);
+extern void dma_ch8_isr(void);
+extern void dma_ch9_isr(void);
+extern void dma_ch10_isr(void);
+extern void dma_ch11_isr(void);
+extern void dma_ch12_isr(void);
+extern void dma_ch13_isr(void);
+extern void dma_ch14_isr(void);
+extern void dma_ch15_isr(void);
 extern void dma_error_isr(void);
+extern void mcm_isr(void);
 extern void flash_cmd_isr(void);
 extern void flash_error_isr(void);
 extern void low_voltage_isr(void);
 extern void wakeup_isr(void);
 extern void watchdog_isr(void);
 extern void i2c0_isr(void);
+extern void i2c1_isr(void);
+extern void i2c2_isr(void);
 extern void spi0_isr(void);
+extern void spi1_isr(void);
+extern void spi2_isr(void);
+extern void sdhc_isr(void);
+extern void can0_message_isr(void);
+extern void can0_bus_off_isr(void);
+extern void can0_error_isr(void);
+extern void can0_tx_warn_isr(void);
+extern void can0_rx_warn_isr(void);
+extern void can0_wakeup_isr(void);
 extern void i2s0_tx_isr(void);
 extern void i2s0_rx_isr(void);
 extern void uart0_lon_isr(void);
@@ -1458,11 +2013,21 @@ extern void uart1_status_isr(void);
 extern void uart1_error_isr(void);
 extern void uart2_status_isr(void);
 extern void uart2_error_isr(void);
+extern void uart3_status_isr(void);
+extern void uart3_error_isr(void);
+extern void uart4_status_isr(void);
+extern void uart4_error_isr(void);
+extern void uart5_status_isr(void);
+extern void uart5_error_isr(void);
 extern void adc0_isr(void);
+extern void adc1_isr(void);
 extern void cmp0_isr(void);
 extern void cmp1_isr(void);
+extern void cmp2_isr(void);
 extern void ftm0_isr(void);
 extern void ftm1_isr(void);
+extern void ftm2_isr(void);
+extern void ftm3_isr(void);
 extern void cmt_isr(void);
 extern void rtc_alarm_isr(void);
 extern void rtc_seconds_isr(void);
@@ -1473,6 +2038,8 @@ extern void pit3_isr(void);
 extern void pdb_isr(void);
 extern void usb_isr(void);
 extern void usb_charge_isr(void);
+extern void dac0_isr(void);
+extern void dac1_isr(void);
 extern void tsi0_isr(void);
 extern void mcg_isr(void);
 extern void lptmr_isr(void);
@@ -1483,10 +2050,7 @@ extern void portd_isr(void);
 extern void porte_isr(void);
 extern void software_isr(void);
 
+#define SOFTWARE_RESET()        SCB_AIRCR = 0x5FA0004
 
-
-
-#ifdef __cplusplus
-}
 #endif
-#endif
+
