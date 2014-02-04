@@ -137,7 +137,11 @@ void process_cli()
 		switch ( CLILineBuffer[prev_buf_pos] )
 		{
 		case 0x0D: // Enter
-			CLILineBufferCurrent--; // Remove the Enter
+			CLILineBuffer[CLILineBufferCurrent - 1] = ' '; // Replace Enter with a space (resolves a bug in args)
+
+			// Remove the space if there is no command
+			if ( CLILineBufferCurrent == 1 )
+				CLILineBufferCurrent--;
 
 			// Process the current line buffer
 			commandLookup_cli();
