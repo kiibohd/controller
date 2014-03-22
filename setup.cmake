@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Source Configurator |###
 #
-# Written by Jacob Alexander in 2011-2013 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2014 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -46,11 +46,10 @@ endif ()
 ###
 # Path Setup
 #
-set(  ScanModulePath   "Scan/${ScanModule}"  )
-set( MacroModulePath  "Macro/${MacroModule}" )
+set(  ScanModulePath    "Scan/${ScanModule}"   )
+set( MacroModulePath   "Macro/${MacroModule}"  )
 set( OutputModulePath "Output/${OutputModule}" )
-set(   USBModulePath    "USB/${USBModule}"   )
-set( DebugModulePath  "Debug/${DebugModule}" )
+set( DebugModulePath   "Debug/${DebugModule}"  )
 
 #| Top-level directory adjustment
 set( HEAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
@@ -138,7 +137,7 @@ message( STATUS "Detected Scan Module Source Files:" )
 message( "${SCAN_SRCS}" )
 message( STATUS "Detected Macro Module Source Files:" )
 message( "${MACRO_SRCS}" )
-message( STATUS "Detected USB Module Source Files:" )
+message( STATUS "Detected Output Module Source Files:" )
 message( "${OUTPUT_SRCS}" )
 message( STATUS "Detected Debug Module Source Files:" )
 message( "${DEBUG_SRCS}" )

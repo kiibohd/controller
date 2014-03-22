@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2013
+# Jacob Alexander 2011-2014
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -27,6 +27,7 @@ include( AddFileDependencies )
 #| "avr"       # Teensy++ 1.0
 #| "avr"       # Teensy++ 2.0
 #| "arm"       # Teensy   3.0
+#| "arm"       # Teensy   3.1
 set( COMPILER_FAMILY "arm" )
 #set( COMPILER_FAMILY "avr" )
 

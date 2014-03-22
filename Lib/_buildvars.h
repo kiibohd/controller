@@ -30,7 +30,7 @@
 
 // You can change these to give your code its own name.
 #define STR_MANUFACTURER	L"@MANUFACTURER@"
-#define STR_PRODUCT		L"ForceGauge - @OutputModule@ @DebugModule@"
+#define STR_PRODUCT		L"ForceGauge - @ScanModule@ @MacroModule@ @OutputModule@ @DebugModule@"
 #define STR_SERIAL              L"@GitLastCommitDate@"
 
 
@@ -41,13 +41,13 @@
 #define CLI_RepoOrigin          "@Git_Origin_URL@"
 #define CLI_CommitDate          "@Git_Date_INFO@"
 #define CLI_CommitAuthor        @Git_Commit_Author@
-#define CLI_Modules             "Output(@OutputModule@) Debug(@DebugModule@)"
+#define CLI_Modules             "Scan(@ScanModule@) Macro(@MacroModule@) Output(@OutputModule@) Debug(@DebugModule@)"
 #define CLI_BuildDate           "@Build_Date@"
 #define CLI_BuildOS             "@CMAKE_SYSTEM@"
 #define CLI_Arch                "@COMPILER_FAMILY@"
 #define CLI_Chip                "@MCU@"
 #define CLI_CPU                 "@CPU@"
-#define CLI_Device              "ForceGauge"
+#define CLI_Device              "Keyboard"
 
 
 // Mac OS-X and Linux automatically load the correct drivers.  On
