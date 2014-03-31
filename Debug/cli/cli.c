@@ -85,15 +85,14 @@ void process_cli()
 	uint8_t prev_buf_pos = CLILineBufferCurrent;
 
 	// Process each character while available
-	int result = 0;
 	while ( 1 )
 	{
 		// No more characters to process
-		result = usb_serial_getchar(); // Retrieve from serial module // TODO Make USB agnostic
-		if ( result == -1 )
+		if ( output_availablechar() == 0 )
 			break;
 
-		char cur_char = (char)result;
+		// Retrieve from output module
+		char cur_char = (char)output_getchar();
 
 		// Make sure buffer isn't full
 		if ( CLILineBufferCurrent >= CLILineBufferMaxSize )
@@ -405,7 +404,7 @@ void cliFunc_reset( char* args )
 void cliFunc_restart( char* args )
 {
 	// Trigger an overall software reset
-	SOFTWARE_RESET();
+	output_softReset();
 }
 
 void cliFunc_version( char* args )

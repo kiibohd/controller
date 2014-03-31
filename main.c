@@ -139,57 +139,43 @@ int main(void)
 {
 	// Configuring Pins
 	pinSetup();
-	init_errorLED();
-
-	// Setup Output Module
-	output_setup();
 
 	// Enable CLI
 	init_cli();
 
+	// Setup Output Module
+	output_setup();
+
 	// Setup ISR Timer for flagging a kepress send to USB
 	usbTimerSetup();
 
+	// Setup the scanning module
+	//scan_setup();
+
 	// Main Detection Loop
-	uint8_t ledTimer = F_CPU / 1000000; // Enable LED for a short time
 	while ( 1 )
 	{
-		// Setup the scanning module
-		scan_setup();
+		// Process CLI
+		process_cli();
 
-		while ( 1 )
-		{
-			// Acquire Key Indices
-			// Loop continuously until scan_loop returns 0
-			cli();
-			while ( scan_loop() );
-			sei();
+		// Acquire Key Indices
+		// Loop continuously until scan_loop returns 0
+		cli();
+		//while ( scan_loop() );
+		sei();
 
-			// Run Macros over Key Indices and convert to USB Keys
-			process_macros();
+		// Run Macros over Key Indices and convert to USB Keys
+		process_macros();
 
-			// Send keypresses over USB if the ISR has signalled that it's time
-			if ( !sendKeypresses )
-				continue;
+		// Send keypresses over USB if the ISR has signalled that it's time
+		if ( !sendKeypresses )
+			continue;
 
-			// Send USB Data
-			output_send();
+		// Send USB Data
+		output_send();
 
-			// Clear sendKeypresses Flag
-			sendKeypresses = 0;
-
-			// Indicate Error, if valid
-			errorLED( ledTimer );
-
-			if ( ledTimer > 0 )
-				ledTimer--;
-		}
-
-		// Loop should never get here (indicate error)
-		ledTimer = 255;
-
-		// HID Debug Error message
-		erro_print("Detection loop error, this is very bad...bug report!");
+		// Clear sendKeypresses Flag
+		sendKeypresses = 0;
 	}
 }
 

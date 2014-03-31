@@ -26,15 +26,11 @@
 
 // Compiler Includes
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-
 #include <avr/pgmspace.h>
-#include "avr/usb_keyboard_debug.h"
-
-#elif defined(_mk20dx128_) || defined(_mk20dx256_)
-
-#include "arm/usb_serial.h"
-
 #endif
+
+// Project Includes
+#include <output_com.h>
 
 
 
@@ -50,15 +46,15 @@
  */
 
 // Function Aliases
-#define dPrint(c)         usb_debug_putstr(c)
-#define dPrintStr(c)      usb_debug_putstr(c)
-#define dPrintStrs(...)   usb_debug_putstrs(__VA_ARGS__, "\0\0\0")      // Convenience Variadic Macro
-#define dPrintStrNL(c)    dPrintStrs       (c, NL)                      // Appends New Line Macro
-#define dPrintStrsNL(...) usb_debug_putstrs(__VA_ARGS__, NL, "\0\0\0")  // Appends New Line Macro
+#define dPrint(c)         output_putstr(c)
+#define dPrintStr(c)      output_putstr(c)
+#define dPrintStrs(...)   printstrs(__VA_ARGS__, "\0\0\0")      // Convenience Variadic Macro
+#define dPrintStrNL(c)    dPrintStrs       (c, NL)              // Appends New Line Macro
+#define dPrintStrsNL(...) printstrs(__VA_ARGS__, NL, "\0\0\0")  // Appends New Line Macro
 
 // Special Msg Constructs (Uses VT100 tags)
 #define dPrintMsg(colour_code_str,msg,...) \
-                          usb_debug_putstrs("\033[", colour_code_str, "m", msg, "\033[0m - ", __VA_ARGS__, NL, "\0\0\0")
+                          printstrs("\033[", colour_code_str, "m", msg, "\033[0m - ", __VA_ARGS__, NL, "\0\0\0")
 #define printMsgNL(colour_code_str,msg,str) \
                           print("\033[" colour_code_str "m" msg "\033[0m - " str NL)
 #define printMsg(colour_code_str,msg,str) \
@@ -89,8 +85,7 @@
 #define print(s) _print(PSTR(s))
 
 void _print(const char *s);
-void usb_debug_putstr( char* s );
-void usb_debug_putstrs( char* first, ... );
+void printstrs( char* first, ... );
 
 
 // Printing numbers

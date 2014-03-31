@@ -25,11 +25,13 @@
 #include <Lib/OutputLib.h>
 
 // Project Includes
+#include <cli.h>
+#include <print.h>
 #include <scan_loop.h>
 
 // USB Includes
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-#include "avr/usb_keyboard_debug.h"
+#include "avr/usb_keyboard_serial.h"
 #elif defined(_mk20dx128_) || defined(_mk20dx256_)
 #include "arm/usb_keyboard.h"
 #include "arm/usb_dev.h"
@@ -40,7 +42,30 @@
 
 
 
+// ----- Function Declarations -----
+
+void cliFunc_holdKey   ( char* args );
+void cliFunc_readLEDs  ( char* args );
+void cliFunc_releaseKey( char* args );
+void cliFunc_sendKey   ( char* args );
+void cliFunc_setLEDs   ( char* args );
+void cliFunc_setMod    ( char* args );
+
+
 // ----- Variables -----
+
+// Output Module command dictionary
+char*       outputCLIDictName = "USB Module Commands";
+CLIDictItem outputCLIDict[] = {
+	{ "holdKey",    "Hold a space separated list of USB codes. Ignores already pressed keys.", cliFunc_holdKey },
+	{ "readLEDs",   "Read LED byte. See setLEDs.", cliFunc_readLEDs },
+	{ "releaseKey", "Release a space separated list of USB codes. Ignores unpressed keys.", cliFunc_releaseKey },
+	{ "sendKey",    "Send a space separated list of USB codes. Press/Release.", cliFunc_sendKey },
+	{ "setLEDs",    "Set LED byte: 1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc.", cliFunc_setLEDs },
+	{ "setMod",     "Set the modfier byte: 1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI", cliFunc_setMod },
+	{ 0, 0, 0 } // Null entry for dictionary end
+};
+
 
 // which modifier keys are currently pressed
 // 1=left ctrl,    2=left shift,   4=left alt,    8=left gui
@@ -69,7 +94,6 @@ volatile uint8_t USBKeys_LEDs = 0;
          uint8_t USBKeys_Idle_Count = 0;
 
 
-
 // ----- Functions -----
 
 // USB Module Setup
@@ -81,9 +105,12 @@ inline void output_setup()
 	usb_init();
 	while ( !usb_configured() ) /* wait */ ;
 
+	// Register USB Output dictionary
+	registerDictionary_cli( outputCLIDict, outputCLIDictName );
+
 	// Wait an extra second for the PC's operating system to load drivers
 	// and do whatever it does to actually be ready for input
-	//_delay_ms(1000); // TODO
+	//_delay_ms(1000); // TODO (is this actually necessary?)
 }
 
 
@@ -110,8 +137,102 @@ inline void output_send(void)
 inline void output_firmwareReload()
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+	usb_debug_reload();
 #elif defined(_mk20dx128_) || defined(_mk20dx256_)
 	usb_device_reload();
 #endif
+}
+
+
+// USB Input buffer available
+inline unsigned int output_availablechar()
+{
+	return usb_serial_available();
+}
+
+
+// USB Get Character from input buffer
+inline int output_getchar()
+{
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+	// XXX Make sure to check output_availablechar() first! Information is lost with the cast (error codes)
+	return (int)usb_serial_getchar();
+#elif defined(_mk20dx128_) || defined(_mk20dx256_)
+	return usb_serial_getchar();
+#endif
+}
+
+
+// USB Send Character to output buffer
+inline int output_putchar( char c )
+{
+	return usb_serial_putchar( c );
+}
+
+
+// USB Send String to output buffer, null terminated
+inline int output_putstr( char* str )
+{
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+	uint16_t count = 0;
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+	uint32_t count = 0;
+#endif
+	// Count characters until NULL character, then send the amount counted
+	while ( str[count] != '\0' )
+		count++;
+
+	return usb_serial_write( str, count );
+}
+
+
+// Soft Chip Reset
+inline void output_softReset()
+{
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+	usb_debug_software_reset();
+#elif defined(_mk20dx128_) || defined(_mk20dx256_)
+	SOFTWARE_RESET();
+#endif
+}
+
+
+// ----- CLI Command Functions -----
+
+void cliFunc_holdKey( char* args )
+{
+	// TODO
+}
+
+
+void cliFunc_readLEDs( char* args )
+{
+	// TODO
+}
+
+
+void cliFunc_releaseKey( char* args )
+{
+	// TODO
+}
+
+
+void cliFunc_sendKey( char* args )
+{
+	// TODO Argument handling
+	USBKeys_Array[0] = 4; // KEY_A
+	USBKeys_Sent = 1;
+}
+
+
+void cliFunc_setLEDs( char* args )
+{
+	// TODO
+}
+
+
+void cliFunc_setMod( char* args )
+{
+	// TODO
 }
 

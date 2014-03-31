@@ -24,10 +24,12 @@ AVR Specific (Teensy 1.0/++,2.0/++) (try to use something recent, suggested vers
 - avr-libc     (1.8.0)
 
 
-ARM Specific (Teensy 3.0) (Sourcery CodeBench Lite for ARM EABI
+ARM Specific (Teensy 3.0/3.1) (Sourcery CodeBench Lite for ARM EABI
 (http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/)
 - arm-none-eabi
-- TODO?
+OR
+- arm-none-eabi-gcc
+- arm-none-eaby-binutils
 
 
 
@@ -42,6 +44,7 @@ The options are:
  - Teensy 2.0
  - Teensy 2.0++
  - Teensy 3.0
+ - Teensy 3.1
 
 Open up CMakeLists.txt in your favourite text editor.
 You are looking for:
@@ -57,13 +60,14 @@ You are looking for:
 	#| "avr"       # Teensy++ 1.0
 	#| "avr"       # Teensy++ 2.0
 	#| "arm"       # Teensy   3.0
+	#| "arm"       # Teensy   3.1
 
 	set( COMPILER_FAMILY "avr" )
 
 
 Just change the COMPILER_FAMILY variable to whatever you are trying to build for.
 
-NOTE: If you change this option, you will *may* to delete the build directory that is created in the Building sections below. 
+NOTE: If you change this option, you will *may* to delete the build directory that is created in the Building sections below.
 
 
 
@@ -102,6 +106,7 @@ You are looking for:
 	#| type "make clean" after changing this, so all files will be rebuilt
 	#|
 	#| "mk20dx128"        # Teensy   3.0
+	#| "mk20dx256"        # Teensy   3.1
 
 	set( CHIP "mk20dx128" )
 
@@ -123,7 +128,7 @@ The Kiibohd Controller is designed around a set of 4 types of modules that corre
 
 - Scan Module
 - Macro Module
-- USB Module
+- Output Module
 - Debug Module
 
 The Scan Module is where the most interesting stuff happens. These modules take in "keypress data".
@@ -135,11 +140,11 @@ Each Scan Module has it's own default keymap/modifier map. (TODO recommend keyma
 Some scan modules have very specialized hardware requirements, each module directory should have at least a link to the needed parts and/or schematics (TODO!).
 
 
-The Macro Module takes care of the mapping of the key press/release code into a USB scan code.
+The Macro Module takes care of the mapping of the key press/release code into an Output (USB) scan code.
 Any layering, macros, keypress intelligence/reaction is done here.
 
 
-The USB Module is the output module of the microcontroller. Currently USB is the only output protocol.
+The Output Module is the module dealing with output from the microcontroller. Currently USB is the only output protocol.
 Different USB output implementations are available, pjrc being the safest/least featureful one.
 Debug capabilities may depend on the module selected.
 
@@ -161,7 +166,7 @@ Look for:
 	#| All of the modules must be specified, as they generate the sources list of files to compile
 	#| Any modifications to this file will cause a complete rebuild of the project
 
-	#| Please look at the {Scan,Macro,USB,Debug}/module.txt for information on the modules and how to create new ones
+	#| Please look at the {Scan,Macro,Output,Debug}/module.txt for information on the modules and how to create new ones
 
 	##| Deals with acquiring the keypress information and turning it into a key index
 	set(  ScanModule  "avr-capsense" )
@@ -170,7 +175,7 @@ Look for:
 	set( MacroModule  "buffer"  )
 
 	##| Sends the current list of usb key codes through USB HID
-	set(   USBModule  "pjrc"   )
+	set(   OutputModule  "pjrc"   )
 
 	##| Debugging source to use, each module has it's own set of defines that it sets
 	set( DebugModule  "full"   )
@@ -206,8 +211,8 @@ Example output:
 	Scan/avr-capsense/scan_loop.c
 	-- Detected Macro Module Source Files:
 	Macro/buffer/macro.c
-	-- Detected USB Module Source Files:
-	USB/pjrc/usb_com.c;USB/pjrc/avr/usb_keyboard_debug.c
+	-- Detected Output Module Source Files:
+	Output/pjrc/usb_com.c;Output/pjrc/avr/usb_keyboard_debug.c
 	-- Detected Debug Module Source Files:
 	Debug/full/../led/led.c;Debug/full/../print/print.c
 	-- Configuring done
@@ -218,8 +223,8 @@ Example output:
 	[ 12%] Building C object CMakeFiles/kiibohd.elf.dir/main.c.o
 	[ 25%] Building C object CMakeFiles/kiibohd.elf.dir/Scan/avr-capsense/scan_loop.c.o
 	[ 37%] Building C object CMakeFiles/kiibohd.elf.dir/Macro/buffer/macro.c.o
-	[ 50%] Building C object CMakeFiles/kiibohd.elf.dir/USB/pjrc/usb_com.c.o
-	[ 62%] Building C object CMakeFiles/kiibohd.elf.dir/USB/pjrc/avr/usb_keyboard_debug.c.o
+	[ 50%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrc/usb_com.c.o
+	[ 62%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrc/avr/usb_keyboard_debug.c.o
 	[ 75%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/led/led.c.o
 	[ 87%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/print/print.c.o
 	Linking C executable kiibohd.elf

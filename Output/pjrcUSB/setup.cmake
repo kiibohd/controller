@@ -17,7 +17,7 @@ if ( ${COMPILER_FAMILY} MATCHES "avr" )
 
 	set( OUTPUT_SRCS
 		output_com.c
-		avr/usb_keyboard_debug.c
+		avr/usb_keyboard_serial.c
 	)
 
 #| ARM Compiler

@@ -28,8 +28,8 @@ include( AddFileDependencies )
 #| "avr"       # Teensy++ 2.0
 #| "arm"       # Teensy   3.0
 #| "arm"       # Teensy   3.1
-set( COMPILER_FAMILY "arm" )
-#set( COMPILER_FAMILY "avr" )
+#set( COMPILER_FAMILY "arm" )
+set( COMPILER_FAMILY "avr" )
 
 message( STATUS "Compiler Family:" )
 message( "${COMPILER_FAMILY}" )
@@ -138,9 +138,10 @@ add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 #
 
 #| After Changes Size Information
+#| TODO Do lookup on Flash and RAM sizes and do % used
 add_custom_target( SizeAfter ALL ${SIZE} --target=${FORMAT} ${TARGET_HEX} ${TARGET_ELF}
 	DEPENDS ${TARGET_ELF}
-	COMMENT "Size after generation:"
+	COMMENT "Size after generation\n\tFlash Usage: data (hex)\n\t  RAM Usage: data (elf)"
 )
 
 

@@ -24,7 +24,7 @@ set( SCAN_SRCS
 add_definitions( -I${HEAD_DIR}/Keymap )
 add_definitions(
 	-I${HEAD_DIR}/Scan/matrix
-)	
+)
 
 #| Keymap Settings
 add_definitions(

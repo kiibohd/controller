@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2013
+# Jacob Alexander 2011-2014
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -37,8 +37,8 @@ set( SIZE    "avr-size"    )
 #| "atmega32u4"       # Teensy   2.0
 #| "at90usb646"       # Teensy++ 1.0
 #| "at90usb1286"      # Teensy++ 2.0
-#set( MCU "atmega32u4" )
-set( MCU "at90usb1286" )
+set( MCU "atmega32u4" )
+#set( MCU "at90usb1286" )
 
 message( STATUS "MCU Selected:" )
 message( "${MCU}" )
@@ -49,6 +49,15 @@ message( "${MCU}" )
 set( COMPILER_SRCS
 	# XXX Not needed for avr-gcc
 )
+
+
+#| CPU Type
+#| This is only informational for AVR microcontrollers
+#| The field can be determined by the microcontroller chip, but currently only one CPU type is used atm
+set( CPU "megaAVR" )
+
+message( STATUS "CPU Selected:" )
+message( "${CPU}" )
 
 
 #| USB Defines
@@ -66,7 +75,7 @@ set( CSTANDARD "-std=gnu99" )
 
 #| Warning Options
 #|  -Wall...:     warning level
-set( WARN "-Wall -Wstrict-prototypes" )
+set( WARN "-Wall" )
 
 
 #| Tuning Options
@@ -75,7 +84,7 @@ set( WARN "-Wall -Wstrict-prototypes" )
 set( TUNING "-funsigned-char -funsigned-bitfields -ffunction-sections -fpack-struct -fshort-enums" )
 
 
-#| Optimization level, can be [0, 1, 2, 3, s]. 
+#| Optimization level, can be [0, 1, 2, 3, s].
 #|     0 = turn off optimization. s = optimize for size.
 #|     (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
 set( OPT "s" )

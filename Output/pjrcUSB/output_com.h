@@ -59,10 +59,17 @@ extern                       uint8_t USBKeys_Idle_Count;
 // ----- Functions -----
 
 void output_setup();
-
 void output_send();
 
 void output_firmwareReload();
+void output_softReset();
+
+// Relies on USB serial module
+unsigned int output_availablechar();
+
+int output_getchar();
+int output_putchar( char c );
+int output_putstr( char* str );
 
 #endif
 

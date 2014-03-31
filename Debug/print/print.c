@@ -31,24 +31,8 @@
 
 // ----- Functions -----
 
-// USB HID String Output
-void usb_debug_putstr( char* s )
-{
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
-	while ( *s != '\0' )
-		usb_debug_putchar( *s++ );
-#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
-	// Count characters until NULL character, then send the amount counted
-	uint32_t count = 0;
-	while ( s[count] != '\0' )
-		count++;
-
-	usb_serial_write( s, count );
-#endif
-}
-
 // Multiple string Output
-void usb_debug_putstrs( char* first, ... )
+void printstrs( char* first, ... )
 {
 	// Initialize the variadic function parameter list
 	va_list ap;
@@ -61,7 +45,7 @@ void usb_debug_putstrs( char* first, ... )
 	while ( !( cur[0] == '\0' && cur[1] == '\0' && cur[2] == '\0' ) )
 	{
 		// Print out the given string
-		usb_debug_putstr( cur );
+		output_putstr( cur );
 
 		// Get the next argument ready
 		cur = va_arg( ap, char* );
@@ -71,21 +55,17 @@ void usb_debug_putstrs( char* first, ... )
 }
 
 // Print a constant string
-void _print(const char *s)
+void _print( const char* s )
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+	// Pull string out of flash
 	char c;
-
-	// Acquire the character from flash, and print it, as long as it's not NULL
-	// Also, if a newline is found, print a carrige return as well
-	while ( ( c = pgm_read_byte(s++) ) != '\0' )
+	while ( ( c = pgm_read_byte( s++ ) ) != '\0' )
 	{
-		if ( c == '\n' )
-			usb_debug_putchar('\r');
-		usb_debug_putchar(c);
+		output_putchar( c );
 	}
 #elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
-	usb_debug_putstr( (char*)s );
+	output_putstr( (char*)s );
 #endif
 }
 
