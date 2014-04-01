@@ -44,10 +44,9 @@
 
 // ----- Function Declarations -----
 
-void cliFunc_holdKey   ( char* args );
 void cliFunc_readLEDs  ( char* args );
-void cliFunc_releaseKey( char* args );
-void cliFunc_sendKey   ( char* args );
+void cliFunc_sendKeys  ( char* args );
+void cliFunc_setKeys   ( char* args );
 void cliFunc_setLEDs   ( char* args );
 void cliFunc_setMod    ( char* args );
 
@@ -57,26 +56,28 @@ void cliFunc_setMod    ( char* args );
 // Output Module command dictionary
 char*       outputCLIDictName = "USB Module Commands";
 CLIDictItem outputCLIDict[] = {
-	{ "holdKey",    "Hold a space separated list of USB codes. Ignores already pressed keys.", cliFunc_holdKey },
-	{ "readLEDs",   "Read LED byte. See setLEDs.", cliFunc_readLEDs },
-	{ "releaseKey", "Release a space separated list of USB codes. Ignores unpressed keys.", cliFunc_releaseKey },
-	{ "sendKey",    "Send a space separated list of USB codes. Press/Release.", cliFunc_sendKey },
-	{ "setLEDs",    "Set LED byte: 1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc.", cliFunc_setLEDs },
-	{ "setMod",     "Set the modfier byte: 1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI", cliFunc_setMod },
+	{ "readLEDs", "Read LED byte. See \033[35msetLEDs\033[0m.", cliFunc_readLEDs },
+	{ "sendKeys", "Send the prepared list of USB codes and modifier byte.", cliFunc_sendKeys },
+	{ "setKeys",  "Prepare a space separated list of USB codes (decimal). Waits until \033[35msendKeys\033[0m.", cliFunc_setKeys },
+	{ "setLEDs",  "Set LED byte: 1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc.", cliFunc_setLEDs },
+	{ "setMod",   "Set the modfier byte: 1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI", cliFunc_setMod },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
 
-// which modifier keys are currently pressed
+// Which modifier keys are currently pressed
 // 1=left ctrl,    2=left shift,   4=left alt,    8=left gui
 // 16=right ctrl, 32=right shift, 64=right alt, 128=right gui
-         uint8_t USBKeys_Modifiers = 0;
+         uint8_t USBKeys_Modifiers    = 0;
+         uint8_t USBKeys_ModifiersCLI = 0; // Separate CLI send buffer
 
-// which keys are currently pressed, up to 6 keys may be down at once
-         uint8_t USBKeys_Array[USB_MAX_KEY_SEND] = {0,0,0,0,0,0};
+// Currently pressed keys, max is defined by USB_MAX_KEY_SEND
+         uint8_t USBKeys_Array   [USB_MAX_KEY_SEND];
+         uint8_t USBKeys_ArrayCLI[USB_MAX_KEY_SEND]; // Separate CLI send buffer
 
 // The number of keys sent to the usb in the array
-         uint8_t USBKeys_Sent;
+         uint8_t USBKeys_Sent    = 0;
+         uint8_t USBKeys_SentCLI = 0;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t USBKeys_LEDs = 0;
@@ -199,40 +200,70 @@ inline void output_softReset()
 
 // ----- CLI Command Functions -----
 
-void cliFunc_holdKey( char* args )
-{
-	// TODO
-}
-
-
 void cliFunc_readLEDs( char* args )
 {
-	// TODO
+	print( NL );
+	info_msg("LED State: ");
+	printInt8( USBKeys_LEDs );
 }
 
 
-void cliFunc_releaseKey( char* args )
+void cliFunc_sendKeys( char* args )
 {
-	// TODO
+	// Copy USBKeys_ArrayCLI to USBKeys_Array
+	for ( uint8_t key = 0; key < USBKeys_SentCLI; ++key )
+	{
+		USBKeys_Array[key] = USBKeys_ArrayCLI[key];
+	}
+	USBKeys_Sent = USBKeys_SentCLI;
+
+	// Set modifier byte
+	USBKeys_Modifiers = USBKeys_ModifiersCLI;
 }
 
 
-void cliFunc_sendKey( char* args )
+void cliFunc_setKeys( char* args )
 {
-	// TODO Argument handling
-	USBKeys_Array[0] = 4; // KEY_A
-	USBKeys_Sent = 1;
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// Parse up to USBKeys_MaxSize args (whichever is least)
+	for ( USBKeys_SentCLI = 0; USBKeys_SentCLI < USBKeys_MaxSize; ++USBKeys_SentCLI )
+	{
+		curArgs = arg2Ptr;
+		argumentIsolation_cli( curArgs, &arg1Ptr, &arg2Ptr );
+
+		// Stop processing args if no more are found
+		if ( *arg1Ptr == '\0' )
+			break;
+
+		// Add the USB code to be sent
+		USBKeys_ArrayCLI[USBKeys_SentCLI] = decToInt( arg1Ptr );
+	}
 }
 
 
 void cliFunc_setLEDs( char* args )
 {
-	// TODO
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	argumentIsolation_cli( args, &arg1Ptr, &arg2Ptr );
+
+	USBKeys_LEDs = decToInt( arg1Ptr );
 }
 
 
 void cliFunc_setMod( char* args )
 {
-	// TODO
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	argumentIsolation_cli( args, &arg1Ptr, &arg2Ptr );
+
+	USBKeys_ModifiersCLI = decToInt( arg1Ptr );
 }
 
