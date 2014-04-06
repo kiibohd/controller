@@ -46,8 +46,8 @@
  */
 
 // Function Aliases
-#define dPrint(c)         output_putstr(c)
-#define dPrintStr(c)      output_putstr(c)
+#define dPrint(c)         Output_putstr(c)
+#define dPrintStr(c)      Output_putstr(c)
 #define dPrintStrs(...)   printstrs(__VA_ARGS__, "\0\0\0")      // Convenience Variadic Macro
 #define dPrintStrNL(c)    dPrintStrs       (c, NL)              // Appends New Line Macro
 #define dPrintStrsNL(...) printstrs(__VA_ARGS__, NL, "\0\0\0")  // Appends New Line Macro

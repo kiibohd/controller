@@ -141,22 +141,21 @@ int main(void)
 	pinSetup();
 
 	// Enable CLI
-	init_cli();
+	CLI_init();
 
-	// Setup Output Module
-	output_setup();
+	// Setup Modules
+	Output_setup();
+	Macro_setup();
+	//scan_setup();
 
 	// Setup ISR Timer for flagging a kepress send to USB
 	usbTimerSetup();
-
-	// Setup the scanning module
-	//scan_setup();
 
 	// Main Detection Loop
 	while ( 1 )
 	{
 		// Process CLI
-		process_cli();
+		CLI_process();
 
 		// Acquire Key Indices
 		// Loop continuously until scan_loop returns 0
@@ -165,14 +164,14 @@ int main(void)
 		sei();
 
 		// Run Macros over Key Indices and convert to USB Keys
-		process_macros();
+		Macro_process();
 
 		// Send keypresses over USB if the ISR has signalled that it's time
 		if ( !sendKeypresses )
 			continue;
 
 		// Send USB Data
-		output_send();
+		Output_send();
 
 		// Clear sendKeypresses Flag
 		sendKeypresses = 0;

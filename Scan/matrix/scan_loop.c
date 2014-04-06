@@ -26,6 +26,7 @@
 
 // Project Includes
 #include <led.h>
+#include <macro.h>
 #include <print.h>
 
 // Local Includes
@@ -47,11 +48,6 @@
 
 // ----- Macros -----
 
-// Make sure we haven't overflowed the buffer
-#define bufferAdd(byte) \
-		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
-			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
-
 
 
 // ----- Variables -----
@@ -63,7 +59,7 @@ volatile uint8_t KeyIndex_Add_InputSignal; // Used to pass the (click/input valu
 
 
 // Keeps track of the number of scans, so we only do a debounce assess when it would be valid (as it throws away data)
-uint8_t scan_count = 0;
+uint8_t Scan_count = 0;
 
 // This is where the matrix scan data is held, as well as debouncing is evaluated to, which (depending on the read value) is handled
 //  by the macro module
@@ -74,24 +70,24 @@ uint8_t KeyIndex_Array[KEYBOARD_KEYS + 1];
 // ----- Functions -----
 
 // Setup
-inline void scan_setup()
+inline void Scan_setup()
 {
 	matrix_pinSetup( (uint8_t*)matrix_pinout, scanMode );
 }
 
 // Main Detection Loop
-inline uint8_t scan_loop()
+inline uint8_t Scan_loop()
 {
 	// Check count to see if the sample threshold may have been reached, otherwise collect more data
-	if ( scan_count < MAX_SAMPLES )
+	if ( Scan_count < MAX_SAMPLES )
 	{
 		matrix_scan( (uint8_t*)matrix_pinout, KeyIndex_Array );
 
 		// scanDual requires 2 passes, and thus needs more memory per matrix_scan pass
 #if scanMode == scanDual
-		scan_count += 2;
+		Scan_count += 2;
 #else
-		scan_count++;
+		Scan_count++;
 #endif
 
 		// Signal Main Detection Loop to continue scanning
@@ -99,7 +95,7 @@ inline uint8_t scan_loop()
 	}
 
 	// Reset Sample Counter
-	scan_count = 0;
+	Scan_count = 0;
 
 	// Assess debouncing sample table
 	// Loop over all of the sampled keys of the given array
@@ -108,9 +104,8 @@ inline uint8_t scan_loop()
 	for ( uint8_t key = 1; key < KeyIndex_Size + 1; key++ ) if ( ( KeyIndex_Array[key] & ~(1 << 7) ) > SAMPLE_THRESHOLD )
 	{
 		// Debug output (keypress detected)
-		char tmpStr[6];
-		hexToStr( key, tmpStr );
-		dPrintStrs( tmpStr, " " );
+		printHex( key );
+		print(" ");
 
 		// Add the key to the buffer, if it isn't already in the current Key Buffer
 		for ( uint8_t c = 0; c < KeyIndex_BufferUsed + 1; c++ )
@@ -118,7 +113,7 @@ inline uint8_t scan_loop()
 			// Key isn't in the buffer yet
 			if ( c == KeyIndex_BufferUsed )
 			{
-				bufferAdd( key );
+				Macro_bufferAdd( key );
 				break;
 			}
 
@@ -160,23 +155,16 @@ inline uint8_t scan_loop()
 }
 
 
-// Signal that the keys have been properly sent over USB
-inline void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+// Signal that the USB keycodes have been properly sent through the Output Module
+inline void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 	return;
 }
 
 
-// Signal KeyIndex_Buffer that it has been fully scanned using the macro module
-inline void scan_finishedWithBuffer( uint8_t sentKeys )
+// Signal KeyIndex_Buffer that it has been fully processed using the macro module
+inline void Scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	return;
-}
-
-// Send data to keyboard
-// Not used in this module
-uint8_t scan_sendData( uint8_t dataPayload )
-{
-	return 0;
 }
 

@@ -98,7 +98,7 @@ volatile uint8_t USBKeys_LEDs = 0;
 // ----- Functions -----
 
 // USB Module Setup
-inline void output_setup()
+inline void Output_setup()
 {
 	// Initialize the USB, and then wait for the host to set configuration.
 	// If the Teensy is powered without a PC connected to the USB port,
@@ -106,8 +106,8 @@ inline void output_setup()
 	usb_init();
 	while ( !usb_configured() ) /* wait */ ;
 
-	// Register USB Output dictionary
-	registerDictionary_cli( outputCLIDict, outputCLIDictName );
+	// Register USB Output CLI dictionary
+	CLI_registerDictionary( outputCLIDict, outputCLIDictName );
 
 	// Wait an extra second for the PC's operating system to load drivers
 	// and do whatever it does to actually be ready for input
@@ -116,7 +116,7 @@ inline void output_setup()
 
 
 // USB Data Send
-inline void output_send(void)
+inline void Output_send(void)
 {
 		// TODO undo potentially old keys
 		for ( uint8_t c = USBKeys_Sent; c < USBKeys_MaxSize; c++ )
@@ -130,12 +130,12 @@ inline void output_send(void)
 		USBKeys_Sent      = 0;
 
 		// Signal Scan Module we are finishedA
-		scan_finishedWithUSBBuffer( USBKeys_Sent <= USBKeys_MaxSize ? USBKeys_Sent : USBKeys_MaxSize );
+		Scan_finishedWithUSBBuffer( USBKeys_Sent <= USBKeys_MaxSize ? USBKeys_Sent : USBKeys_MaxSize );
 }
 
 
 // Sets the device into firmware reload mode
-inline void output_firmwareReload()
+inline void Output_firmwareReload()
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 	usb_debug_reload();
@@ -146,14 +146,14 @@ inline void output_firmwareReload()
 
 
 // USB Input buffer available
-inline unsigned int output_availablechar()
+inline unsigned int Output_availablechar()
 {
 	return usb_serial_available();
 }
 
 
 // USB Get Character from input buffer
-inline int output_getchar()
+inline int Output_getchar()
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 	// XXX Make sure to check output_availablechar() first! Information is lost with the cast (error codes)
@@ -165,14 +165,14 @@ inline int output_getchar()
 
 
 // USB Send Character to output buffer
-inline int output_putchar( char c )
+inline int Output_putchar( char c )
 {
 	return usb_serial_putchar( c );
 }
 
 
 // USB Send String to output buffer, null terminated
-inline int output_putstr( char* str )
+inline int Output_putstr( char* str )
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	uint16_t count = 0;
@@ -188,7 +188,7 @@ inline int output_putstr( char* str )
 
 
 // Soft Chip Reset
-inline void output_softReset()
+inline void Output_softReset()
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 	usb_debug_software_reset();
@@ -232,7 +232,7 @@ void cliFunc_setKeys( char* args )
 	for ( USBKeys_SentCLI = 0; USBKeys_SentCLI < USBKeys_MaxSize; ++USBKeys_SentCLI )
 	{
 		curArgs = arg2Ptr;
-		argumentIsolation_cli( curArgs, &arg1Ptr, &arg2Ptr );
+		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
 
 		// Stop processing args if no more are found
 		if ( *arg1Ptr == '\0' )
@@ -250,7 +250,7 @@ void cliFunc_setLEDs( char* args )
 	//  NOTE: Only first argument is used
 	char* arg1Ptr;
 	char* arg2Ptr;
-	argumentIsolation_cli( args, &arg1Ptr, &arg2Ptr );
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
 	USBKeys_LEDs = decToInt( arg1Ptr );
 }
@@ -262,7 +262,7 @@ void cliFunc_setMod( char* args )
 	//  NOTE: Only first argument is used
 	char* arg1Ptr;
 	char* arg2Ptr;
-	argumentIsolation_cli( args, &arg1Ptr, &arg2Ptr );
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
 	USBKeys_ModifiersCLI = decToInt( arg1Ptr );
 }

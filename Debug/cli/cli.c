@@ -58,7 +58,7 @@ inline void prompt()
 }
 
 // Initialize the CLI
-inline void init_cli()
+inline void CLI_init()
 {
 	// Reset the Line Buffer
 	CLILineBufferCurrent = 0;
@@ -68,7 +68,7 @@ inline void init_cli()
 
 	// Register first dictionary
 	CLIDictionariesUsed = 0;
-	registerDictionary_cli( basicCLIDict, basicCLIDictName );
+	CLI_registerDictionary( basicCLIDict, basicCLIDictName );
 
 	// Initialize main LED
 	init_errorLED();
@@ -79,7 +79,7 @@ inline void init_cli()
 }
 
 // Query the serial input buffer for any new characters
-void process_cli()
+void CLI_process()
 {
 	// Current buffer position
 	uint8_t prev_buf_pos = CLILineBufferCurrent;
@@ -88,11 +88,11 @@ void process_cli()
 	while ( 1 )
 	{
 		// No more characters to process
-		if ( output_availablechar() == 0 )
+		if ( Output_availablechar() == 0 )
 			break;
 
 		// Retrieve from output module
-		char cur_char = (char)output_getchar();
+		char cur_char = (char)Output_getchar();
 
 		// Make sure buffer isn't full
 		if ( CLILineBufferCurrent >= CLILineBufferMaxSize )
@@ -143,7 +143,7 @@ void process_cli()
 				CLILineBufferCurrent--;
 
 			// Process the current line buffer
-			commandLookup_cli();
+			CLI_commandLookup();
 
 			// Reset the buffer
 			CLILineBufferCurrent = 0;
@@ -158,7 +158,7 @@ void process_cli()
 
 		case 0x09: // Tab
 			// Tab completion for the current command
-			tabCompletion_cli();
+			CLI_tabCompletion();
 
 			CLILineBufferCurrent--; // Remove the Tab
 
@@ -207,7 +207,7 @@ void process_cli()
 //  One to the first non-space character
 //  The second to the next argument (first NULL if there isn't an argument). delimited by a space
 //  Places a NULL at the first space after the first argument
-inline void argumentIsolation_cli( char* string, char** first, char** second )
+inline void CLI_argumentIsolation( char* string, char** first, char** second )
 {
 	// Mark out the first argument
 	// This is done by finding the first space after a list of non-spaces and setting it NULL
@@ -228,7 +228,7 @@ inline void argumentIsolation_cli( char* string, char** first, char** second )
 }
 
 // Scans the CLILineBuffer for any valid commands
-void commandLookup_cli()
+void CLI_commandLookup()
 {
 	// Ignore command if buffer is 0 length
 	if ( CLILineBufferCurrent == 0 )
@@ -241,7 +241,7 @@ void commandLookup_cli()
 	// Places a NULL at the first space after the command
 	char* cmdPtr;
 	char* argPtr;
-	argumentIsolation_cli( CLILineBuffer, &cmdPtr, &argPtr );
+	CLI_argumentIsolation( CLILineBuffer, &cmdPtr, &argPtr );
 
 	// Scan array of dictionaries for a valid command match
 	for ( uint8_t dict = 0; dict < CLIDictionariesUsed; dict++ )
@@ -267,7 +267,7 @@ void commandLookup_cli()
 }
 
 // Registers a command dictionary with the CLI
-inline void registerDictionary_cli( CLIDictItem *cmdDict, char* dictName )
+inline void CLI_registerDictionary( CLIDictItem *cmdDict, char* dictName )
 {
 	// Make sure this max limit of dictionaries hasn't been reached
 	if ( CLIDictionariesUsed >= CLIMaxDictionaries )
@@ -281,7 +281,7 @@ inline void registerDictionary_cli( CLIDictItem *cmdDict, char* dictName )
 	CLIDict[CLIDictionariesUsed++] = cmdDict;
 }
 
-inline void tabCompletion_cli()
+inline void CLI_tabCompletion()
 {
 	// Ignore command if buffer is 0 length
 	if ( CLILineBufferCurrent == 0 )
@@ -294,7 +294,7 @@ inline void tabCompletion_cli()
 	// Places a NULL at the first space after the command
 	char* cmdPtr;
 	char* argPtr;
-	argumentIsolation_cli( CLILineBuffer, &cmdPtr, &argPtr );
+	CLI_argumentIsolation( CLILineBuffer, &cmdPtr, &argPtr );
 
 	// Tab match pointer
 	char* tabMatch = 0;
@@ -393,7 +393,7 @@ void cliFunc_led( char* args )
 void cliFunc_reload( char* args )
 {
 	// Request to output module to be set into firmware reload mode
-	output_firmwareReload();
+	Output_firmwareReload();
 }
 
 void cliFunc_reset( char* args )
@@ -404,7 +404,7 @@ void cliFunc_reset( char* args )
 void cliFunc_restart( char* args )
 {
 	// Trigger an overall software reset
-	output_softReset();
+	Output_softReset();
 }
 
 void cliFunc_version( char* args )

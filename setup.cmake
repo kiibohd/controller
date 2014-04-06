@@ -20,18 +20,34 @@
 #| Please look at the {Scan,Macro,USB,Debug}/module.txt for information on the modules and how to create new ones
 
 ##| Deals with acquiring the keypress information and turning it into a key index
-set(  ScanModule  "SKM67001" )
+set(   ScanModule "SKM67001" )
 
-##| Uses the key index and potentially applies special conditions to it, mapping it to a usb key code
-set( MacroModule  "buffer"  )
+##| Provides the mapping functions for DefaultMap and handles any macro processing before sending to the OutputModule
+set(  MacroModule "PartialMap" )
 
 ##| Sends the current list of usb key codes through USB HID
-set( OutputModule  "pjrcUSB" )
+set( OutputModule "pjrcUSB" )
 
 ##| Debugging source to use, each module has it's own set of defines that it sets
-set( DebugModule   "full"    )
+set(  DebugModule "full" )
 
 
+
+###
+# Keymap Configuration
+#
+
+##| If there are multiple DefaultMaps, it is defined here. If, the specified DefaultMap is not found, defaultMap.h is used.
+set(   DefaultMap "kishsaver" )
+
+##| PartialMap combined keymap layering. The first keymap has the "least" precedence.
+set(  CombinedMap colemak capslock2ctrl )
+
+##| ParitalMaps available on top of the CombinedMap. If there are input conflicts, the last PartialMap takes precedence.
+set(  PartialMaps hhkbnav kbdctrl )
+
+##| MacroSets define extra capabilities that are not provided by the Scan or Output modules. Last MacroSet takes precedence.
+set(    MacroSets retype )
 
 
 ###
@@ -130,6 +146,11 @@ PathPrepend( OUTPUT_SRCS  ${OutputModulePath} ${OUTPUT_SRCS} )
 #| Debugging Module
 include    (           "${DebugModulePath}/setup.cmake"  )
 PathPrepend( DEBUG_SRCS ${DebugModulePath} ${DEBUG_SRCS} )
+
+
+#| Default Map
+# TODO Add support for different defaultMaps
+configure_file( "${ScanModulePath}/defaultMap.h" defaultMap.h )
 
 
 #| Print list of all module sources

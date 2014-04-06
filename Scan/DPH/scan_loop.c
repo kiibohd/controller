@@ -114,11 +114,6 @@
 
 // ----- Macros -----
 
-// Make sure we haven't overflowed the buffer
-#define bufferAdd(byte) \
-		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
-			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
-
 // Select mux
 #define SET_FULL_MUX(X) ((ADMUX) = (((ADMUX) & ~(FULL_MUX_MASK)) | ((X) & (FULL_MUX_MASK))))
 
@@ -198,7 +193,7 @@ uint8_t testColumn( uint8_t strobe );
 // ----- Functions -----
 
 // Initial setup for cap sense controller
-inline void scan_setup()
+inline void Scan_setup()
 {
 	// TODO dfj code...needs cleanup + commenting...
 	setup_ADC();
@@ -282,7 +277,7 @@ inline void scan_setup()
 	// TODO
 #endif
 
-	// TODO all this code should probably be in scan_resetKeyboard
+	// TODO all this code should probably be in Scan_resetKeyboard
 	for ( int i = 0; i < total_strobes; ++i)
 	{
 		cur_keymap[i] = 0;
@@ -309,7 +304,7 @@ inline void scan_setup()
 
 // Main Detection Loop
 // This is where the important stuff happens
-inline uint8_t scan_loop()
+inline uint8_t Scan_loop()
 {
 	capsense_scan();
 
@@ -342,43 +337,15 @@ inline uint8_t scan_loop()
 
 	// Return non-zero if macro and USB processing should be delayed
 	// Macro processing will always run if returning 0
-	// USB processing only happens once the USB send timer expires, if it has not, scan_loop will be called
+	// USB processing only happens once the USB send timer expires, if it has not, Scan_loop will be called
 	//  after the macro processing has been completed
 	return 0;
 }
 
 
-// Reset Keyboard
-void scan_resetKeyboard( void )
-{
-	// Empty buffer, now that keyboard has been reset
-	KeyIndex_BufferUsed = 0;
-}
-
-
-// Send data to keyboard
-// NOTE: Only used for converters, since the scan module shouldn't handle sending data in a controller
-uint8_t scan_sendData( uint8_t dataPayload )
-{
-	return 0;
-}
-
-
-// Reset/Hold keyboard
-// NOTE: Only used for converters, not needed for full controllers
-void scan_lockKeyboard( void )
-{
-}
-
-// NOTE: Only used for converters, not needed for full controllers
-void scan_unlockKeyboard( void )
-{
-}
-
-
 // Signal KeyIndex_Buffer that it has been properly read
 // NOTE: Only really required for implementing "tricks" in converters for odd protocols
-void scan_finishedWithBuffer( uint8_t sentKeys )
+void Scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	// Convenient place to clear the KeyIndex_Buffer
 	KeyIndex_BufferUsed = 0;
@@ -388,7 +355,7 @@ void scan_finishedWithBuffer( uint8_t sentKeys )
 
 // Signal KeyIndex_Buffer that it has been properly read and sent out by the USB module
 // NOTE: Only really required for implementing "tricks" in converters for odd protocols
-void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 	return;
 }
@@ -864,7 +831,7 @@ uint8_t testColumn( uint8_t strobe )
 					// Only add the key to the buffer once
 					// NOTE: Buffer can easily handle multiple adds, just more efficient
 					//        and nicer debug messages :P
-					//bufferAdd( key );
+					//Macro_bufferAdd( key );
 				}
 
 				keys_debounce[key]++;

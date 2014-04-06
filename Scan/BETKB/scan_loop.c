@@ -1,15 +1,15 @@
-/* Copyright (C) 2012 by Jacob Alexander
- * 
+/* Copyright (C) 2012,2014 by Jacob Alexander
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -42,11 +42,6 @@
 
 
 // ----- Macros -----
-
-// Make sure we haven't overflowed the buffer
-#define bufferAdd(byte) \
-		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
-			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
 
 
 
@@ -176,7 +171,7 @@ void processKeyValue( uint8_t keyValue )
 			// Key isn't in the buffer yet
 			if ( c == KeyIndex_BufferUsed )
 			{
-				bufferAdd( keyValue );
+				Macro_bufferAdd( keyValue );
 
 				// Only send data if enabled
 				if ( KeyIndex_Add_InputSignal )
@@ -222,7 +217,7 @@ void removeKeyValue( uint8_t keyValue )
 	}
 }
 
-// Send data 
+// Send data
 uint8_t scan_sendData( uint8_t dataPayload )
 {
 	// Enable the USART Transmitter
@@ -245,12 +240,12 @@ uint8_t scan_sendData( uint8_t dataPayload )
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-void scan_finishedWithBuffer( uint8_t sentKeys )
+void Scan_finishedWithBuffer( uint8_t sentKeys )
 {
 }
 
 // Signal that the keys have been properly sent over USB
-void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 }
 

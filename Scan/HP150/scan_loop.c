@@ -1,15 +1,15 @@
-/* Copyright (C) 2012 by Jacob Alexander
- * 
+/* Copyright (C) 2012,2014 by Jacob Alexander
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -51,11 +51,6 @@
 
 
 // ----- Macros -----
-
-// Make sure we haven't overflowed the buffer
-#define bufferAdd(byte) \
-		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
-			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
 
 
 
@@ -110,7 +105,7 @@ ISR( TIMER1_COMPA_vect )
 // ----- Functions -----
 
 // Setup
-inline void scan_setup()
+inline void Scan_setup()
 {
 	// Setup Timer Pulse (16 bit)
 
@@ -145,7 +140,7 @@ inline void scan_setup()
 // We are looking for a start of packet
 // If detected, all subsequent bits are then logged into a variable
 // Once the end of the packet has been detected (always the same length), decode the pressed keys
-inline uint8_t scan_loop()
+inline uint8_t Scan_loop()
 {
 	// Only use as a valid signal
 	// Check if there was a position change
@@ -181,7 +176,7 @@ inline uint8_t scan_loop()
 
 				// No duplicate keys, add it to the buffer
 				if ( c == KeyIndex_BufferUsed )
-					bufferAdd( positionCounter );
+					Macro_bufferAdd( positionCounter );
 			}
 		}
 		// Remove the key from the buffer
@@ -245,34 +240,34 @@ inline uint8_t scan_loop()
 }
 
 // Send data 
-uint8_t scan_sendData( uint8_t dataPayload )
+uint8_t Scan_sendData( uint8_t dataPayload )
 {
 	return 0;
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-void scan_finishedWithBuffer( uint8_t sentKeys )
+void Scan_finishedWithBuffer( uint8_t sentKeys )
 {
 }
 
 // Signal that the keys have been properly sent over USB
-void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 }
 
 // Reset/Hold keyboard
 // NOTE: Does nothing with the HP150
-void scan_lockKeyboard( void )
+void Scan_lockKeyboard( void )
 {
 }
 
 // NOTE: Does nothing with the HP150
-void scan_unlockKeyboard( void )
+void Scan_unlockKeyboard( void )
 {
 }
 
 // Reset Keyboard
-void scan_resetKeyboard( void )
+void Scan_resetKeyboard( void )
 {
 	info_print("Attempting to synchronize the keyboard, do not press any keys...");
 	errorLED( 1 );

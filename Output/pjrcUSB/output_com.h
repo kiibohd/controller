@@ -41,7 +41,8 @@
 
 // ----- Variables -----
 
-// Variables used to communciate to the usb module
+// Variables used to communciate to the output module
+// XXX Even if the output module is not USB, this is internally understood keymapping scheme
 extern                       uint8_t USBKeys_Modifiers;
 extern                       uint8_t USBKeys_Array[USB_MAX_KEY_SEND];
 extern                       uint8_t USBKeys_Sent;
@@ -58,18 +59,18 @@ extern                       uint8_t USBKeys_Idle_Count;
 
 // ----- Functions -----
 
-void output_setup();
-void output_send();
+void Output_setup();
+void Output_send();
 
-void output_firmwareReload();
-void output_softReset();
+void Output_firmwareReload();
+void Output_softReset();
 
 // Relies on USB serial module
-unsigned int output_availablechar();
+unsigned int Output_availablechar();
 
-int output_getchar();
-int output_putchar( char c );
-int output_putstr( char* str );
+int Output_getchar();
+int Output_putchar( char c );
+int Output_putstr( char* str );
 
 #endif
 

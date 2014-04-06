@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Debug Module |###
 #
-# Written by Jacob Alexander in 2011 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011,2014 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -14,12 +14,6 @@
 set( DEBUG_SRCS
 	print.c
 )
-
-
-###
-# Setup File Dependencies
-#
-add_file_dependencies( ../led/print.c ../led/print.h )
 
 
 ###

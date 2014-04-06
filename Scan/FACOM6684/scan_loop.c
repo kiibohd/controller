@@ -1,15 +1,15 @@
-/* Copyright (C) 2013 by Jacob Alexander
- * 
+/* Copyright (C) 2013-2014 by Jacob Alexander
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,11 +37,6 @@
 
 
 // ----- Macros -----
-
-// Make sure we haven't overflowed the buffer
-#define bufferAdd(byte) \
-		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
-			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
 
 
 
@@ -105,7 +100,7 @@ ISR(USART1_RX_vect)
 // ----- Functions -----
 
 // Setup
-inline void scan_setup()
+inline void Scan_setup()
 {
 	// Setup the the USART interface for keyboard data input
 	
@@ -130,7 +125,7 @@ inline void scan_setup()
 
 
 // Main Detection Loop
-inline uint8_t scan_loop()
+inline uint8_t Scan_loop()
 {
 	// Remove any "released keys", this is delayed due to buffer release synchronization issues
 	for ( uint8_t c = 0; c < KeyBufferRemoveCount; c++ )
@@ -165,7 +160,7 @@ void processKeyValue( uint8_t valueType, uint8_t keyValue )
 		// Key isn't in the buffer yet
 		if ( c == KeyIndex_BufferUsed )
 		{
-			bufferAdd( keyValue );
+			Macro_bufferAdd( keyValue );
 			break;
 		}
 
@@ -206,7 +201,7 @@ void removeKeyValue( uint8_t keyValue )
 }
 
 // Send data 
-uint8_t scan_sendData( uint8_t dataPayload )
+uint8_t Scan_sendData( uint8_t dataPayload )
 {
 	// Debug
 	char tmpStr[6];
@@ -219,7 +214,7 @@ uint8_t scan_sendData( uint8_t dataPayload )
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-void scan_finishedWithBuffer( uint8_t sentKeys )
+void Scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	// Make sure we aren't in the middle of a receiving a new scancode
 	while ( KeyBufferCount != 0 );
@@ -276,7 +271,7 @@ void scan_finishedWithBuffer( uint8_t sentKeys )
 	// Add back lost keys, so they are processed on the next USB send
 	for ( ; key < prevBuffer; key++ )
 	{
-		bufferAdd( KeyIndex_Buffer[key] );
+		Macro_bufferAdd( KeyIndex_Buffer[key] );
 		info_print("Re-appending lost key after USB send...");
 	}
 
@@ -285,7 +280,7 @@ void scan_finishedWithBuffer( uint8_t sentKeys )
 	{
 		for ( uint8_t c = 0; c < latched; c++ )
 		{
-			bufferAdd( latchBuffer[c] );
+			Macro_bufferAdd( latchBuffer[c] );
 		}
 	}
 
@@ -293,23 +288,23 @@ void scan_finishedWithBuffer( uint8_t sentKeys )
 }
 
 // Signal that the keys have been properly sent over USB
-void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 }
 
 // Reset/Hold keyboard
 // NOTE: Does nothing with the FACOM6684
-void scan_lockKeyboard( void )
+void Scan_lockKeyboard( void )
 {
 }
 
 // NOTE: Does nothing with the FACOM6684
-void scan_unlockKeyboard( void )
+void Scan_unlockKeyboard( void )
 {
 }
 
 // Reset Keyboard
-void scan_resetKeyboard( void )
+void Scan_resetKeyboard( void )
 {
 	// Not a calculated valued...
 	_delay_ms( 50 );

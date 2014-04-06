@@ -1,15 +1,15 @@
-/* Copyright (C) 2011 by Jacob Alexander
- * 
+/* Copyright (C) 2011,2014 by Jacob Alexander
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,11 +43,6 @@
 
 // ----- Macros -----
 
-// Make sure we haven't overflowed the buffer
-#define bufferAdd(byte) \
-		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
-			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
-
 #define setLED(id, status) \
 		status = status ? 0 : 1; \
 		scan_setLED( id, status )
@@ -72,16 +67,16 @@ volatile uint8_t drawLED      = 0;
 
 // ----- Function Declarations -----
 
-void scan_diagnostics( void );
+void Scan_diagnostics( void );
 void processKeyValue( uint8_t keyValue );
-void scan_diagnostics( void );
-void scan_setRepeatStart( uint8_t n );
-void scan_readSwitchStatus( void );
-void scan_repeatControl( uint8_t on );
-void scan_enableKeyboard( uint8_t enable );
-void scan_setRepeatRate( uint8_t n );
-void scan_setLED( uint8_t ledNumber, uint8_t on );
-void scan_readLED( void );
+void Scan_diagnostics( void );
+void Scan_setRepeatStart( uint8_t n );
+void Scan_readSwitchStatus( void );
+void Scan_repeatControl( uint8_t on );
+void Scan_enableKeyboard( uint8_t enable );
+void Scan_setRepeatRate( uint8_t n );
+void Scan_setLED( uint8_t ledNumber, uint8_t on );
+void Scan_readLED( void );
 
 
 
@@ -129,7 +124,7 @@ ISR(USART1_RX_vect)
 // ----- Functions -----
 
 // Setup
-inline void scan_setup()
+inline void Scan_setup()
 {
 	// Setup Timer Pulse (16 bit)
 	// 16 MHz / (2 * Prescaler * (1 + OCR1A)) = 1204.8 baud (820 us)
@@ -183,7 +178,7 @@ inline void scan_setup()
 
 // Main Detection Loop
 // Nothing is required here with the Epson QX-10 Keyboards as the interrupts take care of the inputs
-inline uint8_t scan_loop()
+inline uint8_t Scan_loop()
 {
 	return 0;
 }
@@ -241,7 +236,7 @@ void processKeyValue( uint8_t keyValue )
 				// Key isn't in the buffer yet
 				if ( c == KeyIndex_BufferUsed )
 				{
-					bufferAdd( keyValue );
+					Macro_bufferAdd( keyValue );
 					break;
 				}
 
@@ -293,14 +288,14 @@ void processKeyValue( uint8_t keyValue )
 		// - Last 4 bits corresond to the KSC signals (P13, P12, P11, P10 respectively)
 		// Or, that can be read as, each key has it's own keycode (with NO release code)
 		// Modifiers are treated differently
-		
+
 		// Add the key to the buffer, if it isn't already in the current Key Buffer
 		for ( uint8_t c = 0; c < KeyIndex_BufferUsed + 1; c++ )
 		{
 			// Key isn't in the buffer yet
 			if ( c == KeyIndex_BufferUsed )
 			{
-				bufferAdd( keyValue );
+				Macro_bufferAdd( keyValue );
 				break;
 			}
 
@@ -368,7 +363,7 @@ void processKeyValue( uint8_t keyValue )
 
 // Send data
 // See below functions for the input sequences for the Epson QX-10 Keyboard
-uint8_t scan_sendData( uint8_t dataPayload )
+uint8_t Scan_sendData( uint8_t dataPayload )
 {
 	// Debug
 	char tmpStr[6];
@@ -380,7 +375,7 @@ uint8_t scan_sendData( uint8_t dataPayload )
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-inline void scan_finishedWithBuffer( uint8_t sentKeys )
+inline void Scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	return;
 }
@@ -392,7 +387,7 @@ inline void scan_finishedWithBuffer( uint8_t sentKeys )
 //
 // However, this differentiation causes complications on how the key signals are discarded and used
 // The single keypresses must be discarded immediately, while the modifiers must be kept
-inline void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+inline void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 	uint8_t foundModifiers = 0;
 
@@ -423,12 +418,12 @@ inline void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 // Reset/Hold keyboard
 // Warning! This will cause the keyboard to not send any data, so you can't disable with a keypress
 // The Epson QX-10 Keyboards have a command used to lock the keyboard output
-void scan_lockKeyboard( void )
+void Scan_lockKeyboard( void )
 {
 	scan_enableKeyboard( 0x00 );
 }
 
-void scan_unlockKeyboard( void )
+void Scan_unlockKeyboard( void )
 {
 	scan_enableKeyboard( 0x01 );
 }
@@ -440,7 +435,7 @@ void scan_unlockKeyboard( void )
 // - Sets repeat start time (500 ms)
 // - Sets repeat interval (50 ms)
 // - Turns off all LEDs
-void scan_resetKeyboard( void )
+void Scan_resetKeyboard( void )
 {
 	// Reset command for the QX-10 Keyboard
 	scan_sendData( 0xE0 );
@@ -451,11 +446,11 @@ void scan_resetKeyboard( void )
 
 // TODO Check
 // Runs Diagnostics on the keyboard
-// - First does a reset (see scan_resetKeyboard)
+// - First does a reset (see Scan_resetKeyboard)
 // - Blinks all of the LEDs one after another
 // - Outputs 0x00 if no keys are pressed
 // - Outputs 0xFF if any keys are being pressed
-void scan_diagnostics( void )
+void Scan_diagnostics( void )
 {
 	// Send reset command with diagnositics
 	scan_sendData( 0xE7 );
@@ -465,7 +460,7 @@ void scan_diagnostics( void )
 // Set Repeat Interval Start
 // 300 ms + n * 25 ms
 // Interval after which to start the repeated keys
-void scan_setRepeatStart( uint8_t n )
+void Scan_setRepeatStart( uint8_t n )
 {
 	// Send command
 	// Binary Representation: 000n nnnn
@@ -483,7 +478,7 @@ void scan_setRepeatStart( uint8_t n )
 // 101 - Left CTRL
 // 110 - GRPH SHIFT
 // 111 - Right CTRL
-void scan_readSwitchStatus( void )
+void Scan_readSwitchStatus( void )
 {
 	scan_sendData( 0x80 );
 }
@@ -492,7 +487,7 @@ void scan_readSwitchStatus( void )
 // Repeat Control
 // 0x00 Stops repeat function
 // 0x01 Enables repeat function
-void scan_repeatControl( uint8_t on )
+void Scan_repeatControl( uint8_t on )
 {
 	// Send command
 	// Binary Representation: 101X XXXn
@@ -504,7 +499,7 @@ void scan_repeatControl( uint8_t on )
 // Enable Sending Keyboard Data
 // 0x00 Stops keycode transmission
 // 0x01 Enables keycode transmission
-void scan_enableKeyboard( uint8_t enable )
+void Scan_enableKeyboard( uint8_t enable )
 {
 	// Send command
 	// Binary Representation: 110X XXXn
@@ -515,7 +510,7 @@ void scan_enableKeyboard( uint8_t enable )
 // Set Repeat Interval
 // 30 ms + n * 5 ms
 // Period between sending each repeated key after the initial interval
-void scan_setRepeatRate( uint8_t n )
+void Scan_setRepeatRate( uint8_t n )
 {
 	// Send command
 	// Binary Representation: 001n nnnn
@@ -530,7 +525,7 @@ void scan_setRepeatRate( uint8_t n )
 //
 // 8 LEDs max (Note: 5 connected on my board, there is 1 position empty on the PCB for a total of 6)
 // 0 to 7 (0x0 to 0x7)
-void scan_setLED( uint8_t ledNumber, uint8_t on )
+void Scan_setLED( uint8_t ledNumber, uint8_t on )
 {
 	// Send command
 	// Binary Representation: 010l llln
@@ -564,7 +559,7 @@ void scan_setLED( uint8_t ledNumber, uint8_t on )
 
 // Read LED Status
 // High priority data output (may overwrite some keycode data)
-void scan_readLED( void )
+void Scan_readLED( void )
 {
 	scan_sendData( 0x7F );
 }

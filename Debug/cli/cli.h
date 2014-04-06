@@ -66,13 +66,13 @@ uint8_t CLIHexDebugMode;
 
 // ----- Functions and Corresponding Function Aliases -----
 
-void init_cli();
-void process_cli();
-void registerDictionary_cli( CLIDictItem *cmdDict, char* dictName );
-void argumentIsolation_cli( char* string, char** first, char** second );
+void CLI_init();
+void CLI_process();
+void CLI_registerDictionary( CLIDictItem *cmdDict, char* dictName );
+void CLI_argumentIsolation( char* string, char** first, char** second );
 
-void commandLookup_cli();
-void tabCompletion_cli();
+void CLI_commandLookup();
+void CLI_tabCompletion();
 
 // CLI Command Functions
 void cliFunc_arch    ( char* args );

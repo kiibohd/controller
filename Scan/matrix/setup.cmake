@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Scan Module |###
 #
-# Written by Jacob Alexander in 2011 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011,2014 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -27,12 +27,6 @@ set( SCAN_SRCS
 ###
 # Module Specific Options
 #
-add_definitions( -I${HEAD_DIR}/Keymap )
-
-add_definitions(
-	#-DMODIFIER_MASK=
-	#-DKEYINDEX_MASK=
-)
 
 
 ###

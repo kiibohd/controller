@@ -1,15 +1,15 @@
-/* Copyright (C) 2013 by Jacob Alexander
- * 
+/* Copyright (C) 2013,2014 by Jacob Alexander
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -37,11 +37,6 @@
 
 
 // ----- Macros -----
-
-// Make sure we haven't overflowed the buffer
-#define bufferAdd(byte) \
-		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
-			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
 
 
 
@@ -101,7 +96,7 @@ void uart0_status_isr(void)
 // ----- Functions -----
 
 // Setup
-inline void scan_setup()
+inline void Scan_setup()
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 {
 	// Setup the the USART interface for keyboard data input
@@ -183,7 +178,7 @@ inline void scan_setup()
 
 
 // Main Detection Loop
-inline uint8_t scan_loop()
+inline uint8_t Scan_loop()
 {
 	return 0;
 }
@@ -207,7 +202,7 @@ void processKeyValue( uint8_t keyValue )
 	case 0x09: // ^I
 	case 0x0D: // ^M
 	case 0x1B: // ^[
-		bufferAdd( keyValue );
+		Macro_bufferAdd( keyValue );
 		break;
 	// 0x40 Offset Keys
 	// Add Ctrl key and offset to the lower alphabet
@@ -216,8 +211,8 @@ void processKeyValue( uint8_t keyValue )
 	case 0x1D: // ^]
 	case 0x1E: // ^^
 	case 0x1F: // ^_
-		bufferAdd( 0xF6 );
-		bufferAdd( keyValue + 0x40 );
+		Macro_bufferAdd( 0xF6 );
+		Macro_bufferAdd( keyValue + 0x40 );
 		break;
 
 	// - Add Shift key and offset to non-shifted key -
@@ -226,73 +221,73 @@ void processKeyValue( uint8_t keyValue )
 	case 0x23: // #
 	case 0x24: // $
 	case 0x25: // %
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue + 0x10 );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue + 0x10 );
 		break;
 	// 0x11 Offset Keys
 	case 0x26: // &
 	case 0x28: // (
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue + 0x11 );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue + 0x11 );
 		break;
 	// 0x07 Offset Keys
 	case 0x29: // )
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue + 0x07 );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue + 0x07 );
 		break;
 	// -0x0E Offset Keys
 	case 0x40: // @
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue - 0x0E );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue - 0x0E );
 		break;
 	// 0x0E Offset Keys
 	case 0x2A: // *
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue + 0x0E );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue + 0x0E );
 		break;
 	// 0x12 Offset Keys
 	case 0x2B: // +
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue + 0x12 );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue + 0x12 );
 		break;
 	// 0x05 Offset Keys
 	case 0x22: // "
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue + 0x05 );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue + 0x05 );
 		break;
 	// 0x01 Offset Keys
 	case 0x3A: // :
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue + 0x01 );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue + 0x01 );
 		break;
 	// -0x10 Offset Keys
 	case 0x3C: // <
 	case 0x3E: // >
 	case 0x3F: // ?
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue - 0x10 );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue - 0x10 );
 		break;
 	// -0x28 Offset Keys
 	case 0x5E: // ^
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue - 0x28 );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue - 0x28 );
 		break;
 	// -0x32 Offset Keys
 	case 0x5F: // _
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue - 0x32 );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue - 0x32 );
 		break;
 	// -0x20 Offset Keys
 	case 0x7B: // {
 	case 0x7C: // |
 	case 0x7D: // }
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue - 0x20 );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue - 0x20 );
 		break;
 	// -0x1E Offset Keys
 	case 0x7E: // ~
-		bufferAdd( 0xF5 );
-		bufferAdd( keyValue - 0x1E );
+		Macro_bufferAdd( 0xF5 );
+		Macro_bufferAdd( keyValue - 0x1E );
 		break;
 	// All other keys
 	default:
@@ -307,8 +302,8 @@ void processKeyValue( uint8_t keyValue )
 		// Add Ctrl key and offset to the lower alphabet
 		if ( keyValue >= 0x00 && keyValue <= 0x1F )
 		{
-			bufferAdd( 0xF6 );
-			bufferAdd( keyValue + 0x60 );
+			Macro_bufferAdd( 0xF6 );
+			Macro_bufferAdd( keyValue + 0x60 );
 		}
 
 		// Shift Characters are from 0x41 to 0x59
@@ -316,14 +311,14 @@ void processKeyValue( uint8_t keyValue )
 		// Add Shift key and offset to the lower alphabet
 		else if ( keyValue >= 0x41 && keyValue <= 0x5A )
 		{
-			bufferAdd( 0xF5 );
-			bufferAdd( keyValue + 0x20 );
+			Macro_bufferAdd( 0xF5 );
+			Macro_bufferAdd( keyValue + 0x20 );
 		}
 
 		// Everything else
 		else
 		{
-			bufferAdd( keyValue );
+			Macro_bufferAdd( keyValue );
 		}
 		break;
 	}
@@ -331,7 +326,7 @@ void processKeyValue( uint8_t keyValue )
 
 // Send data
 // NOTE: Example only, MBC-55X cannot receive user data
-uint8_t scan_sendData( uint8_t dataPayload )
+uint8_t Scan_sendData( uint8_t dataPayload )
 {
 	// Debug
 	char tmpStr[6];
@@ -348,12 +343,12 @@ uint8_t scan_sendData( uint8_t dataPayload )
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-void scan_finishedWithBuffer( uint8_t sentKeys )
+void Scan_finishedWithBuffer( uint8_t sentKeys )
 {
 }
 
 // Signal that the keys have been properly sent over USB
-void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 	cli(); // Disable Interrupts
 
@@ -365,17 +360,17 @@ void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 
 // Reset/Hold keyboard
 // NOTE: Does nothing with the MBC-55x
-void scan_lockKeyboard( void )
+void Scan_lockKeyboard( void )
 {
 }
 
 // NOTE: Does nothing with the MBC-55x
-void scan_unlockKeyboard( void )
+void Scan_unlockKeyboard( void )
 {
 }
 
 // Reset Keyboard
-void scan_resetKeyboard( void )
+void Scan_resetKeyboard( void )
 {
 	// Not a calculated valued...
 	_delay_ms( 50 );

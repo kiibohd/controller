@@ -1,15 +1,15 @@
-/* Copyright (C) 2012 by Jacob Alexander
- * 
+/* Copyright (C) 2012,2014 by Jacob Alexander
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -130,11 +130,6 @@
 
 // ----- Macros -----
 
-// Make sure we haven't overflowed the buffer
-#define bufferAdd(byte) \
-		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
-			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
-
 
 
 // ----- Variables -----
@@ -158,7 +153,7 @@ void processKeyValue( uint8_t keyValue );
 
 
 // Setup
-inline void scan_setup()
+inline void Scan_setup()
 {
 	// Setup the external interrupts for
 	// - General keypresses     (INT6/E6) ->         rising edge (to detect key       release)
@@ -221,7 +216,7 @@ inline void scan_setup()
 // Not needed for the Sony OA-S3400 as signals are interrupt based, thus this is a busy loop
 // XXX Function is used for scanning troublesome keys, technically this is not needed for a pure converter
 //     I just want proper use of the shift and shift lock keys, without having to do major rework to attach to the entire matrix
-inline uint8_t scan_loop()
+inline uint8_t Scan_loop()
 {
 	// Loop through known keys
 	for ( uint8_t key = 0; key < MANUAL_SCAN_KEYS; key++ ) switch ( key )
@@ -437,7 +432,7 @@ void processKeyValue( uint8_t keyValue )
 			// Key isn't in the buffer yet
 			if ( c == KeyIndex_BufferUsed )
 			{
-				bufferAdd( keyValue );
+				Macro_bufferAdd( keyValue );
 				break;
 			}
 
@@ -498,7 +493,7 @@ ISR(INT7_vect)
 // Send data to keyboard
 // Sony OA-S3400 has no serial/parallel dataport to send data too...
 // Using this function for LED enable/disable
-uint8_t scan_sendData( uint8_t dataPayload )
+uint8_t Scan_sendData( uint8_t dataPayload )
 {
 	switch ( dataPayload )
 	{
@@ -517,23 +512,23 @@ uint8_t scan_sendData( uint8_t dataPayload )
 
 // Signal KeyIndex_Buffer that it has been properly read
 // Not needed as a signal is sent to remove key-presses
-void scan_finishedWithBuffer( uint8_t sentKeys )
+void Scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	return;
 }
 
 // Reset/Hold keyboard
 // Sony OA-S3400 has no locking signals
-void scan_lockKeyboard( void )
+void Scan_lockKeyboard( void )
 {
 }
 
-void scan_unlockKeyboard( void )
+void Scan_unlockKeyboard( void )
 {
 }
 
 // Reset Keyboard
-void scan_resetKeyboard( void )
+void Scan_resetKeyboard( void )
 {
 	// Empty buffer, now that keyboard has been reset
 	KeyIndex_BufferUsed = 0;
@@ -549,7 +544,7 @@ void scan_resetKeyboard( void )
 
 // USB module is finished with buffer
 // Not needed as a signal is sent to remove key-presses
-void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 	return;
 }

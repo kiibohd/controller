@@ -45,7 +45,7 @@ void printstrs( char* first, ... )
 	while ( !( cur[0] == '\0' && cur[1] == '\0' && cur[2] == '\0' ) )
 	{
 		// Print out the given string
-		output_putstr( cur );
+		Output_putstr( cur );
 
 		// Get the next argument ready
 		cur = va_arg( ap, char* );
@@ -62,10 +62,10 @@ void _print( const char* s )
 	char c;
 	while ( ( c = pgm_read_byte( s++ ) ) != '\0' )
 	{
-		output_putchar( c );
+		Output_putchar( c );
 	}
 #elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
-	output_putstr( (char*)s );
+	Output_putstr( (char*)s );
 #endif
 }
 

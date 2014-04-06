@@ -1,15 +1,15 @@
-/* Copyright (C) 2011 by Jacob Alexander
- * 
+/* Copyright (C) 2011,2014 by Jacob Alexander
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -43,11 +43,6 @@
 
 // ----- Macros -----
 
-// Make sure we haven't overflowed the buffer
-#define bufferAdd(byte) \
-		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
-			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
-
 #define UNSET_RESET()   RESET_DDR &= ~(1 << RESET_PIN)
 #define   SET_RESET()   RESET_DDR |=  (1 << RESET_PIN)
 
@@ -68,11 +63,11 @@ volatile uint8_t BufferReadyToClear;
 // ----- Functions -----
 
 // Setup
-inline void scan_setup()
+inline void Scan_setup()
 {
 	// Setup the the USART interface for keyboard data input
 	// NOTE: The input data signal needs to be inverted for the Teensy USART to properly work
-	
+
 	// Setup baud rate
 	// 16 MHz / ( 16 * Baud ) = UBRR
 	// Baud <- 0.82020 ms per bit, thus 1000 / 0.82020 = 1219.2
@@ -101,7 +96,7 @@ inline void scan_setup()
 
 // Main Detection Loop
 // Not needed for the Micro Switch 8304, this is just a busy loop
-inline uint8_t scan_loop()
+inline uint8_t Scan_loop()
 {
 	return 0;
 }
@@ -132,7 +127,7 @@ void processKeyValue( uint8_t keyValue )
 			// Key isn't in the buffer yet
 			if ( c == KeyIndex_BufferUsed )
 			{
-				bufferAdd( keyValue );
+				Macro_bufferAdd( keyValue );
 				break;
 			}
 
@@ -194,7 +189,7 @@ ISR(USART1_RX_vect)
 // 0x9E sets echo scancode mode from (0x81 to 0xFF; translates to 0x01 to 0x7F)
 // Other echos: 0x15~0x19 send 0x15~0x19, 0x40 sends 0x40 (as well as 0x44,0x45, 0x80)
 // 0x8C Acks the keyboard and gets 0x70 sent back (delayed)
-uint8_t scan_sendData( uint8_t dataPayload )
+uint8_t Scan_sendData( uint8_t dataPayload )
 {
 	UDR1 = dataPayload;
 	return 0;
@@ -202,7 +197,7 @@ uint8_t scan_sendData( uint8_t dataPayload )
 
 // Signal KeyIndex_Buffer that it has been properly read
 // In the case of the Micro Switch 8304, we leave the buffer alone until more scancode data comes in
-void scan_finishedWithBuffer( uint8_t sentKeys )
+void Scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	// We received a Clear code from the 8304, clear the buffer now that we've used it
 	if ( BufferReadyToClear )
@@ -213,25 +208,25 @@ void scan_finishedWithBuffer( uint8_t sentKeys )
 }
 
 // Signal that the keys have been properly sent over USB
-void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 }
 
 // Reset/Hold keyboard
 // Warning! This will cause the keyboard to not send any data, so you can't disable with a keypress
 // The Micro Switch 8304 has a dedicated reset line
-void scan_lockKeyboard( void )
+void Scan_lockKeyboard( void )
 {
 	UNSET_RESET();
 }
 
-void scan_unlockKeyboard( void )
+void Scan_unlockKeyboard( void )
 {
 	SET_RESET();
 }
 
 // Reset Keyboard
-void scan_resetKeyboard( void )
+void Scan_resetKeyboard( void )
 {
 	// Reset command for the 8304
 	scan_sendData( 0x92 );

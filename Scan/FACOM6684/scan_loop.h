@@ -1,15 +1,15 @@
-/* Copyright (C) 2013 by Jacob Alexander
- * 
+/* Copyright (C) 2013-2014 by Jacob Alexander
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -49,18 +49,18 @@ extern volatile     uint8_t KeyIndex_Add_InputSignal;
 // ----- Functions -----
 
 // Functions used by main.c
-void scan_setup( void );
-uint8_t scan_loop( void );
+void Scan_setup( void );
+uint8_t Scan_loop( void );
 
 
 // Functions available to macro.c
-uint8_t scan_sendData( uint8_t dataPayload );
+uint8_t Scan_sendData( uint8_t dataPayload );
 
-void scan_finishedWithBuffer( uint8_t sentKeys );
-void scan_finishedWithUSBBuffer( uint8_t sentKeys );
-void scan_lockKeyboard( void );
-void scan_unlockKeyboard( void );
-void scan_resetKeyboard( void );
+void Scan_finishedWithBuffer( uint8_t sentKeys );
+void Scan_finishedWithUSBBuffer( uint8_t sentKeys );
+void Scan_lockKeyboard( void );
+void Scan_unlockKeyboard( void );
+void Scan_resetKeyboard( void );
 
 
 #endif // __SCAN_LOOP_H

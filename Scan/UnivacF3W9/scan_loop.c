@@ -1,15 +1,15 @@
-/* Copyright (C) 2012 by Jacob Alexander
- * 
+/* Copyright (C) 2012,2014 by Jacob Alexander
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -56,11 +56,6 @@
 #define REQUEST_DATA()  REQUEST_DDR &= ~(1 << REQUEST_PIN) // Start incoming keyboard transfer
 #define    STOP_DATA()  REQUEST_DDR |=  (1 << REQUEST_PIN) // Stop incoming keyboard data
 
-// Make sure we haven't overflowed the buffer
-#define bufferAdd(byte) \
-		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER ) \
-			KeyIndex_Buffer[KeyIndex_BufferUsed++] = byte
-
 
 
 // ----- Variables -----
@@ -90,7 +85,7 @@ void processPacketValue( uint16_t packetValue );
 // To be nice, we wait a little bit after powering on, and dump any of the pending keyboard data.
 // Afterwards (as long as no keys were being held), the keyboard should have a clean buffer, and be ready to go.
 // (Even if keys were held down, everything should probably still work...)
-inline void scan_setup()
+inline void Scan_setup()
 {
 	// Setup the DATA pin
 	DATA_DDR  &= ~(1 << DATA_PIN); // Set to input
@@ -109,7 +104,7 @@ inline void scan_setup()
 
 	// Reset the keyboard before scanning, we might be in a wierd state
 	_delay_ms( 50 );
-	//scan_resetKeyboard();
+	//Scan_resetKeyboard();
 
 	// Message
 	info_print("Keyboard Buffer Flushed");
@@ -119,9 +114,9 @@ inline void scan_setup()
 // Main Detection Loop
 // The Univac-Sperry F3W9 has a convenient feature, an internal 8 key buffer
 // This buffer is only emptied (i.e. sent over the bus) when the REQUEST line is held high
-// Because of this, we can utilize the scan_loop to do all of the critical processing,
+// Because of this, we can utilize the Scan_loop to do all of the critical processing,
 //  without having to resort to interrupts, giving the data reading 100% of the CPU.
-// This is because the USB interrupts can wait until the scan_loop is finished to continue.
+// This is because the USB interrupts can wait until the Scan_loop is finished to continue.
 //
 // Normally, this approach isn't taken, as it's easier/faster/safer to use Teensy hardware shift registers
 //  for serial data transfers.
@@ -133,7 +128,7 @@ inline void scan_setup()
 // Output and /Output (NOT'ted version).
 // Not really useful here, but could be used for error checking, or eliminating an external NOT gate if
 //  we were using (but can't...) a hardware decoder like a USART.
-inline uint8_t scan_loop()
+inline uint8_t Scan_loop()
 {
 	return 0;
 	// Protocol Notes:
@@ -308,27 +303,27 @@ void processPacketValue( uint16_t packetValue )
 	switch ( scanCode )
 	{
 	default:
-		//bufferAdd( scanCode ); TODO - Uncomment when ready for USB output
+		//Macro_bufferAdd( scanCode ); TODO - Uncomment when ready for USB output
 		break;
 	}
 }
 
 // Send data
 // NOTE: Does nothing with the Univac-Sperry F3W9
-uint8_t scan_sendData( uint8_t dataPayload )
+uint8_t Scan_sendData( uint8_t dataPayload )
 {
 	return 0;
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-inline void scan_finishedWithBuffer( uint8_t sentKeys )
+inline void Scan_finishedWithBuffer( uint8_t sentKeys )
 {
 	return;
 }
 
 // Signal that the keys have been properly sent over USB
 // TODO
-inline void scan_finishedWithUSBBuffer( uint8_t sentKeys )
+inline void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
 {
 	/*
 	uint8_t foundModifiers = 0;
@@ -352,12 +347,12 @@ inline void scan_finishedWithUSBBuffer( uint8_t sentKeys )
 
 // Reset/Hold keyboard
 // NOTE: Does nothing with the Univac-Sperry F3W9
-void scan_lockKeyboard( void )
+void Scan_lockKeyboard( void )
 {
 }
 
 // NOTE: Does nothing with the Univac-Sperry F3W9
-void scan_unlockKeyboard( void )
+void Scan_unlockKeyboard( void )
 {
 }
 
@@ -365,7 +360,7 @@ void scan_unlockKeyboard( void )
 // - Holds the input read line high to flush the buffer
 // - This does not actually reset the keyboard, but always seems brings it to a sane state
 // - Won't work fully if keys are being pressed done at the same time
-void scan_resetKeyboard( void )
+void Scan_resetKeyboard( void )
 {
 	// Initiate data request line, but don't read the incoming data
 	REQUEST_DATA();
