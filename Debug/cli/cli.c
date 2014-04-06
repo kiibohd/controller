@@ -207,7 +207,7 @@ void CLI_process()
 //  One to the first non-space character
 //  The second to the next argument (first NULL if there isn't an argument). delimited by a space
 //  Places a NULL at the first space after the first argument
-inline void CLI_argumentIsolation( char* string, char** first, char** second )
+void CLI_argumentIsolation( char* string, char** first, char** second )
 {
 	// Mark out the first argument
 	// This is done by finding the first space after a list of non-spaces and setting it NULL
@@ -267,7 +267,7 @@ void CLI_commandLookup()
 }
 
 // Registers a command dictionary with the CLI
-inline void CLI_registerDictionary( CLIDictItem *cmdDict, char* dictName )
+void CLI_registerDictionary( CLIDictItem *cmdDict, char* dictName )
 {
 	// Make sure this max limit of dictionaries hasn't been reached
 	if ( CLIDictionariesUsed >= CLIMaxDictionaries )

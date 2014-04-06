@@ -57,13 +57,17 @@ void cliFunc_macroDebug ( char* args );
 char*       macroCLIDictName = "Macro Module Commands";
 CLIDictItem macroCLIDict[] = {
 	{ "capList",     "Prints an indexed list of all non USB keycode capabilities.", cliFunc_capList },
-	{ "capSelect",   "Triggers the specified capability. U10 is USB Code 0x0A (G). K11 is keyboard capability 0x0B.", cliFunc_capSelect },
-	{ "lookComb",    "Do a lookup on the Combined map. S10 specifies Scancode 0x0A. U10 specified USB keycode 0x0A.", cliFunc_lookComb },
-	{ "lookDefault", "Do a lookup on the Default map. S10 specifies Scancode 0x0A. USB keycodes are not valid.", cliFunc_lookDefault },
-	{ "lookPartial", "Do a lookup on the layered partial map. S10 specifies Scancode 0x0A. U10 specifies USB keycode 0x0A.", cliFunc_lookPartial },
+	{ "capSelect",   "Triggers the specified capability. U10 - USB Code 0x0A. K11 - Keyboard Capability 0x0B. S10 - Scancode 0x0A", cliFunc_capSelect },
+	{ "lookComb",    "Do a lookup on the Combined map. S10 - Scancode 0x0A. U10 - USB Code 0x0A.", cliFunc_lookComb },
+	{ "lookDefault", "Do a lookup on the Default map. S10 - Scancode 0x0A.", cliFunc_lookDefault },
+	{ "lookPartial", "Do a lookup on the layered Partial maps. S10 - Scancode 0x0A. U10 - USB Code 0x0A.", cliFunc_lookPartial },
 	{ "macroDebug",  "Disables/Enables sending USB keycodes to the Output Module and prints U/K codes.", cliFunc_macroDebug },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
+
+
+// Macro debug flag - If set, clears the USB Buffers after signalling processing completion
+uint8_t macroDebugMode = 0;
 
 
 
@@ -107,7 +111,7 @@ inline void Macro_process()
 		// Too many keys
 		if ( USBKeys_Sent >= USBKeys_MaxSize )
 		{
-			info_print("USB Key limit reached");
+			warn_msg("USB Key limit reached");
 			errorLED( 1 );
 			break;
 		}
@@ -120,8 +124,7 @@ inline void Macro_process()
 		else
 		{
 			// Key was not mapped
-			// TODO Add dead key map
-			erro_dPrint( "Key not mapped... - " );
+			erro_msg( "Key not mapped... - " );
 			printHex( key );
 			errorLED( 1 );
 		}
@@ -129,12 +132,22 @@ inline void Macro_process()
 
 	// Signal buffer that we've used it
 	Scan_finishedWithBuffer( KeyIndex_BufferUsed );
+
+	// If Macro debug mode is set, clear the USB Buffer
+	if ( macroDebugMode )
+	{
+		USBKeys_Modifiers = 0;
+		USBKeys_Sent = 0;
+	}
 }
 
 inline void Macro_setup()
 {
 	// Register Macro CLI dictionary
 	CLI_registerDictionary( macroCLIDict, macroCLIDictName );
+
+	// Disable Macro debug mode
+	macroDebugMode = 0;
 }
 
 
@@ -147,26 +160,111 @@ void cliFunc_capList( char* args )
 
 void cliFunc_capSelect( char* args )
 {
-	// TODO
+	// Parse code from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	// Depending on the first character, the lookup changes
+	switch ( arg1Ptr[0] )
+	{
+	// Keyboard Capability
+	case 'K':
+		// TODO
+		break;
+
+	// Scancode
+	case 'S':
+		// Add to the USB Buffer using the DefaultMap lookup
+		Macro_bufferAdd( decToInt( &arg1Ptr[1] ) );
+		break;
+
+	// USB Code
+	case 'U':
+		// Just add the key to the USB Buffer
+		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER )
+		{
+			KeyIndex_Buffer[KeyIndex_BufferUsed++] = decToInt( &arg1Ptr[1] );
+		}
+		break;
+	}
 }
 
 void cliFunc_lookComb( char* args )
 {
-	// TODO
+	// Parse code from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	// Depending on the first character, the lookup changes
+	switch ( arg1Ptr[0] )
+	{
+	// Scancode
+	case 'S':
+		// TODO
+		break;
+
+	// USB Code
+	case 'U':
+		// TODO
+		break;
+	}
 }
 
 void cliFunc_lookDefault( char* args )
 {
-	// TODO
+	// Parse code from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	// Depending on the first character, the lookup changes
+	switch ( arg1Ptr[0] )
+	{
+	// Scancode
+	case 'S':
+		print( NL );
+		printInt8( DefaultMap_Lookup[decToInt( &arg1Ptr[1] )] );
+		print(" ");
+		printHex( DefaultMap_Lookup[decToInt( &arg1Ptr[1] )] );
+		break;
+	}
 }
 
 void cliFunc_lookPartial( char* args )
 {
-	// TODO
+	// Parse code from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	// Depending on the first character, the lookup changes
+	switch ( arg1Ptr[0] )
+	{
+	// Scancode
+	case 'S':
+		// TODO
+		break;
+
+	// USB Code
+	case 'U':
+		// TODO
+		break;
+	}
 }
 
 void cliFunc_macroDebug( char* args )
 {
-	// TODO
+	// Toggle macro debug mode
+	macroDebugMode = macroDebugMode ? 0 : 1;
+
+	print( NL );
+	info_msg("Macro Debug Mode: ");
+	printInt8( macroDebugMode );
 }
 
