@@ -30,6 +30,51 @@ ARM Specific (Teensy 3.0/3.1) (Sourcery CodeBench Lite for ARM EABI
 OR
 - arm-none-eabi-gcc
 - arm-none-eaby-binutils
+(I've actually had some issues with Sourcery CodeBench on Linux, so I often just use these)
+
+
+
+----------------------
+Windows Setup
+----------------------
+
+Compiling on Windows does work, just it's a bunch more work.
+
+First make sure Cygwin is installed - http://www.cygwin.com/ - 32bit or 64bit is fine. Make sure the following are installed:
+- make
+- git (needed for some compilation info)
+
+And make sure CMake is *NOT* installed through Cygwin. This is extremely important.
+If this is not possible, you'll have to play with your paths in Cygwin to prioritize the Windows version of CMake.
+
+Install the latest version of CMake - http://cmake.org/cmake/resources/software.html
+Make sure to have CMake add itself to at least your PATH in the installer.
+(If this errors out, you'll have to add CMake to your .bashrc path).
+
+Next, install the compiler(s) you want.
+
+ ---------
+| AVR GCC |
+ ---------
+
+You just need the Atmel AVR 8-bit Toolchain. The latest should be fine, as of writing it was 3.4.3.
+
+http://www.atmel.com/tools/atmelavrtoolchainforwindows.aspx
+
+Extract the files to a directory, say C:\avr8-gnu-toolchain. Then copy all the folders in that directory to the Cygwin directory.
+Mine is C:\cygwin64.
+(You can also just setup the paths, but this is faster/simpler. Might screw up your Cygwin though).
+
+
+ ----------
+| ARM EABI |
+ ----------
+
+Download the latest version of Mentor Graphics Sourcery CodeBench ARM EABI.
+
+http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/
+
+Use the installer and make sure you add the binaries to your path within the installer.
 
 
 
@@ -248,7 +293,6 @@ Linux Loading Firmware
 The 'load' script that is created during the build can load the firmware over USB.
 It uses sudo, so make sure you have the priviledges.
 
-(TODO, not complete, avr and arm are different currently, need to be unified)
 ./load
 
 
@@ -257,7 +301,61 @@ It uses sudo, so make sure you have the priviledges.
 Windows Building
 ----------------------
 
-TODO
+From this directory.
+mkdir build
+cd build
+cmake -G "Unix Makefiles" ..
+
+
+Example output:
+
+	$ cmake -G "Unix Makefiles" ..
+	-- Compiler Family:
+	avr
+	-- MCU Selected:
+	atmega32u4
+	-- CPU Selected:
+	megaAVR
+	-- Detected Scan Module Source Files:
+	Scan/SKM67001/../matrix/matrix_scan.c;Scan/SKM67001/../matrix/scan_loop.c
+	-- Detected Macro Module Source Files:
+	Macro/PartialMap/macro.c
+	-- Detected Output Module Source Files:
+	Output/pjrcUSB/output_com.c;Output/pjrcUSB/avr/usb_keyboard_serial.c
+	-- Detected Debug Module Source Files:
+	Debug/full/../cli/cli.c;Debug/full/../led/led.c;Debug/full/../print/print.c
+	-- Found Git: C:/cygwin64/bin/git.exe (found version "1.7.9")
+	-- Configuring done
+	-- Generating done
+	-- Build files have been written to: C:/cygwin64/home/jacob.alexander/src/capsense-beta/build
+
+	jacob.alexander@JALEXANDER2-LT ~/src/capsense-beta/build
+	$ make
+	Scanning dependencies of target kiibohd.elf
+	[ 10%] Building C object CMakeFiles/kiibohd.elf.dir/main.c.obj
+	[ 20%] Building C object CMakeFiles/kiibohd.elf.dir/Scan/matrix/matrix_scan.c.obj
+	[ 30%] Building C object CMakeFiles/kiibohd.elf.dir/Scan/matrix/scan_loop.c.obj
+	[ 40%] Building C object CMakeFiles/kiibohd.elf.dir/Macro/PartialMap/macro.c.obj
+	[ 50%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/output_com.c.obj
+	[ 60%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/avr/usb_keyboard_serial.c.obj
+	[ 70%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/cli/cli.c.obj
+	[ 80%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/led/led.c.obj
+	[ 90%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/print/print.c.obj
+	Linking C executable kiibohd.elf
+	Creating load file for Flash:  kiibohd.hex
+	Creating Extended Listing:     kiibohd.lss
+	Creating Symbol Table:         kiibohd.sym
+	[ 90%] Built target kiibohd.elf
+	Scanning dependencies of target SizeAfter
+	[100%] Size after generation
+		Flash Usage: data (hex)
+		  RAM Usage: data (elf)
+	   text    data     bss     dec     hex filename
+	      0    9738       0    9738    260a kiibohd.hex
+	   7982    1756     264   10002    2712 kiibohd.elf
+	[100%] Built target SizeAfter
+
+
 
 ----------------------
 Windows Loading Firmware
@@ -278,11 +376,32 @@ Mac OS X Loading Firmware
 TODO
 
 
-
 ----------------------
-Debugging
+Virtual Serial Port - CLI
 ----------------------
 
-TODO
+Rather than use a special program that can interpret Raw HID, this controller exposes a USB Serial CDC endpoint.
+This allows for you to use a generic serial terminal to debug/control the keyboard firmware (e.g. Tera Term, minicom, screen)
 
+ -------
+| Linux |
+ -------
+
+I generally use screen.
+
+sudo screen /dev/ttyACM0
+
+
+ ---------
+| Windows |
+ ---------
+
+TODO Probably COM1, but not exactly sure. Tera Term.
+
+
+ ----------
+| Mac OS X |
+ ----------
+
+TODO (What is the usual device name). screen if possible.
 
