@@ -30,6 +30,7 @@ add_definitions(
 # Compiler Family Compatibility
 #
 set( ScanModuleCompatibility
+	arm
 	avr
 )
 

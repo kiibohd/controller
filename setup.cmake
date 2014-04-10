@@ -235,28 +235,14 @@ execute_process( COMMAND git config --get remote.origin.url
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
-#| Date Macro
-macro ( dateNow RESULT )
-	if ( WIN32 )
-		execute_process( COMMAND "cmd" " /C date /T" OUTPUT_VARIABLE ${RESULT} OUTPUT_STRIP_TRAILING_WHITESPACE )
-	elseif ( UNIX )
-		execute_process( COMMAND "date" "+%Y-%m-%d %T %z" OUTPUT_VARIABLE ${RESULT} OUTPUT_STRIP_TRAILING_WHITESPACE )
-	else ()
-		message( send_error "date not implemented" )
-		set( ${RESULT} 000000 )
-	endif ()
-endmacro (dateNow)
-dateNow( Build_Date )
+#| Build Date
+execute_process( COMMAND "date" "+%Y-%m-%d %T %z"
+	OUTPUT_VARIABLE ${RESULT}
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
 
-
-#| Only use Git variables if we were successful in calling the commands
-if ( ${Git_RETURN} EQUAL 0 )
-	set( GitLastCommitDate "${Git_Modified_Flag_INFO}${Git_Branch_INFO} - ${Git_Date_INFO}" )
-else ()
-	# TODO Figure out a good way of finding the current branch + commit date + modified
-	set( GitLastCommitDate "Pft...Windows Build" )
-endif ()
-
+#| Last Commit Date
+set( GitLastCommitDate "${Git_Modified_Flag_INFO}${Git_Branch_INFO} - ${Git_Date_INFO}" )
 
 #| Uses CMake variables to include as defines
 #| Primarily for USB configuration

@@ -82,7 +82,11 @@
 
 
 // Static String Printing
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 #define print(s) _print(PSTR(s))
+#else
+#define print(s) _print(s)
+#endif
 
 void _print(const char *s);
 void printstrs( char* first, ... );

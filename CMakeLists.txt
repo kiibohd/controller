@@ -90,6 +90,12 @@ ModuleCompatibility( ${DebugModulePath}  ${DebugModuleCompatibility}  )
 
 
 ###
+# CMake Module Checking
+#
+find_package( Git REQUIRED )
+
+
+###
 # Build Targets
 #
 
