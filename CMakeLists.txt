@@ -25,8 +25,8 @@ set( CMAKE_USE_RELATIVE_PATHS  1 )
 #| "avr"       # Teensy++ 2.0
 #| "arm"       # Teensy   3.0
 #| "arm"       # Teensy   3.1
-#set( COMPILER_FAMILY "arm" )
-set( COMPILER_FAMILY "avr" )
+set( COMPILER_FAMILY "arm" )
+#set( COMPILER_FAMILY "avr" )
 
 message( STATUS "Compiler Family:" )
 message( "${COMPILER_FAMILY}" )
@@ -142,7 +142,8 @@ add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 
 #| After Changes Size Information
 #| TODO Do lookup on Flash and RAM sizes and do % used
-add_custom_target( SizeAfter ALL ${SIZE} --target=${FORMAT} ${TARGET_HEX} ${TARGET_ELF}
+add_custom_target( SizeAfter ALL
+	COMMAND ${SIZE} --target=${FORMAT} ${TARGET_HEX} ${TARGET_ELF}
 	DEPENDS ${TARGET_ELF}
 	COMMENT "Size after generation\n\tFlash Usage: data (hex)\n\t  RAM Usage: data (elf)"
 )
@@ -150,17 +151,9 @@ add_custom_target( SizeAfter ALL ${SIZE} --target=${FORMAT} ${TARGET_HEX} ${TARG
 
 
 ###
-# Setup Loader Script
+# Setup Loader Script and Program
 #
 
 #| Provides the user with the correct teensy-loader-cli command for the built .HEX file
-#| teensy-loader-cli must be in the user's path
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" OR ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
-	configure_file( LoadFile/bash load )
-endif()
-
-#| TODO Windows
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
-	configure_file( LoadFile/bash load )
-endif()
+configure_file( LoadFile/load load )
 

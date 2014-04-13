@@ -35,8 +35,8 @@ set( SIZE    "arm-none-eabi-size"    )
 #|
 #| "mk20dx128"        # Teensy   3.0
 #| "mk20dx256"        # Teensy   3.1
-set( CHIP "mk20dx128" )
-#set( CHIP "mk20dx256" )
+#set( CHIP "mk20dx128" )
+set( CHIP "mk20dx256" )
 
 message( STATUS "Chip Selected:" )
 message( "${CHIP}" )

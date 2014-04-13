@@ -20,7 +20,7 @@
 #| Please look at the {Scan,Macro,USB,Debug}/module.txt for information on the modules and how to create new ones
 
 ##| Deals with acquiring the keypress information and turning it into a key index
-set(   ScanModule "SKM67001" )
+set(   ScanModule "ADCTest" )
 
 ##| Provides the mapping functions for DefaultMap and handles any macro processing before sending to the OutputModule
 set(  MacroModule "PartialMap" )
@@ -203,7 +203,6 @@ execute_process( COMMAND git rev-parse --abbrev-ref HEAD
 execute_process( COMMAND git show -s --format=%ci
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Date_INFO
-	RESULT_VARIABLE Git_RETURN
 	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
@@ -212,7 +211,6 @@ execute_process( COMMAND git show -s --format=%ci
 execute_process( COMMAND git show -s --format="%cn <%ce>"
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Commit_Author
-	RESULT_VARIABLE Git_RETURN
 	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
@@ -221,7 +219,6 @@ execute_process( COMMAND git show -s --format="%cn <%ce>"
 execute_process( COMMAND git show -s --format=%H
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Commit_Revision
-	RESULT_VARIABLE Git_RETURN
 	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
@@ -230,19 +227,19 @@ execute_process( COMMAND git show -s --format=%H
 execute_process( COMMAND git config --get remote.origin.url
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Origin_URL
-	RESULT_VARIABLE Git_RETURN
 	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 #| Build Date
 execute_process( COMMAND "date" "+%Y-%m-%d %T %z"
-	OUTPUT_VARIABLE ${RESULT}
+	OUTPUT_VARIABLE Build_Date
+	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 #| Last Commit Date
-set( GitLastCommitDate "${Git_Modified_Flag_INFO}${Git_Branch_INFO} - ${Git_Date_INFO}" )
+set( GitLastCommitDate "${Git_Modified_Status} ${Git_Branch_INFO} - ${Git_Date_INFO}" )
 
 #| Uses CMake variables to include as defines
 #| Primarily for USB configuration

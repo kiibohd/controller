@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#| First check to see teensy-loader-cli has been compiled
+if [ ! -e teensy-loader-cli/teensy-loader-cli ]; then
+	# Compile teensy-loader-cli
+	mkdir -p teensy-loader-cli
+	cd teensy-loader-cli
+	cmake @CMAKE_SOURCE_DIR@/LoadFile
+	make
+fi
+
+#| Loads the hex file onto the teensy
+sudo teensy-loader-cli/teensy-loader-cli -mmcu=@MCU@ -w @TARGET_HEX@
+
+exit 0
+
