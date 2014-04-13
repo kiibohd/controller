@@ -1,12 +1,12 @@
 // Pin				Arduino
 //  0	B16			RXD
 //  1	B17			TXD
-//  2	D0			
+//  2	D0
 //  3	A12	FTM1_CH0	
 //  4	A13	FTM1_CH1	
 //  5	D7	FTM0_CH7	OC0B/T1
 //  6	D4	FTM0_CH4	OC0A
-//  7	D2			
+//  7	D2
 //  8	D3			ICP1
 //  9	C3	FTM0_CH2	OC1A
 // 10	C4	FTM0_CH3	SS/OC1B

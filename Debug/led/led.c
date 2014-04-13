@@ -44,10 +44,11 @@ inline void init_errorLED()
 // ARM
 #elif defined(_mk20dx128_) || defined(_mk20dx256_)
 
+	// Enable pin
+	GPIOC_PDDR |= (1<<5);
+
 	// Setup pin - Pin 11 -> C5 - See Lib/pin_map.teensy3 for more details on pins
 	PORTC_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	// Enable pin
-	GPIO_BITBAND_MODREG( GPIOC_PDOR, 5 ) = 1;
 
 #endif
 }
