@@ -146,7 +146,7 @@ int main(void)
 	// Setup Modules
 	Output_setup();
 	Macro_setup();
-	//scan_setup();
+	Scan_setup();
 
 	// Setup ISR Timer for flagging a kepress send to USB
 	usbTimerSetup();
@@ -184,7 +184,7 @@ int main(void)
 // USB Keyboard Data Send Counter Interrupt
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 ISR( TIMER0_OVF_vect )
-#elif defined(_mk20dx128_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
 void pit0_isr(void)
 #endif
 {

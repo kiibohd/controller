@@ -33,8 +33,9 @@
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 #include "avr/usb_keyboard_serial.h"
 #elif defined(_mk20dx128_) || defined(_mk20dx256_)
-#include "arm/usb_keyboard.h"
 #include "arm/usb_dev.h"
+#include "arm/usb_keyboard.h"
+#include "arm/usb_serial.h"
 #endif
 
 // Local Includes
@@ -54,7 +55,7 @@ void cliFunc_setMod    ( char* args );
 // ----- Variables -----
 
 // Output Module command dictionary
-char*       outputCLIDictName = "USB Module Commands";
+char*       outputCLIDictName = "USB Module Commands (Not all commands fully work yet...)";
 CLIDictItem outputCLIDict[] = {
 	{ "readLEDs", "Read LED byte. See \033[35msetLEDs\033[0m.", cliFunc_readLEDs },
 	{ "sendKeys", "Send the prepared list of USB codes and modifier byte.", cliFunc_sendKeys },

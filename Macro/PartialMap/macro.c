@@ -53,8 +53,8 @@ void cliFunc_macroDebug ( char* args );
 
 // ----- Variables -----
 
-// Output Module command dictionary
-char*       macroCLIDictName = "Macro Module Commands";
+// Macro Module command dictionary
+char*       macroCLIDictName = "Macro Module Commands (Not all commands fully work yet...)";
 CLIDictItem macroCLIDict[] = {
 	{ "capList",     "Prints an indexed list of all non USB keycode capabilities.", cliFunc_capList },
 	{ "capSelect",   "Triggers the specified capability. U10 - USB Code 0x0A. K11 - Keyboard Capability 0x0B. S10 - Scancode 0x0A", cliFunc_capSelect },
