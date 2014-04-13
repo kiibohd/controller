@@ -7,6 +7,7 @@ if [ ! -e teensy-loader-cli/teensy-loader-cli ]; then
 	cd teensy-loader-cli
 	cmake @CMAKE_SOURCE_DIR@/LoadFile
 	make
+	cd -
 fi
 
 #| Loads the hex file onto the teensy

@@ -44,7 +44,9 @@
 
 // ----- Function Declarations -----
 
-void cliFunc_echo( char* args );
+void cliFunc_dac    ( char* args );
+void cliFunc_dacVref( char* args );
+void cliFunc_echo   ( char* args );
 
 
 
@@ -58,7 +60,11 @@ volatile uint8_t KeyIndex_BufferUsed;
 // Scan Module command dictionary
 char*       scanCLIDictName = "ADC Test Module Commands";
 CLIDictItem scanCLIDict[] = {
-	{ "echo", "Example command, echos the arguments.", cliFunc_echo },
+#if defined(_mk20dx256_) // DAC is only supported on Teensy 3.1
+	{ "dac",     "Set DAC output value, from 0 to 4095 (1/4096 Vref to Vref).", cliFunc_dac },
+	{ "dacVref", "Set DAC Vref. 0 is 1.2V. 1 is 3.3V.", cliFunc_dacVref },
+#endif
+	{ "echo",    "Example command, echos the arguments.", cliFunc_echo },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -77,6 +83,12 @@ inline void Scan_setup()
 {
 	// Register Scan CLI dictionary
 	CLI_registerDictionary( scanCLIDict, scanCLIDictName );
+
+#if defined(_mk20dx256_) // DAC is only supported on Teensy 3.1
+	// DAC Setup
+	SIM_SCGC2 |= SIM_SCGC2_DAC0;
+	DAC0_C0 = DAC_C0_DACEN | DAC_C0_DACRFS; // 3.3V VDDA is DACREF_2
+#endif
 }
 #endif
 
@@ -129,5 +141,46 @@ void cliFunc_echo( char* args )
 		// Print out the arg
 		dPrint( arg1Ptr );
 	}
+}
+
+void cliFunc_dac( char* args )
+{
+#if defined(_mk20dx256_) // DAC is only supported on Teensy 3.1
+	// Parse code from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	int dacOut = decToInt( arg1Ptr );
+
+	// Make sure the value is between 0 and 4096, otherwise ignore
+	if ( dacOut >= 0 && dacOut <= 4095 )
+	{
+		*(int16_t *) &(DAC0_DAT0L) = dacOut;
+	}
+#endif
+}
+
+void cliFunc_dacVref( char* args )
+{
+#if defined(_mk20dx256_) // DAC is only supported on Teensy 3.1
+	// Parse code from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	switch ( decToInt( arg1Ptr ) )
+	{
+	case 0:
+		// XXX Doesn't seem to work...
+		DAC0_C0 = DAC_C0_DACEN; // 1.2V ref is DACREF_1
+		break;
+	case 1:
+		DAC0_C0 = DAC_C0_DACEN | DAC_C0_DACRFS; // 3.3V VDDA is DACREF_2
+		break;
+	}
+#endif
 }
 
