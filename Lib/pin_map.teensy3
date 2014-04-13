@@ -1,46 +1,76 @@
-// Pin				Arduino
-//  0	B16			RXD
-//  1	B17			TXD
-//  2	D0
-//  3	A12	FTM1_CH0	
-//  4	A13	FTM1_CH1	
-//  5	D7	FTM0_CH7	OC0B/T1
-//  6	D4	FTM0_CH4	OC0A
-//  7	D2
-//  8	D3			ICP1
-//  9	C3	FTM0_CH2	OC1A
-// 10	C4	FTM0_CH3	SS/OC1B
-// 11	C6			MOSI/OC2A
-// 12	C7			MISO
-// 13	C5			SCK	
-// 14	D1			
-// 15	C0			
-// 16	B0	(FTM1_CH0)	
-// 17	B1	(FTM1_CH1)	
-// 18	B3			SDA
-// 19	B2			SCL
-// 20	D5	FTM0_CH5	
-// 21	D6	FTM0_CH6	
-// 22	C1	FTM0_CH0	
-// 23	C2	FTM0_CH1	
-// 24	A5	(FTM0_CH2)	
-// 25	B19
-// 26	E1
-// 27	C9
-// 28	C8
-// 29	C10
-// 30	C11
-// 31	E0
-// 32	B18
-// 33	A4	(FTM0_CH1)
-// (34)	analog only
-// (35)	analog only
-// (36)	analog only
-// (37)	analog only
+// Pin  Name    Function     Hardware
+// ----------------------------------
+//  0   B16                  RX1
+//  1   B17                  TX1
+//  2   D0
+//  3   A12     FTM1_CH0     PWM (CAN TX - Teensy 3.1)
+//  4   A13     FTM1_CH1     PWM (CAN RX - Teensy 3.1)
+//  5   D7      FTM0_CH7     PWM
+//  6   D4      FTM0_CH4     PWM
+//  7   D2                   RX3
+//  8   D3                   TX3
+//  9   C3      FTM0_CH2     RX2 PWM
+// 10   C4      FTM0_CH3     TX2 PWM CS
+// 11   C6                   DOUT
+// 12   C7                   DIN
+// 13   C5      LED          SCK
+// 14   D1
+// 15   C0
+// 16   B0     (FTM1_CH0)
+// 17   B1     (FTM1_CH1)
+// 18   B3                   SDA0
+// 19   B2                   SCL0
+// 20   D5      FTM0_CH5     PWM
+// 21   D6      FTM0_CH6     PWM
+// 22   C1      FTM0_CH0     PWM
+// 23   C2      FTM0_CH1     PWM
+// 24   A5     (FTM0_CH2)
+// 25   B19                 (PWM - Teensy 3.1)
+// 26   E1
+// 27   C9
+// 28   C8
+// 29   C10                 (SCL1 - Teensy 3.1)
+// 30   C11                 (SDA1 - Teensy 3.1)
+// 31   E0
+// 32   B18                 (PWM - Teensy 3.1)
+// 33   A4    (FTM0_CH1)
+// 34          analog only
+// 35          analog only
+// 36          analog only
+// 37          analog only
+// 38          Temp Sensor
+// 39          Vref
+// 40          DAC/A14
 
 // not available to user:
-//	A0	FTM0_CH5	SWD Clock
-//	A1	FTM0_CH6	USB ID
-//	A2	FTM0_CH7	SWD Trace
-//	A3	FTM0_CH0	SWD Data
+//      A0      FTM0_CH5      SWD Clock
+//      A1      FTM0_CH6      USB ID
+//      A2      FTM0_CH7      SWD Trace
+//      A3      FTM0_CH0      SWD Data
+
+// Analog
+//  Pin   Pin   Name
+// -----------------
+// A0     14    D1
+// A1     15    C0
+// A2     16    B0
+// A3     17    B1
+// A4     18    B3
+// A5     19    B2
+// A6     20    D5
+// A7     21    D6
+// A8     22    C1
+// A9     23    C2
+// A10
+// A11
+// A12
+// A13
+// A14    DAC         (Teensy 3.1 Only)
+// A15    26    E1
+// A16    27    C9
+// A17    28    C8
+// A18    29    C10
+// A19    30    C11
+// A20    31    E0
+
 
