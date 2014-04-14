@@ -49,8 +49,8 @@
 //      A3      FTM0_CH0      SWD Data
 
 // Analog
-//  Pin   Pin   Name
-// -----------------
+//  Pin   Pin   Name   Channel
+// ---------------------------
 // A0     14    D1
 // A1     15    C0
 // A2     16    B0
@@ -65,7 +65,7 @@
 // A11
 // A12
 // A13
-// A14    DAC         (Teensy 3.1 Only)
+// A14    DAC                      (Teensy 3.1 Only)
 // A15    26    E1
 // A16    27    C9
 // A17    28    C8

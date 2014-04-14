@@ -400,21 +400,3 @@ void analogWriteDAC0(int val)
 #endif
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
