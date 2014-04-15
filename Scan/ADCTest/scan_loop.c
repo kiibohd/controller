@@ -67,8 +67,14 @@ volatile uint8_t KeyIndex_BufferUsed;
 // Scan Module command dictionary
 char*       scanCLIDictName = "ADC Test Module Commands";
 CLIDictItem scanCLIDict[] = {
-	{ "adc",     "Read the specified number of values from the ADC.", cliFunc_adc },
-	{ "adcInit", "Intialize/calibrate ADC. Arg 1 specifies the pin.", cliFunc_adcInit },
+#if defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+	{ "adc",     "Read the specified number of values from the ADC at the given pin: <pin> [# of reads]"
+	          NL "\t\t See \033[35mLib/pin_map.teensy3\033[0m for ADC0 channel number.", cliFunc_adc },
+	{ "adcInit", "Intialize/calibrate ADC: <ADC Resolution> <Vref> <Hardware averaging samples>"
+	          NL "\t\tADC Resolution -> 8, 10, 12, 16 (bit)"
+	          NL "\t\t          Vref -> 0 (1.2 V), 1 (External)"
+	          NL "\t\tHw Avg Samples -> 0 (disabled), 4, 8, 16, 32", cliFunc_adcInit },
+#endif
 #if defined(_mk20dx256_) // DAC is only supported on Teensy 3.1
 	{ "dac",     "Set DAC output value, from 0 to 4095 (1/4096 Vref to Vref).", cliFunc_dac },
 	{ "dacVref", "Set DAC Vref. 0 is 1.2V. 1 is 3.3V.", cliFunc_dacVref },
@@ -140,11 +146,11 @@ void cliFunc_echo( char* args )
 	char* arg1Ptr;
 	char* arg2Ptr = args;
 
-	print( NL ); // No \n by default after the command is entered
-
 	// Parse args until a \0 is found
 	while ( 1 )
 	{
+		print( NL ); // No \r\n by default after the command is entered
+
 		curArgs = arg2Ptr; // Use the previous 2nd arg pointer to separate the next arg from the list
 		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
 
@@ -177,7 +183,12 @@ void cliFunc_adc( char* args )
 
 	// Number of ADC samples to display
 	CLI_argumentIsolation( arg2Ptr, &arg1Ptr, &arg2Ptr );
-	int displayedADC = decToInt( arg1Ptr );
+
+	int displayedADC = 1; // Default to 1 read
+	if ( arg1Ptr ) // If there is an argument, use that instead
+	{
+		displayedADC = decToInt( arg1Ptr );
+	}
 
 	// Poll ADC until it gets a value, making sure to serve interrupts on each attempt
 	while ( displayedADC > 0 )
@@ -188,8 +199,15 @@ void cliFunc_adc( char* args )
 		if ( (ADC0_SC1A & ADC_SC1_COCO) )
 		{
 			int result = ADC0_RA;
+			print( NL );
 			printInt32( result );
 			displayedADC--;
+
+			// Prepare for another read
+			if ( displayedADC > 0 )
+			{
+				ADC0_SC1A = channel;
+			}
 		}
 
 		__enable_irq();
@@ -297,9 +315,9 @@ void cliFunc_adcInit( char* args )
 	sum = (sum / 2) | 0x8000;
 	ADC0_PG = sum;
 
-	info_msg("Calibration ADC0_PG (Plus-Side Gain Register) set to: ");
-	printInt16( sum );
 	print( NL );
+	info_msg("Calibration ADC0_PG (Plus-Side Gain Register)  set to: ");
+	printInt16( sum );
 
 	// ADC Minus-Side Gain Register
 	// XXX I don't think this is necessary when doing single-ended (as opposed to differential) -HaaTa
@@ -308,9 +326,9 @@ void cliFunc_adcInit( char* args )
 	sum = (sum / 2) | 0x8000;
 	ADC0_MG = sum;
 
+	print( NL );
 	info_msg("Calibration ADC0_MG (Minus-Side Gain Register) set to: ");
 	printInt16( sum );
-	print( NL );
 	__enable_irq(); // Re-enable interrupts
 }
 #endif
