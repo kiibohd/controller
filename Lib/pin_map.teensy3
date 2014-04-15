@@ -48,29 +48,28 @@
 //      A2      FTM0_CH7      SWD Trace
 //      A3      FTM0_CH0      SWD Data
 
-// Analog
-//  Pin   Pin   Name   Channel
-// ---------------------------
-// A0     14    D1
-// A1     15    C0
-// A2     16    B0
-// A3     17    B1
-// A4     18    B3
-// A5     19    B2
-// A6     20    D5
-// A7     21    D6
-// A8     22    C1
-// A9     23    C2
-// A10
-// A11
-// A12
-// A13
-// A14    DAC                      (Teensy 3.1 Only)
-// A15    26    E1
-// A16    27    C9
-// A17    28    C8
-// A18    29    C10
-// A19    30    C11
-// A20    31    E0
-
+// Analog              Channel     Channel
+//  Pin   Pin   Name   ADC0        ADC1
+// -----------------------------------------
+// A0     14    D1      5 (AD5b)
+// A1     15    C0     14 (AD14)
+// A2     16    B0      8 (AD8)     8 (AD8)
+// A3     17    B1      9 (AD9)     9 (AD9)
+// A4     18    B3     13 (AD13)
+// A5     19    B2     12 (AD12)
+// A6     20    D5      6 (AD6b)
+// A7     21    D6      7 (AD7b)
+// A8     22    C1     15 (AD15)
+// A9     23    C2      4 (AD4b)
+// A10                  0 (DAD0)    3 (DAD3)
+// A11                 19 (AD19)
+// A12                  3 (DAD3)    0 (DAD0)
+// A13                             19 (AD19)
+// A14    DAC          23 (AD23)              (Teensy 3.1 Only)
+// A15    26    E1                  5 (AD5a)
+// A16    27    C9                  5 (AD5b)
+// A17    28    C8                  4 (AD4b)
+// A18    29    C10                 6 (AD6b)
+// A19    30    C11                 7 (AD7b)
+// A20    31    E0                  4 (AD4a)
 
