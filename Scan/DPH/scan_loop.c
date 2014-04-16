@@ -21,6 +21,7 @@
 #include <Lib/ScanLib.h>
 
 // Project Includes
+#include <cli.h>
 #include <led.h>
 #include <print.h>
 
@@ -119,11 +120,25 @@
 
 
 
+// ----- Function Declarations -----
+
+void cliFunc_echo   ( char* args );
+
+
+
 // ----- Variables -----
 
 // Buffer used to inform the macro processing module which keys have been detected as pressed
 volatile uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
 volatile uint8_t KeyIndex_BufferUsed;
+
+
+// Scan Module command dictionary
+char*       scanCLIDictName = "DPH Module Commands";
+CLIDictItem scanCLIDict[] = {
+	{ "echo",    "Example command, echos the arguments.", cliFunc_echo },
+	{ 0, 0, 0 } // Null entry for dictionary end
+};
 
 
 // TODO dfj variables...needs cleaning up and commenting
@@ -195,6 +210,9 @@ uint8_t testColumn( uint8_t strobe );
 // Initial setup for cap sense controller
 inline void Scan_setup()
 {
+	// Register Scan CLI dictionary
+	CLI_registerDictionary( scanCLIDict, scanCLIDictName );
+
 	// TODO dfj code...needs cleanup + commenting...
 	setup_ADC();
 
@@ -970,5 +988,32 @@ void dump(void) {
 
 	dump_count++;
 	dump_count &= 0x0f;
+}
+
+
+// ----- CLI Command Functions -----
+
+// XXX Just an example command showing how to parse arguments (more complex than generally needed)
+void cliFunc_echo( char* args )
+{
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// Parse args until a \0 is found
+	while ( 1 )
+	{
+		print( NL ); // No \r\n by default after the command is entered
+
+		curArgs = arg2Ptr; // Use the previous 2nd arg pointer to separate the next arg from the list
+		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+		// Stop processing args if no more are found
+		if ( *arg1Ptr == '\0' )
+			break;
+
+		// Print out the arg
+		dPrint( arg1Ptr );
+	}
 }
 
