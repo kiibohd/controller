@@ -174,15 +174,15 @@ uint8_t dump_count = 0;
 
 // ----- Function Declarations -----
 
-void dump( void );
+void dump();
 
 void recovery( uint8_t on );
 
 int sampleColumn( uint8_t column );
 
-void capsense_scan( void );
+void capsense_scan();
 
-void setup_ADC( void );
+void setup_ADC();
 
 void strobe_w( uint8_t strobe_num );
 
@@ -294,11 +294,6 @@ inline void Scan_setup()
 	{
 		sampleColumn( strobe_map[i] );
 	}
-
-
-	// Reset the keyboard before scanning, we might be in a wierd state
-	// Also sets the KeyIndex_BufferUsed to 0
-	scan_resetKeyboard();
 }
 
 
