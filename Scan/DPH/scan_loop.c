@@ -139,7 +139,7 @@ volatile uint8_t KeyIndex_BufferUsed;
 char*       scanCLIDictName = "DPH Module Commands";
 CLIDictItem scanCLIDict[] = {
 	{ "echo",       "Example command, echos the arguments.", cliFunc_echo },
-	{ "keyDebug",   "Enables long debug for each keypress." NL "\t\tkeycode - [strobe:mux] : sense val : threshold+delta=total : margin", cliFunc_keyDebug },
+	{ "keyDebug",   "Enables/Disables long debug for each keypress." NL "\t\tkeycode - [strobe:mux] : sense val : threshold+delta=total : margin", cliFunc_keyDebug },
 	{ "senseDebug", "Prints out the current sense table N times." NL "\t\tsense:threshold:delta.", cliFunc_senseDebug },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
@@ -311,7 +311,6 @@ inline void Scan_setup()
 	// TODO
 #endif
 
-	// TODO all this code should probably be in Scan_resetKeyboard
 	for ( int i = 0; i < total_strobes; ++i)
 	{
 		cur_keymap[i] = 0;
@@ -916,10 +915,28 @@ uint8_t testColumn( uint8_t strobe )
 
 void dumpSenseTable()
 {
+	// Initial table alignment
+	print("           ");
+
+	// Print out headers first
+	for ( uint8_t mux = 0; mux < MUXES_COUNT; ++mux )
+	{
+		print("  Mux \033[1m");
+		printInt8( mux );
+		print("\033[0m  ");
+	}
+
+	print( NL );
+
 	// Display the full strobe/sense table
 	for ( uint8_t strober = 0; strober < total_strobes; ++strober )
 	{
 		uint8_t strobe = strobe_map[strober];
+
+		// Display the strobe
+		print("Strobe \033[1m");
+		printHex( strobe );
+		print("\033[0m ");
 
 		// For each mux, display sense:threshold:delta
 		for ( uint8_t mux = 0; mux < MUXES_COUNT; ++mux )
@@ -969,8 +986,19 @@ void cliFunc_echo( char* args )
 
 void cliFunc_keyDebug( char* args )
 {
+	print( NL );
+
 	// Args ignored, just toggling
-	enableKeyDebug = enableKeyDebug ? 0 : 1;
+	if ( enableKeyDebug )
+	{
+		info_print("Cap Sense key debug disabled.");
+		enableKeyDebug = 0;
+	}
+	else
+	{
+		info_print("Cap Sense key debug enabled.");
+		enableKeyDebug = 1;
+	}
 }
 
 void cliFunc_senseDebug( char* args )
