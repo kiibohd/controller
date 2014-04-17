@@ -122,7 +122,9 @@
 
 // ----- Function Declarations -----
 
-void cliFunc_echo   ( char* args );
+void cliFunc_echo      ( char* args );
+void cliFunc_keyDebug  ( char* args );
+void cliFunc_senseDebug( char* args );
 
 
 
@@ -136,9 +138,15 @@ volatile uint8_t KeyIndex_BufferUsed;
 // Scan Module command dictionary
 char*       scanCLIDictName = "DPH Module Commands";
 CLIDictItem scanCLIDict[] = {
-	{ "echo",    "Example command, echos the arguments.", cliFunc_echo },
+	{ "echo",       "Example command, echos the arguments.", cliFunc_echo },
+	{ "keyDebug",   "Enables long debug for each keypress." NL "\t\tkeycode - [strobe:mux] : sense val : threshold+delta=total : margin", cliFunc_keyDebug },
+	{ "senseDebug", "Prints out the current sense table N times." NL "\t\tsense:threshold:delta.", cliFunc_senseDebug },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
+
+// CLI Control Variables
+uint8_t enableKeyDebug  = 1; // XXX Debugging on by default for now -HaaTa
+uint8_t senseDebugCount = 0;
 
 
 // TODO dfj variables...needs cleaning up and commenting
@@ -152,9 +160,7 @@ uint8_t  high_count = 0;
 uint8_t   low_count = 0;
 
 
-uint8_t ze_strober = 0;
-
-uint16_t samples[MUXES_COUNT];
+uint16_t samples[MAX_STROBES][MUXES_COUNT];
 
 uint8_t cur_keymap[MAX_STROBES];
 
@@ -183,13 +189,11 @@ uint16_t error_data = 0;
 uint8_t total_strobes = MAX_STROBES;
 uint8_t strobe_map[MAX_STROBES];
 
-uint8_t dump_count = 0;
-
 
 
 // ----- Function Declarations -----
 
-void dump();
+void dumpSenseTable();
 
 void recovery( uint8_t on );
 
@@ -226,7 +230,8 @@ inline void Scan_setup()
 	// Hardcoded strobes for debugging
 	// Strobes start at 0 and go to 17 (18), not all Model Fs use all of the available strobes
 	// The single row ribbon connector Model Fs only have a max of 16 strobes
-#define KISHSAVER_STROBE
+#define KEYPAD_50KEY
+//#define KISHSAVER_STROBE
 //#define KISHSAVER_OLD_STROBE
 //#define TERMINAL_6110668_OLD_STROBE
 //#define UNSAVER_OLD_STROBE
@@ -254,6 +259,17 @@ inline void Scan_setup()
 	strobe_map[6] = 9;
 	strobe_map[7] = 8;
 	strobe_map[8] = 2; // Test point strobe (3 test points, sense 1, 4, 5)
+#elif defined(KEYPAD_50KEY)
+	total_strobes = 8;
+
+	strobe_map[0] = 14;
+	strobe_map[1] = 13;
+	strobe_map[2] = 12;
+	strobe_map[3] = 11;
+	strobe_map[4] = 10;
+	strobe_map[5] = 9;
+	strobe_map[6] = 8;
+	strobe_map[7] = 0;
 #elif defined(TERMINAL_6110668_OLD_STROBE)
 	total_strobes = 16;
 
@@ -340,10 +356,10 @@ inline uint8_t Scan_loop()
 		printHex(error_data);
 		error_data = 0;
 
-		// Display keymaps and other debug information if warmup completede
+		// Display sense table if warmup completede
 		if ( boot_count >= WARMUP_LOOPS )
 		{
-			dump();
+			dumpSenseTable();
 		}
 	}
 
@@ -417,12 +433,12 @@ inline void capsense_scan()
 		}
 
 		uint8_t strobe_line = map_strobe << MUXES_COUNT_XSHIFT;
-		for ( int i = 0; i < MUXES_COUNT; ++i )
+		for ( int mux = 0; mux < MUXES_COUNT; ++mux )
 		{
 			// discard sketchy low bit, and meaningless high bits.
-			uint8_t sample = samples[i] >> 1;
-			full_samples[strobe_line + i] = sample;
-			keys_averages_acc[strobe_line + i] += sample;
+			uint8_t sample = samples[map_strobe][mux] >> 1;
+			full_samples[strobe_line + mux] = sample;
+			keys_averages_acc[strobe_line + mux] += sample;
 		}
 
 		// Accumulate 3 total averages (used for determining starting average during warmup)
@@ -433,9 +449,9 @@ inline void capsense_scan()
 		//      low_avg - Average of all sampled lines below or equal to full_avg
 		if ( boot_count < WARMUP_LOOPS )
 		{
-			for ( uint8_t i = 0; i < MUXES_COUNT; ++i )
+			for ( uint8_t mux = 0; mux < MUXES_COUNT; ++mux )
 			{
-				uint8_t sample = samples[i] >> 1;
+				uint8_t sample = samples[map_strobe][mux] >> 1;
 
 				// Sample is high, add it to high avg
 				if ( sample > full_avg )
@@ -451,7 +467,7 @@ inline void capsense_scan()
 				}
 
 				// If sample is higher than previous high_avg, then mark as "problem key"
-				keys_problem[strobe_line + i] = sample > high_avg ? sample : 0;
+				keys_problem[strobe_line + mux] = sample > high_avg ? sample : 0;
 
 				// Prepare for next average
 				cur_full_avg += sample;
@@ -512,10 +528,10 @@ inline void capsense_scan()
 			break;
 		// Last loop
 		case WARMUP_STOP:
-			print("\n");
+			print( NL );
 			info_msg("Warmup finished using ");
 			printInt16( WARMUP_LOOPS );
-			print(" iterations\n");
+			print(" iterations" NL );
 
 			// Display the final calculated averages of all the sensed strobes
 			info_msg("Full average (");
@@ -532,7 +548,7 @@ inline void capsense_scan()
 			printInt8( low_count );
 			print("): ");
 			printHex( low_avg );
-			print("\n");
+			print( NL );
 
 			// Display problem keys, and the sense value at the time
 			for ( uint8_t key = 0; key < KEY_COUNT; key++ )
@@ -543,7 +559,7 @@ inline void capsense_scan()
 					printHex( key );
 					print(" (");
 					printHex( keys_problem[key] );
-					print(")\n");
+					print(")" NL );
 				}
 			}
 
@@ -581,9 +597,12 @@ inline void capsense_scan()
 				}
 			}
 
-			if ( boot_count >= WARMUP_LOOPS )
+			// If the debugging sense table is non-zero, display
+			if ( senseDebugCount > 0 )
 			{
-				dump();
+				senseDebugCount--;
+				print( NL );
+				dumpSenseTable();
 			}
 		}
 
@@ -721,7 +740,7 @@ inline uint16_t getADC(void)
 }
 
 
-int sampleColumn_8x( uint8_t column, uint16_t * buffer )
+int sampleColumn( uint8_t column )
 {
 	// ensure all probe lines are driven low, and chill for recovery delay.
 	ADCSRA |= (1 << ADEN) | (1 << ADSC); // enable and start conversions
@@ -751,7 +770,7 @@ int sampleColumn_8x( uint8_t column, uint16_t * buffer )
 		SET_FULL_MUX( mux + 1 ); // our *next* sample will use this
 
 		// retrieve current read.
-		buffer[mux] = getADC();
+		samples[column][mux] = getADC();
 		mux++;
 
 	} while ( mux < 8 );
@@ -775,16 +794,6 @@ int sampleColumn_8x( uint8_t column, uint16_t * buffer )
 }
 
 
-int sampleColumn( uint8_t column )
-{
-	int rval = 0;
-
-	rval = sampleColumn_8x( column, samples );
-
-	return rval;
-}
-
-
 uint8_t testColumn( uint8_t strobe )
 {
 	uint16_t db_delta = 0;
@@ -805,11 +814,11 @@ uint8_t testColumn( uint8_t strobe )
 		{
 			// If the sample value of the problem key goes below full_avg (overall initial average)
 			//  re-enable the key
-			if ( (db_sample = samples[mux] >> 1) < full_avg )
+			if ( (db_sample = samples[strobe][mux] >> 1) < full_avg )
 			{
 				info_msg("Re-enabling problem key: ");
 				printHex( key );
-				print("\n");
+				print( NL );
 
 				keys_problem[key] = 0;
 			}
@@ -822,7 +831,7 @@ uint8_t testColumn( uint8_t strobe )
 
 		// Keypress detected
 		//  db_sample (uint8_t), discard meaningless high bit, and garbage low bit
-		if ( (db_sample = samples[mux] >> 1) > (db_threshold = threshold) + (db_delta = delta) )
+		if ( (db_sample = samples[strobe][mux] >> 1) > (db_threshold = threshold) + (db_delta = delta) )
 		{
 			column |= bit;
 
@@ -849,28 +858,29 @@ uint8_t testColumn( uint8_t strobe )
 
 				keys_debounce[key]++;
 
-#define KEYSCAN_THRESHOLD_DEBUG
-#ifdef KEYSCAN_THRESHOLD_DEBUG
-				// Debug message
-				// <key> [<strobe>:<mux>] : <sense val> : <delta + threshold> : <margin>
-				dbug_msg("0x");
-				printHex_op( key, 2 );
-				print(" [");
-				printInt8( strobe );
-				print(":");
-				printInt8( mux );
-				print("] : ");
-				printHex( db_sample ); // Sense
-				print(" : ");
-				printHex( db_threshold );
-				print("+");
-				printHex( db_delta );
-				print("=");
-				printHex( db_threshold + db_delta ); // Sense compare
-				print(" : ");
-				printHex( db_sample - ( db_threshold + db_delta ) ); // Margin
-				print("\n");
-#endif
+				// Long form key debugging
+				if ( enableKeyDebug )
+				{
+					// Debug message
+					// <key> [<strobe>:<mux>] : <sense val> : <delta + threshold> : <margin>
+					dbug_msg("0x");
+					printHex_op( key, 2 );
+					print(" [");
+					printInt8( strobe );
+					print(":");
+					printInt8( mux );
+					print("] : ");
+					printHex( db_sample ); // Sense
+					print(" : ");
+					printHex( db_threshold );
+					print("+");
+					printHex( db_delta );
+					print("=");
+					printHex( db_threshold + db_delta ); // Sense compare
+					print(" : ");
+					printHex( db_sample - ( db_threshold + db_delta ) ); // Margin
+					print( NL );
+				}
 			}
 		}
 		// Clear debounce entry if no keypress detected
@@ -904,90 +914,30 @@ uint8_t testColumn( uint8_t strobe )
 }
 
 
-void dump(void) {
-
-#ifdef DEBUG_FULL_SAMPLES_AVERAGES
-	// we don't want to debug-out during the measurements.
-	if ( !dump_count )
+void dumpSenseTable()
+{
+	// Display the full strobe/sense table
+	for ( uint8_t strober = 0; strober < total_strobes; ++strober )
 	{
-		// Averages currently set per key
-		for ( int i = 0; i < KEY_COUNT; ++i )
-		{
-			if ( !(i & 0x0f) )
-			{
-				print("\n");
-			}
-			else if ( !(i & 0x07) )
-			{
-				print("  ");
-			}
+		uint8_t strobe = strobe_map[strober];
 
+		// For each mux, display sense:threshold:delta
+		for ( uint8_t mux = 0; mux < MUXES_COUNT; ++mux )
+		{
+			uint8_t delta = keys_averages[(strobe << MUXES_COUNT_XSHIFT) + mux];
+			uint8_t sample = samples[strobe][mux] >> 1; // TODO Make larger samples array (2d)
+
+			printHex_op( sample, 2 );
+			print(":");
+			printHex_op( threshold, 2 );
+			print(":");
+			printHex_op( delta, 2 );
 			print(" ");
-			printHex( keys_averages[i] );
 		}
 
-		print("\n");
-
-		// Previously read full ADC scans?
-		for ( int i = 0; i< KEY_COUNT; ++i)
-		{
-			if ( !(i & 0x0f) )
-			{
-				print("\n");
-			}
-			else if ( !(i & 0x07) )
-			{
-				print("  ");
-			}
-
-			print(" ");
-			printHex(full_samples[i]);
-		}
+		// New line for each strobe
+		print( NL );
 	}
-#endif
-
-#ifdef DEBUG_STROBE_SAMPLES_AVERAGES
-	// Per strobe information
-	uint8_t cur_strober = ze_strober;
-	print("\n");
-
-	printHex(cur_strober);
-
-	// Previously read ADC scans on current strobe
-	print(" :");
-	for ( uint8_t i = 0; i < MUXES_COUNT; ++i )
-	{
-		print(" ");
-		printHex(full_samples[(cur_strober << MUXES_COUNT_XSHIFT) + i]);
-	}
-
-	// Averages current set on current strobe
-	print(" :");
-
-	for ( uint8_t i = 0; i < MUXES_COUNT; ++i )
-	{
-		print(" ");
-		printHex(keys_averages[(cur_strober << MUXES_COUNT_XSHIFT) + i]);
-	}
-
-#endif
-
-#ifdef DEBUG_USB_KEYMAP
-	print("\n      ");
-
-	// Current keymap values
-	for ( uint8_t i = 0; i < total_strobes; ++i )
-	{
-		printHex(cur_keymap[i]);
-		print(" ");
-	}
-#endif
-
-	ze_strober++;
-	ze_strober &= 0xf;
-
-	dump_count++;
-	dump_count &= 0x0f;
 }
 
 
@@ -1014,6 +964,30 @@ void cliFunc_echo( char* args )
 
 		// Print out the arg
 		dPrint( arg1Ptr );
+	}
+}
+
+void cliFunc_keyDebug( char* args )
+{
+	// Args ignored, just toggling
+	enableKeyDebug = enableKeyDebug ? 0 : 1;
+}
+
+void cliFunc_senseDebug( char* args )
+{
+	// Parse code from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	// Default to a single print
+	senseDebugCount = 1;
+
+	// If there was an argument, use that instead
+	if ( *arg1Ptr != '\0' )
+	{
+		senseDebugCount = decToInt( arg1Ptr );
 	}
 }
 

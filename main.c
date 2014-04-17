@@ -160,7 +160,7 @@ int main(void)
 		// Acquire Key Indices
 		// Loop continuously until scan_loop returns 0
 		cli();
-		//while ( scan_loop() );
+		while ( Scan_loop() );
 		sei();
 
 		// Run Macros over Key Indices and convert to USB Keys
