@@ -1,4 +1,4 @@
-# Attempts to find libusb (not libusb-1.0)
+# Attempts to find libusb-1.0
 #
 #  LIBUSB_FOUND - system has libusb
 #  LIBUSB_INCLUDE_DIRS - the libusb include directory
@@ -48,18 +48,20 @@ if ( LIBUSB_LIBRARIES AND LIBUSB_INCLUDE_DIRS )
 else ()
 	find_path( LIBUSB_INCLUDE_DIR
 		NAMES
-			usb.h
+			libusb.h
 		PATHS
 			/usr/include
 			/usr/local/include
 			/opt/local/include
 			/sw/include
 			/include
+		PATH_SUFFIXES
+			libusb-1.0
 	)
 
 	find_library( LIBUSB_LIBRARY
 		NAMES
-			usb
+			usb-1.0
 		PATHS
 			/usr/lib
 			/usr/local/lib
@@ -83,7 +85,7 @@ else ()
 		endif ()
 	else ()
 		if ( LIBUSB_FIND_REQUIRED )
-			message( FATAL_ERROR "Could not find libusb" )
+			message( FATAL_ERROR "Could not find libusb-1.0" )
 		endif ()
 	endif ()
 

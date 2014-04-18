@@ -45,7 +45,6 @@ First make sure Cygwin is installed - http://www.cygwin.com/ - 32bit or 64bit is
 - git (needed for some compilation info)
 - cmake
 - gcc-core
-- gcc-g++ or gcc-c++
 
 And make sure CMake is *NOT* installed through Cygwin. This is extremely important.
 If this is not possible, you'll have to play with your paths in Cygwin to prioritize the Windows version of CMake.

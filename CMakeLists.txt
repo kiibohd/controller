@@ -25,8 +25,8 @@ set( CMAKE_USE_RELATIVE_PATHS  1 )
 #| "avr"       # Teensy++ 2.0
 #| "arm"       # Teensy   3.0
 #| "arm"       # Teensy   3.1
-set( COMPILER_FAMILY "arm" )
-#set( COMPILER_FAMILY "avr" )
+#set( COMPILER_FAMILY "arm" )
+set( COMPILER_FAMILY "avr" )
 
 message( STATUS "Compiler Family:" )
 message( "${COMPILER_FAMILY}" )

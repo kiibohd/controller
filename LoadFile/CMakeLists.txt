@@ -48,7 +48,7 @@ list( APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ) # Use local find scripts
 #| Linux - libusb
 if( CMAKE_SYSTEM_NAME MATCHES "Linux" )
 	# Find libusb (not 1.0)
-	find_package( LibUSB REQUIRED )
+	find_package( LibUSB-1.0 REQUIRED )
 
 	# Defines
 	set( DEFINES -s -DUSE_LIBUSB )
@@ -94,7 +94,7 @@ endif()
 #
 
 #| Default CFLAGS
-set( CFLAGS -O2 -Wall )
+set( CFLAGS -O2 -Wall -std=gnu99 )
 
 add_definitions( ${CFLAGS} ${DEFINES} )
 

@@ -198,106 +198,137 @@ int main(int argc, char **argv)
 
 #if defined(USE_LIBUSB)
 
-// http://libusb.sourceforge.net/doc/index.html
-#include <usb.h>
+#include <libusb-1.0/libusb.h>
 
-usb_dev_handle * open_usb_device(int vid, int pid)
+struct libusb_device_handle *open_usb_device( int vid, int pid )
 {
-	struct usb_bus *bus;
-	struct usb_device *dev;
-	usb_dev_handle *h;
-	char buf[128];
-	int r;
+	libusb_device **devs;
+	struct libusb_device_handle *handle = NULL;
+	struct libusb_device_handle *ret = NULL;
 
-	usb_init();
-	usb_find_busses();
-	usb_find_devices();
-	//printf_verbose("\nSearching for USB device:\n");
-	for (bus = usb_get_busses(); bus; bus = bus->next) {
-		for (dev = bus->devices; dev; dev = dev->next) {
-			//printf_verbose("bus \"%s\", device \"%s\" vid=%04X, pid=%04X\n",
-			//	bus->dirname, dev->filename,
-			//	dev->descriptor.idVendor,
-			//	dev->descriptor.idProduct
-			//);
-			if (dev->descriptor.idVendor != vid) continue;
-			if (dev->descriptor.idProduct != pid) continue;
-			h = usb_open(dev);
-			if (!h) {
-				printf_verbose("Found device but unable to open");
-				continue;
-			}
-			#ifdef LIBUSB_HAS_GET_DRIVER_NP
-			r = usb_get_driver_np(h, 0, buf, sizeof(buf));
-			if (r >= 0) {
-				r = usb_detach_kernel_driver_np(h, 0);
-				if (r < 0) {
-					usb_close(h);
-					printf_verbose("Device is in use by \"%s\" driver", buf);
-					continue;
-				}
-			}
-			#endif
-			// Mac OS-X - removing this call to usb_claim_interface() might allow
-			// this to work, even though it is a clear misuse of the libusb API.
-			// normally Apple's IOKit should be used on Mac OS-X
-			r = usb_claim_interface(h, 0);
-			if (r < 0) {
-				usb_close(h);
-				printf_verbose("Unable to claim interface, check USB permissions");
-				continue;
-			}
-			return h;
+	if ( libusb_init( NULL ) != 0 )
+		fprintf( stderr, "libusb_init failed.\n" );
+
+	size_t count = libusb_get_device_list( NULL, &devs );
+	if ( count < 0 )
+		fprintf( stderr, "libusb_get_device_list failed.\n" );
+
+	for ( size_t c = 0; c < count; c++ )
+	{
+		struct libusb_device_descriptor desc;
+		libusb_device *dev = devs[c];
+
+		if ( libusb_get_device_descriptor( dev, &desc ) < 0 )
+			fprintf( stderr, "libusb_get_device_descriptor failed.\n" );
+
+		//printf("ID: %04x  Product: %04x\n", desc.idVendor, desc.idProduct );
+		// Not correct device
+		if ( desc.idVendor != vid || desc.idProduct != pid )
+			continue;
+
+		// Attempt to open the device
+		if ( libusb_open( dev, &handle ) != 0 )
+		{
+			fprintf( stderr, "Found device but unable to open\n" );
+			continue;
 		}
+
+		// Only required on Linux, other platforms will just ignore this call
+		libusb_detach_kernel_driver( handle, 0 );
+
+		// Mac OS-X - removing this call to usb_claim_interface() might allow
+		// this to work, even though it is a clear misuse of the libusb API.
+		// normally Apple's IOKit should be used on Mac OS-X
+		// XXX Is this still valid with libusb-1.0?
+
+		// Attempt to claim interface
+		int err = libusb_claim_interface( handle, 0 );
+		if ( err < 0 )
+		{
+			libusb_close( handle );
+			fprintf( stderr, "Unable to claim interface, check USB permissions: %d\n", err );
+			continue;
+		}
+
+		ret = handle;
+		break;
 	}
-	return NULL;
+
+	libusb_free_device_list( devs, 1 );
+
+	return ret;
 }
 
-static usb_dev_handle *libusb_teensy_handle = NULL;
+static struct libusb_device_handle *libusb_teensy_handle = NULL;
 
-int teensy_open(void)
+int teensy_open()
 {
 	teensy_close();
-	libusb_teensy_handle = open_usb_device(0x16C0, 0x0478);
-	if (libusb_teensy_handle) return 1;
+
+	libusb_teensy_handle = open_usb_device( 0x16C0, 0x0478 );
+
+	if ( libusb_teensy_handle )
+		return 1;
+
 	return 0;
 }
 
-int teensy_write(void *buf, int len, double timeout)
+int teensy_write( void *buf, int len, double timeout )
 {
 	int r;
 
-	if (!libusb_teensy_handle) return 0;
-	while (timeout > 0) {
-		r = usb_control_msg(libusb_teensy_handle, 0x21, 9, 0x0200, 0,
-			(char *)buf, len, (int)(timeout * 1000.0));
-		if (r >= 0) return 1;
+	if ( !libusb_teensy_handle )
+		return 0;
+
+	while ( timeout > 0 ) {
+		r = libusb_control_transfer( libusb_teensy_handle,
+			0x21, 9, 0x0200, 0,
+			(unsigned char *)buf, len,
+			(int)(timeout * 1000.0) );
+
+		if ( r >= 0 )
+			return 1;
+
 		//printf("teensy_write, r=%d\n", r);
-		usleep(10000);
+		usleep( 10000 );
 		timeout -= 0.01;  // TODO: subtract actual elapsed time
 	}
+
 	return 0;
 }
 
-void teensy_close(void)
+void teensy_close()
 {
-	if (!libusb_teensy_handle) return;
-	usb_release_interface(libusb_teensy_handle, 0);
-	usb_close(libusb_teensy_handle);
+	if ( !libusb_teensy_handle)
+		return;
+
+	libusb_release_interface( libusb_teensy_handle, 0 );
+	libusb_close( libusb_teensy_handle );
+
 	libusb_teensy_handle = NULL;
 }
 
-int hard_reboot(void)
+int hard_reboot()
 {
-	usb_dev_handle *rebootor;
+	struct libusb_device_handle *rebootor;
 	int r;
 
-	rebootor = open_usb_device(0x16C0, 0x0477);
-	if (!rebootor) return 0;
-	r = usb_control_msg(rebootor, 0x21, 9, 0x0200, 0, "reboot", 6, 100);
-	usb_release_interface(rebootor, 0);
-	usb_close(rebootor);
-	if (r < 0) return 0;
+	rebootor = open_usb_device( 0x16C0, 0x0477 );
+
+	if (!rebootor)
+		return 0;
+
+	r = libusb_control_transfer( rebootor,
+		0x21, 9, 0x0200, 0,
+		(unsigned char*)"reboot", 6,
+		100 );
+
+	libusb_release_interface( rebootor, 0 );
+	libusb_close( rebootor );
+
+	if (r < 0)
+		return 0;
+
 	return 1;
 }
 
