@@ -46,7 +46,7 @@ set( SRCS
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ) # Use local find scripts
 
 #| Linux - libusb
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
+if( CMAKE_SYSTEM_NAME MATCHES "Linux" )
 	# Find libusb (not 1.0)
 	find_package( LibUSB REQUIRED )
 
@@ -60,7 +60,7 @@ if( ${CMAKE_SYSTEM_NAME} MATCHES "Linux" )
 	set( LIBS ${LIBUSB_LIBRARIES} )
 
 #| Windows
-elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+elseif( CMAKE_SYSTEM_NAME MATCHES "CYGWIN" )
 	message( AUTHOR_WARNING "Not Tested...")
 
 	# Defines
@@ -70,18 +70,21 @@ elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
 	set( LIBS hid setupapi )
 
 #| Mac OS X
-elseif( ${CMAKE_SYSTEM_NAME} MATCHES "Darwin" )
+elseif( CMAKE_SYSTEM_NAME MATCHES "Darwin" )
 	message( AUTHOR_WARNING "Not Tested...")
 
 	# Defines - XXX What is SDK?
 	set( DEFINES -DUSE_APPLE_IOKIT -isysroot ${SDK} -Wl,-syslibroot,${SDK} -framework IOKit -framework CoreFoundation )
 
 #| BSD - NetBSD and OpenBSD
-elseif( ${CMAKE_SYSTEM_NAME} MATCHES "BSD" )
+elseif( CMAKE_SYSTEM_NAME MATCHES "BSD" )
 	message( AUTHOR_WARNING "Not Tested...")
 
 	# Defines
 	set( DEFINES -s -DUSE_UHID )
+#| Unregonized OS
+else()
+	message( FATAL_ERROR "${CMAKE_SYSTEM_NAME}: OS Not Recognized..." )
 endif()
 
 
