@@ -157,7 +157,7 @@ add_custom_target( SizeAfter ALL
 
 #| Provides the user with the correct teensy-loader-cli command for the built .HEX file
 #| Windows
-if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+if( CMAKE_SYSTEM_NAME MATCHES "Windows" )
 	configure_file( LoadFile/winload load NEWLINE_STYLE UNIX )
 #| Default
 else()

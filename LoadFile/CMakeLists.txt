@@ -45,8 +45,8 @@ set( SRCS
 #
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ) # Use local find scripts
 
-#| Linux - libusb
-if( CMAKE_SYSTEM_NAME MATCHES "Linux" )
+#| Linux/Windows - libusb
+if( CMAKE_SYSTEM_NAME MATCHES "Linux" OR CMAKE_SYSTEM_NAME MATCHES "CYGWIN" )
 	# Find libusb (not 1.0)
 	find_package( LibUSB-1.0 REQUIRED )
 
@@ -58,16 +58,6 @@ if( CMAKE_SYSTEM_NAME MATCHES "Linux" )
 
 	# Libraries
 	set( LIBS ${LIBUSB_LIBRARIES} )
-
-#| Windows
-elseif( CMAKE_SYSTEM_NAME MATCHES "CYGWIN" )
-	message( AUTHOR_WARNING "Not Tested...")
-
-	# Defines
-	set( DEFINES -s -DUSE_WIN32 )
-
-	# Libraries
-	set( LIBS hid setupapi )
 
 #| Mac OS X
 elseif( CMAKE_SYSTEM_NAME MATCHES "Darwin" )

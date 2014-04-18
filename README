@@ -15,13 +15,12 @@ Below listed are the Arch Linux pacman names, AUR packages may be required.
 
 These depend a bit on which targets you are trying to build, but the general one:
 - cmake (2.8 and higher)
-- Teensy Loader (http://pjrc.com/teensy/loader.html)
 
 
 AVR Specific (Teensy 1.0/++,2.0/++) (try to use something recent, suggested versions below)
-- avr-gcc      (4.8.0)
-- avr-binutils (2.23.2)
-- avr-libc     (1.8.0)
+- avr-gcc      (~4.8.0)
+- avr-binutils (~2.23.2)
+- avr-libc     (~1.8.0)
 
 
 ARM Specific (Teensy 3.0/3.1) (Sourcery CodeBench Lite for ARM EABI
@@ -45,9 +44,8 @@ First make sure Cygwin is installed - http://www.cygwin.com/ - 32bit or 64bit is
 - git (needed for some compilation info)
 - cmake
 - gcc-core
-
-And make sure CMake is *NOT* installed through Cygwin. This is extremely important.
-If this is not possible, you'll have to play with your paths in Cygwin to prioritize the Windows version of CMake.
+- libusb1.0
+- libusb1.0-devel
 
 Also install the Windows version of CMake - http://cmake.org/cmake/resources/software.html
 This is in addition to the Cygwin version. This is an easier alternative to installing another C compiler.
@@ -55,6 +53,7 @@ Add the following line to your .bashrc, making sure the CMake path is correct:
   alias wincmake="PATH='/cygdrive/c/Program Files (x86)/CMake 2.8'/bin:\"${PATH}\" cmake"
 
 Next, install the compiler(s) you want.
+
 
  ---------
 | AVR GCC |
