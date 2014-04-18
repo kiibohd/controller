@@ -43,13 +43,17 @@ Compiling on Windows does work, just it's a bunch more work.
 First make sure Cygwin is installed - http://www.cygwin.com/ - 32bit or 64bit is fine. Make sure the following are installed:
 - make
 - git (needed for some compilation info)
+- cmake
+- gcc-core
+- gcc-g++ or gcc-c++
 
 And make sure CMake is *NOT* installed through Cygwin. This is extremely important.
 If this is not possible, you'll have to play with your paths in Cygwin to prioritize the Windows version of CMake.
 
-Install the latest version of CMake - http://cmake.org/cmake/resources/software.html
-Make sure to have CMake add itself to at least your PATH in the installer.
-(If this errors out, you'll have to add CMake to your .bashrc path).
+Also install the Windows version of CMake - http://cmake.org/cmake/resources/software.html
+This is in addition to the Cygwin version. This is an easier alternative to installing another C compiler.
+Add the following line to your .bashrc, making sure the CMake path is correct:
+  alias wincmake="PATH='/cygdrive/c/Program Files (x86)/CMake 2.8'/bin:\"${PATH}\" cmake"
 
 Next, install the compiler(s) you want.
 
@@ -304,7 +308,7 @@ Windows Building
 From this directory.
 mkdir build
 cd build
-cmake -G "Unix Makefiles" ..
+wincmake -G "Unix Makefiles" ..
 
 
 Example output:

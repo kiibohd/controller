@@ -25,8 +25,8 @@ set( CMAKE_USE_RELATIVE_PATHS  1 )
 #| "avr"       # Teensy++ 2.0
 #| "arm"       # Teensy   3.0
 #| "arm"       # Teensy   3.1
-#set( COMPILER_FAMILY "arm" )
-set( COMPILER_FAMILY "avr" )
+set( COMPILER_FAMILY "arm" )
+#set( COMPILER_FAMILY "avr" )
 
 message( STATUS "Compiler Family:" )
 message( "${COMPILER_FAMILY}" )
@@ -154,6 +154,13 @@ add_custom_target( SizeAfter ALL
 # Setup Loader Script and Program
 #
 
+
 #| Provides the user with the correct teensy-loader-cli command for the built .HEX file
-configure_file( LoadFile/load load )
+#| Windows
+if( ${CMAKE_SYSTEM_NAME} MATCHES "Windows" )
+	configure_file( LoadFile/winload load NEWLINE_STYLE UNIX )
+#| Default
+else()
+	configure_file( LoadFile/load load NEWLINE_STYLE UNIX )
+endif()
 
