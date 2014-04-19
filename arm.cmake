@@ -13,15 +13,9 @@
 
 #| Set the Compilers (must be set first)
 include( CMakeForceCompiler )
-cmake_force_c_compiler  ( arm-none-eabi-gcc AVRCCompiler )
-cmake_force_cxx_compiler( arm-none-eabi-g++ AVRCxxCompiler )
-
-
-#| Compiler Binaries
-set( OBJCOPY "arm-none-eabi-objcopy" )
-set( OBJDUMP "arm-none-eabi-objdump" )
-set( NM      "arm-none-eabi-nm"      )
-set( SIZE    "arm-none-eabi-size"    )
+cmake_force_c_compiler  ( arm-none-eabi-gcc ARMCCompiler )
+cmake_force_cxx_compiler( arm-none-eabi-g++ ARMCxxCompiler )
+set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
 
 
 

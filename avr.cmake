@@ -15,13 +15,7 @@
 include( CMakeForceCompiler )
 cmake_force_c_compiler  ( avr-gcc AVRCCompiler )
 cmake_force_cxx_compiler( avr-g++ AVRCxxCompiler )
-
-
-#| Compiler Binaries
-set( OBJCOPY "avr-objcopy" )
-set( OBJDUMP "avr-objdump" )
-set( NM      "avr-nm"      )
-set( SIZE    "avr-size"    )
+set( _CMAKE_TOOLCHAIN_PREFIX avr- )
 
 
 

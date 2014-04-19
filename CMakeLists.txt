@@ -36,6 +36,9 @@ message( "${COMPILER_FAMILY}" )
 #| Load the compiler family specific configurations
 include( ${COMPILER_FAMILY}.cmake )
 
+#| Binutils not set by CMake
+set( CMAKE_SIZE "${_CMAKE_TOOLCHAIN_PREFIX}size" )
+
 
 
 ###
@@ -114,7 +117,7 @@ set_target_properties( ${TARGET_ELF} PROPERTIES
 #| Convert the .ELF into a .HEX to load onto the Teensy
 set( TARGET_HEX ${TARGET}.hex )
 add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-	COMMAND ${OBJCOPY} ${HEX_FLAGS} ${TARGET_ELF} ${TARGET_HEX}
+	COMMAND ${CMAKE_OBJCOPY} ${HEX_FLAGS} ${TARGET_ELF} ${TARGET_HEX}
 	COMMENT "Creating load file for Flash:  ${TARGET_HEX}"
 )
 
@@ -122,7 +125,7 @@ add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 #| Generate the Extended .LSS
 set( TARGET_LSS ${TARGET}.lss )
 add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-	COMMAND ${OBJDUMP} ${LSS_FLAGS} ${TARGET_ELF} > ${TARGET_LSS}
+	COMMAND ${CMAKE_OBJDUMP} ${LSS_FLAGS} ${TARGET_ELF} > ${TARGET_LSS}
 	COMMENT "Creating Extended Listing:     ${TARGET_LSS}"
 )
 
@@ -130,7 +133,7 @@ add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 #| Generate the Symbol Table .SYM
 set( TARGET_SYM ${TARGET}.sym )
 add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-	COMMAND ${NM} -n ${TARGET_ELF} > ${TARGET_SYM}
+	COMMAND ${CMAKE_NM} -n ${TARGET_ELF} > ${TARGET_SYM}
 	COMMENT "Creating Symbol Table:         ${TARGET_SYM}"
 )
 
@@ -143,7 +146,7 @@ add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 #| After Changes Size Information
 #| TODO Do lookup on Flash and RAM sizes and do % used
 add_custom_target( SizeAfter ALL
-	COMMAND ${SIZE} --target=${FORMAT} ${TARGET_HEX} ${TARGET_ELF}
+	COMMAND ${CMAKE_SIZE} --target=${FORMAT} ${TARGET_HEX} ${TARGET_ELF}
 	DEPENDS ${TARGET_ELF}
 	COMMENT "Size after generation\n\tFlash Usage: data (hex)\n\t  RAM Usage: data (elf)"
 )
