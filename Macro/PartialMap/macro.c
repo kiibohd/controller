@@ -57,10 +57,10 @@ void cliFunc_macroDebug ( char* args );
 char*       macroCLIDictName = "Macro Module Commands (Not all commands fully work yet...)";
 CLIDictItem macroCLIDict[] = {
 	{ "capList",     "Prints an indexed list of all non USB keycode capabilities.", cliFunc_capList },
-	{ "capSelect",   "Triggers the specified capability. U10 - USB Code 0x0A. K11 - Keyboard Capability 0x0B. S10 - Scancode 0x0A", cliFunc_capSelect },
-	{ "lookComb",    "Do a lookup on the Combined map. S10 - Scancode 0x0A. U10 - USB Code 0x0A.", cliFunc_lookComb },
-	{ "lookDefault", "Do a lookup on the Default map. S10 - Scancode 0x0A.", cliFunc_lookDefault },
-	{ "lookPartial", "Do a lookup on the layered Partial maps. S10 - Scancode 0x0A. U10 - USB Code 0x0A.", cliFunc_lookPartial },
+	{ "capSelect",   "Triggers the specified capability." NL "\t\t\033[35mU10\033[0m USB Code 0x0A, \033[35mK11\033[0m Keyboard Capability 0x0B, \033[35mS12\033[0m Scancode 0x0C", cliFunc_capSelect },
+	{ "lookComb",    "Do a lookup on the Combined map." NL "\t\t\033[35mS10\033[0m Scancode 0x0A, \033[35mU11\033[0m USB Code 0x0B", cliFunc_lookComb },
+	{ "lookDefault", "Do a lookup on the Default map." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_lookDefault },
+	{ "lookPartial", "Do a lookup on the layered Partial maps." NL "\t\t\033[35mS10\033[0m Scancode 0x0A, \033[35mU11\033[0m USB Code 0x0B", cliFunc_lookPartial },
 	{ "macroDebug",  "Disables/Enables sending USB keycodes to the Output Module and prints U/K codes.", cliFunc_macroDebug },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };

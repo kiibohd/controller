@@ -60,8 +60,8 @@ CLIDictItem outputCLIDict[] = {
 	{ "readLEDs", "Read LED byte. See \033[35msetLEDs\033[0m.", cliFunc_readLEDs },
 	{ "sendKeys", "Send the prepared list of USB codes and modifier byte.", cliFunc_sendKeys },
 	{ "setKeys",  "Prepare a space separated list of USB codes (decimal). Waits until \033[35msendKeys\033[0m.", cliFunc_setKeys },
-	{ "setLEDs",  "Set LED byte: 1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc.", cliFunc_setLEDs },
-	{ "setMod",   "Set the modfier byte: 1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI", cliFunc_setMod },
+	{ "setLEDs",  "Set LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc.", cliFunc_setLEDs },
+	{ "setMod",   "Set the modfier byte:" NL "\t\t1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI", cliFunc_setMod },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
