@@ -36,6 +36,33 @@ message( STATUS "MCU Selected:" )
 message( "${MCU}" )
 
 
+#| Chip Size Database
+#| Teensy 1.0
+if ( "${CHIP}" MATCHES "at90usb162" )
+	set( SIZE_RAM      512 )
+	set( SIZE_FLASH  15872 )
+
+#| Teensy 2.0
+elseif ( "${CHIP}" MATCHES "atmega32u4" )
+	set( SIZE_RAM     2560 )
+	set( SIZE_FLASH  32256 )
+
+#| Teensy++ 1.0
+elseif ( "${CHIP}" MATCHES "at90usb646" )
+	set( SIZE_RAM     4096 )
+	set( SIZE_FLASH  64512 )
+
+#| Teensy++ 2.0
+elseif ( "${CHIP}" MATCHES "at90usb1286" )
+	set( SIZE_RAM     8192 )
+	set( SIZE_FLASH 130048 )
+
+#| Unknown AVR
+else ()
+	message( AUTHOR_WARNING "CHIP: ${CHIP} - Unknown AVR microcontroller" )
+endif ()
+
+
 #| Extra Compiler Sources
 #| Mostly for convenience functions like interrupt handlers
 set( COMPILER_SRCS

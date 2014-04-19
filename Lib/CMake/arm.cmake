@@ -33,6 +33,23 @@ message( "${CHIP}" )
 set( MCU "${CHIP}" ) # For loading script compatibility
 
 
+#| Chip Size Database
+#| Teensy 3.0
+if ( "${CHIP}" MATCHES "mk20dx128" )
+	set( SIZE_RAM    16384 )
+	set( SIZE_FLASH 131072 )
+
+#| Teensy 3.1
+elseif ( "${CHIP}" MATCHES "mk20dx256" )
+	set( SIZE_RAM    65536 )
+	set( SIZE_FLASH 262144 )
+
+#| Unknown ARM
+else ()
+	message( AUTHOR_WARNING "CHIP: ${CHIP} - Unknown ARM microcontroller" )
+endif ()
+
+
 #| Chip Base Type
 #| Automatically chosed based on the chip name.
 if ( "${CHIP}" MATCHES "^mk20dx.*$" )

@@ -1,0 +1,41 @@
+#!/bin/bash
+#| Jacob Alexander 2014
+#| Arg List
+#| 1 - size binary   (e.g. avr-size)
+#| 2 - target binary (e.g. ihex)
+#| 3 - binary file   (e.g. kiibohd.hex)
+#| 4 - total available (flash/ram) in bytes
+#| 5 - flash/ram
+
+
+# Looks for the data column, to get the flash/ram used (in bytes)
+# <size binary> --target=<target binary> <binary file> | cut -f2 | tail -n 1
+USED=$("$1" --target="$2" "$3" | cut -f2 | tail -n 1)
+
+# Calculates the total flash/ram used
+TOTAL="$4"
+PERCENTAGE=$((USED * 100 / TOTAL))
+
+# Size Colours
+# Red/Flashing - Almost full
+if (( PERCENTAGE > 95 )); then
+	COLOR="\t\033[1;5;31m"
+# Red - Getting full
+elif (( PERCENTAGE > 90 )); then
+	COLOR="\t\033[1;31m"
+
+# Yellow - Starting to fill up
+elif (( PERCENTAGE > 50 )); then
+	COLOR="\t\033[1;33m"
+
+# Green - Lots of room
+else
+	COLOR="\t\033[1;32m"
+fi
+
+# Displays Results
+NAME="$5"
+echo -e "\t\033[1m${NAME}\033[m: ${COLOR}${PERCENTAGE}%\033[m ${USED}/${TOTAL}\tbytes"
+
+exit 0
+

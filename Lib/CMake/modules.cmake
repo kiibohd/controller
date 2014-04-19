@@ -67,7 +67,6 @@ add_definitions(
 
 
 
-
 ###
 # Module Processing
 #
@@ -286,11 +285,11 @@ add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 #
 
 #| After Changes Size Information
-#| TODO Do lookup on Flash and RAM sizes and do % used
 add_custom_target( SizeAfter ALL
-	COMMAND ${CMAKE_SIZE} --target=${FORMAT} ${TARGET_HEX} ${TARGET_ELF}
+	COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} ${FORMAT} ${TARGET_ELF} ${SIZE_RAM}   " SRAM"
+	COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} ${FORMAT} ${TARGET_HEX} ${SIZE_FLASH} "Flash"
 	DEPENDS ${TARGET_ELF}
-	COMMENT "Size after generation\n\tFlash Usage: data (hex)\n\t  RAM Usage: data (elf)"
+	COMMENT "Chip usage for ${CHIP}"
 )
 
 
