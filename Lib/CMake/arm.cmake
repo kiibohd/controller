@@ -5,7 +5,7 @@
 #
 # Released into the Public Domain
 #
-# avr-gcc CMake Build Configuration
+# Freescale ARM CMake Build Configuration
 #
 ###
 
@@ -13,50 +13,62 @@
 
 #| Set the Compilers (must be set first)
 include( CMakeForceCompiler )
-cmake_force_c_compiler  ( avr-gcc AVRCCompiler )
-cmake_force_cxx_compiler( avr-g++ AVRCxxCompiler )
-set( _CMAKE_TOOLCHAIN_PREFIX avr- )
+cmake_force_c_compiler  ( arm-none-eabi-gcc ARMCCompiler )
+cmake_force_cxx_compiler( arm-none-eabi-g++ ARMCxxCompiler )
+set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
 
 
 
 ###
-# Atmel Defines and Linker Options
+# ARM Defines and Linker Options
 #
 
-#| MCU Name
-#| You _MUST_ set this to match the board you are using
-#| type "make clean" after changing this, so all files will be rebuilt
+#| Chip Name (Linker)
 #|
-#| "at90usb162"       # Teensy   1.0
-#| "atmega32u4"       # Teensy   2.0
-#| "at90usb646"       # Teensy++ 1.0
-#| "at90usb1286"      # Teensy++ 2.0
-#set( MCU "atmega32u4" )
-set( MCU "at90usb1286" )
+#| "mk20dx128"        # Teensy   3.0
+#| "mk20dx256"        # Teensy   3.1
 
-message( STATUS "MCU Selected:" )
-message( "${MCU}" )
+message( STATUS "Chip Selected:" )
+message( "${CHIP}" )
+set( MCU "${CHIP}" ) # For loading script compatibility
 
 
-#| Extra Compiler Sources
-#| Mostly for convenience functions like interrupt handlers
-set( COMPILER_SRCS
-	# XXX Not needed for avr-gcc
-)
+#| Chip Base Type
+#| Automatically chosed based on the chip name.
+if ( "${CHIP}" MATCHES "^mk20dx.*$" )
+	set( CHIP_FAMILY "mk20dx" )
+	message( STATUS "Chip Family:" )
+	message( "${CHIP_FAMILY}" )
+else ()
+	message( FATAL_ERROR "Unknown chip family: ${CHIP}" )
+endif ()
 
 
 #| CPU Type
-#| This is only informational for AVR microcontrollers
-#| The field can be determined by the microcontroller chip, but currently only one CPU type is used atm
-set( CPU "megaAVR" )
+#| You _MUST_ set this to match the board you are using
+#| type "make clean" after changing this, so all files will be rebuilt
+#|
+#| "cortex-m4"        # Teensy   3.0, 3.1
+set( CPU "cortex-m4" )
 
 message( STATUS "CPU Selected:" )
 message( "${CPU}" )
 
 
+#| Extra Compiler Sources
+#| Mostly for convenience functions like interrupt handlers
+set( COMPILER_SRCS
+	Lib/${CHIP_FAMILY}.c
+	Lib/delay.c
+)
+
+message( STATUS "Compiler Source Files:" )
+message( "${COMPILER_SRCS}" )
+
+
 #| USB Defines
 set( VENDOR_ID  "0x16C0" )
-set( PRODUCT_ID "0x047D" )
+set( PRODUCT_ID "0x0487" )
 
 
 #| Compiler flag to set the C Standard level.
@@ -69,18 +81,18 @@ set( CSTANDARD "-std=gnu99" )
 
 #| Warning Options
 #|  -Wall...:     warning level
-set( WARN "-Wall" )
+set( WARN "-Wall -g" )
 
 
 #| Tuning Options
-#|  -f...:        tuning, see GCC manual and avr-libc documentation
+#|  -f...:        tuning, see GCC manual
 #| NOTE: -fshort-wchar is specified to allow USB strings be passed conveniently
-set( TUNING "-funsigned-char -funsigned-bitfields -ffunction-sections -fpack-struct -fshort-enums" )
+set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar" )
 
 
 #| Optimization level, can be [0, 1, 2, 3, s].
 #|     0 = turn off optimization. s = optimize for size.
-#|     (Note: 3 is not always the best optimization level. See avr-libc FAQ.)
+#|     (Note: 3 is not always the best optimization level.)
 set( OPT "s" )
 
 
@@ -94,28 +106,24 @@ set( FORMAT "ihex" )
 #|   so your program will run at the correct speed.  You should also set this
 #|   variable to same clock speed.  The _delay_ms() macro uses this, and many
 #|   examples use this variable to calculate timings.  Do not add a "UL" here.
-set( F_CPU "16000000" )
+set( F_CPU "48000000" )
 
 
 #| Dependency Files
 #| Compiler flags to generate dependency files.
-set( GENDEPFLAGS "-MMD -MP" )
+set( GENDEPFLAGS "-MMD" )
 
 
 #| Compiler Flags
-add_definitions( "-mmcu=${MCU} -DF_CPU=${F_CPU} -D_${MCU}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS}" )
+add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS}" )
 
 
 #| Linker Flags
-set( LINKER_FLAGS "-mmcu=${MCU} -Wl,-Map=${TARGET}.map,--cref -Wl,--relax -Wl,--gc-sections" )
+set( LINKER_FLAGS "-mcpu=${CPU} -Wl,-Map=${TARGET}.map,--cref -Wl,--gc-sections -mthumb -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
 
 
 #| Hex Flags (XXX, CMake seems to have issues if you quote the arguments for the custom commands...)
-set( HEX_FLAGS -O ${FORMAT} -R .eeprom -R .fuse -R .lock -R .signature )
-
-
-#| Eep Flags (XXX, I've removed this target from the builds, but keeping the set line as a note)
-set( EEP_FLAGS -j .eeprom --set-section-flags=.eeprom="alloc,load" --change-section-lma .eeprom=0 --no-change-warnings -O ${FORMAT} )
+set( HEX_FLAGS -O ${FORMAT} -R .eeprom )
 
 
 #| Lss Flags

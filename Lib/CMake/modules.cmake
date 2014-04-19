@@ -9,48 +9,6 @@
 
 
 ###
-# Project Modules
-#
-
-#| Note: This is the only section you probably want to modify
-#| Each module is defined by it's own folder (e.g. Scan/Matrix represents the "Matrix" module)
-#| All of the modules must be specified, as they generate the sources list of files to compile
-#| Any modifications to this file will cause a complete rebuild of the project
-
-#| Please look at the {Scan,Macro,USB,Debug}/module.txt for information on the modules and how to create new ones
-
-##| Deals with acquiring the keypress information and turning it into a key index
-set(   ScanModule "DPH" )
-
-##| Provides the mapping functions for DefaultMap and handles any macro processing before sending to the OutputModule
-set(  MacroModule "PartialMap" )
-
-##| Sends the current list of usb key codes through USB HID
-set( OutputModule "pjrcUSB" )
-
-##| Debugging source to use, each module has it's own set of defines that it sets
-set(  DebugModule "full" )
-
-
-
-###
-# Keymap Configuration
-#
-
-##| If there are multiple DefaultMaps, it is defined here. If, the specified DefaultMap is not found, defaultMap.h is used.
-set(   DefaultMap "kishsaver" )
-
-##| PartialMap combined keymap layering. The first keymap has the "least" precedence.
-set(  CombinedMap colemak capslock2ctrl )
-
-##| ParitalMaps available on top of the CombinedMap. If there are input conflicts, the last PartialMap takes precedence.
-set(  PartialMaps hhkbnav kbdctrl )
-
-##| MacroSets define extra capabilities that are not provided by the Scan or Output modules. Last MacroSet takes precedence.
-set(    MacroSets retype )
-
-
-###
 # Module Overrides (Used in the buildall.bash script)
 #
 if ( ( DEFINED ScanModuleOverride ) AND ( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Scan/${ScanModuleOverride} ) )
@@ -244,4 +202,111 @@ set( GitLastCommitDate "${Git_Modified_Status} ${Git_Branch_INFO} - ${Git_Date_I
 #| Uses CMake variables to include as defines
 #| Primarily for USB configuration
 configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/Lib/_buildvars.h buildvars.h )
+
+
+
+###
+# Source Defines
+#
+set( SRCS
+	${MAIN_SRCS}
+	${COMPILER_SRCS}
+	${SCAN_SRCS}
+	${MACRO_SRCS}
+	${OUTPUT_SRCS}
+	${DEBUG_SRCS}
+)
+
+#| Directories to include by default
+include_directories( ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} )
+
+
+
+###
+# Module Compatibility Check
+#
+
+#| Check for whether the set modules are compatible with the specified compiler family
+ModuleCompatibility( ${ScanModulePath}   ${ScanModuleCompatibility}   )
+ModuleCompatibility( ${MacroModulePath}  ${MacroModuleCompatibility}  )
+ModuleCompatibility( ${OutputModulePath} ${OutputModuleCompatibility} )
+ModuleCompatibility( ${DebugModulePath}  ${DebugModuleCompatibility}  )
+
+
+
+###
+# CMake Module Checking
+#
+find_package( Git REQUIRED )
+
+
+###
+# Build Targets
+#
+
+#| Create the .ELF file
+set( TARGET_ELF ${TARGET}.elf )
+add_executable( ${TARGET_ELF} ${SRCS} )
+
+
+#| .ELF Properties
+set_target_properties( ${TARGET_ELF} PROPERTIES
+	LINK_FLAGS ${LINKER_FLAGS}
+	SUFFIX ""                               # XXX Force Windows to keep the .exe off
+)
+
+
+#| Convert the .ELF into a .HEX to load onto the Teensy
+set( TARGET_HEX ${TARGET}.hex )
+add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+	COMMAND ${CMAKE_OBJCOPY} ${HEX_FLAGS} ${TARGET_ELF} ${TARGET_HEX}
+	COMMENT "Creating load file for Flash:  ${TARGET_HEX}"
+)
+
+
+#| Generate the Extended .LSS
+set( TARGET_LSS ${TARGET}.lss )
+add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+	COMMAND ${CMAKE_OBJDUMP} ${LSS_FLAGS} ${TARGET_ELF} > ${TARGET_LSS}
+	COMMENT "Creating Extended Listing:     ${TARGET_LSS}"
+)
+
+
+#| Generate the Symbol Table .SYM
+set( TARGET_SYM ${TARGET}.sym )
+add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+	COMMAND ${CMAKE_NM} -n ${TARGET_ELF} > ${TARGET_SYM}
+	COMMENT "Creating Symbol Table:         ${TARGET_SYM}"
+)
+
+
+
+###
+# Size Information
+#
+
+#| After Changes Size Information
+#| TODO Do lookup on Flash and RAM sizes and do % used
+add_custom_target( SizeAfter ALL
+	COMMAND ${CMAKE_SIZE} --target=${FORMAT} ${TARGET_HEX} ${TARGET_ELF}
+	DEPENDS ${TARGET_ELF}
+	COMMENT "Size after generation\n\tFlash Usage: data (hex)\n\t  RAM Usage: data (elf)"
+)
+
+
+
+###
+# Setup Loader Script and Program
+#
+
+
+#| Provides the user with the correct teensy-loader-cli command for the built .HEX file
+#| Windows
+if( CMAKE_SYSTEM_NAME MATCHES "Windows" )
+	configure_file( LoadFile/winload load NEWLINE_STYLE UNIX )
+#| Default
+else()
+	configure_file( LoadFile/load load NEWLINE_STYLE UNIX )
+endif()
+
 

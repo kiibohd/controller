@@ -81,84 +81,32 @@ Use the installer and make sure you add the binaries to your path within the ins
 
 
 ----------------------
-Selecting Architecture
+Selecting Microcontroller
 ----------------------
 
-This is where you choose which architecture you want to build for.
-The options are:
- - Teensy 1.0   (Not tested)
- - Teensy 1.0++ (Not tested)
- - Teensy 2.0
- - Teensy 2.0++
- - Teensy 3.0
- - Teensy 3.1
+This is where you select the chip you want to compile for.
+The build system will automatically select the compiler needed to compile for your chip.
 
 Open up CMakeLists.txt in your favourite text editor.
 You are looking for:
 
 	###
-	Compiler Family
+	# Chip Selection
 	#
 
-	#| Specify the compiler family to use
-	#| Currently only supports AVR and ARM
-	#| "avr"       # Teensy   1.0
-	#| "avr"       # Teensy   2.0
-	#| "avr"       # Teensy++ 1.0
-	#| "avr"       # Teensy++ 2.0
-	#| "arm"       # Teensy   3.0
-	#| "arm"       # Teensy   3.1
-
-	set( COMPILER_FAMILY "avr" )
-
-
-Just change the COMPILER_FAMILY variable to whatever you are trying to build for.
-
-NOTE: If you change this option, you will *may* to delete the build directory that is created in the Building sections below.
-
-
-
-----------------------
-Selecting Microcontroller
-----------------------
-
-Even if you selected the "avr" family of microcontroller architectures, you will still need to specify a target microcontroller (or once more ARM microcontrollers are supported).
-
-Open up avr.cmake (or arm.cmake) in your favourite text editor.
-You are looking for:
-
-	###
-	# Atmel Defines and Linker Options
-	#
-
-	#| MCU Name
-	#| You _MUST_ set this to match the board you are using
-	#| type "make clean" after changing this, so all files will be rebuilt
+	#| You _MUST_ set this to match the microcontroller you are trying to compile for
+	#| You _MUST_ clean the build directory if you change this value
 	#|
-	#| "at90usb162"       # Teensy   1.0
-	#| "atmega32u4"       # Teensy   2.0
-	#| "at90usb646"       # Teensy++ 1.0
-	#| "at90usb1286"      # Teensy++ 2.0
+	set( CHIP
+	#	"at90usb162"       # Teensy   1.0 (avr)
+	#	"atmega32u4"       # Teensy   2.0 (avr)
+	#	"at90usb646"       # Teensy++ 1.0 (avr)
+		"at90usb1286"      # Teensy++ 2.0 (avr)
+	#	"mk20dx128"        # Teensy   3.0 (arm)
+	#	"mk20dx256"        # Teensy   3.1 (arm)
+	)
 
-	set( MCU "at90usb1286" )
-
-*OR*
-
-	###
-	# ARM Defines and Linker Options
-	#
-
-	#| Chip Name (Linker)
-	#| You _MUST_ set this to match the board you are using
-	#| type "make clean" after changing this, so all files will be rebuilt
-	#|
-	#| "mk20dx128"        # Teensy   3.0
-	#| "mk20dx256"        # Teensy   3.1
-
-	set( CHIP "mk20dx128" )
-
-
-Just change the CHIP variable to the microcontroller you are trying to build for.
+Just uncomment the chip you want, and comment out the old one.
 
 NOTE: If you change this option, you will *need* to delete the build directory that is created in the Building sections below.
 
@@ -201,7 +149,7 @@ The Debug Module enables various things like the Teensy LED on errors, debug ter
 
 
 
-Open up setup.cmake in your favourite text editor.
+Open up CMakeLists.txt in your favourite text editor.
 Look for:
 
 	###
