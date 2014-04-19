@@ -26,6 +26,7 @@
 
 // Project Includes
 #include <led.h>
+#include <macro.h>
 #include <print.h>
 
 // Local Includes
@@ -95,6 +96,15 @@ void uart0_status_isr(void)
 
 // ----- Functions -----
 
+// Reset Keyboard
+void Scan_resetKeyboard( void )
+{
+	// Not a calculated valued...
+	_delay_ms( 50 );
+
+	KeyIndex_BufferUsed = 0;
+}
+
 // Setup
 inline void Scan_setup()
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
@@ -117,7 +127,7 @@ inline void Scan_setup()
 	UCSR1C = 0x26;
 
 	// Reset the keyboard before scanning, we might be in a wierd state
-	scan_resetKeyboard();
+	Scan_resetKeyboard();
 }
 #elif defined(_mk20dx128_) // ARM
 {
@@ -172,7 +182,7 @@ inline void Scan_setup()
 	NVIC_ENABLE_IRQ( IRQ_UART0_STATUS );
 
 	// Reset the keyboard before scanning, we might be in a wierd state
-	scan_resetKeyboard();
+	Scan_resetKeyboard();
 }
 #endif
 
@@ -367,14 +377,5 @@ void Scan_lockKeyboard( void )
 // NOTE: Does nothing with the MBC-55x
 void Scan_unlockKeyboard( void )
 {
-}
-
-// Reset Keyboard
-void Scan_resetKeyboard( void )
-{
-	// Not a calculated valued...
-	_delay_ms( 50 );
-
-	KeyIndex_BufferUsed = 0;
 }
 

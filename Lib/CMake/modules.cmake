@@ -259,7 +259,7 @@ set_target_properties( ${TARGET_ELF} PROPERTIES
 set( TARGET_HEX ${TARGET}.hex )
 add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 	COMMAND ${CMAKE_OBJCOPY} ${HEX_FLAGS} ${TARGET_ELF} ${TARGET_HEX}
-	COMMENT "Creating load file for Flash:  ${TARGET_HEX}"
+	COMMENT "Creating iHex file to load:    ${TARGET_HEX}"
 )
 
 
@@ -276,6 +276,12 @@ set( TARGET_SYM ${TARGET}.sym )
 add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 	COMMAND ${CMAKE_NM} -n ${TARGET_ELF} > ${TARGET_SYM}
 	COMMENT "Creating Symbol Table:         ${TARGET_SYM}"
+)
+
+
+#| Compiler Selection Record
+add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+	COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/writer compiler ${COMPILER_FAMILY}
 )
 
 
