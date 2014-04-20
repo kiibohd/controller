@@ -62,6 +62,7 @@ Next, install the compiler(s) you want.
 You just need the Atmel AVR 8-bit Toolchain. The latest should be fine, as of writing it was 3.4.3.
 
 http://www.atmel.com/tools/atmelavrtoolchainforwindows.aspx
+(Atmel AVR 8-bit Toolchain 3.4.3 - Windows)
 
 Extract the files to a directory, say C:\avr8-gnu-toolchain. Then copy all the folders in that directory to the Cygwin directory.
 Mine is C:\cygwin64.
