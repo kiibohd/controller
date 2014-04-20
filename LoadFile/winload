@@ -5,7 +5,7 @@ if [ ! -e teensy-loader-cli/teensy-loader-cli ]; then
 	# Compile teensy-loader-cli
 	mkdir -p teensy-loader-cli
 	cd teensy-loader-cli
-	cmake -G "Unix Makefiles" @CMAKE_SOURCE_DIR@/LoadFile
+	cmake -G "Unix Makefiles" $(cygpath -u @CMAKE_SOURCE_DIR@/LoadFile)
 	make
 	cd -
 fi
