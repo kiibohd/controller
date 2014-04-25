@@ -23,6 +23,7 @@
 // Project Includes
 #include <cli.h>
 #include <led.h>
+#include <macro.h>
 #include <print.h>
 
 // Local Includes
@@ -805,7 +806,7 @@ void testColumn( uint8_t strobe )
 					// Only add the key to the buffer once
 					// NOTE: Buffer can easily handle multiple adds, just more efficient
 					//        and nicer debug messages :P
-					//Macro_bufferAdd( key );
+					Macro_bufferAdd( key );
 				}
 
 				keys_debounce[key]++;
