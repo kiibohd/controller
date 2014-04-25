@@ -120,11 +120,12 @@
 // ----- Function Declarations -----
 
 // CLI Functions
-void cliFunc_avgDebug  ( char* args );
-void cliFunc_echo      ( char* args );
-void cliFunc_keyDebug  ( char* args );
-void cliFunc_pressDebug( char* args );
-void cliFunc_senseDebug( char* args );
+void cliFunc_avgDebug   ( char* args );
+void cliFunc_echo       ( char* args );
+void cliFunc_keyDebug   ( char* args );
+void cliFunc_pressDebug ( char* args );
+void cliFunc_problemKeys( char* args );
+void cliFunc_senseDebug ( char* args );
 
 // Debug Functions
 void dumpSenseTable();
@@ -153,11 +154,12 @@ volatile uint8_t KeyIndex_BufferUsed;
 // Scan Module command dictionary
 char*       scanCLIDictName = "DPH Module Commands";
 CLIDictItem scanCLIDict[] = {
-	{ "echo",       "Example command, echos the arguments.", cliFunc_echo },
-	{ "avgDebug",   "Enables/Disables averaging results." NL "\t\tDisplays each average, starting from Key 0x00, ignoring 0 valued averages.", cliFunc_avgDebug },
-	{ "keyDebug",   "Enables/Disables long debug for each keypress." NL "\t\tkeycode - [strobe:mux] : sense val : threshold+delta=total : margin", cliFunc_keyDebug },
-	{ "pressDebug", "Enables/Disables short debug for each keypress.", cliFunc_pressDebug },
-	{ "senseDebug", "Prints out the current sense table N times." NL "\t\tsense:max sense:delta", cliFunc_senseDebug },
+	{ "echo",        "Example command, echos the arguments.", cliFunc_echo },
+	{ "avgDebug",    "Enables/Disables averaging results." NL "\t\tDisplays each average, starting from Key 0x00, ignoring 0 valued averages.", cliFunc_avgDebug },
+	{ "keyDebug",    "Enables/Disables long debug for each keypress." NL "\t\tkeycode - [strobe:mux] : sense val : threshold+delta=total : margin", cliFunc_keyDebug },
+	{ "pressDebug",  "Enables/Disables short debug for each keypress.", cliFunc_pressDebug },
+	{ "problemKeys", "Display current list of problem keys,", cliFunc_problemKeys },
+	{ "senseDebug",  "Prints out the current sense table N times." NL "\t\tsense:max sense:delta", cliFunc_senseDebug },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -206,9 +208,77 @@ inline void Scan_setup()
 	// Register Scan CLI dictionary
 	CLI_registerDictionary( scanCLIDict, scanCLIDictName );
 
-	// TODO dfj code...needs cleanup + commenting...
-	setup_ADC();
+	// Scan for active strobes
+	// NOTE1: On IBM PCBs, each strobe line that is *NOT* used is connected to GND.
+	//       This means, the strobe GPIO can be set to Tri-State pull-up to detect which strobe lines are not used.
+	// NOTE2: This will *NOT* detect floating strobes.
+	// NOTE3: Rev 0.4, the strobe numbers are reversed, so D0 is actually strobe 0 and C7 is strobe 17
+	DDRC  = 0;
+	PORTC = C_MASK;
+	DDRD  = 0;
+	PORTD = D_MASK;
+	DDRE  = 0;
+	PORTE = E_MASK;
 
+	// Initially there are 0 strobes
+	total_strobes = 0;
+
+	// Iterate over each the strobes
+	for ( uint8_t strobe = 0; strobe < MAX_STROBES; strobe++ )
+	{
+		uint8_t detected = 0;
+
+		// If PIN is high, then strobe is *NOT* connected to GND and may be a strobe
+		switch ( strobe )
+		{
+
+		// Strobe Mappings
+		//              Rev  Rev
+		//              0.2  0.4
+#ifndef REV0_4_DEBUG // XXX These pins should be reworked, and connect to GND on Rev 0.4
+		case 0:  // D0   0   n/c
+		case 1:  // D1   1   n/c
+#endif
+		case 2:  // D2   2   15
+		case 3:  // D3   3   14
+		case 4:  // D4   4   13
+		case 5:  // D5   5   12
+		case 6:  // D6   6   11
+		case 7:  // D7   7   10
+			detected = PIND & (1 << strobe);
+			break;
+
+		case 8:  // E0   8    9
+		case 9:  // E1   9    8
+			detected = PINE & (1 << (strobe - 8));
+			break;
+
+		case 10: // C0  10    7
+		case 11: // C1  11    6
+		case 12: // C2  12    5
+		case 13: // C3  13    4
+		case 14: // C4  14    3
+		case 15: // C5  15    2
+#ifndef REV0_2_DEBUG // XXX If not using the 18 pin connector on Rev 0.2, rework these pins to GND
+		case 16: // C6  16    1
+		case 17: // C7  17    0
+#endif
+			detected = PINC & (1 << (strobe - 10));
+			break;
+
+		default:
+			break;
+		}
+
+		// Potential strobe line detected
+		if ( detected )
+		{
+			strobe_map[total_strobes] = strobe;
+			total_strobes++;
+		}
+	}
+
+	// Setup Pins for Strobing
 	DDRC  = C_MASK;
 	PORTC = 0;
 	DDRD  = D_MASK;
@@ -216,89 +286,8 @@ inline void Scan_setup()
 	DDRE  = E_MASK;
 	PORTE = 0 ;
 
-	// Hardcoded strobes for debugging
-	// Strobes start at 0 and go to 17 (18), not all Model Fs use all of the available strobes
-	// The single row ribbon connector Model Fs only have a max of 16 strobes
-#define KEYPAD_50KEY
-//#define KISHSAVER_STROBE
-//#define KISHSAVER_OLD_STROBE
-//#define TERMINAL_6110668_OLD_STROBE
-//#define UNSAVER_OLD_STROBE
-#ifdef KISHSAVER_OLD_STROBE
-	total_strobes = 9;
-
-	strobe_map[0] = 2; // Kishsaver doesn't use strobe 0 and 1
-	strobe_map[1] = 3;
-	strobe_map[2] = 4;
-	strobe_map[3] = 5;
-	strobe_map[4] = 6;
-	strobe_map[5] = 7;
-	strobe_map[6] = 8;
-	strobe_map[7] = 9;
-	strobe_map[8] = 15; // Test point strobe (3 test points, sense 1, 4, 5)
-#elif defined(KISHSAVER_STROBE)
-	total_strobes = 9;
-
-	strobe_map[0] = 15; // Kishsaver doesn't use strobe 0 and 1
-	strobe_map[1] = 14;
-	strobe_map[2] = 13;
-	strobe_map[3] = 12;
-	strobe_map[4] = 11;
-	strobe_map[5] = 10;
-	strobe_map[6] = 9;
-	strobe_map[7] = 8;
-	strobe_map[8] = 2; // Test point strobe (3 test points, sense 1, 4, 5)
-#elif defined(KEYPAD_50KEY)
-	total_strobes = 8;
-
-	strobe_map[0] = 14;
-	strobe_map[1] = 13;
-	strobe_map[2] = 12;
-	strobe_map[3] = 11;
-	strobe_map[4] = 10;
-	strobe_map[5] = 9;
-	strobe_map[6] = 8;
-	strobe_map[7] = 0;
-#elif defined(TERMINAL_6110668_OLD_STROBE)
-	total_strobes = 16;
-
-	strobe_map[0] = 0;
-	strobe_map[1] = 1;
-	strobe_map[2] = 2;
-	strobe_map[3] = 3;
-	strobe_map[4] = 4;
-	strobe_map[5] = 5;
-	strobe_map[6] = 6;
-	strobe_map[7] = 7;
-	strobe_map[8] = 8;
-	strobe_map[9] = 9;
-	strobe_map[10] = 10;
-	strobe_map[11] = 11;
-	strobe_map[12] = 12;
-	strobe_map[13] = 13;
-	strobe_map[14] = 14;
-	strobe_map[15] = 15;
-#elif defined(UNSAVER_OLD_STROBE)
-	total_strobes = 14;
-
-	strobe_map[0] = 0;
-	strobe_map[1] = 1;
-	strobe_map[2] = 2;
-	strobe_map[3] = 3;
-	strobe_map[4] = 4;
-	strobe_map[5] = 5;
-	strobe_map[6] = 6;
-	strobe_map[7] = 7;
-	strobe_map[8] = 8;
-	strobe_map[9] = 9;
-	strobe_map[10] = 10;
-	strobe_map[11] = 11;
-	strobe_map[12] = 12;
-	strobe_map[13] = 13;
-#else
-	// Strobe detection
-	// TODO
-#endif
+	// Initialize ADC
+	setup_ADC();
 
 	// Reset debounce table
 	for ( int i = 0; i < KEY_COUNT; ++i )
@@ -989,6 +978,30 @@ void cliFunc_pressDebug( char* args )
 	{
 		info_print("Cap Sense key debug enabled - post debounce.");
 		enablePressDebug = 1;
+	}
+}
+
+void cliFunc_problemKeys( char* args )
+{
+	print( NL );
+
+	uint8_t count = 0;
+
+	// Args ignored, just displaying
+	// Display problem keys, and the sense value at the time
+	for ( uint8_t key = 0; key < KEY_COUNT; key++ )
+	{
+		if ( keys_problem[key] )
+		{
+			if ( count++ == 0 )
+			{
+				warn_msg("Problem keys: ");
+			}
+			printHex( key );
+			print(" (");
+			printHex( keys_problem[key] );
+			print(")   "  );
+		}
 	}
 }
 
