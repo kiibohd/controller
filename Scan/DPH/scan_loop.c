@@ -213,6 +213,8 @@ inline void Scan_setup()
 	//       This means, the strobe GPIO can be set to Tri-State pull-up to detect which strobe lines are not used.
 	// NOTE2: This will *NOT* detect floating strobes.
 	// NOTE3: Rev 0.4, the strobe numbers are reversed, so D0 is actually strobe 0 and C7 is strobe 17
+	info_msg("Detecting Strobes...");
+
 	DDRC  = 0;
 	PORTC = C_MASK;
 	DDRD  = 0;
@@ -277,6 +279,9 @@ inline void Scan_setup()
 			total_strobes++;
 		}
 	}
+
+	printInt8( total_strobes );
+	print( " strobes found." NL );
 
 	// Setup Pins for Strobing
 	DDRC  = C_MASK;
@@ -398,7 +403,8 @@ inline void capsense_scan()
 				}
 
 				// If sample is higher than previous high_avg, then mark as "problem key"
-				keys_problem[strobe_line + mux] = sample > high_avg ? sample : 0;
+				// XXX Giving a bit more margin to pass (high_avg vs. high_avg + high_avg - full_avg) -HaaTa
+				keys_problem[strobe_line + mux] = sample > high_avg + (high_avg - full_avg) ? sample : 0;
 
 				// Prepare for next average
 				cur_full_avg += sample;
@@ -462,6 +468,9 @@ inline void capsense_scan()
 			printInt8( low_count );
 			print("): ");
 			printHex( low_avg );
+
+			print("  Rejection threshold: ");
+			printHex( high_avg + (high_avg - full_avg) );
 			print( NL );
 
 			// Display problem keys, and the sense value at the time
