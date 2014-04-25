@@ -43,18 +43,8 @@
 
 #define ADHSM 7
 
-#define RIGHT_JUSTIFY 0
-#define LEFT_JUSTIFY (0xff)
-
-// set left or right justification here:
-#define JUSTIFY_ADC RIGHT_JUSTIFY
-#define ADLAR_MASK (1 << ADLAR)
-
-#ifdef JUSTIFY_ADC
-#define ADLAR_BITS ((ADLAR_MASK) & (JUSTIFY_ADC))
-#else // defaults to right justification.
+// Right justification of ADLAR
 #define ADLAR_BITS 0
-#endif
 
 // full muxmask
 #define FULL_MUX_MASK ((1 << MUX0) | (1 << MUX1) | (1 << MUX2) | (1 << MUX3) | (1 << MUX4))
@@ -79,10 +69,17 @@
 // Number of consecutive samples required to pass debounce
 #define DEBOUNCE_THRESHOLD 5
 
+// Scans to remain idle after all keys were release before starting averaging
+// XXX So this makes the initial keypresses fast,
+//      but it's still possible to lose a keypress if you press at the wrong time -HaaTa
+#define KEY_IDLE_SCANS 30000
+
+// Total number of muxes/sense lines available
 #define MUXES_COUNT 8
 #define MUXES_COUNT_XSHIFT 3
 
-#define WARMUP_LOOPS ( 2048 )
+// Number of warm-up loops before starting to scan keys
+#define WARMUP_LOOPS ( 1024 )
 #define WARMUP_STOP (WARMUP_LOOPS - 1)
 
 #define SAMPLE_CONTROL 3
@@ -99,7 +96,6 @@
 // mix in 1/4 of the current average to the running average. -> (@mux_mix = 2)
 #define MUX_MIX 2
 
-#define IDLE_COUNT_MASK 0xff
 #define IDLE_COUNT_SHIFT 8
 
 // av = (av << shift) - av + sample; av >>= shift
@@ -182,8 +178,9 @@ uint8_t   low_count = 0;
 uint16_t samples[MAX_STROBES][MUXES_COUNT];   // Overall table of cap sense ADC values
 uint16_t sampleMax[MAX_STROBES][MUXES_COUNT]; // Records the max seen ADC value
 
-uint8_t key_activity = 0; // Increments for each detected key per each full scan of the keyboard, it is reset before each full scan
-uint8_t key_release  = 0; // Indicates if going from key press state to release state (some keys pressed to no keys pressed)
+uint8_t  key_activity = 0; // Increments for each detected key per each full scan of the keyboard, it is reset before each full scan
+uint16_t key_idle     = 0; // Defines how scans after all keys were released before starting averaging again
+uint8_t  key_release  = 0; // Indicates if going from key press state to release state (some keys pressed to no keys pressed)
 
 uint16_t threshold = THRESHOLD;
 
@@ -495,41 +492,50 @@ inline void capsense_scan()
 		// No keypress, accumulate averages
 		if( !key_activity )
 		{
-			// Average Debugging
-			if ( enableAvgDebug )
+			// Only start averaging once the idle counter has counted down to 0
+			if ( key_idle == 0 )
 			{
-				print("\033[1mAvg\033[0m: ");
-			}
+				// Average Debugging
+				if ( enableAvgDebug )
+				{
+					print("\033[1mAvg\033[0m: ");
+				}
 
-			// aggregate
-			for ( uint8_t i = 0; i < KEY_COUNT; ++i )
-			{
-				uint16_t acc = keys_averages_acc[i];
-				//uint16_t acc = keys_averages_acc[i] >> IDLE_COUNT_SHIFT; // XXX This fixes things... -HaaTa
-				uint32_t av = keys_averages[i];
+				// aggregate
+				for ( uint8_t i = 0; i < KEY_COUNT; ++i )
+				{
+					uint16_t acc = keys_averages_acc[i];
+					//uint16_t acc = keys_averages_acc[i] >> IDLE_COUNT_SHIFT; // XXX This fixes things... -HaaTa
+					uint32_t av = keys_averages[i];
 
-				av = (av << KEYS_AVERAGES_MIX_SHIFT) - av + acc;
-				av >>= KEYS_AVERAGES_MIX_SHIFT;
+					av = (av << KEYS_AVERAGES_MIX_SHIFT) - av + acc;
+					av >>= KEYS_AVERAGES_MIX_SHIFT;
 
-				keys_averages[i] = av;
-				keys_averages_acc[i] = 0;
+					keys_averages[i] = av;
+					keys_averages_acc[i] = 0;
+
+					// Average Debugging
+					if ( enableAvgDebug && av > 0 )
+					{
+						printHex( av );
+						print(" ");
+					}
+				}
 
 				// Average Debugging
-				if ( enableAvgDebug && av > 0 )
+				if ( enableAvgDebug )
 				{
-					printHex( av );
-					print(" ");
+					print( NL );
 				}
-			}
 
-			// Average Debugging
-			if ( enableAvgDebug )
+				// No key presses detected, set key_release indicator
+				key_release = 1;
+			}
+			// Otherwise decrement the idle counter
+			else
 			{
-				print( NL );
+				key_idle--;
 			}
-
-			// No key presses detected, set key_release indicator
-			key_release = 1;
 		}
 		// Keypresses, reset accumulators
 		else if ( key_release )
@@ -779,6 +785,7 @@ void testColumn( uint8_t strobe )
 		{
 			column |= bit;
 			key_activity++; // No longer idle, stop averaging ADC data
+			key_idle = KEY_IDLE_SCANS; // Reset idle count-down
 
 			// Only register keypresses once the warmup is complete, or not enough debounce info
 			if ( keys_debounce[key] <= DEBOUNCE_THRESHOLD )
