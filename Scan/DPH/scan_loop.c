@@ -324,8 +324,6 @@ inline uint8_t Scan_loop()
 // NOTE: Only really required for implementing "tricks" in converters for odd protocols
 void Scan_finishedWithBuffer( uint8_t sentKeys )
 {
-	// Convenient place to clear the KeyIndex_Buffer
-	KeyIndex_BufferUsed = 0;
 	return;
 }
 
@@ -821,7 +819,7 @@ void testColumn( uint8_t strobe )
 				// Debug message
 				// <key> [<strobe>:<mux>] : <sense val> : <delta + threshold> : <margin>
 				dbug_msg("0x");
-				printHex_op( key, 2 );
+				printHex_op( key, 1 );
 				print(" [");
 				printInt8( strobe );
 				print(":");
@@ -843,22 +841,10 @@ void testColumn( uint8_t strobe )
 		else
 		{
 			// If the key was previously pressed, remove from the buffer
-			for ( uint8_t c = 0; c < KeyIndex_BufferUsed; c++ )
-                        {
-                                // Key to release found
-                                if ( KeyIndex_Buffer[c] == key )
-                                {
-                                        // Shift keys from c position
-                                        for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
-                                                KeyIndex_Buffer[k] = KeyIndex_Buffer[k + 1];
-
-                                        // Decrement Buffer
-                                        KeyIndex_BufferUsed--;
-
-                                        break;
-                                }
-                        }
-
+			if ( KeyIndex_BufferUsed > 0 && keys_debounce[key] >= DEBOUNCE_THRESHOLD )
+			{
+				Macro_bufferRemove( key );
+			}
 
 			// Clear debounce entry
 			keys_debounce[key] = 0;

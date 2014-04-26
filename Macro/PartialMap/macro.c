@@ -79,8 +79,43 @@ inline void Macro_bufferAdd( uint8_t byte )
 	// Default function for adding keys to the KeyIndex_Buffer, does a DefaultMap_Lookup
 	if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER )
 	{
-		KeyIndex_Buffer[KeyIndex_BufferUsed++] = DefaultMap_Lookup[byte];
+		uint8_t key = DefaultMap_Lookup[byte];
+		for ( uint8_t c = 0; c < KeyIndex_BufferUsed; c++ )
+		{
+			// Key already in the buffer
+			if ( KeyIndex_Buffer[c] == key )
+				return;
+		}
+
+		// Add to the buffer
+		KeyIndex_Buffer[KeyIndex_BufferUsed++] = key;
 	}
+}
+
+inline void Macro_bufferRemove( uint8_t byte )
+{
+	uint8_t key = DefaultMap_Lookup[byte];
+
+	// Check for the released key, and shift the other keys lower on the buffer
+	for ( uint8_t c = 0; c < KeyIndex_BufferUsed; c++ )
+	{
+		// Key to release found
+		if ( KeyIndex_Buffer[c] == key )
+		{
+			// Shift keys from c position
+			for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
+				KeyIndex_Buffer[k] = KeyIndex_Buffer[k + 1];
+
+			// Decrement Buffer
+			KeyIndex_BufferUsed--;
+
+			return;
+		}
+	}
+
+	// Error case (no key to release)
+	erro_msg("Could not find key to release: ");
+	printHex( key );
 }
 
 inline void Macro_finishWithUSBBuffer( uint8_t sentKeys )
@@ -96,11 +131,13 @@ inline void Macro_process()
 	// Loop through input buffer
 	for ( uint8_t index = 0; index < KeyIndex_BufferUsed; index++ )
 	{
+		//print(" KEYS: ");
+		//printInt8( KeyIndex_BufferUsed );
 		// Get the keycode from the buffer
 		uint8_t key = KeyIndex_Buffer[index];
 
 		// Set the modifier bit if this key is a modifier
-		if ( key & KEY_LCTRL ) // AND with 0xE0
+		if ( (key & KEY_LCTRL) == KEY_LCTRL ) // AND with 0xE0
 		{
 			USBKeys_Modifiers |= 1 << (key ^ KEY_LCTRL); // Left shift 1 by key XOR 0xE0
 

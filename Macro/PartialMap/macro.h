@@ -40,6 +40,7 @@
 // ----- Functions -----
 
 void Macro_bufferAdd( uint8_t byte );
+void Macro_bufferRemove( uint8_t byte );
 void Macro_finishWithUSBBuffer( uint8_t sentKeys );
 void Macro_process();
 void Macro_setup();
