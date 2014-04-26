@@ -484,7 +484,8 @@ inline void capsense_scan()
 				}
 			}
 
-			info_print("If problem keys were detected, and were being held down, they will be reset as soon as let go");
+			info_print("If problem keys were detected, and were being held down, they will be reset as soon as let go.");
+			info_print("Some keys have unusually high sense values, on the first press they should be re-enabled.");
 			break;
 		}
 	}
@@ -765,9 +766,10 @@ void testColumn( uint8_t strobe )
 		// Check if this is a bad key (e.g. test point, or non-existent key)
 		if ( keys_problem[key] )
 		{
-			// If the sample value of the problem key goes below full_avg (overall initial average)
+			// If the sample value of the problem key goes above initally recorded result + threshold
 			//  re-enable the key
-			if ( (db_sample = samples[strobe][mux] >> 1) < full_avg )
+			if ( (db_sample = samples[strobe][mux] >> 1) > keys_problem[key] + threshold )
+			//if ( (db_sample = samples[strobe][mux] >> 1) < high_avg )
 			{
 				info_msg("Re-enabling problem key: ");
 				printHex( key );
