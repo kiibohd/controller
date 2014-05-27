@@ -44,6 +44,7 @@ First make sure Cygwin is installed - http://www.cygwin.com/ - 32bit or 64bit is
 - git (needed for some compilation info)
 - cmake
 - gcc-core
+- gcc-g++
 - libusb1.0
 - libusb1.0-devel
 
@@ -51,6 +52,9 @@ Also install the Windows version of CMake - http://cmake.org/cmake/resources/sof
 This is in addition to the Cygwin version. This is an easier alternative to installing another C compiler.
 Add the following line to your .bashrc, making sure the CMake path is correct:
   alias wincmake="PATH='/cygdrive/c/Program Files (x86)/CMake 2.8'/bin:\"${PATH}\" cmake"
+
+Install the PJRC Virtual Serial Port Driver:
+(http://pjrc.com/teensy/serial_install.exe)
 
 Next, install the compiler(s) you want.
 
@@ -76,6 +80,11 @@ Mine is C:\cygwin64.
 Download the latest version of Mentor Graphics Sourcery CodeBench ARM EABI.
 
 http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/
+
+Look for "Download the EABI Release".
+Enter your info to get the download link.
+Select the most recent download.
+Then download the "IA32 Windows Installer".
 
 Use the installer and make sure you add the binaries to your path within the installer.
 
@@ -241,9 +250,16 @@ Example output:
 Linux Loading Firmware
 ----------------------
 
-The 'load' script that is created during the build can load the firmware over USB.
-It uses sudo, so make sure you have the priviledges.
+First place the keyboard into re-flash mode.
+This can be done either by pressing the re-flash button on the PCB/Teensy.
+Or by entering the Kiibohd Virtual Serial Port and using the 'reload' command.
 
+The 'load' script that is created during the build can load the firmware over USB.
+Either run it with sudo, or install the 98-kiibohd.rules to /etc/udev/rules.d
+ and run: udevadm control --reload-rules
+
+
+To load the newly built firmware:
 ./load
 
 
@@ -312,7 +328,18 @@ Example output:
 Windows Loading Firmware
 ----------------------
 
-TODO
+First place the keyboard into re-flash mode.
+This can be done either by pressing the re-flash button on the PCB/Teensy.
+Or by entering the Kiibohd Virtual Serial Interface and using the 'reload' command.
+
+The 'load' script that is created during the build can load the firmware over USB.
+
+To load the newly built firmware:
+./load
+
+Be patient the couple of times, Windows is slow at installing drivers...
+
+
 
 ----------------------
 Mac OS X Building
@@ -320,11 +347,14 @@ Mac OS X Building
 
 TODO
 
+
+
 ----------------------
 Mac OS X Loading Firmware
 ----------------------
 
 TODO
+
 
 
 ----------------------
@@ -334,20 +364,27 @@ Virtual Serial Port - CLI
 Rather than use a special program that can interpret Raw HID, this controller exposes a USB Serial CDC endpoint.
 This allows for you to use a generic serial terminal to debug/control the keyboard firmware (e.g. Tera Term, minicom, screen)
 
+
  -------
 | Linux |
  -------
 
 I generally use screen.
+You will need sudo/root priviledges if you haven't installed the 98-kiibohd.rules file to /etc/udev/rules.d 
 
-sudo screen /dev/ttyACM0
+screen /dev/ttyACM0
+(Might be ACM1, ACM2, etc.)
 
 
  ---------
 | Windows |
  ---------
 
-TODO Probably COM1, but not exactly sure. Tera Term.
+Make sure the Teensy Virtual Serial Port driver is installed.
+If possible use screen (as part of Cygwin).
+
+screen /dev/ttyS3
+(Might be a different file, ttyS0, ttyACM0, ttyUSB0, etc.)
 
 
  ----------
