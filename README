@@ -386,6 +386,11 @@ If possible use screen (as part of Cygwin).
 screen /dev/ttyS3
 (Might be a different file, ttyS0, ttyACM0, ttyUSB0, etc.)
 
+Gnu screen doesn't seem to echo all the characters (it works though).
+I believe it's a problem with stty, but I don't know how to fix it...
+
+putty works well when using DTR/DSR or RTS/CTS flow control.
+
 
  ----------
 | Mac OS X |
