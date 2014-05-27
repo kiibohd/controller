@@ -11,7 +11,7 @@ if [ ! -e teensy-loader-cli/teensy-loader-cli ]; then
 fi
 
 #| Loads the hex file onto the teensy
-sudo teensy-loader-cli/teensy-loader-cli -mmcu=@MCU@ -w @TARGET_HEX@
+teensy-loader-cli/teensy-loader-cli -mmcu=@MCU@ -w @TARGET_HEX@
 
 exit 0
 
