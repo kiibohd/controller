@@ -48,10 +48,13 @@ First make sure Cygwin is installed - http://www.cygwin.com/ - 32bit or 64bit is
 - libusb1.0
 - libusb1.0-devel
 
+Please note, I use cygwin term exclusively for any command line options. Unless mentioned otherwise use it.
+Do NOT use CMD or Powershell.
+
 Also install the Windows version of CMake - http://cmake.org/cmake/resources/software.html
 This is in addition to the Cygwin version. This is an easier alternative to installing another C compiler.
 Add the following line to your .bashrc, making sure the CMake path is correct:
-  alias wincmake="PATH='/cygdrive/c/Program Files (x86)/CMake 2.8'/bin:\"${PATH}\" cmake"
+  echo "alias wincmake=\"PATH='/cygdrive/c/Program Files (x86)/CMake 2.8'/bin:\"${PATH}\" cmake" >> ~/.bashrc
 
 Install the PJRC Virtual Serial Port Driver:
 (http://pjrc.com/teensy/serial_install.exe)
@@ -272,6 +275,7 @@ From this directory.
 mkdir build
 cd build
 wincmake -G "Unix Makefiles" ..
+make
 
 
 Example output:
@@ -370,7 +374,7 @@ This allows for you to use a generic serial terminal to debug/control the keyboa
  -------
 
 I generally use screen.
-You will need sudo/root priviledges if you haven't installed the 98-kiibohd.rules file to /etc/udev/rules.d 
+You will need sudo/root priviledges if you haven't installed the 98-kiibohd.rules file to /etc/udev/rules.d
 
 screen /dev/ttyACM0
 (Might be ACM1, ACM2, etc.)
