@@ -49,9 +49,9 @@ extern                       uint8_t USBKeys_Sent;
 extern volatile              uint8_t USBKeys_LEDs;
 
                 static const uint8_t USBKeys_MaxSize = USB_MAX_KEY_SEND;
+extern volatile              uint8_t USBKeys_Protocol; // 0 - Boot Mode, 1 - NKRO Mode
 
 // Misc variables (XXX Some are only properly utilized using AVR)
-extern                       uint8_t USBKeys_Protocol;
 extern                       uint8_t USBKeys_Idle_Config;
 extern                       uint8_t USBKeys_Idle_Count;
 

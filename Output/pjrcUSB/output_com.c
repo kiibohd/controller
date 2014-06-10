@@ -45,23 +45,23 @@
 
 // ----- Function Declarations -----
 
-void cliFunc_readLEDs  ( char* args );
-void cliFunc_sendKeys  ( char* args );
-void cliFunc_setKeys   ( char* args );
-void cliFunc_setLEDs   ( char* args );
-void cliFunc_setMod    ( char* args );
+void cliFunc_kbdProtocol( char* args );
+void cliFunc_readLEDs   ( char* args );
+void cliFunc_sendKeys   ( char* args );
+void cliFunc_setKeys    ( char* args );
+void cliFunc_setMod     ( char* args );
 
 
 // ----- Variables -----
 
 // Output Module command dictionary
-char*       outputCLIDictName = "USB Module Commands (Not all commands fully work yet...)";
+char*       outputCLIDictName = "USB Module Commands";
 CLIDictItem outputCLIDict[] = {
-	{ "readLEDs", "Read LED byte. See \033[35msetLEDs\033[0m.", cliFunc_readLEDs },
-	{ "sendKeys", "Send the prepared list of USB codes and modifier byte.", cliFunc_sendKeys },
-	{ "setKeys",  "Prepare a space separated list of USB codes (decimal). Waits until \033[35msendKeys\033[0m.", cliFunc_setKeys },
-	{ "setLEDs",  "Set LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc.", cliFunc_setLEDs },
-	{ "setMod",   "Set the modfier byte:" NL "\t\t1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI", cliFunc_setMod },
+	{ "kbdProtocol", "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode", cliFunc_kbdProtocol },
+	{ "readLEDs",    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc.", cliFunc_readLEDs },
+	{ "sendKeys",    "Send the prepared list of USB codes and modifier byte.", cliFunc_sendKeys },
+	{ "setKeys",     "Prepare a space separated list of USB codes (decimal). Waits until \033[35msendKeys\033[0m.", cliFunc_setKeys },
+	{ "setMod",      "Set the modfier byte:" NL "\t\t1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI", cliFunc_setMod },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -83,10 +83,10 @@ CLIDictItem outputCLIDict[] = {
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t USBKeys_LEDs = 0;
 
-// protocol setting from the host.  We use exactly the same report
-// either way, so this variable only stores the setting since we
-// are required to be able to report which setting is in use.
-         uint8_t USBKeys_Protocol = 1;
+// Protocol setting from the host.
+// 0 - Boot Mode (Default, until set by the host)
+// 1 - NKRO Mode
+volatile uint8_t USBKeys_Protocol = 1;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
@@ -201,10 +201,18 @@ inline void Output_softReset()
 
 // ----- CLI Command Functions -----
 
+void cliFunc_kbdProtocol( char* args )
+{
+	print( NL );
+	info_msg("Keyboard Protocol: ");
+	printInt8( USBKeys_Protocol );
+}
+
+
 void cliFunc_readLEDs( char* args )
 {
 	print( NL );
-	info_msg("LED State: ");
+	info_msg("LED State (This doesn't work yet...): ");
 	printInt8( USBKeys_LEDs );
 }
 
@@ -242,18 +250,6 @@ void cliFunc_setKeys( char* args )
 		// Add the USB code to be sent
 		USBKeys_ArrayCLI[USBKeys_SentCLI] = decToInt( arg1Ptr );
 	}
-}
-
-
-void cliFunc_setLEDs( char* args )
-{
-	// Parse number from argument
-	//  NOTE: Only first argument is used
-	char* arg1Ptr;
-	char* arg2Ptr;
-	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
-
-	USBKeys_LEDs = decToInt( arg1Ptr );
 }
 
 

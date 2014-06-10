@@ -43,7 +43,7 @@ include( Lib/CMake/initialize.cmake )
 #| All of the modules must be specified, as they generate the sources list of files to compile
 #| Any modifications to this file will cause a complete rebuild of the project
 
-#| Please look at the {Scan,Macro,USB,Debug}/module.txt for information on the modules and how to create new ones
+#| Please look at the {Scan,Macro,Output,Debug} for information on the modules and how to create new ones
 
 ##| Deals with acquiring the keypress information and turning it into a key index
 set(   ScanModule "DPH" )

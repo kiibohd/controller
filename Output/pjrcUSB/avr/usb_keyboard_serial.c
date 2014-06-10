@@ -26,432 +26,108 @@
 #include "usb_keyboard_serial.h"
 
 
-// ----- Functions -----
-
-// Set the avr into firmware reload mode
-void usb_debug_reload()
-{
-	cli();
-	// Disable watchdog, if enabled
-	// Disable all peripherals
-
-	UDCON = 1;
-	USBCON = (1 << FRZCLK);  // Disable USB
-	UCSR1B = 0;
-	_delay_ms( 5 );
-
-#if defined(__AVR_AT90USB162__)                // Teensy 1.0
-	EIMSK = 0; PCICR = 0; SPCR = 0; ACSR = 0; EECR = 0;
-	TIMSK0 = 0; TIMSK1 = 0; UCSR1B = 0;
-	DDRB = 0; DDRC = 0; DDRD = 0;
-	PORTB = 0; PORTC = 0; PORTD = 0;
-	asm volatile("jmp 0x3E00");
-#elif defined(__AVR_ATmega32U4__)              // Teensy 2.0
-	EIMSK = 0; PCICR = 0; SPCR = 0; ACSR = 0; EECR = 0; ADCSRA = 0;
-	TIMSK0 = 0; TIMSK1 = 0; TIMSK3 = 0; TIMSK4 = 0; UCSR1B = 0; TWCR = 0;
-	DDRB = 0; DDRC = 0; DDRD = 0; DDRE = 0; DDRF = 0; TWCR = 0;
-	PORTB = 0; PORTC = 0; PORTD = 0; PORTE = 0; PORTF = 0;
-	asm volatile("jmp 0x7E00");
-#elif defined(__AVR_AT90USB646__)              // Teensy++ 1.0
-	EIMSK = 0; PCICR = 0; SPCR = 0; ACSR = 0; EECR = 0; ADCSRA = 0;
-	TIMSK0 = 0; TIMSK1 = 0; TIMSK2 = 0; TIMSK3 = 0; UCSR1B = 0; TWCR = 0;
-	DDRA = 0; DDRB = 0; DDRC = 0; DDRD = 0; DDRE = 0; DDRF = 0;
-	PORTA = 0; PORTB = 0; PORTC = 0; PORTD = 0; PORTE = 0; PORTF = 0;
-	asm volatile("jmp 0xFC00");
-#elif defined(__AVR_AT90USB1286__)             // Teensy++ 2.0
-	EIMSK = 0; PCICR = 0; SPCR = 0; ACSR = 0; EECR = 0; ADCSRA = 0;
-	TIMSK0 = 0; TIMSK1 = 0; TIMSK2 = 0; TIMSK3 = 0; UCSR1B = 0; TWCR = 0;
-	DDRA = 0; DDRB = 0; DDRC = 0; DDRD = 0; DDRE = 0; DDRF = 0;
-	PORTA = 0; PORTB = 0; PORTC = 0; PORTD = 0; PORTE = 0; PORTF = 0;
-	asm volatile("jmp 0x1FC00");
-#endif
-}
-
-
-// WDT Setup for software reset the chip
-void wdt_init(void)
-{
-	MCUSR = 0;
-	wdt_disable();
-}
-
-
-/**************************************************************************
- *
- *  Configurable Options
- *
- **************************************************************************/
-
-// When you write data, it goes into a USB endpoint buffer, which
-// is transmitted to the PC when it becomes full, or after a timeout
-// with no more writes.  Even if you write in exactly packet-size
-// increments, this timeout is used to send a "zero length packet"
-// that tells the PC no more data is expected and it should pass
-// any buffered data to the application that may be waiting.  If
-// you want data sent immediately, call usb_serial_flush_output().
-#define TRANSMIT_FLUSH_TIMEOUT	5   /* in milliseconds */
-
-// If the PC is connected but not "listening", this is the length
-// of time before usb_serial_getchar() returns with an error.  This
-// is roughly equivilant to a real UART simply transmitting the
-// bits on a wire where nobody is listening, except you get an error
-// code which you can ignore for serial-like discard of data, or
-// use to know your data wasn't sent.
-#define TRANSMIT_TIMEOUT	25   /* in milliseconds */
-
-// USB devices are supposed to implment a halt feature, which is
-// rarely (if ever) used.  If you comment this line out, the halt
-// code will be removed, saving 116 bytes of space (gcc 4.3.0).
-// This is not strictly USB compliant, but works with all major
-// operating systems.
-#define SUPPORT_ENDPOINT_HALT
-
-
-
-/**************************************************************************
- *
- *  Descriptor Data
- *
- **************************************************************************/
-
-// Descriptors are the data that your computer reads when it auto-detects
-// this USB device (called "enumeration" in USB lingo).  The most commonly
-// changed items are editable at the top of this file.  Changing things
-// in here should only be done by those who've read chapter 9 of the USB
-// spec and relevant portions of any USB class specifications!
-
-
-static const uint8_t PROGMEM device_descriptor[] = {
-	18,					// bLength
-	1,					// bDescriptorType
-	0x00, 0x02,				// bcdUSB
-	0,					// bDeviceClass
-	0,					// bDeviceSubClass
-	0,					// bDeviceProtocol
-	ENDPOINT0_SIZE,				// bMaxPacketSize0
-	LSB(VENDOR_ID), MSB(VENDOR_ID),		// idVendor
-	LSB(PRODUCT_ID), MSB(PRODUCT_ID),	// idProduct
-	0x00, 0x01,				// bcdDevice
-	1,					// iManufacturer
-	2,					// iProduct
-	3,					// iSerialNumber
-	1					// bNumConfigurations
-};
-
-// Keyboard Protocol 1, HID 1.11 spec, Appendix B, page 59-60
-static const uint8_t PROGMEM keyboard_hid_report_desc[] = {
-        0x05, 0x01,          // Usage Page (Generic Desktop),
-        0x09, 0x06,          // Usage (Keyboard),
-        0xA1, 0x01,          // Collection (Application),
-        0x75, 0x01,          //   Report Size (1),
-        0x95, 0x08,          //   Report Count (8),
-        0x05, 0x07,          //   Usage Page (Key Codes),
-        0x19, 0xE0,          //   Usage Minimum (224),
-        0x29, 0xE7,          //   Usage Maximum (231),
-        0x15, 0x00,          //   Logical Minimum (0),
-        0x25, 0x01,          //   Logical Maximum (1),
-        0x81, 0x02,          //   Input (Data, Variable, Absolute), ;Modifier byte
-        0x95, 0x08,          //  Report Count (8),
-        0x75, 0x01,          //  Report Size (1),
-        0x15, 0x00,          //  Logical Minimum (0),
-        0x25, 0x01,          //  Logical Maximum (1),
-        0x05, 0x0C,          //  Usage Page (Consumer),
-        0x09, 0xE9,          //  Usage (Volume Increment),
-        0x09, 0xEA,          //  Usage (Volume Decrement),
-        0x09, 0xE2,          //  Usage (Mute),
-        0x09, 0xCD,          //  Usage (Play/Pause),
-        0x09, 0xB5,          //  Usage (Scan Next Track),
-        0x09, 0xB6,          //  Usage (Scan Previous Track),
-        0x09, 0xB7,          //  Usage (Stop),
-        0x09, 0xB8,          //  Usage (Eject),
-        0x81, 0x02,          //  Input (Data, Variable, Absolute), ;Media keys
-        0x95, 0x05,          //  Report Count (5),
-        0x75, 0x01,          //  Report Size (1),
-        0x05, 0x08,          //  Usage Page (LEDs),
-        0x19, 0x01,          //  Usage Minimum (1),
-        0x29, 0x05,          //  Usage Maximum (5),
-        0x91, 0x02,          //  Output (Data, Variable, Absolute), ;LED report
-        0x95, 0x01,          //  Report Count (1),
-        0x75, 0x03,          //  Report Size (3),
-        0x91, 0x03,          //  Output (Constant),                 ;LED report padding
-        0x95, 0x06,          //  Report Count (6),
-        0x75, 0x08,          //  Report Size (8),
-        0x15, 0x00,          //  Logical Minimum (0),
-        0x25, 0x7F,          //  Logical Maximum(104),
-        0x05, 0x07,          //  Usage Page (Key Codes),
-        0x19, 0x00,          //  Usage Minimum (0),
-        0x29, 0x7F,          //  Usage Maximum (104),
-        0x81, 0x00,          //  Input (Data, Array),                ;Normal keys
-        0xc0                 // End Collection
-};
-
-// <Configuration> + <Keyboard HID> + <Serial CDC>
-#define CONFIG1_DESC_SIZE        (9 + 9+9+7 + 8+9+5+5+4+5+7+9+7+7)
-#define KEYBOARD_HID_DESC_OFFSET (9 + 9)
-#define SERIAL_CDC_DESC_OFFSET   (9 + 9+9+7)
-static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
-// --- Configuration ---
-// - 9 bytes -
-	// configuration descriptor, USB spec 9.6.3, page 264-266, Table 9-10
-	9, 					// bLength;
-	2,					// bDescriptorType;
-	LSB(CONFIG1_DESC_SIZE),			// wTotalLength
-	MSB(CONFIG1_DESC_SIZE),
-	3,					// bNumInterfaces
-	1,					// bConfigurationValue
-	0,					// iConfiguration
-	0xC0,					// bmAttributes
-	50,					// bMaxPower
-
-// --- Keyboard HID ---
-// - 9 bytes -
-	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
-	9,					// bLength
-	4,					// bDescriptorType
-	KEYBOARD_INTERFACE,			// bInterfaceNumber
-	0,					// bAlternateSetting
-	1,					// bNumEndpoints
-	0x03,					// bInterfaceClass (0x03 = HID)
-	0x01,					// bInterfaceSubClass (0x01 = Boot)
-	0x01,					// bInterfaceProtocol (0x01 = Keyboard)
-	0,					// iInterface
-// - 9 bytes -
-	// HID interface descriptor, HID 1.11 spec, section 6.2.1
-	9,					// bLength
-	0x21,					// bDescriptorType
-	0x11, 0x01,				// bcdHID
-	0,					// bCountryCode
-	1,					// bNumDescriptors
-	0x22,					// bDescriptorType
-	LSB(sizeof(keyboard_hid_report_desc)),	// wDescriptorLength
-	MSB(sizeof(keyboard_hid_report_desc)),
-// - 7 bytes -
-	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-	7,					// bLength
-	5,					// bDescriptorType
-	KEYBOARD_ENDPOINT | 0x80,		// bEndpointAddress
-	0x03,					// bmAttributes (0x03=intr)
-	KEYBOARD_SIZE, 0,			// wMaxPacketSize
-	KEYBOARD_INTERVAL,			// bInterval
-
-// --- Serial CDC ---
-// - 8 bytes -
-        // interface association descriptor, USB ECN, Table 9-Z
-        8,                                      // bLength
-        11,                                     // bDescriptorType
-        CDC_STATUS_INTERFACE,                   // bFirstInterface
-        2,                                      // bInterfaceCount
-        0x02,                                   // bFunctionClass
-        0x02,                                   // bFunctionSubClass
-        0x01,                                   // bFunctionProtocol
-        4,                                      // iFunction
-// - 9 bytes -
-	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
-	9,					// bLength
-	4,					// bDescriptorType
-	CDC_STATUS_INTERFACE,			// bInterfaceNumber
-	0,					// bAlternateSetting
-	1,					// bNumEndpoints
-	0x02,					// bInterfaceClass
-	0x02,					// bInterfaceSubClass
-	0x01,					// bInterfaceProtocol
-	0,					// iInterface
-// - 5 bytes -
-	// CDC Header Functional Descriptor, CDC Spec 5.2.3.1, Table 26
-	5,					// bFunctionLength
-	0x24,					// bDescriptorType
-	0x00,					// bDescriptorSubtype
-	0x10, 0x01,				// bcdCDC
-// - 5 bytes -
-	// Call Management Functional Descriptor, CDC Spec 5.2.3.2, Table 27
-	5,					// bFunctionLength
-	0x24,					// bDescriptorType
-	0x01,					// bDescriptorSubtype
-	0x01,					// bmCapabilities
-	1,					// bDataInterface
-// - 4 bytes -
-	// Abstract Control Management Functional Descriptor, CDC Spec 5.2.3.3, Table 28
-	4,					// bFunctionLength
-	0x24,					// bDescriptorType
-	0x02,					// bDescriptorSubtype
-	0x06,					// bmCapabilities
-// - 5 bytes -
-	// Union Functional Descriptor, CDC Spec 5.2.3.8, Table 33
-	5,					// bFunctionLength
-	0x24,					// bDescriptorType
-	0x06,					// bDescriptorSubtype
-	CDC_STATUS_INTERFACE,			// bMasterInterface
-	CDC_DATA_INTERFACE,			// bSlaveInterface0
-// - 7 bytes -
-	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-	7,					// bLength
-	5,					// bDescriptorType
-	CDC_ACM_ENDPOINT | 0x80,		// bEndpointAddress
-	0x03,					// bmAttributes (0x03=intr)
-	CDC_ACM_SIZE, 0,			// wMaxPacketSize
-	64,					// bInterval
-// - 9 bytes -
-	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
-	9,					// bLength
-	4,					// bDescriptorType
-	CDC_DATA_INTERFACE,			// bInterfaceNumber
-	0,					// bAlternateSetting
-	2,					// bNumEndpoints
-	0x0A,					// bInterfaceClass
-	0x00,					// bInterfaceSubClass
-	0x00,					// bInterfaceProtocol
-	0,					// iInterface
-// - 7 bytes -
-	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-	7,					// bLength
-	5,					// bDescriptorType
-	CDC_RX_ENDPOINT,			// bEndpointAddress
-	0x02,					// bmAttributes (0x02=bulk)
-	CDC_RX_SIZE, 0,				// wMaxPacketSize
-	0,					// bInterval
-// - 7 bytes -
-	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-	7,					// bLength
-	5,					// bDescriptorType
-	CDC_TX_ENDPOINT | 0x80,			// bEndpointAddress
-	0x02,					// bmAttributes (0x02=bulk)
-	CDC_TX_SIZE, 0,				// wMaxPacketSize
-	0,					// bInterval
-};
-
-// If you're desperate for a little extra code memory, these strings
-// can be completely removed if iManufacturer, iProduct, iSerialNumber
-// in the device desciptor are changed to zeros.
-struct usb_string_descriptor_struct {
-	uint8_t bLength;
-	uint8_t bDescriptorType;
-	int16_t wString[];
-};
-static const struct usb_string_descriptor_struct PROGMEM string0 = {
-	4,
-	3,
-	{0x0409}
-};
-static const struct usb_string_descriptor_struct PROGMEM string1 = {
-	sizeof(STR_MANUFACTURER),
-	3,
-	STR_MANUFACTURER
-};
-static const struct usb_string_descriptor_struct PROGMEM string2 = {
-	sizeof(STR_PRODUCT),
-	3,
-	STR_PRODUCT
-};
-static const struct usb_string_descriptor_struct PROGMEM string3 = {
-	sizeof(STR_SERIAL),
-	3,
-	STR_SERIAL
-};
-
-// This table defines which descriptor data is sent for each specific
-// request from the host (in wValue and wIndex).
-static const struct descriptor_list_struct {
-	uint16_t	wValue;
-	uint16_t	wIndex;
-	const uint8_t	*addr;
-	uint8_t		length;
-} PROGMEM descriptor_list[] = {
-	{0x0100, 0x0000, device_descriptor, sizeof(device_descriptor)},
-	{0x0200, 0x0000, config1_descriptor, sizeof(config1_descriptor)},
-	{0x2200, KEYBOARD_INTERFACE, keyboard_hid_report_desc, sizeof(keyboard_hid_report_desc)},
-	{0x2100, KEYBOARD_INTERFACE, config1_descriptor+KEYBOARD_HID_DESC_OFFSET, 9},
-	{0x0300, 0x0000, (const uint8_t *)&string0, 4},
-	{0x0301, 0x0409, (const uint8_t *)&string1, sizeof(STR_MANUFACTURER)},
-	{0x0302, 0x0409, (const uint8_t *)&string2, sizeof(STR_PRODUCT)},
-	{0x0303, 0x0409, (const uint8_t *)&string3, sizeof(STR_SERIAL)}
-};
-#define NUM_DESC_LIST (sizeof(descriptor_list)/sizeof(struct descriptor_list_struct))
-
-
-/**************************************************************************
- *
- *  Variables - these are the only non-stack RAM usage
- *
- **************************************************************************/
+// ----- Variables -----
 
 // zero when we are not configured, non-zero when enumerated
-static volatile uint8_t usb_configuration=0;
+static volatile uint8_t usb_configuration = 0;
 
 // the time remaining before we transmit any partially full
 // packet, or send a zero length packet.
-static volatile uint8_t transmit_flush_timer=0;
-static uint8_t transmit_previous_timeout=0;
+static volatile uint8_t transmit_flush_timer = 0;
+static uint8_t transmit_previous_timeout = 0;
 
 // serial port settings (baud rate, control signals, etc) set
 // by the PC.  These are ignored, but kept in RAM.
-static uint8_t cdc_line_coding[7]={0x00, 0xE1, 0x00, 0x00, 0x00, 0x00, 0x08};
-static uint8_t cdc_line_rtsdtr=0;
+static uint8_t cdc_line_coding[7] = {0x00, 0xE1, 0x00, 0x00, 0x00, 0x00, 0x08};
+static uint8_t cdc_line_rtsdtr = 0;
 
 
-/**************************************************************************
- *
- *  Public Functions - these are the API intended for the user
- *
- **************************************************************************/
 
+// ----- USB Keyboard Functions -----
 
-// initialize USB
-void usb_init(void)
+// Sends normal keyboard out to host
+// NOTE: Make sure to match the descriptor
+void usb_keyboard_toHost()
 {
-	HW_CONFIG();
-	USB_FREEZE();				// enable USB
-	PLL_CONFIG();				// config PLL
-        while (!(PLLCSR & (1<<PLOCK))) ;	// wait for PLL lock
-        USB_CONFIG();				// start USB clock
-        UDCON = 0;				// enable attach resistor
-	usb_configuration = 0;
-        UDIEN = (1<<EORSTE)|(1<<SOFE);
-	sei();
+	uint8_t i;
 
-	// Disable watchdog timer after possible software reset
-	//wdt_init(); // XXX Not working...seems to be ok without this, not sure though
-}
-
-// return 0 if the USB is not configured, or the configuration
-// number selected by the HOST
-uint8_t usb_configured(void)
-{
-	return usb_configuration;
-}
-
-// send the contents of USBKeys_Array and USBKeys_Modifiers
-int8_t usb_keyboard_send(void)
-{
-	uint8_t i, intr_state, timeout;
-
-	if (!usb_configuration) return -1;
-	intr_state = SREG;
-	cli();
-	UENUM = KEYBOARD_ENDPOINT;
-	timeout = UDFNUML + 50;
-	while (1) {
-		// are we ready to transmit?
-		if (UEINTX & (1<<RWAL)) break;
-		SREG = intr_state;
-		// has the USB gone offline?
-		if (!usb_configuration) return -1;
-		// have we waited too long?
-		if (UDFNUML == timeout) return -1;
-		// get ready to try checking again
-		intr_state = SREG;
-		cli();
-		UENUM = KEYBOARD_ENDPOINT;
-	}
+	// Modifiers
 	UEDATX = USBKeys_Modifiers;
-	UEDATX = 0;
-	for (i=0; i<6; i++) {
+
+	// Normal Keys
+	for ( i = 0; i < 6; i++)
+	{
 		UEDATX = USBKeys_Array[i];
 	}
 	UEINTX = 0x3A;
+}
+
+// Sends NKRO keyboard out to host
+// NOTE: Make sure to match the descriptor
+void usb_nkrokeyboard_toHost()
+{
+	uint8_t i;
+
+	// Modifiers
+	/*
+	UEDATX = 0x02;
+	UEDATX = USBKeys_Modifiers;
+	UEINTX = 0x3A;
+	*/
+
+	// Media Keys
+	UEDATX = 0x03;
+	UEDATX = 0;
+	UEINTX = 0x3A;
+
+	// Normal Keys
+	UEDATX = 0x04;
+	for ( i = 0; i < 6; i++)
+	{
+		UEDATX = USBKeys_Array[i];
+	}
+	UEINTX = 0x3A;
+}
+
+// send the contents of USBKeys_Array and USBKeys_Modifiers
+int8_t usb_keyboard_send()
+{
+	uint8_t intr_state, timeout;
+
+	intr_state = SREG;
+	timeout = UDFNUML + 50;
+
+	// Ready to transmit keypresses?
+	do
+	{
+		SREG = intr_state;
+
+		// has the USB gone offline? or exceeded timeout?
+		if ( !usb_configuration || UDFNUML == timeout )
+			return -1;
+
+		// get ready to try checking again
+		intr_state = SREG;
+		cli();
+
+		// If not using Boot protocol, send NKRO
+		UENUM = USBKeys_Protocol ? KEYBOARD_NKRO_ENDPOINT : KEYBOARD_ENDPOINT;
+	} while ( !( UEINTX & (1 << RWAL) ) );
+
+	// Send normal keyboard interrupt packet(s)
+	switch ( USBKeys_Protocol )
+	{
+	}
+	usb_keyboard_toHost();
+
 	USBKeys_Idle_Count = 0;
 	SREG = intr_state;
 	return 0;
 }
+
+
+
+// ----- USB Virtual Serial Port (CDC) Functions -----
 
 // get the next character, or -1 if nothing received
 int16_t usb_serial_getchar(void)
@@ -827,55 +503,121 @@ int8_t usb_serial_set_control(uint8_t signals)
 
 
 
-/**************************************************************************
- *
- *  Private Functions - not intended for general user consumption....
- *
- **************************************************************************/
+// ----- General USB Functions -----
+
+// Set the avr into firmware reload mode
+void usb_debug_reload()
+{
+	cli();
+	// Disable watchdog, if enabled
+	// Disable all peripherals
+
+	UDCON = 1;
+	USBCON = (1 << FRZCLK);  // Disable USB
+	UCSR1B = 0;
+	_delay_ms( 5 );
+
+#if defined(__AVR_AT90USB162__)                // Teensy 1.0
+	EIMSK = 0; PCICR = 0; SPCR = 0; ACSR = 0; EECR = 0;
+	TIMSK0 = 0; TIMSK1 = 0; UCSR1B = 0;
+	DDRB = 0; DDRC = 0; DDRD = 0;
+	PORTB = 0; PORTC = 0; PORTD = 0;
+	asm volatile("jmp 0x3E00");
+#elif defined(__AVR_ATmega32U4__)              // Teensy 2.0
+	EIMSK = 0; PCICR = 0; SPCR = 0; ACSR = 0; EECR = 0; ADCSRA = 0;
+	TIMSK0 = 0; TIMSK1 = 0; TIMSK3 = 0; TIMSK4 = 0; UCSR1B = 0; TWCR = 0;
+	DDRB = 0; DDRC = 0; DDRD = 0; DDRE = 0; DDRF = 0; TWCR = 0;
+	PORTB = 0; PORTC = 0; PORTD = 0; PORTE = 0; PORTF = 0;
+	asm volatile("jmp 0x7E00");
+#elif defined(__AVR_AT90USB646__)              // Teensy++ 1.0
+	EIMSK = 0; PCICR = 0; SPCR = 0; ACSR = 0; EECR = 0; ADCSRA = 0;
+	TIMSK0 = 0; TIMSK1 = 0; TIMSK2 = 0; TIMSK3 = 0; UCSR1B = 0; TWCR = 0;
+	DDRA = 0; DDRB = 0; DDRC = 0; DDRD = 0; DDRE = 0; DDRF = 0;
+	PORTA = 0; PORTB = 0; PORTC = 0; PORTD = 0; PORTE = 0; PORTF = 0;
+	asm volatile("jmp 0xFC00");
+#elif defined(__AVR_AT90USB1286__)             // Teensy++ 2.0
+	EIMSK = 0; PCICR = 0; SPCR = 0; ACSR = 0; EECR = 0; ADCSRA = 0;
+	TIMSK0 = 0; TIMSK1 = 0; TIMSK2 = 0; TIMSK3 = 0; UCSR1B = 0; TWCR = 0;
+	DDRA = 0; DDRB = 0; DDRC = 0; DDRD = 0; DDRE = 0; DDRF = 0;
+	PORTA = 0; PORTB = 0; PORTC = 0; PORTD = 0; PORTE = 0; PORTF = 0;
+	asm volatile("jmp 0x1FC00");
+#endif
+}
 
 
+// WDT Setup for software reset the chip
+void wdt_init(void)
+{
+	MCUSR = 0;
+	wdt_disable();
+}
+
+
+// initialize USB
+void usb_init(void)
+{
+	HW_CONFIG();
+	USB_FREEZE();				// enable USB
+	PLL_CONFIG();				// config PLL
+        while (!(PLLCSR & (1<<PLOCK))) ;	// wait for PLL lock
+        USB_CONFIG();				// start USB clock
+        UDCON = 0;				// enable attach resistor
+	usb_configuration = 0;
+        UDIEN = (1<<EORSTE) | (1<<SOFE);
+	sei();
+
+	// Disable watchdog timer after possible software reset
+	//wdt_init(); // XXX Not working...seems to be ok without this, not sure though
+}
+
+// return 0 if the USB is not configured, or the configuration
+// number selected by the HOST
+uint8_t usb_configured()
+{
+	return usb_configuration;
+}
 
 // USB Device Interrupt - handle all device-level events
 // the transmit buffer flushing is triggered by the start of frame
 //
-ISR(USB_GEN_vect)
+ISR( USB_GEN_vect )
 {
-	uint8_t intbits, t_cdc, i;
-	static uint8_t div4=0;
+	uint8_t intbits, t_cdc;
 
         intbits = UDINT;
         UDINT = 0;
-        if (intbits & (1<<EORSTI)) {
+        if ( intbits & (1 << EORSTI) )
+	{
 		UENUM = 0;
 		UECONX = 1;
 		UECFG0X = EP_TYPE_CONTROL;
 		UECFG1X = EP_SIZE(ENDPOINT0_SIZE) | EP_SINGLE_BUFFER;
-		UEIENX = (1<<RXSTPE);
+		UEIENX = (1 << RXSTPE);
 		usb_configuration = 0;
 		cdc_line_rtsdtr = 0;
         }
-	if ((intbits & (1<<SOFI)) && usb_configuration) {
+	if ( (intbits & (1 << SOFI)) && usb_configuration )
+	{
 		t_cdc = transmit_flush_timer;
-		if (t_cdc) {
+		if ( t_cdc )
+		{
 			transmit_flush_timer = --t_cdc;
-			if (!t_cdc) {
+			if ( !t_cdc )
+			{
 				UENUM = CDC_TX_ENDPOINT;
 				UEINTX = 0x3A;
 			}
 		}
-		if (USBKeys_Idle_Config && (++div4 & 3) == 0) {
-			UENUM = KEYBOARD_ENDPOINT;
-			if (UEINTX & (1<<RWAL)) {
-				USBKeys_Idle_Count++;
-				if (USBKeys_Idle_Count == USBKeys_Idle_Config) {
-					USBKeys_Idle_Count = 0;
-					UEDATX = USBKeys_Modifiers;
-					UEDATX = 0;
-					for (i=0; i<6; i++) {
-						UEDATX = USBKeys_Array[i];
-					}
-					UEINTX = 0x3A;
-				}
+		static uint8_t div4 = 0;
+		if ( USBKeys_Idle_Config && (++div4 & 3) == 0 )
+		{
+			USBKeys_Idle_Count++;
+			if ( USBKeys_Idle_Count == USBKeys_Idle_Config )
+			{
+				// XXX TODO Is this even used? If so, when? -Jacob
+				// From hasu's code, this section looks like it could fix the Mac SET_IDLE problem
+				// Send normal keyboard interrupt packet(s)
+				//usb_keyboard_toHost();
 			}
 		}
 	}
@@ -935,22 +677,28 @@ ISR(USB_COM_vect)
                 wLength = UEDATX;
                 wLength |= (UEDATX << 8);
                 UEINTX = ~((1<<RXSTPI) | (1<<RXOUTI) | (1<<TXINI));
-                if (bRequest == GET_DESCRIPTOR) {
+
+                if ( bRequest == GET_DESCRIPTOR )
+		{
 			list = (const uint8_t *)descriptor_list;
-			for (i=0; ; i++) {
-				if (i >= NUM_DESC_LIST) {
-					UECONX = (1<<STALLRQ)|(1<<EPEN);  //stall
+			for ( i = 0; ; i++ )
+			{
+				if ( i >= NUM_DESC_LIST )
+				{
+					UECONX = (1 << STALLRQ) | (1 << EPEN);  //stall
 					return;
 				}
 				desc_val = pgm_read_word(list);
-				if (desc_val != wValue) {
-					list += sizeof(struct descriptor_list_struct);
+				if ( desc_val != wValue )
+				{
+					list += sizeof( struct descriptor_list_struct );
 					continue;
 				}
 				list += 2;
 				desc_val = pgm_read_word(list);
-				if (desc_val != wIndex) {
-					list += sizeof(struct descriptor_list_struct)-2;
+				if ( desc_val != wIndex )
+				{
+					list += sizeof(struct descriptor_list_struct) - 2;
 					continue;
 				}
 				list += 2;
@@ -977,36 +725,103 @@ ISR(USB_COM_vect)
 			} while (len || n == ENDPOINT0_SIZE);
 			return;
                 }
+
 		if (bRequest == SET_ADDRESS) {
 			usb_send_in();
 			usb_wait_in_ready();
 			UDADDR = wValue | (1<<ADDEN);
 			return;
 		}
-		if (bRequest == SET_CONFIGURATION && bmRequestType == 0) {
+
+		if ( bRequest == SET_CONFIGURATION && bmRequestType == 0 )
+		{
 			usb_configuration = wValue;
 			cdc_line_rtsdtr = 0;
 			transmit_flush_timer = 0;
 			usb_send_in();
 			cfg = endpoint_config_table;
-			for (i=1; i<6; i++) { // 4+1 of 7 endpoints are used // XXX Important to change if more endpoints are used
+			// Setup each of the 6 additional endpoints (0th already configured)
+			for ( i = 1; i < 6; i++ )
+			{
 				UENUM = i;
 				en = pgm_read_byte(cfg++);
 				UECONX = en;
-				if (en) {
+				if (en)
+				{
 					UECFG0X = pgm_read_byte(cfg++);
 					UECFG1X = pgm_read_byte(cfg++);
 				}
 			}
-        		UERST = 0x1E;
+        		UERST = 0x7E;
         		UERST = 0;
 			return;
 		}
+
 		if (bRequest == GET_CONFIGURATION && bmRequestType == 0x80) {
 			usb_wait_in_ready();
 			UEDATX = usb_configuration;
 			usb_send_in();
 			return;
+		}
+
+		//if ( wIndex == KEYBOARD_INTERFACE )
+		if ( wIndex == KEYBOARD_INTERFACE || wIndex == KEYBOARD_NKRO_INTERFACE )
+		{
+			if ( bmRequestType == 0xA1)
+			{
+				if ( bRequest == HID_GET_REPORT )
+				{
+					usb_wait_in_ready();
+
+					// XXX TODO Is this even used? If so, when? -Jacob
+					// Send normal keyboard interrupt packet(s)
+					//usb_keyboard_toHost();
+
+					usb_send_in();
+					return;
+				}
+				if ( bRequest == HID_GET_IDLE )
+				{
+					usb_wait_in_ready();
+					UEDATX = USBKeys_Idle_Config;
+					usb_send_in();
+					return;
+				}
+				if ( bRequest == HID_GET_PROTOCOL )
+				{
+					usb_wait_in_ready();
+					UEDATX = USBKeys_Protocol;
+					usb_send_in();
+					return;
+				}
+			USBKeys_Protocol = bRequest;
+			}
+			if ( bmRequestType == 0x21 )
+			{
+				if ( bRequest == HID_SET_REPORT )
+				{
+					usb_wait_receive_out();
+					USBKeys_LEDs = UEDATX;
+					usb_ack_out();
+					usb_send_in();
+					return;
+				}
+				if ( bRequest == HID_SET_IDLE )
+				{
+					USBKeys_Idle_Config = (wValue >> 8);
+					USBKeys_Idle_Count = 0;
+					//usb_wait_in_ready();
+					usb_send_in();
+					return;
+				}
+				if ( bRequest == HID_SET_PROTOCOL )
+				{
+					USBKeys_Protocol = wValue; // 0 - Boot Mode, 1 - NKRO Mode
+					//usb_wait_in_ready();
+					usb_send_in();
+					return;
+				}
+			}
 		}
 
 		if (bRequest == CDC_GET_LINE_CODING && bmRequestType == 0xA1) {
@@ -1040,20 +855,17 @@ ISR(USB_COM_vect)
 		if (bRequest == GET_STATUS) {
 			usb_wait_in_ready();
 			i = 0;
-			#ifdef SUPPORT_ENDPOINT_HALT
 			if (bmRequestType == 0x82) {
 				UENUM = wIndex;
 				if (UECONX & (1<<STALLRQ)) i = 1;
 				UENUM = 0;
 			}
-			#endif
 			UEDATX = i;
 			UEDATX = 0;
 			usb_send_in();
 			return;
 		}
 
-		#ifdef SUPPORT_ENDPOINT_HALT
 		if ((bRequest == CLEAR_FEATURE || bRequest == SET_FEATURE)
 		  && bmRequestType == 0x02 && wValue == 0) {
 			i = wIndex & 0x7F;
@@ -1070,57 +882,7 @@ ISR(USB_COM_vect)
 				return;
 			}
 		}
-		#endif
-
-		if (wIndex == KEYBOARD_INTERFACE) {
-			if (bmRequestType == 0xA1) {
-				if (bRequest == HID_GET_REPORT) {
-					usb_wait_in_ready();
-					UEDATX = USBKeys_Modifiers;
-					UEDATX = 0;
-					for (i=0; i<6; i++) {
-						UEDATX = USBKeys_Array[i];
-					}
-					usb_send_in();
-					return;
-				}
-				if (bRequest == HID_GET_IDLE) {
-					usb_wait_in_ready();
-					UEDATX = USBKeys_Idle_Config;
-					usb_send_in();
-					return;
-				}
-				if (bRequest == HID_GET_PROTOCOL) {
-					usb_wait_in_ready();
-					UEDATX = USBKeys_Protocol;
-					usb_send_in();
-					return;
-				}
-			}
-			if (bmRequestType == 0x21) {
-				if (bRequest == HID_SET_REPORT) {
-					usb_wait_receive_out();
-					USBKeys_LEDs = UEDATX;
-					usb_ack_out();
-					usb_send_in();
-					return;
-				}
-				if (bRequest == HID_SET_IDLE) {
-					USBKeys_Idle_Config = (wValue >> 8);
-					USBKeys_Idle_Count = 0;
-					//usb_wait_in_ready();
-					usb_send_in();
-					return;
-				}
-				if (bRequest == HID_SET_PROTOCOL) {
-					USBKeys_Protocol = wValue;
-					//usb_wait_in_ready();
-					usb_send_in();
-					return;
-				}
-			}
-		}
 	}
-	UECONX = (1<<STALLRQ) | (1<<EPEN);	// stall
+	UECONX = (1 << STALLRQ) | (1 << EPEN);	// stall
 }
 
