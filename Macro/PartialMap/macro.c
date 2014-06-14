@@ -73,6 +73,44 @@ uint8_t macroDebugMode = 0;
 
 // ----- Functions -----
 
+// Looks up the start of the function ptr list for the active layer, by scan code
+inline void *Macro_layerLookup( uint8_t scanCode )
+{
+	// TODO
+	return 0;
+}
+
+
+// Called for each key from the Scan Module for one of three cases:
+//  1. Key is pressed         (PRESSED)
+//  2. Key is being held down (HELD)
+//  3. Key is released        (RELEASED)
+// If Scan Module is for an analog sense keyboard, do not use the defined keystates
+// This function should not be called if not pressed (depressed) or at 0%
+inline void Macro_keyUpdate( uint8_t scanCode, uint8_t state )
+{
+	// Do layer lookup to find which capabilities to map
+	void *capabilities = Macro_layerLookup( scanCode );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 inline void Macro_bufferAdd( uint8_t byte )
 {
 	// Make sure we haven't overflowed the key buffer
@@ -129,7 +167,7 @@ inline void Macro_process()
 		return;
 
 	// Loop through input buffer
-	for ( uint8_t index = 0; index < KeyIndex_BufferUsed; index++ )
+	for ( uint8_t index = 0; index < KeyIndex_BufferUsed && !macroDebugMode; index++ )
 	{
 		//print(" KEYS: ");
 		//printInt8( KeyIndex_BufferUsed );

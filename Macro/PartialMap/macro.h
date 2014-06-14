@@ -29,6 +29,15 @@
 
 
 
+// ----- Defines -----
+
+// Key states (DO NOT USE for analog keyboards)
+#define DEPRESSED 0
+#define  RELEASED 1
+#define   PRESSED 254
+#define      HELD 255
+
+
 // ----- Variables -----
 
 

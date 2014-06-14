@@ -81,7 +81,8 @@
 #define KEY_NUMBER         0x32
 #define KEY_SEMICOLON      0x33
 #define KEY_QUOTE          0x34
-#define KEY_TILDE          0x35
+#define KEY_TILDE          0x35 // TODO Removeme (old definition)
+#define KEY_BACKTICK       0x35
 #define KEY_COMMA          0x36
 #define KEY_PERIOD         0x37
 #define KEY_SLASH          0x38
@@ -128,7 +129,8 @@
 #define KEYPAD_9           0x61
 #define KEYPAD_0           0x62
 #define KEYPAD_PERIOD      0x63
-#define KEY_ISO_BACKSLASH  0x64
+#define KEY_ISO_BACKSLASH  0x64 // TODO Removeme (old definition)
+#define KEY_ISO_SLASH      0x64
 #define KEY_APP            0x65
 #define KEYBOARD_STATUS    0x66 // Used for indicating status or errors, not a key
 #define KEYPAD_EQUAL       0x67
@@ -158,9 +160,9 @@
 #define KEY_MUTE           0x7F
 #define KEY_VOL_UP         0x80
 #define KEY_VOL_DOWN       0x81
-#define KEY_CAPS_LLOCK     0x82 // "Locking" Scroll Lock (Old keyboards with Locking Caps Lock)
-#define KEY_NUM_LLOCK      0x83
-#define KEY_SCROLL_LLOCK   0x84
+#define KEY_CAPS_TLOCK     0x82 // Toggle "Locking" Scroll Lock (Old keyboards with Locking Caps Lock)
+#define KEY_NUM_TLOCK      0x83
+#define KEY_SCROLL_TLOCK   0x84
 #define KEYPAD_COMMA       0x85 // Brazillian (See spec)
 #define KEYPAD_EQUAL_AS    0x86 // AS/400 Keyboard (See spec)
 #define KEY_INTER1         0x87 // KANJI1 - Brazillian and Japanese "Ru" and "-"
