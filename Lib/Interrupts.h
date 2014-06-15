@@ -29,7 +29,7 @@
 #define __INTERRUPTS_H
 
 // ARM
-#if defined(_mk20dx128_) || defined(_mk20dx256_)
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
 
 #include <Lib/mk20dx.h>
 
@@ -45,7 +45,7 @@
 // ----- Defines -----
 
 // ARM
-#if defined(_mk20dx128_) || defined(_mk20dx256_)
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
 
 // Map the Interrupt Enable/Disable to the AVR names
 #define cli() __disable_irq()

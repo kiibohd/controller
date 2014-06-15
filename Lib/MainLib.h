@@ -34,7 +34,7 @@
 
 
 // ARM
-#if defined(_mk20dx128_) || defined(_mk20dx256_)
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
 
 #include <Lib/mk20dx.h>
 

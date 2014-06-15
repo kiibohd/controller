@@ -1795,7 +1795,7 @@ typedef struct {
 #define NVIC_SET_PRIORITY(irqnum, priority)  (*((volatile uint8_t *)0xE000E400 + (irqnum)) = (uint8_t)(priority))
 #define NVIC_GET_PRIORITY(irqnum) (*((uint8_t *)0xE000E400 + (irqnum)))
 
-#if defined(_mk20dx128_)
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_)
 #define IRQ_DMA_CH0		0
 #define IRQ_DMA_CH1		1
 #define IRQ_DMA_CH2		2

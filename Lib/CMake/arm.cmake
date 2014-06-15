@@ -25,7 +25,7 @@ set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
 
 #| Chip Name (Linker)
 #|
-#| "mk20dx128"        # Teensy   3.0
+#| "mk20dx128"        # Teensy   3.0 and McHCK mk20dx128
 #| "mk20dx256"        # Teensy   3.1
 
 message( STATUS "Chip Selected:" )
@@ -35,7 +35,7 @@ set( MCU "${CHIP}" ) # For loading script compatibility
 
 #| Chip Size Database
 #| Teensy 3.0
-if ( "${CHIP}" MATCHES "mk20dx128" )
+if ( "${CHIP}" MATCHES "mk20dx128" OR "${CHIP}" MATCHES "mk20dx128vlf5" )
 	set( SIZE_RAM    16384 )
 	set( SIZE_FLASH 131072 )
 
@@ -65,7 +65,7 @@ endif ()
 #| You _MUST_ set this to match the board you are using
 #| type "make clean" after changing this, so all files will be rebuilt
 #|
-#| "cortex-m4"        # Teensy   3.0, 3.1
+#| "cortex-m4"        # Teensy   3.0, 3.1, McHCK
 set( CPU "cortex-m4" )
 
 message( STATUS "CPU Selected:" )
@@ -83,9 +83,14 @@ message( STATUS "Compiler Source Files:" )
 message( "${COMPILER_SRCS}" )
 
 
-#| USB Defines
-set( VENDOR_ID  "0x16C0" )
-set( PRODUCT_ID "0x0487" )
+#| USB Defines, this is how the loader programs detect which type of chip base is used
+if ( "${CHIP}" MATCHES "mk20dx128" OR "${CHIP}" MATCHES "mk20dx256" )
+	set( VENDOR_ID  "0x16C0" )
+	set( PRODUCT_ID "0x0487" )
+elseif ( "${CHIP}" MATCHES "mk20dx128vlf5" )
+	set( VENDOR_ID  "0x2323" )
+	set( PRODUCT_ID "0x0001" )
+endif ()
 
 
 #| Compiler flag to set the C Standard level.
@@ -113,11 +118,6 @@ set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar
 set( OPT "s" )
 
 
-#| Output Format
-#| srec, ihex, binary
-set( FORMAT "ihex" )
-
-
 #| Processor frequency.
 #|   Normally the first thing your program should do is set the clock prescaler,
 #|   so your program will run at the correct speed.  You should also set this
@@ -140,7 +140,11 @@ set( LINKER_FLAGS "-mcpu=${CPU} -Wl,-Map=${TARGET}.map,--cref -Wl,--gc-sections 
 
 
 #| Hex Flags (XXX, CMake seems to have issues if you quote the arguments for the custom commands...)
-set( HEX_FLAGS -O ${FORMAT} -R .eeprom )
+set( HEX_FLAGS -O ihex -R .eeprom )
+
+
+#| Binary Flags
+set( BIN_FLAGS -O binary )
 
 
 #| Lss Flags

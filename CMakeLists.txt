@@ -20,8 +20,9 @@ set( CHIP
 #	"at90usb162"       # Teensy   1.0 (avr)
 #	"atmega32u4"       # Teensy   2.0 (avr)
 #	"at90usb646"       # Teensy++ 1.0 (avr)
-	"at90usb1286"      # Teensy++ 2.0 (avr)
+#	"at90usb1286"      # Teensy++ 2.0 (avr)
 #	"mk20dx128"        # Teensy   3.0 (arm)
+	"mk20dx128vlf5"    # McHCK    mk20dx128vlf5
 #	"mk20dx256"        # Teensy   3.1 (arm)
 )
 
@@ -46,7 +47,7 @@ include( Lib/CMake/initialize.cmake )
 #| Please look at the {Scan,Macro,Output,Debug} for information on the modules and how to create new ones
 
 ##| Deals with acquiring the keypress information and turning it into a key index
-set(   ScanModule "DPH" )
+set(   ScanModule "MDPure" )
 
 ##| Provides the mapping functions for DefaultMap and handles any macro processing before sending to the OutputModule
 set(  MacroModule "PartialMap" )

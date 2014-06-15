@@ -1,6 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
+ * Modifications by Jacob Alexander 2014
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -10,10 +11,10 @@
  * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
  *
- * 1. The above copyright notice and this permission notice shall be 
+ * 1. The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  *
- * 2. If the Software is incorporated into a build system that allows 
+ * 2. If the Software is incorporated into a build system that allows
  * selection among a list of target devices, then similar target
  * devices manufactured by PJRC.COM must be included in the list of
  * target devices and selectable in the same manner.
@@ -183,7 +184,7 @@ void (* const gVectors[])(void) =
 	fault_isr,					// 13 --
 	pendablesrvreq_isr,				// 14 ARM: Pendable req serv(PendableSrvReq)
 	systick_isr,					// 15 ARM: System tick timer (SysTick)
-#if defined(_mk20dx128_)
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_)
 	dma_ch0_isr,					// 16 DMA channel 0 transfer complete
 	dma_ch1_isr,					// 17 DMA channel 1 transfer complete
 	dma_ch2_isr,					// 18 DMA channel 2 transfer complete
@@ -358,6 +359,43 @@ void startup_late_hook(void)		__attribute__ ((weak, alias("startup_unused_hook")
 __attribute__ ((section(".startup")))
 void ResetHandler(void)
 {
+#if defined(_mk20dx128vlf5_)
+	/* Disable Watchdog */
+	WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
+	WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
+	WDOG_STCTRLH = WDOG_STCTRLH_ALLOWUPDATE;
+
+        /* FLL at 48MHz */
+	MCG_C4 = MCG_C4_DMX32 | MCG_C4_DRST_DRS(1);
+	/*
+        MCG.c4.raw = ((struct MCG_C4_t){
+                        .drst_drs = MCG_DRST_DRS_MID,
+                        .dmx32 = 1
+                }).raw;
+	*/
+	SIM_SOPT2 = SIM_SOPT2_PLLFLLSEL;
+
+	// release I/O pins hold, if we woke up from VLLS mode
+	if (PMC_REGSC & PMC_REGSC_ACKISO) PMC_REGSC |= PMC_REGSC_ACKISO;
+
+	uint32_t *src = &_etext;
+	uint32_t *dest = &_sdata;
+	unsigned int i;
+
+	while (dest < &_edata) *dest++ = *src++;
+	dest = &_sbss;
+	while (dest < &_ebss) *dest++ = 0;
+	SCB_VTOR = 0;	// use vector table in flash
+
+	// default all interrupts to medium priority level
+	for (i=0; i < NVIC_NUM_INTERRUPTS; i++) NVIC_SET_PRIORITY(i, 128);
+
+	__enable_irq();
+	__libc_init_array();
+
+        //memcpy(&_sdata, &_sidata, (uintptr_t)&_edata - (uintptr_t)&_sdata);
+        //memset(&_sbss, 0, (uintptr_t)&_ebss - (uintptr_t)&_sbss);
+#else
 	uint32_t *src = &_etext;
 	uint32_t *dest = &_sdata;
 	unsigned int i;
@@ -368,7 +406,7 @@ void ResetHandler(void)
 	startup_early_hook();
 
 	// enable clocks to always-used peripherals
-#if defined(_mk20dx128_)
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_)
 	SIM_SCGC5 = 0x00043F82;		// clocks active to all GPIO
 	SIM_SCGC6 = SIM_SCGC6_RTC | SIM_SCGC6_FTM0 | SIM_SCGC6_FTM1 | SIM_SCGC6_ADC0 | SIM_SCGC6_FTFL;
 #elif defined(_mk20dx256_)
@@ -458,6 +496,7 @@ void ResetHandler(void)
 	}
 */
 	startup_late_hook();
+#endif
 	main();
 	while (1) ;
 }

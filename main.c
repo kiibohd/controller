@@ -94,7 +94,7 @@ inline void pinSetup(void)
 	PORTF = 0x00;
 
 // ARM
-#elif defined(_mk20dx128_)
+#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
 	// TODO - Should be cleared, but not that necessary due to the pin layout
 #endif
 }
@@ -115,7 +115,7 @@ inline void usbTimerSetup(void)
 	TIMSK0 = (1 << TOIE0);
 
 // ARM
-#elif defined(_mk20dx128_)
+#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
 	// 48 MHz clock by default
 
 	// System Clock Gating Register Disable
@@ -184,7 +184,7 @@ int main(void)
 // USB Keyboard Data Send Counter Interrupt
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 ISR( TIMER0_OVF_vect )
-#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
 void pit0_isr(void)
 #endif
 {
@@ -194,7 +194,7 @@ void pit0_isr(void)
 		sendKeypresses = 1;
 	}
 
-#if defined(_mk20dx128_) // ARM
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
 	// Clear the interrupt flag
 	PIT_TFLG0 = 1;
 #endif
