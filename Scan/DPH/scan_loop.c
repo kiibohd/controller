@@ -803,10 +803,13 @@ void testColumn( uint8_t strobe )
 						print(" ");
 					}
 
-					// Only add the key to the buffer once
-					// NOTE: Buffer can easily handle multiple adds, just more efficient
-					//        and nicer debug messages :P
-					Macro_bufferAdd( key );
+					// Initial Keypress
+					Macro_keyState( key, 0x01 );
+				}
+				else if ( keys_debounce[key] >= DEBOUNCE_THRESHOLD )
+				{
+					// Held Key
+					Macro_keyState( key, 0x02 );
 				}
 
 				keys_debounce[key]++;
@@ -840,10 +843,10 @@ void testColumn( uint8_t strobe )
 		// Clear debounce entry if no keypress detected
 		else
 		{
-			// If the key was previously pressed, remove from the buffer
+			// Release Key
 			if ( KeyIndex_BufferUsed > 0 && keys_debounce[key] >= DEBOUNCE_THRESHOLD )
 			{
-				Macro_bufferRemove( key );
+				Macro_keyState( key, 0x03 );
 			}
 
 			// Clear debounce entry

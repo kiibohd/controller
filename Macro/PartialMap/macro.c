@@ -1,22 +1,17 @@
 /* Copyright (C) 2014 by Jacob Alexander
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * This file is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * This file is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * You should have received a copy of the GNU General Public License
+ * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 // ----- Includes -----
@@ -34,6 +29,7 @@
 // Keymaps
 #include "usb_hid.h"
 #include <defaultMap.h>
+#include "generatedKeymap.h" // TODO Use actual generated version
 
 // Local Includes
 #include "macro.h"
@@ -69,43 +65,114 @@ CLIDictItem macroCLIDict[] = {
 // Macro debug flag - If set, clears the USB Buffers after signalling processing completion
 uint8_t macroDebugMode = 0;
 
+// Key Trigger List Buffer
+//  * Item 1: scan code
+//  * Item 2: state
+//    ...
+uint8_t macroTriggerListBuffer[0xFF * 2] = { 0 }; // Each key has a state to be cached (this can be decreased to save RAM)
+uint8_t macroTriggerListBufferSize = 0;
+
+// TODO, figure out a good way to scale this array size without wasting too much memory, but not rejecting macros
+//       Possibly could be calculated by the KLL compiler
+TriggerMacro *triggerMacroPendingList[30];
+
 
 
 // ----- Functions -----
 
-// Looks up the start of the function ptr list for the active layer, by scan code
-inline void *Macro_layerLookup( uint8_t scanCode )
+// Looks up the trigger list for the given scan code (from the active layer)
+unsigned int *Macro_layerLookup( uint8_t scanCode )
+{
+	// TODO - No layer fallthrough lookup
+	return default_scanMap[ scanCode ];
+}
+
+
+// Update the scancode key state
+// States:
+//   * 0x00 - Reserved
+//   * 0x01 - Pressed
+//   * 0x02 - Held
+//   * 0x03 - Released
+//   * 0x04 - Unpressed (this is currently ignored)
+inline void Macro_keyState( uint8_t scanCode, uint8_t state )
+{
+	// Only add to macro trigger list if one of three states
+	switch ( state )
+	{
+	case 0x01: // Pressed
+	case 0x02: // Held
+	case 0x03: // Released
+		macroTriggerListBuffer[ macroTriggerListBufferSize++ ] = scanCode;
+		macroTriggerListBuffer[ macroTriggerListBufferSize++ ] = state;
+		break;
+	}
+}
+
+
+// Update the scancode analog state
+// States:
+//   * 0x00      - Reserved
+//   * 0x01      - Released
+//   * 0x02-0xFF - Analog value (low to high)
+inline void Macro_analogState( uint8_t scanCode, uint8_t state )
 {
 	// TODO
-	return 0;
 }
 
 
-// Called for each key from the Scan Module for one of three cases:
-//  1. Key is pressed         (PRESSED)
-//  2. Key is being held down (HELD)
-//  3. Key is released        (RELEASED)
-// If Scan Module is for an analog sense keyboard, do not use the defined keystates
-// This function should not be called if not pressed (depressed) or at 0%
-inline void Macro_keyUpdate( uint8_t scanCode, uint8_t state )
+// Update led state
+// States:
+//   * 0x00 - Reserved
+//   * 0x01 - On
+//   * 0x02 - Off
+inline void Macro_ledState( uint8_t ledCode, uint8_t state )
 {
-	// Do layer lookup to find which capabilities to map
-	void *capabilities = Macro_layerLookup( scanCode );
+	// TODO
 }
 
 
+// Evaluate/Update the TriggerMacro
+void Macro_evalTriggerMacro( TriggerMacro *triggerMacro )
+{
+	// Which combo in the sequence is being evaluated
+	unsigned int comboPos = triggerMacro->pos;
 
+	// If combo length is more than 1, cancel trigger macro if an incorrect key is found
+	uint8_t comboLength = triggerMacro->guide[ comboPos ];
 
+	// Iterate over list of keys currently pressed
+	for ( uint8_t keyPressed = 0; keyPressed < macroTriggerListBufferSize; keyPressed += 2 )
+	{
+		// Compare with keys in combo
+		for ( unsigned int comboKey = 0; comboKey < comboLength; comboKey++ )
+		{
+			// Lookup key in combo
+			uint8_t guideKey = triggerMacro->guide[ comboPos + comboKey + 2 ]; // TODO Only Press/Hold/Release atm
 
+			// Sequence Case
+			if ( comboLength == 1 )
+			{
+				// If key matches and only 1 key pressed, increment the TriggerMacro combo position
+				if ( guideKey == macroTriggerListBuffer[ keyPressed ] && macroTriggerListBufferSize == 1 )
+				{
+					triggerMacro->pos += comboLength * 2 + 1;
+					// TODO check if TriggerMacro is finished, register ResultMacro
+					return;
+				}
 
-
-
-
-
-
-
-
-
+				// If key does not match or more than 1 key pressed, reset the TriggerMacro combo position
+				triggerMacro->pos = 0;
+				return;
+			}
+			// Combo Case
+			else
+			{
+				// TODO
+			}
+		}
+	}
+}
 
 
 
@@ -166,6 +233,37 @@ inline void Macro_process()
 	if ( USBKeys_Sent != 0 )
 		return;
 
+	// Loop through macro trigger buffer
+	for ( uint8_t index = 0; index < macroTriggerListBufferSize; index += 2 )
+	{
+		// Get scanCode, first item of macroTriggerListBuffer pairs
+		uint8_t scanCode = macroTriggerListBuffer[ index ];
+
+		// Lookup trigger list for this key
+		unsigned int *triggerList = Macro_layerLookup( scanCode );
+
+		// The first element is the length of the trigger list
+		unsigned int triggerListSize = triggerList[0];
+
+		// Loop through the trigger list
+		for ( unsigned int trigger = 0; trigger < triggerListSize; trigger++ )
+		{
+			// Lookup TriggerMacro
+			TriggerMacro *triggerMacro = (TriggerMacro*)triggerList[ trigger + 1 ];
+
+			// Get triggered state of scan code, second item of macroTriggerListBuffer pairs
+			uint8_t state = macroTriggerListBuffer[ index + 1 ];
+
+			// Evaluate Macro
+			Macro_evalTriggerMacro( triggerMacro );
+		}
+	}
+
+
+
+
+
+	/* TODO
 	// Loop through input buffer
 	for ( uint8_t index = 0; index < KeyIndex_BufferUsed && !macroDebugMode; index++ )
 	{
@@ -204,6 +302,7 @@ inline void Macro_process()
 			errorLED( 1 );
 		}
 	}
+	*/
 
 	// Signal buffer that we've used it
 	Scan_finishedWithBuffer( KeyIndex_BufferUsed );
@@ -223,6 +322,9 @@ inline void Macro_setup()
 
 	// Disable Macro debug mode
 	macroDebugMode = 0;
+
+	// Make sure macro trigger buffer is empty
+	macroTriggerListBufferSize = 0;
 }
 
 

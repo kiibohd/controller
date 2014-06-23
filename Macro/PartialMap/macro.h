@@ -48,6 +48,9 @@
 
 // ----- Functions -----
 
+void Macro_keyState( uint8_t scanCode, uint8_t state );
+void Macro_analogState( uint8_t scanCode, uint8_t state );
+void Macro_ledState( uint8_t ledCode, uint8_t state );
 void Macro_bufferAdd( uint8_t byte );
 void Macro_bufferRemove( uint8_t byte );
 void Macro_finishWithUSBBuffer( uint8_t sentKeys );
