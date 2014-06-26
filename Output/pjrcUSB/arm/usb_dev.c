@@ -845,7 +845,7 @@ void usb_isr(void)
 		table[index(0, RX, ODD)].addr = ep0_rx1_buf;
 		table[index(0, TX, EVEN)].desc = 0;
 		table[index(0, TX, ODD)].desc = 0;
-		
+
 		// activate endpoint 0
 		USB0_ENDPT0 = USB_ENDPT_EPRXEN | USB_ENDPT_EPTXEN | USB_ENDPT_EPHSHK;
 

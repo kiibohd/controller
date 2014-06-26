@@ -39,11 +39,8 @@ extern unsigned long _edata;
 extern unsigned long _sbss;
 extern unsigned long _ebss;
 extern unsigned long _estack;
-//extern void __init_array_start(void);
-//extern void __init_array_end(void);
 extern int main (void);
 void ResetHandler(void);
-void _init_Teensyduino_internal_(void);
 void __libc_init_array(void);
 
 
@@ -330,15 +327,16 @@ void (* const gVectors[])(void) =
 #endif
 };
 
-//void usb_isr(void)
-//{
-//}
+
+#if defined(_mk20dx128_) || defined(_mk20dx256_)
 
 __attribute__ ((section(".flashconfig"), used))
 const uint8_t flashconfigbytes[16] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF
 };
+
+#endif
 
 
 // Automatically initialize the RTC.  When the build defines the compile
@@ -350,60 +348,17 @@ const uint8_t flashconfigbytes[16] = {
 extern void rtc_set(unsigned long t);
 
 
-
-static void startup_unused_hook(void) {}
-void startup_early_hook(void)		__attribute__ ((weak, alias("startup_unused_hook")));
-void startup_late_hook(void)		__attribute__ ((weak, alias("startup_unused_hook")));
-
-
 __attribute__ ((section(".startup")))
 void ResetHandler(void)
 {
-#if defined(_mk20dx128vlf5_)
+	uint32_t *src = &_etext;
+	uint32_t *dest = &_sdata;
+	unsigned int i;
+
 	/* Disable Watchdog */
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
 	WDOG_STCTRLH = WDOG_STCTRLH_ALLOWUPDATE;
-
-        /* FLL at 48MHz */
-	MCG_C4 = MCG_C4_DMX32 | MCG_C4_DRST_DRS(1);
-	/*
-        MCG.c4.raw = ((struct MCG_C4_t){
-                        .drst_drs = MCG_DRST_DRS_MID,
-                        .dmx32 = 1
-                }).raw;
-	*/
-	SIM_SOPT2 = SIM_SOPT2_PLLFLLSEL;
-
-	// release I/O pins hold, if we woke up from VLLS mode
-	if (PMC_REGSC & PMC_REGSC_ACKISO) PMC_REGSC |= PMC_REGSC_ACKISO;
-
-	uint32_t *src = &_etext;
-	uint32_t *dest = &_sdata;
-	unsigned int i;
-
-	while (dest < &_edata) *dest++ = *src++;
-	dest = &_sbss;
-	while (dest < &_ebss) *dest++ = 0;
-	SCB_VTOR = 0;	// use vector table in flash
-
-	// default all interrupts to medium priority level
-	for (i=0; i < NVIC_NUM_INTERRUPTS; i++) NVIC_SET_PRIORITY(i, 128);
-
-	__enable_irq();
-	__libc_init_array();
-
-        //memcpy(&_sdata, &_sidata, (uintptr_t)&_edata - (uintptr_t)&_sdata);
-        //memset(&_sbss, 0, (uintptr_t)&_ebss - (uintptr_t)&_sbss);
-#else
-	uint32_t *src = &_etext;
-	uint32_t *dest = &_sdata;
-	unsigned int i;
-
-	WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
-	WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
-	WDOG_STCTRLH = WDOG_STCTRLH_ALLOWUPDATE;
-	startup_early_hook();
 
 	// enable clocks to always-used peripherals
 #if defined(_mk20dx128_) || defined(_mk20dx128vlf5_)
@@ -433,6 +388,35 @@ void ResetHandler(void)
 	// default all interrupts to medium priority level
 	for (i=0; i < NVIC_NUM_INTERRUPTS; i++) NVIC_SET_PRIORITY(i, 128);
 
+#if defined(_mk20dx128vlf5_)
+        /* FLL at 48MHz */
+	MCG_C4 = MCG_C4_DMX32 | MCG_C4_DRST_DRS(1);
+
+#if F_CPU == 96000000
+	// config divisors: 96 MHz core, 48 MHz bus, 24 MHz flash
+	SIM_CLKDIV1 = SIM_CLKDIV1_OUTDIV1(0) | SIM_CLKDIV1_OUTDIV2(1) |	 SIM_CLKDIV1_OUTDIV4(3);
+#elif F_CPU == 48000000
+	// config divisors: 48 MHz core, 48 MHz bus, 24 MHz flash
+	SIM_CLKDIV1 = SIM_CLKDIV1_OUTDIV1(1) | SIM_CLKDIV1_OUTDIV2(1) |	 SIM_CLKDIV1_OUTDIV4(3);
+#elif F_CPU == 24000000
+	// config divisors: 24 MHz core, 24 MHz bus, 24 MHz flash
+	SIM_CLKDIV1 = SIM_CLKDIV1_OUTDIV1(3) | SIM_CLKDIV1_OUTDIV2(3) |	 SIM_CLKDIV1_OUTDIV4(3);
+#else
+#error "Error, F_CPU must be 96000000, 48000000, or 24000000"
+#endif
+
+	// switch to PLL as clock source, FLL input = 16 MHz / 512
+	MCG_C1 = MCG_C1_CLKS(0) | MCG_C1_FRDIV(4);
+
+	// configure USB for 48 MHz clock
+	SIM_CLKDIV2 = SIM_CLKDIV2_USBDIV(1); // USB = 96 MHz PLL / 2
+
+	SIM_SOPT2 = SIM_SOPT2_PLLFLLSEL;
+
+	// initialize the SysTick counter
+	SYST_RVR = (F_CPU / 1000) - 1;
+	SYST_CSR = SYST_CSR_CLKSOURCE | SYST_CSR_TICKINT | SYST_CSR_ENABLE;
+#else
 	// start in FEI mode
 	// enable capacitors for crystal
 	OSC0_CR = OSC_SC8P | OSC_SC2P;
@@ -482,31 +466,13 @@ void ResetHandler(void)
 	SYST_RVR = (F_CPU / 1000) - 1;
 	SYST_CSR = SYST_CSR_CLKSOURCE | SYST_CSR_TICKINT | SYST_CSR_ENABLE;
 
-	//init_pins();
+#endif
 	__enable_irq();
-
-	//_init_Teensyduino_internal_(); XXX HaaTa - Why is this here? Perhaps fixed in a new version of the API?
-	//if (RTC_SR & RTC_SR_TIF) rtc_set(TIME_T); XXX HaaTa - We don't care about the rtc
-
 	__libc_init_array();
 
-/*
-	for (ptr = &__init_array_start; ptr < &__init_array_end; ptr++) {
-		(*ptr)();
-	}
-*/
-	startup_late_hook();
-#endif
 	main();
 	while (1) ;
 }
-
-// TODO: is this needed for c++ and where does it come from?
-/*
-void _init(void)
-{
-}
-*/
 
 char *__brkval = (char *)&_ebss;
 
@@ -519,70 +485,6 @@ void * _sbrk(int incr)
 	char *prev = __brkval;
 	__brkval += incr;
 	return prev;
-}
-
-__attribute__((weak)) 
-int _read(int file, char *ptr, int len)
-{
-	return 0;
-}
-
-/*  moved to Print.cpp, to support Print::printf()
-__attribute__((weak)) 
-int _write(int file, char *ptr, int len)
-{
-	return 0;
-}
-*/
-
-__attribute__((weak)) 
-int _close(int fd)
-{
-	return -1;
-}
-
-#include <sys/stat.h>
-
-__attribute__((weak)) 
-int _fstat(int fd, struct stat *st)
-{
-	st->st_mode = S_IFCHR;
-	return 0;
-}
-
-__attribute__((weak)) 
-int _isatty(int fd)
-{
-	return 1;
-}
-
-__attribute__((weak)) 
-int _lseek(int fd, long long offset, int whence)
-{
-	return -1;
-}
-
-__attribute__((weak)) 
-void _exit(int status)
-{
-	while (1);
-}
-
-__attribute__((weak)) 
-void __cxa_pure_virtual()
-{
-	while (1);
-}
-
-__attribute__((weak)) 
-int __cxa_guard_acquire (int *g) 
-{
-	return 1;
-}
-
-__attribute__((weak)) 
-void __cxa_guard_release(int *g)
-{
 }
 
 int nvic_execution_priority(void)

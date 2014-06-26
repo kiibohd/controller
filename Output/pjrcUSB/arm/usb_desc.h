@@ -83,38 +83,38 @@ let me know?  http://forum.pjrc.com/forums/4-Suggestions-amp-Bug-Reports
 
 
 
-#define DEVICE_CLASS		0xEF
-#define DEVICE_SUBCLASS	0x02
-#define DEVICE_PROTOCOL	0x01
-#define EP0_SIZE		64
-#define NUM_ENDPOINTS		6
-#define NUM_USB_BUFFERS	30
-#define NUM_INTERFACE		4
+#define DEVICE_CLASS            0xEF
+#define DEVICE_SUBCLASS         0x02
+#define DEVICE_PROTOCOL         0x01
+#define EP0_SIZE                64
+#define NUM_ENDPOINTS           6
+#define NUM_USB_BUFFERS         30
+#define NUM_INTERFACE           4
 
-#define CDC_IAD_DESCRIPTOR	1
-#define CDC_STATUS_INTERFACE	0
-#define CDC_DATA_INTERFACE	1	// Serial
-#define CDC_ACM_ENDPOINT	2
-#define CDC_RX_ENDPOINT       3
-#define CDC_TX_ENDPOINT       4
-#define CDC_ACM_SIZE          16
-#define CDC_RX_SIZE           64
-#define CDC_TX_SIZE           64
+#define CDC_IAD_DESCRIPTOR      1
+#define CDC_STATUS_INTERFACE    0
+#define CDC_DATA_INTERFACE      1 // Serial
+#define CDC_ACM_ENDPOINT        2
+#define CDC_RX_ENDPOINT         3
+#define CDC_TX_ENDPOINT         4
+#define CDC_ACM_SIZE            16
+#define CDC_RX_SIZE             64
+#define CDC_TX_SIZE             64
 
-#define KEYBOARD_INTERFACE    2	// Keyboard
-#define KEYBOARD_ENDPOINT     1
-#define KEYBOARD_SIZE         8
-#define KEYBOARD_INTERVAL     1
+#define KEYBOARD_INTERFACE      2 // Keyboard
+#define KEYBOARD_ENDPOINT       1
+#define KEYBOARD_SIZE           8
+#define KEYBOARD_INTERVAL       1
 
-#define MOUSE_INTERFACE       3	// Mouse
-#define MOUSE_ENDPOINT        5
-#define MOUSE_SIZE            8
-#define MOUSE_INTERVAL        2
+#define MOUSE_INTERFACE         3 // Mouse
+#define MOUSE_ENDPOINT          5
+#define MOUSE_SIZE              8
+#define MOUSE_INTERVAL          2
 
-#define JOYSTICK_INTERFACE    4	// Joystick
-#define JOYSTICK_ENDPOINT     6
-#define JOYSTICK_SIZE         16
-#define JOYSTICK_INTERVAL     1
+#define JOYSTICK_INTERFACE      4 // Joystick
+#define JOYSTICK_ENDPOINT       6
+#define JOYSTICK_SIZE           16
+#define JOYSTICK_INTERVAL       1
 
 #define KEYBOARD_DESC_OFFSET	(9+8 + 9+5+5+4+5+7+9+7+7 + 9)
 #define MOUSE_DESC_OFFSET	(9+8 + 9+5+5+4+5+7+9+7+7 + 9+9+7 + 9)

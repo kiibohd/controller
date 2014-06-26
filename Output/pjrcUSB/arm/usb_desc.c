@@ -424,16 +424,16 @@ const usb_descriptor_list_t usb_descriptor_list[] = {
 // 0x19 = Recieve only
 // 0x15 = Transmit only
 // 0x1D = Transmit & Recieve
-// 
-const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS] = 
+//
+const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS] =
 {
-	0x00, 0x15, 0x19, 0x15, 0x00, 0x00, 0x00, 0x00, 
-	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+	0x00, 0x15, 0x19, 0x15, 0x00, 0x00, 0x00, 0x00,
+	0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 };
 #endif
 
 
-const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS] = 
+const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS] =
 {
 #if (defined(ENDPOINT1_CONFIG) && NUM_ENDPOINTS >= 1)
 	ENDPOINT1_CONFIG,

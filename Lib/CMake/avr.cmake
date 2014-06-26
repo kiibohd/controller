@@ -132,7 +132,7 @@ add_definitions( "-mmcu=${MCU} -DF_CPU=${F_CPU} -D_${MCU}_=1 -O${OPT} ${TUNING} 
 
 
 #| Linker Flags
-set( LINKER_FLAGS "-mmcu=${MCU} -Wl,-Map=${TARGET}.map,--cref -Wl,--relax -Wl,--gc-sections" )
+set( LINKER_FLAGS "-mmcu=${MCU} -Wl,-Map=link.map,--cref -Wl,--relax -Wl,--gc-sections" )
 
 
 #| Hex Flags (XXX, CMake seems to have issues if you quote the arguments for the custom commands...)

@@ -136,7 +136,7 @@ add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING}
 
 
 #| Linker Flags
-set( LINKER_FLAGS "-mcpu=${CPU} -Wl,-Map=${TARGET}.map,--cref -Wl,--gc-sections -mthumb -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
+set( LINKER_FLAGS "-mcpu=${CPU} -Wl,-Map=link.map,--cref -Wl,--gc-sections -mthumb -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
 
 
 #| Hex Flags (XXX, CMake seems to have issues if you quote the arguments for the custom commands...)
