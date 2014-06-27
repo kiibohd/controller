@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2014 by Jacob Alexander
+/* Copyright (C) 2014 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,11 +31,9 @@
 
 // USB Includes
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-#include "avr/usb_keyboard_serial.h"
+#include "avr/uart_serial.h"
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
-#include "arm/usb_dev.h"
-#include "arm/usb_keyboard.h"
-#include "arm/usb_serial.h"
+#include "arm/uart_serial.h"
 #endif
 
 // Local Includes
@@ -55,7 +53,7 @@ void cliFunc_setMod     ( char* args );
 // ----- Variables -----
 
 // Output Module command dictionary
-char*       outputCLIDictName = "USB Module Commands";
+char*       outputCLIDictName = "USB Module Commands - NOT WORKING";
 CLIDictItem outputCLIDict[] = {
 	{ "kbdProtocol", "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode", cliFunc_kbdProtocol },
 	{ "readLEDs",    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc.", cliFunc_readLEDs },
@@ -101,41 +99,18 @@ volatile uint8_t USBKeys_Protocol = 1;
 // USB Module Setup
 inline void Output_setup()
 {
-	// Initialize the USB, and then wait for the host to set configuration.
-	// If the Teensy is powered without a PC connected to the USB port,
-	// this will wait forever.
-	usb_init();
-#include <led.h>
-init_errorLED();
-errorLED( 1 );
-while(1);
-	while ( !usb_configured() ) /* wait */ ;
+	// Setup UART
+	uart_serial_setup();
 
 	// Register USB Output CLI dictionary
 	CLI_registerDictionary( outputCLIDict, outputCLIDictName );
-
-	// Wait an extra second for the PC's operating system to load drivers
-	// and do whatever it does to actually be ready for input
-	//_delay_ms(1000); // TODO (is this actually necessary?)
 }
 
 
 // USB Data Send
 inline void Output_send(void)
 {
-	// TODO undo potentially old keys
-	for ( uint8_t c = USBKeys_Sent; c < USBKeys_MaxSize; c++ )
-		USBKeys_Array[c] = 0;
-
-	// Send keypresses
-	usb_keyboard_send();
-
-	// Clear modifiers and keys
-	USBKeys_Modifiers = 0;
-	USBKeys_Sent      = 0;
-
-	// Signal Scan Module we are finishedA
-	Scan_finishedWithUSBBuffer( USBKeys_Sent <= USBKeys_MaxSize ? USBKeys_Sent : USBKeys_MaxSize );
+	// TODO
 }
 
 
@@ -143,9 +118,9 @@ inline void Output_send(void)
 inline void Output_firmwareReload()
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-	usb_debug_reload();
+	uart_debug_reload();
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
-	usb_device_reload();
+	uart_device_reload();
 #endif
 }
 
@@ -153,7 +128,7 @@ inline void Output_firmwareReload()
 // USB Input buffer available
 inline unsigned int Output_availablechar()
 {
-	return usb_serial_available();
+	return uart_serial_available();
 }
 
 
@@ -162,9 +137,9 @@ inline int Output_getchar()
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 	// XXX Make sure to check output_availablechar() first! Information is lost with the cast (error codes)
-	return (int)usb_serial_getchar();
+	return (int)uart_serial_getchar();
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
-	return usb_serial_getchar();
+	return uart_serial_getchar();
 #endif
 }
 
@@ -172,7 +147,7 @@ inline int Output_getchar()
 // USB Send Character to output buffer
 inline int Output_putchar( char c )
 {
-	return usb_serial_putchar( c );
+	return uart_serial_putchar( c );
 }
 
 
@@ -188,7 +163,7 @@ inline int Output_putstr( char* str )
 	while ( str[count] != '\0' )
 		count++;
 
-	return usb_serial_write( str, count );
+	return uart_serial_write( str, count );
 }
 
 
@@ -196,7 +171,7 @@ inline int Output_putstr( char* str )
 inline void Output_softReset()
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-	usb_debug_software_reset();
+	uart_debug_software_reset();
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
 	SOFTWARE_RESET();
 #endif

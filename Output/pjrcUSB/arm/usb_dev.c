@@ -669,19 +669,10 @@ void usb_tx(uint32_t endpoint, usb_packet_t *packet)
 }
 
 
-
 void usb_device_reload()
 {
 	asm volatile("bkpt");
 }
-
-
-void _reboot_Teensyduino_(void)
-{
-	// TODO: initialize R0 with a code....
-	asm volatile("bkpt");
-}
-
 
 
 void usb_isr(void)
@@ -700,7 +691,7 @@ void usb_isr(void)
 			t = usb_reboot_timer;
 			if (t) {
 				usb_reboot_timer = --t;
-				if (!t) _reboot_Teensyduino_();
+				if (!t) usb_device_reload();
 			}
 #ifdef CDC_DATA_INTERFACE
 			t = usb_cdc_transmit_flush_timer;

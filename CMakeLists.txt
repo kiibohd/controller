@@ -21,8 +21,8 @@ set( CHIP
 #	"atmega32u4"       # Teensy   2.0 (avr)
 #	"at90usb646"       # Teensy++ 1.0 (avr)
 #	"at90usb1286"      # Teensy++ 2.0 (avr)
-#	"mk20dx128"        # Teensy   3.0 (arm)
-	"mk20dx128vlf5"    # McHCK    mk20dx128vlf5
+	"mk20dx128"        # Teensy   3.0 (arm)
+#	"mk20dx128vlf5"    # McHCK    mk20dx128vlf5
 #	"mk20dx256"        # Teensy   3.1 (arm)
 )
 
@@ -53,7 +53,7 @@ set(   ScanModule "MDPure" )
 set(  MacroModule "PartialMap" )
 
 ##| Sends the current list of usb key codes through USB HID
-set( OutputModule "pjrcUSB" )
+set( OutputModule "uartOut" )
 
 ##| Debugging source to use, each module has it's own set of defines that it sets
 set(  DebugModule "full" )
