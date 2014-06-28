@@ -26,7 +26,7 @@
 
 // ----- Variables -----
 
-#define uart0_buffer_size 32 // 32 byte buffer
+#define uart0_buffer_size 128 // 128 byte buffer
 volatile uint8_t uart0_buffer_head = 0;
 volatile uint8_t uart0_buffer_tail = 0;
 volatile uint8_t uart0_buffer_items = 0;
@@ -40,10 +40,22 @@ void uart0_status_isr()
 	cli(); // Disable Interrupts
 
 	// UART0_S1 must be read for the interrupt to be cleared
-	if ( UART0_S1 & UART_S1_RDRF )
+	if ( UART0_S1 & ( UART_S1_RDRF | UART_S1_IDLE ) )
 	{
+		uint8_t available = UART0_RCFIFO;
+
+		// If there was actually nothing
+		if ( available == 0 )
+		{
+			// Cleanup
+			available = UART0_D;
+			UART0_CFIFO = UART_CFIFO_RXFLUSH;
+			sei();
+			return;
+		}
+
 		// Read UART0 into buffer until FIFO is empty
-		while ( !( UART0_SFIFO & UART_SFIFO_RXEMPT ) )
+		while ( available-- > 0 )
 		{
 			uart0_buffer[uart0_buffer_tail++] = UART0_D;
 			uart0_buffer_items++;
@@ -65,7 +77,6 @@ void uart0_status_isr()
 			{
 				uart0_buffer_head = 0;
 			}
-
 		}
 	}
 
@@ -84,17 +95,22 @@ void uart_serial_setup()
 	PORTB_PCR16 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(3); // RX Pin
 	PORTB_PCR17 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
 
-	// Setup baud rate - 9600 Baud
+	// Setup baud rate - 115200 Baud
 	// 48 MHz / ( 16 * Baud ) = BDH/L
-	// Baud: 9600 -> 48 MHz / ( 16 * 9600 ) = 312.5
-	// Thus baud setting = 313
+	// Baud: 115200 -> 48 MHz / ( 16 * 115200 ) = 26.0416667
+	// Thus baud setting = 26
 	// NOTE: If finer baud adjustment is needed see UARTx_C4 -> BRFA in the datasheet
-	uint16_t baud = 313; // Max setting of 8191
+	uint16_t baud = 26; // Max setting of 8191
 	UART0_BDH = (uint8_t)(baud >> 8);
 	UART0_BDL = (uint8_t)baud;
+	UART0_C4 = 0x02;
 
 	// 8 bit, No Parity, Idle Character bit after stop
 	UART0_C1 = UART_C1_ILT;
+
+	// Interrupt notification watermark
+	UART0_TWFIFO = 2;
+	UART0_RWFIFO = 4;
 
 	// TX FIFO Disabled, TX FIFO Size 1 (Max 8 datawords), RX FIFO Enabled, RX FIFO Size 1 (Max 8 datawords)
 	// TX/RX FIFO Size:
@@ -111,9 +127,9 @@ void uart_serial_setup()
 	// UART_C3_TXINV
 	UART0_C3 |= 0x00;
 
-	// TX Disabled, RX Enabled, RX Interrupt Enabled
-	// UART_C2_TE UART_C2_RE UART_C2_RIE
-	UART0_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE;
+	// TX Enabled, RX Enabled, RX Interrupt Enabled, Generate idles
+	// UART_C2_TE UART_C2_RE UART_C2_RIE UART_C2_ILIE
+	UART0_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE | UART_C2_ILIE;
 
 	// Add interrupt to the vector table
 	NVIC_ENABLE_IRQ( IRQ_UART0_STATUS );
@@ -161,7 +177,10 @@ void uart_serial_flush_input()
 // Transmit a character.  0 returned on success, -1 on error
 int uart_serial_putchar( uint8_t c )
 {
-	return uart_serial_write( &c, 1 );
+	while ( !( UART0_SFIFO & UART_SFIFO_TXEMPT ) ); // Wait till there is room to send
+	UART0_D = c;
+
+	return 0;
 }
 
 

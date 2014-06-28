@@ -53,7 +53,7 @@ set(   ScanModule "MDPure" )
 set(  MacroModule "PartialMap" )
 
 ##| Sends the current list of usb key codes through USB HID
-set( OutputModule "uartOut" )
+set( OutputModule "usbMuxUart" )
 
 ##| Debugging source to use, each module has it's own set of defines that it sets
 set(  DebugModule "full" )
