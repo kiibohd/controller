@@ -7,6 +7,13 @@
 ###
 
 
+###
+# CMake Custom Modules Path
+#
+
+set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Lib/CMake/" )
+
+
 
 ###
 # Module Overrides (Used in the buildall.bash script)
@@ -237,6 +244,30 @@ ModuleCompatibility( ${DebugModulePath}  ${DebugModuleCompatibility}  )
 # CMake Module Checking
 #
 find_package( Git REQUIRED )
+find_package( Ctags ) # Optional
+
+
+###
+# ctag Generation
+#
+
+if( CTAGS_EXECUTABLE )
+	# Populate list of directories for ctags to parse
+	# NOTE: Doesn't support dots in the folder names...
+	foreach( filename ${SRCS} )
+		string( REGEX REPLACE "/[a-zA-Z0-9_-]+.c$" "" pathglob ${filename} )
+		file( GLOB filenames "${pathglob}/*.c" )
+		set( CTAG_PATHS ${CTAG_PATHS} ${filenames} )
+		file( GLOB filenames "${pathglob}/*.h" )
+		set( CTAG_PATHS ${CTAG_PATHS} ${filenames} )
+	endforeach()
+
+	# Generate the ctags
+	execute_process( COMMAND ctags ${CTAG_PATHS}
+		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+	)
+endif()
+
 
 
 ###
