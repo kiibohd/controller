@@ -203,12 +203,8 @@ inline int Output_putstr( char* str )
 	while ( str[count] != '\0' )
 		count++;
 
-	// Make sure USB is configured first
-	if ( usb_configured() )
-	{
-		// First send to UART
-		uart_serial_write( str, count );
-	}
+	// First send to UART
+	uart_serial_write( str, count );
 
 	// Then send to USB
 	return usb_serial_write( str, count );

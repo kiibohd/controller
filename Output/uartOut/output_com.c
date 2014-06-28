@@ -31,7 +31,6 @@
 
 // USB Includes
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-#include "avr/uart_serial.h"
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
 #include "arm/uart_serial.h"
 #endif
@@ -118,7 +117,6 @@ inline void Output_send(void)
 inline void Output_firmwareReload()
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-	uart_debug_reload();
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
 	uart_device_reload();
 #endif
@@ -136,8 +134,6 @@ inline unsigned int Output_availablechar()
 inline int Output_getchar()
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-	// XXX Make sure to check output_availablechar() first! Information is lost with the cast (error codes)
-	return (int)uart_serial_getchar();
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
 	return uart_serial_getchar();
 #endif
@@ -155,7 +151,6 @@ inline int Output_putchar( char c )
 inline int Output_putstr( char* str )
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
-	uint16_t count = 0;
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
 	uint32_t count = 0;
 #endif
@@ -171,7 +166,6 @@ inline int Output_putstr( char* str )
 inline void Output_softReset()
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-	uart_debug_software_reset();
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
 	SOFTWARE_RESET();
 #endif

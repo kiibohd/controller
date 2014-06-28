@@ -32,6 +32,9 @@ volatile uint8_t uart0_buffer_tail = 0;
 volatile uint8_t uart0_buffer_items = 0;
 volatile uint8_t uart0_buffer[uart0_buffer_size];
 
+volatile uint8_t uart_configured = 0;
+
+
 
 // ----- Interrupt Functions -----
 
@@ -84,10 +87,14 @@ void uart0_status_isr()
 }
 
 
+
 // ----- Functions -----
 
 void uart_serial_setup()
 {
+	// Indication that the UART is not ready yet
+	uart_configured = 0;
+
 	// Setup the the UART interface for keyboard data input
 	SIM_SCGC4 |= SIM_SCGC4_UART0; // Disable clock gating
 
@@ -133,12 +140,18 @@ void uart_serial_setup()
 
 	// Add interrupt to the vector table
 	NVIC_ENABLE_IRQ( IRQ_UART0_STATUS );
+
+	// UART is now ready to use
+	uart_configured = 1;
 }
 
 
 // Get the next character, or -1 if nothing received
 int uart_serial_getchar()
 {
+	if ( !uart_configured )
+		return -1;
+
 	unsigned int value = -1;
 
 	// Check to see if the FIFO has characters
@@ -177,6 +190,9 @@ void uart_serial_flush_input()
 // Transmit a character.  0 returned on success, -1 on error
 int uart_serial_putchar( uint8_t c )
 {
+	if ( !uart_configured )
+		return -1;
+
 	while ( !( UART0_SFIFO & UART_SFIFO_TXEMPT ) ); // Wait till there is room to send
 	UART0_D = c;
 
@@ -186,6 +202,9 @@ int uart_serial_putchar( uint8_t c )
 
 int uart_serial_write( const void *buffer, uint32_t size )
 {
+	if ( !uart_configured )
+		return -1;
+
 	const uint8_t *data = (const uint8_t *)buffer;
 	uint32_t position = 0;
 
