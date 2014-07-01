@@ -21,8 +21,8 @@ set( CHIP
 #	"atmega32u4"       # Teensy   2.0 (avr)
 #	"at90usb646"       # Teensy++ 1.0 (avr)
 #	"at90usb1286"      # Teensy++ 2.0 (avr)
-	"mk20dx128"        # Teensy   3.0 (arm)
-#	"mk20dx128vlf5"    # McHCK    mk20dx128vlf5
+#	"mk20dx128"        # Teensy   3.0 (arm)
+	"mk20dx128vlf5"    # McHCK    mk20dx128vlf5
 #	"mk20dx256"        # Teensy   3.1 (arm)
 )
 

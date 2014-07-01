@@ -66,7 +66,7 @@ volatile uint8_t sendKeypresses = 0;
 // ----- Functions -----
 
 // Initial Pin Setup, make sure they are sane
-inline void pinSetup(void)
+inline void pinSetup()
 {
 
 // AVR
@@ -100,7 +100,7 @@ inline void pinSetup(void)
 }
 
 
-inline void usbTimerSetup(void)
+inline void usbTimerSetup()
 {
 // AVR
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
@@ -134,8 +134,7 @@ inline void usbTimerSetup(void)
 #endif
 }
 
-
-int main(void)
+int main()
 {
 	// Configuring Pins
 	pinSetup();
@@ -185,7 +184,7 @@ int main(void)
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 ISR( TIMER0_OVF_vect )
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
-void pit0_isr(void)
+void pit0_isr()
 #endif
 {
 	sendKeypressCounter++;

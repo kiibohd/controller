@@ -98,9 +98,18 @@ void uart_serial_setup()
 	// Setup the the UART interface for keyboard data input
 	SIM_SCGC4 |= SIM_SCGC4_UART0; // Disable clock gating
 
+// MCHCK
+#if defined(_mk20dx128vlf5_)
+	// Pin Setup for UART0
+	PORTA_PCR1 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(2); // RX Pin
+	PORTA_PCR2 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(2); // TX Pin
+
+// Teensy
+#else
 	// Pin Setup for UART0
 	PORTB_PCR16 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(3); // RX Pin
 	PORTB_PCR17 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
+#endif
 
 	// Setup baud rate - 115200 Baud
 	// 48 MHz / ( 16 * Baud ) = BDH/L
@@ -115,7 +124,7 @@ void uart_serial_setup()
 	// 8 bit, No Parity, Idle Character bit after stop
 	UART0_C1 = UART_C1_ILT;
 
-	// Interrupt notification watermark
+	// Interrupt notification watermarks
 	UART0_TWFIFO = 2;
 	UART0_RWFIFO = 4;
 
