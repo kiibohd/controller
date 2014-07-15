@@ -48,6 +48,7 @@ SECTIONS
 		*(.rodata*)
 		. = ALIGN(4);
 		KEEP(*(.init))
+
 		. = ALIGN(4);
 		__preinit_array_start = .;
 		KEEP (*(.preinit_array))
@@ -56,6 +57,7 @@ SECTIONS
 		KEEP (*(SORT(.init_array.*)))
 		KEEP (*(.init_array))
 		__init_array_end = .;
+
 	} > FLASH = 0xFF
 
 	.ARM.exidx : {

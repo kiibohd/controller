@@ -109,7 +109,7 @@ set( WARN "-Wall -g" )
 #| Tuning Options
 #|  -f...:        tuning, see GCC manual
 #| NOTE: -fshort-wchar is specified to allow USB strings be passed conveniently
-set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -flto -fno-use-linker-plugin" )
+set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
 
 
 #| Optimization level, can be [0, 1, 2, 3, s].

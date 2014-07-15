@@ -93,25 +93,28 @@ void printstrs( char* first, ... );
 
 
 // Printing numbers
-#define printHex(hex) printHex_op(hex, 1)
+#define printHex(hex)   printHex_op(hex, 1)
+#define printHex32(hex) printHex32_op(hex, 1)
 
-void printInt8  ( uint8_t  in );
-void printInt16 ( uint16_t in );
-void printInt32 ( uint32_t in );
-void printHex_op( uint16_t in, uint8_t op );
+void printInt8    ( uint8_t  in );
+void printInt16   ( uint16_t in );
+void printInt32   ( uint32_t in );
+void printHex_op  ( uint16_t in, uint8_t op );
+void printHex32_op( uint32_t in, uint8_t op );
 
 
 // String Functions
 #define hexToStr(hex, out) hexToStr_op(hex, out, 1)
 
-void int8ToStr  ( uint8_t  in, char*  out );
-void int16ToStr ( uint16_t in, char*  out );
-void int32ToStr ( uint32_t in, char*  out );
-void hexToStr_op( uint16_t in, char*  out, uint8_t op );
-void revsStr    ( char*  in );
-uint16_t lenStr ( char*  in );
-int16_t eqStr   ( char*  str1, char* str2 ); // Returns -1 if identical, last character of str1 comparison (0 if str1 is like str2)
-int decToInt    ( char* in ); // Returns the int representation of a string
+void int8ToStr    ( uint8_t  in, char*  out );
+void int16ToStr   ( uint16_t in, char*  out );
+void int32ToStr   ( uint32_t in, char*  out );
+void hexToStr_op  ( uint16_t in, char*  out, uint8_t op );
+void hex32ToStr_op( uint32_t in, char*  out, uint8_t op );
+void revsStr      ( char*  in );
+uint16_t lenStr   ( char*  in );
+int16_t eqStr     ( char*  str1, char* str2 ); // Returns -1 if identical, last character of str1 comparison (0 if str1 is like str2)
+int decToInt      ( char* in ); // Returns the int representation of a string
 
 #endif
 

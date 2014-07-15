@@ -31,6 +31,7 @@
 
 // Local Includes
 #include "mk20dx.h"
+#include <print.h>
 
 
 
@@ -365,19 +366,19 @@ void ResetHandler()
 	uint32_t *src = &_etext;
 	uint32_t *dest = &_sdata;
 
-	/* Disable Watchdog */
+	// Disable Watchdog
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
 	WDOG_STCTRLH = WDOG_STCTRLH_ALLOWUPDATE;
 
-	// enable clocks to always-used peripherals
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_)
-	SIM_SCGC5 = 0x00043F82;		// clocks active to all GPIO
-	SIM_SCGC6 = SIM_SCGC6_RTC | SIM_SCGC6_FTM0 | SIM_SCGC6_FTM1 | SIM_SCGC6_ADC0 | SIM_SCGC6_FTFL;
+	// Enable clocks to always-used peripherals
+	SIM_SCGC5 = 0x00043F82; // Clocks active to all GPIO
+	SIM_SCGC6 = SIM_SCGC6_FTM0 | SIM_SCGC6_FTM1 | SIM_SCGC6_ADC0 | SIM_SCGC6_FTFL;
+#if defined(_mk20dx128_)
+	SIM_SCGC6 |= SIM_SCGC6_RTC;
 #elif defined(_mk20dx256_)
 	SIM_SCGC3 = SIM_SCGC3_ADC1 | SIM_SCGC3_FTM2;
-	SIM_SCGC5 = 0x00043F82;		// clocks active to all GPIO
-	SIM_SCGC6 = SIM_SCGC6_RTC | SIM_SCGC6_FTM0 | SIM_SCGC6_FTM1 | SIM_SCGC6_ADC0 | SIM_SCGC6_FTFL;
+	SIM_SCGC6 |= SIM_SCGC6_RTC;
 #endif
 
 #if defined(_mk20dx128_) || defined(_mk20dx256_) // Teensy 3s
@@ -390,7 +391,10 @@ void ResetHandler()
 #endif
 
 	// release I/O pins hold, if we woke up from VLLS mode
-	if (PMC_REGSC & PMC_REGSC_ACKISO) PMC_REGSC |= PMC_REGSC_ACKISO;
+	if ( PMC_REGSC & PMC_REGSC_ACKISO )
+	{
+		PMC_REGSC |= PMC_REGSC_ACKISO;
+	}
 
 	// Prepare RAM
 	while ( dest < &_edata ) *dest++ = *src++;
@@ -399,11 +403,17 @@ void ResetHandler()
 
 // MCHCK
 #if defined(_mk20dx128vlf5_)
-        /* FLL at 48MHz */
+	// Default all interrupts to medium priority level
+	for ( unsigned int i = 0; i < NVIC_NUM_INTERRUPTS; i++ )
+	{
+		NVIC_SET_PRIORITY( i, 128 );
+	}
+
+        // FLL at 48MHz
 	MCG_C4 = MCG_C4_DMX32 | MCG_C4_DRST_DRS( 1 );
 
-	//SIM_SOPT2 = SIM_SOPT2_PLLFLLSEL;
-	SIM_SOPT2 = SIM_SOPT2_USBSRC | SIM_SOPT2_PLLFLLSEL | SIM_SOPT2_TRACECLKSEL | SIM_SOPT2_CLKOUTSEL( 6 );
+	// USB Clock and FLL select
+	SIM_SOPT2 = SIM_SOPT2_USBSRC | SIM_SOPT2_TRACECLKSEL;
 
 // Teensy 3.0 and 3.1
 #else

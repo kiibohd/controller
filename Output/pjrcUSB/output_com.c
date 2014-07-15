@@ -105,10 +105,7 @@ inline void Output_setup()
 	// If the Teensy is powered without a PC connected to the USB port,
 	// this will wait forever.
 	usb_init();
-#include <led.h>
-init_errorLED();
-errorLED( 1 );
-while(1);
+
 	while ( !usb_configured() ) /* wait */ ;
 
 	// Register USB Output CLI dictionary

@@ -44,6 +44,7 @@ SECTIONS
 		KEEP(* (.vectors))
 		*(.startup*)
 		*(.text*)
+		*(.rodata*)
 		. = ALIGN(4);
 		KEEP(*(.init))
 	} > FLASH

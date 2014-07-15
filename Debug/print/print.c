@@ -122,6 +122,20 @@ void printHex_op( uint16_t in, uint8_t op )
 	dPrintStr( tmpStr );
 }
 
+void printHex32_op( uint32_t in, uint8_t op )
+{
+	// With an op of 1, the max number of characters is 6 + 1 for null
+	// e.g. "0xFFFF\0"
+	// op 2 and 4 require fewer characters (2+1 and 4+1 respectively)
+	char tmpStr[7];
+
+	// Convert number
+	hex32ToStr_op( in, tmpStr, op );
+
+	// Print number
+	dPrintStr( tmpStr );
+}
+
 
 
 // String Functions
@@ -197,6 +211,41 @@ void hexToStr_op( uint16_t in, char* out, uint8_t op )
 	do
 	{
 		uint16_t cur = in % 16;
+		out[pos++] = cur + (( cur < 10 ) ? '0' : 'A' - 10);
+	}
+	while ( (in /= 16) > 0 );
+
+	// Output formatting options
+	switch ( op )
+	{
+	case 1: // Add 0x
+		out[pos++] = 'x';
+		out[pos++] = '0';
+		break;
+	case 2: //  8-bit padding
+	case 4: // 16-bit padding
+		while ( pos < op )
+			out[pos++] = '0';
+		break;
+	}
+
+	// Append null
+	out[pos] = '\0';
+
+	// Reverse the string to the correct order
+	revsStr(out);
+}
+
+
+void hex32ToStr_op( uint32_t in, char* out, uint8_t op )
+{
+	// Position container
+	uint32_t pos = 0;
+
+	// Evaluate through digits as hex
+	do
+	{
+		uint32_t cur = in % 16;
 		out[pos++] = cur + (( cur < 10 ) ? '0' : 'A' - 10);
 	}
 	while ( (in /= 16) > 0 );

@@ -287,7 +287,7 @@ set_target_properties( ${TARGET_ELF} PROPERTIES
 
 
 #| Convert the .ELF into a .bin to load onto the McHCK
-set( TARGET_BIN ${TARGET}.dfu.bin )
+set( TARGET_BIN ${TARGET}.bin.dfu )
 add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 	COMMAND ${CMAKE_OBJCOPY} ${BIN_FLAGS} ${TARGET_ELF} ${TARGET_BIN}
 	COMMENT "Creating binary file to load:  ${TARGET_BIN}"

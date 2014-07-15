@@ -1,6 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
+ * Modified by Jacob Alexander 2013-2014
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -10,10 +11,10 @@
  * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
  *
- * 1. The above copyright notice and this permission notice shall be 
+ * 1. The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  *
- * 2. If the Software is incorporated into a build system that allows 
+ * 2. If the Software is incorporated into a build system that allows
  * selection among a list of target devices, then similar target
  * devices manufactured by PJRC.COM must be included in the list of
  * target devices and selectable in the same manner.
@@ -28,7 +29,11 @@
  * SOFTWARE.
  */
 
+// Project Includes
 #include <Lib/OutputLib.h>
+#include <print.h>
+
+// Local Includes
 #include "usb_dev.h"
 #include "usb_mem.h"
 
@@ -125,14 +130,16 @@ volatile uint8_t usb_configuration = 0;
 volatile uint8_t usb_reboot_timer = 0;
 
 
-static void endpoint0_stall(void)
+static void endpoint0_stall()
 {
+	//print("STALL");
 	USB0_ENDPT0 = USB_ENDPT_EPSTALL | USB_ENDPT_EPRXEN | USB_ENDPT_EPTXEN | USB_ENDPT_EPHSHK;
 }
 
 
 static void endpoint0_transmit(const void *data, uint32_t len)
 {
+	//print("TRANSMIT");
 #if 0
 	serial_print("tx0:");
 	serial_phex32((uint32_t)data);
@@ -149,8 +156,9 @@ static void endpoint0_transmit(const void *data, uint32_t len)
 
 static uint8_t reply_buffer[8];
 
-static void usb_setup(void)
+static void usb_setup()
 {
+	//print("SETUP");
 	const uint8_t *data = NULL;
 	uint32_t datalen = 0;
 	const usb_descriptor_list_t *list;
@@ -387,6 +395,7 @@ static void usb_setup(void)
 
 static void usb_control(uint32_t stat)
 {
+	//print("CONTROL");
 	bdt_t *b;
 	uint32_t pid, size;
 	uint8_t *buf;
@@ -527,6 +536,7 @@ static uint8_t tx_state[NUM_ENDPOINTS];
 
 usb_packet_t *usb_rx(uint32_t endpoint)
 {
+	//print("USB RX");
 	usb_packet_t *ret;
 	endpoint--;
 	if (endpoint >= NUM_ENDPOINTS) return NULL;
@@ -586,6 +596,7 @@ uint32_t usb_tx_packet_count(uint32_t endpoint)
 //
 void usb_rx_memory(usb_packet_t *packet)
 {
+	//print("USB RX MEMORY");
 	unsigned int i;
 	const uint8_t *cfg;
 
@@ -617,7 +628,7 @@ void usb_rx_memory(usb_packet_t *packet)
 	__enable_irq();
 	// we should never reach this point.  If we get here, it means
 	// usb_rx_memory_needed was set greater than zero, but no memory
-	// was actually needed.  
+	// was actually needed.
 	usb_rx_memory_needed = 0;
 	usb_free(packet);
 	return;
@@ -675,7 +686,7 @@ void usb_device_reload()
 }
 
 
-void usb_isr(void)
+void usb_isr()
 {
 	uint8_t status, stat, t;
 
@@ -685,6 +696,11 @@ void usb_isr(void)
 	//serial_print("\n");
 	restart:
 	status = USB0_ISTAT;
+	/*
+	print("USB ISR STATUS: ");
+	printHex( status );
+	print( NL );
+	*/
 
 	if ((status & USB_INTEN_SOFTOKEN /* 04 */ )) {
 		if (usb_configuration) {
@@ -885,16 +901,13 @@ void usb_isr(void)
 
 
 
-void usb_init(void)
+void usb_init()
 {
-	int i;
+	//print("USB INIT");
 
-	//serial_begin(BAUD2DIV(115200));
-	//serial_print("usb_init\n");
-
-	//usb_init_serialnumber();
-
-	for (i=0; i <= NUM_ENDPOINTS*4; i++) {
+	// Clear out endpoints table
+	for ( int i = 0; i <= NUM_ENDPOINTS * 4; i++ )
+	{
 		table[i].desc = 0;
 		table[i].addr = 0;
 	}
@@ -908,7 +921,7 @@ void usb_init(void)
 
 	// reset USB module
 	USB0_USBTRC0 = USB_USBTRC_USBRESET;
-	while ((USB0_USBTRC0 & USB_USBTRC_USBRESET) != 0) ; // wait for reset to end
+	while ( (USB0_USBTRC0 & USB_USBTRC_USBRESET) != 0 ); // wait for reset to end
 
 	// set desc table base addr
 	USB0_BDTPAGE1 = ((uint32_t)table) >> 8;
@@ -930,8 +943,8 @@ void usb_init(void)
 	USB0_INTEN = USB_INTEN_USBRSTEN;
 
 	// enable interrupt in NVIC...
-	NVIC_SET_PRIORITY(IRQ_USBOTG, 112);
-	NVIC_ENABLE_IRQ(IRQ_USBOTG);
+	NVIC_SET_PRIORITY( IRQ_USBOTG, 112 );
+	NVIC_ENABLE_IRQ( IRQ_USBOTG );
 
 	// enable d+ pullup
 	USB0_CONTROL = USB_CONTROL_DPPULLUPNONOTG;
@@ -939,7 +952,7 @@ void usb_init(void)
 
 // return 0 if the USB is not configured, or the configuration
 // number selected by the HOST
-uint8_t usb_configured(void)
+uint8_t usb_configured()
 {
 	return usb_configuration;
 }

@@ -39,9 +39,9 @@
 #include "usb_mem.h"
 #include "usb_desc.h"
 
-void usb_init(void);
-uint8_t usb_configured(void);		// is the USB port configured
-void usb_isr(void);
+void usb_init();
+uint8_t usb_configured(); // is the USB port configured
+void usb_isr();
 usb_packet_t *usb_rx(uint32_t endpoint);
 uint32_t usb_tx_byte_count(uint32_t endpoint);
 uint32_t usb_tx_packet_count(uint32_t endpoint);
