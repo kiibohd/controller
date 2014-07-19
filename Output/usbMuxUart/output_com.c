@@ -142,10 +142,7 @@ inline void Output_send(void)
 // Sets the device into firmware reload mode
 inline void Output_firmwareReload()
 {
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
 	uart_device_reload();
-#endif
 }
 
 
@@ -159,20 +156,18 @@ inline unsigned int Output_availablechar()
 // USB Get Character from input buffer
 inline int Output_getchar()
 {
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
+	// XXX Make sure to check output_availablechar() first! Information is lost with the cast (error codes) (AVR)
 	if ( usb_serial_available() > 0 )
 	{
-		return usb_serial_getchar();
+		return (int)usb_serial_getchar();
 	}
 
 	if ( uart_serial_available() > 0 )
 	{
-		return uart_serial_getchar();
+		return (int)uart_serial_getchar();
 	}
 
 	return -1;
-#endif
 }
 
 
@@ -191,6 +186,7 @@ inline int Output_putchar( char c )
 inline int Output_putstr( char* str )
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+	uint16_t count = 0;
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
 	uint32_t count = 0;
 #endif
@@ -209,10 +205,7 @@ inline int Output_putstr( char* str )
 // Soft Chip Reset
 inline void Output_softReset()
 {
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
-	SOFTWARE_RESET();
-#endif
+	usb_device_software_reset();
 }
 
 
