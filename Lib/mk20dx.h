@@ -1957,6 +1957,9 @@ typedef struct {
 #define ARM_DWT_CTRL_CYCCNTENA          (1 << 0)                // Enable cycle count
 #define ARM_DWT_CYCCNT          *(volatile uint32_t *)0xE0001004 // Cycle count register
 
+// Other
+#define VBAT                    *(volatile uint8_t *)0x4003E000 // Register available in all power states
+
 extern int nvic_execution_priority(void);
 
 extern void nmi_isr(void);

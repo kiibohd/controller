@@ -1,6 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
+ * Modifications by Jacob Alexander 2014
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -39,14 +40,19 @@
 #include "usb_mem.h"
 #include "usb_desc.h"
 
-void usb_init();
+#define usb_device_software_reset() SOFTWARE_RESET()
+
 uint8_t usb_configured(); // is the USB port configured
+
+void usb_init();
 void usb_isr();
-usb_packet_t *usb_rx(uint32_t endpoint);
-uint32_t usb_tx_byte_count(uint32_t endpoint);
-uint32_t usb_tx_packet_count(uint32_t endpoint);
-void usb_tx(uint32_t endpoint, usb_packet_t *packet);
-void usb_tx_isr(uint32_t endpoint, usb_packet_t *packet);
+void usb_tx( uint32_t endpoint, usb_packet_t *packet );
+void usb_tx_isr( uint32_t endpoint, usb_packet_t *packet );
+
+uint32_t usb_tx_byte_count( uint32_t endpoint );
+uint32_t usb_tx_packet_count( uint32_t endpoint );
+
+usb_packet_t *usb_rx( uint32_t endpoint );
 
 void usb_device_reload();
 

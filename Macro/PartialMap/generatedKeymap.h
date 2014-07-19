@@ -447,9 +447,5 @@ static unsigned int myname2_scanMap[] = {
 
 
 
-// ----- Result Maps -----
-
-
-
 #endif // __generatedKeymap_h
 

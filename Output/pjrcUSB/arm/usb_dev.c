@@ -682,7 +682,17 @@ void usb_tx(uint32_t endpoint, usb_packet_t *packet)
 
 void usb_device_reload()
 {
+// MCHCK
+#if defined(_mk20dx128vlf5_)
+	// This line must be exactly the same in the bootloader
+	const uint8_t sys_reset_to_loader_magic[] = "\xff\x00\x7fRESET TO LOADER\x7f\x00\xff";
+	for ( int pos = 0; pos < sizeof(sys_reset_to_loader_magic); pos++ )(&VBAT)[pos] = sys_reset_to_loader_magic[ pos ];
+
+	SOFTWARE_RESET();
+// Teensy 3.0 and 3.1
+#else
 	asm volatile("bkpt");
+#endif
 }
 
 

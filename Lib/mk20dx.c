@@ -49,7 +49,7 @@ extern unsigned long _estack;
 
 // ----- Function Declarations -----
 
-extern int main ();
+extern int main();
 void ResetHandler();
 
 

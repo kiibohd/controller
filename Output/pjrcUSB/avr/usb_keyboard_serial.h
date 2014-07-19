@@ -50,7 +50,7 @@ uint8_t usb_configured(void);		// is the USB port configured
 int8_t usb_keyboard_send(void);
 
 // Chip Level Functions
-void usb_debug_reload();                // Enable firmware reflash mode
+void usb_device_reload();               // Enable firmware reflash mode
 void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3"))); // Needed for software reset
 
 // USB Serial CDC Functions
@@ -77,7 +77,7 @@ int8_t usb_serial_set_control(uint8_t signals); // set DSR, DCD, RI, etc
 // ----- Macros -----
 
 // Software reset the chip
-#define usb_debug_software_reset() do { wdt_enable( WDTO_15MS ); for(;;); } while(0)
+#define usb_device_software_reset() do { wdt_enable( WDTO_15MS ); for(;;); } while(0)
 
 // See EPSIZE -> UECFG1X - 128 and 256 bytes are for endpoint 1 only
 #define EP_SIZE(s)	((s) == 256 ? 0x50 : \

@@ -506,7 +506,7 @@ int8_t usb_serial_set_control(uint8_t signals)
 // ----- General USB Functions -----
 
 // Set the avr into firmware reload mode
-void usb_debug_reload()
+void usb_device_reload()
 {
 	cli();
 	// Disable watchdog, if enabled
