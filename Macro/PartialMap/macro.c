@@ -370,7 +370,20 @@ inline void Macro_setup()
 
 void cliFunc_capList( char* args )
 {
-	// TODO
+	print( NL );
+	info_msg("Capabilities List");
+
+	// Iterate through all of the capabilities and display them
+	for ( unsigned int cap = 0; cap < CapabilitiesNum; cap++ )
+	{
+		print( NL "\t" );
+		printHex( cap );
+		print(" - ");
+
+		// Display/Lookup Capability Name (utilize debug mode of capability)
+		void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ cap ]);
+		capability( 0xFF, 0xFF, 0 );
+	}
 }
 
 void cliFunc_capSelect( char* args )
@@ -588,20 +601,24 @@ void macroDebugShowResult( unsigned int index )
 			// Assign TriggerGuide element (key type, state and scancode)
 			ResultGuide *guide = (ResultGuide*)(&macro->guide[ pos ]);
 
+			// Display Function Index
+			printHex( guide->index );
+			print("|");
+
 			// Display Function Ptr Address
-			printHex( (unsigned int)guide->function );
+			printHex( (unsigned int)CapabilitiesList[ guide->index ] );
 			print("|");
 
 			// Display/Lookup Capability Name (utilize debug mode of capability)
-			void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(guide->function);
+			void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ]);
 			capability( 0xFF, 0xFF, 0 );
 
 			// Display Argument(s)
 			print("(");
 			for ( unsigned int arg = 0; arg < guide->argCount; arg++ )
 			{
-				// Arguments are only 8 bit values (guides are 32 bit for function pointers)
-				printHex( (uint8_t)(unsigned int)(&guide->args)[ arg ] );
+				// Arguments are only 8 bit values
+				printHex( (&guide->args)[ arg ] );
 
 				// Only show arg separator if there are args left
 				if ( arg + 1 < guide->argCount )

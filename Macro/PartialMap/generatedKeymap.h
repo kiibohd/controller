@@ -43,18 +43,18 @@
 // ResultMacro.stateType -> <last key state type>
 
 typedef struct ResultMacro {
-	unsigned int *guide;
-	unsigned int  pos;
+	uint8_t *guide;
+	unsigned int pos;
 	uint8_t  state;
 	uint8_t  stateType;
 } ResultMacro;
 
 // Guide, key element
-#define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) / 4 - 1 + guidePtr->argCount
+#define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) - 1 + guidePtr->argCount
 typedef struct ResultGuide {
-	void         *function;
-	unsigned int  argCount;
-	unsigned int *args;
+	uint8_t index;
+	uint8_t argCount;
+	uint8_t args; // This is used as an array pointer (but for packing purposes, must be 8 bit)
 } ResultGuide;
 
 
@@ -99,13 +99,13 @@ typedef struct TriggerGuide {
 
 // ----- Macros -----
 
-#define debugPrint_cap( arg ) (unsigned int) debugPrint_capability, 1, arg
+#define debugPrint_cap( arg ) 0, 1, arg
 void debugPrint_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
-		print("debugPrint");
+		print("debugPrint(arg)");
 		return;
 	}
 
@@ -119,13 +119,13 @@ void debugPrint_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 	print( " )" NL );
 }
 
-#define debugPrint2_cap( arg1, arg2 ) (unsigned int) debugPrint2_capability, 2, arg1, arg2
+#define debugPrint2_cap( arg1, arg2 ) 1, 2, arg1, arg2
 void debugPrint2_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
-		print("debugPrint2");
+		print("debugPrint2(arg1,arg2)");
 		return;
 	}
 
@@ -141,6 +141,16 @@ void debugPrint2_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 	print( " )" NL );
 }
 
+// Total Number of Capabilities
+#define CapabilitiesNum sizeof( CapabilitiesList ) / 4
+
+// Indexed Capabilities Table
+// TODO Should be moved to the Scan Module
+void *CapabilitiesList[] = {
+	debugPrint_capability,
+	debugPrint2_capability,
+};
+
 
 // -- Result Macros
 
@@ -151,7 +161,7 @@ void debugPrint2_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 // Define_RM( index );
 //  * index  - Result Macro index number
 //  Must be used after Guide_RM
-#define Guide_RM( index ) static unsigned int rm##index##_guide[]
+#define Guide_RM( index ) static uint8_t rm##index##_guide[]
 #define Define_RM( index ) { rm##index##_guide, 0, 0, 0 }
 
 Guide_RM( 0 ) = { 1, debugPrint_cap( 0xDA ), 0 };
@@ -188,6 +198,7 @@ ResultMacro ResultMacroList[] = {
 Guide_TM( 0 ) = { 1, 0x10, 0x01, 0x73, 0 };
 Guide_TM( 1 ) = { 1, 0x0F, 0x01, 0x73, 1, 0x00, 0x01, 0x75, 0 };
 Guide_TM( 2 ) = { 2, 0xF0, 0x01, 0x73, 0x00, 0x01, 0x74, 0 };
+Guide_TM( 3 ) = { 1, 0x10, 0x01, 0x76, 0 };
 
 // Total number of trigger macros (tm's)
 // Used to create pending tm's table
@@ -198,6 +209,7 @@ TriggerMacro TriggerMacroList[] = {
 	Define_TM( 0, 0 ),
 	Define_TM( 1, 1 ),
 	Define_TM( 2, 2 ),
+	Define_TM( 3, 3 ),
 };
 
 
@@ -341,7 +353,7 @@ Define_TL( default, 0x72 ) = { 0 };
 Define_TL( default, 0x73 ) = { 3, tm(0), tm(1), tm(2) };
 Define_TL( default, 0x74 ) = { 1, tm(2) };
 Define_TL( default, 0x75 ) = { 1, tm(1) };
-Define_TL( default, 0x76 ) = { 0 };
+Define_TL( default, 0x76 ) = { 1, tm(3) };
 Define_TL( default, 0x77 ) = { 0 };
 Define_TL( default, 0x78 ) = { 0 };
 Define_TL( default, 0x79 ) = { 0 };
