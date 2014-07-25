@@ -49,6 +49,15 @@ typedef struct ResultMacro {
 	uint8_t  stateType;
 } ResultMacro;
 
+// Guide, key element
+#define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) / 4 - 1 + guidePtr->argCount
+typedef struct ResultGuide {
+	void         *function;
+	unsigned int  argCount;
+	unsigned int *args;
+} ResultGuide;
+
+
 
 // -- Trigger Macro
 // Defines the sequence of combinations to Trigger a Result Macro
@@ -56,42 +65,79 @@ typedef struct ResultMacro {
 //   * 0x00 Normal (Press/Hold/Release)
 //   * 0x01 LED State (On/Off)
 //   * 0x02 Analog (Threshold)
-//   * 0x03-0xFF Reserved
+//   * 0x03-0xFE Reserved
+//   * 0xFF Debug State
 //
-// Flag State:
-//   * Not processed      - 0x00 (all flag states)
-//   * On/Off             - 0x01/0x02
+// Key State:
+//   * Off                - 0x00 (all flag states)
+//   * On                 - 0x01
 //   * Press/Hold/Release - 0x01/0x02/0x03
 //   * Threshold (Range)  - 0x01 (Released), 0x10 (Light press), 0xFF (Max press)
+//   * Debug              - 0xFF (Print capability name)
 //
 // Combo Length of 0 signifies end of sequence
 //
-// TriggerMacro.guide  -> [<combo length>|<key1 type>|<key1>...<keyn type>|<keyn>|<combo length>...|0]
-// TriggerMacro.state  -> [<key1 flag>...<keyn flag>...]
-// TriggerMacro.result -> <pointer to result macro>
+// TriggerMacro.guide  -> [<combo length>|<key1 type>|<key1 state>|<key1>...<keyn type>|<keyn state>|<keyn>|<combo length>...|0]
+// TriggerMacro.result -> <index to result macro>
 // TriggerMacro.pos    -> <current combo position>
 
 typedef struct TriggerMacro {
 	uint8_t *guide;
-	uint8_t *state;
-	ResultMacro *result;
+	unsigned int result;
 	unsigned int pos;
 } TriggerMacro;
+
+// Guide, key element
+#define TriggerGuideSize sizeof( TriggerGuide )
+typedef struct TriggerGuide {
+	uint8_t type;
+	uint8_t state;
+	uint8_t scancode;
+} TriggerGuide;
 
 
 
 // ----- Macros -----
 
 #define debugPrint_cap( arg ) (unsigned int) debugPrint_capability, 1, arg
-void debugPrint_capability( uint8_t state, uint8_t stateType, uint8_t arg )
+void debugPrint_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("debugPrint");
+		return;
+	}
+
 	dbug_msg("Capability Print: ");
 	print(" statetype( ");
 	printHex( stateType );
 	print(" )  state ( ");
 	printHex( state );
 	print(" )  arg ( ");
-	printHex( arg );
+	printHex( args[0] );
+	print( " )" NL );
+}
+
+#define debugPrint2_cap( arg1, arg2 ) (unsigned int) debugPrint2_capability, 2, arg1, arg2
+void debugPrint2_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("debugPrint2");
+		return;
+	}
+
+	dbug_msg("Capability Print: ");
+	print(" statetype( ");
+	printHex( stateType );
+	print(" )  state ( ");
+	printHex( state );
+	print(" )  arg1 ( ");
+	printHex( args[0] );
+	print(" )  arg2 ( ");
+	printHex( args[1] );
 	print( " )" NL );
 }
 
@@ -99,47 +145,71 @@ void debugPrint_capability( uint8_t state, uint8_t stateType, uint8_t arg )
 // -- Result Macros
 
 // Guide_RM / Define_RM Pair
-// Guide_RM( name ) = result;
-//  * name   - Result Macro name
+// Guide_RM( index ) = result;
+//  * index  - Result Macro index number
 //  * result - Result Macro guide (see ResultMacro)
-// Define_RM( name );
-//  * name   - Result Macro name
+// Define_RM( index );
+//  * index  - Result Macro index number
 //  Must be used after Guide_RM
-#define Guide_RM( name ) \
-	static unsigned int name##_guide[]
-#define Define_RM( name ) \
-	ResultMacro name = { name##_guide, 0, 0, 0 }
+#define Guide_RM( index ) static unsigned int rm##index##_guide[]
+#define Define_RM( index ) { rm##index##_guide, 0, 0, 0 }
 
-Guide_RM( rm1 ) = { 1, debugPrint_cap( 0xBA ),  0 };
-Define_RM( rm1 );
+Guide_RM( 0 ) = { 1, debugPrint_cap( 0xDA ), 0 };
+Guide_RM( 1 ) = { 1, debugPrint_cap( 0xBE ), 1, debugPrint_cap( 0xEF ), 0 };
+Guide_RM( 2 ) = { 2, debugPrint_cap( 0xFA ), debugPrint_cap( 0xAD ), 0 };
+Guide_RM( 3 ) = { 1, debugPrint2_cap( 0xCA, 0xFE ), 0 };
+
+// Total number of result macros (rm's)
+// Used to create pending rm's table
+#define ResultMacroNum sizeof( ResultMacroList )
+
+// Indexed Table of Result Macros
+ResultMacro ResultMacroList[] = {
+	Define_RM( 0 ),
+	Define_RM( 1 ),
+	Define_RM( 2 ),
+	Define_RM( 3 ),
+};
 
 
 // -- Trigger Macros
 
-// NOTES:
-//  Compiler must calculate number of combos per macro to define the size of the state array
-//  ( sizeof( macro_guide ) - ( <number of combos> + 1 ) ) / 2 = <length of guide array>
-#define GuideSize( name, combos ) ( sizeof( name##_guide ) - ( combos + 1 ) ) / 2
-
-// Guide_TM / Define_TM Pair
-// Guide_TM( name ) = trigger;
-//  * name    - Trigger Macro name
+// Guide_TM / Define_TM Trigger Setup
+// Guide_TM( index ) = trigger;
+//  * index   - Trigger Macro index number
 //  * trigger - Trigger Macro guide (see TriggerMacro)
-// Define_TM( name, result );
-//  * name    - Trigger Macro name
-//  * result  - Result Macro which is triggered by this Trigger Macro
-#define Guide_TM( name ) static uint8_t name##_guide[]
-#define Define_TM( name, result ) \
-	uint8_t name##_state[ GuideSize( name, 1 ) ] = { 0 }; \
-	TriggerMacro name = { name##_guide, name##_state, &result, 0 }
-#define tm( number ) (unsigned int)&tm##number
+// Define_TM( index, result );
+//  * index   - Trigger Macro index number
+//  * result  - Result Macro index number which is triggered by this Trigger Macro
+#define Guide_TM( index ) static uint8_t tm##index##_guide[]
+#define Define_TM( index, result ) { tm##index##_guide, result, 0 }
+#define tm( index ) (unsigned int)&TriggerMacroList[ index ]
 
-Guide_TM( tm1 ) = { 1, 0x00, 0x73,  0 };
-Define_TM( tm1, rm1 );
+Guide_TM( 0 ) = { 1, 0x10, 0x01, 0x73, 0 };
+Guide_TM( 1 ) = { 1, 0x0F, 0x01, 0x73, 1, 0x00, 0x01, 0x75, 0 };
+Guide_TM( 2 ) = { 2, 0xF0, 0x01, 0x73, 0x00, 0x01, 0x74, 0 };
+
+// Total number of trigger macros (tm's)
+// Used to create pending tm's table
+#define TriggerMacroNum sizeof( TriggerMacroList )
+
+// Indexed Table of Trigger Macros
+TriggerMacro TriggerMacroList[] = {
+	Define_TM( 0, 0 ),
+	Define_TM( 1, 1 ),
+	Define_TM( 2, 2 ),
+};
 
 
 
 // ----- Trigger Maps -----
+
+// MaxScanCode
+// - This is retrieved from the KLL configuration
+// - Should be corollated with the max scan code in the scan module
+// - Maximum value is 0x100 (0x0 to 0xFF)
+// - Increasing it beyond the keyboard's capabilities is just a waste of ram...
+#define MaxScanCode 0x100
 
 // Define_TL( layer, scanCode ) = triggerList;
 //  * layer       - basename of the layer
@@ -268,9 +338,9 @@ Define_TL( default, 0x6F ) = { 0 };
 Define_TL( default, 0x70 ) = { 0 };
 Define_TL( default, 0x71 ) = { 0 };
 Define_TL( default, 0x72 ) = { 0 };
-Define_TL( default, 0x73 ) = { 1, tm(1) };
-Define_TL( default, 0x74 ) = { 0 };
-Define_TL( default, 0x75 ) = { 0 };
+Define_TL( default, 0x73 ) = { 3, tm(0), tm(1), tm(2) };
+Define_TL( default, 0x74 ) = { 1, tm(2) };
+Define_TL( default, 0x75 ) = { 1, tm(1) };
 Define_TL( default, 0x76 ) = { 0 };
 Define_TL( default, 0x77 ) = { 0 };
 Define_TL( default, 0x78 ) = { 0 };

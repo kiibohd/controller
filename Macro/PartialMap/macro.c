@@ -38,26 +38,38 @@
 
 // ----- Function Declarations -----
 
-void cliFunc_capList    ( char* args );
-void cliFunc_capSelect  ( char* args );
-void cliFunc_lookComb   ( char* args );
-void cliFunc_lookDefault( char* args );
-void cliFunc_lookPartial( char* args );
-void cliFunc_macroDebug ( char* args );
+void cliFunc_capList   ( char* args );
+void cliFunc_capSelect ( char* args );
+void cliFunc_keyPress  ( char* args );
+void cliFunc_keyRelease( char* args );
+void cliFunc_layerLatch( char* args );
+void cliFunc_layerList ( char* args );
+void cliFunc_layerLock ( char* args );
+void cliFunc_macroDebug( char* args );
+void cliFunc_macroList ( char* args );
+void cliFunc_macroProc ( char* args );
+void cliFunc_macroShow ( char* args );
+void cliFunc_macroStep ( char* args );
 
 
 
 // ----- Variables -----
 
 // Macro Module command dictionary
-char*       macroCLIDictName = "Macro Module Commands (Not all commands fully work yet...)";
+char*       macroCLIDictName = "Macro Module Commands";
 CLIDictItem macroCLIDict[] = {
 	{ "capList",     "Prints an indexed list of all non USB keycode capabilities.", cliFunc_capList },
-	{ "capSelect",   "Triggers the specified capability." NL "\t\t\033[35mU10\033[0m USB Code 0x0A, \033[35mK11\033[0m Keyboard Capability 0x0B, \033[35mS12\033[0m Scancode 0x0C", cliFunc_capSelect },
-	{ "lookComb",    "Do a lookup on the Combined map." NL "\t\t\033[35mS10\033[0m Scancode 0x0A, \033[35mU11\033[0m USB Code 0x0B", cliFunc_lookComb },
-	{ "lookDefault", "Do a lookup on the Default map." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_lookDefault },
-	{ "lookPartial", "Do a lookup on the layered Partial maps." NL "\t\t\033[35mS10\033[0m Scancode 0x0A, \033[35mU11\033[0m USB Code 0x0B", cliFunc_lookPartial },
+	{ "capSelect",   "Triggers the specified capability." NL "\t\t\033[35mU10\033[0m USB Code 0x0A, \033[35mK11\033[0m Keyboard Capability 0x0B", cliFunc_capSelect },
+	{ "keyPress",    "Send key-presses to the macro module. Held until released. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyPress },
+	{ "keyRelease",  "Release a key-press from the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyRelease },
+	{ "layerLatch",  "Latch the specified indexed layer." NL "\t\t\033[35mL15\033[0m Indexed Layer 0x0F", cliFunc_layerLatch },
+	{ "layerList",   "List available layers.", cliFunc_layerList },
+	{ "layerLock",   "Lock the specified indexed layer." NL "\t\t\033[35mL2\033[0m Indexed Layer 0x02", cliFunc_layerLock },
 	{ "macroDebug",  "Disables/Enables sending USB keycodes to the Output Module and prints U/K codes.", cliFunc_macroDebug },
+	{ "macroList",   "List the defined trigger and result macros.", cliFunc_macroList },
+	{ "macroProc",   "Pause/Resume macro processing.", cliFunc_macroProc },
+	{ "macroShow",   "Show the macro corresponding to the given index or scan-code." NL "\t\t\033[35mT16\033[0m Indexed Trigger Macro 0x10, \033[35mR12\033[0m Indexed Result Macro 0x0C", cliFunc_macroShow },
+	{ "macroStep",   "Do N macro processing steps. Defaults to 1.", cliFunc_macroStep },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -65,16 +77,24 @@ CLIDictItem macroCLIDict[] = {
 // Macro debug flag - If set, clears the USB Buffers after signalling processing completion
 uint8_t macroDebugMode = 0;
 
+// Macro pause flag - If set, the macro module pauses processing, unless unset, or the step counter is non-zero
+uint8_t macroPauseMode = 0;
+
+// Macro step counter - If non-zero, the step counter counts down every time the macro module does one processing loop
+unsigned int macroStepCounter = 0;
+
+
 // Key Trigger List Buffer
 //  * Item 1: scan code
 //  * Item 2: state
 //    ...
-uint8_t macroTriggerListBuffer[0xFF * 2] = { 0 }; // Each key has a state to be cached (this can be decreased to save RAM)
+uint8_t macroTriggerListBuffer[MaxScanCode * 2] = { 0 }; // Each key has a state to be cached
 uint8_t macroTriggerListBufferSize = 0;
 
 // TODO, figure out a good way to scale this array size without wasting too much memory, but not rejecting macros
 //       Possibly could be calculated by the KLL compiler
-TriggerMacro *triggerMacroPendingList[30];
+// XXX It may be possible to calculate the worst case using the KLL compiler
+TriggerMacro *triggerMacroPendingList[TriggerMacroNum];
 
 
 
@@ -177,7 +197,7 @@ void Macro_evalTriggerMacro( TriggerMacro *triggerMacro )
 
 
 
-
+/*
 inline void Macro_bufferAdd( uint8_t byte )
 {
 	// Make sure we haven't overflowed the key buffer
@@ -222,6 +242,7 @@ inline void Macro_bufferRemove( uint8_t byte )
 	erro_msg("Could not find key to release: ");
 	printHex( key );
 }
+*/
 
 inline void Macro_finishWithUSBBuffer( uint8_t sentKeys )
 {
@@ -232,6 +253,17 @@ inline void Macro_process()
 	// Only do one round of macro processing between Output Module timer sends
 	if ( USBKeys_Sent != 0 )
 		return;
+
+	// If the pause flag is set, only process if the step counter is non-zero
+	if ( macroPauseMode && macroStepCounter == 0 )
+	{
+		return;
+	}
+	// Proceed, decrementing the step counter
+	else
+	{
+		macroStepCounter--;
+	}
 
 	// Loop through macro trigger buffer
 	for ( uint8_t index = 0; index < macroTriggerListBufferSize; index += 2 )
@@ -323,6 +355,12 @@ inline void Macro_setup()
 	// Disable Macro debug mode
 	macroDebugMode = 0;
 
+	// Disable Macro pause flag
+	macroPauseMode = 0;
+
+	// Set Macro step counter to zero
+	macroStepCounter = 0;
+
 	// Make sure macro trigger buffer is empty
 	macroTriggerListBufferSize = 0;
 }
@@ -351,12 +389,6 @@ void cliFunc_capSelect( char* args )
 		// TODO
 		break;
 
-	// Scancode
-	case 'S':
-		// Add to the USB Buffer using the DefaultMap lookup
-		Macro_bufferAdd( decToInt( &arg1Ptr[1] ) );
-		break;
-
 	// USB Code
 	case 'U':
 		// Just add the key to the USB Buffer
@@ -368,71 +400,75 @@ void cliFunc_capSelect( char* args )
 	}
 }
 
-void cliFunc_lookComb( char* args )
+void cliFunc_keyPress( char* args )
 {
-	// Parse code from argument
-	//  NOTE: Only first argument is used
+	// Parse codes from arguments
+	char* curArgs;
 	char* arg1Ptr;
-	char* arg2Ptr;
-	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+	char* arg2Ptr = args;
 
-	// Depending on the first character, the lookup changes
-	switch ( arg1Ptr[0] )
+	// Process all args
+	for ( ;; )
 	{
-	// Scancode
-	case 'S':
-		// TODO
-		break;
+		curArgs = arg2Ptr;
+		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
 
-	// USB Code
-	case 'U':
-		// TODO
-		break;
+		// Stop processing args if no more are found
+		if ( *arg1Ptr == '\0' )
+			break;
+
+		// Ignore non-Scancode numbers
+		switch ( arg1Ptr[0] )
+		{
+		// Scancode
+		case 'S':
+			Macro_keyState( (uint8_t)decToInt( &arg1Ptr[1] ), 0x01 ); // Press scancode
+			break;
+		}
 	}
 }
 
-void cliFunc_lookDefault( char* args )
+void cliFunc_keyRelease( char* args )
 {
-	// Parse code from argument
-	//  NOTE: Only first argument is used
+	// Parse codes from arguments
+	char* curArgs;
 	char* arg1Ptr;
-	char* arg2Ptr;
-	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+	char* arg2Ptr = args;
 
-	// Depending on the first character, the lookup changes
-	switch ( arg1Ptr[0] )
+	// Process all args
+	for ( ;; )
 	{
-	// Scancode
-	case 'S':
-		print( NL );
-		printInt8( DefaultMap_Lookup[decToInt( &arg1Ptr[1] )] );
-		print(" ");
-		printHex( DefaultMap_Lookup[decToInt( &arg1Ptr[1] )] );
-		break;
+		curArgs = arg2Ptr;
+		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+		// Stop processing args if no more are found
+		if ( *arg1Ptr == '\0' )
+			break;
+
+		// Ignore non-Scancode numbers
+		switch ( arg1Ptr[0] )
+		{
+		// Scancode
+		case 'S':
+			Macro_keyState( (uint8_t)decToInt( &arg1Ptr[1] ), 0x03 ); // Release scancode
+			break;
+		}
 	}
 }
 
-void cliFunc_lookPartial( char* args )
+void cliFunc_layerLatch( char* args )
 {
-	// Parse code from argument
-	//  NOTE: Only first argument is used
-	char* arg1Ptr;
-	char* arg2Ptr;
-	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+	// TODO
+}
 
-	// Depending on the first character, the lookup changes
-	switch ( arg1Ptr[0] )
-	{
-	// Scancode
-	case 'S':
-		// TODO
-		break;
+void cliFunc_layerList( char* args )
+{
+	// TODO
+}
 
-	// USB Code
-	case 'U':
-		// TODO
-		break;
-	}
+void cliFunc_layerLock( char* args )
+{
+	// TODO
 }
 
 void cliFunc_macroDebug( char* args )
@@ -443,5 +479,207 @@ void cliFunc_macroDebug( char* args )
 	print( NL );
 	info_msg("Macro Debug Mode: ");
 	printInt8( macroDebugMode );
+}
+
+void cliFunc_macroList( char* args )
+{
+	// TODO
+}
+
+void cliFunc_macroProc( char* args )
+{
+	// Toggle macro pause mode
+	macroPauseMode = macroPauseMode ? 0 : 1;
+
+	print( NL );
+	info_msg("Macro Processing Mode: ");
+	printInt8( macroPauseMode );
+}
+
+void macroDebugShowTrigger( unsigned int index )
+{
+	// Only proceed if the macro exists
+	if ( index >= TriggerMacroNum )
+		return;
+
+	// Trigger Macro Show
+	TriggerMacro *macro = &TriggerMacroList[ index ];
+
+	print( NL );
+	info_msg("Trigger Macro Index: ");
+	printInt16( (uint16_t)index ); // Hopefully large enough :P (can't assume 32-bit)
+	print( NL );
+
+	// Read the comboLength for combo in the sequence (sequence of combos)
+	unsigned int pos = 0;
+	uint8_t comboLength = macro->guide[ pos ];
+
+	// Iterate through and interpret the guide
+	while ( comboLength != 0 )
+	{
+		// Initial position of the combo
+		unsigned int comboPos = ++pos;
+
+		// Iterate through the combo
+		while ( pos < comboLength * TriggerGuideSize + comboPos )
+		{
+			// Assign TriggerGuide element (key type, state and scancode)
+			TriggerGuide *guide = (TriggerGuide*)(&macro->guide[ pos ]);
+
+			// Display guide information about trigger key
+			printHex( guide->scancode );
+			print("|");
+			printHex( guide->type );
+			print("|");
+			printHex( guide->state );
+
+			// Increment position
+			pos += TriggerGuideSize;
+
+			// Only show combo separator if there are combos left in the sequence element
+			if ( pos < comboLength * TriggerGuideSize + comboPos )
+				print("+");
+		}
+
+		// Read the next comboLength
+		comboLength = macro->guide[ pos ];
+
+		// Only show sequence separator if there is another combo to process
+		if ( comboLength != 0 )
+			print(";");
+	}
+
+	// Display current position
+	print( NL "Position: " );
+	printInt16( (uint16_t)macro->pos ); // Hopefully large enough :P (can't assume 32-bit)
+
+	// Display result macro index
+	print( NL "Result Macro Index: " );
+	printInt16( (uint16_t)macro->result ); // Hopefully large enough :P (can't assume 32-bit)
+}
+
+void macroDebugShowResult( unsigned int index )
+{
+	// Only proceed if the macro exists
+	if ( index >= ResultMacroNum )
+		return;
+
+	// Trigger Macro Show
+	ResultMacro *macro = &ResultMacroList[ index ];
+
+	print( NL );
+	info_msg("Result Macro Index: ");
+	printInt16( (uint16_t)index ); // Hopefully large enough :P (can't assume 32-bit)
+	print( NL );
+
+	// Read the comboLength for combo in the sequence (sequence of combos)
+	unsigned int pos = 0;
+	uint8_t comboLength = macro->guide[ pos++ ];
+
+	// Iterate through and interpret the guide
+	while ( comboLength != 0 )
+	{
+		// Function Counter, used to keep track of the combos processed
+		unsigned int funcCount = 0;
+
+		// Iterate through the combo
+		while ( funcCount < comboLength )
+		{
+			// Assign TriggerGuide element (key type, state and scancode)
+			ResultGuide *guide = (ResultGuide*)(&macro->guide[ pos ]);
+
+			// Display Function Ptr Address
+			printHex( (unsigned int)guide->function );
+			print("|");
+
+			// Display/Lookup Capability Name (utilize debug mode of capability)
+			void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(guide->function);
+			capability( 0xFF, 0xFF, 0 );
+
+			// Display Argument(s)
+			print("(");
+			for ( unsigned int arg = 0; arg < guide->argCount; arg++ )
+			{
+				// Arguments are only 8 bit values (guides are 32 bit for function pointers)
+				printHex( (uint8_t)(unsigned int)(&guide->args)[ arg ] );
+
+				// Only show arg separator if there are args left
+				if ( arg + 1 < guide->argCount )
+					print(",");
+			}
+			print(")");
+
+			// Increment position
+			pos += ResultGuideSize( guide );
+
+			// Increment function count
+			funcCount++;
+
+			// Only show combo separator if there are combos left in the sequence element
+			if ( funcCount < comboLength )
+				print("+");
+		}
+
+		// Read the next comboLength
+		comboLength = macro->guide[ pos++ ];
+
+		// Only show sequence separator if there is another combo to process
+		if ( comboLength != 0 )
+			print(";");
+	}
+
+	// Display current position
+	print( NL "Position: " );
+	printInt16( (uint16_t)macro->pos ); // Hopefully large enough :P (can't assume 32-bit)
+
+	// Display final trigger state/type
+	print( NL "Final Trigger State (State/Type): " );
+	printHex( macro->state );
+	print("/");
+	printHex( macro->stateType );
+}
+
+void cliFunc_macroShow( char* args )
+{
+	// Parse codes from arguments
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// Process all args
+	for ( ;; )
+	{
+		curArgs = arg2Ptr;
+		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+		// Stop processing args if no more are found
+		if ( *arg1Ptr == '\0' )
+			break;
+
+		// Ignore invalid codes
+		switch ( arg1Ptr[0] )
+		{
+		// Indexed Trigger Macro
+		case 'T':
+			macroDebugShowTrigger( decToInt( &arg1Ptr[1] ) );
+			break;
+		// Indexed Result Macro
+		case 'R':
+			macroDebugShowResult( decToInt( &arg1Ptr[1] ) );
+			break;
+		}
+	}
+}
+
+void cliFunc_macroStep( char* args )
+{
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	// Set the macro step counter, negative int's are cast to uint
+	macroStepCounter = (unsigned int)decToInt( arg1Ptr );
 }
 
