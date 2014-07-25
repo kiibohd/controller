@@ -37,7 +37,7 @@
 // Default Args (always sent): key state/analog of last key
 // Combo Length of 0 signifies end of sequence
 //
-// ResultMacro.guide     -> [<combo length>|<function pointer>|<arg count>|<arg1>|<argn>|<function pointer>|...|<combo length>|...|0]
+// ResultMacro.guide     -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
 // ResultMacro.pos       -> <current combo position>
 // ResultMacro.state     -> <last key state>
 // ResultMacro.stateType -> <last key state type>
@@ -50,10 +50,9 @@ typedef struct ResultMacro {
 } ResultMacro;
 
 // Guide, key element
-#define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) - 1 + guidePtr->argCount
+#define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) - 1 + CapabilitiesList[ guidePtr->index ].argCount
 typedef struct ResultGuide {
 	uint8_t index;
-	uint8_t argCount;
 	uint8_t args; // This is used as an array pointer (but for packing purposes, must be 8 bit)
 } ResultGuide;
 
@@ -99,7 +98,6 @@ typedef struct TriggerGuide {
 
 // ----- Macros -----
 
-#define debugPrint_cap( arg ) 0, 1, arg
 void debugPrint_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
@@ -116,10 +114,9 @@ void debugPrint_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 	printHex( state );
 	print(" )  arg ( ");
 	printHex( args[0] );
-	print( " )" NL );
+	print(" )");
 }
 
-#define debugPrint2_cap( arg1, arg2 ) 1, 2, arg1, arg2
 void debugPrint2_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
@@ -138,17 +135,23 @@ void debugPrint2_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 	printHex( args[0] );
 	print(" )  arg2 ( ");
 	printHex( args[1] );
-	print( " )" NL );
+	print(" )");
 }
 
+// Capability
+typedef struct Capability {
+	void *func;
+	uint8_t argCount;
+} Capability;
+
 // Total Number of Capabilities
-#define CapabilitiesNum sizeof( CapabilitiesList ) / 4
+#define CapabilitiesNum sizeof( void* ) / 4 + sizeof( uint8_t )
 
 // Indexed Capabilities Table
 // TODO Should be moved to the Scan Module
-void *CapabilitiesList[] = {
-	debugPrint_capability,
-	debugPrint2_capability,
+Capability CapabilitiesList[] = {
+	{ debugPrint_capability, 1 },
+	{ debugPrint2_capability, 2 },
 };
 
 
@@ -164,10 +167,10 @@ void *CapabilitiesList[] = {
 #define Guide_RM( index ) static uint8_t rm##index##_guide[]
 #define Define_RM( index ) { rm##index##_guide, 0, 0, 0 }
 
-Guide_RM( 0 ) = { 1, debugPrint_cap( 0xDA ), 0 };
-Guide_RM( 1 ) = { 1, debugPrint_cap( 0xBE ), 1, debugPrint_cap( 0xEF ), 0 };
-Guide_RM( 2 ) = { 2, debugPrint_cap( 0xFA ), debugPrint_cap( 0xAD ), 0 };
-Guide_RM( 3 ) = { 1, debugPrint2_cap( 0xCA, 0xFE ), 0 };
+Guide_RM( 0 ) = { 1, 0, 0xDA, 0 };
+Guide_RM( 1 ) = { 1, 0, 0xBE, 1, 0, 0xEF, 0 };
+Guide_RM( 2 ) = { 2, 0, 0xFA, 0, 0xAD, 0 };
+Guide_RM( 3 ) = { 1, 1, 0xCA, 0xFE, 0 };
 
 // Total number of result macros (rm's)
 // Used to create pending rm's table

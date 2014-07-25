@@ -59,7 +59,7 @@ void cliFunc_macroStep ( char* args );
 char*       macroCLIDictName = "Macro Module Commands";
 CLIDictItem macroCLIDict[] = {
 	{ "capList",     "Prints an indexed list of all non USB keycode capabilities.", cliFunc_capList },
-	{ "capSelect",   "Triggers the specified capability." NL "\t\t\033[35mU10\033[0m USB Code 0x0A, \033[35mK11\033[0m Keyboard Capability 0x0B", cliFunc_capSelect },
+	{ "capSelect",   "Triggers the specified capabilities. First two args are state and stateType." NL "\t\t\033[35mK11\033[0m Keyboard Capability 0x0B", cliFunc_capSelect },
 	{ "keyPress",    "Send key-presses to the macro module. Held until released. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyPress },
 	{ "keyRelease",  "Release a key-press from the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyRelease },
 	{ "layerLatch",  "Latch the specified indexed layer." NL "\t\t\033[35mL15\033[0m Indexed Layer 0x0F", cliFunc_layerLatch },
@@ -381,7 +381,7 @@ void cliFunc_capList( char* args )
 		print(" - ");
 
 		// Display/Lookup Capability Name (utilize debug mode of capability)
-		void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ cap ]);
+		void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ cap ].func);
 		capability( 0xFF, 0xFF, 0 );
 	}
 }
@@ -389,27 +389,64 @@ void cliFunc_capList( char* args )
 void cliFunc_capSelect( char* args )
 {
 	// Parse code from argument
-	//  NOTE: Only first argument is used
+	char* curArgs;
 	char* arg1Ptr;
-	char* arg2Ptr;
-	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+	char* arg2Ptr = args;
 
-	// Depending on the first character, the lookup changes
-	switch ( arg1Ptr[0] )
+	// Total number of args to scan (must do a lookup if a keyboard capability is selected)
+	unsigned int totalArgs = 2; // Always at least two args
+	unsigned int cap = 0;
+
+	// Arguments used for keyboard capability function
+	unsigned int argSetCount = 0;
+	uint8_t *argSet = (uint8_t*)args;
+
+	// Process all args
+	for ( unsigned int c = 0; argSetCount < totalArgs; c++ )
 	{
-	// Keyboard Capability
-	case 'K':
-		// TODO
-		break;
+		curArgs = arg2Ptr;
+		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
 
-	// USB Code
-	case 'U':
-		// Just add the key to the USB Buffer
-		if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER )
+		// Stop processing args if no more are found
+		// Extra arguments are ignored
+		if ( *arg1Ptr == '\0' )
+			break;
+
+		// For the first argument, choose the capability
+		if ( c == 0 ) switch ( arg1Ptr[0] )
 		{
-			KeyIndex_Buffer[KeyIndex_BufferUsed++] = decToInt( &arg1Ptr[1] );
+		// Keyboard Capability
+		case 'K':
+			// Determine capability index
+			cap = decToInt( &arg1Ptr[1] );
+
+			// Lookup the number of args
+			totalArgs += CapabilitiesList[ cap ].argCount;
+			continue;
 		}
-		break;
+
+		// Because allocating memory isn't doable, and the argument count is arbitrary
+		// The argument pointer is repurposed as the argument list (much smaller anyways)
+		argSet[ argSetCount++ ] = (uint8_t)decToInt( arg1Ptr );
+
+		// Once all the arguments are prepared, call the keyboard capability function
+		if ( argSetCount == totalArgs )
+		{
+			// Indicate that the capability was called
+			print( NL );
+			info_msg("K");
+			printInt8( cap );
+			print(" - ");
+			printHex( argSet[0] );
+			print(" - ");
+			printHex( argSet[1] );
+			print(" - ");
+			printHex( argSet[2] );
+			print( "..." NL );
+
+			void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ cap ].func);
+			capability( argSet[0], argSet[1], &argSet[2] );
+		}
 	}
 }
 
@@ -626,22 +663,22 @@ void macroDebugShowResult( unsigned int index )
 			print("|");
 
 			// Display Function Ptr Address
-			printHex( (unsigned int)CapabilitiesList[ guide->index ] );
+			printHex( (unsigned int)CapabilitiesList[ guide->index ].func );
 			print("|");
 
 			// Display/Lookup Capability Name (utilize debug mode of capability)
-			void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ]);
+			void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
 			capability( 0xFF, 0xFF, 0 );
 
 			// Display Argument(s)
 			print("(");
-			for ( unsigned int arg = 0; arg < guide->argCount; arg++ )
+			for ( unsigned int arg = 0; arg < CapabilitiesList[ guide->index ].argCount; arg++ )
 			{
 				// Arguments are only 8 bit values
 				printHex( (&guide->args)[ arg ] );
 
 				// Only show arg separator if there are args left
-				if ( arg + 1 < guide->argCount )
+				if ( arg + 1 < CapabilitiesList[ guide->index ].argCount )
 					print(",");
 			}
 			print(")");
