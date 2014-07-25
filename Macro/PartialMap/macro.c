@@ -68,7 +68,7 @@ CLIDictItem macroCLIDict[] = {
 	{ "macroDebug",  "Disables/Enables sending USB keycodes to the Output Module and prints U/K codes.", cliFunc_macroDebug },
 	{ "macroList",   "List the defined trigger and result macros.", cliFunc_macroList },
 	{ "macroProc",   "Pause/Resume macro processing.", cliFunc_macroProc },
-	{ "macroShow",   "Show the macro corresponding to the given index or scan-code." NL "\t\t\033[35mT16\033[0m Indexed Trigger Macro 0x10, \033[35mR12\033[0m Indexed Result Macro 0x0C", cliFunc_macroShow },
+	{ "macroShow",   "Show the macro corresponding to the given index." NL "\t\t\033[35mT16\033[0m Indexed Trigger Macro 0x10, \033[35mR12\033[0m Indexed Result Macro 0x0C", cliFunc_macroShow },
 	{ "macroStep",   "Do N macro processing steps. Defaults to 1.", cliFunc_macroStep },
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
@@ -496,7 +496,27 @@ void cliFunc_macroDebug( char* args )
 
 void cliFunc_macroList( char* args )
 {
-	// TODO
+	// Show available trigger macro indices
+	print( NL );
+	info_msg("Trigger Macros Range: T0 -> T");
+	printInt16( (uint16_t)TriggerMacroNum - 1 ); // Hopefully large enough :P (can't assume 32-bit)
+
+	// Show available result macro indices
+	print( NL );
+	info_msg("Result  Macros Range: R0 -> R");
+	printInt16( (uint16_t)ResultMacroNum - 1 ); // Hopefully large enough :P (can't assume 32-bit)
+
+	// Show Trigger to Result Macro Links
+	print( NL );
+	info_msg("Trigger : Result Macro Pairs");
+	for ( unsigned int macro = 0; macro < TriggerMacroNum; macro++ )
+	{
+		print( NL );
+		print("\tT");
+		printInt16( (uint16_t)macro ); // Hopefully large enough :P (can't assume 32-bit)
+		print(" : R");
+		printInt16( (uint16_t)TriggerMacroList[ macro ].result ); // Hopefully large enough :P (can't assume 32-bit)
+	}
 }
 
 void cliFunc_macroProc( char* args )

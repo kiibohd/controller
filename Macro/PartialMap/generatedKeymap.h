@@ -171,7 +171,7 @@ Guide_RM( 3 ) = { 1, debugPrint2_cap( 0xCA, 0xFE ), 0 };
 
 // Total number of result macros (rm's)
 // Used to create pending rm's table
-#define ResultMacroNum sizeof( ResultMacroList )
+#define ResultMacroNum sizeof( ResultMacroList ) / sizeof( ResultMacro )
 
 // Indexed Table of Result Macros
 ResultMacro ResultMacroList[] = {
@@ -202,7 +202,7 @@ Guide_TM( 3 ) = { 1, 0x10, 0x01, 0x76, 0 };
 
 // Total number of trigger macros (tm's)
 // Used to create pending tm's table
-#define TriggerMacroNum sizeof( TriggerMacroList )
+#define TriggerMacroNum sizeof( TriggerMacroList ) / sizeof( TriggerMacro )
 
 // Indexed Table of Trigger Macros
 TriggerMacro TriggerMacroList[] = {
