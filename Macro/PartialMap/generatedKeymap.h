@@ -172,6 +172,9 @@ Guide_RM( 1 ) = { 1, 0, 0xBE, 1, 0, 0xEF, 0 };
 Guide_RM( 2 ) = { 2, 0, 0xFA, 0, 0xAD, 0 };
 Guide_RM( 3 ) = { 1, 1, 0xCA, 0xFE, 0 };
 
+
+// -- Result Macro List
+
 // Total number of result macros (rm's)
 // Used to create pending rm's table
 #define ResultMacroNum sizeof( ResultMacroList ) / sizeof( ResultMacro )
@@ -202,6 +205,9 @@ Guide_TM( 0 ) = { 1, 0x10, 0x01, 0x73, 0 };
 Guide_TM( 1 ) = { 1, 0x0F, 0x01, 0x73, 1, 0x00, 0x01, 0x75, 0 };
 Guide_TM( 2 ) = { 2, 0xF0, 0x01, 0x73, 0x00, 0x01, 0x74, 0 };
 Guide_TM( 3 ) = { 1, 0x10, 0x01, 0x76, 0 };
+
+
+// -- Trigger Macro List
 
 // Total number of trigger macros (tm's)
 // Used to create pending tm's table
@@ -497,11 +503,15 @@ Define_TL( default, 0xFF ) = { 0 };
 
 
 // myname Layer
-// TODO
+Define_TL( myname, 0x05 ) = { 0 };
+Define_TL( myname, 0x06 ) = { 0 };
+Define_TL( myname, 0x07 ) = { 0 };
 
 
 // myname2 Layer
-// TODO
+Define_TL( myname2, 0x04 ) = { 0 };
+Define_TL( myname2, 0x05 ) = { 0 };
+Define_TL( myname2, 0x06 ) = { 0 };
 
 
 // -- ScanCode Indexed Maps
@@ -523,12 +533,61 @@ default_tl_0x00, default_tl_0x01, default_tl_0x02, default_tl_0x03, default_tl_0
 };
 
 // Layer <name> for ScanCode Lookup
-static unsigned int myname_scanMap[] = {
+static unsigned int *myname_scanMap[] = {
+0, 0, 0, 0, myname_tl_0x05, myname_tl_0x06, myname_tl_0x07
 };
 
 // Layer <name> for ScanCode Lookup
-static unsigned int myname2_scanMap[] = {
+static unsigned int *myname2_scanMap[] = {
+0, 0, 0, myname2_tl_0x04, myname2_tl_0x05, myname2_tl_0x06
 };
+
+
+
+// ----- Layer Index -----
+
+// Defines each map of trigger macro lists
+// Layer 0 is always the default map
+// Layer States:
+//   * Off   - 0x00
+//   * Shift - 0x01
+//   * Latch - 0x02
+//   * Lock  - 0x04
+//
+// Except for Off, all states an exist simultaneously for each layer
+// For example:
+// state -> 0x04 + 0x01 = 0x05 (Shift + Lock), which is effectively Off (0x00)
+//
+// Max defines the maximum number of keys in the map, maximum of 0xFF
+//  - Compiler calculates this
+//
+// The name is defined for cli debugging purposes (Null terminated string)
+
+typedef struct Layer {
+	unsigned int **triggerMap;
+	char *name;
+	uint8_t max;
+	uint8_t state;
+} Layer;
+
+
+// Layer_IN( map, name );
+//  * map  - Trigger map
+//  * name - Name of the trigger map
+#define Layer_IN( map, name ) { map, name, sizeof( map ) / 4 - 1, 0 }
+
+// -- Layer Index List
+//
+// Index 0: Default map
+// Index n: Additional layers
+Layer LayerIndex[] = {
+	Layer_IN( default_scanMap, "DefaultMap" ),
+	Layer_IN( myname_scanMap, "myname" ),
+	Layer_IN( myname2_scanMap, "myname2" ),
+};
+
+// Total number of layers
+#define LayerNum sizeof( LayerIndex ) / sizeof( Layer )
 
 
 

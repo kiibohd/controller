@@ -42,9 +42,8 @@ void cliFunc_capList   ( char* args );
 void cliFunc_capSelect ( char* args );
 void cliFunc_keyPress  ( char* args );
 void cliFunc_keyRelease( char* args );
-void cliFunc_layerLatch( char* args );
 void cliFunc_layerList ( char* args );
-void cliFunc_layerLock ( char* args );
+void cliFunc_layerState( char* args );
 void cliFunc_macroDebug( char* args );
 void cliFunc_macroList ( char* args );
 void cliFunc_macroProc ( char* args );
@@ -62,9 +61,8 @@ CLIDictItem macroCLIDict[] = {
 	{ "capSelect",   "Triggers the specified capabilities. First two args are state and stateType." NL "\t\t\033[35mK11\033[0m Keyboard Capability 0x0B", cliFunc_capSelect },
 	{ "keyPress",    "Send key-presses to the macro module. Held until released. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyPress },
 	{ "keyRelease",  "Release a key-press from the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyRelease },
-	{ "layerLatch",  "Latch the specified indexed layer." NL "\t\t\033[35mL15\033[0m Indexed Layer 0x0F", cliFunc_layerLatch },
 	{ "layerList",   "List available layers.", cliFunc_layerList },
-	{ "layerLock",   "Lock the specified indexed layer." NL "\t\t\033[35mL2\033[0m Indexed Layer 0x02", cliFunc_layerLock },
+	{ "layerState",  "Modify specified indexed layer state <layer> <state byte>." NL "\t\t\033[35mL2\033[0m Indexed Layer 0x02" NL "\t\t0 Off, 1 Shift, 2 Latch, 4 Lock States", cliFunc_layerState },
 	{ "macroDebug",  "Disables/Enables sending USB keycodes to the Output Module and prints U/K codes.", cliFunc_macroDebug },
 	{ "macroList",   "List the defined trigger and result macros.", cliFunc_macroList },
 	{ "macroProc",   "Pause/Resume macro processing.", cliFunc_macroProc },
@@ -506,19 +504,80 @@ void cliFunc_keyRelease( char* args )
 	}
 }
 
-void cliFunc_layerLatch( char* args )
-{
-	// TODO
-}
-
 void cliFunc_layerList( char* args )
 {
-	// TODO
+	print( NL );
+	info_msg("Layer List");
+
+	// Iterate through all of the layers and display them
+	for ( unsigned int layer = 0; layer < LayerNum; layer++ )
+	{
+		print( NL "\t" );
+		printHex( layer );
+		print(" - ");
+
+		// Display layer name
+		dPrint( LayerIndex[ layer ].name );
+
+		// Default map
+		if ( layer == 0 )
+			print(" \033[1m(default)\033[0m");
+
+		// Layer State
+		print( NL "\t\t Layer State: " );
+		printHex( LayerIndex[ layer ].state );
+
+		// Max Index
+		print(" Max Index: ");
+		printHex( LayerIndex[ layer ].max );
+	}
 }
 
-void cliFunc_layerLock( char* args )
+void cliFunc_layerState( char* args )
 {
-	// TODO
+	// Parse codes from arguments
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	uint8_t arg1 = 0;
+	uint8_t arg2 = 0;
+
+	// Process first two args
+	for ( uint8_t c = 0; c < 2; c++ )
+	{
+		curArgs = arg2Ptr;
+		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+		// Stop processing args if no more are found
+		if ( *arg1Ptr == '\0' )
+			break;
+
+		switch ( c )
+		{
+		// First argument (e.g. L1)
+		case 0:
+			if ( arg1Ptr[0] != 'L' )
+				return;
+
+			arg1 = (uint8_t)decToInt( &arg1Ptr[1] );
+			break;
+		// Second argument (e.g. 4)
+		case 1:
+			arg2 = (uint8_t)decToInt( arg1Ptr );
+
+			// Display operation (to indicate that it worked)
+			print( NL );
+			info_msg("Setting Layer L");
+			printInt8( arg1 );
+			print(" to - ");
+			printHex( arg2 );
+
+			// Set the layer state
+			LayerIndex[ arg1 ].state = arg2;
+			break;
+		}
+	}
 }
 
 void cliFunc_macroDebug( char* args )
