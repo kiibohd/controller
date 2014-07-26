@@ -83,32 +83,65 @@ unsigned int macroStepCounter = 0;
 
 
 // Key Trigger List Buffer
-//  * Item 1: scan code
-//  * Item 2: state
-//    ...
-uint8_t macroTriggerListBuffer[MaxScanCode * 2] = { 0 }; // Each key has a state to be cached
+TriggerGuide macroTriggerListBuffer[ MaxScanCode ];
 uint8_t macroTriggerListBufferSize = 0;
 
+// Pending Trigger Macro Index List
+//  * Any trigger macros that need processing from a previous macro processing loop
 // TODO, figure out a good way to scale this array size without wasting too much memory, but not rejecting macros
 //       Possibly could be calculated by the KLL compiler
 // XXX It may be possible to calculate the worst case using the KLL compiler
-TriggerMacro *triggerMacroPendingList[TriggerMacroNum];
+unsigned int macroTriggerMacroPendingList[ TriggerMacroNum ] = { 0 };
+unsigned int macroTriggerMacroPendingListSize = 0;
+
+// Layer Index Stack
+//  * When modifying layer state and the state is non-0x0, the stack must be adjusted
+unsigned int macroLayerIndexStack[ LayerNum ] = { 0 };
+unsigned int macroLayerIndexStackSize = 0;
+
+// Pending Result Macro Index List
+//  * Any result macro that needs processing from a previous macro processing loop
+unsigned int macroResultMacroPendingList[ ResultMacroNum ] = { 0 };
+unsigned int macroResultMacroPendingListSize = 0;
 
 
 
 // ----- Functions -----
 
 // Looks up the trigger list for the given scan code (from the active layer)
+// NOTE: Calling function must handle the NULL pointer case
 unsigned int *Macro_layerLookup( uint8_t scanCode )
 {
-	// TODO - No layer fallthrough lookup
-	return default_scanMap[ scanCode ];
+	// If no trigger macro is defined at the given layer, fallthrough to the next layer
+	for ( unsigned int layer = 0; layer < macroLayerIndexStackSize; layer++ )
+	{
+		// Lookup layer
+		unsigned int **map = LayerIndex[ macroLayerIndexStack[ layer ] ].triggerMap;
+
+		// Determine if layer has key defined
+		if ( map != 0 && *map[ scanCode ] != 0 )
+			return map[ scanCode ];
+	}
+
+	// Do lookup on default layer
+	unsigned int **map = LayerIndex[0].triggerMap;
+
+	// Determine if layer has key defined
+	if ( map == 0 && *map[ scanCode ] == 0 )
+	{
+		erro_msg("Scan Code has no defined Trigger Macro: ");
+		printHex( scanCode );
+		return 0;
+	}
+
+	// Return lookup result
+	return map[ scanCode ];
 }
 
 
 // Update the scancode key state
 // States:
-//   * 0x00 - Reserved
+//   * 0x00 - Off
 //   * 0x01 - Pressed
 //   * 0x02 - Held
 //   * 0x03 - Released
@@ -121,8 +154,10 @@ inline void Macro_keyState( uint8_t scanCode, uint8_t state )
 	case 0x01: // Pressed
 	case 0x02: // Held
 	case 0x03: // Released
-		macroTriggerListBuffer[ macroTriggerListBufferSize++ ] = scanCode;
-		macroTriggerListBuffer[ macroTriggerListBufferSize++ ] = state;
+		macroTriggerListBuffer[ macroTriggerListBufferSize ].scanCode = scanCode;
+		macroTriggerListBuffer[ macroTriggerListBufferSize ].state    = state;
+		macroTriggerListBuffer[ macroTriggerListBufferSize ].type     = 0x00; // Normal key
+		macroTriggerListBufferSize++;
 		break;
 	}
 }
@@ -130,23 +165,36 @@ inline void Macro_keyState( uint8_t scanCode, uint8_t state )
 
 // Update the scancode analog state
 // States:
-//   * 0x00      - Reserved
+//   * 0x00      - Off
 //   * 0x01      - Released
 //   * 0x02-0xFF - Analog value (low to high)
 inline void Macro_analogState( uint8_t scanCode, uint8_t state )
 {
-	// TODO
+	// Only add to macro trigger list if non-off
+	if ( state != 0x00 )
+	{
+		macroTriggerListBuffer[ macroTriggerListBufferSize ].scanCode = scanCode;
+		macroTriggerListBuffer[ macroTriggerListBufferSize ].state    = state;
+		macroTriggerListBuffer[ macroTriggerListBufferSize ].type     = 0x02; // Analog key
+		macroTriggerListBufferSize++;
+	}
 }
 
 
 // Update led state
 // States:
-//   * 0x00 - Reserved
+//   * 0x00 - Off
 //   * 0x01 - On
-//   * 0x02 - Off
 inline void Macro_ledState( uint8_t ledCode, uint8_t state )
 {
-	// TODO
+	// Only add to macro trigger list if non-off
+	if ( state != 0x00 )
+	{
+		macroTriggerListBuffer[ macroTriggerListBufferSize ].scanCode = ledCode;
+		macroTriggerListBuffer[ macroTriggerListBufferSize ].state    = state;
+		macroTriggerListBuffer[ macroTriggerListBufferSize ].type     = 0x01; // LED key
+		macroTriggerListBufferSize++;
+	}
 }
 
 
@@ -172,7 +220,7 @@ void Macro_evalTriggerMacro( TriggerMacro *triggerMacro )
 			if ( comboLength == 1 )
 			{
 				// If key matches and only 1 key pressed, increment the TriggerMacro combo position
-				if ( guideKey == macroTriggerListBuffer[ keyPressed ] && macroTriggerListBufferSize == 1 )
+				if ( guideKey == macroTriggerListBuffer[ keyPressed ].scanCode && macroTriggerListBufferSize == 1 )
 				{
 					triggerMacro->pos += comboLength * 2 + 1;
 					// TODO check if TriggerMacro is finished, register ResultMacro
@@ -264,10 +312,10 @@ inline void Macro_process()
 	}
 
 	// Loop through macro trigger buffer
-	for ( uint8_t index = 0; index < macroTriggerListBufferSize; index += 2 )
+	for ( uint8_t index = 0; index < macroTriggerListBufferSize; index++ )
 	{
 		// Get scanCode, first item of macroTriggerListBuffer pairs
-		uint8_t scanCode = macroTriggerListBuffer[ index ];
+		uint8_t scanCode = macroTriggerListBuffer[ index ].scanCode;
 
 		// Lookup trigger list for this key
 		unsigned int *triggerList = Macro_layerLookup( scanCode );
@@ -282,7 +330,7 @@ inline void Macro_process()
 			TriggerMacro *triggerMacro = (TriggerMacro*)triggerList[ trigger + 1 ];
 
 			// Get triggered state of scan code, second item of macroTriggerListBuffer pairs
-			uint8_t state = macroTriggerListBuffer[ index + 1 ];
+			uint8_t state = macroTriggerListBuffer[ index ].state;
 
 			// Evaluate Macro
 			Macro_evalTriggerMacro( triggerMacro );
@@ -656,7 +704,7 @@ void macroDebugShowTrigger( unsigned int index )
 			TriggerGuide *guide = (TriggerGuide*)(&macro->guide[ pos ]);
 
 			// Display guide information about trigger key
-			printHex( guide->scancode );
+			printHex( guide->scanCode );
 			print("|");
 			printHex( guide->type );
 			print("|");

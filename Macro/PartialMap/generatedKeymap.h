@@ -91,7 +91,7 @@ typedef struct TriggerMacro {
 typedef struct TriggerGuide {
 	uint8_t type;
 	uint8_t state;
-	uint8_t scancode;
+	uint8_t scanCode;
 } TriggerGuide;
 
 
