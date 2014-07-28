@@ -198,7 +198,7 @@ inline void Macro_ledState( uint8_t ledCode, uint8_t state )
 }
 
 
-// Evaluate/Update the TriggerMacro
+// Evaluate/Update TriggerMacro
 void Macro_evalTriggerMacro( TriggerMacro *triggerMacro )
 {
 	// Which combo in the sequence is being evaluated
@@ -208,7 +208,7 @@ void Macro_evalTriggerMacro( TriggerMacro *triggerMacro )
 	uint8_t comboLength = triggerMacro->guide[ comboPos ];
 
 	// Iterate over list of keys currently pressed
-	for ( uint8_t keyPressed = 0; keyPressed < macroTriggerListBufferSize; keyPressed += 2 )
+	for ( uint8_t keyPressed = 0; keyPressed < macroTriggerListBufferSize; keyPressed++ )
 	{
 		// Compare with keys in combo
 		for ( unsigned int comboKey = 0; comboKey < comboLength; comboKey++ )
@@ -241,59 +241,22 @@ void Macro_evalTriggerMacro( TriggerMacro *triggerMacro )
 }
 
 
-
-
-/*
-inline void Macro_bufferAdd( uint8_t byte )
+// Evaluate/Update ResultMacro
+void Macro_evalResultMacro( ResultMacro *resultMacro )
 {
-	// Make sure we haven't overflowed the key buffer
-	// Default function for adding keys to the KeyIndex_Buffer, does a DefaultMap_Lookup
-	if ( KeyIndex_BufferUsed < KEYBOARD_BUFFER )
-	{
-		uint8_t key = DefaultMap_Lookup[byte];
-		for ( uint8_t c = 0; c < KeyIndex_BufferUsed; c++ )
-		{
-			// Key already in the buffer
-			if ( KeyIndex_Buffer[c] == key )
-				return;
-		}
-
-		// Add to the buffer
-		KeyIndex_Buffer[KeyIndex_BufferUsed++] = key;
-	}
+	// TODO
 }
 
-inline void Macro_bufferRemove( uint8_t byte )
-{
-	uint8_t key = DefaultMap_Lookup[byte];
 
-	// Check for the released key, and shift the other keys lower on the buffer
-	for ( uint8_t c = 0; c < KeyIndex_BufferUsed; c++ )
-	{
-		// Key to release found
-		if ( KeyIndex_Buffer[c] == key )
-		{
-			// Shift keys from c position
-			for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
-				KeyIndex_Buffer[k] = KeyIndex_Buffer[k + 1];
-
-			// Decrement Buffer
-			KeyIndex_BufferUsed--;
-
-			return;
-		}
-	}
-
-	// Error case (no key to release)
-	erro_msg("Could not find key to release: ");
-	printHex( key );
-}
-*/
-
+// Called immediately after USB has finished sending a buffer
 inline void Macro_finishWithUSBBuffer( uint8_t sentKeys )
 {
+	// XXX Currently not used to trigger anything (with this particular Macro module)
 }
 
+
+// Macro Procesing Loop
+// Called once per USB buffer send
 inline void Macro_process()
 {
 	// Only do one round of macro processing between Output Module timer sends
@@ -319,6 +282,10 @@ inline void Macro_process()
 
 		// Lookup trigger list for this key
 		unsigned int *triggerList = Macro_layerLookup( scanCode );
+
+		// Skip, if no trigger list
+		if ( triggerList == 0 )
+			continue;
 
 		// The first element is the length of the trigger list
 		unsigned int triggerListSize = triggerList[0];
@@ -392,6 +359,7 @@ inline void Macro_process()
 		USBKeys_Sent = 0;
 	}
 }
+
 
 inline void Macro_setup()
 {
