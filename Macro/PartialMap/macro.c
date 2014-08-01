@@ -248,13 +248,6 @@ void Macro_evalResultMacro( ResultMacro *resultMacro )
 }
 
 
-// Called immediately after USB has finished sending a buffer
-inline void Macro_finishWithUSBBuffer( uint8_t sentKeys )
-{
-	// XXX Currently not used to trigger anything (with this particular Macro module)
-}
-
-
 // Macro Procesing Loop
 // Called once per USB buffer send
 inline void Macro_process()
@@ -349,8 +342,9 @@ inline void Macro_process()
 	}
 	*/
 
-	// Signal buffer that we've used it
-	Scan_finishedWithBuffer( KeyIndex_BufferUsed );
+	// Signal buffer that we've used it TODO
+	Scan_finishedWithMacro( 0 );
+	//Scan_finishedWithBuffer( KeyIndex_BufferUsed );
 
 	// If Macro debug mode is set, clear the USB Buffer
 	if ( macroDebugMode )

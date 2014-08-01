@@ -57,7 +57,6 @@
 #include <stdint.h>
 
 // chapter 11: Port control and interrupts (PORT)
-#define PORTA_PCR0              *(volatile uint32_t *)0x40049000 // Pin Control Register n
 #define PORT_PCR_ISF			(uint32_t)0x01000000		// Interrupt Status Flag
 #define PORT_PCR_IRQC(n)		(uint32_t)(((n) & 15) << 16)	// Interrupt Configuration
 #define PORT_PCR_IRQC_MASK		(uint32_t)0x000F0000
@@ -70,6 +69,7 @@
 #define PORT_PCR_SRE			(uint32_t)0x00000004		// Slew Rate Enable
 #define PORT_PCR_PE			(uint32_t)0x00000002		// Pull Enable
 #define PORT_PCR_PS			(uint32_t)0x00000001		// Pull Select
+#define PORTA_PCR0              *(volatile uint32_t *)0x40049000 // Pin Control Register n
 #define PORTA_PCR1              *(volatile uint32_t *)0x40049004 // Pin Control Register n
 #define PORTA_PCR2              *(volatile uint32_t *)0x40049008 // Pin Control Register n
 #define PORTA_PCR3              *(volatile uint32_t *)0x4004900C // Pin Control Register n

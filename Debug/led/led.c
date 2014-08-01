@@ -53,11 +53,19 @@ inline void init_errorLED()
 // MCHCK
 #elif defined(_mk20dx128vlf5_)
 
+/* Actual MCHCK
 	// Enable pin
 	GPIOB_PDDR |= (1<<16);
 
 	// Setup pin - B16 - See Lib/pin_map.mchck for more details on pins
 	PORTB_PCR16 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+*/
+	// Kiibohd MCHCK Variant
+	// Enable pin
+	GPIOA_PDDR |= (1<<19);
+
+	// Setup pin - A19 - See Lib/pin_map.mchck for more details on pins
+	PORTA_PCR19 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 
 #endif
 }
@@ -92,6 +100,7 @@ inline void errorLED( uint8_t on )
 // MCHCK
 #elif defined(_mk20dx128vlf5_)
 
+/* Actual MCHCK
 	// Error LED On (B16)
 	if ( on ) {
 		GPIOB_PSOR |= (1<<16);
@@ -99,6 +108,16 @@ inline void errorLED( uint8_t on )
 	// Error LED Off
 	else {
 		GPIOB_PCOR |= (1<<16);
+	}
+*/
+	// Kiibohd MCHCK Variant
+	// Error LED On (A19)
+	if ( on ) {
+		GPIOA_PSOR |= (1<<19);
+	}
+	// Error LED Off
+	else {
+		GPIOA_PCOR |= (1<<19);
 	}
 
 #endif

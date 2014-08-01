@@ -1,22 +1,17 @@
 /* Copyright (C) 2014 by Jacob Alexander
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * This file is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * This file is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * You should have received a copy of the GNU General Public License
+ * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef __macro_h
@@ -29,31 +24,11 @@
 
 
 
-// ----- Defines -----
-
-// Key states (DO NOT USE for analog keyboards)
-#define DEPRESSED 0
-#define  RELEASED 1
-#define   PRESSED 254
-#define      HELD 255
-
-
-// ----- Variables -----
-
-
-
-// ----- Macros -----
-
-
-
 // ----- Functions -----
 
 void Macro_keyState( uint8_t scanCode, uint8_t state );
 void Macro_analogState( uint8_t scanCode, uint8_t state );
 void Macro_ledState( uint8_t ledCode, uint8_t state );
-void Macro_bufferAdd( uint8_t byte );
-void Macro_bufferRemove( uint8_t byte );
-void Macro_finishWithUSBBuffer( uint8_t sentKeys );
 void Macro_process();
 void Macro_setup();
 
