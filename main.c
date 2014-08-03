@@ -49,10 +49,6 @@
 
 
 
-// ----- Function Declarations -----
-
-
-
 // ----- Variables -----
 
 // Timer Interrupt for flagging a send of the sampled key detection data to the USB host
@@ -64,41 +60,6 @@ volatile uint8_t sendKeypresses = 0;
 
 
 // ----- Functions -----
-
-// Initial Pin Setup, make sure they are sane
-inline void pinSetup()
-{
-
-// AVR
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-
-	// For each pin, 0=input, 1=output
-#if defined(__AVR_AT90USB1286__)
-	DDRA = 0x00;
-#endif
-	DDRB = 0x00;
-	DDRC = 0x00;
-	DDRD = 0x00;
-	DDRE = 0x00;
-	DDRF = 0x00;
-
-
-	// Setting pins to either high or pull-up resistor
-#if defined(__AVR_AT90USB1286__)
-	PORTA = 0x00;
-#endif
-	PORTB = 0x00;
-	PORTC = 0x00;
-	PORTD = 0x00;
-	PORTE = 0x00;
-	PORTF = 0x00;
-
-// ARM
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
-	// TODO - Should be cleared, but not that necessary due to the pin layout
-#endif
-}
-
 
 inline void usbTimerSetup()
 {
@@ -134,11 +95,9 @@ inline void usbTimerSetup()
 #endif
 }
 
+
 int main()
 {
-	// Configuring Pins
-	pinSetup();
-
 	// Enable CLI
 	CLI_init();
 
@@ -198,8 +157,4 @@ void pit0_isr()
 	PIT_TFLG0 = 1;
 #endif
 }
-
-
-// ----- CLI Command Functions -----
-
 

@@ -51,15 +51,12 @@
 // Rows (Sense)
 //  PTD1..7
 
-// Debounce threshold
-#define DEBOUNCE_THRESHOLD 32
-
 // Define Rows (Sense) and Columns (Strobes)
-GPIO_Pin Matrix_cols[] = { gpio(B,0), gpio(B,1), gpio(B,2), gpio(B,3), gpio(B,16), gpio(B,17), gpio(C,4), gpio(C,5) };
+GPIO_Pin Matrix_cols[] = { gpio(B,0), gpio(B,1), gpio(B,2), gpio(B,3), gpio(B,16), gpio(B,17), gpio(C,4), gpio(C,5), gpio(D,0) };
 GPIO_Pin Matrix_rows[] = { gpio(D,1), gpio(D,2), gpio(D,3), gpio(D,4), gpio(D,5), gpio(D,6), gpio(D,7) };
 
 // Define type of scan matrix
-Config Matrix_type = Config_Pullup;
+Config Matrix_type = Config_Pulldown;
 
 
 #endif // __MATRIX_H

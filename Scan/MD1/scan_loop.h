@@ -27,16 +27,6 @@
 // Compiler Includes
 #include <stdint.h>
 
-// Local Includes
-
-
-
-// ----- Defines -----
-
-
-
-// ----- Variables -----
-
 
 
 // ----- Functions -----

@@ -112,8 +112,8 @@ typedef struct GPIO_Pin {
 typedef struct KeyState {
 	KeyPosition prevState;
 	KeyPosition curState;
-	uint8_t activeCount;
-	uint8_t inactiveCount;
+	uint16_t activeCount;
+	uint16_t inactiveCount;
 } KeyState;
 
 
@@ -121,7 +121,7 @@ typedef struct KeyState {
 // ----- Functions -----
 
 void Matrix_setup();
-void Matrix_scan( uint16_t scanNum, uint8_t firstScan );
+void Matrix_scan( uint16_t scanNum );
 
 
 #endif // __MATRIX_SCAN_H

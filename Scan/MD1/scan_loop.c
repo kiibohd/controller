@@ -28,6 +28,7 @@
 #include <cli.h>
 #include <led.h>
 #include <print.h>
+#include <matrix_scan.h>
 
 // Local Includes
 #include "scan_loop.h"
@@ -35,10 +36,21 @@
 
 
 
+// ----- Function Declarations -----
+
+// CLI Functions
+void cliFunc_echo( char* args );
+
+
+
 // ----- Variables -----
 
-// Indicates if the next scan is the first after a USB send
-uint8_t Scan_firstScan = 1;
+// Scan Module command dictionary
+char*       scanCLIDictName = "Scan Module Commands";
+CLIDictItem scanCLIDict[] = {
+	{ "echo",        "Example command, echos the arguments.", cliFunc_echo },
+	{ 0, 0, 0 } // Null entry for dictionary end
+};
 
 // Number of scans since the last USB send
 uint16_t Scan_scanCount = 0;
@@ -50,21 +62,21 @@ uint16_t Scan_scanCount = 0;
 // Setup
 inline void Scan_setup()
 {
+	// Register Scan CLI dictionary
+	CLI_registerDictionary( scanCLIDict, scanCLIDictName );
+
 	// Setup GPIO pins for matrix scanning
 	Matrix_setup();
 
-	// First scan is next
-	Scan_firstScan = 1;
+	// Reset scan count
+	Scan_scanCount = 0;
 }
 
 
 // Main Detection Loop
 inline uint8_t Scan_loop()
 {
-	Matrix_scan( Scan_scanCount++, Scan_firstScan );
-
-	// No longer the first scan
-	Scan_firstScan = 0;
+	Matrix_scan( Scan_scanCount++ );
 
 	return 0;
 }
@@ -81,7 +93,33 @@ inline void Scan_finishedWithOutput( uint8_t sentKeys )
 {
 	// Reset scan loop indicator (resets each key debounce state)
 	// TODO should this occur after USB send or Macro processing?
-	Scan_firstScan = 1;
 	Scan_scanCount = 0;
+}
+
+
+// ----- CLI Command Functions -----
+
+// XXX Just an example command showing how to parse arguments (more complex than generally needed)
+void cliFunc_echo( char* args )
+{
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// Parse args until a \0 is found
+	while ( 1 )
+	{
+		print( NL ); // No \r\n by default after the command is entered
+
+		curArgs = arg2Ptr; // Use the previous 2nd arg pointer to separate the next arg from the list
+		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+		// Stop processing args if no more are found
+		if ( *arg1Ptr == '\0' )
+			break;
+
+		// Print out the arg
+		dPrint( arg1Ptr );
+	}
 }
 
