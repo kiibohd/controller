@@ -42,6 +42,7 @@
 // ResultMacro.state     -> <last key state>
 // ResultMacro.stateType -> <last key state type>
 
+// ResultMacro struct, one is created per ResultMacro, no duplicates
 typedef struct ResultMacro {
 	uint8_t *guide;
 	unsigned int pos;
@@ -79,11 +80,21 @@ typedef struct ResultGuide {
 // TriggerMacro.guide  -> [<combo length>|<key1 type>|<key1 state>|<key1>...<keyn type>|<keyn state>|<keyn>|<combo length>...|0]
 // TriggerMacro.result -> <index to result macro>
 // TriggerMacro.pos    -> <current combo position>
+// TriggerMacro.state  -> <status of the macro pos>
 
+// TriggerMacro states
+typedef enum TriggerMacroState {
+	TriggerMacro_Press,   // Combo in sequence is passing
+	TriggerMacro_Release, // Move to next combo in sequence (or finish if at end of sequence)
+	TriggerMacro_Waiting, // Awaiting user input
+} TriggerMacroState;
+
+// TriggerMacro struct, one is created per TriggerMacro, no duplicates
 typedef struct TriggerMacro {
 	uint8_t *guide;
 	unsigned int result;
 	unsigned int pos;
+	TriggerMacroState state;
 } TriggerMacro;
 
 // Guide, key element
@@ -199,7 +210,6 @@ ResultMacro ResultMacroList[] = {
 //  * result  - Result Macro index number which is triggered by this Trigger Macro
 #define Guide_TM( index ) static uint8_t tm##index##_guide[]
 #define Define_TM( index, result ) { tm##index##_guide, result, 0 }
-#define tm( index ) (unsigned int)&TriggerMacroList[ index ]
 
 Guide_TM( 0 ) = { 1, 0x10, 0x01, 0x73, 0 };
 Guide_TM( 1 ) = { 1, 0x0F, 0x01, 0x73, 1, 0x00, 0x01, 0x75, 0 };
@@ -359,10 +369,10 @@ Define_TL( default, 0x6F ) = { 0 };
 Define_TL( default, 0x70 ) = { 0 };
 Define_TL( default, 0x71 ) = { 0 };
 Define_TL( default, 0x72 ) = { 0 };
-Define_TL( default, 0x73 ) = { 3, tm(0), tm(1), tm(2) };
-Define_TL( default, 0x74 ) = { 1, tm(2) };
-Define_TL( default, 0x75 ) = { 1, tm(1) };
-Define_TL( default, 0x76 ) = { 1, tm(3) };
+Define_TL( default, 0x73 ) = { 3, 0, 1, 2 };
+Define_TL( default, 0x74 ) = { 1, 2 };
+Define_TL( default, 0x75 ) = { 1, 1 };
+Define_TL( default, 0x76 ) = { 1, 3 };
 Define_TL( default, 0x77 ) = { 0 };
 Define_TL( default, 0x78 ) = { 0 };
 Define_TL( default, 0x79 ) = { 0 };
