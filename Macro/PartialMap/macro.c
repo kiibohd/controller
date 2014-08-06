@@ -71,6 +71,11 @@ typedef enum TriggerMacroEval {
 	TriggerMacroEval_Remove,
 } TriggerMacroEval;
 
+typedef enum ResultMacroEval {
+	ResultMacroEval_DoNothing,
+	ResultMacroEval_Remove,
+} ResultMacroEval;
+
 
 
 // ----- Variables -----
@@ -242,7 +247,7 @@ inline uint8_t Macro_isLongResultMacro( ResultMacro *macro )
 	// Check the second sequence combo length
 	// If non-zero return 1 (long sequence)
 	// 0 otherwise (short sequence)
-	return macro->guide[ macro->guide[0] * ResultGuideSize( ((ResultGuide*)macro->guide) ) ] > 0 ? 1 : 0;
+	return macro->guide[ macro->guide[0] * ResultGuideSize( (ResultGuide*)macro->guide ) ] > 0 ? 1 : 0;
 }
 
 
@@ -418,9 +423,51 @@ inline TriggerMacroEval Macro_evalTriggerMacro( unsigned int triggerMacroIndex )
 
 
 // Evaluate/Update ResultMacro
-void Macro_evalResultMacro( unsigned int resultMacroIndex )
+inline ResultMacroEval Macro_evalResultMacro( unsigned int resultMacroIndex )
 {
-	// TODO
+	// Lookup ResultMacro
+	ResultMacro *macro = &ResultMacroList[ resultMacroIndex ];
+
+	// Current Macro position
+	unsigned int pos = macro->pos;
+
+	// Length of combo being processed
+	uint8_t comboLength = macro->guide[ pos ];
+
+	// If no combo items are left, remove the ResultMacro from the pending list
+	if ( comboLength == 0 )
+	{
+		return ResultMacroEval_Remove;
+	}
+
+	// Function Counter, used to keep track of the combo items processed
+	unsigned int funcCount = 0;
+
+	// Combo Item Position within the guide
+	unsigned int comboItem = pos + 1;
+
+	// Iterate through the Result Combo
+	while ( funcCount < comboLength )
+	{
+		// Assign TriggerGuide element (key type, state and scancode)
+		ResultGuide *guide = (ResultGuide*)(&macro->guide[ pos ]);
+
+		// Do lookup on capability function
+		void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
+
+		// Call capability
+		capability( macro->state, macro->stateType, &guide->args );
+
+		// Increment counters
+		funcCount++;
+		comboItem += ResultGuideSize( (ResultGuide*)(&macro->guide[ comboItem ]) );
+	}
+
+	// Move to next item in the sequence
+	macro->pos = comboItem;
+
+	// If the ResultMacro is finished, it will be removed on the next iteration
+	return ResultMacroEval_DoNothing;
 }
 
 
@@ -515,14 +562,33 @@ inline void Macro_process()
 		}
 	}
 
-	// Update the macroResultMacroPendingListSize with the tail pointer
+	// Update the macroTriggerMacroPendingListSize with the tail pointer
 	macroTriggerMacroPendingListSize = macroTriggerMacroPendingListTail;
+
+
+	// Tail pointer for macroResultMacroPendingList
+	// Macros must be explicitly re-added
+	unsigned int macroResultMacroPendingListTail = 0;
 
 	// Iterate through the pending ResultMacros, processing each of them
 	for ( unsigned int macro = 0; macro < macroResultMacroPendingListSize; macro++ )
 	{
-		Macro_evalResultMacro( macroResultMacroPendingList[ macro ] );
+		switch ( Macro_evalResultMacro( macroResultMacroPendingList[ macro ] ) )
+		{
+		// Re-add macros to pending list
+		case ResultMacroEval_DoNothing:
+		default:
+			macroResultMacroPendingList[ macroResultMacroPendingListTail++ ] = macroResultMacroPendingList[ macro ];
+			break;
+
+		// Remove Macro from Pending List, nothing to do, removing by default
+		case ResultMacroEval_Remove:
+			break;
+		}
 	}
+
+	// Update the macroResultMacroPendingListSize with the tail pointer
+	macroResultMacroPendingListSize = macroResultMacroPendingListTail;
 
 	/* TODO
 	// Loop through input buffer
@@ -552,9 +618,11 @@ inline void Macro_process()
 	}
 	*/
 
-	// Signal buffer that we've used it TODO
-	Scan_finishedWithMacro( 0 );
-	//Scan_finishedWithBuffer( KeyIndex_BufferUsed );
+	// Signal buffer that we've used it
+	Scan_finishedWithMacro( macroTriggerListBufferSize );
+
+	// Reset TriggerList buffer
+	macroTriggerListBufferSize = 0;
 
 	// If Macro debug mode is set, clear the USB Buffer
 	if ( macroDebugMode )

@@ -51,7 +51,7 @@ typedef struct ResultMacro {
 } ResultMacro;
 
 // Guide, key element
-#define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) - 1 + CapabilitiesList[ guidePtr->index ].argCount
+#define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) - 1 + CapabilitiesList[ (guidePtr)->index ].argCount
 typedef struct ResultGuide {
 	uint8_t index;
 	uint8_t args; // This is used as an array pointer (but for packing purposes, must be 8 bit)
