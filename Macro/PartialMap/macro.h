@@ -24,6 +24,12 @@
 
 
 
+// ----- Capabilities -----
+
+void Macro_layerStateToggle_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+
+
+
 // ----- Functions -----
 
 void Macro_keyState( uint8_t scanCode, uint8_t state );

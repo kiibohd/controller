@@ -24,7 +24,6 @@
 #include <led.h>
 #include <print.h>
 #include <scan_loop.h>
-#include <output_com.h>
 
 // Keymaps
 #include "usb_hid.h"
@@ -132,6 +131,78 @@ unsigned int macroResultMacroPendingListSize = 0;
 
 
 
+// ----- Capabilities -----
+
+// Modifies the specified Layer control byte
+// Argument #1: Layer Index -> unsigned int
+// Argument #2: Toggle byte -> uint8_t
+void Macro_layerStateToggle_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Macro_layerState(layerIndex,toggleByte)");
+		return;
+	}
+
+	// Get layer index from arguments
+	unsigned int layer = (unsigned int)(&args[0]);
+
+	// Get layer toggle byte
+	uint8_t toggleByte = args[ sizeof(unsigned int) ];
+
+	// Is layer in the LayerIndexStack?
+	uint8_t inLayerIndexStack = 0;
+	unsigned int stackItem = 0;
+	while ( stackItem < macroLayerIndexStackSize )
+	{
+		// Flag if layer is already in the LayerIndexStack
+		if ( macroLayerIndexStack[ stackItem ] == layer )
+		{
+			inLayerIndexStack = 1;
+			break;
+		}
+
+		// Increment to next item
+		stackItem++;
+	}
+
+	// Toggle Layer State Byte
+	if ( LayerIndex[ layer ].state & toggleByte )
+	{
+		// Unset
+		LayerIndex[ layer ].state &= ~toggleByte;
+	}
+	else
+	{
+		// Set
+		LayerIndex[ layer ].state |= toggleByte;
+	}
+
+	// If the layer was not in the LayerIndexStack add it
+	if ( !inLayerIndexStack )
+	{
+		macroLayerIndexStack[ macroLayerIndexStackSize++ ] = layer;
+	}
+
+	// If the layer is in the LayerIndexStack and the state is 0x00, remove
+	if ( LayerIndex[ layer ].state == 0x00 && inLayerIndexStack )
+	{
+		// Remove the layer from the LayerIndexStack
+		// Using the already positioned stackItem variable from the loop above
+		while ( stackItem < macroLayerIndexStackSize )
+		{
+			macroLayerIndexStack[ stackItem ] = macroLayerIndexStack[ stackItem + 1 ];
+			stackItem++;
+		}
+
+		// Reduce LayerIndexStack size
+		macroLayerIndexStackSize--;
+	}
+}
+
+
+
 // ----- Functions -----
 
 // Looks up the trigger list for the given scan code (from the active layer)
@@ -139,14 +210,31 @@ unsigned int macroResultMacroPendingListSize = 0;
 unsigned int *Macro_layerLookup( uint8_t scanCode )
 {
 	// If no trigger macro is defined at the given layer, fallthrough to the next layer
-	for ( unsigned int layer = 0; layer < macroLayerIndexStackSize; layer++ )
+	for ( unsigned int layerIndex = 0; layerIndex < macroLayerIndexStackSize; layerIndex++ )
 	{
-		// Lookup layer
-		unsigned int **map = LayerIndex[ macroLayerIndexStack[ layer ] ].triggerMap;
+		// Lookup Layer
+		Layer *layer = &LayerIndex[ macroLayerIndexStack[ layerIndex ] ];
 
-		// Determine if layer has key defined
-		if ( map != 0 && *map[ scanCode ] != 0 )
-			return map[ scanCode ];
+		// Check if latch has been pressed for this layer
+		// XXX Regardless of whether a key is found, the latch is removed on first lookup
+		uint8_t latch = layer->state & 0x02;
+		if ( latch )
+		{
+			layer->state &= ~0x02;
+		}
+
+		// Only use layer, if state is valid
+		// XOR each of the state bits
+		// If only two are enabled, do not use this state
+		if ( (layer->state & 0x01) ^ (latch>>1) ^ ((layer->state & 0x04)>>2) )
+		{
+			// Lookup layer
+			unsigned int **map = layer->triggerMap;
+
+			// Determine if layer has key defined
+			if ( map != 0 && *map[ scanCode ] != 0 )
+				return map[ scanCode ];
+		}
 	}
 
 	// Do lookup on default layer
@@ -589,34 +677,6 @@ inline void Macro_process()
 
 	// Update the macroResultMacroPendingListSize with the tail pointer
 	macroResultMacroPendingListSize = macroResultMacroPendingListTail;
-
-	/* TODO
-	// Loop through input buffer
-	for ( uint8_t index = 0; index < KeyIndex_BufferUsed && !macroDebugMode; index++ )
-	{
-		// Get the keycode from the buffer
-		uint8_t key = KeyIndex_Buffer[index];
-
-		// Set the modifier bit if this key is a modifier
-		if ( (key & KEY_LCTRL) == KEY_LCTRL ) // AND with 0xE0
-		{
-			USBKeys_Modifiers |= 1 << (key ^ KEY_LCTRL); // Left shift 1 by key XOR 0xE0
-
-			// Modifier processed, move on to the next key
-			continue;
-		}
-
-		// Too many keys
-		if ( USBKeys_Sent >= USBKeys_MaxSize )
-		{
-			warn_msg("USB Key limit reached");
-			errorLED( 1 );
-			break;
-		}
-
-			USBKeys_Array[USBKeys_Sent++] = key;
-	}
-	*/
 
 	// Signal buffer that we've used it
 	Scan_finishedWithMacro( macroTriggerListBufferSize );

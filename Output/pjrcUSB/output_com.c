@@ -26,6 +26,7 @@
 
 // Project Includes
 #include <cli.h>
+#include <led.h>
 #include <print.h>
 #include <scan_loop.h>
 
@@ -94,6 +95,44 @@ volatile uint8_t USBKeys_Protocol = 1;
 
 // count until idle timeout
          uint8_t USBKeys_Idle_Count = 0;
+
+
+// ----- Capabilities -----
+
+// Adds a single USB Code to the USB Output buffer
+// Argument #1: USB Code
+void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_usbCodeSend(usbCode)");
+		return;
+	}
+
+	// Get the keycode from arguments
+	uint8_t key = args[0];
+
+	// Set the modifier bit if this key is a modifier
+	if ( (key & 0xE0) == 0xE0 ) // AND with 0xE0 (Left Ctrl, first modifier)
+	{
+		USBKeys_Modifiers |= 1 << (key ^ 0xE0); // Left shift 1 by key XOR 0xE0
+	}
+	// Normal USB Code
+	else
+	{
+		// USB Key limit reached (important for Boot Mode)
+		if ( USBKeys_Sent >= USBKeys_MaxSize )
+		{
+			warn_msg("USB Key limit reached");
+			errorLED( 1 );
+			return;
+		}
+
+		USBKeys_Array[USBKeys_Sent++] = key;
+	}
+}
+
 
 
 // ----- Functions -----
