@@ -50,7 +50,7 @@ if ( EXISTS compiler )
 endif ()
 
 #| Load the compiler family specific configurations
-include( Lib/CMake/${COMPILER_FAMILY}.cmake )
+include( ${COMPILER_FAMILY} )
 
 #| Binutils not set by CMake
 set( CMAKE_SIZE "${_CMAKE_TOOLCHAIN_PREFIX}size" )

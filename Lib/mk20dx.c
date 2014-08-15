@@ -31,7 +31,6 @@
 
 // Local Includes
 #include "mk20dx.h"
-#include <print.h>
 
 
 
@@ -44,6 +43,8 @@ extern unsigned long _edata;
 extern unsigned long _sbss;
 extern unsigned long _ebss;
 extern unsigned long _estack;
+
+const uint8_t sys_reset_to_loader_magic[22] = "\xff\x00\x7fRESET TO LOADER\x7f\x00\xff";
 
 
 
@@ -354,7 +355,63 @@ const uint8_t flashconfigbytes[16] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF
 };
+#elif defined(_mk20dx128vlf5_) && defined(_bootloader_)
+// XXX Byte labels may be in incorrect positions, double check before modifying
+//     FSEC is in correct location -Jacob
+__attribute__ ((section(".flashconfig"), used))
+const uint8_t flashconfigbytes[16] = {
+	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // Backdoor Verif Key 28.3.1
+	0xFF, 0xFF, 0xFF, 0xFF, // Program Flash Protection Bytes FPROT0-3
+	0xBE, // Flash security byte FSEC
+	0x03, // Flash nonvolatile option byte FOPT
+	0xFF, // EEPROM Protection Byte FEPROT
+	0xFF, // Data Flash Protection Byte FDPROT
+};
 #endif
+
+
+
+// ----- Functions -----
+
+__attribute__((noreturn))
+static inline void jump_to_app( uintptr_t addr )
+{
+        // addr is in r0
+        __asm__("ldr sp, [%[addr], #0]\n"
+                "ldr pc, [%[addr], #4]"
+                :: [addr] "r" (addr));
+        // NOTREACHED
+        __builtin_unreachable();
+}
+
+void *memset( void *addr, int val, unsigned int len )
+{
+	char *buf = addr;
+
+	for (; len > 0; --len, ++buf)
+		*buf = val;
+	return (addr);
+}
+
+int memcmp( const void *a, const void *b, unsigned int len )
+{
+	const uint8_t *ap = a, *bp = b;
+	int val = 0;
+
+	for (; len > 0 && (val = *ap - *bp) == 0; --len, ++ap, ++bp)
+		/* NOTHING */;
+	return (val);
+}
+
+void *memcpy( void *dst, const void *src, unsigned int len )
+{
+	char *dstbuf = dst;
+	const char *srcbuf = src;
+
+	for (; len > 0; --len, ++dstbuf, ++srcbuf)
+		*dstbuf = *srcbuf;
+	return (dst);
+}
 
 
 
@@ -363,13 +420,32 @@ const uint8_t flashconfigbytes[16] = {
 __attribute__ ((section(".startup")))
 void ResetHandler()
 {
-	uint32_t *src = &_etext;
-	uint32_t *dest = &_sdata;
-
 	// Disable Watchdog
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
 	WDOG_STCTRLH = WDOG_STCTRLH_ALLOWUPDATE;
+
+#if defined(_mk20dx128vlf5_) && defined(_bootloader_) // Bootloader Section
+	extern uint32_t _app_rom;
+
+	// We treat _app_rom as pointer to directly read the stack
+	// pointer and check for valid app code.  This is no fool
+	// proof method, but it should help for the first flash.
+	if ( RCM_SRS0 & 0x40 || _app_rom == 0xffffffff ||
+	  memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 ) // Check for soft reload
+	{
+		memset( (uint8_t*)&VBAT, 0, sizeof(VBAT) );
+	}
+	else
+	{
+		uint32_t addr = (uintptr_t)&_app_rom;
+		SCB_VTOR = addr; // relocate vector table
+		jump_to_app( addr );
+	}
+#endif
+
+	uint32_t *src = &_etext;
+	uint32_t *dest = &_sdata;
 
 	// Enable clocks to always-used peripherals
 	SIM_SCGC5 = 0x00043F82; // Clocks active to all GPIO
@@ -486,11 +562,17 @@ void ResetHandler()
 	SIM_SOPT2 = SIM_SOPT2_USBSRC | SIM_SOPT2_PLLFLLSEL | SIM_SOPT2_TRACECLKSEL | SIM_SOPT2_CLKOUTSEL( 6 );
 
 #endif
+
+#if !defined(_bootloader_)
 	// Initialize the SysTick counter
 	SYST_RVR = (F_CPU / 1000) - 1;
 	SYST_CSR = SYST_CSR_CLKSOURCE | SYST_CSR_TICKINT | SYST_CSR_ENABLE;
 
 	__enable_irq();
+#else
+	// Disable Watchdog for bootloader
+	WDOG_STCTRLH &= ~WDOG_STCTRLH_WDOGEN;
+#endif
 
 	main();
 	while ( 1 ); // Shouldn't get here...

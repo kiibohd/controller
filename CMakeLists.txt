@@ -31,7 +31,8 @@ set( CHIP
 ###
 # Compiler Intialization
 #
-include( Lib/CMake/initialize.cmake )
+set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/Lib/CMake )
+include( initialize )
 
 
 

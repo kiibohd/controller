@@ -35,8 +35,8 @@
 // ----- Variables -----
 
 // Basic command dictionary
-char*       basicCLIDictName = "General Commands";
-CLIDictItem basicCLIDict[] = {
+const char basicCLIDictName[] = "General Commands";
+const CLIDictItem basicCLIDict[] = {
 	{ "cliDebug", "Enables/Disables hex output of the most recent cli input.", cliFunc_cliDebug },
 	{ "help",     "You're looking at it :P", cliFunc_help },
 	{ "led",      "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules...", cliFunc_led },
@@ -267,7 +267,7 @@ void CLI_commandLookup()
 }
 
 // Registers a command dictionary with the CLI
-void CLI_registerDictionary( CLIDictItem *cmdDict, char* dictName )
+void CLI_registerDictionary( const CLIDictItem *cmdDict, const char* dictName )
 {
 	// Make sure this max limit of dictionaries hasn't been reached
 	if ( CLIDictionariesUsed >= CLIMaxDictionaries )
@@ -277,8 +277,8 @@ void CLI_registerDictionary( CLIDictItem *cmdDict, char* dictName )
 	}
 
 	// Add dictionary
-	CLIDictNames[CLIDictionariesUsed] = dictName;
-	CLIDict[CLIDictionariesUsed++] = cmdDict;
+	CLIDictNames[CLIDictionariesUsed] = (char*)dictName;
+	CLIDict[CLIDictionariesUsed++] = (CLIDictItem*)cmdDict;
 }
 
 inline void CLI_tabCompletion()

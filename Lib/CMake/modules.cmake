@@ -130,6 +130,14 @@ message( "${DEBUG_SRCS}" )
 
 
 ###
+# CMake Module Checking
+#
+find_package( Git REQUIRED )
+find_package( Ctags ) # Optional
+
+
+
+###
 # Generate USB Defines
 #
 
@@ -241,13 +249,6 @@ ModuleCompatibility( ${DebugModulePath}  ${DebugModuleCompatibility}  )
 
 
 ###
-# CMake Module Checking
-#
-find_package( Git REQUIRED )
-find_package( Ctags ) # Optional
-
-
-###
 # ctag Generation
 #
 
@@ -287,19 +288,23 @@ set_target_properties( ${TARGET_ELF} PROPERTIES
 
 
 #| Convert the .ELF into a .bin to load onto the McHCK
-set( TARGET_BIN ${TARGET}.bin.dfu )
-add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-	COMMAND ${CMAKE_OBJCOPY} ${BIN_FLAGS} ${TARGET_ELF} ${TARGET_BIN}
-	COMMENT "Creating binary file to load:  ${TARGET_BIN}"
-)
+if( DEFINED DFU )
+	set( TARGET_BIN ${TARGET}.dfu.bin )
+	add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+		COMMAND ${CMAKE_OBJCOPY} ${BIN_FLAGS} ${TARGET_ELF} ${TARGET_BIN}
+		COMMENT "Creating dfu binary file:      ${TARGET_BIN}"
+	)
+endif()
 
 
 #| Convert the .ELF into a .HEX to load onto the Teensy
-set( TARGET_HEX ${TARGET}.teensy.hex )
-add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-	COMMAND ${CMAKE_OBJCOPY} ${HEX_FLAGS} ${TARGET_ELF} ${TARGET_HEX}
-	COMMENT "Creating iHex file to load:    ${TARGET_HEX}"
-)
+if ( DEFINED TEENSY )
+	set( TARGET_HEX ${TARGET}.teensy.hex )
+	add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+		COMMAND ${CMAKE_OBJCOPY} ${HEX_FLAGS} ${TARGET_ELF} ${TARGET_HEX}
+		COMMENT "Creating iHex file to load:    ${TARGET_HEX}"
+	)
+endif()
 
 
 #| Generate the Extended .LSS
@@ -331,8 +336,8 @@ add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 
 #| After Changes Size Information
 add_custom_target( SizeAfter ALL
-	COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} ihex ${TARGET_ELF} ${SIZE_RAM}   " SRAM"
-	COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} ihex ${TARGET_HEX} ${SIZE_FLASH} "Flash"
+	COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} ram   ${TARGET_ELF} ${SIZE_RAM}   " SRAM"
+	COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} flash ${TARGET_ELF} ${SIZE_FLASH} "Flash"
 	DEPENDS ${TARGET_ELF}
 	COMMENT "Chip usage for ${CHIP}"
 )

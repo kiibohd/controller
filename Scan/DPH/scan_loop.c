@@ -149,8 +149,8 @@ volatile uint8_t KeyIndex_BufferUsed;
 
 
 // Scan Module command dictionary
-char*       scanCLIDictName = "DPH Module Commands";
-CLIDictItem scanCLIDict[] = {
+const char scanCLIDictName[] = "DPH Module Commands";
+const CLIDictItem scanCLIDict[] = {
 	{ "echo",        "Example command, echos the arguments.", cliFunc_echo },
 	{ "avgDebug",    "Enables/Disables averaging results." NL "\t\tDisplays each average, starting from Key 0x00, ignoring 0 valued averages.", cliFunc_avgDebug },
 	{ "keyDebug",    "Enables/Disables long debug for each keypress." NL "\t\tkeycode - [strobe:mux] : sense val : threshold+delta=total : margin", cliFunc_keyDebug },

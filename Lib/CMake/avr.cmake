@@ -36,6 +36,10 @@ message( STATUS "MCU Selected:" )
 message( "${MCU}" )
 
 
+#| Indicate to later build step that this is a Teensy
+set( Teensy )
+
+
 #| Chip Size Database
 #| Teensy 1.0
 if ( "${CHIP}" MATCHES "at90usb162" )
@@ -80,8 +84,10 @@ message( "${CPU}" )
 
 
 #| USB Defines
-set( VENDOR_ID  "0x16C0" )
-set( PRODUCT_ID "0x047D" )
+set( VENDOR_ID       "0x1C11" )
+set( PRODUCT_ID      "0xB04D" )
+set( BOOT_VENDOR_ID  "0x16C0" ) # TODO Double check, this is likely incorrect
+set( BOOT_PRODUCT_ID "0x047D" )
 
 
 #| Compiler flag to set the C Standard level.

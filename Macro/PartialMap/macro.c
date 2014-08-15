@@ -39,6 +39,7 @@
 
 void cliFunc_capList   ( char* args );
 void cliFunc_capSelect ( char* args );
+void cliFunc_keyHold   ( char* args );
 void cliFunc_keyPress  ( char* args );
 void cliFunc_keyRelease( char* args );
 void cliFunc_layerList ( char* args );
@@ -80,12 +81,13 @@ typedef enum ResultMacroEval {
 // ----- Variables -----
 
 // Macro Module command dictionary
-char*       macroCLIDictName = "Macro Module Commands";
-CLIDictItem macroCLIDict[] = {
+const char macroCLIDictName[] = "Macro Module Commands";
+const CLIDictItem macroCLIDict[] = {
 	{ "capList",     "Prints an indexed list of all non USB keycode capabilities.", cliFunc_capList },
 	{ "capSelect",   "Triggers the specified capabilities. First two args are state and stateType." NL "\t\t\033[35mK11\033[0m Keyboard Capability 0x0B", cliFunc_capSelect },
-	{ "keyPress",    "Send key-presses to the macro module. Held until released. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyPress },
-	{ "keyRelease",  "Release a key-press from the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyRelease },
+	{ "keyHold",     "Send key-hold events to the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyHold },
+	{ "keyPress",    "Send key-press events to the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyPress },
+	{ "keyRelease",  "Send key-release event to macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyRelease },
 	{ "layerList",   "List available layers.", cliFunc_layerList },
 	{ "layerState",  "Modify specified indexed layer state <layer> <state byte>." NL "\t\t\033[35mL2\033[0m Indexed Layer 0x02" NL "\t\t0 Off, 1 Shift, 2 Latch, 4 Lock States", cliFunc_layerState },
 	{ "macroDebug",  "Disables/Enables sending USB keycodes to the Output Module and prints U/K codes.", cliFunc_macroDebug },
@@ -146,7 +148,8 @@ void Macro_layerStateToggle_capability( uint8_t state, uint8_t stateType, uint8_
 	}
 
 	// Get layer index from arguments
-	unsigned int layer = (unsigned int)(&args[0]);
+	// Cast pointer to uint8_t to unsigned int then access that memory location
+	unsigned int layer = *(unsigned int*)(&args[0]);
 
 	// Get layer toggle byte
 	uint8_t toggleByte = args[ sizeof(unsigned int) ];
@@ -229,7 +232,7 @@ unsigned int *Macro_layerLookup( uint8_t scanCode )
 		if ( (layer->state & 0x01) ^ (latch>>1) ^ ((layer->state & 0x04)>>2) )
 		{
 			// Lookup layer
-			unsigned int **map = layer->triggerMap;
+			unsigned int **map = (unsigned int**)layer->triggerMap;
 
 			// Determine if layer has key defined
 			if ( map != 0 && *map[ scanCode ] != 0 )
@@ -238,7 +241,7 @@ unsigned int *Macro_layerLookup( uint8_t scanCode )
 	}
 
 	// Do lookup on default layer
-	unsigned int **map = LayerIndex[0].triggerMap;
+	unsigned int **map = (unsigned int**)LayerIndex[0].triggerMap;
 
 	// Determine if layer has key defined
 	if ( map == 0 && *map[ scanCode ] == 0 )
@@ -615,6 +618,7 @@ inline void Macro_process()
 
 		// Proceed, decrementing the step counter
 		macroStepCounter--;
+		dbug_print("Macro Step");
 	}
 
 	// Update pending trigger list, before processing TriggerMacros
@@ -713,7 +717,6 @@ inline void Macro_setup()
 	// Initialize TriggerMacro states
 	for ( unsigned int macro = 0; macro < TriggerMacroNum; macro++ )
 	{
-		TriggerMacroList[ macro ].result = 0;
 		TriggerMacroList[ macro ].pos    = 0;
 		TriggerMacroList[ macro ].state  = TriggerMacro_Waiting;
 	}
@@ -734,6 +737,7 @@ void cliFunc_capList( char* args )
 {
 	print( NL );
 	info_msg("Capabilities List");
+	printHex( CapabilitiesNum );
 
 	// Iterate through all of the capabilities and display them
 	for ( unsigned int cap = 0; cap < CapabilitiesNum; cap++ )
@@ -812,6 +816,34 @@ void cliFunc_capSelect( char* args )
 	}
 }
 
+void cliFunc_keyHold( char* args )
+{
+	// Parse codes from arguments
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// Process all args
+	for ( ;; )
+	{
+		curArgs = arg2Ptr;
+		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+		// Stop processing args if no more are found
+		if ( *arg1Ptr == '\0' )
+			break;
+
+		// Ignore non-Scancode numbers
+		switch ( arg1Ptr[0] )
+		{
+		// Scancode
+		case 'S':
+			Macro_keyState( (uint8_t)decToInt( &arg1Ptr[1] ), 0x02 ); // Hold scancode
+			break;
+		}
+	}
+}
+
 void cliFunc_keyPress( char* args )
 {
 	// Parse codes from arguments
@@ -881,7 +913,7 @@ void cliFunc_layerList( char* args )
 		print(" - ");
 
 		// Display layer name
-		dPrint( LayerIndex[ layer ].name );
+		dPrint( (char*)LayerIndex[ layer ].name );
 
 		// Default map
 		if ( layer == 0 )
@@ -956,6 +988,39 @@ void cliFunc_macroDebug( char* args )
 
 void cliFunc_macroList( char* args )
 {
+	// Show pending key events
+	print( NL );
+	info_msg("Pending Key Events: ");
+	printInt16( (uint16_t)macroTriggerListBufferSize );
+	print(" : ");
+	for ( uint8_t key = 0; key < macroTriggerListBufferSize; key++ )
+	{
+		printHex( macroTriggerListBuffer[ key ].scanCode );
+		print(" ");
+	}
+
+	// Show pending trigger macros
+	print( NL );
+	info_msg("Pending Trigger Macros: ");
+	printInt16( (uint16_t)macroTriggerMacroPendingListSize );
+	print(" : ");
+	for ( unsigned int macro = 0; macro < macroTriggerMacroPendingListSize; macro++ )
+	{
+		printHex( macroTriggerMacroPendingList[ macro ] );
+		print(" ");
+	}
+
+	// Show pending result macros
+	print( NL );
+	info_msg("Pending Result Macros: ");
+	printInt16( (uint16_t)macroResultMacroPendingListSize );
+	print(" : ");
+	for ( unsigned int macro = 0; macro < macroResultMacroPendingListSize; macro++ )
+	{
+		printHex( macroResultMacroPendingList[ macro ] );
+		print(" ");
+	}
+
 	// Show available trigger macro indices
 	print( NL );
 	info_msg("Trigger Macros Range: T0 -> T");
@@ -1176,7 +1241,13 @@ void cliFunc_macroStep( char* args )
 	char* arg2Ptr;
 	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
+	// Default to 1, if no argument given
+	unsigned int count = (unsigned int)decToInt( arg1Ptr );
+
+	if ( count == 0 )
+		count = 1;
+
 	// Set the macro step counter, negative int's are cast to uint
-	macroStepCounter = (unsigned int)decToInt( arg1Ptr );
+	macroStepCounter = count;
 }
 

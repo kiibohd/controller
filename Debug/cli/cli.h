@@ -68,7 +68,7 @@ uint8_t CLIHexDebugMode;
 
 void CLI_init();
 void CLI_process();
-void CLI_registerDictionary( CLIDictItem *cmdDict, char* dictName );
+void CLI_registerDictionary( const CLIDictItem *cmdDict, const char* dictName );
 void CLI_argumentIsolation( char* string, char** first, char** second );
 
 void CLI_commandLookup();

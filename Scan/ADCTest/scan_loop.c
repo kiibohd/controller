@@ -65,8 +65,8 @@ volatile uint8_t KeyIndex_BufferUsed;
 
 
 // Scan Module command dictionary
-char*       scanCLIDictName = "ADC Test Module Commands";
-CLIDictItem scanCLIDict[] = {
+char scanCLIDictName[] = "ADC Test Module Commands";
+const CLIDictItem scanCLIDict[] = {
 #if defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
 	{ "adc",     "Read the specified number of values from the ADC at the given pin: <pin> [# of reads]"
 	          NL "\t\t See \033[35mLib/pin_map.teensy3\033[0m for ADC0 channel number.", cliFunc_adc },

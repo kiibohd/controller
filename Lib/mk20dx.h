@@ -1,6 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
+ * Modified by Jacob Alexander 2014
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -31,12 +32,7 @@
 #ifndef _mk20dx_h_
 #define _mk20dx_h_
 
-//#define F_CPU 96000000
-//#define F_CPU 48000000
-//#define F_CPU 24000000
-//#define F_BUS 48000000
-//#define F_BUS 24000000
-//#define F_MEM 24000000
+// ----- Defines -----
 
 #if (F_CPU == 96000000)
  #define F_BUS 48000000
@@ -54,7 +50,15 @@
 #define NULL ((void *)0)
 #endif
 
+
+
+// ----- Includes -----
+
 #include <stdint.h>
+
+
+
+// ----- Registers -----
 
 // chapter 11: Port control and interrupts (PORT)
 #define PORT_PCR_ISF			(uint32_t)0x01000000		// Interrupt Status Flag
@@ -249,7 +253,7 @@
 #define SIM_SOPT1               *(volatile uint32_t *)0x40047000 // System Options Register 1
 #define SIM_SOPT1CFG            *(volatile uint32_t *)0x40047004 // SOPT1 Configuration Register
 #define SIM_SOPT2               *(volatile uint32_t *)0x40048004 // System Options Register 2
-#define SIM_SOPT2_USBSRC		(uint32_t)0x00040000		// 0=USB_CLKIN, 1=FFL/PLL 
+#define SIM_SOPT2_USBSRC		(uint32_t)0x00040000		// 0=USB_CLKIN, 1=FFL/PLL
 #define SIM_SOPT2_PLLFLLSEL		(uint32_t)0x00010000		// 0=FLL, 1=PLL
 #define SIM_SOPT2_TRACECLKSEL		(uint32_t)0x00001000		// 0=MCGOUTCLK, 1=CPU
 #define SIM_SOPT2_PTD7PAD		(uint32_t)0x00000800		// 0=normal, 1=double drive PTD7
@@ -703,7 +707,7 @@
 #define MCG_C2                  *(volatile uint8_t  *)0x40064001 // MCG Control 2 Register
 #define MCG_C2_IRCS			(uint8_t)0x01			// Internal Reference Clock Select, Selects between the fast or slow internal reference clock source.
 #define MCG_C2_LP			(uint8_t)0x02			// Low Power Select, Controls whether the FLL or PLL is disabled in BLPI and BLPE modes.
-#define MCG_C2_EREFS			(uint8_t)0x04			// External Reference Select, Selects the source for the external reference clock. 
+#define MCG_C2_EREFS			(uint8_t)0x04			// External Reference Select, Selects the source for the external reference clock.
 #define MCG_C2_HGO0			(uint8_t)0x08			// High Gain Oscillator Select, Controls the crystal oscillator mode of operation
 #define MCG_C2_RANGE0(n)		(uint8_t)(((n) & 0x03) << 4)	// Frequency Range Select, Selects the frequency range for the crystal oscillator
 #define MCG_C2_LOCRE0			(uint8_t)0x80			// Loss of Clock Reset Enable, Determines whether an interrupt or a reset request is made following a loss of OSC0 
@@ -721,7 +725,7 @@
 #define MCG_C6                  *(volatile uint8_t  *)0x40064005 // MCG Control 6 Register
 #define MCG_C6_VDIV0(n)			(uint8_t)((n) & 0x1F)		// VCO 0 Divider
 #define MCG_C6_CME0			(uint8_t)0x20			// Clock Monitor Enable
-#define MCG_C6_PLLS			(uint8_t)0x40			// PLL Select, Controls whether the PLL or FLL output is selected as the MCG source when CLKS[1:0]=00. 
+#define MCG_C6_PLLS			(uint8_t)0x40			// PLL Select, Controls whether the PLL or FLL output is selected as the MCG source when CLKS[1:0]=00.
 #define MCG_C6_LOLIE0			(uint8_t)0x80			// Loss of Lock Interrrupt Enable
 #define MCG_S                   *(volatile uint8_t  *)0x40064006 // MCG Status Register
 #define MCG_S_IRCST			(uint8_t)0x01			// Internal Reference Clock Status
@@ -1960,7 +1964,31 @@ typedef struct {
 // Other
 #define VBAT                    *(volatile uint8_t *)0x4003E000 // Register available in all power states
 
+
+
+// ----- Macros -----
+
+#define SOFTWARE_RESET()        SCB_AIRCR = 0x5FA0004
+
+
+
+// ----- Variables -----
+
+extern const uint8_t sys_reset_to_loader_magic[22];
+
+
+
+// ----- Functions -----
+
+void *memset( void *addr, int val, unsigned int len );
+void *memcpy( void *dst, const void *src, unsigned int len );
+int memcmp( const void *a, const void *b, unsigned int len );
+
 extern int nvic_execution_priority(void);
+
+
+
+// ----- Interrupts -----
 
 extern void nmi_isr(void);
 extern void hard_fault_isr(void);
@@ -2052,8 +2080,6 @@ extern void portc_isr(void);
 extern void portd_isr(void);
 extern void porte_isr(void);
 extern void software_isr(void);
-
-#define SOFTWARE_RESET()        SCB_AIRCR = 0x5FA0004
 
 #endif
 

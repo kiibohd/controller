@@ -34,8 +34,13 @@ set( MCU "${CHIP}" ) # For loading script compatibility
 
 
 #| Chip Size Database
+#| MCHCK Based
+if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
+	set( SIZE_RAM    16384 )
+	set( SIZE_FLASH 126976 )
+
 #| Teensy 3.0
-if ( "${CHIP}" MATCHES "mk20dx128" OR "${CHIP}" MATCHES "mk20dx128vlf5" )
+elseif ( "${CHIP}" MATCHES "mk20dx128" )
 	set( SIZE_RAM    16384 )
 	set( SIZE_FLASH 131072 )
 
@@ -84,12 +89,18 @@ message( "${COMPILER_SRCS}" )
 
 
 #| USB Defines, this is how the loader programs detect which type of chip base is used
-if ( "${CHIP}" MATCHES "mk20dx128" OR "${CHIP}" MATCHES "mk20dx256" )
-	set( VENDOR_ID  "0x16C0" )
-	set( PRODUCT_ID "0x0487" )
-elseif ( "${CHIP}" MATCHES "mk20dx128vlf5" )
-	set( VENDOR_ID  "0x2323" )
-	set( PRODUCT_ID "0x0001" )
+if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
+	set( VENDOR_ID       "0x1C11" )
+	set( PRODUCT_ID      "0xB04D" )
+	set( BOOT_VENDOR_ID  "0x1C11" )
+	set( BOOT_PRODUCT_ID "0xB007" )
+	set( DFU 1 )
+elseif ( "${CHIP}" MATCHES "mk20dx128" OR "${CHIP}" MATCHES "mk20dx256" )
+	set( VENDOR_ID       "0x1C11" )
+	set( PRODUCT_ID      "0xB04D" )
+	set( BOOT_VENDOR_ID  "0x16c0" ) # TODO Double check, this is likely incorrect
+	set( BOOT_PRODUCT_ID "0x0487" )
+	set( TEENSY 1 )
 endif ()
 
 
@@ -98,18 +109,24 @@ endif ()
 #|     gnu89 = c89 plus GCC extensions
 #|     c99   = ISO C99 standard (not yet fully implemented)
 #|     gnu99 = c99 plus GCC extensions
-set( CSTANDARD "-std=gnu99" )
+#|     gnu11 = c11 plus GCC extensions
+set( CSTANDARD "-std=gnu11" )
 
 
 #| Warning Options
 #|  -Wall...:     warning level
-set( WARN "-Wall -g" )
+set( WARN "-Wall -ggdb3" )
 
 
 #| Tuning Options
 #|  -f...:        tuning, see GCC manual
 #| NOTE: -fshort-wchar is specified to allow USB strings be passed conveniently
-set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
+if( BOOTLOADER )
+	set( TUNING "-D_bootloader_ -Wno-main -msoft-float -mthumb -fplan9-extensions -ffunction-sections -fdata-sections -fno-builtin -fstrict-volatile-bitfields -flto -fno-use-linker-plugin" )
+	#set( TUNING "-mthumb -fdata-sections -ffunction-sections -fno-builtin -msoft-float -fstrict-volatile-bitfields -flto -fno-use-linker-plugin -fwhole-program -Wno-main -nostartfiles -fplan9-extensions -D_bootloader_" )
+else()
+	set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
+endif()
 
 
 #| Optimization level, can be [0, 1, 2, 3, s].
@@ -136,7 +153,14 @@ add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING}
 
 
 #| Linker Flags
-set( LINKER_FLAGS "-mcpu=${CPU} -Wl,-Map=link.map,--cref -Wl,--gc-sections -mthumb -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld -nostartfiles" )
+if( BOOTLOADER )
+	# Bootloader linker flags
+	set( LINKER_FLAGS "${TUNING} -Wl,--gc-sections -fwhole-program -T${CMAKE_CURRENT_SOURCE_DIR}/../Lib/${CHIP}.bootloader.ld -nostartfiles -Wl,-Map=link.map" )
+	#set( LINKER_FLAGS "-Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/../Lib/${CHIP}.bootloader.ld" )
+else()
+	# Normal linker flags
+	set( LINKER_FLAGS "-Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
+endif()
 
 
 #| Hex Flags (XXX, CMake seems to have issues if you quote the arguments for the custom commands...)

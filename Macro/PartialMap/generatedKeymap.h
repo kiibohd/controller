@@ -21,7 +21,11 @@
 
 // ----- Includes -----
 
+// Project Includes
 #include <print.h>
+#include <scan_loop.h>
+#include <macro.h>
+#include <output_com.h>
 
 // USB HID Keymap list
 #include <usb_hid.h>
@@ -44,7 +48,7 @@
 
 // ResultMacro struct, one is created per ResultMacro, no duplicates
 typedef struct ResultMacro {
-	uint8_t *guide;
+	const uint8_t *guide;
 	unsigned int pos;
 	uint8_t  state;
 	uint8_t  stateType;
@@ -91,7 +95,7 @@ typedef enum TriggerMacroState {
 
 // TriggerMacro struct, one is created per TriggerMacro, no duplicates
 typedef struct TriggerMacro {
-	uint8_t *guide;
+	const uint8_t *guide;
 	unsigned int result;
 	unsigned int pos;
 	TriggerMacroState state;
@@ -156,13 +160,15 @@ typedef struct Capability {
 } Capability;
 
 // Total Number of Capabilities
-#define CapabilitiesNum sizeof( void* ) / 4 + sizeof( uint8_t )
+#define CapabilitiesNum sizeof( CapabilitiesList ) / sizeof( Capability )
 
 // Indexed Capabilities Table
-// TODO Should be moved to the Scan Module
-Capability CapabilitiesList[] = {
+// TODO Generated from .kll files in each module
+const Capability CapabilitiesList[] = {
 	{ debugPrint_capability, 1 },
 	{ debugPrint2_capability, 2 },
+	{ Macro_layerStateToggle_capability, sizeof(unsigned int) + 1 },
+	{ Output_usbCodeSend_capability, 1 },
 };
 
 
@@ -175,7 +181,7 @@ Capability CapabilitiesList[] = {
 // Define_RM( index );
 //  * index  - Result Macro index number
 //  Must be used after Guide_RM
-#define Guide_RM( index ) static uint8_t rm##index##_guide[]
+#define Guide_RM( index ) const uint8_t rm##index##_guide[]
 #define Define_RM( index ) { rm##index##_guide, 0, 0, 0 }
 
 Guide_RM( 0 ) = { 1, 0, 0xDA, 0 };
@@ -208,13 +214,13 @@ ResultMacro ResultMacroList[] = {
 // Define_TM( index, result );
 //  * index   - Trigger Macro index number
 //  * result  - Result Macro index number which is triggered by this Trigger Macro
-#define Guide_TM( index ) static uint8_t tm##index##_guide[]
-#define Define_TM( index, result ) { tm##index##_guide, result, 0 }
+#define Guide_TM( index ) const uint8_t tm##index##_guide[]
+#define Define_TM( index, result ) { tm##index##_guide, result, 0, TriggerMacro_Waiting }
 
-Guide_TM( 0 ) = { 1, 0x10, 0x01, 0x73, 0 };
-Guide_TM( 1 ) = { 1, 0x0F, 0x01, 0x73, 1, 0x00, 0x01, 0x75, 0 };
-Guide_TM( 2 ) = { 2, 0xF0, 0x01, 0x73, 0x00, 0x01, 0x74, 0 };
-Guide_TM( 3 ) = { 1, 0x10, 0x01, 0x76, 0 };
+Guide_TM( 0 ) = { 1, 0x00, 0x01, 0x73, 0 };
+Guide_TM( 1 ) = { 1, 0x00, 0x01, 0x73, 1, 0x00, 0x01, 0x75, 0 };
+Guide_TM( 2 ) = { 2, 0x00, 0x01, 0x73, 0x00, 0x01, 0x74, 0 };
+Guide_TM( 3 ) = { 1, 0x00, 0x01, 0x76, 0 };
 
 
 // -- Trigger Macro List
@@ -246,7 +252,7 @@ TriggerMacro TriggerMacroList[] = {
 //  * layer       - basename of the layer
 //  * scanCode    - Hex value of the scanCode
 //  * triggerList - Trigger List (see Trigger Lists)
-#define Define_TL( layer, scanCode ) static unsigned int layer##_tl_##scanCode[]
+#define Define_TL( layer, scanCode ) const unsigned int layer##_tl_##scanCode[]
 
 // -- Trigger Lists
 //
@@ -538,17 +544,17 @@ Define_TL( myname2, 0x06 ) = { 0 };
 //                 -
 
 // Default Map for ScanCode Lookup
-static unsigned int *default_scanMap[] = {
+const unsigned int *default_scanMap[] = {
 default_tl_0x00, default_tl_0x01, default_tl_0x02, default_tl_0x03, default_tl_0x04, default_tl_0x05, default_tl_0x06, default_tl_0x07, default_tl_0x08, default_tl_0x09, default_tl_0x0A, default_tl_0x0B, default_tl_0x0C, default_tl_0x0D, default_tl_0x0E, default_tl_0x0F, default_tl_0x10, default_tl_0x11, default_tl_0x12, default_tl_0x13, default_tl_0x14, default_tl_0x15, default_tl_0x16, default_tl_0x17, default_tl_0x18, default_tl_0x19, default_tl_0x1A, default_tl_0x1B, default_tl_0x1C, default_tl_0x1D, default_tl_0x1E, default_tl_0x1F, default_tl_0x20, default_tl_0x21, default_tl_0x22, default_tl_0x23, default_tl_0x24, default_tl_0x25, default_tl_0x26, default_tl_0x27, default_tl_0x28, default_tl_0x29, default_tl_0x2A, default_tl_0x2B, default_tl_0x2C, default_tl_0x2D, default_tl_0x2E, default_tl_0x2F, default_tl_0x30, default_tl_0x31, default_tl_0x32, default_tl_0x33, default_tl_0x34, default_tl_0x35, default_tl_0x36, default_tl_0x37, default_tl_0x38, default_tl_0x39, default_tl_0x3A, default_tl_0x3B, default_tl_0x3C, default_tl_0x3D, default_tl_0x3E, default_tl_0x3F, default_tl_0x40, default_tl_0x41, default_tl_0x42, default_tl_0x43, default_tl_0x44, default_tl_0x45, default_tl_0x46, default_tl_0x47, default_tl_0x48, default_tl_0x49, default_tl_0x4A, default_tl_0x4B, default_tl_0x4C, default_tl_0x4D, default_tl_0x4E, default_tl_0x4F, default_tl_0x50, default_tl_0x51, default_tl_0x52, default_tl_0x53, default_tl_0x54, default_tl_0x55, default_tl_0x56, default_tl_0x57, default_tl_0x58, default_tl_0x59, default_tl_0x5A, default_tl_0x5B, default_tl_0x5C, default_tl_0x5D, default_tl_0x5E, default_tl_0x5F, default_tl_0x60, default_tl_0x61, default_tl_0x62, default_tl_0x63, default_tl_0x64, default_tl_0x65, default_tl_0x66, default_tl_0x67, default_tl_0x68, default_tl_0x69, default_tl_0x6A, default_tl_0x6B, default_tl_0x6C, default_tl_0x6D, default_tl_0x6E, default_tl_0x6F, default_tl_0x70, default_tl_0x71, default_tl_0x72, default_tl_0x73, default_tl_0x74, default_tl_0x75, default_tl_0x76, default_tl_0x77, default_tl_0x78, default_tl_0x79, default_tl_0x7A, default_tl_0x7B, default_tl_0x7C, default_tl_0x7D, default_tl_0x7E, default_tl_0x7F, default_tl_0x80, default_tl_0x81, default_tl_0x82, default_tl_0x83, default_tl_0x84, default_tl_0x85, default_tl_0x86, default_tl_0x87, default_tl_0x88, default_tl_0x89, default_tl_0x8A, default_tl_0x8B, default_tl_0x8C, default_tl_0x8D, default_tl_0x8E, default_tl_0x8F, default_tl_0x90, default_tl_0x91, default_tl_0x92, default_tl_0x93, default_tl_0x94, default_tl_0x95, default_tl_0x96, default_tl_0x97, default_tl_0x98, default_tl_0x99, default_tl_0x9A, default_tl_0x9B, default_tl_0x9C, default_tl_0x9D, default_tl_0x9E, default_tl_0x9F, default_tl_0xA0, default_tl_0xA1, default_tl_0xA2, default_tl_0xA3, default_tl_0xA4, default_tl_0xA5, default_tl_0xA6, default_tl_0xA7, default_tl_0xA8, default_tl_0xA9, default_tl_0xAA, default_tl_0xAB, default_tl_0xAC, default_tl_0xAD, default_tl_0xAE, default_tl_0xAF, default_tl_0xB0, default_tl_0xB1, default_tl_0xB2, default_tl_0xB3, default_tl_0xB4, default_tl_0xB5, default_tl_0xB6, default_tl_0xB7, default_tl_0xB8, default_tl_0xB9, default_tl_0xBA, default_tl_0xBB, default_tl_0xBC, default_tl_0xBD, default_tl_0xBE, default_tl_0xBF, default_tl_0xC0, default_tl_0xC1, default_tl_0xC2, default_tl_0xC3, default_tl_0xC4, default_tl_0xC5, default_tl_0xC6, default_tl_0xC7, default_tl_0xC8, default_tl_0xC9, default_tl_0xCA, default_tl_0xCB, default_tl_0xCC, default_tl_0xCD, default_tl_0xCE, default_tl_0xCF, default_tl_0xD0, default_tl_0xD1, default_tl_0xD2, default_tl_0xD3, default_tl_0xD4, default_tl_0xD5, default_tl_0xD6, default_tl_0xD7, default_tl_0xD8, default_tl_0xD9, default_tl_0xDA, default_tl_0xDB, default_tl_0xDC, default_tl_0xDD, default_tl_0xDE, default_tl_0xDF, default_tl_0xE0, default_tl_0xE1, default_tl_0xE2, default_tl_0xE3, default_tl_0xE4, default_tl_0xE5, default_tl_0xE6, default_tl_0xE7, default_tl_0xE8, default_tl_0xE9, default_tl_0xEA, default_tl_0xEB, default_tl_0xEC, default_tl_0xED, default_tl_0xEE, default_tl_0xEF, default_tl_0xF0, default_tl_0xF1, default_tl_0xF2, default_tl_0xF3, default_tl_0xF4, default_tl_0xF5, default_tl_0xF6, default_tl_0xF7, default_tl_0xF8, default_tl_0xF9, default_tl_0xFA, default_tl_0xFB, default_tl_0xFC, default_tl_0xFD, default_tl_0xFE, default_tl_0xFF,
 };
 
 // Layer <name> for ScanCode Lookup
-static unsigned int *myname_scanMap[] = {
+const unsigned int *myname_scanMap[] = {
 0, 0, 0, 0, myname_tl_0x05, myname_tl_0x06, myname_tl_0x07
 };
 
 // Layer <name> for ScanCode Lookup
-static unsigned int *myname2_scanMap[] = {
+const unsigned int *myname2_scanMap[] = {
 0, 0, 0, myname2_tl_0x04, myname2_tl_0x05, myname2_tl_0x06
 };
 
@@ -574,9 +580,9 @@ static unsigned int *myname2_scanMap[] = {
 // The name is defined for cli debugging purposes (Null terminated string)
 
 typedef struct Layer {
-	unsigned int **triggerMap;
-	char *name;
-	uint8_t max;
+	const unsigned int **triggerMap;
+	const char *name;
+	const uint8_t max;
 	uint8_t state;
 } Layer;
 

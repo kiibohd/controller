@@ -700,8 +700,7 @@ void usb_device_reload()
 	}
 	else
 	{
-		// This line must be exactly the same in the bootloader
-		const uint8_t sys_reset_to_loader_magic[] = "\xff\x00\x7fRESET TO LOADER\x7f\x00\xff";
+		// Copies variable into the VBAT register, must be identical to the variable in the bootloader to jump to the bootloader flash mode
 		for ( int pos = 0; pos < sizeof(sys_reset_to_loader_magic); pos++ )(&VBAT)[pos] = sys_reset_to_loader_magic[ pos ];
 		SOFTWARE_RESET();
 	}

@@ -56,8 +56,8 @@ void cliFunc_setMod     ( char* args );
 // ----- Variables -----
 
 // Output Module command dictionary
-char*       outputCLIDictName = "USB Module Commands";
-CLIDictItem outputCLIDict[] = {
+const char outputCLIDictName[] = "USB Module Commands";
+const CLIDictItem outputCLIDict[] = {
 	{ "kbdProtocol", "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode", cliFunc_kbdProtocol },
 	{ "readLEDs",    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc.", cliFunc_readLEDs },
 	{ "sendKeys",    "Send the prepared list of USB codes and modifier byte.", cliFunc_sendKeys },
