@@ -29,7 +29,7 @@
 // ----- Defines -----
 
 // You can change these to give your code its own name.
-#define STR_MANUFACTURER	u"@MANUFACTURER@"
+#define STR_MANUFACTURER	u"Kiibohd"
 #define STR_PRODUCT		u"Kiibohd DFU Bootloader"
 #define STR_SERIAL              u"@CHIP@"
 
