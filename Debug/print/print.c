@@ -313,7 +313,7 @@ int16_t eqStr( char* str1, char* str2 )
 	return *--str1 == *--str2 ? -1 : *++str1;
 }
 
-int decToInt( char* in )
+int numToInt( char* in )
 {
 	// Pointers to the LSD (Least Significant Digit) and MSD
 	char* lsd = in;
@@ -321,6 +321,7 @@ int decToInt( char* in )
 
 	int total = 0;
 	int sign = 1; // Default to positive
+	uint8_t base = 10; // Use base 10 by default TODO Add support for bases other than 10 and 16
 
 	// Scan the string once to determine the length
 	while ( *lsd != '\0' )
@@ -335,12 +336,32 @@ int decToInt( char* in )
 		case ' ':
 			msd = lsd;
 			break;
+		case 'x': // Hex Mode
+			base = 0x10;
+			msd = lsd;
+			break;
 		}
 	}
 
-	// Rescan the string from the LSD to MSD to convert it to a decimal number
-	for ( unsigned int digit = 1; lsd > msd ; digit *= 10 )
-		total += ( (*--lsd) - '0' ) * digit;
+	// Process string depending on which base
+	switch ( base )
+	{
+	case 10: // Decimal
+		// Rescan the string from the LSD to MSD to convert it to a decimal number
+		for ( unsigned int digit = 1; lsd > msd ; digit *= 10 )
+			total += ( (*--lsd) - '0' ) * digit;
+		break;
+
+	case 0x10: // Hex
+		// Rescan the string from the LSD to MSD to convert it to a hexadecimal number
+		for ( unsigned int digit = 1; lsd > msd ; digit *= 0x10 )
+		{
+			if    ( *--lsd <= '9' ) total += ( *lsd - '0' ) * digit;
+			else if ( *lsd <= 'F' ) total += ( *lsd - 'A' + 10 ) * digit;
+			else if ( *lsd <= 'f' ) total += ( *lsd - 'a' + 10 ) * digit;
+		}
+		break;
+	}
 
 	// Propagate sign and return
 	return total * sign;

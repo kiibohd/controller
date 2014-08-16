@@ -784,7 +784,7 @@ void cliFunc_capSelect( char* args )
 		// Keyboard Capability
 		case 'K':
 			// Determine capability index
-			cap = decToInt( &arg1Ptr[1] );
+			cap = numToInt( &arg1Ptr[1] );
 
 			// Lookup the number of args
 			totalArgs += CapabilitiesList[ cap ].argCount;
@@ -793,7 +793,7 @@ void cliFunc_capSelect( char* args )
 
 		// Because allocating memory isn't doable, and the argument count is arbitrary
 		// The argument pointer is repurposed as the argument list (much smaller anyways)
-		argSet[ argSetCount++ ] = (uint8_t)decToInt( arg1Ptr );
+		argSet[ argSetCount++ ] = (uint8_t)numToInt( arg1Ptr );
 
 		// Once all the arguments are prepared, call the keyboard capability function
 		if ( argSetCount == totalArgs )
@@ -838,7 +838,7 @@ void cliFunc_keyHold( char* args )
 		{
 		// Scancode
 		case 'S':
-			Macro_keyState( (uint8_t)decToInt( &arg1Ptr[1] ), 0x02 ); // Hold scancode
+			Macro_keyState( (uint8_t)numToInt( &arg1Ptr[1] ), 0x02 ); // Hold scancode
 			break;
 		}
 	}
@@ -866,7 +866,7 @@ void cliFunc_keyPress( char* args )
 		{
 		// Scancode
 		case 'S':
-			Macro_keyState( (uint8_t)decToInt( &arg1Ptr[1] ), 0x01 ); // Press scancode
+			Macro_keyState( (uint8_t)numToInt( &arg1Ptr[1] ), 0x01 ); // Press scancode
 			break;
 		}
 	}
@@ -894,7 +894,7 @@ void cliFunc_keyRelease( char* args )
 		{
 		// Scancode
 		case 'S':
-			Macro_keyState( (uint8_t)decToInt( &arg1Ptr[1] ), 0x03 ); // Release scancode
+			Macro_keyState( (uint8_t)numToInt( &arg1Ptr[1] ), 0x03 ); // Release scancode
 			break;
 		}
 	}
@@ -956,11 +956,11 @@ void cliFunc_layerState( char* args )
 			if ( arg1Ptr[0] != 'L' )
 				return;
 
-			arg1 = (uint8_t)decToInt( &arg1Ptr[1] );
+			arg1 = (uint8_t)numToInt( &arg1Ptr[1] );
 			break;
 		// Second argument (e.g. 4)
 		case 1:
-			arg2 = (uint8_t)decToInt( arg1Ptr );
+			arg2 = (uint8_t)numToInt( arg1Ptr );
 
 			// Display operation (to indicate that it worked)
 			print( NL );
@@ -1223,11 +1223,11 @@ void cliFunc_macroShow( char* args )
 		{
 		// Indexed Trigger Macro
 		case 'T':
-			macroDebugShowTrigger( decToInt( &arg1Ptr[1] ) );
+			macroDebugShowTrigger( numToInt( &arg1Ptr[1] ) );
 			break;
 		// Indexed Result Macro
 		case 'R':
-			macroDebugShowResult( decToInt( &arg1Ptr[1] ) );
+			macroDebugShowResult( numToInt( &arg1Ptr[1] ) );
 			break;
 		}
 	}
@@ -1242,7 +1242,7 @@ void cliFunc_macroStep( char* args )
 	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
 	// Default to 1, if no argument given
-	unsigned int count = (unsigned int)decToInt( arg1Ptr );
+	unsigned int count = (unsigned int)numToInt( arg1Ptr );
 
 	if ( count == 0 )
 		count = 1;

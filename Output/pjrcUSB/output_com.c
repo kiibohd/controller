@@ -276,7 +276,7 @@ void cliFunc_setKeys( char* args )
 			break;
 
 		// Add the USB code to be sent
-		USBKeys_ArrayCLI[USBKeys_SentCLI] = decToInt( arg1Ptr );
+		USBKeys_ArrayCLI[USBKeys_SentCLI] = numToInt( arg1Ptr );
 	}
 }
 
@@ -289,6 +289,6 @@ void cliFunc_setMod( char* args )
 	char* arg2Ptr;
 	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
-	USBKeys_ModifiersCLI = decToInt( arg1Ptr );
+	USBKeys_ModifiersCLI = numToInt( arg1Ptr );
 }
 

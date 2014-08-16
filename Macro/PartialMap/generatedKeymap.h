@@ -221,6 +221,7 @@ Guide_TM( 0 ) = { 1, 0x00, 0x01, 0x73, 0 };
 Guide_TM( 1 ) = { 1, 0x00, 0x01, 0x73, 1, 0x00, 0x01, 0x75, 0 };
 Guide_TM( 2 ) = { 2, 0x00, 0x01, 0x73, 0x00, 0x01, 0x74, 0 };
 Guide_TM( 3 ) = { 1, 0x00, 0x01, 0x76, 0 };
+Guide_TM( 4 ) = { 1, 0x00, 0x01, 0x77, 0 };
 
 
 // -- Trigger Macro List
@@ -235,6 +236,7 @@ TriggerMacro TriggerMacroList[] = {
 	Define_TM( 1, 1 ),
 	Define_TM( 2, 2 ),
 	Define_TM( 3, 3 ),
+	Define_TM( 4, 0 ),
 };
 
 
@@ -379,7 +381,7 @@ Define_TL( default, 0x73 ) = { 3, 0, 1, 2 };
 Define_TL( default, 0x74 ) = { 1, 2 };
 Define_TL( default, 0x75 ) = { 1, 1 };
 Define_TL( default, 0x76 ) = { 1, 3 };
-Define_TL( default, 0x77 ) = { 0 };
+Define_TL( default, 0x77 ) = { 1, 4 };
 Define_TL( default, 0x78 ) = { 0 };
 Define_TL( default, 0x79 ) = { 0 };
 Define_TL( default, 0x7A ) = { 0 };

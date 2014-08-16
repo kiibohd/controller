@@ -1027,7 +1027,7 @@ void cliFunc_senseDebug( char* args )
 	// If there was an argument, use that instead
 	if ( *arg1Ptr != '\0' )
 	{
-		senseDebugCount = decToInt( arg1Ptr );
+		senseDebugCount = numToInt( arg1Ptr );
 	}
 }
 

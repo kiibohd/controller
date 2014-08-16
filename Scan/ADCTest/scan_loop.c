@@ -176,7 +176,7 @@ void cliFunc_adc( char* args )
 	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
 	// Set the ADC Channel
-	uint8_t channel = decToInt( arg1Ptr );
+	uint8_t channel = numToInt( arg1Ptr );
 	__disable_irq();
 	ADC0_SC1A = channel;
 	__enable_irq();
@@ -187,7 +187,7 @@ void cliFunc_adc( char* args )
 	int displayedADC = 1; // Default to 1 read
 	if ( arg1Ptr ) // If there is an argument, use that instead
 	{
-		displayedADC = decToInt( arg1Ptr );
+		displayedADC = numToInt( arg1Ptr );
 	}
 
 	// Poll ADC until it gets a value, making sure to serve interrupts on each attempt
@@ -232,7 +232,7 @@ void cliFunc_adcInit( char* args )
 	ADC0_SC3 = 0;
 
 	// Select bit resolution
-	int bitResolution = decToInt( arg1Ptr );
+	int bitResolution = numToInt( arg1Ptr );
 	switch ( bitResolution )
 	{
 	case 8: // 8-bit
@@ -260,7 +260,7 @@ void cliFunc_adcInit( char* args )
 
 	// Select Vref
 	CLI_argumentIsolation( arg2Ptr, &arg1Ptr, &arg2Ptr );
-	int vRef = decToInt( arg1Ptr );
+	int vRef = numToInt( arg1Ptr );
 	switch ( vRef )
 	{
 	case 0: // 1.2V internal Vref
@@ -276,7 +276,7 @@ void cliFunc_adcInit( char* args )
 
 	// Hardware averaging (and start calibration)
 	CLI_argumentIsolation( arg2Ptr, &arg1Ptr, &arg2Ptr );
-	int hardwareAvg = decToInt( arg1Ptr );
+	int hardwareAvg = numToInt( arg1Ptr );
 	switch ( hardwareAvg )
 	{
 	case 0:  // No hardware averaging
@@ -342,7 +342,7 @@ void cliFunc_dac( char* args )
 	char* arg2Ptr;
 	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
-	int dacOut = decToInt( arg1Ptr );
+	int dacOut = numToInt( arg1Ptr );
 
 	// Make sure the value is between 0 and 4096, otherwise ignore
 	if ( dacOut >= 0 && dacOut <= 4095 )
@@ -361,7 +361,7 @@ void cliFunc_dacVref( char* args )
 	char* arg2Ptr;
 	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
-	switch ( decToInt( arg1Ptr ) )
+	switch ( numToInt( arg1Ptr ) )
 	{
 	case 0:
 		DAC0_C0 = DAC_C0_DACEN; // 1.2V Vref is DACREF_1

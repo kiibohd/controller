@@ -444,7 +444,7 @@ void cliFunc_matrixState ( char* args )
 
 	if ( arg1Ptr[0] != '\0' )
 	{
-		matrixDebugStateCounter = (uint16_t)decToInt( arg1Ptr );
+		matrixDebugStateCounter = (uint16_t)numToInt( arg1Ptr );
 	}
 }
 
