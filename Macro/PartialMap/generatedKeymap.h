@@ -188,6 +188,7 @@ Guide_RM( 0 ) = { 1, 0, 0xDA, 0 };
 Guide_RM( 1 ) = { 1, 0, 0xBE, 1, 0, 0xEF, 0 };
 Guide_RM( 2 ) = { 2, 0, 0xFA, 0, 0xAD, 0 };
 Guide_RM( 3 ) = { 1, 1, 0xCA, 0xFE, 0 };
+Guide_RM( 4 ) = { 1, 0, 0xDA, 0 };
 
 
 // -- Result Macro List
@@ -202,6 +203,7 @@ ResultMacro ResultMacroList[] = {
 	Define_RM( 1 ),
 	Define_RM( 2 ),
 	Define_RM( 3 ),
+	Define_RM( 4 ),
 };
 
 
@@ -222,6 +224,12 @@ Guide_TM( 1 ) = { 1, 0x00, 0x01, 0x73, 1, 0x00, 0x01, 0x75, 0 };
 Guide_TM( 2 ) = { 2, 0x00, 0x01, 0x73, 0x00, 0x01, 0x74, 0 };
 Guide_TM( 3 ) = { 1, 0x00, 0x01, 0x76, 0 };
 Guide_TM( 4 ) = { 1, 0x00, 0x01, 0x77, 0 };
+Guide_TM( 5 ) = { 1, 0x00, 0x01, 0x2E, 0 };
+Guide_TM( 6 ) = { 1, 0x00, 0x01, 0x2D, 0 };
+Guide_TM( 7 ) = { 1, 0x00, 0x01, 0x2C, 0 };
+Guide_TM( 8 ) = { 2, 0x00, 0x01, 0x20, 0x00, 0x01, 0x21, 0 };
+Guide_TM( 9 ) = { 1, 0x00, 0x01, 0x20, 1, 0x00, 0x01, 0x22, 0 };
+Guide_TM( 10 ) = { 1, 0x00, 0x01, 0x2B, 0 };
 
 
 // -- Trigger Macro List
@@ -237,6 +245,12 @@ TriggerMacro TriggerMacroList[] = {
 	Define_TM( 2, 2 ),
 	Define_TM( 3, 3 ),
 	Define_TM( 4, 0 ),
+	Define_TM( 5, 0 ),
+	Define_TM( 6, 1 ),
+	Define_TM( 7, 2 ),
+	Define_TM( 8, 0 ),
+	Define_TM( 9, 0 ), // TODO
+	Define_TM( 10, 4 ),
 };
 
 
@@ -294,8 +308,8 @@ Define_TL( default, 0x1C ) = { 0 };
 Define_TL( default, 0x1D ) = { 0 };
 Define_TL( default, 0x1E ) = { 0 };
 Define_TL( default, 0x1F ) = { 0 };
-Define_TL( default, 0x20 ) = { 0 };
-Define_TL( default, 0x21 ) = { 0 };
+Define_TL( default, 0x20 ) = { 1, 8 };
+Define_TL( default, 0x21 ) = { 1, 8 };
 Define_TL( default, 0x22 ) = { 0 };
 Define_TL( default, 0x23 ) = { 0 };
 Define_TL( default, 0x24 ) = { 0 };
@@ -305,10 +319,10 @@ Define_TL( default, 0x27 ) = { 0 };
 Define_TL( default, 0x28 ) = { 0 };
 Define_TL( default, 0x29 ) = { 0 };
 Define_TL( default, 0x2A ) = { 0 };
-Define_TL( default, 0x2B ) = { 0 };
-Define_TL( default, 0x2C ) = { 0 };
-Define_TL( default, 0x2D ) = { 0 };
-Define_TL( default, 0x2E ) = { 0 };
+Define_TL( default, 0x2B ) = { 1, 10 };
+Define_TL( default, 0x2C ) = { 1, 7 };
+Define_TL( default, 0x2D ) = { 1, 6 };
+Define_TL( default, 0x2E ) = { 1, 5 };
 Define_TL( default, 0x2F ) = { 0 };
 Define_TL( default, 0x30 ) = { 0 };
 Define_TL( default, 0x31 ) = { 0 };

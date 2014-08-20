@@ -317,8 +317,11 @@ inline void Macro_ledState( uint8_t ledCode, uint8_t state )
 
 // Append result macro to pending list, checking for duplicates
 // Do nothing if duplicate
-inline void Macro_appendResultMacroToPendingList( unsigned int resultMacroIndex )
+inline void Macro_appendResultMacroToPendingList( TriggerMacro *triggerMacro )
 {
+	// Lookup result macro index
+	unsigned int resultMacroIndex = triggerMacro->result;
+
 	// Iterate through result macro pending list, making sure this macro hasn't been added yet
 	for ( unsigned int macro = 0; macro < macroResultMacroPendingListSize; macro++ )
 	{
@@ -329,6 +332,29 @@ inline void Macro_appendResultMacroToPendingList( unsigned int resultMacroIndex 
 
 	// No duplicates found, add to pending list
 	macroResultMacroPendingList[ macroResultMacroPendingListSize++ ] = resultMacroIndex;
+
+	// Lookup scanCode of the last key in the last combo
+	unsigned int pos = 0;
+	for ( uint8_t comboLength = triggerMacro->guide[0]; comboLength > 0; )
+	{
+		pos += TriggerGuideSize * comboLength + 1;
+		comboLength = triggerMacro->guide[ pos ];
+	}
+
+	uint8_t scanCode = ((TriggerGuide*)&triggerMacro->guide[ pos - TriggerGuideSize ])->scanCode;
+
+	// Lookup scanCode in buffer list for the current state and stateType
+	for ( uint8_t keyIndex = 0; keyIndex < macroTriggerListBufferSize; keyIndex++ )
+	{
+		if ( macroTriggerListBuffer[ keyIndex ].scanCode == scanCode )
+		{
+			ResultMacroList[ resultMacroIndex ].state     = macroTriggerListBuffer[ keyIndex ].state;
+			ResultMacroList[ resultMacroIndex ].stateType = macroTriggerListBuffer[ keyIndex ].type;
+		}
+	}
+
+	// Reset the macro position
+	ResultMacroList[ resultMacroIndex ].pos = 0;
 }
 
 
@@ -336,14 +362,78 @@ inline void Macro_appendResultMacroToPendingList( unsigned int resultMacroIndex 
 inline uint8_t Macro_isLongResultMacro( ResultMacro *macro )
 {
 	// Check the second sequence combo length
-	// If non-zero return 1 (long sequence)
+	// If non-zero return non-zero (long sequence)
 	// 0 otherwise (short sequence)
-	return macro->guide[ macro->guide[0] * ResultGuideSize( (ResultGuide*)macro->guide ) ] > 0 ? 1 : 0;
+	unsigned int position = 1;
+	for ( unsigned int result = 0; result < macro->guide[0]; result++ )
+		position += ResultGuideSize( (ResultGuide*)&macro->guide[ position ] );
+	return macro->guide[ position ];
 }
 
 
-// Votes on the given key vs. guide
-inline TriggerMacroVote Macro_evalTriggerMacroVote( TriggerGuide *key, TriggerGuide *guide )
+// Determine if long TriggerMacro (more than 1 sequence element)
+inline uint8_t Macro_isLongTriggerMacro( TriggerMacro *macro )
+{
+	// Check the second sequence combo length
+	// If non-zero return non-zero (long sequence)
+	// 0 otherwise (short sequence)
+	return macro->guide[ macro->guide[0] * TriggerGuideSize + 1 ];
+}
+
+
+// Votes on the given key vs. guide, short macros
+inline TriggerMacroVote Macro_evalShortTriggerMacroVote( TriggerGuide *key, TriggerGuide *guide )
+{
+	// Depending on key type
+	switch ( guide->type )
+	{
+	// Normal State Type
+	case 0x00:
+		// For short TriggerMacros completely ignore incorrect keys
+		if ( guide->scanCode == key->scanCode )
+		{
+			switch ( key->state )
+			{
+			// Correct key, pressed, possible passing
+			case 0x01:
+				return TriggerMacroVote_Pass;
+
+			// Correct key, held, possible passing or release
+			case 0x02:
+				return TriggerMacroVote_PassRelease;
+
+			// Correct key, released, possible release
+			case 0x03:
+				return TriggerMacroVote_Release;
+			}
+		}
+
+		return TriggerMacroVote_DoNothing;
+
+	// LED State Type
+	case 0x01:
+		erro_print("LED State Type - Not implemented...");
+		break;
+
+	// Analog State Type
+	case 0x02:
+		erro_print("Analog State Type - Not implemented...");
+		break;
+
+	// Invalid State Type
+	default:
+		erro_print("Invalid State Type. This is a bug.");
+		break;
+	}
+
+	// XXX Shouldn't reach here
+	return TriggerMacroVote_Invalid;
+}
+
+
+// Votes on the given key vs. guide, long macros
+// A long macro is defined as a guide with more than 1 combo
+inline TriggerMacroVote Macro_evalLongTriggerMacroVote( TriggerGuide *key, TriggerGuide *guide )
 {
 	// Depending on key type
 	switch ( guide->type )
@@ -419,14 +509,14 @@ inline TriggerMacroEval Macro_evalTriggerMacro( unsigned int triggerMacroIndex )
 	if ( macro->state == TriggerMacro_Release )
 	{
 		macro->state = TriggerMacro_Waiting;
-		macro->pos = macro->pos + macro->guide[ macro->pos ] * TriggerGuideSize;
+		macro->pos = macro->pos + macro->guide[ macro->pos ] * TriggerGuideSize + 1;
 	}
 
 	// Current Macro position
 	unsigned int pos = macro->pos;
 
 	// Length of the combo being processed
-	uint8_t comboLength = macro->guide[ pos ];
+	uint8_t comboLength = macro->guide[ pos ] * TriggerGuideSize;
 
 	// If no combo items are left, remove the TriggerMacro from the pending list
 	if ( comboLength == 0 )
@@ -434,7 +524,10 @@ inline TriggerMacroEval Macro_evalTriggerMacro( unsigned int triggerMacroIndex )
 		return TriggerMacroEval_Remove;
 	}
 
-	// Iterate through the key buffer, comparing to each key in the combo
+	// Check if this is a long Trigger Macro
+	uint8_t longMacro = Macro_isLongTriggerMacro( macro );
+
+	// Iterate through the items in the combo, voting the on the key state
 	// If any of the pressed keys do not match, fail the macro
 	//
 	// The macro is waiting for input when in the TriggerMacro_Waiting state
@@ -446,27 +539,34 @@ inline TriggerMacroEval Macro_evalTriggerMacro( unsigned int triggerMacroIndex )
 	// TODO Add support for 0x00 Key state (not pressing a key, not all that useful in general)
 	// TODO Add support for Press/Hold/Release differentiation when evaluating (not sure if useful)
 	TriggerMacroVote overallVote = TriggerMacroVote_Invalid;
-	for ( uint8_t key = 0; key < macroTriggerListBufferSize; key++ )
+	for ( uint8_t comboItem = pos + 1; comboItem < pos + comboLength + 1; comboItem += TriggerGuideSize )
 	{
-		// Lookup key information
-		TriggerGuide *keyInfo = &macroTriggerListBuffer[ key ];
+		// Assign TriggerGuide element (key type, state and scancode)
+		TriggerGuide *guide = (TriggerGuide*)(&macro->guide[ comboItem ]);
 
-		// Iterate through the items in the combo, voting the on the key state
 		TriggerMacroVote vote = TriggerMacroVote_Invalid;
-		for ( uint8_t comboItem = pos + 1; comboItem < pos + comboLength + 1; comboItem += TriggerGuideSize )
+		// Iterate through the key buffer, comparing to each key in the combo
+		for ( uint8_t key = 0; key < macroTriggerListBufferSize; key++ )
 		{
-			// Assign TriggerGuide element (key type, state and scancode)
-			TriggerGuide *guide = (TriggerGuide*)(&macro->guide[ comboItem ]);
+			// Lookup key information
+			TriggerGuide *keyInfo = &macroTriggerListBuffer[ key ];
 
 			// If vote is a pass (>= 0x08, no more keys in the combo need to be looked at)
 			// Also mask all of the non-passing votes
-			vote |= Macro_evalTriggerMacroVote( keyInfo, guide );
+			vote |= longMacro
+				? Macro_evalLongTriggerMacroVote( keyInfo, guide )
+				: Macro_evalShortTriggerMacroVote( keyInfo, guide );
 			if ( vote >= TriggerMacroVote_Pass )
 			{
 				vote &= TriggerMacroVote_Release | TriggerMacroVote_PassRelease | TriggerMacroVote_Pass;
 				break;
 			}
 		}
+
+		// If no pass vote was found after scanning all of the keys
+		// Fail the combo, if this is a short macro (long macros already will have a fail vote)
+		if ( !longMacro && vote < TriggerMacroVote_Pass )
+			vote |= TriggerMacroVote_Fail;
 
 		// After voting, append to overall vote
 		overallVote |= vote;
@@ -479,35 +579,68 @@ inline TriggerMacroEval Macro_evalTriggerMacro( unsigned int triggerMacroIndex )
 		return TriggerMacroEval_Remove;
 	}
 	// Do nothing, incorrect key is being held or released
-	else if ( overallVote & TriggerMacroVote_DoNothing )
+	else if ( overallVote & TriggerMacroVote_DoNothing && longMacro )
 	{
 		// Just doing nothing :)
 	}
 	// If passing and in Waiting state, set macro state to Press
-	else if ( overallVote & TriggerMacroVote_Pass && macro->state == TriggerMacro_Waiting )
+	else if ( overallVote & TriggerMacroVote_Pass
+	     && ( macro->state == TriggerMacro_Waiting || macro->state == TriggerMacro_Press ) )
 	{
 		macro->state = TriggerMacro_Press;
 
 		// If in press state, and this is the final combo, send request for ResultMacro
 		// Check to see if the result macro only has a single element
 		// If this result macro has more than 1 key, only send once
-		// TODO Add option to have macro repeat rate
-		if ( macro->guide[ pos + comboLength ] == 0 )
+		// TODO Add option to have long macro repeat rate
+		if ( macro->guide[ pos + comboLength + 1 ] == 0 )
 		{
-			// Long Macro, only send once (more than 1 sequence item)
-			// Short Macro (only 1 sequence item)
-			return Macro_isLongResultMacro( &ResultMacroList[ macro->result ] )
-				? TriggerMacroEval_DoResult
-				: TriggerMacroEval_DoResultAndRemove;
+			// Long result macro (more than 1 combo)
+			if ( Macro_isLongResultMacro( &ResultMacroList[ macro->result ] ) )
+			{
+				// Only ever trigger result once, on press
+				if ( overallVote == TriggerMacroVote_Pass )
+				{
+					return TriggerMacroEval_DoResultAndRemove;
+				}
+			}
+			// Short result macro
+			else
+			{
+				// Only trigger result once, on press, if long trigger (more than 1 combo)
+				if ( Macro_isLongTriggerMacro( macro ) )
+				{
+					return TriggerMacroEval_DoResultAndRemove;
+				}
+				// Otherwise, trigger result continuously
+				else
+				{
+					return TriggerMacroEval_DoResult;
+				}
+			}
 		}
-
 	}
 	// If ready for transition and in Press state, set to Waiting and increment combo position
 	// Position is incremented (and possibly remove the macro from the pending list) on the next iteration
 	else if ( overallVote & TriggerMacroVote_Release && macro->state == TriggerMacro_Press )
 	{
 		macro->state = TriggerMacro_Release;
+
+		// If this is the last combo in the sequence, remove from the pending list
+		if ( macro->guide[ macro->pos + macro->guide[ macro->pos ] * TriggerGuideSize + 1 ] == 0 )
+			return TriggerMacroEval_Remove;
 	}
+	// Otherwise, just remove the macro on key release
+	// XXX Might cause some issues
+	else if ( overallVote & TriggerMacroVote_Release )
+	{
+		return TriggerMacroEval_Remove;
+	}
+
+	// If this is a short macro, just remove it
+	// The state can be rebuilt on the next iteration
+	if ( !longMacro )
+		return TriggerMacroEval_Remove;
 
 	return TriggerMacroEval_DoNothing;
 }
@@ -525,12 +658,6 @@ inline ResultMacroEval Macro_evalResultMacro( unsigned int resultMacroIndex )
 	// Length of combo being processed
 	uint8_t comboLength = macro->guide[ pos ];
 
-	// If no combo items are left, remove the ResultMacro from the pending list
-	if ( comboLength == 0 )
-	{
-		return ResultMacroEval_Remove;
-	}
-
 	// Function Counter, used to keep track of the combo items processed
 	unsigned int funcCount = 0;
 
@@ -541,7 +668,7 @@ inline ResultMacroEval Macro_evalResultMacro( unsigned int resultMacroIndex )
 	while ( funcCount < comboLength )
 	{
 		// Assign TriggerGuide element (key type, state and scancode)
-		ResultGuide *guide = (ResultGuide*)(&macro->guide[ pos ]);
+		ResultGuide *guide = (ResultGuide*)(&macro->guide[ comboItem ]);
 
 		// Do lookup on capability function
 		void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
@@ -557,17 +684,29 @@ inline ResultMacroEval Macro_evalResultMacro( unsigned int resultMacroIndex )
 	// Move to next item in the sequence
 	macro->pos = comboItem;
 
-	// If the ResultMacro is finished, it will be removed on the next iteration
+	// If the ResultMacro is finished, remove
+	if ( macro->guide[ comboItem ] == 0 )
+	{
+		return ResultMacroEval_Remove;
+	}
+
+	// Otherwise leave the macro in the list
 	return ResultMacroEval_DoNothing;
 }
 
 
 // Update pending trigger list
-void Macro_updateTriggerMacroPendingList()
+inline void Macro_updateTriggerMacroPendingList()
 {
 	// Iterate over the macroTriggerListBuffer to add any new Trigger Macros to the pending list
 	for ( uint8_t key = 0; key < macroTriggerListBufferSize; key++ )
 	{
+		// TODO LED States
+		// TODO Analog Switches
+		// Only add TriggerMacro to pending list if key was pressed (not held, released or off)
+		if ( macroTriggerListBuffer[ key ].state == 0x00 && macroTriggerListBuffer[ key ].state != 0x01 )
+			continue;
+
 		// Lookup Trigger List
 		unsigned int *triggerList = Macro_layerLookup( macroTriggerListBuffer[ key ].scanCode );
 
@@ -596,6 +735,10 @@ void Macro_updateTriggerMacroPendingList()
 			if ( pending == macroTriggerMacroPendingListSize )
 			{
 				macroTriggerMacroPendingList[ macroTriggerMacroPendingListSize++ ] = triggerMacroIndex;
+
+				// Reset macro position
+				TriggerMacroList[ triggerMacroIndex ].pos   = 0;
+				TriggerMacroList[ triggerMacroIndex ].state = TriggerMacro_Waiting;
 			}
 		}
 	}
@@ -636,20 +779,23 @@ inline void Macro_process()
 		// Trigger Result Macro (purposely falling through)
 		case TriggerMacroEval_DoResult:
 			// Append ResultMacro to PendingList
-			Macro_appendResultMacroToPendingList( TriggerMacroList[ macroTriggerMacroPendingList[ macro ] ].result );
+			Macro_appendResultMacroToPendingList( &TriggerMacroList[ macroTriggerMacroPendingList[ macro ] ] );
+			print("D");
 
-		// Otherwise, just re-add
 		default:
 			macroTriggerMacroPendingList[ macroTriggerMacroPendingListTail++ ] = macroTriggerMacroPendingList[ macro ];
+			print("A");
 			break;
 
 		// Trigger Result Macro and Remove (purposely falling through)
 		case TriggerMacroEval_DoResultAndRemove:
 			// Append ResultMacro to PendingList
-			Macro_appendResultMacroToPendingList( TriggerMacroList[ macroTriggerMacroPendingList[ macro ] ].result );
+			Macro_appendResultMacroToPendingList( &TriggerMacroList[ macroTriggerMacroPendingList[ macro ] ] );
+			print("&");
 
 		// Remove Macro from Pending List, nothing to do, removing by default
 		case TriggerMacroEval_Remove:
+			print("R");
 			break;
 		}
 	}
@@ -717,8 +863,8 @@ inline void Macro_setup()
 	// Initialize TriggerMacro states
 	for ( unsigned int macro = 0; macro < TriggerMacroNum; macro++ )
 	{
-		TriggerMacroList[ macro ].pos    = 0;
-		TriggerMacroList[ macro ].state  = TriggerMacro_Waiting;
+		TriggerMacroList[ macro ].pos   = 0;
+		TriggerMacroList[ macro ].state = TriggerMacro_Waiting;
 	}
 
 	// Initialize ResultMacro states
@@ -1114,6 +1260,15 @@ void macroDebugShowTrigger( unsigned int index )
 	// Display result macro index
 	print( NL "Result Macro Index: " );
 	printInt16( (uint16_t)macro->result ); // Hopefully large enough :P (can't assume 32-bit)
+
+	// Display trigger macro state
+	print( NL "Trigger Macro State: " );
+	switch ( macro->state )
+	{
+	case TriggerMacro_Press:   print("Press");   break;
+	case TriggerMacro_Release: print("Release"); break;
+	case TriggerMacro_Waiting: print("Waiting"); break;
+	}
 }
 
 void macroDebugShowResult( unsigned int index )
