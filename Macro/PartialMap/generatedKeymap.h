@@ -249,7 +249,7 @@ TriggerMacro TriggerMacroList[] = {
 	Define_TM( 6, 1 ),
 	Define_TM( 7, 2 ),
 	Define_TM( 8, 0 ),
-	Define_TM( 9, 0 ), // TODO
+	Define_TM( 9, 0 ),
 	Define_TM( 10, 4 ),
 };
 
@@ -308,9 +308,9 @@ Define_TL( default, 0x1C ) = { 0 };
 Define_TL( default, 0x1D ) = { 0 };
 Define_TL( default, 0x1E ) = { 0 };
 Define_TL( default, 0x1F ) = { 0 };
-Define_TL( default, 0x20 ) = { 1, 8 };
+Define_TL( default, 0x20 ) = { 2, 8, 9 };
 Define_TL( default, 0x21 ) = { 1, 8 };
-Define_TL( default, 0x22 ) = { 0 };
+Define_TL( default, 0x22 ) = { 1, 9 };
 Define_TL( default, 0x23 ) = { 0 };
 Define_TL( default, 0x24 ) = { 0 };
 Define_TL( default, 0x25 ) = { 0 };

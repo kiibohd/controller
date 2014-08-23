@@ -56,12 +56,13 @@ void cliFunc_macroStep ( char* args );
 
 // Bit positions are important, passes (correct key) always trump incorrect key votes
 typedef enum TriggerMacroVote {
-	TriggerMacroVote_Release      = 0x8, // Correct key
-	TriggerMacroVote_PassRelease  = 0xC, // Correct key (both pass and release)
-	TriggerMacroVote_Pass         = 0x4, // Correct key
-	TriggerMacroVote_DoNothing    = 0x2, // Incorrect key
-	TriggerMacroVote_Fail         = 0x1, // Incorrect key
-	TriggerMacroVote_Invalid      = 0x0, // Invalid state
+	TriggerMacroVote_Release          = 0x10, // Correct key
+	TriggerMacroVote_PassRelease      = 0x18, // Correct key (both pass and release)
+	TriggerMacroVote_Pass             = 0x8,  // Correct key
+	TriggerMacroVote_DoNothingRelease = 0x4,  // Incorrect key
+	TriggerMacroVote_DoNothing        = 0x2,  // Incorrect key
+	TriggerMacroVote_Fail             = 0x1,  // Incorrect key
+	TriggerMacroVote_Invalid          = 0x0,  // Invalid state
 } TriggerMacroVote;
 
 typedef enum TriggerMacroEval {
@@ -450,10 +451,13 @@ inline TriggerMacroVote Macro_evalLongTriggerMacroVote( TriggerGuide *key, Trigg
 			case 0x01:
 				return TriggerMacroVote_Fail;
 
-			// Wrong key, held or released, do not pass (no effect)
+			// Wrong key, held, do not pass (no effect)
 			case 0x02:
-			case 0x03:
 				return TriggerMacroVote_DoNothing;
+
+			// Wrong key released, fail out if pos == 0
+			case 0x03:
+				return TriggerMacroVote_DoNothing | TriggerMacroVote_DoNothingRelease;
 			}
 		}
 
@@ -571,6 +575,11 @@ inline TriggerMacroEval Macro_evalTriggerMacro( unsigned int triggerMacroIndex )
 		// After voting, append to overall vote
 		overallVote |= vote;
 	}
+
+	// If no pass vote was found after scanning the entire combo
+	// And this is the first position in the combo, just remove it (nothing important happened)
+	if ( longMacro && overallVote & TriggerMacroVote_DoNothingRelease && pos == 0 )
+		overallVote |= TriggerMacroVote_Fail;
 
 	// Decide new state of macro after voting
 	// Fail macro, remove from pending list
@@ -780,22 +789,18 @@ inline void Macro_process()
 		case TriggerMacroEval_DoResult:
 			// Append ResultMacro to PendingList
 			Macro_appendResultMacroToPendingList( &TriggerMacroList[ macroTriggerMacroPendingList[ macro ] ] );
-			print("D");
 
 		default:
 			macroTriggerMacroPendingList[ macroTriggerMacroPendingListTail++ ] = macroTriggerMacroPendingList[ macro ];
-			print("A");
 			break;
 
 		// Trigger Result Macro and Remove (purposely falling through)
 		case TriggerMacroEval_DoResultAndRemove:
 			// Append ResultMacro to PendingList
 			Macro_appendResultMacroToPendingList( &TriggerMacroList[ macroTriggerMacroPendingList[ macro ] ] );
-			print("&");
 
 		// Remove Macro from Pending List, nothing to do, removing by default
 		case TriggerMacroEval_Remove:
-			print("R");
 			break;
 		}
 	}
