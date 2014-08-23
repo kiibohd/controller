@@ -21,97 +21,12 @@
 
 // ----- Includes -----
 
-// Project Includes
-#include <print.h>
-#include <scan_loop.h>
-#include <macro.h>
-#include <output_com.h>
-
-// USB HID Keymap list
-#include <usb_hid.h>
+// KLL Include
+#include <kll.h>
 
 
 
-// ----- Structs -----
-
-// -- Result Macro
-// Defines the sequence of combinations to as the Result of Trigger Macro
-//
-// Capability + args per USB send
-// Default Args (always sent): key state/analog of last key
-// Combo Length of 0 signifies end of sequence
-//
-// ResultMacro.guide     -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
-// ResultMacro.pos       -> <current combo position>
-// ResultMacro.state     -> <last key state>
-// ResultMacro.stateType -> <last key state type>
-
-// ResultMacro struct, one is created per ResultMacro, no duplicates
-typedef struct ResultMacro {
-	const uint8_t *guide;
-	unsigned int pos;
-	uint8_t  state;
-	uint8_t  stateType;
-} ResultMacro;
-
-// Guide, key element
-#define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) - 1 + CapabilitiesList[ (guidePtr)->index ].argCount
-typedef struct ResultGuide {
-	uint8_t index;
-	uint8_t args; // This is used as an array pointer (but for packing purposes, must be 8 bit)
-} ResultGuide;
-
-
-
-// -- Trigger Macro
-// Defines the sequence of combinations to Trigger a Result Macro
-// Key Types:
-//   * 0x00 Normal (Press/Hold/Release)
-//   * 0x01 LED State (On/Off)
-//   * 0x02 Analog (Threshold)
-//   * 0x03-0xFE Reserved
-//   * 0xFF Debug State
-//
-// Key State:
-//   * Off                - 0x00 (all flag states)
-//   * On                 - 0x01
-//   * Press/Hold/Release - 0x01/0x02/0x03
-//   * Threshold (Range)  - 0x01 (Released), 0x10 (Light press), 0xFF (Max press)
-//   * Debug              - 0xFF (Print capability name)
-//
-// Combo Length of 0 signifies end of sequence
-//
-// TriggerMacro.guide  -> [<combo length>|<key1 type>|<key1 state>|<key1>...<keyn type>|<keyn state>|<keyn>|<combo length>...|0]
-// TriggerMacro.result -> <index to result macro>
-// TriggerMacro.pos    -> <current combo position>
-// TriggerMacro.state  -> <status of the macro pos>
-
-// TriggerMacro states
-typedef enum TriggerMacroState {
-	TriggerMacro_Press,   // Combo in sequence is passing
-	TriggerMacro_Release, // Move to next combo in sequence (or finish if at end of sequence)
-	TriggerMacro_Waiting, // Awaiting user input
-} TriggerMacroState;
-
-// TriggerMacro struct, one is created per TriggerMacro, no duplicates
-typedef struct TriggerMacro {
-	const uint8_t *guide;
-	unsigned int result;
-	unsigned int pos;
-	TriggerMacroState state;
-} TriggerMacro;
-
-// Guide, key element
-#define TriggerGuideSize sizeof( TriggerGuide )
-typedef struct TriggerGuide {
-	uint8_t type;
-	uint8_t state;
-	uint8_t scanCode;
-} TriggerGuide;
-
-
-
-// ----- Macros -----
+// ----- Capabilities -----
 
 void debugPrint_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
@@ -153,15 +68,6 @@ void debugPrint2_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 	print(" )");
 }
 
-// Capability
-typedef struct Capability {
-	void *func;
-	uint8_t argCount;
-} Capability;
-
-// Total Number of Capabilities
-#define CapabilitiesNum sizeof( CapabilitiesList ) / sizeof( Capability )
-
 // Indexed Capabilities Table
 // TODO Generated from .kll files in each module
 const Capability CapabilitiesList[] = {
@@ -174,16 +80,6 @@ const Capability CapabilitiesList[] = {
 
 // -- Result Macros
 
-// Guide_RM / Define_RM Pair
-// Guide_RM( index ) = result;
-//  * index  - Result Macro index number
-//  * result - Result Macro guide (see ResultMacro)
-// Define_RM( index );
-//  * index  - Result Macro index number
-//  Must be used after Guide_RM
-#define Guide_RM( index ) const uint8_t rm##index##_guide[]
-#define Define_RM( index ) { rm##index##_guide, 0, 0, 0 }
-
 Guide_RM( 0 ) = { 1, 0, 0xDA, 0 };
 Guide_RM( 1 ) = { 1, 0, 0xBE, 1, 0, 0xEF, 0 };
 Guide_RM( 2 ) = { 2, 0, 0xFA, 0, 0xAD, 0 };
@@ -192,10 +88,6 @@ Guide_RM( 4 ) = { 1, 0, 0xDA, 0 };
 
 
 // -- Result Macro List
-
-// Total number of result macros (rm's)
-// Used to create pending rm's table
-#define ResultMacroNum sizeof( ResultMacroList ) / sizeof( ResultMacro )
 
 // Indexed Table of Result Macros
 ResultMacro ResultMacroList[] = {
@@ -208,16 +100,6 @@ ResultMacro ResultMacroList[] = {
 
 
 // -- Trigger Macros
-
-// Guide_TM / Define_TM Trigger Setup
-// Guide_TM( index ) = trigger;
-//  * index   - Trigger Macro index number
-//  * trigger - Trigger Macro guide (see TriggerMacro)
-// Define_TM( index, result );
-//  * index   - Trigger Macro index number
-//  * result  - Result Macro index number which is triggered by this Trigger Macro
-#define Guide_TM( index ) const uint8_t tm##index##_guide[]
-#define Define_TM( index, result ) { tm##index##_guide, result, 0, TriggerMacro_Waiting }
 
 Guide_TM( 0 ) = { 1, 0x00, 0x01, 0x73, 0 };
 Guide_TM( 1 ) = { 1, 0x00, 0x01, 0x73, 1, 0x00, 0x01, 0x75, 0 };
@@ -233,10 +115,6 @@ Guide_TM( 10 ) = { 1, 0x00, 0x01, 0x2B, 0 };
 
 
 // -- Trigger Macro List
-
-// Total number of trigger macros (tm's)
-// Used to create pending tm's table
-#define TriggerMacroNum sizeof( TriggerMacroList ) / sizeof( TriggerMacro )
 
 // Indexed Table of Trigger Macros
 TriggerMacro TriggerMacroList[] = {
@@ -263,12 +141,6 @@ TriggerMacro TriggerMacroList[] = {
 // - Maximum value is 0x100 (0x0 to 0xFF)
 // - Increasing it beyond the keyboard's capabilities is just a waste of ram...
 #define MaxScanCode 0x100
-
-// Define_TL( layer, scanCode ) = triggerList;
-//  * layer       - basename of the layer
-//  * scanCode    - Hex value of the scanCode
-//  * triggerList - Trigger List (see Trigger Lists)
-#define Define_TL( layer, scanCode ) const unsigned int layer##_tl_##scanCode[]
 
 // -- Trigger Lists
 //
@@ -578,36 +450,6 @@ const unsigned int *myname2_scanMap[] = {
 
 // ----- Layer Index -----
 
-// Defines each map of trigger macro lists
-// Layer 0 is always the default map
-// Layer States:
-//   * Off   - 0x00
-//   * Shift - 0x01
-//   * Latch - 0x02
-//   * Lock  - 0x04
-//
-// Except for Off, all states an exist simultaneously for each layer
-// For example:
-// state -> 0x04 + 0x01 = 0x05 (Shift + Lock), which is effectively Off (0x00)
-//
-// Max defines the maximum number of keys in the map, maximum of 0xFF
-//  - Compiler calculates this
-//
-// The name is defined for cli debugging purposes (Null terminated string)
-
-typedef struct Layer {
-	const unsigned int **triggerMap;
-	const char *name;
-	const uint8_t max;
-	uint8_t state;
-} Layer;
-
-
-// Layer_IN( map, name );
-//  * map  - Trigger map
-//  * name - Name of the trigger map
-#define Layer_IN( map, name ) { map, name, sizeof( map ) / 4 - 1, 0 }
-
 // -- Layer Index List
 //
 // Index 0: Default map
@@ -617,9 +459,6 @@ Layer LayerIndex[] = {
 	Layer_IN( myname_scanMap, "myname" ),
 	Layer_IN( myname2_scanMap, "myname2" ),
 };
-
-// Total number of layers
-#define LayerNum sizeof( LayerIndex ) / sizeof( Layer )
 
 
 
