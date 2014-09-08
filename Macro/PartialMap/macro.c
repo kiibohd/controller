@@ -28,7 +28,8 @@
 // Keymaps
 #include "usb_hid.h"
 #include <defaultMap.h>
-#include "generatedKeymap.h" // TODO Use actual generated version
+#include "templateKeymap.h" // TODO Use actual generated version
+//#include "generatedKeymap.h" // TODO Use actual generated version
 
 // Local Includes
 #include "macro.h"
@@ -124,7 +125,7 @@ unsigned int macroTriggerMacroPendingListSize = 0;
 
 // Layer Index Stack
 //  * When modifying layer state and the state is non-0x0, the stack must be adjusted
-unsigned int macroLayerIndexStack[ LayerNum ] = { 0 };
+unsigned int macroLayerIndexStack[ LayerNum + 1 ] = { 0 };
 unsigned int macroLayerIndexStackSize = 0;
 
 // Pending Result Macro Index List
@@ -136,25 +137,9 @@ unsigned int macroResultMacroPendingListSize = 0;
 
 // ----- Capabilities -----
 
-// Modifies the specified Layer control byte
-// Argument #1: Layer Index -> unsigned int
-// Argument #2: Toggle byte -> uint8_t
-void Macro_layerStateToggle_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+// Sets the given layer with the specified layerState
+void Macro_layerState( uint8_t state, uint8_t stateType, uint16_t layer, uint8_t layerState )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
-	{
-		print("Macro_layerState(layerIndex,toggleByte)");
-		return;
-	}
-
-	// Get layer index from arguments
-	// Cast pointer to uint8_t to unsigned int then access that memory location
-	unsigned int layer = *(unsigned int*)(&args[0]);
-
-	// Get layer toggle byte
-	uint8_t toggleByte = args[ sizeof(unsigned int) ];
-
 	// Is layer in the LayerIndexStack?
 	uint8_t inLayerIndexStack = 0;
 	unsigned int stackItem = 0;
@@ -172,15 +157,15 @@ void Macro_layerStateToggle_capability( uint8_t state, uint8_t stateType, uint8_
 	}
 
 	// Toggle Layer State Byte
-	if ( LayerIndex[ layer ].state & toggleByte )
+	if ( LayerIndex[ layer ].state & layerState )
 	{
 		// Unset
-		LayerIndex[ layer ].state &= ~toggleByte;
+		LayerIndex[ layer ].state &= ~layerState;
 	}
 	else
 	{
 		// Set
-		LayerIndex[ layer ].state |= toggleByte;
+		LayerIndex[ layer ].state |= layerState;
 	}
 
 	// If the layer was not in the LayerIndexStack add it
@@ -203,6 +188,85 @@ void Macro_layerStateToggle_capability( uint8_t state, uint8_t stateType, uint8_
 		// Reduce LayerIndexStack size
 		macroLayerIndexStackSize--;
 	}
+}
+
+// Modifies the specified Layer control byte
+// Argument #1: Layer Index -> uint16_t
+// Argument #2: Layer State -> uint8_t
+void Macro_layerState_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Macro_layerState(layerIndex,layerState)");
+		return;
+	}
+
+	// Get layer index from arguments
+	// Cast pointer to uint8_t to unsigned int then access that memory location
+	uint16_t layer = *(uint16_t*)(&args[0]);
+
+	// Get layer toggle byte
+	uint8_t layerState = args[ sizeof(uint16_t) ];
+
+	Macro_layerState( state, stateType, layer, layerState );
+}
+
+
+// Latches given layer
+// Argument #1: Layer Index -> uint16_t
+void Macro_layerLatch_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Macro_layerLatch(layerIndex)");
+		return;
+	}
+
+	// Get layer index from arguments
+	// Cast pointer to uint8_t to unsigned int then access that memory location
+	uint16_t layer = *(uint16_t*)(&args[0]);
+
+	Macro_layerState( state, stateType, layer, 0x02 );
+}
+
+
+// Locks given layer
+// Argument #1: Layer Index -> uint16_t
+void Macro_layerLock_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Macro_layerLock(layerIndex)");
+		return;
+	}
+
+	// Get layer index from arguments
+	// Cast pointer to uint8_t to unsigned int then access that memory location
+	uint16_t layer = *(uint16_t*)(&args[0]);
+
+	Macro_layerState( state, stateType, layer, 0x04 );
+}
+
+
+// Shifts given layer
+// Argument #1: Layer Index -> uint16_t
+void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Macro_layerShift(layerIndex)");
+		return;
+	}
+
+	// Get layer index from arguments
+	// Cast pointer to uint8_t to unsigned int then access that memory location
+	uint16_t layer = *(uint16_t*)(&args[0]);
+
+	Macro_layerState( state, stateType, layer, 0x01 );
 }
 
 

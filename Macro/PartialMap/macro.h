@@ -26,7 +26,10 @@
 
 // ----- Capabilities -----
 
-void Macro_layerStateToggle_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+void Macro_layerState_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+void Macro_layerLatch_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+void Macro_layerLock_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *args );
 
 
 
