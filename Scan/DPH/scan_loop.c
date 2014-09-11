@@ -322,7 +322,7 @@ inline uint8_t Scan_loop()
 
 // Signal KeyIndex_Buffer that it has been properly read
 // NOTE: Only really required for implementing "tricks" in converters for odd protocols
-void Scan_finishedWithBuffer( uint8_t sentKeys )
+void Scan_finishedWithMacro( uint8_t sentKeys )
 {
 	return;
 }
@@ -330,7 +330,7 @@ void Scan_finishedWithBuffer( uint8_t sentKeys )
 
 // Signal KeyIndex_Buffer that it has been properly read and sent out by the USB module
 // NOTE: Only really required for implementing "tricks" in converters for odd protocols
-void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
+void Scan_finishedWithOutput( uint8_t sentKeys )
 {
 	return;
 }

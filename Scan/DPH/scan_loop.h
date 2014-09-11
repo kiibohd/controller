@@ -53,8 +53,8 @@ uint8_t Scan_loop();
 // Functions available to macro.c
 uint8_t Scan_sendData( uint8_t dataPayload );
 
-void Scan_finishedWithBuffer( uint8_t sentKeys );
-void Scan_finishedWithUSBBuffer( uint8_t sentKeys );
+void Scan_finishedWithMacro( uint8_t sentKeys );
+void Scan_finishedWithOutput( uint8_t sentKeys );
 
 
 #endif // __SCAN_LOOP_H
