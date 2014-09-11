@@ -285,8 +285,6 @@ void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 	if ( stateType == 0x00 && ( state == 0x00 || state == 0x02 ) ) // Only pass press or release conditions
 		return;
 
-	print("YAY");
-
 	// Get layer index from arguments
 	// Cast pointer to uint8_t to unsigned int then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
@@ -300,7 +298,7 @@ void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 
 // Looks up the trigger list for the given scan code (from the active layer)
 // NOTE: Calling function must handle the NULL pointer case
-unsigned int *Macro_layerLookup( uint8_t scanCode )
+nat_ptr_t *Macro_layerLookup( uint8_t scanCode )
 {
 	// If no trigger macro is defined at the given layer, fallthrough to the next layer
 	for ( unsigned int layerIndex = 0; layerIndex < macroLayerIndexStackSize; layerIndex++ )
@@ -322,7 +320,7 @@ unsigned int *Macro_layerLookup( uint8_t scanCode )
 		if ( (layer->state & 0x01) ^ (latch>>1) ^ ((layer->state & 0x04)>>2) )
 		{
 			// Lookup layer
-			unsigned int **map = (unsigned int**)layer->triggerMap;
+			nat_ptr_t **map = (nat_ptr_t**)layer->triggerMap;
 
 			// Determine if layer has key defined
 			if ( map != 0 && *map[ scanCode ] != 0 )
@@ -331,7 +329,7 @@ unsigned int *Macro_layerLookup( uint8_t scanCode )
 	}
 
 	// Do lookup on default layer
-	unsigned int **map = (unsigned int**)LayerIndex[0].triggerMap;
+	nat_ptr_t **map = (nat_ptr_t**)LayerIndex[0].triggerMap;
 
 	// Determine if layer has key defined
 	if ( map == 0 && *map[ scanCode ] == 0 )
@@ -806,10 +804,10 @@ inline void Macro_updateTriggerMacroPendingList()
 			continue;
 
 		// Lookup Trigger List
-		unsigned int *triggerList = Macro_layerLookup( macroTriggerListBuffer[ key ].scanCode );
+		nat_ptr_t *triggerList = Macro_layerLookup( macroTriggerListBuffer[ key ].scanCode );
 
 		// Number of Triggers in list
-		unsigned int triggerListSize = triggerList[0];
+		nat_ptr_t triggerListSize = triggerList[0];
 
 		// Iterate over triggerList to see if any TriggerMacros need to be added
 		// First item is the number of items in the TriggerList
