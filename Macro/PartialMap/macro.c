@@ -27,7 +27,7 @@
 
 // Keymaps
 #include "usb_hid.h"
-#include <defaultMap.h>
+//#include <defaultMap.h>
 #include "templateKeymap.h" // TODO Use actual generated version
 //#include "generatedKeymap.h" // TODO Use actual generated version
 
@@ -108,7 +108,7 @@ uint8_t macroDebugMode = 0;
 uint8_t macroPauseMode = 0;
 
 // Macro step counter - If non-zero, the step counter counts down every time the macro module does one processing loop
-unsigned int macroStepCounter = 0;
+uint16_t macroStepCounter = 0;
 
 
 // Key Trigger List Buffer
@@ -120,18 +120,18 @@ uint8_t macroTriggerListBufferSize = 0;
 // TODO, figure out a good way to scale this array size without wasting too much memory, but not rejecting macros
 //       Possibly could be calculated by the KLL compiler
 // XXX It may be possible to calculate the worst case using the KLL compiler
-unsigned int macroTriggerMacroPendingList[ TriggerMacroNum ] = { 0 };
-unsigned int macroTriggerMacroPendingListSize = 0;
+uint16_t macroTriggerMacroPendingList[ TriggerMacroNum ] = { 0 };
+uint16_t macroTriggerMacroPendingListSize = 0;
 
 // Layer Index Stack
 //  * When modifying layer state and the state is non-0x0, the stack must be adjusted
-unsigned int macroLayerIndexStack[ LayerNum + 1 ] = { 0 };
-unsigned int macroLayerIndexStackSize = 0;
+uint16_t macroLayerIndexStack[ LayerNum + 1 ] = { 0 };
+uint16_t macroLayerIndexStackSize = 0;
 
 // Pending Result Macro Index List
 //  * Any result macro that needs processing from a previous macro processing loop
-unsigned int macroResultMacroPendingList[ ResultMacroNum ] = { 0 };
-unsigned int macroResultMacroPendingListSize = 0;
+uint16_t macroResultMacroPendingList[ ResultMacroNum ] = { 0 };
+uint16_t macroResultMacroPendingListSize = 0;
 
 
 
@@ -142,7 +142,7 @@ void Macro_layerState( uint8_t state, uint8_t stateType, uint16_t layer, uint8_t
 {
 	// Is layer in the LayerIndexStack?
 	uint8_t inLayerIndexStack = 0;
-	unsigned int stackItem = 0;
+	uint16_t stackItem = 0;
 	while ( stackItem < macroLayerIndexStackSize )
 	{
 		// Flag if layer is already in the LayerIndexStack
@@ -209,7 +209,7 @@ void Macro_layerState_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 		return;
 
 	// Get layer index from arguments
-	// Cast pointer to uint8_t to unsigned int then access that memory location
+	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
 	// Get layer toggle byte
@@ -237,7 +237,7 @@ void Macro_layerLatch_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 		return;
 
 	// Get layer index from arguments
-	// Cast pointer to uint8_t to unsigned int then access that memory location
+	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
 	Macro_layerState( state, stateType, layer, 0x02 );
@@ -262,7 +262,7 @@ void Macro_layerLock_capability( uint8_t state, uint8_t stateType, uint8_t *args
 		return;
 
 	// Get layer index from arguments
-	// Cast pointer to uint8_t to unsigned int then access that memory location
+	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
 	Macro_layerState( state, stateType, layer, 0x04 );
@@ -286,7 +286,7 @@ void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 		return;
 
 	// Get layer index from arguments
-	// Cast pointer to uint8_t to unsigned int then access that memory location
+	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
 	Macro_layerState( state, stateType, layer, 0x01 );
@@ -301,7 +301,7 @@ void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 nat_ptr_t *Macro_layerLookup( uint8_t scanCode )
 {
 	// If no trigger macro is defined at the given layer, fallthrough to the next layer
-	for ( unsigned int layerIndex = 0; layerIndex < macroLayerIndexStackSize; layerIndex++ )
+	for ( uint16_t layerIndex = 0; layerIndex < macroLayerIndexStackSize; layerIndex++ )
 	{
 		// Lookup Layer
 		Layer *layer = &LayerIndex[ macroLayerIndexStack[ layerIndex ] ];
@@ -408,10 +408,10 @@ inline void Macro_ledState( uint8_t ledCode, uint8_t state )
 inline void Macro_appendResultMacroToPendingList( TriggerMacro *triggerMacro )
 {
 	// Lookup result macro index
-	unsigned int resultMacroIndex = triggerMacro->result;
+	var_uint_t resultMacroIndex = triggerMacro->result;
 
 	// Iterate through result macro pending list, making sure this macro hasn't been added yet
-	for ( unsigned int macro = 0; macro < macroResultMacroPendingListSize; macro++ )
+	for ( var_uint_t macro = 0; macro < macroResultMacroPendingListSize; macro++ )
 	{
 		// If duplicate found, do nothing
 		if ( macroResultMacroPendingList[ macro ] == resultMacroIndex )
@@ -422,7 +422,7 @@ inline void Macro_appendResultMacroToPendingList( TriggerMacro *triggerMacro )
 	macroResultMacroPendingList[ macroResultMacroPendingListSize++ ] = resultMacroIndex;
 
 	// Lookup scanCode of the last key in the last combo
-	unsigned int pos = 0;
+	var_uint_t pos = 0;
 	for ( uint8_t comboLength = triggerMacro->guide[0]; comboLength > 0; )
 	{
 		pos += TriggerGuideSize * comboLength + 1;
@@ -452,8 +452,8 @@ inline uint8_t Macro_isLongResultMacro( ResultMacro *macro )
 	// Check the second sequence combo length
 	// If non-zero return non-zero (long sequence)
 	// 0 otherwise (short sequence)
-	unsigned int position = 1;
-	for ( unsigned int result = 0; result < macro->guide[0]; result++ )
+	var_uint_t position = 1;
+	for ( var_uint_t result = 0; result < macro->guide[0]; result++ )
 		position += ResultGuideSize( (ResultGuide*)&macro->guide[ position ] );
 	return macro->guide[ position ];
 }
@@ -591,7 +591,7 @@ inline TriggerMacroVote Macro_evalLongTriggerMacroVote( TriggerGuide *key, Trigg
 
 
 // Evaluate/Update TriggerMacro
-inline TriggerMacroEval Macro_evalTriggerMacro( unsigned int triggerMacroIndex )
+inline TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 {
 	// Lookup TriggerMacro
 	TriggerMacro *macro = &TriggerMacroList[ triggerMacroIndex ];
@@ -604,7 +604,7 @@ inline TriggerMacroEval Macro_evalTriggerMacro( unsigned int triggerMacroIndex )
 	}
 
 	// Current Macro position
-	unsigned int pos = macro->pos;
+	var_uint_t pos = macro->pos;
 
 	// Length of the combo being processed
 	uint8_t comboLength = macro->guide[ pos ] * TriggerGuideSize;
@@ -743,22 +743,22 @@ inline TriggerMacroEval Macro_evalTriggerMacro( unsigned int triggerMacroIndex )
 
 
 // Evaluate/Update ResultMacro
-inline ResultMacroEval Macro_evalResultMacro( unsigned int resultMacroIndex )
+inline ResultMacroEval Macro_evalResultMacro( var_uint_t resultMacroIndex )
 {
 	// Lookup ResultMacro
 	ResultMacro *macro = &ResultMacroList[ resultMacroIndex ];
 
 	// Current Macro position
-	unsigned int pos = macro->pos;
+	var_uint_t pos = macro->pos;
 
 	// Length of combo being processed
 	uint8_t comboLength = macro->guide[ pos ];
 
 	// Function Counter, used to keep track of the combo items processed
-	unsigned int funcCount = 0;
+	var_uint_t funcCount = 0;
 
 	// Combo Item Position within the guide
-	unsigned int comboItem = pos + 1;
+	var_uint_t comboItem = pos + 1;
 
 	// Iterate through the Result Combo
 	while ( funcCount < comboLength )
@@ -811,14 +811,14 @@ inline void Macro_updateTriggerMacroPendingList()
 
 		// Iterate over triggerList to see if any TriggerMacros need to be added
 		// First item is the number of items in the TriggerList
-		for ( unsigned int macro = 1; macro < triggerListSize + 1; macro++ )
+		for ( var_uint_t macro = 1; macro < triggerListSize + 1; macro++ )
 		{
 			// Lookup trigger macro index
-			unsigned int triggerMacroIndex = triggerList[ macro ];
+			var_uint_t triggerMacroIndex = triggerList[ macro ];
 
 			// Iterate over macroTriggerMacroPendingList to see if any macro in the scancode's
 			//  triggerList needs to be added
-			unsigned int pending = 0;
+			var_uint_t pending = 0;
 			for ( ; pending < macroTriggerMacroPendingListSize; pending++ )
 			{
 				// Stop scanning if the trigger macro index is found in the pending list
@@ -865,10 +865,10 @@ inline void Macro_process()
 
 	// Tail pointer for macroTriggerMacroPendingList
 	// Macros must be explicitly re-added
-	unsigned int macroTriggerMacroPendingListTail = 0;
+	var_uint_t macroTriggerMacroPendingListTail = 0;
 
 	// Iterate through the pending TriggerMacros, processing each of them
-	for ( unsigned int macro = 0; macro < macroTriggerMacroPendingListSize; macro++ )
+	for ( var_uint_t macro = 0; macro < macroTriggerMacroPendingListSize; macro++ )
 	{
 		switch ( Macro_evalTriggerMacro( macroTriggerMacroPendingList[ macro ] ) )
 		{
@@ -898,10 +898,10 @@ inline void Macro_process()
 
 	// Tail pointer for macroResultMacroPendingList
 	// Macros must be explicitly re-added
-	unsigned int macroResultMacroPendingListTail = 0;
+	var_uint_t macroResultMacroPendingListTail = 0;
 
 	// Iterate through the pending ResultMacros, processing each of them
-	for ( unsigned int macro = 0; macro < macroResultMacroPendingListSize; macro++ )
+	for ( var_uint_t macro = 0; macro < macroResultMacroPendingListSize; macro++ )
 	{
 		switch ( Macro_evalResultMacro( macroResultMacroPendingList[ macro ] ) )
 		{
@@ -953,14 +953,14 @@ inline void Macro_setup()
 	macroTriggerListBufferSize = 0;
 
 	// Initialize TriggerMacro states
-	for ( unsigned int macro = 0; macro < TriggerMacroNum; macro++ )
+	for ( var_uint_t macro = 0; macro < TriggerMacroNum; macro++ )
 	{
 		TriggerMacroList[ macro ].pos   = 0;
 		TriggerMacroList[ macro ].state = TriggerMacro_Waiting;
 	}
 
 	// Initialize ResultMacro states
-	for ( unsigned int macro = 0; macro < ResultMacroNum; macro++ )
+	for ( var_uint_t macro = 0; macro < ResultMacroNum; macro++ )
 	{
 		ResultMacroList[ macro ].pos       = 0;
 		ResultMacroList[ macro ].state     = 0;
@@ -978,7 +978,7 @@ void cliFunc_capList( char* args )
 	printHex( CapabilitiesNum );
 
 	// Iterate through all of the capabilities and display them
-	for ( unsigned int cap = 0; cap < CapabilitiesNum; cap++ )
+	for ( var_uint_t cap = 0; cap < CapabilitiesNum; cap++ )
 	{
 		print( NL "\t" );
 		printHex( cap );
@@ -998,15 +998,15 @@ void cliFunc_capSelect( char* args )
 	char* arg2Ptr = args;
 
 	// Total number of args to scan (must do a lookup if a keyboard capability is selected)
-	unsigned int totalArgs = 2; // Always at least two args
-	unsigned int cap = 0;
+	var_uint_t totalArgs = 2; // Always at least two args
+	var_uint_t cap = 0;
 
 	// Arguments used for keyboard capability function
-	unsigned int argSetCount = 0;
+	var_uint_t argSetCount = 0;
 	uint8_t *argSet = (uint8_t*)args;
 
 	// Process all args
-	for ( unsigned int c = 0; argSetCount < totalArgs; c++ )
+	for ( var_uint_t c = 0; argSetCount < totalArgs; c++ )
 	{
 		curArgs = arg2Ptr;
 		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
@@ -1144,7 +1144,7 @@ void cliFunc_layerList( char* args )
 	info_msg("Layer List");
 
 	// Iterate through all of the layers and display them
-	for ( unsigned int layer = 0; layer < LayerNum; layer++ )
+	for ( uint16_t layer = 0; layer < LayerNum; layer++ )
 	{
 		print( NL "\t" );
 		printHex( layer );
@@ -1242,7 +1242,7 @@ void cliFunc_macroList( char* args )
 	info_msg("Pending Trigger Macros: ");
 	printInt16( (uint16_t)macroTriggerMacroPendingListSize );
 	print(" : ");
-	for ( unsigned int macro = 0; macro < macroTriggerMacroPendingListSize; macro++ )
+	for ( var_uint_t macro = 0; macro < macroTriggerMacroPendingListSize; macro++ )
 	{
 		printHex( macroTriggerMacroPendingList[ macro ] );
 		print(" ");
@@ -1253,7 +1253,7 @@ void cliFunc_macroList( char* args )
 	info_msg("Pending Result Macros: ");
 	printInt16( (uint16_t)macroResultMacroPendingListSize );
 	print(" : ");
-	for ( unsigned int macro = 0; macro < macroResultMacroPendingListSize; macro++ )
+	for ( var_uint_t macro = 0; macro < macroResultMacroPendingListSize; macro++ )
 	{
 		printHex( macroResultMacroPendingList[ macro ] );
 		print(" ");
@@ -1272,7 +1272,7 @@ void cliFunc_macroList( char* args )
 	// Show Trigger to Result Macro Links
 	print( NL );
 	info_msg("Trigger : Result Macro Pairs");
-	for ( unsigned int macro = 0; macro < TriggerMacroNum; macro++ )
+	for ( var_uint_t macro = 0; macro < TriggerMacroNum; macro++ )
 	{
 		print( NL );
 		print("\tT");
@@ -1292,7 +1292,7 @@ void cliFunc_macroProc( char* args )
 	printInt8( macroPauseMode );
 }
 
-void macroDebugShowTrigger( unsigned int index )
+void macroDebugShowTrigger( var_uint_t index )
 {
 	// Only proceed if the macro exists
 	if ( index >= TriggerMacroNum )
@@ -1307,14 +1307,14 @@ void macroDebugShowTrigger( unsigned int index )
 	print( NL );
 
 	// Read the comboLength for combo in the sequence (sequence of combos)
-	unsigned int pos = 0;
+	var_uint_t pos = 0;
 	uint8_t comboLength = macro->guide[ pos ];
 
 	// Iterate through and interpret the guide
 	while ( comboLength != 0 )
 	{
 		// Initial position of the combo
-		unsigned int comboPos = ++pos;
+		var_uint_t comboPos = ++pos;
 
 		// Iterate through the combo
 		while ( pos < comboLength * TriggerGuideSize + comboPos )
@@ -1363,7 +1363,7 @@ void macroDebugShowTrigger( unsigned int index )
 	}
 }
 
-void macroDebugShowResult( unsigned int index )
+void macroDebugShowResult( var_uint_t index )
 {
 	// Only proceed if the macro exists
 	if ( index >= ResultMacroNum )
@@ -1378,14 +1378,14 @@ void macroDebugShowResult( unsigned int index )
 	print( NL );
 
 	// Read the comboLength for combo in the sequence (sequence of combos)
-	unsigned int pos = 0;
+	var_uint_t pos = 0;
 	uint8_t comboLength = macro->guide[ pos++ ];
 
 	// Iterate through and interpret the guide
 	while ( comboLength != 0 )
 	{
 		// Function Counter, used to keep track of the combos processed
-		unsigned int funcCount = 0;
+		var_uint_t funcCount = 0;
 
 		// Iterate through the combo
 		while ( funcCount < comboLength )
@@ -1398,7 +1398,7 @@ void macroDebugShowResult( unsigned int index )
 			print("|");
 
 			// Display Function Ptr Address
-			printHex( (unsigned int)CapabilitiesList[ guide->index ].func );
+			printHex( (nat_ptr_t)CapabilitiesList[ guide->index ].func );
 			print("|");
 
 			// Display/Lookup Capability Name (utilize debug mode of capability)
@@ -1407,7 +1407,7 @@ void macroDebugShowResult( unsigned int index )
 
 			// Display Argument(s)
 			print("(");
-			for ( unsigned int arg = 0; arg < CapabilitiesList[ guide->index ].argCount; arg++ )
+			for ( var_uint_t arg = 0; arg < CapabilitiesList[ guide->index ].argCount; arg++ )
 			{
 				// Arguments are only 8 bit values
 				printHex( (&guide->args)[ arg ] );
@@ -1489,7 +1489,7 @@ void cliFunc_macroStep( char* args )
 	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
 	// Default to 1, if no argument given
-	unsigned int count = (unsigned int)numToInt( arg1Ptr );
+	var_uint_t count = (var_uint_t)numToInt( arg1Ptr );
 
 	if ( count == 0 )
 		count = 1;

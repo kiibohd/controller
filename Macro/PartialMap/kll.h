@@ -38,8 +38,8 @@
 // Or to allow for nearly infinite states.
 // TODO Make selectable from layout variable
 //typedef uint32_t var_uint_t;
-typedef uint16_t var_uint_t;
-//typedef uint8_t  var_uint_t;
+//typedef uint16_t var_uint_t;
+typedef uint8_t  var_uint_t;
 
 // - NOTE -
 // Native pointer length
