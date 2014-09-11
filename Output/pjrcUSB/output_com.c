@@ -110,6 +110,11 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 		return;
 	}
 
+	// TODO Analog inputs
+	// Only send keypresses if press or hold state
+	if ( stateType == 0x00 && state == 0x03 ) // Release state
+		return;
+
 	// Get the keycode from arguments
 	uint8_t key = args[0];
 

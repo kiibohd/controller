@@ -30,6 +30,27 @@
 
 
 
+// ----- Types -----
+
+// - NOTE -
+// It is possible to change the maximum state and indexing positions of the state machine.
+// This usually affects the SRAM usage quite a bit, so it can be used to fit the code on smaller uCs
+// Or to allow for nearly infinite states.
+// TODO Make selectable from layout variable
+//typedef uint32_t var_uint_t;
+typedef uint16_t var_uint_t;
+//typedef uint8_t  var_uint_t;
+
+// - NOTE -
+// Native pointer length
+// This needs to be defined per microcontroller
+// e.g. mk20s  -> 32 bit
+//      atmega -> 16 bit
+typedef uint32_t nat_ptr_t;
+//typedef uint16_t nat_ptr_t;
+
+
+
 // ----- Structs -----
 
 // -- Result Macro
@@ -47,7 +68,7 @@
 // ResultMacro struct, one is created per ResultMacro, no duplicates
 typedef struct ResultMacro {
 	const uint8_t *guide;
-	unsigned int pos;
+	var_uint_t pos;
 	uint8_t  state;
 	uint8_t  stateType;
 } ResultMacro;
@@ -94,8 +115,8 @@ typedef enum TriggerMacroState {
 // TriggerMacro struct, one is created per TriggerMacro, no duplicates
 typedef struct TriggerMacro {
 	const uint8_t *guide;
-	unsigned int result;
-	unsigned int pos;
+	var_uint_t result;
+	var_uint_t pos;
 	TriggerMacroState state;
 } TriggerMacro;
 
@@ -168,7 +189,7 @@ typedef struct Capability {
 //  * layer       - basename of the layer
 //  * scanCode    - Hex value of the scanCode
 //  * triggerList - Trigger List (see Trigger Lists)
-#define Define_TL( layer, scanCode ) const unsigned int layer##_tl_##scanCode[]
+#define Define_TL( layer, scanCode ) const nat_ptr_t layer##_tl_##scanCode[]
 
 
 
@@ -192,7 +213,7 @@ typedef struct Capability {
 // The name is defined for cli debugging purposes (Null terminated string)
 
 typedef struct Layer {
-	const unsigned int **triggerMap;
+	const nat_ptr_t **triggerMap;
 	const char *name;
 	const uint8_t max;
 	uint8_t state;
