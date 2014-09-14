@@ -27,6 +27,11 @@ if ( NOT EXISTS "${PROJECT_SOURCE_DIR}/kll/kll.py" )
 	execute_process ( COMMAND ${GIT_EXECUTABLE} clone https://github.com/kiibohd/kll.git
 		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	)
+else () # Otherwise attempt to update the repo
+	# Clone kll git repo
+	execute_process ( COMMAND ${GIT_EXECUTABLE} pull --rebase
+		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/kll
+	)
 endif () # kll/kll.py exists
 
 
@@ -94,6 +99,13 @@ if ( NOT "${PartialMaps}" STREQUAL "" )
 		endforeach ()
 	endforeach ()
 endif ()
+
+
+#| Print list of layout sources used
+message ( STATUS "Detected Layout Files:" )
+foreach ( filename ${KLL_DEPENDS} )
+	message ( "${filename}" )
+endforeach ()
 
 
 
