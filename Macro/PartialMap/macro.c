@@ -27,9 +27,7 @@
 
 // Keymaps
 #include "usb_hid.h"
-//#include <defaultMap.h>
-#include "templateKeymap.h" // TODO Use actual generated version
-//#include "generatedKeymap.h" // TODO Use actual generated version
+#include <generatedKeymap.h> // Generated using kll at compile time, in build directory
 
 // Local Includes
 #include "macro.h"

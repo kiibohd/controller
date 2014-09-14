@@ -112,11 +112,6 @@ include    (           "${DebugModulePath}/setup.cmake"  )
 PathPrepend( DEBUG_SRCS ${DebugModulePath} ${DEBUG_SRCS} )
 
 
-#| Default Map
-# TODO Add support for different defaultMaps
-configure_file( "${ScanModulePath}/defaultMap.h" defaultMap.h )
-
-
 #| Print list of all module sources
 message( STATUS "Detected Scan Module Source Files:" )
 message( "${SCAN_SRCS}" )
@@ -150,7 +145,7 @@ set( MANUFACTURER "Kiibohd" )
 
 #| Modified
 #| Takes a bit of work to extract the "M " using CMake, and not using it if there are no modifications
-execute_process( COMMAND git status -s -uno --porcelain
+execute_process( COMMAND ${GIT_EXECUTABLE} status -s -uno --porcelain
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Modified_INFO
 	ERROR_QUIET
@@ -164,7 +159,7 @@ if ( ${Git_Modified_LENGTH} GREATER 2 )
 endif ()
 
 #| Branch
-execute_process( COMMAND git rev-parse --abbrev-ref HEAD
+execute_process( COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Branch_INFO
 	ERROR_QUIET
@@ -172,7 +167,7 @@ execute_process( COMMAND git rev-parse --abbrev-ref HEAD
 )
 
 #| Date
-execute_process( COMMAND git show -s --format=%ci
+execute_process( COMMAND ${GIT_EXECUTABLE} show -s --format=%ci
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Date_INFO
 	ERROR_QUIET
@@ -180,7 +175,7 @@ execute_process( COMMAND git show -s --format=%ci
 )
 
 #| Commit Author and Email
-execute_process( COMMAND git show -s --format="%cn <%ce>"
+execute_process( COMMAND ${GIT_EXECUTABLE} show -s --format="%cn <%ce>"
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Commit_Author
 	ERROR_QUIET
@@ -188,7 +183,7 @@ execute_process( COMMAND git show -s --format="%cn <%ce>"
 )
 
 #| Commit Revision
-execute_process( COMMAND git show -s --format=%H
+execute_process( COMMAND ${GIT_EXECUTABLE} show -s --format=%H
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Commit_Revision
 	ERROR_QUIET
@@ -196,7 +191,7 @@ execute_process( COMMAND git show -s --format=%H
 )
 
 #| Origin URL
-execute_process( COMMAND git config --get remote.origin.url
+execute_process( COMMAND ${GIT_EXECUTABLE} config --get remote.origin.url
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Origin_URL
 	ERROR_QUIET
@@ -272,82 +267,8 @@ endif()
 
 
 ###
-# Build Targets
-#
-
-#| Create the .ELF file
-set( TARGET_ELF ${TARGET}.elf )
-add_executable( ${TARGET_ELF} ${SRCS} )
-
-
-#| .ELF Properties
-set_target_properties( ${TARGET_ELF} PROPERTIES
-	LINK_FLAGS ${LINKER_FLAGS}
-	SUFFIX ""                               # XXX Force Windows to keep the .exe off
-)
-
-
-#| Convert the .ELF into a .bin to load onto the McHCK
-if( DEFINED DFU )
-	set( TARGET_BIN ${TARGET}.dfu.bin )
-	add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-		COMMAND ${CMAKE_OBJCOPY} ${BIN_FLAGS} ${TARGET_ELF} ${TARGET_BIN}
-		COMMENT "Creating dfu binary file:      ${TARGET_BIN}"
-	)
-endif()
-
-
-#| Convert the .ELF into a .HEX to load onto the Teensy
-if ( DEFINED TEENSY )
-	set( TARGET_HEX ${TARGET}.teensy.hex )
-	add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-		COMMAND ${CMAKE_OBJCOPY} ${HEX_FLAGS} ${TARGET_ELF} ${TARGET_HEX}
-		COMMENT "Creating iHex file to load:    ${TARGET_HEX}"
-	)
-endif()
-
-
-#| Generate the Extended .LSS
-set( TARGET_LSS ${TARGET}.lss )
-add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-	COMMAND ${CMAKE_OBJDUMP} ${LSS_FLAGS} ${TARGET_ELF} > ${TARGET_LSS}
-	COMMENT "Creating Extended Listing:     ${TARGET_LSS}"
-)
-
-
-#| Generate the Symbol Table .SYM
-set( TARGET_SYM ${TARGET}.sym )
-add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-	COMMAND ${CMAKE_NM} -n ${TARGET_ELF} > ${TARGET_SYM}
-	COMMENT "Creating Symbol Table:         ${TARGET_SYM}"
-)
-
-
-#| Compiler Selection Record
-add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-	COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/writer compiler ${COMPILER_FAMILY}
-)
-
-
-
-###
-# Size Information
-#
-
-#| After Changes Size Information
-add_custom_target( SizeAfter ALL
-	COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} ram   ${TARGET_ELF} ${SIZE_RAM}   " SRAM"
-	COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} flash ${TARGET_ELF} ${SIZE_FLASH} "Flash"
-	DEPENDS ${TARGET_ELF}
-	COMMENT "Chip usage for ${CHIP}"
-)
-
-
-
-###
 # Setup Loader Script and Program
 #
-
 
 #| Provides the user with the correct teensy-loader-cli command for the built .HEX file
 #| Windows

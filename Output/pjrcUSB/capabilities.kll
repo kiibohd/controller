@@ -1,0 +1,12 @@
+Name = pjrcUSBCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2014";
+KLL = 0.3;
+
+# Modified Date
+Date = 2014-09-14;
+
+
+# Capabilties available to the pjrcUSB output module
+usbKeyOut  => Output_usbCodeSend_capability( usbCode : 1 );
+

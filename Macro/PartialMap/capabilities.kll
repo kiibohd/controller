@@ -1,0 +1,15 @@
+Name = PartialMapCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2014";
+KLL = 0.3;
+
+# Modified Date
+Date = 2014-09-14;
+
+
+# Capabilties available to the PartialMap module
+layerState => Macro_layerState_capability( layer : 2, state : 1 );
+layerLatch => Macro_layerLatch_capability( layer : 2 );
+layerLock  => Macro_layerLock_capability( layer : 2 );
+layerShift => Macro_layerShift_capability( layer : 2 );
+

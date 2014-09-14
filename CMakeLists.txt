@@ -62,20 +62,41 @@ set(  DebugModule "full" )
 
 
 ###
-# Keymap Configuration (XXX - Not worky yet, currently ignored)
+# Keymap Configuration (do not include the .kll extension)
 #
 
-##| If there are multiple DefaultMaps, it is defined here. If, the specified DefaultMap is not found, defaultMap.h is used.
-set(   DefaultMap "kishsaver" )
+#| Do not include the .kll extension
+#| * BaseMap maps the native keyboard scan codes to USB Codes so the layout is compatible with all other layouts
+#| * DefaultMap allows the default keymap to be modified from the BaseMap
+#| * PartialMaps is a set of dynamically set layers (there is no limit, but too many may use up too much RAM...)
+#| BaseMap generally does not need to be changed from "defaultMap"
+#|
+#| Syntax:
+#|  myMap
+#|    * defines a single .kll layout file, double-quotes are needed to distinguish between layers
+#|  "myMap specialLayer"
+#|    * defines myMap to be the main layout, then replace specialLayers on top of it
+#|
+#| - Only for PartialMaps -
+#|  "myMap specialLayer" "myMap colemak" dvorak
+#|    * As before, but also generates a second layer at index 2 and third at index 3
+#|
+#| NOTE:  Remember to add key(s) to enable each Partial Layer
+#| NOTE2: Layers are always based up the BaseMap (which should be an ANSI-like mapping)
+#| NOTE3: Compiler looks in kll/layouts and the build directory for layout files (precedence on build directory)
 
-##| PartialMap combined keymap layering. The first keymap has the "least" precedence.
-set(  CombinedMap colemak capslock2ctrl )
+##| Set the base keyboard .kll map, defaults to "defaultMap" if not found
+##| Looks in Scan/<Module Name> for the available BaseMaps
+##| TODO Support layering in basemap
+set(     BaseMap "defaultMap" )
 
-##| ParitalMaps available on top of the CombinedMap. If there are input conflicts, the last PartialMap takes precedence.
-set(  PartialMaps hhkbnav kbdctrl )
+##| Layer additonal .kll maps on the BaseMap, layers are in order from 1st to nth
+##| Can be set to ""
+set(  DefaultMap "colemak stdFuncMap" )
 
-##| MacroSets define extra capabilities that are not provided by the Scan or Output modules. Last MacroSet takes precedence.
-set(    MacroSets retype )
+##| ParitalMaps available on top of the BaseMap. See above for syntax on specifying multiple layers vs. layering
+##| Can be set to ""
+set( PartialMaps "hhkbpro2" )
 
 
 
@@ -107,4 +128,6 @@ cmake_minimum_required( VERSION 2.8 )
 # Module Initialization / Compilation / Targets
 #
 include( Lib/CMake/modules.cmake )
+include( Lib/CMake/kll.cmake ) # Generate kll layouts if necessary
+include( Lib/CMake/build.cmake )
 
