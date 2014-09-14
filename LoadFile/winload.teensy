@@ -13,5 +13,5 @@ fi
 #| Loads the hex file onto the teensy
 teensy-loader-cli/teensy-loader-cli -mmcu=@MCU@ -w @TARGET_HEX@
 
-exit 0
+exit $?
 

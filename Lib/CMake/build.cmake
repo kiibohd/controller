@@ -79,3 +79,25 @@ add_custom_target( SizeAfter ALL
 	COMMENT "Chip usage for ${CHIP}"
 )
 
+
+
+###
+# Setup Loader Script and Program
+#
+
+#| First check for DFU based controllers
+if( DEFINED DFU )
+	configure_file( LoadFile/load.dfu load NEWLINE_STYLE UNIX )
+
+#| Next check for Teensy based
+elseif ( DEFINED TEENSY )
+	# Provides the user with the correct teensy-loader-cli command for the built .HEX file
+	# Windows
+	if( CMAKE_SYSTEM_NAME MATCHES "Windows" )
+		configure_file( LoadFile/winload.teensy load NEWLINE_STYLE UNIX )
+	# Default
+	else()
+		configure_file( LoadFile/load.teensy load NEWLINE_STYLE UNIX )
+	endif()
+endif()
+

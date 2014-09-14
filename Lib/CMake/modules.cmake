@@ -264,19 +264,3 @@ if( CTAGS_EXECUTABLE )
 	)
 endif()
 
-
-
-###
-# Setup Loader Script and Program
-#
-
-#| Provides the user with the correct teensy-loader-cli command for the built .HEX file
-#| Windows
-if( CMAKE_SYSTEM_NAME MATCHES "Windows" )
-	configure_file( LoadFile/winload load NEWLINE_STYLE UNIX )
-#| Default
-else()
-	configure_file( LoadFile/load load NEWLINE_STYLE UNIX )
-endif()
-
-

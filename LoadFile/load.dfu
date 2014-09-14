@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Load via dfu-util
+# Used for McHCK based uCs
+dfu-util -D @TARGET_BIN@
+
+exit $?
+
