@@ -76,7 +76,7 @@ inline void usbTimerSetup()
 	TIMSK0 = (1 << TOIE0);
 
 // ARM
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
 	// 48 MHz clock by default
 
 	// System Clock Gating Register Disable

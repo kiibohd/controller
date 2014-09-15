@@ -1,0 +1,71 @@
+Name = 50Key;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2014";
+KLL = 0.3;
+
+# Modified Date
+Date = 2014-09-14;
+
+
+# NOTE: Using IBM Model M 50 key as the base layout
+# http://deskthority.net/wiki/File:IBM_Model_M_50-keys_06.jpg
+# Using Red labels when there's an option
+# When no key matches to USB HID, adding useful keys
+
+S0x40 : U"Alt"; # Lgoff
+S0x41 : U"Pause";
+S0x42 : U"P";
+S0x43 : U"O";
+S0x44 : U"L";
+S0x45 : U",";
+S0x46 : U"Slash";
+S0x47 : U"Enter";
+
+S0x49 : U"PageUp";
+S0x4A : U"I";
+S0x4B : U"K";
+S0x4C : U"J";
+S0x4D : U"M";
+S0x4E : U".";
+S0x4F : U"Keypad Asterix"; # Asterix
+
+S0x51 : U"PageDown";
+
+S0x53 : U"U";
+S0x54 : U"H";
+
+S0x56 : U"N";
+S0x57 : U"Tab";
+S0x58 : U"Home"; # Calc
+S0x59 : U"PrintScreen"; # Pay / PrtSc
+S0x5A : U"Y";
+S0x5B : U"T";
+S0x5C : U"G";
+S0x5D : U"V";
+S0x5E : U"B";
+S0x5F : U"Space";
+
+S0x61 : U"Equals"; # Next / List
+S0x62 : U"R";
+S0x63 : U"F";
+S0x64 : U"D";
+S0x65 : U"C"; # C / Up
+S0x66 : U"End"; # Reset / Right
+S0x67 : U"Insert"; # Insert / Down
+S0x68 : U"RAlt"; # Csh X / Rev
+S0x69 : U"Gui"; # Rcpt
+S0x6A : U"E";
+S0x6B : U"W";
+S0x6C : U"S";
+S0x6D : U"Z";
+S0x6E : U"X";
+S0x6F : U"Delete"; # Delete / Left
+
+S0x71 : U"Help";
+S0x72 : U"Q";
+S0x73 : U"A";
+S0x74 : U"Esc";
+S0x75 : U"CapsLock";
+S0x76 : U"Backspace";
+S0x77 : U"Shift";
+

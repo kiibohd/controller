@@ -7,15 +7,6 @@ KLL = 0.3;
 Date = 2014-09-14;
 
 
-# MOVE THIS SECTION to another file
-usbKeyOut  => Output_usbCodeSend_capability( usbCode : 1 );
-layerState => Macro_layerState_capability( layer : 2, state : 1 );
-layerLatch => Macro_layerLatch_capability( layer : 2 );
-layerLock  => Macro_layerLock_capability( layer : 2 );
-layerShift => Macro_layerShift_capability( layer : 2 );
-# END SECTION
-
-
 S0x00 : U"Esc";
 S0x01 : U"1";
 S0x02 : U"2";

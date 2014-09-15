@@ -46,8 +46,11 @@ typedef uint8_t  var_uint_t;
 // This needs to be defined per microcontroller
 // e.g. mk20s  -> 32 bit
 //      atmega -> 16 bit
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
 typedef uint32_t nat_ptr_t;
-//typedef uint16_t nat_ptr_t;
+#elif defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+typedef uint16_t nat_ptr_t;
+#endif
 
 
 
@@ -223,7 +226,7 @@ typedef struct Layer {
 // Layer_IN( map, name );
 //  * map  - Trigger map
 //  * name - Name of the trigger map
-#define Layer_IN( map, name ) { map, name, sizeof( map ) / 4 - 1, 0 }
+#define Layer_IN( map, name ) { map, name, sizeof( map ) / sizeof( nat_ptr_t ) - 1, 0 }
 
 // Total number of layers
 #define LayerNum sizeof( LayerIndex ) / sizeof( Layer )

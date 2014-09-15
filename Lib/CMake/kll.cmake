@@ -54,7 +54,7 @@ endforeach ()
 
 #| If set BaseMap cannot be found, use default map
 set ( pathname "${PROJECT_SOURCE_DIR}/${ScanModulePath}" )
-if ( NOT EXISTS "${filename}/${BaseMap}.kll" )
+if ( NOT EXISTS ${pathname}/${BaseMap}.kll )
 	set ( BaseMap_Args ${BaseMap_Args} ${pathname}/defaultMap.kll )
 	set ( KLL_DEPENDS ${KLL_DEPENDS} ${pathname}/defaultMap.kll )
 else ()

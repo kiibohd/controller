@@ -7,6 +7,16 @@
 ###
 
 
+###
+# Disable -Wl,-search_paths_first for AVR on OSX (not supported by avr-gcc)
+#
+
+if ( "${CPU}" STREQUAL "megaAVR" AND APPLE )
+	string ( REPLACE "-Wl,-search_paths_first" "" CMAKE_C_LINK_FLAGS ${CMAKE_C_LINK_FLAGS} )
+	string ( REPLACE "-Wl,-search_paths_first" "" CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} )
+endif ()
+
+
 
 ###
 # Build Targets

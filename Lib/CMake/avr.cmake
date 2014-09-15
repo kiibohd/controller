@@ -67,6 +67,10 @@ else ()
 endif ()
 
 
+#| Only Teensy based AVRs supported
+set ( TEENSY 1 )
+
+
 #| Extra Compiler Sources
 #| Mostly for convenience functions like interrupt handlers
 set( COMPILER_SRCS
