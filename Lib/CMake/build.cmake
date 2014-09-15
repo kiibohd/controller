@@ -8,10 +8,10 @@
 
 
 ###
-# Disable -Wl,-search_paths_first for AVR on OSX (not supported by avr-gcc)
+# Disable -Wl,-search_paths_first for OSX (not supported by avr-gcc or arm-none-eabi-gcc)
 #
 
-if ( "${CPU}" STREQUAL "megaAVR" AND APPLE )
+if ( APPLE )
 	string ( REPLACE "-Wl,-search_paths_first" "" CMAKE_C_LINK_FLAGS ${CMAKE_C_LINK_FLAGS} )
 	string ( REPLACE "-Wl,-search_paths_first" "" CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} )
 endif ()

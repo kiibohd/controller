@@ -113,6 +113,19 @@ endif()
 
 
 ###
+# Disable -Wl,-search_paths_first for OSX (not supported by arm-none-eabi-gcc)
+#
+
+if ( APPLE )
+	string ( REPLACE "-Wl,-search_paths_first" "" CMAKE_C_LINK_FLAGS ${CMAKE_C_LINK_FLAGS} )
+	string ( REPLACE "-Wl,-search_paths_first" "" CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} )
+
+	message ( AUTHOR_WARNING "Bootloader binary may not fit on device (must be less than 4096 bytes). Macports arm-none-eabi-gcc 4.7.3 doesn't seem to work properly with -flto. However, even disabling it doesn't shrink the binary enough... 4.9.1 is known to work on Arch Linux." )
+endif ()
+
+
+
+###
 # Build Targets
 #
 
