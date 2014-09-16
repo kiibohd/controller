@@ -245,7 +245,7 @@ void cliFunc_kbdProtocol( char* args )
 void cliFunc_readLEDs( char* args )
 {
 	print( NL );
-	info_msg("LED State (This doesn't work yet...): ");
+	info_msg("LED State: ");
 	printInt8( USBKeys_LEDs );
 }
 

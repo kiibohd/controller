@@ -24,6 +24,7 @@
 
 // Local Includes
 #include "usb_keyboard_serial.h"
+#include <print.h>
 
 
 // ----- Variables -----
@@ -53,6 +54,9 @@ void usb_keyboard_toHost()
 
 	// Modifiers
 	UEDATX = USBKeys_Modifiers;
+
+	// LED Report spacer
+	USBKeys_LEDs = 0;
 
 	// Normal Keys
 	for ( i = 0; i < 6; i++)
@@ -111,13 +115,14 @@ int8_t usb_keyboard_send()
 		cli();
 
 		// If not using Boot protocol, send NKRO
-		UENUM = USBKeys_Protocol ? KEYBOARD_NKRO_ENDPOINT : KEYBOARD_ENDPOINT;
+		UENUM = KEYBOARD_ENDPOINT;
+		//UENUM = USBKeys_Protocol ? KEYBOARD_NKRO_ENDPOINT : KEYBOARD_ENDPOINT;
 	} while ( !( UEINTX & (1 << RWAL) ) );
 
 	// Send normal keyboard interrupt packet(s)
-	switch ( USBKeys_Protocol )
-	{
-	}
+	//switch ( USBKeys_Protocol )
+	//{
+	//}
 	usb_keyboard_toHost();
 
 	USBKeys_Idle_Count = 0;
@@ -618,6 +623,7 @@ ISR( USB_GEN_vect )
 				// From hasu's code, this section looks like it could fix the Mac SET_IDLE problem
 				// Send normal keyboard interrupt packet(s)
 				//usb_keyboard_toHost();
+				print("IDLE");
 			}
 		}
 	}
@@ -775,7 +781,8 @@ ISR(USB_COM_vect)
 
 					// XXX TODO Is this even used? If so, when? -Jacob
 					// Send normal keyboard interrupt packet(s)
-					//usb_keyboard_toHost();
+					usb_keyboard_toHost();
+					//print("GET REPORT");
 
 					usb_send_in();
 					return;
@@ -794,7 +801,6 @@ ISR(USB_COM_vect)
 					usb_send_in();
 					return;
 				}
-			USBKeys_Protocol = bRequest;
 			}
 			if ( bmRequestType == 0x21 )
 			{

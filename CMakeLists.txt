@@ -20,9 +20,9 @@ set( CHIP
 #	"at90usb162"       # Teensy   1.0 (avr)
 #	"atmega32u4"       # Teensy   2.0 (avr)
 #	"at90usb646"       # Teensy++ 1.0 (avr)
-#	"at90usb1286"      # Teensy++ 2.0 (avr)
+	"at90usb1286"      # Teensy++ 2.0 (avr)
 #	"mk20dx128"        # Teensy   3.0 (arm)
-	"mk20dx128vlf5"    # McHCK    mk20dx128vlf5
+#	"mk20dx128vlf5"    # McHCK    mk20dx128vlf5
 #	"mk20dx256"        # Teensy   3.1 (arm)
 )
 
@@ -48,7 +48,8 @@ include( initialize )
 #| Please look at the {Scan,Macro,Output,Debug} for information on the modules and how to create new ones
 
 ##| Deals with acquiring the keypress information and turning it into a key index
-set(   ScanModule "MD1" )
+set(   ScanModule "DPH" )
+#set(   ScanModule "MD1" )
 
 ##| Provides the mapping functions for DefaultMap and handles any macro processing before sending to the OutputModule
 set(  MacroModule "PartialMap" )
@@ -88,7 +89,8 @@ set(  DebugModule "full" )
 ##| Set the base keyboard .kll map, defaults to "defaultMap" if not found
 ##| Looks in Scan/<Module Name> for the available BaseMaps
 ##| TODO Support layering in basemap
-set(     BaseMap "defaultMap" )
+set(     BaseMap "50Key" )
+#set(     BaseMap "defaultMap" )
 
 ##| Layer additonal .kll maps on the BaseMap, layers are in order from 1st to nth
 ##| Can be set to ""
@@ -96,7 +98,8 @@ set(  DefaultMap "colemak stdFuncMap" )
 
 ##| ParitalMaps available on top of the BaseMap. See above for syntax on specifying multiple layers vs. layering
 ##| Can be set to ""
-set( PartialMaps "hhkbpro2" )
+set( PartialMaps "" )
+#set( PartialMaps "hhkbpro2" )
 
 
 
@@ -127,7 +130,7 @@ cmake_minimum_required( VERSION 2.8 )
 ###
 # Module Initialization / Compilation / Targets
 #
-include( Lib/CMake/modules.cmake )
-include( Lib/CMake/kll.cmake ) # Generate kll layouts if necessary
-include( Lib/CMake/build.cmake )
+include( modules )
+include( kll ) # Generate kll layouts if necessary
+include( build )
 
