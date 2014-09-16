@@ -1,7 +1,20 @@
 The Kiibohd Controller
 ----------------------
 
-TODO, write some insightful/informative :P
+This README is a bit long, just look at the sections you are interested in.
+Linux is the ideal build environment (preferably recent'ish).
+
+
+Building on Mac should be ok for 99% of users with Macports (haven't tried Brew).
+The dfu Bootloader will not build correctly with the old version of arm-none-eabi-gcc that Macports currently has (4.7.3).
+This is due to a bug with lto (link time optimizations) which makes the resulting binary too big to fit on the chip (must be less than 4096 Bytes).
+
+Building on Windows should also be fine for 99% of users, but takes a bunch of work to setup (because Windows is a crappy dev environment).
+Cygwin is currently required along with some non-Cygwin compilers and utilities (because they are not available for Cygwin).
+The dfu Bootloader will not build because of a Make 3.81+ bug/feature that removed support for non-Unix (Windows) filenames as dependencies of targets.
+If you replace the version of Make in Cygwin it should work (e.g. http://stackoverflow.com/questions/601516/cygwin-make-error-target-pattern-contains-no).
+However, make sure that the flash size is no larger than 4096 Bytes or the bootloader will not work.
+
 
 Please give authors credit for modules used if you use in a distributed product :D
 
@@ -15,6 +28,11 @@ Below listed are the Arch Linux pacman names, AUR packages may be required.
 
 These depend a bit on which targets you are trying to build, but the general one:
 - cmake (2.8 and higher)
+- git
+- ctags (recommended, not required)
+- python3
+- libusb1.0 (and -devel)
+- make
 
 
 AVR Specific (Teensy 1.0/++,2.0/++) (try to use something recent, suggested versions below)
@@ -47,19 +65,22 @@ First make sure Cygwin is installed - http://www.cygwin.com/ - 32bit or 64bit is
 - gcc-g++
 - libusb1.0
 - libusb1.0-devel
+- python3
+- ctags (recommended, not required)
 
 Please note, I use cygwin term exclusively for any command line options. Unless mentioned otherwise use it.
 Do NOT use CMD or Powershell.
 
-Also install the Windows version of CMake - http://cmake.org/cmake/resources/software.html
+Also install the Windows version of CMake (3+ is ideal) - http://cmake.org/cmake/resources/software.html
 This is in addition to the Cygwin version. This is an easier alternative to installing another C compiler.
 Add the following line to your .bashrc, making sure the CMake path is correct:
-  echo "alias wincmake=\"PATH='/cygdrive/c/Program Files (x86)/CMake 2.8'/bin:\"${PATH}\" cmake" >> ~/.bashrc
+  echo "alias wincmake=\"PATH='/cygdrive/c/Program Files (x86)/CMake'/bin:'${PATH}' cmake -G 'Unix Makefiles'\"" >> ~/.bashrc
 
 Install the PJRC Virtual Serial Port Driver:
 (http://pjrc.com/teensy/serial_install.exe)
 
 Next, install the compiler(s) you want.
+
 
 
  ---------
@@ -71,8 +92,8 @@ You just need the Atmel AVR 8-bit Toolchain. The latest should be fine, as of wr
 http://www.atmel.com/tools/atmelavrtoolchainforwindows.aspx
 (Atmel AVR 8-bit Toolchain 3.4.3 - Windows)
 
-Extract the files to a directory, say C:\avr8-gnu-toolchain. Then copy all the folders in that directory to the Cygwin directory.
-Mine is C:\cygwin64.
+Extract the files to a directory, say C:\avr8-gnu-toolchain. Then copy all the folders in that directory to the Cygwin /usr/local directory.
+Mine is C:\cygwin64\usr\local.
 (You can also just setup the paths, but this is faster/simpler. Might screw up your Cygwin though).
 
 
@@ -89,7 +110,9 @@ Enter your info to get the download link.
 Select the most recent download.
 Then download the "IA32 Windows Installer".
 
-Use the installer and make sure you add the binaries to your path within the installer.
+Then copy all the folders/files installed (e.g. C:\Users\Haata\MentorGraphics\Sourcery_CodeBench_Lite_for_ARM_EABI\) to Cygwin /usr/local directory.
+Mine is C:\cygwin64\usr\local.
+Or, you can setup paths using the installer (you have to be more careful though).
 
 
 
