@@ -8,11 +8,11 @@ Date = 2014-09-14;
 
 
 S0x40 : U"Backspace";
-
+S0x41 : U"Inter2";
 S0x42 : U"RBrace";
 S0x43 : U"Delete";
 S0x44 : U"Enter";
-
+S0x45 : U"Inter3";
 S0x46 : U"RShift";
 S0x47 : U"RCtrl";
 S0x48 : U"Equals";

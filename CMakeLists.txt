@@ -89,17 +89,16 @@ set(  DebugModule "full" )
 ##| Set the base keyboard .kll map, defaults to "defaultMap" if not found
 ##| Looks in Scan/<Module Name> for the available BaseMaps
 ##| TODO Support layering in basemap
-set(     BaseMap "50Key" )
+set(     BaseMap "kishsaver" )
 #set(     BaseMap "defaultMap" )
 
 ##| Layer additonal .kll maps on the BaseMap, layers are in order from 1st to nth
 ##| Can be set to ""
-set(  DefaultMap "colemak stdFuncMap" )
+set(  DefaultMap "colemak kishsaver_unix1 stdFuncMap" )
 
 ##| ParitalMaps available on top of the BaseMap. See above for syntax on specifying multiple layers vs. layering
 ##| Can be set to ""
-set( PartialMaps "" )
-#set( PartialMaps "hhkbpro2" )
+#set( PartialMaps "hhkbpro2_slim" )
 
 
 

@@ -143,11 +143,6 @@ void recovery( uint8_t on );
 
 // ----- Variables -----
 
-// Buffer used to inform the macro processing module which keys have been detected as pressed
-volatile uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
-volatile uint8_t KeyIndex_BufferUsed;
-
-
 // Scan Module command dictionary
 const char scanCLIDictName[] = "DPH Module Commands";
 const CLIDictItem scanCLIDict[] = {
@@ -163,7 +158,7 @@ const CLIDictItem scanCLIDict[] = {
 // CLI Control Variables
 uint8_t enableAvgDebug   = 0;
 uint8_t enableKeyDebug   = 0;
-uint8_t enablePressDebug = 1;
+uint8_t enablePressDebug = 0;
 uint8_t senseDebugCount  = 3; // In order to get boot-time oddities
 
 
@@ -320,7 +315,7 @@ inline uint8_t Scan_loop()
 }
 
 
-// Signal KeyIndex_Buffer that it has been properly read
+// Signal from macro module that keys have been processed
 // NOTE: Only really required for implementing "tricks" in converters for odd protocols
 void Scan_finishedWithMacro( uint8_t sentKeys )
 {
@@ -328,7 +323,7 @@ void Scan_finishedWithMacro( uint8_t sentKeys )
 }
 
 
-// Signal KeyIndex_Buffer that it has been properly read and sent out by the USB module
+// Signal from output module that keys have been processed/sent
 // NOTE: Only really required for implementing "tricks" in converters for odd protocols
 void Scan_finishedWithOutput( uint8_t sentKeys )
 {
@@ -806,14 +801,14 @@ void testColumn( uint8_t strobe )
 					// Initial Keypress
 					Macro_keyState( key, 0x01 );
 				}
-				else if ( keys_debounce[key] >= DEBOUNCE_THRESHOLD )
-				{
-					// Held Key
-					Macro_keyState( key, 0x02 );
-				}
 
 				keys_debounce[key]++;
 
+			}
+			else if ( keys_debounce[key] >= DEBOUNCE_THRESHOLD )
+			{
+				// Held Key
+				Macro_keyState( key, 0x02 );
 			}
 
 			// Long form key debugging
@@ -821,7 +816,7 @@ void testColumn( uint8_t strobe )
 			{
 				// Debug message
 				// <key> [<strobe>:<mux>] : <sense val> : <delta + threshold> : <margin>
-				dbug_msg("0x");
+				dbug_msg("");
 				printHex_op( key, 1 );
 				print(" [");
 				printInt8( strobe );
@@ -844,7 +839,7 @@ void testColumn( uint8_t strobe )
 		else
 		{
 			// Release Key
-			if ( KeyIndex_BufferUsed > 0 && keys_debounce[key] >= DEBOUNCE_THRESHOLD )
+			if ( keys_debounce[key] >= DEBOUNCE_THRESHOLD )
 			{
 				Macro_keyState( key, 0x03 );
 			}
