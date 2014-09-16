@@ -291,13 +291,43 @@ To load the newly built firmware:
 
 
 ----------------------
+Linux Building Bootloader
+----------------------
+
+*NOTE* Does not apply to Teensy based builds.
+
+From this directory.
+cd Bootloader
+mkdir build
+cd build
+cmake ..
+make
+
+Example output:
+TODO
+
+
+
+----------------------
+Linux Loading Bootloader
+----------------------
+
+*NOTE* Does not apply to Teensy based builds.
+
+It's recommended to use an SWD-type flasher like a Bus Pirate.
+TODO
+(Guidelines here https://github.com/mchck/mchck/wiki/Getting-Started)
+
+
+
+----------------------
 Windows Building
 ----------------------
 
 From this directory.
 mkdir build
 cd build
-wincmake -G "Unix Makefiles" ..
+wincmake ..
 make
 
 
@@ -372,6 +402,14 @@ Be patient the couple of times, Windows is slow at installing drivers...
 Mac OS X Building
 ----------------------
 
+From this directory.
+mkdir build
+cd build
+cmake ..
+make
+
+
+Example output:
 TODO
 
 
@@ -380,7 +418,15 @@ TODO
 Mac OS X Loading Firmware
 ----------------------
 
-TODO
+First place the keyboard into re-flash mode.
+This can be done either by pressing the re-flash button on the PCB/Teensy.
+Or by entering the Kiibohd Virtual Serial Port and using the 'reload' command.
+
+The 'load' script that is created during the build can load the firmware over USB.
+
+
+To load the newly built firmware:
+./load
 
 
 
@@ -409,19 +455,35 @@ screen /dev/ttyACM0
 
 Make sure the Teensy Virtual Serial Port driver is installed.
 If possible use screen (as part of Cygwin).
+Check which COM port the virtual serial port has been assigned to:
+   Device Manager->Ports (COM & LPT)->Teensy USB Serial
+   In brackets it will say which COM port (e.g. COM3)
 
-screen /dev/ttyS3
+
+putty works well when using DTR/DSR or RTS/CTS flow control.
+Connection type: Serial
+Serial line:     <Your COM port, e.g. COM3>
+Speed:           (doesn't matter, it's auto-negotiated)
+
+Under Category->Connections->Serial
+Flow control:    DTR/DSR
+
+If stuff is hard to read (you have a dumb colour scheme):
+Category->Window->Colours->Use system colur
+That seems to make text at least readable (I use a custom colour scheme that makes each colour easy to see -HaaTa).
+
+
+Unfortunately, screen for Cygwin seems to be broken for serial ports, but you can try it...
+screen /dev/ttyS2
 (Might be a different file, ttyS0, ttyACM0, ttyUSB0, etc.)
 
 Gnu screen doesn't seem to echo all the characters (it works though).
 I believe it's a problem with stty, but I don't know how to fix it...
-
-putty works well when using DTR/DSR or RTS/CTS flow control.
 
 
  ----------
 | Mac OS X |
  ----------
 
-TODO (What is the usual device name). screen if possible.
-
+I recommend screen (can be installed via Macports).
+screen /dev/tty.<usb something>
