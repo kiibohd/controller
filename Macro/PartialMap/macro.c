@@ -323,8 +323,8 @@ nat_ptr_t *Macro_layerLookup( uint8_t scanCode )
 			// Determine if layer has key defined
 			// Make sure scanCode is between layer first and last scancodes
 			if ( map != 0
-			  && scanCode < layer->last
-			  && scanCode > layer->first
+			  && scanCode <= layer->last
+			  && scanCode >= layer->first
 			  && *map[ scanCode - layer->first ] != 0 )
 			{
 				return map[ scanCode - layer->first ];
@@ -340,8 +340,8 @@ nat_ptr_t *Macro_layerLookup( uint8_t scanCode )
 
 	// Make sure scanCode is between layer first and last scancodes
 	if ( map != 0
-	  && scanCode < layer->last
-	  && scanCode > layer->first
+	  && scanCode <= layer->last
+	  && scanCode >= layer->first
 	  && *map[ scanCode - layer->first ] != 0 )
 	{
 		return map[ scanCode - layer->first ];
