@@ -58,23 +58,28 @@ typedef uint16_t nat_ptr_t;
 
 // -- Result Macro
 // Defines the sequence of combinations to as the Result of Trigger Macro
+// For RAM optimization reasons, ResultMacro has been split into ResultMacro and ResultMacroRecord structures
 //
 // Capability + args per USB send
 // Default Args (always sent): key state/analog of last key
 // Combo Length of 0 signifies end of sequence
 //
 // ResultMacro.guide     -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
-// ResultMacro.pos       -> <current combo position>
-// ResultMacro.state     -> <last key state>
-// ResultMacro.stateType -> <last key state type>
+//
+// ResultMacroRecord.pos       -> <current combo position>
+// ResultMacroRecord.state     -> <last key state>
+// ResultMacroRecord.stateType -> <last key state type>
 
 // ResultMacro struct, one is created per ResultMacro, no duplicates
 typedef struct ResultMacro {
 	const uint8_t *guide;
+} ResultMacro;
+
+typedef struct ResultMacroRecord {
 	var_uint_t pos;
 	uint8_t  state;
 	uint8_t  stateType;
-} ResultMacro;
+} ResultMacroRecord;
 
 // Guide, key element
 #define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) - 1 + CapabilitiesList[ (guidePtr)->index ].argCount
@@ -87,6 +92,7 @@ typedef struct ResultGuide {
 
 // -- Trigger Macro
 // Defines the sequence of combinations to Trigger a Result Macro
+// For RAM optimization reasons TriggerMacro has been split into TriggerMacro and TriggerMacroRecord
 // Key Types:
 //   * 0x00 Normal (Press/Hold/Release)
 //   * 0x01 LED State (On/Off)
@@ -105,8 +111,9 @@ typedef struct ResultGuide {
 //
 // TriggerMacro.guide  -> [<combo length>|<key1 type>|<key1 state>|<key1>...<keyn type>|<keyn state>|<keyn>|<combo length>...|0]
 // TriggerMacro.result -> <index to result macro>
-// TriggerMacro.pos    -> <current combo position>
-// TriggerMacro.state  -> <status of the macro pos>
+//
+// TriggerMacroRecord.pos   -> <current combo position>
+// TriggerMacroRecord.state -> <status of the macro pos>
 
 // TriggerMacro states
 typedef enum TriggerMacroState {
@@ -119,9 +126,12 @@ typedef enum TriggerMacroState {
 typedef struct TriggerMacro {
 	const uint8_t *guide;
 	const var_uint_t result;
+} TriggerMacro;
+
+typedef struct TriggerMacroRecord {
 	var_uint_t pos;
 	TriggerMacroState state;
-} TriggerMacro;
+} TriggerMacroRecord;
 
 // Guide, key element
 #define TriggerGuideSize sizeof( TriggerGuide )
@@ -155,7 +165,7 @@ typedef struct Capability {
 //  * index  - Result Macro index number
 //  Must be used after Guide_RM
 #define Guide_RM( index ) const uint8_t rm##index##_guide[]
-#define Define_RM( index ) { rm##index##_guide, 0, 0, 0 }
+#define Define_RM( index ) { rm##index##_guide }
 
 
 // -- Result Macro List
@@ -175,7 +185,7 @@ typedef struct Capability {
 //  * index   - Trigger Macro index number
 //  * result  - Result Macro index number which is triggered by this Trigger Macro
 #define Guide_TM( index ) const uint8_t tm##index##_guide[]
-#define Define_TM( index, result ) { tm##index##_guide, result, 0, TriggerMacro_Waiting }
+#define Define_TM( index, result ) { tm##index##_guide, result }
 
 
 // -- Trigger Macro List

@@ -94,6 +94,7 @@ set(     BaseMap "kishsaver" )
 
 ##| Layer additonal .kll maps on the BaseMap, layers are in order from 1st to nth
 ##| Can be set to ""
+#set(  DefaultMap "colemak stdFuncMap" )
 set(  DefaultMap "colemak kishsaver_unix1 stdFuncMap" )
 
 ##| ParitalMaps available on top of the BaseMap. See above for syntax on specifying multiple layers vs. layering
