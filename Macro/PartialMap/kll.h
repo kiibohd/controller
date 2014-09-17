@@ -118,7 +118,7 @@ typedef enum TriggerMacroState {
 // TriggerMacro struct, one is created per TriggerMacro, no duplicates
 typedef struct TriggerMacro {
 	const uint8_t *guide;
-	var_uint_t result;
+	const var_uint_t result;
 	var_uint_t pos;
 	TriggerMacroState state;
 } TriggerMacro;
@@ -137,8 +137,8 @@ typedef struct TriggerGuide {
 
 // Capability
 typedef struct Capability {
-	void *func;
-	uint8_t argCount;
+	const void *func;
+	const uint8_t argCount;
 } Capability;
 
 // Total Number of Capabilities
@@ -205,28 +205,31 @@ typedef struct Capability {
 //   * Shift - 0x01
 //   * Latch - 0x02
 //   * Lock  - 0x04
+// Layer states are stored in the LayerState array
 //
 // Except for Off, all states an exist simultaneously for each layer
 // For example:
 // state -> 0x04 + 0x01 = 0x05 (Shift + Lock), which is effectively Off (0x00)
 //
-// Max defines the maximum number of keys in the map, maximum of 0xFF
+// First defines the first used scan code (most keyboards start at 0, some start higher e.g. 0x40)
 //  - Compiler calculates this
+//
+// Last defines the last scan code used (helps reduce RAM usage)
 //
 // The name is defined for cli debugging purposes (Null terminated string)
 
 typedef struct Layer {
 	const nat_ptr_t **triggerMap;
 	const char *name;
-	const uint8_t max;
-	uint8_t state;
+	const uint8_t first;
+	const uint8_t last;
 } Layer;
 
-
-// Layer_IN( map, name );
-//  * map  - Trigger map
-//  * name - Name of the trigger map
-#define Layer_IN( map, name ) { map, name, sizeof( map ) / sizeof( nat_ptr_t ) - 1, 0 }
+// Layer_IN( map, name, first );
+//  * map   - Trigger map
+//  * name  - Name of the trigger map
+//  * first - First scan code used (most keyboards start at 0, some start higher e.g. 0x40)
+#define Layer_IN( map, name, first ) { map, name, first, sizeof( map ) / sizeof( nat_ptr_t ) - 1 + first }
 
 // Total number of layers
 #define LayerNum sizeof( LayerIndex ) / sizeof( Layer )

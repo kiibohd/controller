@@ -155,15 +155,15 @@ void Macro_layerState( uint8_t state, uint8_t stateType, uint16_t layer, uint8_t
 	}
 
 	// Toggle Layer State Byte
-	if ( LayerIndex[ layer ].state & layerState )
+	if ( LayerState[ layer ] & layerState )
 	{
 		// Unset
-		LayerIndex[ layer ].state &= ~layerState;
+		LayerState[ layer ] &= ~layerState;
 	}
 	else
 	{
 		// Set
-		LayerIndex[ layer ].state |= layerState;
+		LayerState[ layer ] |= layerState;
 	}
 
 	// If the layer was not in the LayerIndexStack add it
@@ -173,7 +173,7 @@ void Macro_layerState( uint8_t state, uint8_t stateType, uint16_t layer, uint8_t
 	}
 
 	// If the layer is in the LayerIndexStack and the state is 0x00, remove
-	if ( LayerIndex[ layer ].state == 0x00 && inLayerIndexStack )
+	if ( LayerState[ layer ] == 0x00 && inLayerIndexStack )
 	{
 		// Remove the layer from the LayerIndexStack
 		// Using the already positioned stackItem variable from the loop above
@@ -302,43 +302,55 @@ nat_ptr_t *Macro_layerLookup( uint8_t scanCode )
 	for ( uint16_t layerIndex = 0; layerIndex < macroLayerIndexStackSize; layerIndex++ )
 	{
 		// Lookup Layer
-		Layer *layer = &LayerIndex[ macroLayerIndexStack[ layerIndex ] ];
+		const Layer *layer = &LayerIndex[ macroLayerIndexStack[ layerIndex ] ];
 
 		// Check if latch has been pressed for this layer
 		// XXX Regardless of whether a key is found, the latch is removed on first lookup
-		uint8_t latch = layer->state & 0x02;
+		uint8_t latch = LayerState[ layerIndex ] & 0x02;
 		if ( latch )
 		{
-			layer->state &= ~0x02;
+			LayerState[ layerIndex ] &= ~0x02;
 		}
 
 		// Only use layer, if state is valid
 		// XOR each of the state bits
 		// If only two are enabled, do not use this state
-		if ( (layer->state & 0x01) ^ (latch>>1) ^ ((layer->state & 0x04)>>2) )
+		if ( (LayerState[ layerIndex ] & 0x01) ^ (latch>>1) ^ ((LayerState[ layerIndex ] & 0x04)>>2) )
 		{
 			// Lookup layer
 			nat_ptr_t **map = (nat_ptr_t**)layer->triggerMap;
 
 			// Determine if layer has key defined
-			if ( map != 0 && *map[ scanCode ] != 0 )
-				return map[ scanCode ];
+			// Make sure scanCode is between layer first and last scancodes
+			if ( map != 0
+			  && scanCode < layer->last
+			  && scanCode > layer->first
+			  && *map[ scanCode - layer->first ] != 0 )
+			{
+				return map[ scanCode - layer->first ];
+			}
 		}
 	}
 
 	// Do lookup on default layer
 	nat_ptr_t **map = (nat_ptr_t**)LayerIndex[0].triggerMap;
 
-	// Determine if layer has key defined
-	if ( map == 0 && *map[ scanCode ] == 0 )
+	// Lookup default layer
+	const Layer *layer = &LayerIndex[ macroLayerIndexStack[ 0 ] ];
+
+	// Make sure scanCode is between layer first and last scancodes
+	if ( map != 0
+	  && scanCode < layer->last
+	  && scanCode > layer->first
+	  && *map[ scanCode - layer->first ] != 0 )
 	{
-		erro_msg("Scan Code has no defined Trigger Macro: ");
-		printHex( scanCode );
-		return 0;
+		return map[ scanCode - layer->first ];
 	}
 
-	// Return lookup result
-	return map[ scanCode ];
+	// Otherwise no defined Trigger Macro
+	erro_msg("Scan Code has no defined Trigger Macro: ");
+	printHex( scanCode );
+	return 0;
 }
 
 
@@ -1157,11 +1169,13 @@ void cliFunc_layerList( char* args )
 
 		// Layer State
 		print( NL "\t\t Layer State: " );
-		printHex( LayerIndex[ layer ].state );
+		printHex( LayerState[ layer ] );
 
-		// Max Index
-		print(" Max Index: ");
-		printHex( LayerIndex[ layer ].max );
+		// First -> Last Indices
+		print(" First -> Last Indices: ");
+		printHex( LayerIndex[ layer ].first );
+		print(" -> ");
+		printHex( LayerIndex[ layer ].last );
 	}
 }
 
@@ -1206,7 +1220,7 @@ void cliFunc_layerState( char* args )
 			printHex( arg2 );
 
 			// Set the layer state
-			LayerIndex[ arg1 ].state = arg2;
+			LayerState[ arg1 ] = arg2;
 			break;
 		}
 	}
