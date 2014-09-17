@@ -315,7 +315,7 @@ nat_ptr_t *Macro_layerLookup( uint8_t scanCode )
 		// Only use layer, if state is valid
 		// XOR each of the state bits
 		// If only two are enabled, do not use this state
-		if ( (LayerState[ layerIndex ] & 0x01) ^ (latch>>1) ^ ((LayerState[ layerIndex ] & 0x04)>>2) )
+		if ( (LayerState[ macroLayerIndexStack[ layerIndex ] ] & 0x01) ^ (latch>>1) ^ ((LayerState[ macroLayerIndexStack[ layerIndex ] ] & 0x04)>>2) )
 		{
 			// Lookup layer
 			nat_ptr_t **map = (nat_ptr_t**)layer->triggerMap;
@@ -336,7 +336,7 @@ nat_ptr_t *Macro_layerLookup( uint8_t scanCode )
 	nat_ptr_t **map = (nat_ptr_t**)LayerIndex[0].triggerMap;
 
 	// Lookup default layer
-	const Layer *layer = &LayerIndex[ macroLayerIndexStack[ 0 ] ];
+	const Layer *layer = &LayerIndex[0];
 
 	// Make sure scanCode is between layer first and last scancodes
 	if ( map != 0
@@ -689,6 +689,16 @@ inline TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 	{
 		// Just doing nothing :)
 	}
+	// If ready for transition and in Press state, set to Waiting and increment combo position
+	// Position is incremented (and possibly remove the macro from the pending list) on the next iteration
+	else if ( overallVote & TriggerMacroVote_Release && macro->state == TriggerMacro_Press )
+	{
+		macro->state = TriggerMacro_Release;
+
+		// If this is the last combo in the sequence, remove from the pending list
+		if ( macro->guide[ macro->pos + macro->guide[ macro->pos ] * TriggerGuideSize + 1 ] == 0 )
+			return TriggerMacroEval_DoResultAndRemove;
+	}
 	// If passing and in Waiting state, set macro state to Press
 	else if ( overallVote & TriggerMacroVote_Pass
 	     && ( macro->state == TriggerMacro_Waiting || macro->state == TriggerMacro_Press ) )
@@ -725,16 +735,6 @@ inline TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 				}
 			}
 		}
-	}
-	// If ready for transition and in Press state, set to Waiting and increment combo position
-	// Position is incremented (and possibly remove the macro from the pending list) on the next iteration
-	else if ( overallVote & TriggerMacroVote_Release && macro->state == TriggerMacro_Press )
-	{
-		macro->state = TriggerMacro_Release;
-
-		// If this is the last combo in the sequence, remove from the pending list
-		if ( macro->guide[ macro->pos + macro->guide[ macro->pos ] * TriggerGuideSize + 1 ] == 0 )
-			return TriggerMacroEval_Remove;
 	}
 	// Otherwise, just remove the macro on key release
 	// One more result has to be called to indicate to the ResultMacro that the key transitioned to the release state
@@ -793,6 +793,7 @@ inline ResultMacroEval Macro_evalResultMacro( var_uint_t resultMacroIndex )
 	// If the ResultMacro is finished, remove
 	if ( macro->guide[ comboItem ] == 0 )
 	{
+		macro->pos = 0;
 		return ResultMacroEval_Remove;
 	}
 

@@ -98,7 +98,7 @@ set(  DefaultMap "colemak kishsaver_unix1 stdFuncMap" )
 
 ##| ParitalMaps available on top of the BaseMap. See above for syntax on specifying multiple layers vs. layering
 ##| Can be set to ""
-#set( PartialMaps "hhkbpro2_slim" )
+set( PartialMaps "hhkbpro2" )
 
 
 
