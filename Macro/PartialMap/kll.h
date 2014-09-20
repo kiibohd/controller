@@ -64,7 +64,7 @@ typedef uint16_t nat_ptr_t;
 // Default Args (always sent): key state/analog of last key
 // Combo Length of 0 signifies end of sequence
 //
-// ResultMacro.guide     -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
+// ResultMacro.guide -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
 //
 // ResultMacroRecord.pos       -> <current combo position>
 // ResultMacroRecord.state     -> <last key state>

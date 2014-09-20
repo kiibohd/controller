@@ -89,6 +89,10 @@ volatile uint8_t USBKeys_LEDs = 0;
 // 1 - NKRO Mode
 volatile uint8_t USBKeys_Protocol = 1;
 
+// Indicate if USB should send update
+// OS only needs update if there has been a change in state
+         uint8_t USBKeys_Changed = 0;
+
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
          uint8_t USBKeys_Idle_Config = 125;
@@ -111,6 +115,10 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 	}
 
 	// TODO Analog inputs
+	// Only indicate USB has changed if either a press or release has occured
+	if ( state == 0x01 || state == 0x03 )
+		USBKeys_Changed = 1;
+
 	// Only send keypresses if press or hold state
 	if ( stateType == 0x00 && state == 0x03 ) // Release state
 		return;
@@ -164,6 +172,17 @@ inline void Output_setup()
 // USB Data Send
 inline void Output_send(void)
 {
+	// Don't send update if USB has not changed
+	if ( !USBKeys_Changed )
+	{
+		// Clear modifiers and keys
+		USBKeys_Modifiers = 0;
+		USBKeys_Sent      = 0;
+
+		return;
+	}
+	USBKeys_Changed = 0;
+
 	// TODO undo potentially old keys
 	for ( uint8_t c = USBKeys_Sent; c < USBKeys_MaxSize; c++ )
 		USBKeys_Array[c] = 0;
