@@ -39,6 +39,12 @@
 
 int main()
 {
+	// AVR - Teensy Set Clock speed to 16 MHz
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+	CLKPR = 0x80;
+	CLKPR = 0x00;
+#endif
+
 	// Enable CLI
 	CLI_init();
 
