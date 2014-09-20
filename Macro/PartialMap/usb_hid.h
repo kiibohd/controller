@@ -191,7 +191,6 @@
 #define KEY_RETURN         0x9E
 #define KEY_SEPARATOR      0x9F
 #define KEY_OUT            0xA0
-
 #define KEY_OPER           0xA1
 #define KEY_CLEAR_AGAIN    0xA2
 #define KEY_CRSEL_PROPS    0xA3
@@ -361,6 +360,115 @@
 //  MC  - Momentary Control
 //  OSC - One-Shot Control
 // depending on context.
+
+
+
+// List of Consumer Codes - USB HID 1.11
+// Only listing used ones, let me know if you need more -HaaTa
+#define CONSUMER_SCAN_NEXT_TRACK                   0x0B5
+#define CONSUMER_SCAN_PREVIOUS_TRACK               0x0B6
+#define CONSUMER_STOP                              0x0B7
+#define CONSUMER_EJECT                             0x0B8
+
+#define CONSUMER_PAUSE_PLAY                        0x0CD
+
+#define CONSUMER_MUTE                              0x0E2
+
+#define CONSUMER_BASS_BOOST                        0x0E5
+
+#define CONSUMER_LOUDNESS                          0x0E7
+
+#define CONSUMER_VOLUME_UP                         0x0E9
+#define CONSUMER_VOLUME_DOWN                       0x0EA
+
+#define CONSUMER_BASS_INCR                         0x152
+#define CONSUMER_BASS_DECR                         0x153
+#define CONSUMER_TREBLE_INCR                       0x154
+#define CONSUMER_TREBLE_DECR                       0x155
+
+#define CONSUMER_AL_LAUNCH_BUTTON_CONFIG_TOOL      0x181
+#define CONSUMER_AL_PROGRAMMABLE_BUTTON_CONFIG     0x182
+#define CONSUMER_AL_CONSUMER_CONTROL_CONFIG        0x183
+#define CONSUMER_AL_WORD_PROCESSOR                 0x184
+#define CONSUMER_AL_TEXT_EDITOR                    0x185
+#define CONSUMER_AL_SPREADSHEET                    0x186
+#define CONSUMER_AL_GRAPHICS_EDITOR                0x187
+#define CONSUMER_AL_PRESENTATION_APP               0x188
+#define CONSUMER_AL_DATABASE_APP                   0x189
+#define CONSUMER_AL_EMAIL_READER                   0x18A
+#define CONSUMER_AL_NEWSREADER                     0x18B
+#define CONSUMER_AL_VOICEMAIL                      0x18C
+#define CONSUMER_AL_CONTACTS_ADDRESS_BOOK          0x18D
+#define CONSUMER_AL_CALENDAR_SCHEDULE              0x18E
+#define CONSUMER_AL_TASK_PROJECT_MANAGER           0x18F
+#define CONSUMER_AL_LOG_JOURNAL_TIMECARD           0x190
+#define CONSUMER_AL_CHECKBOOK_FINANCE              0x191
+#define CONSUMER_AL_CALCULATOR                     0x192
+#define CONSUMER_AL_A_V_CAPTURE_PLAYBACK           0x193
+#define CONSUMER_AL_LOCAL_MACHINE_BROWSER          0x194
+#define CONSUMER_AL_LAN_WAN_BROWSER                0x195
+#define CONSUMER_AL_INTERNET_BROWSER               0x196
+#define CONSUMER_AL_REMOTE_NETWORKING_ISP_CONNECT  0x197
+#define CONSUMER_AL_NETWORK_CONFERENCE             0x198
+#define CONSUMER_AL_NETWORK_CHAT                   0x199
+#define CONSUMER_AL_TELEPHONY_DIALER               0x19A
+#define CONSUMER_AL_LOGON                          0x19B
+#define CONSUMER_AL_LOGOFF                         0x19C
+#define CONSUMER_AL_LOGON_LOGOFF                   0x19D
+#define CONSUMER_AL_TERMINAL_LOCK_SCREENSAVER      0x19E
+#define CONSUMER_AL_CONTROL_PANEL                  0x19F
+#define CONSUMER_AL_COMMAND_LINE_PROCESSOR_RUN     0x1A0
+#define CONSUMER_AL_PROCESS_TASK_MANAGER           0x1A1
+#define CONSUMER_AL_SELECT_TAST_APP                0x1A2
+#define CONSUMER_AL_NEXT_TASK_APP                  0x1A3
+#define CONSUMER_AL_PREVIOUS_TASK_APP              0x1A4
+#define CONSUMER_AL_PREEMPTIVE_HALT_TASK_APP       0x1A5
+
+#define CONSUMER_AC_NEW                            0x201
+#define CONSUMER_AC_OPEN                           0x202
+#define CONSUMER_AC_CLOSE                          0x203
+#define CONSUMER_AC_EXIT                           0x204
+#define CONSUMER_AC_MAXIMIZE                       0x205
+#define CONSUMER_AC_MINIMIZE                       0x206
+#define CONSUMER_AC_SAVE                           0x207
+#define CONSUMER_AC_PRINT                          0x208
+#define CONSUMER_AC_PROPERTIES                     0x209
+#define CONSUMER_AC_UNDO                           0x21A
+#define CONSUMER_AC_COPY                           0x21B
+#define CONSUMER_AC_CUT                            0x21C
+#define CONSUMER_AC_PASTE                          0x21D
+#define CONSUMER_AC_SELECT_ALL                     0x21E
+#define CONSUMER_AC_FIND                           0x21F
+#define CONSUMER_AC_FIND_AND_REPLACE               0x220
+#define CONSUMER_AC_SEARCH                         0x221
+#define CONSUMER_AC_GO_TO                          0x222
+#define CONSUMER_AC_HOME                           0x223
+#define CONSUMER_AC_BACK                           0x224
+#define CONSUMER_AC_FORWARD                        0x225
+#define CONSUMER_AC_STOP                           0x226
+#define CONSUMER_AC_REFRESH                        0x227
+#define CONSUMER_AC_PREVIOUS_LINK                  0x228
+#define CONSUMER_AC_NEXT_LINK                      0x229
+#define CONSUMER_AC_BOOKMARKS                      0x22A
+#define CONSUMER_AC_HISTORY                        0x22B
+#define CONSUMER_AC_SUBSCRIPTIONS                  0x22C
+#define CONSUMER_AC_ZOOM_IN                        0x22D
+#define CONSUMER_AC_ZOOM_OUT                       0x22E
+#define CONSUMER_AC_ZOOM                           0x22F
+#define CONSUMER_AC_FULL_SCREEN_VIEW               0x230
+#define CONSUMER_AC_NORMAL_VIEW                    0x231
+#define CONSUMER_AC_VIEW_TOGGLE                    0x232
+#define CONSUMER_AC_SCROLL_UP                      0x233
+#define CONSUMER_AC_SCROLL_DOWN                    0x234
+#define CONSUMER_AC_SCROLL                         0x235
+#define CONSUMER_AC_PAN_LEFT                       0x236
+#define CONSUMER_AC_PAN_RIGHT                      0x237
+#define CONSUMER_AC_PAN                            0x238
+#define CONSUMER_AC_NEW_WINDOW                     0x239
+#define CONSUMER_AC_TILE_HORIZONTALLY              0x23A
+#define CONSUMER_AC_TILE_VERTICALLY                0x23B
+#define CONSUMER_AC_FORMAT                         0x23C
+
 
 
 #endif
