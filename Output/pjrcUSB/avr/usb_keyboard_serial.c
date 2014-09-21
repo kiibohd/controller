@@ -99,6 +99,7 @@ inline void usb_keyboard_send()
 	// Send boot keyboard interrupt packet(s)
 	case 0:
 		usb_keyboard_toHost();
+		USBKeys_Changed = USBKeyChangeState_None;
 		break;
 
 	// Send NKRO keyboard interrupts packet(s)

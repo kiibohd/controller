@@ -1,6 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
+ * Modifications by Jacob Alexander 2013-2014
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -10,10 +11,10 @@
  * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
  *
- * 1. The above copyright notice and this permission notice shall be 
+ * 1. The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  *
- * 2. If the Software is incorporated into a build system that allows 
+ * 2. If the Software is incorporated into a build system that allows
  * selection among a list of target devices, then similar target
  * devices manufactured by PJRC.COM must be included in the list of
  * target devices and selectable in the same manner.
@@ -28,16 +29,25 @@
  * SOFTWARE.
  */
 
-#include "usb_dev.h"
-#include "usb_keyboard.h"
-#include <Lib/OutputLib.h>
+// ----- Includes -----
+
+// Compiler Includes
 #include <string.h> // for memcpy()
 
+// Project Includes
+#include <Lib/OutputLib.h>
+#include <print.h>
+
+// Local Includes
+#include "usb_dev.h"
+#include "usb_keyboard.h"
+
+
+
+// ----- Defines -----
 
 // Maximum number of transmit packets to queue so we don't starve other endpoints for memory
 #define TX_PACKET_LIMIT 4
-
-static uint8_t transmit_previous_timeout=0;
 
 // When the PC isn't listening, how long do we wait before discarding data?
 #define TX_TIMEOUT_MSEC 50
@@ -51,32 +61,53 @@ static uint8_t transmit_previous_timeout=0;
 #endif
 
 
+
+// ----- Variables -----
+
+static uint8_t transmit_previous_timeout = 0;
+
+
+
+// ----- Functions -----
+
 // send the contents of keyboard_keys and keyboard_modifier_keys
-int usb_keyboard_send(void)
+void usb_keyboard_send()
 {
-	uint32_t wait_count=0;
+	uint32_t wait_count = 0;
 	usb_packet_t *tx_packet;
 
-	while (1) {
-		if (!usb_configuration) {
-			return -1;
+	while ( 1 )
+	{
+		if ( !usb_configuration )
+		{
+			erro_print("USB not configured...");
+			return;
 		}
-		if (usb_tx_packet_count(KEYBOARD_ENDPOINT) < TX_PACKET_LIMIT) {
+		if ( usb_tx_packet_count(KEYBOARD_ENDPOINT) < TX_PACKET_LIMIT )
+		{
 			tx_packet = usb_malloc();
-			if (tx_packet) break;
+			if ( tx_packet )
+				break;
 		}
-		if (++wait_count > TX_TIMEOUT || transmit_previous_timeout) {
+		if ( ++wait_count > TX_TIMEOUT || transmit_previous_timeout )
+		{
 			transmit_previous_timeout = 1;
-			return -1;
+			warn_print("USB Transmit Timeout...");
+			return;
 		}
 		yield();
 	}
+
+	// Boot Mode
 	*(tx_packet->buf) = USBKeys_Modifiers;
 	*(tx_packet->buf + 1) = 0;
-	memcpy(tx_packet->buf + 2, USBKeys_Array, USB_MAX_KEY_SEND);
+	memcpy( tx_packet->buf + 2, USBKeys_Keys, USB_BOOT_MAX_KEYS );
 	tx_packet->len = 8;
-	usb_tx(KEYBOARD_ENDPOINT, tx_packet);
 
-	return 0;
+	// Send USB Packet
+	usb_tx( KEYBOARD_ENDPOINT, tx_packet );
+	USBKeys_Changed = USBKeyChangeState_None;
+
+	return;
 }
 

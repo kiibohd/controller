@@ -106,7 +106,7 @@ volatile uint8_t  USBKeys_LEDs = 0;
 // Protocol setting from the host.
 // 0 - Boot Mode
 // 1 - NKRO Mode (Default, unless set by a BIOS or boot interface)
-volatile uint8_t  USBKeys_Protocol = 1;
+volatile uint8_t  USBKeys_Protocol = 0;
 
 // Indicate if USB should send update
 // OS only needs update if there has been a change in state
@@ -379,29 +379,18 @@ inline void Output_setup()
 // USB Data Send
 inline void Output_send()
 {
-	// Don't send update if USB has not changed
-	if ( !USBKeys_Changed )
-	{
-		// Clear modifiers and keys
-		USBKeys_Modifiers = 0;
-		USBKeys_Sent      = 0;
-
-		return;
-	}
-
 	// Boot Mode Only, unset stale keys
 	if ( USBKeys_Protocol == 0 )
 		for ( uint8_t c = USBKeys_Sent; c < USB_BOOT_MAX_KEYS; c++ )
 			USBKeys_Keys[c] = 0;
 
-	// Send keypresses
+	// Send keypresses while there are pending changes
 	while ( USBKeys_Changed )
 		usb_keyboard_send();
 
 	// Clear modifiers and keys
 	USBKeys_Modifiers = 0;
 	USBKeys_Sent      = 0;
-	USBKeys_Changed   = USBKeyChangeState_None;
 
 	// Signal Scan Module we are finished
 	switch ( USBKeys_Protocol )
