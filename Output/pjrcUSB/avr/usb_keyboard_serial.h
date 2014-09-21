@@ -43,33 +43,32 @@
 // ----- Function Declarations -----
 
 // Basic USB Configuration
-void usb_init(void);			// initialize everything
-uint8_t usb_configured(void);		// is the USB port configured
+void usb_init();			// initialize everything
+uint8_t usb_configured();		// is the USB port configured
 
 // Keyboard HID Functions
-int8_t usb_keyboard_send(void);
+void usb_keyboard_send();
 
 // Chip Level Functions
 void usb_device_reload();               // Enable firmware reflash mode
-void wdt_init(void) __attribute__((naked)) __attribute__((section(".init3"))); // Needed for software reset
 
 // USB Serial CDC Functions
-int16_t usb_serial_getchar(void);	// receive a character (-1 if timeout/error)
-uint8_t usb_serial_available(void);	// number of bytes in receive buffer
-void usb_serial_flush_input(void);	// discard any buffered input
+int16_t usb_serial_getchar();	// receive a character (-1 if timeout/error)
+uint8_t usb_serial_available();	// number of bytes in receive buffer
+void usb_serial_flush_input();	// discard any buffered input
 
 // transmitting data
-int8_t usb_serial_putchar(uint8_t c);	// transmit a character
-int8_t usb_serial_putchar_nowait(uint8_t c);  // transmit a character, do not wait
+int8_t usb_serial_putchar(uint8_t c);        // transmit a character
+int8_t usb_serial_putchar_nowait(uint8_t c); // transmit a character, do not wait
 int8_t usb_serial_write(const char *buffer, uint16_t size); // transmit a buffer
-void usb_serial_flush_output(void);	// immediately transmit any buffered output
+void usb_serial_flush_output();              // immediately transmit any buffered output
 
 // serial parameters
-uint32_t usb_serial_get_baud(void);	// get the baud rate
-uint8_t usb_serial_get_stopbits(void);	// get the number of stop bits
-uint8_t usb_serial_get_paritytype(void);// get the parity type
-uint8_t usb_serial_get_numbits(void);	// get the number of data bits
-uint8_t usb_serial_get_control(void);	// get the RTS and DTR signal state
+uint32_t usb_serial_get_baud();      // get the baud rate
+uint8_t usb_serial_get_stopbits();   // get the number of stop bits
+uint8_t usb_serial_get_paritytype(); // get the parity type
+uint8_t usb_serial_get_numbits();    // get the number of data bits
+uint8_t usb_serial_get_control();    // get the RTS and DTR signal state
 int8_t usb_serial_set_control(uint8_t signals); // set DSR, DCD, RI, etc
 
 
@@ -201,7 +200,7 @@ int8_t usb_serial_set_control(uint8_t signals); // set DSR, DCD, RI, etc
 
 #define KEYBOARD_NKRO_INTERFACE  0
 #define KEYBOARD_NKRO_ENDPOINT   1
-#define KEYBOARD_NKRO_SIZE       16
+#define KEYBOARD_NKRO_SIZE       128
 #define KEYBOARD_NKRO_HID_BUFFER EP_DOUBLE_BUFFER
 
 #define KEYBOARD_INTERFACE       1
@@ -288,22 +287,27 @@ static const uint8_t PROGMEM keyboard_hid_report_desc[] = {
         0x25, 0x01,          //   Logical Maximum (1),
         0x81, 0x02,          //   Input (Data, Variable, Absolute),
 
+	// Reserved Byte
+        0x75, 0x08,          //   Report Size (8),
+        0x95, 0x01,          //   Report Count (1),
+        0x81, 0x03,          //   Output (Constant),
+
 	// LED Report
-        0x95, 0x05,          //   Report Count (5),
         0x75, 0x01,          //   Report Size (1),
+        0x95, 0x05,          //   Report Count (5),
         0x05, 0x08,          //   Usage Page (LEDs),
         0x19, 0x01,          //   Usage Minimum (1),
         0x29, 0x05,          //   Usage Maximum (5),
         0x91, 0x02,          //   Output (Data, Variable, Absolute),
 
 	// LED Report Padding
-        0x95, 0x01,          //   Report Count (1),
         0x75, 0x03,          //   Report Size (3),
+        0x95, 0x01,          //   Report Count (1),
         0x91, 0x03,          //   Output (Constant),
 
 	// Normal Keys
-        0x95, 0x06,          //   Report Count (6),
         0x75, 0x08,          //   Report Size (8),
+        0x95, 0x06,          //   Report Count (6),
         0x15, 0x00,          //   Logical Minimum (0),
         0x25, 0x7F,          //   Logical Maximum(104),
         0x05, 0x07,          //   Usage Page (Key Codes),
@@ -315,95 +319,115 @@ static const uint8_t PROGMEM keyboard_hid_report_desc[] = {
 
 // Keyboard Protocol 1, HID 1.11 spec, Appendix B, page 59-60
 static const uint8_t PROGMEM keyboard_nkro_hid_report_desc[] = {
-	/*
-	// System Control Collection
-        0x05, 0x01,          // Usage Page (Generic Desktop),
-        0x09, 0x80,          // Usage (System Control),
-        0xA1, 0x01,          // Collection (Application),
-        0x85, 0x01,          //   Report ID (1),
-        0x95, 0x06,          //   Report Count (6),
-        0x75, 0x08,          //   Report Size (8),
-        0x19, 0x81,          //   Usage Minimum (129),
-        0x29, 0x83,          //   Usage Maximum (131),
-        0x15, 0x00,          //   Logical Minimum (0),
-        0x25, 0x01,          //   Logical Maximum (1),
-        0x81, 0x02,          //   Input (Data, Variable, Absolute),
-        0x95, 0x05,          //   Report Count (5),
-        0x75, 0x01,          //   Report Size (1),
-        0x81, 0x03,          //   Input (Constant, Data, Variable, Absolute),
-        0xc0, 0x00,          // End Collection - System Control
-	*/
-
 	// Keyboard Collection
         0x05, 0x01,          // Usage Page (Generic Desktop),
         0x09, 0x06,          // Usage (Keyboard),
         0xA1, 0x01,          // Collection (Application) - Keyboard,
 
 	// Modifier Byte
+        0x85, 0x01,          //   Report ID (1),
         0x75, 0x01,          //   Report Size (1),
-        0x85, 0x02,          //   Report ID (2),
         0x95, 0x08,          //   Report Count (8),
+        0x15, 0x00,          //   Logical Minimum (0),
+        0x25, 0x01,          //   Logical Maximum (1),
         0x05, 0x07,          //   Usage Page (Key Codes),
         0x19, 0xE0,          //   Usage Minimum (224),
         0x29, 0xE7,          //   Usage Maximum (231),
-        0x15, 0x00,          //   Logical Minimum (0),
-        0x25, 0x01,          //   Logical Maximum (1),
-        0x81, 0x02,          //   Input (Data, Variable, Absolute),
-
-	// Media Keys
-        0x95, 0x08,          //   Report Count (8),
-        0x85, 0x03,          //   Report ID (3),
-        0x75, 0x01,          //   Report Size (1),
-        0x15, 0x00,          //   Logical Minimum (0),
-        0x25, 0x01,          //   Logical Maximum (1),
-        0x05, 0x0C,          //   Usage Page (Consumer),
-        0x09, 0xE9,          //   Usage (Volume Increment),
-        0x09, 0xEA,          //   Usage (Volume Decrement),
-        0x09, 0xE2,          //   Usage (Mute),
-        0x09, 0xCD,          //   Usage (Play/Pause),
-        0x09, 0xB5,          //   Usage (Scan Next Track),
-        0x09, 0xB6,          //   Usage (Scan Previous Track),
-        0x09, 0xB7,          //   Usage (Stop),
-        0x09, 0xB8,          //   Usage (Eject),
         0x81, 0x02,          //   Input (Data, Variable, Absolute),
 
 	// LED Report
-        0x95, 0x05,          //   Report Count (5),
-        0x85, 0x01,          //   Report ID (1),
+        0x85, 0x02,          //   Report ID (2),
         0x75, 0x01,          //   Report Size (1),
+        0x95, 0x05,          //   Report Count (5),
         0x05, 0x08,          //   Usage Page (LEDs),
         0x19, 0x01,          //   Usage Minimum (1),
         0x29, 0x05,          //   Usage Maximum (5),
         0x91, 0x02,          //   Output (Data, Variable, Absolute),
 
 	// LED Report Padding
-        0x95, 0x01,          //   Report Count (1),
         0x75, 0x03,          //   Report Size (3),
+        0x95, 0x01,          //   Report Count (1),
         0x91, 0x03,          //   Output (Constant),
 
-	/*
-	// Misc Keys
-        0x95, 0x06,          //   Report Count (6),
+	// Normal Keys - Using an NKRO Bitmap
+	//
+	// NOTES:
+	// Supports all keys defined by the spec, except 1-3 which define error events
+	//  and 0 which is "no keys pressed"
+	// See http://www.usb.org/developers/hidpage/Hut1_12v2.pdf Chapter 10
+	// Or Macros/PartialMap/usb_hid.h
+	//
+	// 165-175 are reserved/unused as well as 222-223 and 232-65535
+	// 224-231 are used for modifiers (see above)
+	//
+	// Packing of bitmaps are as follows:
+	//   4-164 : 20 bytes + 1 Report ID byte (0x04-0xA4)
+	// 176-221 :  6 bytes + 1 Report ID byte (0xB0-0xDD) (45 bits + 3 padding bits for 6 bytes total)
+	//
+	// 4-164 (20 bytes/160 bits)
+        0x85, 0x03,          //   Report ID (3),
         0x75, 0x01,          //   Report Size (1),
+        0x95, 0xA0,          //   Report Count (160),
         0x15, 0x00,          //   Logical Minimum (0),
-        0x25, 0x7F,          //   Logical Maximum(104),
+        0x25, 0x01,          //   Logical Maximum (1),
         0x05, 0x07,          //   Usage Page (Key Codes),
-        0x19, 0x00,          //   Usage Minimum (0),
-        0x29, 0x7F,          //   Usage Maximum (104),
-        0x81, 0x00,          //   Input (Data, Array),
-	*/
+        0x19, 0x04,          //   Usage Minimum (4),
+        0x29, 0xA4,          //   Usage Maximum (164),
+        0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
 
-	// Normal Keys
-        0x95, 0x06,          //   Report Count (6),
+	// 176-221 (45 bits)
         0x85, 0x04,          //   Report ID (4),
-        0x75, 0x08,          //   Report Size (8),
+        0x75, 0x01,          //   Report Size (1),
+        0x95, 0x2D,          //   Report Count (45),
         0x15, 0x00,          //   Logical Minimum (0),
-        0x25, 0x7F,          //   Logical Maximum(104),
+        0x25, 0x01,          //   Logical Maximum (1),
         0x05, 0x07,          //   Usage Page (Key Codes),
-        0x19, 0x00,          //   Usage Minimum (0),
-        0x29, 0x7F,          //   Usage Maximum (104),
-        0x81, 0x00,          //   Input (Data, Array),
+        0x19, 0xB0,          //   Usage Minimum (176),
+        0x29, 0xDD,          //   Usage Maximum (221),
+        0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
+
+	// 176-221 Padding (3 bits)
+        0x75, 0x03,          //   Report Size (3),
+        0x95, 0x01,          //   Report Count (1),
+        0x81, 0x03,          //   Input (Constant),
         0xc0,                // End Collection - Keyboard
+
+	// System Control Collection
+	//
+	// NOTES:
+	// Not bothering with NKRO for this table. If there's need, I can implement it. -HaaTa
+	// Using a 1KRO scheme
+        0x05, 0x01,          // Usage Page (Generic Desktop),
+        0x09, 0x80,          // Usage (System Control),
+        0xA1, 0x01,          // Collection (Application),
+        0x85, 0x05,          //   Report ID (5),
+        0x75, 0x08,          //   Report Size (8),
+        0x95, 0x01,          //   Report Count (1),
+        0x16, 0x81, 0x00,    //   Logical Minimum (129),
+        0x26, 0xB7, 0x00,    //   Logical Maximum (183),
+        0x19, 0x81,          //   Usage Minimum (129),
+        0x29, 0xB7,          //   Usage Maximum (183),
+        0x81, 0x00,          //   Input (Data, Array),
+        0xc0,                // End Collection - System Control
+
+	// Consumer Control Collection - Media Keys
+	//
+	// NOTES:
+	// Not bothering with NKRO for this table. If there's a need, I can implement it. -HaaTa
+	// Using a 1KRO scheme
+        0x05, 0x0c,          // Usage Page (Consumer),
+        0x09, 0x01,          // Usage (Consumer Control),
+        0xA1, 0x01,          // Collection (Application),
+        0x85, 0x06,          //   Report ID (6),
+        0x75, 0x10,          //   Report Size (16),
+        0x95, 0x01,          //   Report Count (1),
+        0x16, 0x20, 0x00,    //   Logical Minimum (32),
+        0x26, 0x9C, 0x02,    //   Logical Maximum (668),
+        0x05, 0x0C,          //   Usage Page (Consumer),
+        0x19, 0x20,          //   Usage Minimum (32),
+        0x2A, 0x9C, 0x02,    //   Usage Maximum (668),
+        0x81, 0x00,          //   Input (Data, Array),
+        0xc0,                // End Collection - Consumer Control
 };
 
 // <Configuration> + <Keyboard HID> + <NKRO Keyboard HID> + <Serial CDC>
@@ -442,7 +466,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	9,					// bLength
 	0x21,					// bDescriptorType
 	0x11, 0x01,				// bcdHID
-	33,					// bCountryCode - Defaulting to US for now. TODO
+	0,					// bCountryCode - Setting to 0/Undefined
 	1,					// bNumDescriptors
 	0x22,					// bDescriptorType
 	LSB(sizeof(keyboard_hid_report_desc)),	// wDescriptorLength
@@ -473,7 +497,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	9,					// bLength
 	0x21,					// bDescriptorType
 	0x11, 0x01,				// bcdHID
-	33,					// bCountryCode - Defaulting to US for now. TODO
+	33,					// bCountryCode - Setting to 0/Undefined
 	1,					// bNumDescriptors
 	0x22,					// bDescriptorType
 	                                        // wDescriptorLength

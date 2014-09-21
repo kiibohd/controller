@@ -44,6 +44,20 @@
 
 
 
+// ----- Macros -----
+
+// Used to build a bitmap lookup table from a byte addressable array
+#define byteLookup( byte ) case (( byte ) * ( 8 )):         bytePosition = byte; byteShift = 0; break; \
+                           case (( byte ) * ( 8 ) + ( 1 )): bytePosition = byte; byteShift = 1; break; \
+                           case (( byte ) * ( 8 ) + ( 2 )): bytePosition = byte; byteShift = 2; break; \
+                           case (( byte ) * ( 8 ) + ( 3 )): bytePosition = byte; byteShift = 3; break; \
+                           case (( byte ) * ( 8 ) + ( 4 )): bytePosition = byte; byteShift = 4; break; \
+                           case (( byte ) * ( 8 ) + ( 5 )): bytePosition = byte; byteShift = 5; break; \
+                           case (( byte ) * ( 8 ) + ( 6 )): bytePosition = byte; byteShift = 6; break; \
+                           case (( byte ) * ( 8 ) + ( 7 )): bytePosition = byte; byteShift = 7; break
+
+
+
 // ----- Function Declarations -----
 
 void cliFunc_kbdProtocol( char* args );
@@ -51,6 +65,7 @@ void cliFunc_readLEDs   ( char* args );
 void cliFunc_sendKeys   ( char* args );
 void cliFunc_setKeys    ( char* args );
 void cliFunc_setMod     ( char* args );
+
 
 
 // ----- Variables -----
@@ -70,38 +85,105 @@ const CLIDictItem outputCLIDict[] = {
 // Which modifier keys are currently pressed
 // 1=left ctrl,    2=left shift,   4=left alt,    8=left gui
 // 16=right ctrl, 32=right shift, 64=right alt, 128=right gui
-         uint8_t USBKeys_Modifiers    = 0;
-         uint8_t USBKeys_ModifiersCLI = 0; // Separate CLI send buffer
+         uint8_t  USBKeys_Modifiers    = 0;
+         uint8_t  USBKeys_ModifiersCLI = 0; // Separate CLI send buffer
 
 // Currently pressed keys, max is defined by USB_MAX_KEY_SEND
-         uint8_t USBKeys_Array   [USB_MAX_KEY_SEND];
-         uint8_t USBKeys_ArrayCLI[USB_MAX_KEY_SEND]; // Separate CLI send buffer
+         uint8_t  USBKeys_Keys   [USB_NKRO_BITFIELD_SIZE_KEYS];
+         uint8_t  USBKeys_KeysCLI[USB_NKRO_BITFIELD_SIZE_KEYS]; // Separate CLI send buffer
+
+// System Control and Consumer Control 1KRO containers
+         uint8_t  USBKeys_SysCtrl;
+         uint16_t USBKeys_ConsCtrl;
 
 // The number of keys sent to the usb in the array
-         uint8_t USBKeys_Sent    = 0;
-         uint8_t USBKeys_SentCLI = 0;
+         uint8_t  USBKeys_Sent    = 0;
+         uint8_t  USBKeys_SentCLI = 0;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
-volatile uint8_t USBKeys_LEDs = 0;
+volatile uint8_t  USBKeys_LEDs = 0;
 
 // Protocol setting from the host.
-// 0 - Boot Mode (Default, until set by the host)
-// 1 - NKRO Mode
-volatile uint8_t USBKeys_Protocol = 1;
+// 0 - Boot Mode
+// 1 - NKRO Mode (Default, unless set by a BIOS or boot interface)
+volatile uint8_t  USBKeys_Protocol = 1;
 
 // Indicate if USB should send update
 // OS only needs update if there has been a change in state
-         uint8_t USBKeys_Changed = 0;
+USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
-         uint8_t USBKeys_Idle_Config = 125;
+         uint8_t  USBKeys_Idle_Config = 125;
 
 // count until idle timeout
-         uint8_t USBKeys_Idle_Count = 0;
+         uint8_t  USBKeys_Idle_Count = 0;
+
 
 
 // ----- Capabilities -----
+
+// Sends a Consumer Control code to the USB Output buffer
+void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_consCtrlSend(consCode)");
+		return;
+	}
+
+	// Not implemented in Boot Mode
+	if ( USBKeys_Protocol == 0 )
+	{
+		warn_print("Consumer Control is not implemented for Boot Mode");
+		return;
+	}
+
+	// TODO Analog inputs
+	// Only indicate USB has changed if either a press or release has occured
+	if ( state == 0x01 || state == 0x03 )
+		USBKeys_Changed |= USBKeyChangeState_Consumer;
+
+	// Only send keypresses if press or hold state
+	if ( stateType == 0x00 && state == 0x03 ) // Release state
+		return;
+
+	// Set consumer control code
+	USBKeys_ConsCtrl = *(uint16_t*)(&args[0]);
+}
+
+
+// Sends a System Control code to the USB Output buffer
+void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_sysCtrlSend(sysCode)");
+		return;
+	}
+
+	// Not implemented in Boot Mode
+	if ( USBKeys_Protocol == 0 )
+	{
+		warn_print("System Control is not implemented for Boot Mode");
+		return;
+	}
+
+	// TODO Analog inputs
+	// Only indicate USB has changed if either a press or release has occured
+	if ( state == 0x01 || state == 0x03 )
+		USBKeys_Changed |= USBKeyChangeState_System;
+
+	// Only send keypresses if press or hold state
+	if ( stateType == 0x00 && state == 0x03 ) // Release state
+		return;
+
+	// Set system control code
+	USBKeys_SysCtrl = args[0];
+}
+
 
 // Adds a single USB Code to the USB Output buffer
 // Argument #1: USB Code
@@ -114,35 +196,161 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 		return;
 	}
 
-	// TODO Analog inputs
-	// Only indicate USB has changed if either a press or release has occured
-	if ( state == 0x01 || state == 0x03 )
-		USBKeys_Changed = 1;
+	// Depending on which mode the keyboard is in the USB needs Press/Hold/Release events
+	uint8_t keyPress = 0; // Default to key release, only used for NKRO
+	switch ( USBKeys_Protocol )
+	{
+	case 0: // Boot Mode
+		// TODO Analog inputs
+		// Only indicate USB has changed if either a press or release has occured
+		if ( state == 0x01 || state == 0x03 )
+			USBKeys_Changed = USBKeyChangeState_MainKeys;
 
-	// Only send keypresses if press or hold state
-	if ( stateType == 0x00 && state == 0x03 ) // Release state
-		return;
+		// Only send keypresses if press or hold state
+		if ( stateType == 0x00 && state == 0x03 ) // Release state
+			return;
+		break;
+	case 1: // NKRO Mode
+		// Only send press and release events
+		if ( stateType == 0x00 && state == 0x02 ) // Hold state
+			return;
+
+		// Determine if setting or unsetting the bitfield (press == set)
+		if ( stateType == 0x00 && state == 0x01 ) // Press state
+			keyPress = 1;
+		break;
+	}
 
 	// Get the keycode from arguments
 	uint8_t key = args[0];
 
-	// Set the modifier bit if this key is a modifier
-	if ( (key & 0xE0) == 0xE0 ) // AND with 0xE0 (Left Ctrl, first modifier)
+	// Depending on which mode the keyboard is in, USBKeys_Keys array is used differently
+	// Boot mode - Maximum of 6 byte codes
+	// NKRO mode - Each bit of the 26 byte corresponds to a key
+	//  Bits   0 - 160 (first 20 bytes) correspond to USB Codes 4   - 164
+	//  Bits 161 - 205 (last 6 bytes)   correspond to USB Codes 176 - 221
+	//  Bits 206 - 208 (last byte)      correspond to the 3 padded bits in USB (unused)
+	uint8_t bytePosition = 0;
+	uint8_t byteShift = 0;
+	switch ( USBKeys_Protocol )
 	{
-		USBKeys_Modifiers |= 1 << (key ^ 0xE0); // Left shift 1 by key XOR 0xE0
-	}
-	// Normal USB Code
-	else
-	{
-		// USB Key limit reached (important for Boot Mode)
-		if ( USBKeys_Sent >= USBKeys_MaxSize )
+	case 0: // Boot Mode
+		// Set the modifier bit if this key is a modifier
+		if ( (key & 0xE0) == 0xE0 ) // AND with 0xE0 (Left Ctrl, first modifier)
 		{
-			warn_msg("USB Key limit reached");
-			errorLED( 1 );
-			return;
+			USBKeys_Modifiers |= 1 << (key ^ 0xE0); // Left shift 1 by key XOR 0xE0
+		}
+		// Normal USB Code
+		else
+		{
+			// USB Key limit reached
+			if ( USBKeys_Sent >= USB_BOOT_MAX_KEYS )
+			{
+				warn_print("USB Key limit reached");
+				return;
+			}
+
+			// Make sure key is within the USB HID range
+			if ( key <= 104 )
+			{
+				USBKeys_Keys[USBKeys_Sent++] = key;
+			}
+			// Invalid key
+			else
+			{
+				warn_msg("USB Code above 104/0x68 in Boot Mode: ");
+				printHex( key );
+				print( NL );
+			}
+		}
+		break;
+
+	case 1: // NKRO Mode
+		// Set the modifier bit if this key is a modifier
+		if ( (key & 0xE0) == 0xE0 ) // AND with 0xE0 (Left Ctrl, first modifier)
+		{
+			if ( keyPress )
+			{
+				USBKeys_Modifiers |= 1 << (key ^ 0xE0); // Left shift 1 by key XOR 0xE0
+			}
+			else // Release
+			{
+				USBKeys_Modifiers &= ~(1 << (key ^ 0xE0)); // Left shift 1 by key XOR 0xE0
+			}
+
+			USBKeys_Changed |= USBKeyChangeState_Modifiers;
+			break;
+		}
+		// First 20 bytes
+		else if ( key >= 4 && key <= 164 )
+		{
+			// Lookup (otherwise division or multiple checks are needed to do alignment)
+			uint8_t keyPos = key - 4; // Starting position in array
+			switch ( keyPos )
+			{
+				byteLookup( 0 );
+				byteLookup( 1 );
+				byteLookup( 2 );
+				byteLookup( 3 );
+				byteLookup( 4 );
+				byteLookup( 5 );
+				byteLookup( 6 );
+				byteLookup( 7 );
+				byteLookup( 8 );
+				byteLookup( 9 );
+				byteLookup( 10 );
+				byteLookup( 11 );
+				byteLookup( 12 );
+				byteLookup( 13 );
+				byteLookup( 14 );
+				byteLookup( 15 );
+				byteLookup( 16 );
+				byteLookup( 17 );
+				byteLookup( 18 );
+				byteLookup( 19 );
+			}
+
+			USBKeys_Changed |= USBKeyChangeState_MainKeys;
+		}
+		// Last 6 bytes
+		else if ( key >= 176 && key <= 221 )
+		{
+			// Lookup (otherwise division or multiple checks are needed to do alignment)
+			uint8_t keyPos = key - 176; // Starting position in array
+			switch ( keyPos )
+			{
+				byteLookup( 20 );
+				byteLookup( 21 );
+				byteLookup( 22 );
+				byteLookup( 23 );
+				byteLookup( 24 );
+				byteLookup( 25 );
+			}
+
+			USBKeys_Changed |= USBKeyChangeState_SecondaryKeys;
+		}
+		// Invalid key
+		else
+		{
+			warn_msg("USB Code not within 4-164 (0x4-0xA4) or 176-221 (0xB0-0xDD) NKRO Mode: ");
+			printHex( key );
+			print( NL );
+			break;
 		}
 
-		USBKeys_Array[USBKeys_Sent++] = key;
+		// Set/Unset
+		if ( keyPress )
+		{
+			USBKeys_Keys[bytePosition] |= (1 << byteShift);
+			USBKeys_Sent++;
+		}
+		else // Release
+		{
+			USBKeys_Keys[bytePosition] &= ~(1 << byteShift);
+			USBKeys_Sent++;
+		}
+
+		break;
 	}
 }
 
@@ -154,23 +362,22 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 inline void Output_setup()
 {
 	// Initialize the USB, and then wait for the host to set configuration.
-	// If the Teensy is powered without a PC connected to the USB port,
-	// this will wait forever.
+	// This will hang forever if USB does not initialize
 	usb_init();
 
-	while ( !usb_configured() ) /* wait */ ;
+	while ( !usb_configured() );
 
 	// Register USB Output CLI dictionary
 	CLI_registerDictionary( outputCLIDict, outputCLIDictName );
 
-	// Wait an extra second for the PC's operating system to load drivers
-	// and do whatever it does to actually be ready for input
-	//_delay_ms(1000); // TODO (is this actually necessary?)
+	// Zero out USBKeys_Keys array
+	for ( uint8_t c = 0; c < USB_NKRO_BITFIELD_SIZE_KEYS; c++ )
+		USBKeys_Keys[ c ] = 0;
 }
 
 
 // USB Data Send
-inline void Output_send(void)
+inline void Output_send()
 {
 	// Don't send update if USB has not changed
 	if ( !USBKeys_Changed )
@@ -181,21 +388,31 @@ inline void Output_send(void)
 
 		return;
 	}
-	USBKeys_Changed = 0;
 
-	// TODO undo potentially old keys
-	for ( uint8_t c = USBKeys_Sent; c < USBKeys_MaxSize; c++ )
-		USBKeys_Array[c] = 0;
+	// Boot Mode Only, unset stale keys
+	if ( USBKeys_Protocol == 0 )
+		for ( uint8_t c = USBKeys_Sent; c < USB_BOOT_MAX_KEYS; c++ )
+			USBKeys_Keys[c] = 0;
 
 	// Send keypresses
-	usb_keyboard_send();
+	while ( USBKeys_Changed )
+		usb_keyboard_send();
 
 	// Clear modifiers and keys
 	USBKeys_Modifiers = 0;
 	USBKeys_Sent      = 0;
+	USBKeys_Changed   = USBKeyChangeState_None;
 
 	// Signal Scan Module we are finished
-	Scan_finishedWithOutput( USBKeys_Sent <= USBKeys_MaxSize ? USBKeys_Sent : USBKeys_MaxSize );
+	switch ( USBKeys_Protocol )
+	{
+	case 0: // Boot Mode
+		Scan_finishedWithOutput( USBKeys_Sent <= USB_BOOT_MAX_KEYS ? USBKeys_Sent : USB_BOOT_MAX_KEYS );
+		break;
+	case 1: // NKRO Mode
+		Scan_finishedWithOutput( USBKeys_Sent );
+		break;
+	}
 }
 
 
@@ -271,10 +488,11 @@ void cliFunc_readLEDs( char* args )
 
 void cliFunc_sendKeys( char* args )
 {
-	// Copy USBKeys_ArrayCLI to USBKeys_Array
+	// Copy USBKeys_KeysCLI to USBKeys_Keys
 	for ( uint8_t key = 0; key < USBKeys_SentCLI; ++key )
 	{
-		USBKeys_Array[key] = USBKeys_ArrayCLI[key];
+		// TODO
+		//USBKeys_Keys[key] = USBKeys_KeysCLI[key];
 	}
 	USBKeys_Sent = USBKeys_SentCLI;
 
@@ -290,7 +508,7 @@ void cliFunc_setKeys( char* args )
 	char* arg2Ptr = args;
 
 	// Parse up to USBKeys_MaxSize args (whichever is least)
-	for ( USBKeys_SentCLI = 0; USBKeys_SentCLI < USBKeys_MaxSize; ++USBKeys_SentCLI )
+	for ( USBKeys_SentCLI = 0; USBKeys_SentCLI < USB_BOOT_MAX_KEYS; ++USBKeys_SentCLI )
 	{
 		curArgs = arg2Ptr;
 		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
@@ -300,7 +518,8 @@ void cliFunc_setKeys( char* args )
 			break;
 
 		// Add the USB code to be sent
-		USBKeys_ArrayCLI[USBKeys_SentCLI] = numToInt( arg1Ptr );
+		// TODO
+		//USBKeys_KeysCLI[USBKeys_SentCLI] = numToInt( arg1Ptr );
 	}
 }
 

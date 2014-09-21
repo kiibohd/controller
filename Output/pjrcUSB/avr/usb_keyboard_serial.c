@@ -55,46 +55,19 @@ void usb_keyboard_toHost()
 	// Modifiers
 	UEDATX = USBKeys_Modifiers;
 
-	// LED Report spacer
-	USBKeys_LEDs = 0;
+	// Reserved Byte
+	UEDATX = 0x00;
 
-	// Normal Keys
+	// Normal Keys, only supports 6 in Boot mode
 	for ( i = 0; i < 6; i++)
 	{
-		UEDATX = USBKeys_Array[i];
+		UEDATX = USBKeys_Keys[i];
 	}
-	UEINTX = 0x3A;
+	UEINTX = 0x00;
 }
 
-// Sends NKRO keyboard out to host
-// NOTE: Make sure to match the descriptor
-void usb_nkrokeyboard_toHost()
-{
-	uint8_t i;
-
-	// Modifiers
-	/*
-	UEDATX = 0x02;
-	UEDATX = USBKeys_Modifiers;
-	UEINTX = 0x3A;
-	*/
-
-	// Media Keys
-	UEDATX = 0x03;
-	UEDATX = 0;
-	UEINTX = 0x3A;
-
-	// Normal Keys
-	UEDATX = 0x04;
-	for ( i = 0; i < 6; i++)
-	{
-		UEDATX = USBKeys_Array[i];
-	}
-	UEINTX = 0x3A;
-}
-
-// send the contents of USBKeys_Array and USBKeys_Modifiers
-int8_t usb_keyboard_send()
+// send the contents of USBKeys_Keys and USBKeys_Modifiers
+inline void usb_keyboard_send()
 {
 	uint8_t intr_state, timeout;
 
@@ -108,26 +81,88 @@ int8_t usb_keyboard_send()
 
 		// has the USB gone offline? or exceeded timeout?
 		if ( !usb_configuration || UDFNUML == timeout )
-			return -1;
+		{
+			erro_print("USB Offline? Timeout?");
+			return;
+		}
 
 		// get ready to try checking again
 		intr_state = SREG;
 		cli();
 
 		// If not using Boot protocol, send NKRO
-		UENUM = KEYBOARD_ENDPOINT;
-		//UENUM = USBKeys_Protocol ? KEYBOARD_NKRO_ENDPOINT : KEYBOARD_ENDPOINT;
+		UENUM = USBKeys_Protocol ? KEYBOARD_NKRO_ENDPOINT : KEYBOARD_ENDPOINT;
 	} while ( !( UEINTX & (1 << RWAL) ) );
 
-	// Send normal keyboard interrupt packet(s)
-	//switch ( USBKeys_Protocol )
-	//{
-	//}
-	usb_keyboard_toHost();
+	switch ( USBKeys_Protocol )
+	{
+	// Send boot keyboard interrupt packet(s)
+	case 0:
+		usb_keyboard_toHost();
+		break;
+
+	// Send NKRO keyboard interrupts packet(s)
+	case 1:
+		// Check modifiers
+		if ( USBKeys_Changed & USBKeyChangeState_Modifiers )
+		{
+			UEDATX = 0x01; // ID
+			UEDATX = USBKeys_Modifiers;
+			UEINTX = 0; // Finished with ID
+
+			USBKeys_Changed &= ~USBKeyChangeState_Modifiers; // Mark sent
+		}
+		// Check main key section
+		else if ( USBKeys_Changed & USBKeyChangeState_MainKeys )
+		{
+			UEDATX = 0x03; // ID
+
+			// 4-164 (first 20 bytes)
+			for ( uint8_t byte = 0; byte < 20; byte++ )
+				UEDATX = USBKeys_Keys[ byte ];
+
+			UEINTX = 0; // Finished with ID
+
+			USBKeys_Changed &= ~USBKeyChangeState_MainKeys; // Mark sent
+		}
+		// Check secondary key section
+		else if ( USBKeys_Changed & USBKeyChangeState_SecondaryKeys )
+		{
+			UEDATX = 0x04; // ID
+
+			// 176-221 (last 6 bytes)
+			for ( uint8_t byte = 20; byte < 26; byte++ )
+				UEDATX = USBKeys_Keys[ byte ];
+
+			UEINTX = 0; // Finished with ID
+
+			USBKeys_Changed &= ~USBKeyChangeState_SecondaryKeys; // Mark sent
+		}
+		// Check system control keys
+		else if ( USBKeys_Changed & USBKeyChangeState_System )
+		{
+			UEDATX = 0x05; // ID
+			UEDATX = USBKeys_SysCtrl;
+			UEINTX = 0; // Finished with ID
+
+			USBKeys_Changed &= ~USBKeyChangeState_System; // Mark sent
+		}
+		// Check consumer control keys
+		else if ( USBKeys_Changed & USBKeyChangeState_Consumer )
+		{
+			UEDATX = 0x06; // ID
+			UEDATX = (uint8_t)(USBKeys_ConsCtrl & 0x00FF);
+			UEDATX = (uint8_t)(USBKeys_ConsCtrl >> 8);
+			UEINTX = 0; // Finished with ID
+
+			USBKeys_Changed &= ~USBKeyChangeState_Consumer; // Mark sent
+		}
+
+		break;
+	}
 
 	USBKeys_Idle_Count = 0;
 	SREG = intr_state;
-	return 0;
 }
 
 
@@ -622,7 +657,13 @@ ISR( USB_GEN_vect )
 				// XXX TODO Is this even used? If so, when? -Jacob
 				// From hasu's code, this section looks like it could fix the Mac SET_IDLE problem
 				// Send normal keyboard interrupt packet(s)
-				//usb_keyboard_toHost();
+				switch ( USBKeys_Protocol )
+				{
+				// Send boot keyboard interrupt packet(s)
+				case 0: usb_keyboard_toHost();     break;
+				// Send NKRO keyboard interrupts packet(s)
+				//case 1: usb_nkrokeyboard_toHost(); break; // XXX Not valid anymore
+				}
 				print("IDLE");
 			}
 		}
@@ -673,7 +714,8 @@ ISR(USB_COM_vect)
 
         UENUM = 0;
 	intbits = UEINTX;
-        if (intbits & (1<<RXSTPI)) {
+	if (intbits & (1<<RXSTPI))
+	{
                 bmRequestType = UEDATX;
                 bRequest = UEDATX;
                 wValue = UEDATX;
@@ -770,8 +812,8 @@ ISR(USB_COM_vect)
 			return;
 		}
 
-		//if ( wIndex == KEYBOARD_INTERFACE )
-		if ( wIndex == KEYBOARD_INTERFACE || wIndex == KEYBOARD_NKRO_INTERFACE )
+		if ( ( wIndex == KEYBOARD_INTERFACE      && USBKeys_Protocol == 0 )
+		  || ( wIndex == KEYBOARD_NKRO_INTERFACE && USBKeys_Protocol == 1 ) )
 		{
 			if ( bmRequestType == 0xA1)
 			{
@@ -779,10 +821,14 @@ ISR(USB_COM_vect)
 				{
 					usb_wait_in_ready();
 
-					// XXX TODO Is this even used? If so, when? -Jacob
 					// Send normal keyboard interrupt packet(s)
-					usb_keyboard_toHost();
-					//print("GET REPORT");
+					switch ( USBKeys_Protocol )
+					{
+					// Send boot keyboard interrupt packet(s)
+					case 0: usb_keyboard_toHost();     break;
+					// Send NKRO keyboard interrupts packet(s)
+					//case 1: usb_nkrokeyboard_toHost(); break; // XXX Not valid anymore
+					}
 
 					usb_send_in();
 					return;
@@ -814,17 +860,19 @@ ISR(USB_COM_vect)
 				}
 				if ( bRequest == HID_SET_IDLE )
 				{
+					usb_wait_in_ready();
 					USBKeys_Idle_Config = (wValue >> 8);
 					USBKeys_Idle_Count = 0;
-					//usb_wait_in_ready();
 					usb_send_in();
+					print("HID IDLE");
 					return;
 				}
 				if ( bRequest == HID_SET_PROTOCOL )
 				{
+					usb_wait_in_ready();
 					USBKeys_Protocol = wValue; // 0 - Boot Mode, 1 - NKRO Mode
-					//usb_wait_in_ready();
 					usb_send_in();
+					print("HID SET");
 					return;
 				}
 			}
