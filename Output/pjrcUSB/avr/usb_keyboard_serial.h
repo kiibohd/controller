@@ -24,6 +24,8 @@
 #ifndef usb_keyboard_serial_h__
 #define usb_keyboard_serial_h__
 
+// ----- Includes -----
+
 // Compiler Includes
 #include <stdint.h>
 
@@ -38,6 +40,7 @@
 
 // Local Includes
 #include "output_com.h"
+
 
 
 // ----- Function Declarations -----
@@ -257,7 +260,7 @@ static const uint8_t PROGMEM device_descriptor[] = {
 	18,					// bLength
 	1,					// bDescriptorType
 	0x00, 0x02,				// bcdUSB
-	0,					// bDeviceClass
+	0x03,					// bDeviceClass - 0x03 = HID Class
 	0,					// bDeviceSubClass
 	0,					// bDeviceProtocol
 	ENDPOINT0_SIZE,				// bMaxPacketSize0
@@ -645,6 +648,7 @@ static const struct descriptor_list_struct {
 	{0x0303, 0x0409, (const uint8_t *)&string3, sizeof(STR_SERIAL)}
 };
 #define NUM_DESC_LIST (sizeof(descriptor_list)/sizeof(struct descriptor_list_struct))
+
 
 
 #endif // usb_keyboard_serial_h__

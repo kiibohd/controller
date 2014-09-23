@@ -171,7 +171,7 @@ inline void usb_keyboard_send()
 // ----- USB Virtual Serial Port (CDC) Functions -----
 
 // get the next character, or -1 if nothing received
-int16_t usb_serial_getchar(void)
+int16_t usb_serial_getchar()
 {
 	uint8_t c, intr_state;
 
@@ -205,7 +205,7 @@ int16_t usb_serial_getchar(void)
 }
 
 // number of bytes available in the receive buffer
-uint8_t usb_serial_available(void)
+uint8_t usb_serial_available()
 {
 	uint8_t n=0, i, intr_state;
 
@@ -224,7 +224,7 @@ uint8_t usb_serial_available(void)
 }
 
 // discard any buffered input
-void usb_serial_flush_input(void)
+void usb_serial_flush_input()
 {
 	uint8_t intr_state;
 
@@ -480,24 +480,24 @@ void usb_serial_flush_output(void)
 // at full USB speed), but they are set by the host so we can
 // set them properly if we're converting the USB to a real serial
 // communication
-uint32_t usb_serial_get_baud(void)
+uint32_t usb_serial_get_baud()
 {
 	uint32_t *baud = (uint32_t*)cdc_line_coding;
 	return *baud;
 }
-uint8_t usb_serial_get_stopbits(void)
+uint8_t usb_serial_get_stopbits()
 {
 	return cdc_line_coding[4];
 }
-uint8_t usb_serial_get_paritytype(void)
+uint8_t usb_serial_get_paritytype()
 {
 	return cdc_line_coding[5];
 }
-uint8_t usb_serial_get_numbits(void)
+uint8_t usb_serial_get_numbits()
 {
 	return cdc_line_coding[6];
 }
-uint8_t usb_serial_get_control(void)
+uint8_t usb_serial_get_control()
 {
 	return cdc_line_rtsdtr;
 }
@@ -587,7 +587,7 @@ void usb_device_reload()
 
 
 // WDT Setup for software reset the chip
-void wdt_init(void)
+void wdt_init()
 {
 	MCUSR = 0;
 	wdt_disable();
@@ -595,7 +595,7 @@ void wdt_init(void)
 
 
 // initialize USB
-void usb_init(void)
+void usb_init()
 {
 	HW_CONFIG();
 	USB_FREEZE();				// enable USB
@@ -674,19 +674,19 @@ ISR( USB_GEN_vect )
 
 
 // Misc functions to wait for ready and send/receive packets
-static inline void usb_wait_in_ready(void)
+static inline void usb_wait_in_ready()
 {
 	while (!(UEINTX & (1<<TXINI))) ;
 }
-static inline void usb_send_in(void)
+static inline void usb_send_in()
 {
 	UEINTX = ~(1<<TXINI);
 }
-static inline void usb_wait_receive_out(void)
+static inline void usb_wait_receive_out()
 {
 	while (!(UEINTX & (1<<RXOUTI))) ;
 }
-static inline void usb_ack_out(void)
+static inline void usb_ack_out()
 {
 	UEINTX = ~(1<<RXOUTI);
 }
@@ -697,7 +697,7 @@ static inline void usb_ack_out(void)
 // other endpoints are manipulated by the user-callable
 // functions, and the start-of-frame interrupt.
 //
-ISR(USB_COM_vect)
+ISR( USB_COM_vect )
 {
         uint8_t intbits;
 	const uint8_t *list;
