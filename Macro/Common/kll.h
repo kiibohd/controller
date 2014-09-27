@@ -64,6 +64,15 @@ typedef uint16_t nat_ptr_t;
 
 // ----- Structs -----
 
+// -- Macro Type
+// Defines what type of Macro the struct defines
+// Always the first field
+typedef enum MacroType {
+	MacroType_Normal, // Sequence of Combos
+	MacroType_Simple, // Single combination (no state required)
+} MacroType;
+
+
 // -- Result Macro
 // Defines the sequence of combinations to as the Result of Trigger Macro
 // For RAM optimization reasons, ResultMacro has been split into ResultMacro and ResultMacroRecord structures
@@ -72,7 +81,9 @@ typedef uint16_t nat_ptr_t;
 // Default Args (always sent): key state/analog of last key
 // Combo Length of 0 signifies end of sequence
 //
-// ResultMacro.guide -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
+// ResultMacro.type       -> <Type of macro>
+// ResultMacro.guide      -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
+// ResultMacro.triggerKey -> <scanCode of last key in TriggerMacro>
 //
 // ResultMacroRecord.pos       -> <current combo position>
 // ResultMacroRecord.state     -> <last key state>
@@ -80,7 +91,9 @@ typedef uint16_t nat_ptr_t;
 
 // ResultMacro struct, one is created per ResultMacro, no duplicates
 typedef struct ResultMacro {
+	const MacroType type;
 	const uint8_t *guide;
+	const uint8_t triggerKey;
 } ResultMacro;
 
 typedef struct ResultMacroRecord {
@@ -117,6 +130,7 @@ typedef struct ResultGuide {
 //
 // Combo Length of 0 signifies end of sequence
 //
+// TriggerMacro.type   -> <Type of macro>
 // TriggerMacro.guide  -> [<combo length>|<key1 type>|<key1 state>|<key1>...<keyn type>|<keyn state>|<keyn>|<combo length>...|0]
 // TriggerMacro.result -> <index to result macro>
 //
@@ -132,6 +146,7 @@ typedef enum TriggerMacroState {
 
 // TriggerMacro struct, one is created per TriggerMacro, no duplicates
 typedef struct TriggerMacro {
+	const MacroType type;
 	const uint8_t *guide;
 	const var_uint_t result;
 } TriggerMacro;
@@ -190,10 +205,16 @@ typedef struct Capability {
 //  * index   - Trigger Macro index number
 //  * trigger - Trigger Macro guide (see TriggerMacro)
 // Define_TM( index, result );
+//  <State-ful sequence of combinations TriggerMacro>
+//  * index   - Trigger Macro index number
+//  * result  - Result Macro index number which is triggered by this Trigger Macro
+// Define_STM( index, result );
+//  <State-less single combination TriggerMacro>
 //  * index   - Trigger Macro index number
 //  * result  - Result Macro index number which is triggered by this Trigger Macro
 #define Guide_TM( index ) const uint8_t tm##index##_guide[]
-#define Define_TM( index, result ) { tm##index##_guide, result }
+#define Define_TM( index, result ) { MacroType_Normal, tm##index##_guide, result }
+#define Define_STM( index, result ) { MacroType_Simple, tm##index##_guide, result }
 
 
 // -- Trigger Macro List

@@ -1,4 +1,4 @@
-###| CMake Kiibohd Controller Macro Module |###
+###| CMake Kiibohd Controller PartialMap Macro Module |###
 #
 # Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
 #
