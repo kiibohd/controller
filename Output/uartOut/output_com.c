@@ -49,6 +49,7 @@ void cliFunc_setKeys    ( char* args );
 void cliFunc_setMod     ( char* args );
 
 
+
 // ----- Variables -----
 
 // Output Module command dictionary
@@ -91,6 +92,24 @@ volatile uint8_t USBKeys_Protocol = 1;
 
 // count until idle timeout
          uint8_t USBKeys_Idle_Count = 0;
+
+
+
+// ----- Capabilities -----
+
+// Adds a single USB Code to the USB Output buffer
+// Argument #1: USB Code
+void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_usbCodeSend(usbCode)");
+		print("Not used in uartOut...");
+		return;
+	}
+}
+
 
 
 // ----- Functions -----
@@ -161,7 +180,10 @@ inline int Output_putstr( char* str )
 // Soft Chip Reset
 inline void Output_softReset()
 {
-	usb_device_software_reset();
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
+	SOFTWARE_RESET();
+#endif
 }
 
 

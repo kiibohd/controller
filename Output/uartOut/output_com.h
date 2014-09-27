@@ -57,6 +57,12 @@ extern                       uint8_t USBKeys_Idle_Count;
 
 
 
+// ----- Capabilities -----
+
+void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+
+
+
 // ----- Functions -----
 
 void Output_setup();
