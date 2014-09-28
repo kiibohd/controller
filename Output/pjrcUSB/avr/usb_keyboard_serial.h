@@ -273,6 +273,16 @@ static const uint8_t PROGMEM device_descriptor[] = {
 	1					// bNumConfigurations
 };
 
+// Specify only a single USB speed
+static const uint8_t PROGMEM device_qualifier_descriptor[] = {
+	0
+};
+
+// Disable USB debug descriptor
+static const uint8_t PROGMEM usb_debug_descriptor[] = {
+	0
+};
+
 // Keyboard Protocol 1, HID 1.11 spec, Appendix B, page 59-60
 static const uint8_t PROGMEM keyboard_hid_report_desc[] = {
 	// Keyboard Collection
@@ -500,7 +510,7 @@ static const uint8_t PROGMEM config1_descriptor[CONFIG1_DESC_SIZE] = {
 	9,					// bLength
 	0x21,					// bDescriptorType
 	0x11, 0x01,				// bcdHID
-	33,					// bCountryCode - Setting to 0/Undefined
+	0,					// bCountryCode - Setting to 0/Undefined
 	1,					// bNumDescriptors
 	0x22,					// bDescriptorType
 	                                        // wDescriptorLength
@@ -638,6 +648,8 @@ static const struct descriptor_list_struct {
 } PROGMEM descriptor_list[] = {
 	{0x0100, 0x0000, device_descriptor, sizeof(device_descriptor)},
 	{0x0200, 0x0000, config1_descriptor, sizeof(config1_descriptor)},
+	{0x0600, 0x0000, device_qualifier_descriptor, sizeof(device_qualifier_descriptor)},
+	{0x0A00, 0x0000, usb_debug_descriptor, sizeof(usb_debug_descriptor)},
 	{0x2200, KEYBOARD_INTERFACE, keyboard_hid_report_desc, sizeof(keyboard_hid_report_desc)},
 	{0x2100, KEYBOARD_INTERFACE, config1_descriptor + KEYBOARD_HID_DESC_OFFSET, 9},
 	{0x2200, KEYBOARD_NKRO_INTERFACE, keyboard_nkro_hid_report_desc, sizeof(keyboard_nkro_hid_report_desc)},

@@ -865,7 +865,7 @@ ISR( USB_COM_vect )
 					USBKeys_Idle_Config = (wValue >> 8);
 					USBKeys_Idle_Count = 0;
 					usb_send_in();
-					print("HID IDLE");
+					//print("HID IDLE");
 					return;
 				}
 				if ( bRequest == HID_SET_PROTOCOL )
@@ -873,7 +873,7 @@ ISR( USB_COM_vect )
 					usb_wait_in_ready();
 					USBKeys_Protocol = wValue; // 0 - Boot Mode, 1 - NKRO Mode
 					usb_send_in();
-					print("HID SET");
+					//print("HID SET");
 					return;
 				}
 			}
