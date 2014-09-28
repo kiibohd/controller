@@ -11,10 +11,10 @@
  * permit persons to whom the Software is furnished to do so, subject to
  * the following conditions:
  *
- * 1. The above copyright notice and this permission notice shall be 
+ * 1. The above copyright notice and this permission notice shall be
  * included in all copies or substantial portions of the Software.
  *
- * 2. If the Software is incorporated into a build system that allows 
+ * 2. If the Software is incorporated into a build system that allows
  * selection among a list of target devices, then similar target
  * devices manufactured by PJRC.COM must be included in the list of
  * target devices and selectable in the same manner.
@@ -32,15 +32,33 @@
 #ifndef _usb_dev_h_
 #define _usb_dev_h_
 
-// This header is NOT meant to be included when compiling
-// user sketches in Arduino.  The low-level functions
-// provided by usb_dev.c are meant to be called only by
-// code which provides higher-level interfaces to the user.
+// ----- Includes -----
 
+// Local Includes
 #include "usb_mem.h"
 #include "usb_desc.h"
 
+
+
+// ----- Defines -----
+
 #define usb_device_software_reset() SOFTWARE_RESET()
+
+
+
+// ----- Variables -----
+
+extern volatile uint8_t usb_configuration;
+
+extern uint16_t usb_rx_byte_count_data[NUM_ENDPOINTS];
+
+extern volatile uint8_t usb_cdc_line_coding[7];
+extern volatile uint8_t usb_cdc_line_rtsdtr;
+extern volatile uint8_t usb_cdc_transmit_flush_timer;
+
+
+
+// ----- Functions -----
 
 uint8_t usb_configured(); // is the USB port configured
 
@@ -54,35 +72,19 @@ uint32_t usb_tx_packet_count( uint32_t endpoint );
 
 usb_packet_t *usb_rx( uint32_t endpoint );
 
-void usb_device_reload();
-
-extern volatile uint8_t usb_configuration;
-
-extern uint16_t usb_rx_byte_count_data[NUM_ENDPOINTS];
 static inline uint32_t usb_rx_byte_count(uint32_t endpoint) __attribute__((always_inline));
 static inline uint32_t usb_rx_byte_count(uint32_t endpoint)
 {
         endpoint--;
-        if (endpoint >= NUM_ENDPOINTS) return 0;
-        return usb_rx_byte_count_data[endpoint];
+        if ( endpoint >= NUM_ENDPOINTS )
+		return 0;
+        return usb_rx_byte_count_data[ endpoint ];
 }
 
-#ifdef CDC_DATA_INTERFACE
-extern uint32_t usb_cdc_line_coding[2];
-extern volatile uint8_t usb_cdc_line_rtsdtr;
-extern volatile uint8_t usb_cdc_transmit_flush_timer;
-extern void usb_serial_flush_callback(void);
-#endif
+void usb_device_reload();
 
+extern void usb_serial_flush_callback();
 
-#ifdef KEYBOARD_INTERFACE
-extern uint8_t keyboard_modifier_keys;
-extern uint8_t keyboard_keys[6];
-extern uint8_t keyboard_protocol;
-extern uint8_t keyboard_idle_config;
-extern uint8_t keyboard_idle_count;
-extern volatile uint8_t keyboard_leds;
-#endif
 
 
 #endif
