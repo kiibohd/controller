@@ -118,7 +118,7 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
-         uint8_t USBKeys_Idle_Config = 125;
+         uint8_t  USBKeys_Idle_Config = 125;
 
 // count until idle timeout
          uint8_t  USBKeys_Idle_Count = 0;
@@ -365,12 +365,13 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 // USB Module Setup
 inline void Output_setup()
 {
+	// Setup UART
+	uart_serial_setup();
+	print("\033[2J"); // Clear screen
+
 	// Initialize the USB, and then wait for the host to set configuration.
 	// This will hang forever if USB does not initialize
 	usb_init();
-
-	// Setup UART
-	uart_serial_setup();
 
 	while ( !usb_configured() );
 
