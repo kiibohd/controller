@@ -34,8 +34,25 @@
 
 // ----- Defines -----
 
-// Indicator for other modules through USBKeys_MaxSize for how capable the USB module is when sending large number of keypresses
-#define USB_MAX_KEY_SEND 6
+// Max size of key buffer needed for NKRO
+// Boot mode uses only the first 6 bytes
+#define USB_NKRO_BITFIELD_SIZE_KEYS 26
+#define USB_BOOT_MAX_KEYS 6
+
+
+
+// ----- Enumerations -----
+
+// USB NKRO state transitions (indicates which Report ID's need refreshing)
+// Boot mode just checks if any keys were changed (as everything is sent every time)
+typedef enum USBKeyChangeState {
+	USBKeyChangeState_None          = 0x00,
+	USBKeyChangeState_Modifiers     = 0x01,
+	USBKeyChangeState_MainKeys      = 0x02,
+	USBKeyChangeState_SecondaryKeys = 0x04,
+	USBKeyChangeState_System        = 0x08,
+	USBKeyChangeState_Consumer      = 0x10,
+} USBKeyChangeState;
 
 
 
@@ -43,17 +60,29 @@
 
 // Variables used to communciate to the output module
 // XXX Even if the output module is not USB, this is internally understood keymapping scheme
-extern                       uint8_t USBKeys_Modifiers;
-extern                       uint8_t USBKeys_Array[USB_MAX_KEY_SEND];
-extern                       uint8_t USBKeys_Sent;
-extern volatile              uint8_t USBKeys_LEDs;
+extern          uint8_t  USBKeys_Modifiers;
+extern          uint8_t  USBKeys_Keys[USB_NKRO_BITFIELD_SIZE_KEYS];
+extern          uint8_t  USBKeys_Sent;
+extern volatile uint8_t  USBKeys_LEDs;
 
-                static const uint8_t USBKeys_MaxSize = USB_MAX_KEY_SEND;
-extern volatile              uint8_t USBKeys_Protocol; // 0 - Boot Mode, 1 - NKRO Mode
+extern          uint8_t  USBKeys_SysCtrl;  // 1KRO container for System Control HID table
+extern          uint16_t USBKeys_ConsCtrl; // 1KRO container for Consumer Control HID table
+
+extern volatile uint8_t  USBKeys_Protocol; // 0 - Boot Mode, 1 - NKRO Mode
 
 // Misc variables (XXX Some are only properly utilized using AVR)
-extern                       uint8_t USBKeys_Idle_Config;
-extern                       uint8_t USBKeys_Idle_Count;
+extern          uint8_t  USBKeys_Idle_Config;
+extern          uint8_t  USBKeys_Idle_Count;
+
+extern USBKeyChangeState USBKeys_Changed;
+
+
+
+// ----- Capabilities -----
+
+void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
 
 
 

@@ -1,0 +1,14 @@
+Name = usbMuxUartCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2014";
+KLL = 0.3;
+
+# Modified Date
+Date = 2014-09-28;
+
+
+# Capabilties available to the usbMuxUart output module
+consCtrlOut => Output_consCtrlSend_capability( consCode : 2 );
+sysCtrlOut  => Output_sysCtrlSend_capability( sysCode : 1 );
+usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
+
