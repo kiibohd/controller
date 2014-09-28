@@ -26,6 +26,7 @@
 
 // Project Includes
 #include <cli.h>
+#include <led.h>
 #include <print.h>
 #include <scan_loop.h>
 
@@ -53,7 +54,7 @@ void cliFunc_setMod     ( char* args );
 // ----- Variables -----
 
 // Output Module command dictionary
-const char outputCLIDictName[] = "USB Module Commands - NOT WORKING";
+const char outputCLIDictName[] = "USB Module Commands";
 const CLIDictItem outputCLIDict[] = {
 	{ "kbdProtocol", "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode", cliFunc_kbdProtocol },
 	{ "readLEDs",    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc.", cliFunc_readLEDs },
@@ -67,31 +68,39 @@ const CLIDictItem outputCLIDict[] = {
 // Which modifier keys are currently pressed
 // 1=left ctrl,    2=left shift,   4=left alt,    8=left gui
 // 16=right ctrl, 32=right shift, 64=right alt, 128=right gui
-         uint8_t USBKeys_Modifiers    = 0;
-         uint8_t USBKeys_ModifiersCLI = 0; // Separate CLI send buffer
+         uint8_t  USBKeys_Modifiers    = 0;
+         uint8_t  USBKeys_ModifiersCLI = 0; // Separate CLI send buffer
 
 // Currently pressed keys, max is defined by USB_MAX_KEY_SEND
-         uint8_t USBKeys_Array   [USB_MAX_KEY_SEND];
-         uint8_t USBKeys_ArrayCLI[USB_MAX_KEY_SEND]; // Separate CLI send buffer
+         uint8_t  USBKeys_Keys   [USB_NKRO_BITFIELD_SIZE_KEYS];
+         uint8_t  USBKeys_KeysCLI[USB_NKRO_BITFIELD_SIZE_KEYS]; // Separate CLI send buffer
+
+// System Control and Consumer Control 1KRO containers
+         uint8_t  USBKeys_SysCtrl;
+         uint16_t USBKeys_ConsCtrl;
 
 // The number of keys sent to the usb in the array
-         uint8_t USBKeys_Sent    = 0;
-         uint8_t USBKeys_SentCLI = 0;
+         uint8_t  USBKeys_Sent    = 0;
+         uint8_t  USBKeys_SentCLI = 0;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
-volatile uint8_t USBKeys_LEDs = 0;
+volatile uint8_t  USBKeys_LEDs = 0;
 
 // Protocol setting from the host.
-// 0 - Boot Mode (Default, until set by the host)
-// 1 - NKRO Mode
-volatile uint8_t USBKeys_Protocol = 1;
+// 0 - Boot Mode
+// 1 - NKRO Mode (Default, unless set by a BIOS or boot interface)
+volatile uint8_t  USBKeys_Protocol = 0;
+
+// Indicate if USB should send update
+// OS only needs update if there has been a change in state
+USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
-         uint8_t USBKeys_Idle_Config = 125;
+         uint8_t  USBKeys_Idle_Config = 125;
 
 // count until idle timeout
-         uint8_t USBKeys_Idle_Count = 0;
+         uint8_t  USBKeys_Idle_Count = 0;
 
 
 
@@ -200,17 +209,18 @@ void cliFunc_kbdProtocol( char* args )
 void cliFunc_readLEDs( char* args )
 {
 	print( NL );
-	info_msg("LED State (This doesn't work yet...): ");
+	info_msg("LED State: ");
 	printInt8( USBKeys_LEDs );
 }
 
 
 void cliFunc_sendKeys( char* args )
 {
-	// Copy USBKeys_ArrayCLI to USBKeys_Array
+	// Copy USBKeys_KeysCLI to USBKeys_Keys
 	for ( uint8_t key = 0; key < USBKeys_SentCLI; ++key )
 	{
-		USBKeys_Array[key] = USBKeys_ArrayCLI[key];
+		// TODO
+		//USBKeys_Keys[key] = USBKeys_KeysCLI[key];
 	}
 	USBKeys_Sent = USBKeys_SentCLI;
 
@@ -226,7 +236,7 @@ void cliFunc_setKeys( char* args )
 	char* arg2Ptr = args;
 
 	// Parse up to USBKeys_MaxSize args (whichever is least)
-	for ( USBKeys_SentCLI = 0; USBKeys_SentCLI < USBKeys_MaxSize; ++USBKeys_SentCLI )
+	for ( USBKeys_SentCLI = 0; USBKeys_SentCLI < USB_BOOT_MAX_KEYS; ++USBKeys_SentCLI )
 	{
 		curArgs = arg2Ptr;
 		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
@@ -236,7 +246,8 @@ void cliFunc_setKeys( char* args )
 			break;
 
 		// Add the USB code to be sent
-		USBKeys_ArrayCLI[USBKeys_SentCLI] = numToInt( arg1Ptr );
+		// TODO
+		//USBKeys_KeysCLI[USBKeys_SentCLI] = numToInt( arg1Ptr );
 	}
 }
 
