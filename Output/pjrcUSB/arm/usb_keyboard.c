@@ -76,6 +76,7 @@ void usb_keyboard_send()
 	uint32_t wait_count = 0;
 	usb_packet_t *tx_packet;
 
+	// Wait till ready
 	while ( 1 )
 	{
 		if ( !usb_configuration )
@@ -83,12 +84,26 @@ void usb_keyboard_send()
 			erro_print("USB not configured...");
 			return;
 		}
-		if ( usb_tx_packet_count(KEYBOARD_ENDPOINT) < TX_PACKET_LIMIT )
+
+		if ( USBKeys_Protocol == 0 ) // Boot Mode
 		{
-			tx_packet = usb_malloc();
-			if ( tx_packet )
-				break;
+			if ( usb_tx_packet_count( NKRO_KEYBOARD_ENDPOINT ) < TX_PACKET_LIMIT )
+			{
+				tx_packet = usb_malloc();
+				if ( tx_packet )
+					break;
+			}
 		}
+		else if ( USBKeys_Protocol == 1 ) // NKRO Mode
+		{
+			if ( usb_tx_packet_count( KEYBOARD_ENDPOINT ) < TX_PACKET_LIMIT )
+			{
+				tx_packet = usb_malloc();
+				if ( tx_packet )
+					break;
+			}
+		}
+
 		if ( ++wait_count > TX_TIMEOUT || transmit_previous_timeout )
 		{
 			transmit_previous_timeout = 1;
@@ -98,15 +113,89 @@ void usb_keyboard_send()
 		yield();
 	}
 
-	// Boot Mode
-	*(tx_packet->buf) = USBKeys_Modifiers;
-	*(tx_packet->buf + 1) = 0;
-	memcpy( tx_packet->buf + 2, USBKeys_Keys, USB_BOOT_MAX_KEYS );
-	tx_packet->len = 8;
+	// Pointer to USB tx packet buffer
+	uint8_t *tx_buf = tx_packet->buf;
 
-	// Send USB Packet
-	usb_tx( KEYBOARD_ENDPOINT, tx_packet );
-	USBKeys_Changed = USBKeyChangeState_None;
+	switch ( USBKeys_Protocol )
+	{
+	// Send boot keyboard interrupt packet(s)
+	case 0:
+		// Boot Mode
+		*tx_buf++ = USBKeys_Modifiers;
+		*tx_buf++ = 0;
+		memcpy( tx_buf, USBKeys_Keys, USB_BOOT_MAX_KEYS );
+		tx_packet->len = 8;
+
+		// Send USB Packet
+		usb_tx( KEYBOARD_ENDPOINT, tx_packet );
+		USBKeys_Changed = USBKeyChangeState_None;
+		break;
+
+	// Send NKRO keyboard interrupts packet(s)
+	case 1:
+		// Check modifiers
+		if ( USBKeys_Changed & USBKeyChangeState_Modifiers )
+		{
+			*tx_buf++ = 0x01; // ID
+			*tx_buf   = USBKeys_Modifiers;
+			tx_packet->len = 2;
+
+			// Send USB Packet
+			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
+			USBKeys_Changed &= ~USBKeyChangeState_Modifiers; // Mark sent
+		}
+		// Check main key section
+		else if ( USBKeys_Changed & USBKeyChangeState_MainKeys )
+		{
+			*tx_buf++ = 0x03; // ID
+
+			// 4-164 (first 20 bytes)
+			memcpy( tx_buf, USBKeys_Keys, 20 );
+			tx_packet->len = 21;
+
+			// Send USB Packet
+			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
+			USBKeys_Changed &= ~USBKeyChangeState_MainKeys; // Mark sent
+		}
+		// Check secondary key section
+		else if ( USBKeys_Changed & USBKeyChangeState_SecondaryKeys )
+		{
+			*tx_buf++ = 0x04; // ID
+
+			// 176-221 (last 6 bytes)
+			memcpy( tx_buf, USBKeys_Keys + 20, 6 );
+			tx_packet->len = 7;
+
+			// Send USB Packet
+			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
+			USBKeys_Changed &= ~USBKeyChangeState_SecondaryKeys; // Mark sent
+		}
+		// Check system control keys
+		else if ( USBKeys_Changed & USBKeyChangeState_System )
+		{
+			*tx_buf++ = 0x05; // ID
+			*tx_buf   = USBKeys_SysCtrl;
+			tx_packet->len = 2;
+
+			// Send USB Packet
+			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
+			USBKeys_Changed &= ~USBKeyChangeState_System; // Mark sent
+		}
+		// Check consumer control keys
+		else if ( USBKeys_Changed & USBKeyChangeState_Consumer )
+		{
+			*tx_buf++ = 0x06; // ID
+			*tx_buf++ = (uint8_t)(USBKeys_ConsCtrl & 0x00FF);
+			*tx_buf   = (uint8_t)(USBKeys_ConsCtrl >> 8);
+			tx_packet->len = 3;
+
+			// Send USB Packet
+			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
+			USBKeys_Changed &= ~USBKeyChangeState_Consumer; // Mark sent
+		}
+
+		break;
+	}
 
 	return;
 }

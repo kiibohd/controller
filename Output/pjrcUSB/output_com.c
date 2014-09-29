@@ -106,7 +106,7 @@ volatile uint8_t  USBKeys_LEDs = 0;
 // Protocol setting from the host.
 // 0 - Boot Mode
 // 1 - NKRO Mode (Default, unless set by a BIOS or boot interface)
-volatile uint8_t  USBKeys_Protocol = 0;
+volatile uint8_t  USBKeys_Protocol = 1;
 
 // Indicate if USB should send update
 // OS only needs update if there has been a change in state
