@@ -51,7 +51,7 @@
 #define ENDPOINT_TRANSMIT_AND_RECEIVE	0x1D
 
 
-#define DEVICE_CLASS            0x03 // 0x03 = HID Class
+#define DEVICE_CLASS            0x00 // Keep 0x00 to indicate each sub device will indicate what it is
 #define DEVICE_SUBCLASS         0x00
 #define DEVICE_PROTOCOL         0x00
 #define EP0_SIZE                64

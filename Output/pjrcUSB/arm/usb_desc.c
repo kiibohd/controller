@@ -75,7 +75,7 @@ static uint8_t device_qualifier_descriptor[] = {
         DEVICE_SUBCLASS,                        // bDeviceSubClass
         DEVICE_PROTOCOL,                        // bDeviceProtocol
         EP0_SIZE,                               // bMaxPacketSize0
-	1,                                      // bNumOtherSpeedConfigurations
+	0,                                      // bNumOtherSpeedConfigurations
 	0                                       // bReserved
 	*/
 };
@@ -311,7 +311,7 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
         NUM_INTERFACE,                          // bNumInterfaces
         1,                                      // bConfigurationValue
         0,                                      // iConfiguration
-        0xC0,                                   // bmAttributes
+        0xA0,                                   // bmAttributes
         250,                                    // bMaxPower
 
 // --- Keyboard HID --- Boot Mode Keyboard Interface
@@ -386,7 +386,7 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
         0x02,                                   // bFunctionClass
         0x02,                                   // bFunctionSubClass
         0x01,                                   // bFunctionProtocol
-        4,                                      // iFunction
+        0,                                      // iFunction
 
 // --- Serial CDC --- CDC Data Interface
 // - 9 bytes -

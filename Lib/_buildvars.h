@@ -29,8 +29,8 @@
 // ----- Defines -----
 
 // You can change these to give your code its own name.
-#define STR_MANUFACTURER	L"@MANUFACTURER@"
-#define STR_PRODUCT		L"Keyboard - @ScanModule@ @MacroModule@ @OutputModule@ @DebugModule@"
+#define STR_MANUFACTURER        L"@MANUFACTURER@"
+#define STR_PRODUCT             L"Keyboard - @ScanModule@ @MacroModule@ @OutputModule@ @DebugModule@"
 #define STR_SERIAL              L"@GitLastCommitDate@"
 
 

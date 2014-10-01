@@ -260,7 +260,7 @@ static const uint8_t PROGMEM device_descriptor[] = {
 	18,					// bLength
 	1,					// bDescriptorType
 	0x00, 0x02,				// bcdUSB
-	0x03,					// bDeviceClass - 0x03 = HID Class
+	0x00,					// bDeviceClass - Composite device, 0x00 is required for Windows
 	0,					// bDeviceSubClass
 	0,					// bDeviceProtocol
 	ENDPOINT0_SIZE,				// bMaxPacketSize0
