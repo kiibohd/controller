@@ -203,7 +203,7 @@ int8_t usb_serial_set_control(uint8_t signals); // set DSR, DCD, RI, etc
 
 #define KEYBOARD_NKRO_INTERFACE  0
 #define KEYBOARD_NKRO_ENDPOINT   1
-#define KEYBOARD_NKRO_SIZE       128
+#define KEYBOARD_NKRO_SIZE       64
 #define KEYBOARD_NKRO_HID_BUFFER EP_DOUBLE_BUFFER
 
 #define KEYBOARD_INTERFACE       1
