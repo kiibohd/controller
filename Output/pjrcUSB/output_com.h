@@ -80,9 +80,14 @@ extern USBKeyChangeState USBKeys_Changed;
 
 // ----- Capabilities -----
 
+// Output capabilities
 void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
 void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
 void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+
+// Configuration capabilities
+void Output_kbdProtocolBoot_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_t *args );
 
 
 
@@ -90,6 +95,8 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 void Output_setup();
 void Output_send();
+
+void Output_flushBuffers();
 
 void Output_firmwareReload();
 void Output_softReset();

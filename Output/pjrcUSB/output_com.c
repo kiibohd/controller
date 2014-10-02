@@ -123,6 +123,60 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 
 // ----- Capabilities -----
 
+// Set Boot Keyboard Protocol
+void Output_kbdProtocolBoot_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_kbdProtocolBoot()");
+		return;
+	}
+
+	// Only set if necessary
+	if ( USBKeys_Protocol == 0 )
+		return;
+
+	// TODO Analog inputs
+	// Only set on key press
+	if ( stateType != 0x01 )
+		return;
+
+	// Flush the key buffers
+	Output_flushBuffers();
+
+	// Set the keyboard protocol to Boot Mode
+	USBKeys_Protocol = 0;
+}
+
+
+// Set NKRO Keyboard Protocol
+void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_kbdProtocolNKRO()");
+		return;
+	}
+
+	// Only set if necessary
+	if ( USBKeys_Protocol == 1 )
+		return;
+
+	// TODO Analog inputs
+	// Only set on key press
+	if ( stateType != 0x01 )
+		return;
+
+	// Flush the key buffers
+	Output_flushBuffers();
+
+	// Set the keyboard protocol to NKRO Mode
+	USBKeys_Protocol = 1;
+}
+
+
 // Sends a Consumer Control code to the USB Output buffer
 void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
@@ -358,6 +412,20 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 // ----- Functions -----
 
+// Flush Key buffers
+void Output_flushBuffers()
+{
+	// Zero out USBKeys_Keys array
+	for ( uint8_t c = 0; c < USB_NKRO_BITFIELD_SIZE_KEYS; c++ )
+		USBKeys_Keys[ c ] = 0;
+
+	// Zero out other key buffers
+	USBKeys_ConsCtrl = 0;
+	USBKeys_Modifiers = 0;
+	USBKeys_SysCtrl = 0;
+}
+
+
 // USB Module Setup
 inline void Output_setup()
 {
@@ -370,9 +438,8 @@ inline void Output_setup()
 	// Register USB Output CLI dictionary
 	CLI_registerDictionary( outputCLIDict, outputCLIDictName );
 
-	// Zero out USBKeys_Keys array
-	for ( uint8_t c = 0; c < USB_NKRO_BITFIELD_SIZE_KEYS; c++ )
-		USBKeys_Keys[ c ] = 0;
+	// Flush key buffers
+	Output_flushBuffers();
 }
 
 

@@ -1,14 +1,18 @@
 Name = pjrcUSBCapabilities;
-Version = 0.2;
+Version = 0.3;
 Author = "HaaTa (Jacob Alexander) 2014";
 KLL = 0.3;
 
 # Modified Date
-Date = 2014-09-20;
+Date = 2014-10-01;
 
 
-# Capabilties available to the pjrcUSB output module
+# Output capabilities
 consCtrlOut => Output_consCtrlSend_capability( consCode : 2 );
 sysCtrlOut  => Output_sysCtrlSend_capability( sysCode : 1 );
 usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
+
+# Configuration capabilities
+kbdProtocolBoot => Output_kbdProtocolBoot_capability();
+kbdProtocolNKRO => Output_kbdProtocolNKRO_capability();
 
