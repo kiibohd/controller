@@ -50,8 +50,9 @@ typedef enum USBKeyChangeState {
 	USBKeyChangeState_Modifiers     = 0x01,
 	USBKeyChangeState_MainKeys      = 0x02,
 	USBKeyChangeState_SecondaryKeys = 0x04,
-	USBKeyChangeState_System        = 0x08,
-	USBKeyChangeState_Consumer      = 0x10,
+	USBKeyChangeState_TertiaryKeys  = 0x08,
+	USBKeyChangeState_System        = 0x10,
+	USBKeyChangeState_Consumer      = 0x20,
 } USBKeyChangeState;
 
 

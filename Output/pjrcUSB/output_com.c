@@ -281,9 +281,10 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 	// Depending on which mode the keyboard is in, USBKeys_Keys array is used differently
 	// Boot mode - Maximum of 6 byte codes
 	// NKRO mode - Each bit of the 26 byte corresponds to a key
-	//  Bits   0 - 160 (first 20 bytes) correspond to USB Codes 4   - 164
-	//  Bits 161 - 205 (last 6 bytes)   correspond to USB Codes 176 - 221
-	//  Bits 206 - 208 (last byte)      correspond to the 3 padded bits in USB (unused)
+	//  Bits   0 -  45 (bytes  0 -  5) correspond to USB Codes   4 -  49 (Main)
+	//  Bits  48 - 161 (bytes  6 - 20) correspond to USB Codes  51 - 164 (Secondary)
+	//  Bits 168 - 213 (bytes 21 - 26) correspond to USB Codes 176 - 221 (Tertiary)
+	//  Bits 214 - 216                 unused
 	uint8_t bytePosition = 0;
 	uint8_t byteShift = 0;
 	switch ( USBKeys_Protocol )
@@ -335,11 +336,11 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 			USBKeys_Changed |= USBKeyChangeState_Modifiers;
 			break;
 		}
-		// First 20 bytes
-		else if ( key >= 4 && key <= 164 )
+		// First 6 bytes
+		else if ( key >= 4 && key <= 50 )
 		{
 			// Lookup (otherwise division or multiple checks are needed to do alignment)
-			uint8_t keyPos = key - 4; // Starting position in array
+			uint8_t keyPos = key - (4 - 0); // Starting position in array
 			switch ( keyPos )
 			{
 				byteLookup( 0 );
@@ -348,6 +349,17 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 				byteLookup( 3 );
 				byteLookup( 4 );
 				byteLookup( 5 );
+			}
+
+			USBKeys_Changed |= USBKeyChangeState_MainKeys;
+		}
+		// Next 15 bytes
+		else if ( key >= 51 && key <= 164 )
+		{
+			// Lookup (otherwise division or multiple checks are needed to do alignment)
+			uint8_t keyPos = key - (51 - 48); // Starting position in array
+			switch ( keyPos )
+			{
 				byteLookup( 6 );
 				byteLookup( 7 );
 				byteLookup( 8 );
@@ -362,26 +374,27 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 				byteLookup( 17 );
 				byteLookup( 18 );
 				byteLookup( 19 );
+				byteLookup( 20 );
 			}
 
-			USBKeys_Changed |= USBKeyChangeState_MainKeys;
+			USBKeys_Changed |= USBKeyChangeState_SecondaryKeys;
 		}
 		// Last 6 bytes
 		else if ( key >= 176 && key <= 221 )
 		{
 			// Lookup (otherwise division or multiple checks are needed to do alignment)
-			uint8_t keyPos = key - 176; // Starting position in array
+			uint8_t keyPos = key - (176 - 168); // Starting position in array
 			switch ( keyPos )
 			{
-				byteLookup( 20 );
 				byteLookup( 21 );
 				byteLookup( 22 );
 				byteLookup( 23 );
 				byteLookup( 24 );
 				byteLookup( 25 );
+				byteLookup( 26 );
 			}
 
-			USBKeys_Changed |= USBKeyChangeState_SecondaryKeys;
+			USBKeys_Changed |= USBKeyChangeState_TertiaryKeys;
 		}
 		// Invalid key
 		else
