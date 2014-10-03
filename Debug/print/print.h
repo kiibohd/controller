@@ -88,7 +88,7 @@
 #define print(s) _print(s)
 #endif
 
-void _print(const char *s);
+void _print( const char *s );
 void printstrs( char* first, ... );
 
 

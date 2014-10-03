@@ -46,9 +46,10 @@ void cliFunc_echo( char* args );
 // ----- Variables -----
 
 // Scan Module command dictionary
-const char scanCLIDictName[] = "Scan Module Commands";
-const CLIDictItem scanCLIDict[] = {
-	{ "echo",        "Example command, echos the arguments.", cliFunc_echo },
+CLIDict_Entry( echo,        "Example command, echos the arguments." );
+
+CLIDict_Def( scanCLIDict, "Scan Module Commands" ) = {
+	CLIDict_Item( echo ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 

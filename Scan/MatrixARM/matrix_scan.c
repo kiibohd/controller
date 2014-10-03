@@ -49,10 +49,12 @@ void cliFunc_matrixState( char* args );
 // ----- Variables -----
 
 // Scan Module command dictionary
-const char matrixCLIDictName[] = "Matrix Module Commands";
-const CLIDictItem matrixCLIDict[] = {
-	{ "matrixDebug",  "Enables matrix debug mode, prints out each scan code." NL "\t\tIf argument \033[35mT\033[0m is given, prints out each scan code state transition.", cliFunc_matrixDebug },
-	{ "matrixState",  "Prints out the current scan table N times." NL "\t\t \033[1mO\033[0m - Off, \033[1;33mP\033[0m - Press, \033[1;32mH\033[0m - Hold, \033[1;35mR\033[0m - Release, \033[1;31mI\033[0m - Invalid", cliFunc_matrixState },
+CLIDict_Entry( matrixDebug,  "Enables matrix debug mode, prints out each scan code." NL "\t\tIf argument \033[35mT\033[0m is given, prints out each scan code state transition." );
+CLIDict_Entry( matrixState,  "Prints out the current scan table N times." NL "\t\t \033[1mO\033[0m - Off, \033[1;33mP\033[0m - Press, \033[1;32mH\033[0m - Hold, \033[1;35mR\033[0m - Release, \033[1;31mI\033[0m - Invalid" );
+
+CLIDict_Def( matrixCLIDict, "Matrix Module Commands" ) = {
+	CLIDict_Item( matrixDebug ),
+	CLIDict_Item( matrixState ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 

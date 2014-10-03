@@ -35,15 +35,22 @@
 // ----- Variables -----
 
 // Basic command dictionary
-const char basicCLIDictName[] = "General Commands";
-const CLIDictItem basicCLIDict[] = {
-	{ "cliDebug", "Enables/Disables hex output of the most recent cli input.", cliFunc_cliDebug },
-	{ "help",     "You're looking at it :P", cliFunc_help },
-	{ "led",      "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules...", cliFunc_led },
-	{ "reload",   "Signals microcontroller to reflash/reload.", cliFunc_reload },
-	{ "reset",    "Resets the terminal back to initial settings.", cliFunc_reset },
-	{ "restart",  "Sends a software restart, should be similar to powering on the device.", cliFunc_restart },
-	{ "version",  "Version information about this firmware.", cliFunc_version },
+CLIDict_Entry( cliDebug, "Enables/Disables hex output of the most recent cli input." );
+CLIDict_Entry( help,     "You're looking at it :P" );
+CLIDict_Entry( led,      "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules..." );
+CLIDict_Entry( reload,   "Signals microcontroller to reflash/reload." );
+CLIDict_Entry( reset,    "Resets the terminal back to initial settings." );
+CLIDict_Entry( restart,  "Sends a software restart, should be similar to powering on the device." );
+CLIDict_Entry( version,  "Version information about this firmware." );
+
+CLIDict_Def( basicCLIDict, "General Commands" ) = {
+	CLIDict_Item( cliDebug ),
+	CLIDict_Item( help ),
+	CLIDict_Item( led ),
+	CLIDict_Item( reload ),
+	CLIDict_Item( reset ),
+	CLIDict_Item( restart ),
+	CLIDict_Item( version ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -250,11 +257,11 @@ void CLI_commandLookup()
 		for ( uint8_t cmd = 0; CLIDict[dict][cmd].name != 0; cmd++ )
 		{
 			// Compare the first argument and each command entry
-			if ( eqStr( cmdPtr, CLIDict[dict][cmd].name ) == -1 )
+			if ( eqStr( cmdPtr, (char*)CLIDict[dict][cmd].name ) == -1 )
 			{
 				// Run the specified command function pointer
 				//   argPtr is already pointing at the first character of the arguments
-				(*CLIDict[dict][cmd].function)( argPtr );
+				(*(void (*)(char*))CLIDict[dict][cmd].function)( argPtr );
 
 				return;
 			}
@@ -310,11 +317,11 @@ inline void CLI_tabCompletion()
 			// NOTE: To save on processing, we only care about the commands and ignore the arguments
 			//       If there are arguments, and a valid tab match is found, buffer is cleared (args lost)
 			//       Also ignores full matches
-			if ( eqStr( cmdPtr, CLIDict[dict][cmd].name ) == 0 )
+			if ( eqStr( cmdPtr, (char*)CLIDict[dict][cmd].name ) == 0 )
 			{
 				// TODO Make list of commands if multiple matches
 				matches++;
-				tabMatch = CLIDict[dict][cmd].name;
+				tabMatch = (char*)CLIDict[dict][cmd].name;
 			}
 		}
 	}
@@ -367,7 +374,9 @@ void cliFunc_help( char* args )
 	for ( uint8_t dict = 0; dict < CLIDictionariesUsed; dict++ )
 	{
 		// Print the name of each dictionary as a title
-		dPrintStrsNL( NL, "\033[1;32m", CLIDictNames[dict], "\033[0m" );
+		print( NL "\033[1;32m" );
+		_print( CLIDictNames[dict] ); // This print is requride by AVR (flash)
+		print( "\033[0m" NL );
 
 		// Parse each cmd/description until a null command entry is found
 		for ( uint8_t cmd = 0; CLIDict[dict][cmd].name != 0; cmd++ )
@@ -375,11 +384,12 @@ void cliFunc_help( char* args )
 			dPrintStrs(" \033[35m", CLIDict[dict][cmd].name, "\033[0m");
 
 			// Determine number of spaces to tab by the length of the command and TabAlign
-			uint8_t padLength = CLIEntryTabAlign - lenStr( CLIDict[dict][cmd].name );
+			uint8_t padLength = CLIEntryTabAlign - lenStr( (char*)CLIDict[dict][cmd].name );
 			while ( padLength-- > 0 )
 				print(" ");
 
-			dPrintStrNL( CLIDict[dict][cmd].description );
+			_print( CLIDict[dict][cmd].description ); // This print is required by AVR (flash)
+			print( NL );
 		}
 	}
 }

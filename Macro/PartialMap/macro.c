@@ -81,20 +81,32 @@ typedef enum ResultMacroEval {
 // ----- Variables -----
 
 // Macro Module command dictionary
-const char macroCLIDictName[] = "Macro Module Commands";
-const CLIDictItem macroCLIDict[] = {
-	{ "capList",     "Prints an indexed list of all non USB keycode capabilities.", cliFunc_capList },
-	{ "capSelect",   "Triggers the specified capabilities. First two args are state and stateType." NL "\t\t\033[35mK11\033[0m Keyboard Capability 0x0B", cliFunc_capSelect },
-	{ "keyHold",     "Send key-hold events to the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyHold },
-	{ "keyPress",    "Send key-press events to the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyPress },
-	{ "keyRelease",  "Send key-release event to macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A", cliFunc_keyRelease },
-	{ "layerList",   "List available layers.", cliFunc_layerList },
-	{ "layerState",  "Modify specified indexed layer state <layer> <state byte>." NL "\t\t\033[35mL2\033[0m Indexed Layer 0x02" NL "\t\t0 Off, 1 Shift, 2 Latch, 4 Lock States", cliFunc_layerState },
-	{ "macroDebug",  "Disables/Enables sending USB keycodes to the Output Module and prints U/K codes.", cliFunc_macroDebug },
-	{ "macroList",   "List the defined trigger and result macros.", cliFunc_macroList },
-	{ "macroProc",   "Pause/Resume macro processing.", cliFunc_macroProc },
-	{ "macroShow",   "Show the macro corresponding to the given index." NL "\t\t\033[35mT16\033[0m Indexed Trigger Macro 0x10, \033[35mR12\033[0m Indexed Result Macro 0x0C", cliFunc_macroShow },
-	{ "macroStep",   "Do N macro processing steps. Defaults to 1.", cliFunc_macroStep },
+CLIDict_Entry( capList,     "Prints an indexed list of all non USB keycode capabilities." );
+CLIDict_Entry( capSelect,   "Triggers the specified capabilities. First two args are state and stateType." NL "\t\t\033[35mK11\033[0m Keyboard Capability 0x0B" );
+CLIDict_Entry( keyHold,     "Send key-hold events to the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A" );
+CLIDict_Entry( keyPress,    "Send key-press events to the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A" );
+CLIDict_Entry( keyRelease,  "Send key-release event to macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A" );
+CLIDict_Entry( layerList,   "List available layers." );
+CLIDict_Entry( layerState,  "Modify specified indexed layer state <layer> <state byte>." NL "\t\t\033[35mL2\033[0m Indexed Layer 0x02" NL "\t\t0 Off, 1 Shift, 2 Latch, 4 Lock States" );
+CLIDict_Entry( macroDebug,  "Disables/Enables sending USB keycodes to the Output Module and prints U/K codes." );
+CLIDict_Entry( macroList,   "List the defined trigger and result macros." );
+CLIDict_Entry( macroProc,   "Pause/Resume macro processing." );
+CLIDict_Entry( macroShow,   "Show the macro corresponding to the given index." NL "\t\t\033[35mT16\033[0m Indexed Trigger Macro 0x10, \033[35mR12\033[0m Indexed Result Macro 0x0C" );
+CLIDict_Entry( macroStep,   "Do N macro processing steps. Defaults to 1." );
+
+CLIDict_Def( macroCLIDict, "Macro Module Commands" ) = {
+	CLIDict_Item( capList ),
+	CLIDict_Item( capSelect ),
+	CLIDict_Item( keyHold ),
+	CLIDict_Item( keyPress ),
+	CLIDict_Item( keyRelease ),
+	CLIDict_Item( layerList ),
+	CLIDict_Item( layerState ),
+	CLIDict_Item( macroDebug ),
+	CLIDict_Item( macroList ),
+	CLIDict_Item( macroProc ),
+	CLIDict_Item( macroShow ),
+	CLIDict_Item( macroStep ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 

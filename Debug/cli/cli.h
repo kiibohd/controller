@@ -38,13 +38,44 @@
 #define CLIEntryTabAlign     13
 
 
+
+// ----- Macros -----
+
+// AVR CLI Dictionary definitions (has to deal with the annoying PROGMEM
+// Only using PROGMEM with descriptions (all the string comparison tools need to be re-written otherwise)
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+#define CLIDict_Def(name,description) \
+	const PROGMEM char name##Name[] = description; \
+	const CLIDictItem name[]
+
+#define CLIDict_Item(name) \
+	{ #name, name##CLIDict_DescEntry, (const void (*)(char*))cliFunc_##name }
+
+#define CLIDict_Entry(name,description) \
+	const PROGMEM char name##CLIDict_DescEntry[] = description;
+
+// ARM is easy :P
+#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
+#define CLIDict_Def(name,description) \
+	const char name##Name[] = description; \
+	const CLIDictItem name[]
+
+#define CLIDict_Item(name) \
+	{ #name, name##CLIDict_DescEntry, (const void (*)(char*))cliFunc_##name }
+
+#define CLIDict_Entry(name,description) \
+	const char name##CLIDict_DescEntry[] = description;
+#endif
+
+
+
 // ----- Structs -----
 
 // Each item has a name, description, and function pointer with an argument for arguments
 typedef struct CLIDictItem {
-	char*  name;
-	char*  description;
-	void (*function)(char*);
+	const char*  name;
+	const char*  description;
+	const void (*function)(char*);
 } CLIDictItem;
 
 

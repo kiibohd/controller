@@ -144,16 +144,23 @@ void recovery( uint8_t on );
 // ----- Variables -----
 
 // Scan Module command dictionary
-const char scanCLIDictName[] = "DPH Module Commands";
-const CLIDictItem scanCLIDict[] = {
-	{ "echo",        "Example command, echos the arguments.", cliFunc_echo },
-	{ "avgDebug",    "Enables/Disables averaging results." NL "\t\tDisplays each average, starting from Key 0x00, ignoring 0 valued averages.", cliFunc_avgDebug },
-	{ "keyDebug",    "Enables/Disables long debug for each keypress." NL "\t\tkeycode - [strobe:mux] : sense val : threshold+delta=total : margin", cliFunc_keyDebug },
-	{ "pressDebug",  "Enables/Disables short debug for each keypress.", cliFunc_pressDebug },
-	{ "problemKeys", "Display current list of problem keys,", cliFunc_problemKeys },
-	{ "senseDebug",  "Prints out the current sense table N times." NL "\t\tsense:max sense:delta", cliFunc_senseDebug },
+CLIDict_Entry( echo,        "Example command, echos the arguments." );
+CLIDict_Entry( avgDebug,    "Enables/Disables averaging results." NL "\t\tDisplays each average, starting from Key 0x00, ignoring 0 valued averages." );
+CLIDict_Entry( keyDebug,    "Enables/Disables long debug for each keypress." NL "\t\tkeycode - [strobe:mux] : sense val : threshold+delta=total : margin" );
+CLIDict_Entry( pressDebug,  "Enables/Disables short debug for each keypress." );
+CLIDict_Entry( problemKeys, "Display current list of problem keys," );
+CLIDict_Entry( senseDebug,  "Prints out the current sense table N times." NL "\t\tsense:max sense:delta" );
+
+CLIDict_Def( scanCLIDict, "DPH Module Commands" ) = {
+	CLIDict_Item( echo ),
+	CLIDict_Item( avgDebug ),
+	CLIDict_Item( keyDebug ),
+	CLIDict_Item( pressDebug ),
+	CLIDict_Item( problemKeys ),
+	CLIDict_Item( senseDebug ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
+
 
 // CLI Control Variables
 uint8_t enableAvgDebug   = 0;

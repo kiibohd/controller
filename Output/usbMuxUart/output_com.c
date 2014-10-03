@@ -73,15 +73,22 @@ void cliFunc_setMod     ( char* args );
 // ----- Variables -----
 
 // Output Module command dictionary
-const char outputCLIDictName[] = "USB Module Commands";
-const CLIDictItem outputCLIDict[] = {
-	{ "kbdProtocol", "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode", cliFunc_kbdProtocol },
-	{ "readLEDs",    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc.", cliFunc_readLEDs },
-	{ "readUART",    "Read UART buffer until empty.", cliFunc_readUART },
-	{ "sendKeys",    "Send the prepared list of USB codes and modifier byte.", cliFunc_sendKeys },
-	{ "sendUART",    "Send characters over UART0.", cliFunc_sendUART },
-	{ "setKeys",     "Prepare a space separated list of USB codes (decimal). Waits until \033[35msendKeys\033[0m.", cliFunc_setKeys },
-	{ "setMod",      "Set the modfier byte:" NL "\t\t1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI", cliFunc_setMod },
+CLIDict_Entry( kbdProtocol, "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode" );
+CLIDict_Entry( readLEDs,    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc." );
+CLIDict_Entry( readUART,    "Read UART buffer until empty." );
+CLIDict_Entry( sendKeys,    "Send the prepared list of USB codes and modifier byte." );
+CLIDict_Entry( sendUART,    "Send characters over UART0." );
+CLIDict_Entry( setKeys,     "Prepare a space separated list of USB codes (decimal). Waits until \033[35msendKeys\033[0m." );
+CLIDict_Entry( setMod,      "Set the modfier byte:" NL "\t\t1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI" );
+
+CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
+	CLIDict_Item( kbdProtocol ),
+	CLIDict_Item( readLEDs ),
+	CLIDict_Item( readUART ),
+	CLIDict_Item( sendKeys ),
+	CLIDict_Item( sendUART ),
+	CLIDict_Item( setKeys ),
+	CLIDict_Item( setMod ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
