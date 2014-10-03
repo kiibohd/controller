@@ -24,7 +24,7 @@ set( CHIP
 #	"mk20dx128"        # Teensy   3.0 (arm)
 	"mk20dx128vlf5"    # McHCK    mk20dx128vlf5
 #	"mk20dx256"        # Teensy   3.1 (arm)
-)
+	CACHE STRING "Microcontroller Chip" )
 
 
 
@@ -48,16 +48,20 @@ include( initialize )
 #| Please look at the {Scan,Macro,Output,Debug} for information on the modules and how to create new ones
 
 ##| Deals with acquiring the keypress information and turning it into a key index
-set(   ScanModule "MD1" )
+set(   ScanModule "MD1"
+	CACHE STRING "Scan Module" )
 
 ##| Provides the mapping functions for DefaultMap and handles any macro processing before sending to the OutputModule
-set(  MacroModule "PartialMap" )
+set(  MacroModule "PartialMap"
+	CACHE STRING "Macro Module" )
 
 ##| Sends the current list of usb key codes through USB HID
-set( OutputModule "pjrcUSB" )
+set( OutputModule "pjrcUSB"
+	CACHE STRING "Output Module" )
 
 ##| Debugging source to use, each module has it's own set of defines that it sets
-set(  DebugModule "full" )
+set(  DebugModule "full"
+	CACHE STRING "Debug Module" )
 
 
 
@@ -88,16 +92,19 @@ set(  DebugModule "full" )
 ##| Set the base keyboard .kll map, defaults to "defaultMap" if not found
 ##| Looks in Scan/<Module Name> for the available BaseMaps
 ##| TODO Support layering in basemap
-set(     BaseMap "defaultMap" )
+set(     BaseMap "defaultMap"
+	CACHE STRING "KLL BaseMap/Scancode Keymapping" )
 
 ##| Layer additonal .kll maps on the BaseMap, layers are in order from 1st to nth
 ##| Can be set to ""
-set(  DefaultMap "stdFuncMap" )
-#set(  DefaultMap "colemak stdFuncMap" )
+set(  DefaultMap "stdFuncMap"
+	CACHE STRING "KLL DefaultMap" )
+#set(  DefaultMap "colemak stdFuncMap" CACHE )
 
 ##| ParitalMaps available on top of the BaseMap. See above for syntax on specifying multiple layers vs. layering
 ##| Can be set to ""
-set( PartialMaps "hhkbpro2" )
+set( PartialMaps "hhkbpro2"
+	CACHE STRING "KLL PartialMaps/Layer Definitions" )
 
 
 
