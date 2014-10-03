@@ -36,7 +36,7 @@
 
 // Max size of key buffer needed for NKRO
 // Boot mode uses only the first 6 bytes
-#define USB_NKRO_BITFIELD_SIZE_KEYS 26
+#define USB_NKRO_BITFIELD_SIZE_KEYS 27
 #define USB_BOOT_MAX_KEYS 6
 
 
