@@ -114,7 +114,7 @@ inline void usb_keyboard_send()
 			USBKeys_Changed &= ~USBKeyChangeState_Modifiers; // Mark sent
 		}
 		// Check main key section
-		else if ( USBKeys_Changed & USBKeyChangeState_MainKeys )
+		if ( USBKeys_Changed & USBKeyChangeState_MainKeys )
 		{
 			UEDATX = 0x03; // ID
 
@@ -127,7 +127,7 @@ inline void usb_keyboard_send()
 			USBKeys_Changed &= ~USBKeyChangeState_MainKeys; // Mark sent
 		}
 		// Check secondary key section
-		else if ( USBKeys_Changed & USBKeyChangeState_SecondaryKeys )
+		if ( USBKeys_Changed & USBKeyChangeState_SecondaryKeys )
 		{
 			UEDATX = 0x04; // ID
 
@@ -140,7 +140,7 @@ inline void usb_keyboard_send()
 			USBKeys_Changed &= ~USBKeyChangeState_SecondaryKeys; // Mark sent
 		}
 		// Check tertiary key section
-		else if ( USBKeys_Changed & USBKeyChangeState_TertiaryKeys )
+		if ( USBKeys_Changed & USBKeyChangeState_TertiaryKeys )
 		{
 			UEDATX = 0x05; // ID
 
@@ -153,7 +153,7 @@ inline void usb_keyboard_send()
 			USBKeys_Changed &= ~USBKeyChangeState_TertiaryKeys; // Mark sent
 		}
 		// Check system control keys
-		else if ( USBKeys_Changed & USBKeyChangeState_System )
+		if ( USBKeys_Changed & USBKeyChangeState_System )
 		{
 			UEDATX = 0x06; // ID
 			UEDATX = USBKeys_SysCtrl;
@@ -162,7 +162,7 @@ inline void usb_keyboard_send()
 			USBKeys_Changed &= ~USBKeyChangeState_System; // Mark sent
 		}
 		// Check consumer control keys
-		else if ( USBKeys_Changed & USBKeyChangeState_Consumer )
+		if ( USBKeys_Changed & USBKeyChangeState_Consumer )
 		{
 			UEDATX = 0x07; // ID
 			UEDATX = (uint8_t)(USBKeys_ConsCtrl & 0x00FF);
@@ -253,7 +253,7 @@ void usb_serial_flush_input()
 }
 
 // transmit a character.  0 returned on success, -1 on error
-int8_t usb_serial_putchar(uint8_t c)
+int8_t usb_serial_putchar( uint8_t c )
 {
 	uint8_t timeout, intr_state;
 
@@ -304,7 +304,7 @@ int8_t usb_serial_putchar(uint8_t c)
 
 // transmit a character, but do not wait if the buffer is full,
 //   0 returned on success, -1 on buffer full or error
-int8_t usb_serial_putchar_nowait(uint8_t c)
+int8_t usb_serial_putchar_nowait( uint8_t c )
 {
 	uint8_t intr_state;
 
@@ -338,7 +338,7 @@ int8_t usb_serial_putchar_nowait(uint8_t c)
 // controller in the PC will not allocate bandwitdh without a pending read request.
 // (thanks to Victor Suarez for testing and feedback and initial code)
 
-int8_t usb_serial_write(const char *buffer, uint16_t size)
+int8_t usb_serial_write( const char *buffer, uint16_t size )
 {
 	uint8_t timeout, intr_state, write_size;
 
@@ -351,7 +351,7 @@ int8_t usb_serial_write(const char *buffer, uint16_t size)
 	cli();
 	UENUM = CDC_TX_ENDPOINT;
 	// if we gave up due to timeout before, don't wait again
-	/*
+
 	if (transmit_previous_timeout) {
 		if (!(UEINTX & (1<<RWAL))) {
 			SREG = intr_state;
@@ -359,7 +359,7 @@ int8_t usb_serial_write(const char *buffer, uint16_t size)
 		}
 		transmit_previous_timeout = 0;
 	}
-	*/
+
 	// each iteration of this loop transmits a packet
 	while (size) {
 		// wait for the FIFO to be ready to accept data
@@ -474,7 +474,7 @@ int8_t usb_serial_write(const char *buffer, uint16_t size)
 // This doesn't actually transmit the data - that is impossible!
 // USB devices only transmit when the host allows, so the best
 // we can do is release the FIFO buffer for when the host wants it
-void usb_serial_flush_output(void)
+void usb_serial_flush_output()
 {
 	uint8_t intr_state;
 
@@ -521,7 +521,7 @@ uint8_t usb_serial_get_control()
 // it remains buffered (either here or on the host) and can not be
 // lost because you weren't listening at the right time, like it
 // would in real serial communication.
-int8_t usb_serial_set_control(uint8_t signals)
+int8_t usb_serial_set_control( uint8_t signals )
 {
 	uint8_t intr_state;
 
