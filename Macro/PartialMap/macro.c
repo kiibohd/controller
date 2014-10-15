@@ -150,6 +150,10 @@ uint16_t macroResultMacroPendingListSize = 0;
 // Sets the given layer with the specified layerState
 void Macro_layerState( uint8_t state, uint8_t stateType, uint16_t layer, uint8_t layerState )
 {
+	// Ignore if layer does not exist
+	if ( layer >= LayerNum )
+		return;
+
 	// Is layer in the LayerIndexStack?
 	uint8_t inLayerIndexStack = 0;
 	uint16_t stackItem = 0;
