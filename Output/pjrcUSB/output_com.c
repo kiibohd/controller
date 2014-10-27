@@ -401,6 +401,17 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 			USBKeys_Changed |= USBKeyChangeState_TertiaryKeys;
 		}
+		// Received 0x00
+		// This is a special USB Code that internally indicates a "break"
+		// It is used to send "nothing" in order to break up sequences of USB Codes
+		else if ( key == 0x00 )
+		{
+			USBKeys_Changed |= USBKeyChangeState_All;
+
+			// Also flush out buffers just in case
+			Output_flushBuffers();
+			break;
+		}
 		// Invalid key
 		else
 		{
