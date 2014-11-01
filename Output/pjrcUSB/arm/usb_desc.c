@@ -435,7 +435,7 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
         0x24,                                   // bDescriptorType
         0x01,                                   // bDescriptorSubtype
         0x01,                                   // bmCapabilities
-        1,                                      // bDataInterface
+        CDC_DATA_INTERFACE,                     // bDataInterface
 // - 4 bytes -
         // Abstract Control Management Functional Descriptor, CDC Spec 5.2.3.3, Table 28
         4,                                      // bFunctionLength
