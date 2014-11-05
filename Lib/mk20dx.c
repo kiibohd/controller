@@ -361,7 +361,17 @@ const uint8_t flashconfigbytes[16] = {
 __attribute__ ((section(".flashconfig"), used))
 const uint8_t flashconfigbytes[16] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // Backdoor Verif Key 28.3.1
-	0xFF, 0xFF, 0xFF, 0xFF, // Program Flash Protection Bytes FPROT0-3
+
+	//
+	// Protecting the first 4k of Flash memory from being over-written while running (bootloader protection)
+	// Still possible to overwrite the bootloader using an external flashing device
+	// For more details see:
+	//  http://cache.freescale.com/files/training/doc/dwf/AMF_ENT_T1031_Boston.pdf (page 8)
+	//  http://cache.freescale.com/files/microcontrollers/doc/app_note/AN4507.pdf
+	//  http://cache.freescale.com/files/32bit/doc/ref_manual/K20P48M50SF0RM.pdf (28.34.6)
+	//
+	0xFF, 0xFF, 0xFF, 0xFE, // Program Flash Protection Bytes FPROT0-3
+
 	0xBE, // Flash security byte FSEC
 	0x03, // Flash nonvolatile option byte FOPT
 	0xFF, // EEPROM Protection Byte FEPROT
