@@ -225,8 +225,8 @@ static void usb_setup()
 				usb_free(p);
 				p = n;
 			}
-			rx_first[i] = NULL;
-			rx_last[i] = NULL;
+			rx_first[ i ] = NULL;
+			rx_last[ i ] = NULL;
 			p = tx_first[i];
 			while (p)
 			{
@@ -234,18 +234,19 @@ static void usb_setup()
 				usb_free(p);
 				p = n;
 			}
-			tx_first[i] = NULL;
-			tx_last[i] = NULL;
+			tx_first[ i ] = NULL;
+			tx_last[ i ] = NULL;
 			usb_rx_byte_count_data[i] = 0;
 
-			switch (tx_state[i]) {
+			switch ( tx_state[ i ] )
+			{
 			case TX_STATE_EVEN_FREE:
 			case TX_STATE_NONE_FREE_EVEN_FIRST:
-				tx_state[i] = TX_STATE_BOTH_FREE_EVEN_FIRST;
+				tx_state[ i ] = TX_STATE_BOTH_FREE_EVEN_FIRST;
 				break;
 			case TX_STATE_ODD_FREE:
 			case TX_STATE_NONE_FREE_ODD_FIRST:
-				tx_state[i] = TX_STATE_BOTH_FREE_ODD_FIRST;
+				tx_state[ i ] = TX_STATE_BOTH_FREE_ODD_FIRST;
 				break;
 			default:
 				break;
@@ -263,28 +264,28 @@ static void usb_setup()
 				p = usb_malloc();
 				if ( p )
 				{
-					table[index(i, RX, EVEN)].addr = p->buf;
-					table[index(i, RX, EVEN)].desc = BDT_DESC(64, 0);
+					table[ index( i, RX, EVEN ) ].addr = p->buf;
+					table[ index( i, RX, EVEN ) ].desc = BDT_DESC( 64, 0 );
 				}
 				else
 				{
-					table[index(i, RX, EVEN)].desc = 0;
+					table[ index( i, RX, EVEN ) ].desc = 0;
 					usb_rx_memory_needed++;
 				}
 				p = usb_malloc();
 				if ( p )
 				{
-					table[index(i, RX, ODD)].addr = p->buf;
-					table[index(i, RX, ODD)].desc = BDT_DESC(64, 1);
+					table[ index( i, RX, ODD ) ].addr = p->buf;
+					table[ index( i, RX, ODD ) ].desc = BDT_DESC( 64, 1 );
 				}
 				else
 				{
-					table[index(i, RX, ODD)].desc = 0;
+					table[ index( i, RX, ODD ) ].desc = 0;
 					usb_rx_memory_needed++;
 				}
 			}
-			table[index(i, TX, EVEN)].desc = 0;
-			table[index(i, TX, ODD)].desc = 0;
+			table[ index( i, TX, EVEN ) ].desc = 0;
+			table[ index( i, TX, ODD ) ].desc = 0;
 		}
 		break;
 	case 0x0880: // GET_CONFIGURATION
@@ -338,15 +339,13 @@ static void usb_setup()
 	case 0x0681:
 		#ifdef UART_DEBUG
 		print("desc:");
-		printHex(setup.wValue);
-		print(NL);
+		printHex( setup.wValue );
+		print( NL );
 		#endif
 		for ( list = usb_descriptor_list; 1; list++ )
 		{
 			if ( list->addr == NULL )
 				break;
-			//if (setup.wValue == list->wValue &&
-			//(setup.wIndex == list->wIndex) || ((setup.wValue >> 8) == 3)) {
 			if ( setup.wValue == list->wValue && setup.wIndex == list->wIndex )
 			{
 				data = list->addr;
@@ -363,23 +362,23 @@ static void usb_setup()
 				}
 				#if UART_DEBUG
 				print("Desc found, ");
-				printHex32((uint32_t)data);
+				printHex32( (uint32_t)data );
 				print(",");
-				printHex(datalen);
+				printHex( datalen );
 				print(",");
-				printHex_op(data[0], 2);
-				printHex_op(data[1], 2);
-				printHex_op(data[2], 2);
-				printHex_op(data[3], 2);
-				printHex_op(data[4], 2);
-				printHex_op(data[5], 2);
-				print(NL);
+				printHex_op( data[0], 2 );
+				printHex_op( data[1], 2 );
+				printHex_op( data[2], 2 );
+				printHex_op( data[3], 2 );
+				printHex_op( data[4], 2 );
+				printHex_op( data[5], 2 );
+				print( NL );
 				#endif
 				goto send;
 			}
 		}
 		#ifdef UART_DEBUG
-		print("desc: not found"NL);
+		print( "desc: not found" NL );
 		#endif
 		endpoint0_stall();
 		return;
@@ -398,6 +397,7 @@ static void usb_setup()
 	case 0x2021: // CDC_SET_LINE_CODING
 		// XXX Needed?
 		//serial_print("set coding, waiting...\n");
+		//endpoint0_stall();
 		return; // Cannot stall here (causes issues)
 
 	case 0x0921: // HID SET_REPORT
@@ -406,7 +406,7 @@ static void usb_setup()
 		printHex( setup.wValue );
 		print(" - ");
 		printHex( setup.wValue & 0xFF );
-		print(NL);
+		print( NL );
 		#endif
 		USBKeys_LEDs = setup.wValue & 0xFF;
 		endpoint0_stall();
@@ -734,12 +734,14 @@ void usb_rx_memory( usb_packet_t *packet )
 	cfg = usb_endpoint_config_table;
 	//serial_print("rx_mem:");
 	__disable_irq();
-	for (i=1; i <= NUM_ENDPOINTS; i++) {
-		if (*cfg++ & USB_ENDPT_EPRXEN) {
+	for ( i = 1; i <= NUM_ENDPOINTS; i++ )
+	{
+		if ( *cfg++ & USB_ENDPT_EPRXEN )
+		{
 			if ( table[ index( i, RX, EVEN ) ].desc == 0 )
 			{
-				table[index(i, RX, EVEN)].addr = packet->buf;
-				table[index(i, RX, EVEN)].desc = BDT_DESC( 64, 0 );
+				table[ index( i, RX, EVEN ) ].addr = packet->buf;
+				table[ index( i, RX, EVEN ) ].desc = BDT_DESC( 64, 0 );
 				usb_rx_memory_needed--;
 				__enable_irq();
 				//serial_phex(i);
@@ -860,7 +862,7 @@ void usb_isr()
 	//status = USB0_ISTAT;
 	//serial_phex(status);
 	//serial_print("\n");
-	restart:
+restart:
 	status = USB0_ISTAT;
 	/*
 	print("USB ISR STATUS: ");
@@ -925,7 +927,7 @@ void usb_isr()
 			if ( stat & 0x08 )
 			{ // transmit
 				usb_free( packet );
-				packet = tx_first[endpoint];
+				packet = tx_first[ endpoint ];
 				if ( packet )
 				{
 					//serial_print("tx packet\n");
@@ -934,21 +936,21 @@ void usb_isr()
 					switch ( tx_state[ endpoint ] )
 					{
 					case TX_STATE_BOTH_FREE_EVEN_FIRST:
-						tx_state[endpoint] = TX_STATE_ODD_FREE;
+						tx_state[ endpoint ] = TX_STATE_ODD_FREE;
 						break;
 					case TX_STATE_BOTH_FREE_ODD_FIRST:
-						tx_state[endpoint] = TX_STATE_EVEN_FREE;
+						tx_state[ endpoint ] = TX_STATE_EVEN_FREE;
 						break;
 					case TX_STATE_EVEN_FREE:
-						tx_state[endpoint] = TX_STATE_NONE_FREE_ODD_FIRST;
+						tx_state[ endpoint ] = TX_STATE_NONE_FREE_ODD_FIRST;
 						break;
 					case TX_STATE_ODD_FREE:
-						tx_state[endpoint] = TX_STATE_NONE_FREE_EVEN_FIRST;
+						tx_state[ endpoint ] = TX_STATE_NONE_FREE_EVEN_FIRST;
 						break;
 					default:
 						break;
 					}
-					b->desc = BDT_DESC(packet->len, ((uint32_t)b & 8) ? DATA1 : DATA0);
+					b->desc = BDT_DESC( packet->len, ((uint32_t)b & 8) ? DATA1 : DATA0 );
 				} else {
 					//serial_print("tx no packet\n");
 					switch ( tx_state[ endpoint ] )
@@ -957,13 +959,13 @@ void usb_isr()
 					case TX_STATE_BOTH_FREE_ODD_FIRST:
 						break;
 					case TX_STATE_EVEN_FREE:
-						tx_state[endpoint] = TX_STATE_BOTH_FREE_EVEN_FIRST;
+						tx_state[ endpoint ] = TX_STATE_BOTH_FREE_EVEN_FIRST;
 						break;
 					case TX_STATE_ODD_FREE:
-						tx_state[endpoint] = TX_STATE_BOTH_FREE_ODD_FIRST;
+						tx_state[ endpoint ] = TX_STATE_BOTH_FREE_ODD_FIRST;
 						break;
 					default:
-						tx_state[endpoint] = ((uint32_t)b & 8)
+						tx_state[ endpoint ] = ((uint32_t)b & 8)
 						  ? TX_STATE_ODD_FREE
 						  : TX_STATE_EVEN_FREE;
 						break;
@@ -973,17 +975,18 @@ void usb_isr()
 			else
 			{ // receive
 				packet->len = b->desc >> 16;
-				if (packet->len > 0) {
+				if ( packet->len > 0 )
+				{
 					packet->index = 0;
 					packet->next = NULL;
-					if (rx_first[endpoint] == NULL)
+					if ( rx_first[ endpoint ] == NULL )
 					{
 						//serial_print("rx 1st, epidx=");
 						//serial_phex(endpoint);
 						//serial_print(", packet=");
 						//serial_phex32((uint32_t)packet);
 						//serial_print("\n");
-						rx_first[endpoint] = packet;
+						rx_first[ endpoint ] = packet;
 					}
 					else
 					{
@@ -992,10 +995,10 @@ void usb_isr()
 						//serial_print(", packet=");
 						//serial_phex32((uint32_t)packet);
 						//serial_print("\n");
-						rx_last[endpoint]->next = packet;
+						rx_last[ endpoint ]->next = packet;
 					}
-					rx_last[endpoint] = packet;
-					usb_rx_byte_count_data[endpoint] += packet->len;
+					rx_last[ endpoint ] = packet;
+					usb_rx_byte_count_data[ endpoint ] += packet->len;
 					// TODO: implement a per-endpoint maximum # of allocated packets
 					// so a flood of incoming data on 1 endpoint doesn't starve
 					// the others if the user isn't reading it regularly
@@ -1003,7 +1006,7 @@ void usb_isr()
 					if ( packet )
 					{
 						b->addr = packet->buf;
-						b->desc = BDT_DESC(64, ((uint32_t)b & 8) ? DATA1 : DATA0);
+						b->desc = BDT_DESC( 64, ((uint32_t)b & 8) ? DATA1 : DATA0 );
 					}
 					else
 					{
@@ -1016,7 +1019,7 @@ void usb_isr()
 				}
 				else
 				{
-					b->desc = BDT_DESC(64, ((uint32_t)b & 8) ? DATA1 : DATA0);
+					b->desc = BDT_DESC( 64, ((uint32_t)b & 8) ? DATA1 : DATA0 );
 				}
 			}
 
@@ -1038,12 +1041,12 @@ void usb_isr()
 		ep0_tx_bdt_bank = 0;
 
 		// set up buffers to receive Setup and OUT packets
-		table[index(0, RX, EVEN)].desc = BDT_DESC(EP0_SIZE, 0);
-		table[index(0, RX, EVEN)].addr = ep0_rx0_buf;
-		table[index(0, RX, ODD)].desc = BDT_DESC(EP0_SIZE, 0);
-		table[index(0, RX, ODD)].addr = ep0_rx1_buf;
-		table[index(0, TX, EVEN)].desc = 0;
-		table[index(0, TX, ODD)].desc = 0;
+		table[index( 0, RX, EVEN ) ].desc = BDT_DESC( EP0_SIZE, 0 );
+		table[index( 0, RX, EVEN ) ].addr = ep0_rx0_buf;
+		table[index( 0, RX, ODD ) ].desc = BDT_DESC( EP0_SIZE, 0 );
+		table[index( 0, RX, ODD ) ].addr = ep0_rx1_buf;
+		table[index( 0, TX, EVEN ) ].desc = 0;
+		table[index( 0, TX, ODD ) ].desc = 0;
 
 		// activate endpoint 0
 		USB0_ENDPT0 = USB_ENDPT_EPRXEN | USB_ENDPT_EPTXEN | USB_ENDPT_EPHSHK;
@@ -1091,7 +1094,6 @@ void usb_isr()
 		//serial_print("sleep\n");
 		USB0_ISTAT = USB_ISTAT_SLEEP;
 	}
-
 }
 
 
