@@ -131,8 +131,8 @@ inline void usb_keyboard_send()
 		{
 			UEDATX = 0x04; // ID
 
-			// 51-164 (Middle 15 bytes)
-			for ( uint8_t byte = 6; byte < 21; byte++ )
+			// 51-155 (Middle 14 bytes)
+			for ( uint8_t byte = 6; byte < 20; byte++ )
 				UEDATX = USBKeys_Keys[ byte ];
 
 			UEINTX = 0; // Finished with ID
@@ -144,18 +144,31 @@ inline void usb_keyboard_send()
 		{
 			UEDATX = 0x05; // ID
 
-			// 176-221 (last 6 bytes)
-			for ( uint8_t byte = 21; byte < 27; byte++ )
+			// 157-164 (Next byte)
+			for ( uint8_t byte = 20; byte < 21; byte++ )
 				UEDATX = USBKeys_Keys[ byte ];
 
 			UEINTX = 0; // Finished with ID
 
 			USBKeys_Changed &= ~USBKeyChangeState_TertiaryKeys; // Mark sent
 		}
+		// Check quartiary key section
+		if ( USBKeys_Changed & USBKeyChangeState_TertiaryKeys )
+		{
+			UEDATX = 0x06; // ID
+
+			// 176-221 (last 6 bytes)
+			for ( uint8_t byte = 21; byte < 27; byte++ )
+				UEDATX = USBKeys_Keys[ byte ];
+
+			UEINTX = 0; // Finished with ID
+
+			USBKeys_Changed &= ~USBKeyChangeState_QuartiaryKeys; // Mark sent
+		}
 		// Check system control keys
 		if ( USBKeys_Changed & USBKeyChangeState_System )
 		{
-			UEDATX = 0x06; // ID
+			UEDATX = 0x07; // ID
 			UEDATX = USBKeys_SysCtrl;
 			UEINTX = 0; // Finished with ID
 
@@ -164,7 +177,7 @@ inline void usb_keyboard_send()
 		// Check consumer control keys
 		if ( USBKeys_Changed & USBKeyChangeState_Consumer )
 		{
-			UEDATX = 0x07; // ID
+			UEDATX = 0x08; // ID
 			UEDATX = (uint8_t)(USBKeys_ConsCtrl & 0x00FF);
 			UEDATX = (uint8_t)(USBKeys_ConsCtrl >> 8);
 			UEINTX = 0; // Finished with ID

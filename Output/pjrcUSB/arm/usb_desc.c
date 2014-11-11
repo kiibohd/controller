@@ -186,7 +186,8 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	// See http://www.usb.org/developers/hidpage/Hut1_12v2.pdf Chapter 10
 	// Or Macros/PartialMap/usb_hid.h
 	//
-	// 50 must be excluded due to a Linux bug with bitmaps (not useful anyways)
+	// 50 (ISO \ due to \ bug) and 156 (Clear due to Delete bug) must be excluded
+	//  due to a Linux bug with bitmaps (not useful anyways)
 	// 165-175 are reserved/unused as well as 222-223 and 232-65535
 	// 224-231 are used for modifiers (see above)
 	//
@@ -197,10 +198,11 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	//
 	// Packing of bitmaps are as follows:
 	//   4-49  :  6 bytes + 1 Report ID byte (0x04-0x31) ( 46 bits + 2 padding bits for 6 bytes total)
-	//  51-164 : 20 bytes + 1 Report ID byte (0x33-0xA4) (114 bits + 6 padding bits for 15 bytes total)
+	//  51-155 : 14 bytes + 1 Report ID byte (0x33-0x9B) (105 bits + 6 padding bits for 15 bytes total)
+	// 157-164 :  1 byte  + 1 Report ID byte (0x9D-0xA4) (  8 bits)
 	// 176-221 :  6 bytes + 1 Report ID byte (0xB0-0xDD) ( 46 bits + 2 padding bits for 6 bytes total)
 	//
-	// 4-49 (6 bytes/46 bits)
+	// 4-49 (6 bytes/46 bits) - MainKeys
         0x85, 0x03,          //   Report ID (3),
         0x75, 0x01,          //   Report Size (1),
         0x95, 0x2E,          //   Report Count (46),
@@ -213,21 +215,32 @@ static uint8_t nkro_keyboard_report_desc[] = {
 
 	// Should pad 2 bits according to the spec, but OSX doesn't like this -HaaTa
 
-	// 51-164 (15 bytes/160 bits)
+	// 51-155 (14 bytes/105 bits) - SecondaryKeys
         0x85, 0x04,          //   Report ID (4),
         0x75, 0x01,          //   Report Size (1),
-        0x95, 0xA0,          //   Report Count (160),
+        0x95, 0x69,          //   Report Count (105),
         0x15, 0x00,          //   Logical Minimum (0),
         0x25, 0x01,          //   Logical Maximum (1),
         0x05, 0x07,          //   Usage Page (Key Codes),
         0x19, 0x33,          //   Usage Minimum (51),
-        0x29, 0xA4,          //   Usage Maximum (164),
+        0x29, 0x9B,          //   Usage Maximum (155),
         0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
 
 	// Should pad 6 bits according to the spec, but OSX doesn't like this -HaaTa
 
-	// 176-221 (6 bytes/46 bits)
+	// 157-164 (1 byte/8 bits) - TertiaryKeys
         0x85, 0x05,          //   Report ID (5),
+        0x75, 0x01,          //   Report Size (1),
+        0x95, 0x08,          //   Report Count (8),
+        0x15, 0x00,          //   Logical Minimum (0),
+        0x25, 0x01,          //   Logical Maximum (1),
+        0x05, 0x07,          //   Usage Page (Key Codes),
+        0x19, 0x9D,          //   Usage Minimum (157),
+        0x29, 0xA4,          //   Usage Maximum (164),
+        0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
+
+	// 176-221 (6 bytes/46 bits) - QuartiaryKeys
+        0x85, 0x06,          //   Report ID (6),
         0x75, 0x01,          //   Report Size (1),
         0x95, 0x2D,          //   Report Count (45),
         0x15, 0x00,          //   Logical Minimum (0),
@@ -249,7 +262,7 @@ static uint8_t nkro_keyboard_report_desc[] = {
         0x05, 0x01,          // Usage Page (Generic Desktop),
         0x09, 0x80,          // Usage (System Control),
         0xA1, 0x01,          // Collection (Application),
-        0x85, 0x06,          //   Report ID (6),
+        0x85, 0x07,          //   Report ID (7),
         0x75, 0x08,          //   Report Size (8),
         0x95, 0x01,          //   Report Count (1),
         0x16, 0x81, 0x00,    //   Logical Minimum (129),
@@ -267,7 +280,7 @@ static uint8_t nkro_keyboard_report_desc[] = {
         0x05, 0x0c,          // Usage Page (Consumer),
         0x09, 0x01,          // Usage (Consumer Control),
         0xA1, 0x01,          // Collection (Application),
-        0x85, 0x07,          //   Report ID (7),
+        0x85, 0x08,          //   Report ID (8),
         0x75, 0x10,          //   Report Size (16),
         0x95, 0x01,          //   Report Count (1),
         0x16, 0x20, 0x00,    //   Logical Minimum (32),

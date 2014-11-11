@@ -342,10 +342,11 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 			break;
 		}
 		// First 6 bytes
-		else if ( key >= 4 && key <= 50 )
+		else if ( key >= 4 && key <= 49 )
 		{
 			// Lookup (otherwise division or multiple checks are needed to do alignment)
-			uint8_t keyPos = key - (4 - 0); // Starting position in array
+			// Starting at 0th position, each byte has 8 bits, starting at 4th bit
+			uint8_t keyPos = key + (0 * 8 - 4); // Starting position in array, Ignoring 4 keys
 			switch ( keyPos )
 			{
 				byteLookup( 0 );
@@ -358,11 +359,12 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 			USBKeys_Changed |= USBKeyChangeState_MainKeys;
 		}
-		// Next 15 bytes
-		else if ( key >= 51 && key <= 164 )
+		// Next 14 bytes
+		else if ( key >= 51 && key <= 155 )
 		{
 			// Lookup (otherwise division or multiple checks are needed to do alignment)
-			uint8_t keyPos = key - (51 - 48); // Starting position in array
+			// Starting at 6th byte position, each byte has 8 bits, starting at 51st bit
+			uint8_t keyPos = key + (6 * 8 - 51); // Starting position in array
 			switch ( keyPos )
 			{
 				byteLookup( 6 );
@@ -379,16 +381,27 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 				byteLookup( 17 );
 				byteLookup( 18 );
 				byteLookup( 19 );
-				byteLookup( 20 );
 			}
 
 			USBKeys_Changed |= USBKeyChangeState_SecondaryKeys;
+		}
+		// Next byte
+		else if ( key >= 157 && key <= 164 )
+		{
+			// Lookup (otherwise division or multiple checks are needed to do alignment)
+			uint8_t keyPos = key + (20 * 8 - 157); // Starting position in array, Ignoring 6 keys
+			switch ( keyPos )
+			{
+				byteLookup( 20 );
+			}
+
+			USBKeys_Changed |= USBKeyChangeState_TertiaryKeys;
 		}
 		// Last 6 bytes
 		else if ( key >= 176 && key <= 221 )
 		{
 			// Lookup (otherwise division or multiple checks are needed to do alignment)
-			uint8_t keyPos = key - (176 - 168); // Starting position in array
+			uint8_t keyPos = key + (21 * 8 - 176); // Starting position in array
 			switch ( keyPos )
 			{
 				byteLookup( 21 );
@@ -399,7 +412,7 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 				byteLookup( 26 );
 			}
 
-			USBKeys_Changed |= USBKeyChangeState_TertiaryKeys;
+			USBKeys_Changed |= USBKeyChangeState_QuartiaryKeys;
 		}
 		// Received 0x00
 		// This is a special USB Code that internally indicates a "break"
@@ -415,7 +428,7 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 		// Invalid key
 		else
 		{
-			warn_msg("USB Code not within 4-164 (0x4-0xA4) or 176-221 (0xB0-0xDD) NKRO Mode: ");
+			warn_msg("USB Code not within 4-49 (0x4-0x31), 51-155 (0x33-0x9B), 157-164 (0x9D-0xA4), 176-221 (0xB0-0xDD) or 224-231 (0xE0-0xE7) NKRO Mode: ");
 			printHex( key );
 			print( NL );
 			break;
