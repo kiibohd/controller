@@ -497,14 +497,15 @@ inline void Output_send()
 	while ( USBKeys_Changed )
 		usb_keyboard_send();
 
-	// Clear modifiers and keys
-	USBKeys_Modifiers = 0;
-	USBKeys_Sent      = 0;
+	// Clear keys sent
+	USBKeys_Sent = 0;
 
 	// Signal Scan Module we are finished
 	switch ( USBKeys_Protocol )
 	{
 	case 0: // Boot Mode
+		// Clear modifiers only in boot mode
+		USBKeys_Modifiers = 0;
 		Scan_finishedWithOutput( USBKeys_Sent <= USB_BOOT_MAX_KEYS ? USBKeys_Sent : USB_BOOT_MAX_KEYS );
 		break;
 	case 1: // NKRO Mode
