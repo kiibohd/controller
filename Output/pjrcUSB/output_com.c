@@ -419,7 +419,7 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 		// It is used to send "nothing" in order to break up sequences of USB Codes
 		else if ( key == 0x00 )
 		{
-			USBKeys_Changed |= USBKeyChangeState_All;
+			USBKeys_Changed |= USBKeyChangeState_MainKeys;
 
 			// Also flush out buffers just in case
 			Output_flushBuffers();
