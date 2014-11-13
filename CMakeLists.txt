@@ -97,9 +97,8 @@ set(     BaseMap "defaultMap"
 
 ##| Layer additonal .kll maps on the BaseMap, layers are in order from 1st to nth
 ##| Can be set to ""
-set(  DefaultMap "stdFuncMap"
+set(  DefaultMap "md1Overlay stdFuncMap"
 	CACHE STRING "KLL DefaultMap" )
-#set(  DefaultMap "colemak stdFuncMap" CACHE )
 
 ##| ParitalMaps available on top of the BaseMap. See above for syntax on specifying multiple layers vs. layering
 ##| Can be set to ""

@@ -246,8 +246,7 @@ void Macro_layerLatch_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 
 	// Only use capability on press
 	// TODO Analog
-	// XXX To make sense, this code be on press or release. Or it could even be a sticky shift (why? dunno) -HaaTa
-	if ( stateType == 0x00 && state != 0x01 ) // All normal key conditions except press
+	if ( stateType == 0x00 && state != 0x03 ) // Only on release
 		return;
 
 	// Get layer index from arguments
@@ -312,7 +311,7 @@ void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 
 // Looks up the trigger list for the given scan code (from the active layer)
 // NOTE: Calling function must handle the NULL pointer case
-nat_ptr_t *Macro_layerLookup( uint8_t scanCode )
+nat_ptr_t *Macro_layerLookup( uint8_t scanCode, uint8_t latch_expire )
 {
 	// If no trigger macro is defined at the given layer, fallthrough to the next layer
 	for ( uint16_t layerIndex = 0; layerIndex < macroLayerIndexStackSize; layerIndex++ )
@@ -322,10 +321,10 @@ nat_ptr_t *Macro_layerLookup( uint8_t scanCode )
 
 		// Check if latch has been pressed for this layer
 		// XXX Regardless of whether a key is found, the latch is removed on first lookup
-		uint8_t latch = LayerState[ layerIndex ] & 0x02;
-		if ( latch )
+		uint8_t latch = LayerState[ macroLayerIndexStack[ layerIndex ] ] & 0x02;
+		if ( latch && latch_expire )
 		{
-			LayerState[ layerIndex ] &= ~0x02;
+			Macro_layerState( 0, 0, macroLayerIndexStack[ layerIndex ], 0x02 );
 		}
 
 		// Only use layer, if state is valid
@@ -832,8 +831,12 @@ inline void Macro_updateTriggerMacroPendingList()
 		if ( macroTriggerListBuffer[ key ].state == 0x00 && macroTriggerListBuffer[ key ].state != 0x01 )
 			continue;
 
+		// TODO Analog
+		// If this is a release case, indicate to layer lookup for possible latch expiry
+		uint8_t latch_expire = macroTriggerListBuffer[ key ].state == 0x03;
+
 		// Lookup Trigger List
-		nat_ptr_t *triggerList = Macro_layerLookup( macroTriggerListBuffer[ key ].scanCode );
+		nat_ptr_t *triggerList = Macro_layerLookup( macroTriggerListBuffer[ key ].scanCode, latch_expire );
 
 		// Number of Triggers in list
 		nat_ptr_t triggerListSize = triggerList[0];
