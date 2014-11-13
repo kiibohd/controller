@@ -337,19 +337,8 @@ static const uint8_t PROGMEM keyboard_nkro_hid_report_desc[] = {
         0x09, 0x06,          // Usage (Keyboard),
         0xA1, 0x01,          // Collection (Application) - Keyboard,
 
-	// Modifier Byte
-        0x85, 0x01,          //   Report ID (1),
-        0x75, 0x01,          //   Report Size (1),
-        0x95, 0x08,          //   Report Count (8),
-        0x15, 0x00,          //   Logical Minimum (0),
-        0x25, 0x01,          //   Logical Maximum (1),
-        0x05, 0x07,          //   Usage Page (Key Codes),
-        0x19, 0xE0,          //   Usage Minimum (224),
-        0x29, 0xE7,          //   Usage Maximum (231),
-        0x81, 0x02,          //   Input (Data, Variable, Absolute),
-
 	// LED Report
-        0x85, 0x02,          //   Report ID (2),
+        0x85, 0x01,          //   Report ID (1),
         0x75, 0x01,          //   Report Size (1),
         0x95, 0x05,          //   Report Count (5),
         0x05, 0x08,          //   Usage Page (LEDs),
@@ -373,21 +362,34 @@ static const uint8_t PROGMEM keyboard_nkro_hid_report_desc[] = {
 	// 50 (ISO \ due to \ bug) and 156 (Clear due to Delete bug) must be excluded
 	//  due to a Linux bug with bitmaps (not useful anyways)
 	// 165-175 are reserved/unused as well as 222-223 and 232-65535
-	// 224-231 are used for modifiers (see above)
 	//
 	// Compatibility Notes:
 	//  - Using a second endpoint for a boot mode device helps with compatibility
 	//  - DO NOT use Padding in the descriptor for bitfields
 	//    (Mac OSX silently fails... Windows/Linux work correctly)
+	//  - DO NOT use Report IDs, Windows 8.1 will not update keyboard correctly (modifiers disappear)
+	//    (all other OSs, including OSX work fine...)
+	//    (you can use them *iff* you only have 1 per collection)
+	//  - Mac OSX and Windows 8.1 are extremely picky about padding
 	//
 	// Packing of bitmaps are as follows:
-	//   4-49  :  6 bytes + 1 Report ID byte (0x04-0x31) ( 46 bits + 2 padding bits for 6 bytes total)
-	//  51-155 : 14 bytes + 1 Report ID byte (0x33-0x9B) (105 bits + 6 padding bits for 15 bytes total)
-	// 157-164 :  1 byte  + 1 Report ID byte (0x9D-0xA4) (  8 bits)
-	// 176-221 :  6 bytes + 1 Report ID byte (0xB0-0xDD) ( 46 bits + 2 padding bits for 6 bytes total)
-	//
+	//   4-49  :  6 bytes (0x04-0x31) ( 46 bits + 2 padding bits for 6 bytes total)
+	//  51-155 : 14 bytes (0x33-0x9B) (105 bits + 6 padding bits for 15 bytes total)
+	// 157-164 :  1 byte  (0x9D-0xA4) (  8 bits)
+	// 176-221 :  6 bytes (0xB0-0xDD) ( 46 bits + 2 padding bits for 6 bytes total)
+	// 224-231 :  1 byte  (0xE0-0xE7) (  8 bits)
+
+	// Modifier Byte
+        0x75, 0x01,          //   Report Size (1),
+        0x95, 0x08,          //   Report Count (8),
+        0x15, 0x00,          //   Logical Minimum (0),
+        0x25, 0x01,          //   Logical Maximum (1),
+        0x05, 0x07,          //   Usage Page (Key Codes),
+        0x19, 0xE0,          //   Usage Minimum (224),
+        0x29, 0xE7,          //   Usage Maximum (231),
+        0x81, 0x02,          //   Input (Data, Variable, Absolute),
+
 	// 4-49 (6 bytes/46 bits) - MainKeys
-        0x85, 0x03,          //   Report ID (3),
         0x75, 0x01,          //   Report Size (1),
         0x95, 0x2E,          //   Report Count (46),
         0x15, 0x00,          //   Logical Minimum (0),
@@ -397,10 +399,12 @@ static const uint8_t PROGMEM keyboard_nkro_hid_report_desc[] = {
         0x29, 0x31,          //   Usage Maximum (49),
         0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
 
-	// Should pad 2 bits according to the spec, but OSX doesn't like this -HaaTa
+	// Padding (2 bits)
+	0x75, 0x02,          //   Report Size (2),
+	0x95, 0x01,          //   Report Count (1),
+	0x81, 0x03,          //   Input (Constant),
 
 	// 51-155 (14 bytes/105 bits) - SecondaryKeys
-        0x85, 0x04,          //   Report ID (4),
         0x75, 0x01,          //   Report Size (1),
         0x95, 0x69,          //   Report Count (105),
         0x15, 0x00,          //   Logical Minimum (0),
@@ -410,10 +414,12 @@ static const uint8_t PROGMEM keyboard_nkro_hid_report_desc[] = {
         0x29, 0x9B,          //   Usage Maximum (155),
         0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
 
-	// Should pad 6 bits according to the spec, but OSX doesn't like this -HaaTa
+	// Padding (7 bits)
+	0x75, 0x07,          //   Report Size (7),
+	0x95, 0x01,          //   Report Count (1),
+	0x81, 0x03,          //   Input (Constant),
 
 	// 157-164 (1 byte/8 bits) - TertiaryKeys
-        0x85, 0x05,          //   Report ID (5),
         0x75, 0x01,          //   Report Size (1),
         0x95, 0x08,          //   Report Count (8),
         0x15, 0x00,          //   Logical Minimum (0),
@@ -424,9 +430,8 @@ static const uint8_t PROGMEM keyboard_nkro_hid_report_desc[] = {
         0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
 
 	// 176-221 (6 bytes/46 bits) - QuartiaryKeys
-        0x85, 0x06,          //   Report ID (6),
         0x75, 0x01,          //   Report Size (1),
-        0x95, 0x2D,          //   Report Count (45),
+        0x95, 0x2E,          //   Report Count (46),
         0x15, 0x00,          //   Logical Minimum (0),
         0x25, 0x01,          //   Logical Maximum (1),
         0x05, 0x07,          //   Usage Page (Key Codes),
@@ -434,8 +439,10 @@ static const uint8_t PROGMEM keyboard_nkro_hid_report_desc[] = {
         0x29, 0xDD,          //   Usage Maximum (221),
         0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
 
-	// Should pad 2 bits according to the spec, but OSX doesn't like this -HaaTa
-
+	// Padding (2 bits)
+	0x75, 0x02,          //   Report Size (2),
+	0x95, 0x01,          //   Report Count (1),
+	0x81, 0x03,          //   Input (Constant),
         0xc0,                // End Collection - Keyboard
 
 	// System Control Collection
@@ -446,7 +453,7 @@ static const uint8_t PROGMEM keyboard_nkro_hid_report_desc[] = {
         0x05, 0x01,          // Usage Page (Generic Desktop),
         0x09, 0x80,          // Usage (System Control),
         0xA1, 0x01,          // Collection (Application),
-        0x85, 0x07,          //   Report ID (7),
+        0x85, 0x02,          //   Report ID (2),
         0x75, 0x08,          //   Report Size (8),
         0x95, 0x01,          //   Report Count (1),
         0x16, 0x81, 0x00,    //   Logical Minimum (129),
@@ -464,7 +471,7 @@ static const uint8_t PROGMEM keyboard_nkro_hid_report_desc[] = {
         0x05, 0x0c,          // Usage Page (Consumer),
         0x09, 0x01,          // Usage (Consumer Control),
         0xA1, 0x01,          // Collection (Application),
-        0x85, 0x08,          //   Report ID (8),
+        0x85, 0x03,          //   Report ID (3),
         0x75, 0x10,          //   Report Size (16),
         0x95, 0x01,          //   Report Count (1),
         0x16, 0x20, 0x00,    //   Logical Minimum (32),

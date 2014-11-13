@@ -397,7 +397,7 @@ static void usb_setup()
 	case 0x2021: // CDC_SET_LINE_CODING
 		// XXX Needed?
 		//serial_print("set coding, waiting...\n");
-		//endpoint0_stall();
+		endpoint0_stall();
 		return; // Cannot stall here (causes issues)
 
 	case 0x0921: // HID SET_REPORT

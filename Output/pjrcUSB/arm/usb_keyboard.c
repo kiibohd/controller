@@ -133,73 +133,10 @@ void usb_keyboard_send()
 
 	// Send NKRO keyboard interrupts packet(s)
 	case 1:
-		// Check modifiers
-		if ( USBKeys_Changed & USBKeyChangeState_Modifiers )
-		{
-			*tx_buf++ = 0x01; // ID
-			*tx_buf   = USBKeys_Modifiers;
-			tx_packet->len = 2;
-
-			// Send USB Packet
-			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
-			USBKeys_Changed &= ~USBKeyChangeState_Modifiers; // Mark sent
-		}
-		// Check main key section
-		else if ( USBKeys_Changed & USBKeyChangeState_MainKeys )
-		{
-			*tx_buf++ = 0x03; // ID
-
-			// 4-49 (first 6 bytes)
-			memcpy( tx_buf, USBKeys_Keys, 6 );
-			tx_packet->len = 7;
-
-			// Send USB Packet
-			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
-			USBKeys_Changed &= ~USBKeyChangeState_MainKeys; // Mark sent
-		}
-		// Check secondary key section
-		else if ( USBKeys_Changed & USBKeyChangeState_SecondaryKeys )
-		{
-			*tx_buf++ = 0x04; // ID
-
-			// 51-155 (Middle 14 bytes)
-			memcpy( tx_buf, USBKeys_Keys + 6, 14 );
-			tx_packet->len = 15;
-
-			// Send USB Packet
-			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
-			USBKeys_Changed &= ~USBKeyChangeState_SecondaryKeys; // Mark sent
-		}
-		// Check tertiary key section
-		else if ( USBKeys_Changed & USBKeyChangeState_TertiaryKeys )
-		{
-			*tx_buf++ = 0x05; // ID
-
-			// 157-164 (Next byte)
-			memcpy( tx_buf, USBKeys_Keys + 20, 1 );
-			tx_packet->len = 2;
-
-			// Send USB Packet
-			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
-			USBKeys_Changed &= ~USBKeyChangeState_TertiaryKeys; // Mark sent
-		}
-		// Check quartiary key section
-		else if ( USBKeys_Changed & USBKeyChangeState_QuartiaryKeys )
-		{
-			*tx_buf++ = 0x06; // ID
-
-			// 176-221 (last 6 bytes)
-			memcpy( tx_buf, USBKeys_Keys + 21, 6 );
-			tx_packet->len = 7;
-
-			// Send USB Packet
-			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
-			USBKeys_Changed &= ~USBKeyChangeState_QuartiaryKeys; // Mark sent
-		}
 		// Check system control keys
-		else if ( USBKeys_Changed & USBKeyChangeState_System )
+		if ( USBKeys_Changed & USBKeyChangeState_System )
 		{
-			*tx_buf++ = 0x07; // ID
+			*tx_buf++ = 0x02; // ID
 			*tx_buf   = USBKeys_SysCtrl;
 			tx_packet->len = 2;
 
@@ -207,10 +144,11 @@ void usb_keyboard_send()
 			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
 			USBKeys_Changed &= ~USBKeyChangeState_System; // Mark sent
 		}
+
 		// Check consumer control keys
-		else if ( USBKeys_Changed & USBKeyChangeState_Consumer )
+		if ( USBKeys_Changed & USBKeyChangeState_Consumer )
 		{
-			*tx_buf++ = 0x08; // ID
+			*tx_buf++ = 0x03; // ID
 			*tx_buf++ = (uint8_t)(USBKeys_ConsCtrl & 0x00FF);
 			*tx_buf   = (uint8_t)(USBKeys_ConsCtrl >> 8);
 			tx_packet->len = 3;
@@ -218,6 +156,40 @@ void usb_keyboard_send()
 			// Send USB Packet
 			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
 			USBKeys_Changed &= ~USBKeyChangeState_Consumer; // Mark sent
+		}
+
+		// Standard HID Keyboard
+		if ( USBKeys_Changed )
+		{
+			tx_packet->len = 0;
+
+			// Modifiers
+			*tx_buf++ = 0x01; // ID
+			*tx_buf++ = USBKeys_Modifiers;
+			tx_packet->len += 2;
+
+			// 4-49 (first 6 bytes)
+			memcpy( tx_buf, USBKeys_Keys, 6 );
+			tx_buf += 6;
+			tx_packet->len += 6;
+
+			// 51-155 (Middle 14 bytes)
+			memcpy( tx_buf, USBKeys_Keys + 6, 14 );
+			tx_buf += 14;
+			tx_packet->len += 14;
+
+			// 157-164 (Next byte)
+			memcpy( tx_buf, USBKeys_Keys + 20, 1 );
+			tx_buf += 1;
+			tx_packet->len += 1;
+
+			// 176-221 (last 6 bytes)
+			memcpy( tx_buf, USBKeys_Keys + 21, 6 );
+			tx_packet->len += 6;
+
+			// Send USB Packet
+			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
+			USBKeys_Changed = USBKeyChangeState_None; // Mark sent
 		}
 
 		break;
