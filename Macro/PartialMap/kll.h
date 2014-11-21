@@ -19,6 +19,9 @@
 
 // ----- Includes -----
 
+// KLL Generated Defines
+#include <kll_defs.h>
+
 // Project Includes
 #include <print.h>
 #include <scan_loop.h>
@@ -36,10 +39,15 @@
 // It is possible to change the maximum state and indexing positions of the state machine.
 // This usually affects the SRAM usage quite a bit, so it can be used to fit the code on smaller uCs
 // Or to allow for nearly infinite states.
-// TODO Make selectable from layout variable
-//typedef uint32_t var_uint_t;
-//typedef uint16_t var_uint_t;
+#if StateWordSize_define == 32
+typedef uint32_t var_uint_t;
+#elif StateWordSize_define == 16
+typedef uint16_t var_uint_t;
+#elif StateWordSize_define == 8
 typedef uint8_t  var_uint_t;
+#else
+#error "Invalid StateWordSize, possible values: 32, 16 and 8."
+#endif
 
 // - NOTE -
 // Native pointer length
