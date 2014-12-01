@@ -29,10 +29,10 @@
 #include <led.h>
 #include <print.h>
 #include <matrix_scan.h>
+#include <macro.h>
 
 // Local Includes
 #include "scan_loop.h"
-#include "macro.h"
 
 
 

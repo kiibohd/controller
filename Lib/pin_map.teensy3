@@ -16,8 +16,8 @@
 // 13   C5      LED          SCK0 I2S_RXD0
 // 14   D1                   SCK0
 // 15   C0
-// 16   B0     (FTM1_CH0)
-// 17   B1     (FTM1_CH1)
+// 16   B0     (FTM1_CH0)    SCL0
+// 17   B1     (FTM1_CH1)    SDA0
 // 18   B3                   SDA0
 // 19   B2                   SCL0
 // 20   D5      FTM0_CH5     PWM PCS2
