@@ -1,7 +1,7 @@
 Pin Usage
 =========
 
-mk20dx128vlf5
+mk20dx256vlh7
 
  ----
 |Keys|
@@ -9,45 +9,77 @@ mk20dx128vlf5
 
 * Strobe (Columns)
 
-PTB0
-PTB1
-PTB2
-PTB3
-PTB16
-PTB17
-PTC4
-PTC5
-PTD0
-
+TODO
 
 * Sense (Rows)
 
-PTD1
-PTD2
-PTD3
-PTD4
-PTD5
-PTD6
-PTD7
+TODO
+
+
+ -----
+|Clock|
+ -----
+
+PTA18 <-> PTA19
+
+
+ ---
+|I2C|
+ ---
+
+* Main - Connect to all ISSI Chips - Also break out header for debugging
+
+PTB0 - SCL0
+PTB1 - SDA0
+
+* Reserve - Might be used later if I2C bus is too slow with more than 1 ISSI chip
+
+PTE0 - SDA1
+PTE1 - SCL1
+
+* ISSI Control (enough pins for 3 chips reserved)
+
+PTC0 - INTB Chip 1
+PTC1 - INTB Chip 2
+PTC2 - INTB Chip 3 (Only needed if more than 96 RGB LEDs are required)
+
+PTA4 - SDB (tied to tall Chips, hardware shutdown)
+
+
+ ---
+|DAC|
+ ---
+
+DAC0 (N/C)
+
+
+ ----
+|UART|
+ ----
+
+* Comm - Will be used on split keyboards
+
+PTC3 - RX1 (N/C)
+PTC4 - TX1 (N/C)
 
 
  -----
 |Debug|
  -----
 
-* SWD
+* SWD - (Main reflash header)
 
 PTA0 (Pull-down)
 PTA3 (Pull-up)
 
 * LEDs
 
-PTA19 (LED only for PCB, not McHCK) (XTAL)
+PTA5 (LED only for PCB, not Teensy)
 
 * UARTs
 
-PTA1 - RX0
-PTA2 - TX0
+PTA1 - RX0 (UART Debug Header)
+PTA2 - TX0 (UART Debug Header)
 
 
  ------
@@ -56,20 +88,31 @@ PTA2 - TX0
 
 * GPIO
 
-PTA1 (Not broken out on PCB, available on McHCK) (Pull-up)
-PTA2 (")
-PTA4 (Pull-up)
-PTA18 (EXTAL)
-
-PTC0
-PTC1
-PTC2
-PTC3
+PTA12
+PTA13
+PTB2
+PTB3
+PTB16
+PTB17
+PTB18
+PTB19
+PTC5
 PTC6
 PTC7
+PTC8
+PTC9
+PTC10
+PTC11
+PTD0
+PTD1
+PTD2
+PTD3
+PTD4
+PTD5
+PTD6
+PTD7
 
 * Analog
 
-ADC0_DP0
-ADC0_DM0
+TODO
 
