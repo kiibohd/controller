@@ -38,11 +38,11 @@
 
 
 typedef struct I2C_Buffer {
-	volatile uint16_t  head;
-	volatile uint16_t  tail;
-	volatile uint8_t   sequencePos;
-	volatile uint16_t  size;
-	volatile uint8_t  *buffer;
+	uint16_t  head;
+	uint16_t  tail;
+	uint8_t   sequencePos;
+	uint16_t  size;
+	uint8_t  *buffer;
 } I2C_Buffer;
 
 // ----- Function Declarations -----
@@ -56,6 +56,7 @@ void cliFunc_ledZero( char* args );
 uint8_t I2C_TxBufferPop();
 void I2C_BufferPush( uint8_t byte, I2C_Buffer *buffer );
 uint16_t I2C_BufferLen( I2C_Buffer *buffer );
+uint8_t I2C_Send( uint8_t *data, uint8_t sendLen, uint8_t recvLen );
 
 
 
@@ -63,8 +64,8 @@ uint16_t I2C_BufferLen( I2C_Buffer *buffer );
 
 // Scan Module command dictionary
 CLIDict_Entry( echo,        "Example command, echos the arguments." );
-CLIDict_Entry( i2cRecv,     "Send I2C sequence of bytes and expect a reply of 1 byte." );
-CLIDict_Entry( i2cSend,     "Send I2C sequence of bytes." );
+CLIDict_Entry( i2cRecv,     "Send I2C sequence of bytes and expect a reply of 1 byte on the last sequence. Use |'s to split sequences with a stop." );
+CLIDict_Entry( i2cSend,     "Send I2C sequence of bytes. Use |'s to split sequences with a stop." );
 CLIDict_Entry( ledZero,     "Zero out LED register pages (non-configuration)." );
 
 CLIDict_Def( scanCLIDict, "Scan Module Commands" ) = {
@@ -87,8 +88,8 @@ uint16_t Scan_scanCount = 0;
 volatile uint8_t I2C_TxBufferPtr[ I2C_TxBufferLength ];
 volatile uint8_t I2C_RxBufferPtr[ I2C_TxBufferLength ];
 
-volatile I2C_Buffer I2C_TxBuffer = { 0, 0, 0, I2C_TxBufferLength, I2C_TxBufferPtr };
-volatile I2C_Buffer I2C_RxBuffer = { 0, 0, 0, I2C_RxBufferLength, I2C_RxBufferPtr };
+volatile I2C_Buffer I2C_TxBuffer = { 0, 0, 0, I2C_TxBufferLength, (uint8_t*)I2C_TxBufferPtr };
+volatile I2C_Buffer I2C_RxBuffer = { 0, 0, 0, I2C_RxBufferLength, (uint8_t*)I2C_RxBufferPtr };
 
 void I2C_setup()
 {
@@ -168,6 +169,7 @@ void i2c0_isr()
 			}
 			else
 			{
+				dbug_print("Attempting to read byte");
 				I2C0_C1 = I2C_RxBuffer.sequencePos == 1
 					? I2C_C1_IICEN | I2C_C1_IICIE | I2C_C1_MST | I2C_C1_TXAK // Single byte read
 					: I2C_C1_IICEN | I2C_C1_IICIE | I2C_C1_MST; // Multi-byte read
@@ -175,40 +177,31 @@ void i2c0_isr()
 		}
 		else
 		{
+			/*
 			dbug_msg("STOP - ");
 			printHex( I2C_BufferLen( (I2C_Buffer*)&I2C_TxBuffer ) );
 			print(NL);
+			*/
+
+			// Delay around STOP to make sure it actually happens...
+			delayMicroseconds( 1 );
+			I2C0_C1 = I2C_C1_IICEN; // Send STOP
+			delayMicroseconds( 7 );
 
 			// If there is another sequence, start sending
 			if ( I2C_BufferLen( (I2C_Buffer*)&I2C_TxBuffer ) < I2C_TxBuffer.size )
 			{
-				// Check to see if we already have control of the bus
-				if ( I2C0_C1 & I2C_C1_MST )
-				{
-					// Already the master (ah yeah), send a repeated start
-					I2C0_C1 = I2C_C1_IICEN | I2C_C1_MST | I2C_C1_RSTA | I2C_C1_TX;
-				}
-				// Otherwise, seize control
-				else
-				{
-					// Wait...till the master dies
-					while ( I2C0_S & I2C_S_BUSY );
+				// Clear status flags
+				I2C0_S = I2C_S_IICIF | I2C_S_ARBL;
 
-					// Now we're the master (ah yisss), get ready to send stuffs
-					I2C0_C1 = I2C_C1_IICEN | I2C_C1_MST | I2C_C1_TX;
-				}
+				// Wait...till the master dies
+				while ( I2C0_S & I2C_S_BUSY );
 
 				// Enable I2C interrupt
 				I2C0_C1 = I2C_C1_IICEN | I2C_C1_IICIE | I2C_C1_MST | I2C_C1_TX;
 
 				// Transmit byte
 				I2C0_D = I2C_TxBufferPop();
-			}
-			// Issue STOP
-			else
-			{
-				delayMicroseconds( 1 ); // Should be enough time before issuing STOP
-				I2C0_C1 = I2C_C1_IICEN; // Send STOP
 			}
 		}
 	}
@@ -246,10 +239,45 @@ void i2c0_isr()
 
 // ----- Functions -----
 
+void LED_zeroPages( uint8_t startPage, uint8_t numPages, uint8_t pageLen )
+{
+	// Page Setup
+	uint8_t pageSetup[] = { 0xE8, 0xFD, 0x00 };
+
+	// Max length of a page + chip id + reg start
+	uint8_t fullPage[ 0xB3 + 2 ] = { 0 };
+	fullPage[0] = 0xE8; // Set chip id, starting reg is already 0x00
+
+	// Iterate through given pages, zero'ing out the given register regions
+	for ( uint8_t page = startPage; page < startPage + numPages; page++ )
+	{
+		// Set page
+		pageSetup[2] = page;
+
+		// Setup page
+		while ( I2C_Send( pageSetup, sizeof( pageSetup ), 0 ) == 0 )
+			delay(1);
+
+		// Zero out page
+		while ( I2C_Send( fullPage, pageLen + 2, 0 ) == 0 )
+			delay(1);
+	}
+}
+
+
 // Setup
 inline void LED_setup()
 {
 	I2C_setup();
+
+	// Zero out Frame Registers
+	LED_zeroPages( 0x00, 8, 0xB3 ); // LED Registers
+	LED_zeroPages( 0x0B, 1, 0x0C ); // Control Registers
+
+	// Disable Hardware shutdown of ISSI chip (pull high)
+	GPIOD_PDDR |= (1<<1);
+	PORTD_PCR1 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOD_PSOR |= (1<<1);
 }
 
 
@@ -397,6 +425,7 @@ uint8_t I2C_TxBufferPop()
 	// Decrement buffer sequence (until next stop will be sent)
 	I2C_TxBuffer.sequencePos--;
 
+	/*
 	dbug_msg("Popping: ");
 	printHex( data );
 	print(" ");
@@ -406,6 +435,7 @@ uint8_t I2C_TxBufferPop()
 	print(" ");
 	printHex( I2C_TxBuffer.sequencePos );
 	print(NL);
+	*/
 	return data;
 }
 
@@ -459,37 +489,12 @@ uint8_t I2C_Send( uint8_t *data, uint8_t sendLen, uint8_t recvLen )
 
 		// Depending on what type of transfer, the first byte is configured for R or W
 		I2C0_D = I2C_TxBufferPop();
+
 		return 1;
 	}
 
 	// Dirty buffer, I2C already initialized
 	return 2;
-}
-
-
-void LED_zeroPages( uint8_t startPage, uint8_t numPages, uint8_t pageLen )
-{
-	// Page Setup
-	uint8_t pageSetup[] = { 0xE8, 0xFD, 0x00 };
-
-	// Max length of a page + chip id + reg start
-	uint8_t fullPage[ 0xB3 + 2 ] = { 0 };
-	fullPage[0] = 0xE8; // Set chip id, starting reg is already 0x00
-
-	// Iterate through given pages, zero'ing out the given register regions
-	for ( uint8_t page = startPage; page < startPage + numPages; page++ )
-	{
-		// Set page
-		pageSetup[2] = page;
-
-		// Setup page
-		while ( I2C_Send( pageSetup, sizeof( pageSetup ), 0 ) == 0 )
-			delay(1);
-
-		// Zero out page
-		while ( I2C_Send( fullPage, pageLen + 2, 0 ) == 0 )
-			delay(1);
-	}
 }
 
 
@@ -599,6 +604,15 @@ void cliFunc_i2cSend( char* args )
 		if ( *arg1Ptr == '\0' )
 			break;
 
+		// If | is found, end sequence and start new one
+		if ( *arg1Ptr == '|' )
+		{
+			print("| ");
+			I2C_Send( buffer, bufferLen, 0 );
+			bufferLen = 0;
+			continue;
+		}
+
 		// Interpret the argument
 		buffer[ bufferLen++ ] = (uint8_t)numToInt( arg1Ptr );
 
@@ -637,6 +651,15 @@ void cliFunc_i2cRecv( char* args )
 		// Stop processing args if no more are found
 		if ( *arg1Ptr == '\0' )
 			break;
+
+		// If | is found, end sequence and start new one
+		if ( *arg1Ptr == '|' )
+		{
+			print("| ");
+			I2C_Send( buffer, bufferLen, 0 );
+			bufferLen = 0;
+			continue;
+		}
 
 		// Interpret the argument
 		buffer[ bufferLen++ ] = (uint8_t)numToInt( arg1Ptr );
