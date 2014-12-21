@@ -19,42 +19,17 @@
  * THE SOFTWARE.
  */
 
-#ifndef __MATRIX_H
-#define __MATRIX_H
+#ifndef __MATRIX_SETUP_H
+#define __MATRIX_SETUP_H
 
-// ----- Includes -----
+// ----- Macros -----
 
-// Project Includes
-#include <matrix_setup.h>
-
-
-
-// ----- Matrix Definition -----
-
-// Freescale ARM MK20's support GPIO PTA, PTB, PTC, PTD and PTE 0..31
-// Not all chips have access to all of these pins (most don't have 160 pins :P)
-//
-// NOTE:
-// Before using a pin, make sure it supports being a GPIO *and* doesn't have a default pull-up/pull-down
-// Checking this is completely on the ownness of the user
-
-// MD1
-//
-// Columns (Strobe)
-//  PTB0..3,16,17
-//  PTC4,5
-//  PTD0
-//
-// Rows (Sense)
-//  PTD1..7
-
-// Define Rows (Sense) and Columns (Strobes)
-GPIO_Pin Matrix_cols[] = { gpio(B,0), gpio(B,1), gpio(B,2), gpio(B,3), gpio(B,16), gpio(B,17), gpio(C,4), gpio(C,5), gpio(D,0) };
-GPIO_Pin Matrix_rows[] = { gpio(D,1), gpio(D,2), gpio(D,3), gpio(D,4), gpio(D,5), gpio(D,6), gpio(D,7) };
-
-// Define type of scan matrix
-Config Matrix_type = Config_Pulldown;
+// Convenience Macros
+#define gpio( port, pin ) { Port_##port, Pin_##pin }
+#define Matrix_colsNum sizeof( Matrix_cols ) / sizeof( GPIO_Pin )
+#define Matrix_rowsNum sizeof( Matrix_rows ) / sizeof( GPIO_Pin )
+#define Matrix_maxKeys sizeof( Matrix_scanArray ) / sizeof( KeyState )
 
 
-#endif // __MATRIX_H
+#endif // __MATRIX_SETUP_H
 
