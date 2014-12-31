@@ -19,6 +19,8 @@ if ( "${MacroModule}" STREQUAL "PartialMap" )
 # KLL Installation (Make sure repo has been cloned)
 #
 
+message ( STATUS "Checking for latest kll version:" )
+
 if ( NOT EXISTS "${PROJECT_SOURCE_DIR}/kll/kll.py" )
 	# Make sure git is available
 	find_package ( Git REQUIRED )

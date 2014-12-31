@@ -89,18 +89,21 @@ message( "${COMPILER_SRCS}" )
 
 
 #| USB Defines, this is how the loader programs detect which type of chip base is used
+message( STATUS "Bootloader Type:" )
 if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
 	set( VENDOR_ID       "0x1C11" )
 	set( PRODUCT_ID      "0xB04D" )
 	set( BOOT_VENDOR_ID  "0x1C11" )
 	set( BOOT_PRODUCT_ID "0xB007" )
 	set( DFU 1 )
+	message( "dfu" )
 elseif ( "${CHIP}" MATCHES "mk20dx128" OR "${CHIP}" MATCHES "mk20dx256" )
 	set( VENDOR_ID       "0x1C11" )
 	set( PRODUCT_ID      "0xB04D" )
 	set( BOOT_VENDOR_ID  "0x16c0" ) # TODO Double check, this is likely incorrect
 	set( BOOT_PRODUCT_ID "0x0487" )
 	set( TEENSY 1 )
+	message( "Teensy" )
 endif ()
 
 
