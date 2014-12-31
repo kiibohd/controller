@@ -2,7 +2,12 @@ The Kiibohd Controller
 ----------------------
 
 This README is a bit long, just look at the sections you are interested in.
+You only need to install avr-gcc if you want to build for the Teensy 2.0/2.0++.
+Everything else needs an arm-none-eabi-gcc compiler (e.g. Infinity keyboard, Teensy 3.0/3.1, McHCK).
+
+
 Linux is the ideal build environment (preferably recent'ish).
+In the near future I'll make available an Arch Linux VM for building/manufacturing tests.
 
 
 Building on Mac should be ok for 99% of users with Macports (haven't tried Brew).
@@ -14,6 +19,8 @@ Cygwin is currently required along with some non-Cygwin compilers and utilities 
 The dfu Bootloader will not build because of a Make 3.81+ bug/feature that removed support for non-Unix (Windows) filenames as dependencies of targets.
 If you replace the version of Make in Cygwin it should work (e.g. http://stackoverflow.com/questions/601516/cygwin-make-error-target-pattern-contains-no).
 However, make sure that the flash size is no larger than 4096 Bytes or the bootloader will not work.
+Things will likely break if there are *SPACES IN YOUR PATHS*. I install cygwin to C:\cygwin64.
+If you are brave and have programming knowledge, I will accept patches to fix any issues regarding spaces in paths.
 
 
 Please give authors credit for modules used if you use in a distributed product :D
@@ -21,7 +28,7 @@ Please give authors credit for modules used if you use in a distributed product 
 
 
 ----------------------
-Dependencies
+General Dependencies
 ----------------------
 
 Below listed are the Arch Linux pacman names, AUR packages may be required.
@@ -41,13 +48,15 @@ AVR Specific (Teensy 1.0/++,2.0/++) (try to use something recent, suggested vers
 - avr-libc     (~1.8.0)
 
 
-ARM Specific (Teensy 3.0/3.1) (Sourcery CodeBench Lite for ARM EABI
-(http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/)
-- arm-none-eabi
-OR
+ARM Specific (Teensy 3.0/3.1, Infinity Keyboard, McHCK)
+
+Arch Linux / Mac Ports
 - arm-none-eabi-gcc
 - arm-none-eaby-binutils
-(I've actually had some issues with Sourcery CodeBench on Linux, so I often just use these)
+
+Windows
+(https://launchpad.net/gcc-arm-embedded/+download)
+- gcc-arm-none-eabi (win32.zip)
 
 
 
@@ -68,10 +77,11 @@ First make sure Cygwin is installed - http://www.cygwin.com/ - 32bit or 64bit is
 - python3
 - ctags (recommended, not required)
 
-Please note, I use cygwin term exclusively for any command line options. Unless mentioned otherwise use it.
+Please note, I use cygwin term exclusively for any command line options. Unless mentioned otherwise, use it.
 Do NOT use CMD or Powershell.
 
 Also install the Windows version of CMake (3+ is ideal) - http://cmake.org/cmake/resources/software.html
+Select "Do not add CMake to system PATH".
 This is in addition to the Cygwin version. This is an easier alternative to installing another C compiler.
 Add the following line to your .bashrc, making sure the CMake path is correct:
   echo "alias wincmake=\"PATH='/cygdrive/c/Program Files (x86)/CMake'/bin:'${PATH}' cmake -G 'Unix Makefiles'\"" >> ~/.bashrc
@@ -101,18 +111,35 @@ Mine is C:\cygwin64\usr\local.
 | ARM EABI |
  ----------
 
-Download the latest version of Mentor Graphics Sourcery CodeBench ARM EABI.
+Download the latest GNU Tools for Embedded Processors gcc-arm-none-eabi.
 
-http://www.mentor.com/embedded-software/sourcery-tools/sourcery-codebench/editions/lite-edition/
+https://launchpad.net/gcc-arm-embedded/+download
 
-Look for "Download the EABI Release".
-Enter your info to get the download link.
-Select the most recent download.
-Then download the "IA32 Windows Installer".
+Download "gcc-arm-none-eabi*win32.zip".
 
-Then copy all the folders/files installed (e.g. C:\Users\Haata\MentorGraphics\Sourcery_CodeBench_Lite_for_ARM_EABI\) to Cygwin /usr/local directory.
+Then extract all the folders/files in the zip to the Cygwin /usr/local directory.
 Mine is C:\cygwin64\usr\local.
-Or, you can setup paths using the installer (you have to be more careful though).
+Or, you can setup paths using the installer (you have to be more careful, avoid spaces in paths).
+
+
+
+----------------------
+CMake Info
+----------------------
+
+One of the big benefits of using CMake is the ability to build multiple configurations (for different microcontrollers) at the same time.
+The following sections explain in detail what each CMakeLists.txt configuration option does and what you can change it to.
+However, it is possible to configure each of these options using the -D command line flag.
+
+For example, to build the Infinity Keyboard default configuration:
+
+mkdir build_infinity
+cd build_infinity
+cmake -DCHIP=mk20dx128vlf5 -DScanModule=MD1 -DMacroModule=PartialMap -DOutputModule=pjrcUSB -DDebugModule=full -DBaseMap=defaultMap -DDefaultMap="md1Overlay stdFuncMap" -DPartialMaps="hhkbpro2" ..
+make
+
+CMake defaults to the values specified in CMakeLists.txt if not overridden via the command line.
+NOTE: On Windows, you will have to use "wincmake" instead of "cmake".
 
 
 
@@ -137,10 +164,11 @@ You are looking for:
 	#	"at90usb162"       # Teensy   1.0 (avr)
 	#	"atmega32u4"       # Teensy   2.0 (avr)
 	#	"at90usb646"       # Teensy++ 1.0 (avr)
-		"at90usb1286"      # Teensy++ 2.0 (avr)
+	#	"at90usb1286"      # Teensy++ 2.0 (avr)
 	#	"mk20dx128"        # Teensy   3.0 (arm)
+		"mk20dx128vlf5"    # McHCK    mk20dx128vlf5
 	#	"mk20dx256"        # Teensy   3.1 (arm)
-	)
+		CACHE STRING "Microcontroller Chip" )
 
 Just uncomment the chip you want, and comment out the old one.
 
@@ -197,19 +225,23 @@ Look for:
 	#| All of the modules must be specified, as they generate the sources list of files to compile
 	#| Any modifications to this file will cause a complete rebuild of the project
 
-	#| Please look at the {Scan,Macro,Output,Debug}/module.txt for information on the modules and how to create new ones
+	#| Please look at the {Scan,Macro,Output,Debug} for information on the modules and how to create new ones
 
 	##| Deals with acquiring the keypress information and turning it into a key index
-	set(  ScanModule  "avr-capsense" )
+	set(   ScanModule "MD1"
+		CACHE STRING "Scan Module" )
 
-	##| Uses the key index and potentially applies special conditions to it, mapping it to a usb key code
-	set( MacroModule  "buffer"  )
+	##| Provides the mapping functions for DefaultMap and handles any macro processing before sending to the OutputModule
+	set(  MacroModule "PartialMap"
+		CACHE STRING "Macro Module" )
 
 	##| Sends the current list of usb key codes through USB HID
-	set(   OutputModule  "pjrc"   )
+	set( OutputModule "pjrcUSB"
+		CACHE STRING "Output Module" )
 
 	##| Debugging source to use, each module has it's own set of defines that it sets
-	set( DebugModule  "full"   )
+	set(  DebugModule "full"
+		CACHE STRING "Debug Module" )
 
 
 Look at each module individually for it's requirements. There is chip/architecture dependency checking but some permutations of modules may not be tested/compile.
@@ -315,8 +347,16 @@ Linux Loading Bootloader
 *NOTE* Does not apply to Teensy based builds.
 
 It's recommended to use an SWD-type flasher like a Bus Pirate.
-TODO
-(Guidelines here https://github.com/mchck/mchck/wiki/Getting-Started)
+There is a convenience script for loading the firmware once the system is setup.
+
+cd Bootloader/Scripts
+./swdLoad.bash
+
+The above script requires Ruby, Ruby serial port module, git, and a /dev/buspirate udev rule.
+
+Additional Notes:
+https://github.com/mchck/mchck/wiki/Getting-Started
+https://wiki.archlinux.org/index.php/Bus_pirate
 
 
 
@@ -333,51 +373,89 @@ make
 
 Example output:
 
-	$ cmake -G "Unix Makefiles" ..
+	$ wincmake ..
 	-- Compiler Family:
-	avr
-	-- MCU Selected:
-	atmega32u4
+	arm
+	-- Chip Selected:
+	mk20dx128vlf5
+	-- Chip Family:
+	mk20dx
 	-- CPU Selected:
-	megaAVR
+	cortex-m4
+	-- Compiler Source Files:
+	Lib/mk20dx.c;Lib/delay.c
+	-- Bootloader Type:
+	dfu
 	-- Detected Scan Module Source Files:
-	Scan/SKM67001/../matrix/matrix_scan.c;Scan/SKM67001/../matrix/scan_loop.c
+	Scan/MD1/scan_loop.c;Scan/MD1/../MatrixARM/matrix_scan.c
 	-- Detected Macro Module Source Files:
 	Macro/PartialMap/macro.c
 	-- Detected Output Module Source Files:
-	Output/pjrcUSB/output_com.c;Output/pjrcUSB/avr/usb_keyboard_serial.c
+	Output/pjrcUSB/output_com.c;Output/pjrcUSB/arm/usb_desc.c;Output/pjrcUSB/arm/usb_dev.c;Output/pjrcUSB/arm/usb_keyboard.c;Output/pjrcUSB/arm/usb_mem.c;Output/pjrcUSB/arm/usb_serial.c
 	-- Detected Debug Module Source Files:
 	Debug/full/../cli/cli.c;Debug/full/../led/led.c;Debug/full/../print/print.c
-	-- Found Git: C:/cygwin64/bin/git.exe (found version "1.7.9")
+	-- Found Git: C:/cygwin64/bin/git.exe (found version "2.1.1")
+	-- Found Ctags: C:/cygwin64/bin/ctags.exe (found version "5.8")
+	-- Checking for latest kll version:
+	Current branch master is up to date.
+	-- Detected Layout Files:
+	C:/cygwin64/home/Jacob/controller/Macro/PartialMap/capabilities.kll
+	C:/cygwin64/home/Jacob/controller/Output/pjrcUSB/capabilities.kll
+	C:/cygwin64/home/Jacob/controller/Scan/MD1/defaultMap.kll
+	C:/cygwin64/home/Jacob/controller/kll/layouts/md1Overlay.kll
+	C:/cygwin64/home/Jacob/controller/kll/layouts/stdFuncMap.kll
+	C:/cygwin64/home/Jacob/controller/kll/layouts/hhkbpro2.kll
 	-- Configuring done
 	-- Generating done
-	-- Build files have been written to: C:/cygwin64/home/jacob.alexander/src/capsense-beta/build
+	-- Build files have been written to: C:/cygwin64/home/Jacob/controller/build
 
-	jacob.alexander@JALEXANDER2-LT ~/src/capsense-beta/build
+	Jacob@DenPC ~/controller/build
 	$ make
+	[  5%] Generating KLL Layout
 	Scanning dependencies of target kiibohd.elf
-	[ 10%] Building C object CMakeFiles/kiibohd.elf.dir/main.c.obj
-	[ 20%] Building C object CMakeFiles/kiibohd.elf.dir/Scan/matrix/matrix_scan.c.obj
-	[ 30%] Building C object CMakeFiles/kiibohd.elf.dir/Scan/matrix/scan_loop.c.obj
-	[ 40%] Building C object CMakeFiles/kiibohd.elf.dir/Macro/PartialMap/macro.c.obj
-	[ 50%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/output_com.c.obj
-	[ 60%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/avr/usb_keyboard_serial.c.obj
-	[ 70%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/cli/cli.c.obj
-	[ 80%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/led/led.c.obj
-	[ 90%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/print/print.c.obj
+	[ 11%] Building C object CMakeFiles/kiibohd.elf.dir/main.c.obj
+	[ 17%] Building C object CMakeFiles/kiibohd.elf.dir/Lib/mk20dx.c.obj
+	[ 23%] Building C object CMakeFiles/kiibohd.elf.dir/Lib/delay.c.obj
+	[ 29%] Building C object CMakeFiles/kiibohd.elf.dir/Scan/MD1/scan_loop.c.obj
+	[ 35%] Building C object CMakeFiles/kiibohd.elf.dir/Scan/MatrixARM/matrix_scan.c.obj
+	[ 41%] Building C object CMakeFiles/kiibohd.elf.dir/Macro/PartialMap/macro.c.obj
+	[ 47%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/output_com.c.obj
+	[ 52%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/arm/usb_desc.c.obj
+	[ 58%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/arm/usb_dev.c.obj
+	[ 64%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/arm/usb_keyboard.c.obj
+	[ 70%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/arm/usb_mem.c.obj
+	[ 76%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/arm/usb_serial.c.obj
+	[ 82%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/cli/cli.c.obj
+	[ 88%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/led/led.c.obj
+	[ 94%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/print/print.c.obj
 	Linking C executable kiibohd.elf
-	Creating load file for Flash:  kiibohd.hex
-	Creating Extended Listing:     kiibohd.lss
-	Creating Symbol Table:         kiibohd.sym
-	[ 90%] Built target kiibohd.elf
+	[ 94%] Built target kiibohd.elf
 	Scanning dependencies of target SizeAfter
-	[100%] Size after generation
-		Flash Usage: data (hex)
-		  RAM Usage: data (elf)
-	   text    data     bss     dec     hex filename
-	      0    9738       0    9738    260a kiibohd.hex
-	   7982    1756     264   10002    2712 kiibohd.elf
+	[100%] Chip usage for mk20dx128vlf5
+		 SRAM:  32%     5384/16384      bytes
+		Flash:  18%     23296/126976    bytes
 	[100%] Built target SizeAfter
+
+NOTES:
+
+If you get the following error, you have not setup wincmake correctly:
+
+$ make
+[  5%] Generating KLL Layout
+Scanning dependencies of target kiibohd.elf
+[ 11%] Building C object CMakeFiles/kiibohd.elf.dir/main.c.o
+../main.c:28:19: fatal error: macro.h: No such file or directory
+ #include <macro.h>
+                   ^
+compilation terminated.
+CMakeFiles/kiibohd.elf.dir/build.make:67: recipe for target 'CMakeFiles/kiibohd.elf.dir/main.c.o' failed
+make[2]: *** [CMakeFiles/kiibohd.elf.dir/main.c.o] Error 1
+CMakeFiles/Makefile2:98: recipe for target 'CMakeFiles/kiibohd.elf.dir/all' failed
+make[1]: *** [CMakeFiles/kiibohd.elf.dir/all] Error 2
+Makefile:75: recipe for target 'all' failed
+make: *** [all] Error 2
+
+If you have already added the line to your ~/.bashrc try restarting your cygwin shell.
 
 
 
@@ -487,3 +565,4 @@ I believe it's a problem with stty, but I don't know how to fix it...
 
 I recommend screen (can be installed via Macports).
 screen /dev/tty.<usb something>
+
