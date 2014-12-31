@@ -14,6 +14,7 @@ Building on Mac should be ok for 99% of users with Macports (haven't tried Brew)
 The dfu Bootloader will not build correctly with the old version of arm-none-eabi-gcc that Macports currently has (4.7.3).
 This is due to a bug with lto (link time optimizations) which makes the resulting binary too big to fit on the chip (must be less than 4096 Bytes).
 
+
 Building on Windows should also be fine for 99% of users, but takes a bunch of work to setup (because Windows is a crappy dev environment).
 Cygwin is currently required along with some non-Cygwin compilers and utilities (because they are not available for Cygwin).
 The dfu Bootloader will not build because of a Make 3.81+ bug/feature that removed support for non-Unix (Windows) filenames as dependencies of targets.
@@ -265,41 +266,66 @@ make
 
 Example output:
 
-	[master]: cmake ..                 [...sy/avr-capsense-haata/build](hyatt@901Mas:pts/4)
+	[master]: cmake ..                            [~/Source/controller/build](hyatt@x230mas:pts/6)
 	-- Compiler Family:
-	avr
-	-- MCU Selected:
-	at90usb1286
+	arm
+	-- Chip Selected:
+	mk20dx128vlf5
+	-- Chip Family:
+	mk20dx
+	-- CPU Selected:
+	cortex-m4
+	-- Compiler Source Files:
+	Lib/mk20dx.c;Lib/delay.c
+	-- Bootloader Type:
+	dfu
 	-- Detected Scan Module Source Files:
-	Scan/avr-capsense/scan_loop.c
+	Scan/MD1/scan_loop.c;Scan/MD1/../MatrixARM/matrix_scan.c
 	-- Detected Macro Module Source Files:
-	Macro/buffer/macro.c
+	Macro/PartialMap/macro.c
 	-- Detected Output Module Source Files:
-	Output/pjrc/usb_com.c;Output/pjrc/avr/usb_keyboard_debug.c
+	Output/pjrcUSB/output_com.c;Output/pjrcUSB/arm/usb_desc.c;Output/pjrcUSB/arm/usb_dev.c;
+	Output/pjrcUSB/arm/usb_keyboard.c;Output/pjrcUSB/arm/usb_mem.c;Output/pjrcUSB/arm/usb_serial.c
 	-- Detected Debug Module Source Files:
-	Debug/full/../led/led.c;Debug/full/../print/print.c
+	Debug/full/../cli/cli.c;Debug/full/../led/led.c;Debug/full/../print/print.c
+	-- Found Git: /usr/bin/git (found version "2.2.1")
+	-- Found Ctags: /usr/bin/ctags (found version "5.8")
+	-- Checking for latest kll version:
+	Current branch master is up to date.
+	-- Detected Layout Files:
+	/home/hyatt/Source/controller/Macro/PartialMap/capabilities.kll
+	/home/hyatt/Source/controller/Output/pjrcUSB/capabilities.kll
+	/home/hyatt/Source/controller/Scan/MD1/defaultMap.kll
+	/home/hyatt/Source/controller/kll/layouts/md1Overlay.kll
+	/home/hyatt/Source/controller/kll/layouts/stdFuncMap.kll
+	/home/hyatt/Source/controller/kll/layouts/hhkbpro2.kll
 	-- Configuring done
 	-- Generating done
-	-- Build files have been written to: /home/hyatt/Source/Teensy/avr-capsense-haata/build
-	[master]: make                     [...sy/avr-capsense-haata/build](hyatt@901Mas:pts/4)
+	-- Build files have been written to: /home/hyatt/Source/controller/build
+	[master]: make                                [~/Source/controller/build](hyatt@x230mas:pts/6)
+	[  5%] Generating KLL Layout
 	Scanning dependencies of target kiibohd.elf
-	[ 12%] Building C object CMakeFiles/kiibohd.elf.dir/main.c.o
-	[ 25%] Building C object CMakeFiles/kiibohd.elf.dir/Scan/avr-capsense/scan_loop.c.o
-	[ 37%] Building C object CMakeFiles/kiibohd.elf.dir/Macro/buffer/macro.c.o
-	[ 50%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrc/usb_com.c.o
-	[ 62%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrc/avr/usb_keyboard_debug.c.o
-	[ 75%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/led/led.c.o
-	[ 87%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/print/print.c.o
+	[ 11%] Building C object CMakeFiles/kiibohd.elf.dir/main.c.o
+	[ 17%] Building C object CMakeFiles/kiibohd.elf.dir/Lib/mk20dx.c.o
+	[ 23%] Building C object CMakeFiles/kiibohd.elf.dir/Lib/delay.c.o
+	[ 29%] Building C object CMakeFiles/kiibohd.elf.dir/Scan/MD1/scan_loop.c.o
+	[ 35%] Building C object CMakeFiles/kiibohd.elf.dir/Scan/MatrixARM/matrix_scan.c.o
+	[ 41%] Building C object CMakeFiles/kiibohd.elf.dir/Macro/PartialMap/macro.c.o
+	[ 47%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/output_com.c.o
+	[ 52%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/arm/usb_desc.c.o
+	[ 58%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/arm/usb_dev.c.o
+	[ 64%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/arm/usb_keyboard.c.o
+	[ 70%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/arm/usb_mem.c.o
+	[ 76%] Building C object CMakeFiles/kiibohd.elf.dir/Output/pjrcUSB/arm/usb_serial.c.o
+	[ 82%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/cli/cli.c.o
+	[ 88%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/led/led.c.o
+	[ 94%] Building C object CMakeFiles/kiibohd.elf.dir/Debug/print/print.c.o
 	Linking C executable kiibohd.elf
-	Creating load file for Flash:  kiibohd.hex
-	Creating Extended Listing:     kiibohd.lss
-	Creating Symbol Table:         kiibohd.sym
-	[ 87%] Built target kiibohd.elf
+	[ 94%] Built target kiibohd.elf
 	Scanning dependencies of target SizeAfter
-	[100%] Size after generation:
-	   text    data     bss     dec     hex filename
-	      0    6112       0    6112    17e0 kiibohd.hex
-	   5792     320     852    6964    1b34 kiibohd.elf
+	[100%] Chip usage for mk20dx128vlf5
+		 SRAM:  32%     5384/16384      bytes
+		Flash:  18%     23384/126976    bytes
 	[100%] Built target SizeAfter
 
 
@@ -336,7 +362,44 @@ cmake ..
 make
 
 Example output:
-TODO
+
+	[master]: cmake ..                             [~/Source/controller/Bootloader/build](hyatt@x230mas:pts/6)
+	-- Compiler Family:
+	arm
+	-- Chip Selected:
+	mk20dx128vlf5
+	-- Chip Family:
+	mk20dx
+	-- CPU Selected:
+	cortex-m4
+	-- Compiler Source Files:
+	Lib/mk20dx.c;Lib/delay.c
+	-- Bootloader Type:
+	dfu
+	-- Bootloader Source Files:
+	main.c;dfu.c;dfu.desc.c;flash.c;kinetis.c;usb.c
+	-- Found Git: /usr/bin/git (found version "2.2.1")
+	-- Found Ctags: /usr/bin/ctags (found version "5.8")
+	-- Configuring done
+	-- Generating done
+	-- Build files have been written to: /home/hyatt/Source/controller/Bootloader/build
+	[master]: make                                 [~/Source/controller/Bootloader/build](hyatt@x230mas:pts/6)
+	Scanning dependencies of target kiibohd_bootloader.elf
+	[ 11%] Building C object CMakeFiles/kiibohd_bootloader.elf.dir/main.c.o
+	[ 22%] Building C object CMakeFiles/kiibohd_bootloader.elf.dir/dfu.c.o
+	[ 33%] Building C object CMakeFiles/kiibohd_bootloader.elf.dir/dfu.desc.c.o
+	[ 44%] Building C object CMakeFiles/kiibohd_bootloader.elf.dir/flash.c.o
+	[ 55%] Building C object CMakeFiles/kiibohd_bootloader.elf.dir/kinetis.c.o
+	[ 66%] Building C object CMakeFiles/kiibohd_bootloader.elf.dir/usb.c.o
+	[ 77%] Building C object CMakeFiles/kiibohd_bootloader.elf.dir/home/hyatt/Source/controller/Lib/mk20dx.c.o
+	[ 88%] Building C object CMakeFiles/kiibohd_bootloader.elf.dir/home/hyatt/Source/controller/Lib/delay.c.o
+	Linking C executable kiibohd_bootloader.elf
+	[ 88%] Built target kiibohd_bootloader.elf
+	Scanning dependencies of target SizeAfter
+	[100%] Chip usage for mk20dx128vlf5
+		 SRAM:  19%     3176/16384      bytes
+		Flash:  2%      3736/126976     bytes
+	[100%] Built target SizeAfter
 
 
 
@@ -355,7 +418,7 @@ cd Bootloader/Scripts
 The above script requires Ruby, Ruby serial port module, git, and a /dev/buspirate udev rule.
 
 Additional Notes:
-https://github.com/mchck/mchck/wiki/Getting-Started
+https://github.com/mchck/mchck/wiki/Getting-Started (See Bus-Pirate section)
 https://wiki.archlinux.org/index.php/Bus_pirate
 
 
@@ -435,6 +498,7 @@ Example output:
 		 SRAM:  32%     5384/16384      bytes
 		Flash:  18%     23296/126976    bytes
 	[100%] Built target SizeAfter
+
 
 NOTES:
 
