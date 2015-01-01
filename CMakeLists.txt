@@ -29,6 +29,20 @@ set( CHIP
 
 
 ###
+# Compiler Selection
+#
+
+#| *** EXPERIMENTAL ***
+#| Stick with gcc unless you know what you're doing
+#| Currently only arm is supported with clang
+set( COMPILER
+	"gcc"	# arm-none-eabi-gcc / avr-gcc - Default
+#	"clang" # arm-none-eabi
+	CACHE STRING "Compiler Type" )
+
+
+
+###
 # Compiler Intialization
 #
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/Lib/CMake )

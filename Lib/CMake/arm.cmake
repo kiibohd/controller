@@ -13,9 +13,20 @@
 
 #| Set the Compilers (must be set first)
 include( CMakeForceCompiler )
-cmake_force_c_compiler  ( arm-none-eabi-gcc ARMCCompiler )
-cmake_force_cxx_compiler( arm-none-eabi-g++ ARMCxxCompiler )
-set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
+message( STATUS "Compiler Selected:" )
+if ( "${COMPILER}" MATCHES "gcc" )
+	cmake_force_c_compiler  ( arm-none-eabi-gcc ARMCCompiler )
+	cmake_force_cxx_compiler( arm-none-eabi-g++ ARMCxxCompiler )
+	set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
+	message( "gcc" )
+elseif ( "${COMPILER}" MATCHES "clang" )
+	cmake_force_c_compiler  ( clang   ARMCCompiler )
+	cmake_force_cxx_compiler( clang++ ARMCxxCompiler )
+	set( _CMAKE_TOOLCHAIN_PREFIX llvm- )
+	message( "clang" )
+else ()
+	message( AUTHOR_WARNING "COMPILER: ${COMPILER} - Unknown compiler selection" )
+endif ()
 
 
 
@@ -134,6 +145,8 @@ set( WARN "-Wall -ggdb3" )
 if( BOOTLOADER )
 	set( TUNING "-D_bootloader_ -Wno-main -msoft-float -mthumb -fplan9-extensions -ffunction-sections -fdata-sections -fno-builtin -fstrict-volatile-bitfields -flto -fno-use-linker-plugin -nostdlib" )
 	#set( TUNING "-mthumb -fdata-sections -ffunction-sections -fno-builtin -msoft-float -fstrict-volatile-bitfields -flto -fno-use-linker-plugin -fwhole-program -Wno-main -nostartfiles -fplan9-extensions -D_bootloader_" )
+elseif ( "${COMPILER}" MATCHES "clang" )
+	set( TUNING "-target arm-none-eabi -mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
 else()
 	set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
 endif()
@@ -181,5 +194,9 @@ set( BIN_FLAGS -O binary )
 
 
 #| Lss Flags
-set( LSS_FLAGS -h -S -z )
+if ( "${COMPILER}" MATCHES "clang" )
+	set( LSS_FLAGS -section-headers -triple=arm-none-eabi )
+else ()
+	set( LSS_FLAGS -h -S -z )
+endif ()
 
