@@ -30,7 +30,7 @@
 // ----- Includes -----
 
 // ARM
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 
 #include <Lib/mk20dx.h>
 #include <Lib/delay.h>

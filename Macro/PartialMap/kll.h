@@ -54,7 +54,7 @@ typedef uint8_t  var_uint_t;
 // This needs to be defined per microcontroller
 // e.g. mk20s  -> 32 bit
 //      atmega -> 16 bit
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
 typedef uint32_t nat_ptr_t;
 #elif defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 typedef uint16_t nat_ptr_t;

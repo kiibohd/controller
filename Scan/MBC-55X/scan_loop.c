@@ -61,7 +61,7 @@ void  removeKeyValue( uint8_t keyValue );
 // UART Receive Buffer Full Interrupt
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 ISR(USART1_RX_vect)
-#elif defined(_mk20dx128_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
 void uart0_status_isr(void)
 #endif
 {
@@ -72,7 +72,7 @@ void uart0_status_isr(void)
 
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	keyValue = UDR1;
-#elif defined(_mk20dx128_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
 	// UART0_S1 must be read for the interrupt to be cleared
 	if ( UART0_S1 & UART_S1_RDRF )
 	{
@@ -129,7 +129,7 @@ inline void Scan_setup()
 	// Reset the keyboard before scanning, we might be in a wierd state
 	Scan_resetKeyboard();
 }
-#elif defined(_mk20dx128_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
 {
 	// Setup the the UART interface for keyboard data input
 	SIM_SCGC4 |= SIM_SCGC4_UART0; // Disable clock gating
@@ -345,7 +345,7 @@ uint8_t Scan_sendData( uint8_t dataPayload )
 
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	UDR1 = dataPayload;
-#elif defined(_mk20dx128_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
 	UART0_D = dataPayload;
 #endif
 

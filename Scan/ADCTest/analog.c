@@ -62,28 +62,28 @@ void analog_init(void)
 	if (analog_config_bits == 8) {
 		ADC0_CFG1 = ADC_CFG1_24MHZ + ADC_CFG1_MODE(0);
 		ADC0_CFG2 = ADC_CFG2_MUXSEL + ADC_CFG2_ADLSTS(3);
-		#if defined(_mk20dx256_)
+		#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		ADC1_CFG1 = ADC_CFG1_24MHZ + ADC_CFG1_MODE(0);
 		ADC1_CFG2 = ADC_CFG2_MUXSEL + ADC_CFG2_ADLSTS(3);
 		#endif
 	} else if (analog_config_bits == 10) {
 		ADC0_CFG1 = ADC_CFG1_12MHZ + ADC_CFG1_MODE(2) + ADC_CFG1_ADLSMP;
 		ADC0_CFG2 = ADC_CFG2_MUXSEL + ADC_CFG2_ADLSTS(3);
-		#if defined(_mk20dx256_)
+		#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		ADC1_CFG1 = ADC_CFG1_12MHZ + ADC_CFG1_MODE(2) + ADC_CFG1_ADLSMP;
 		ADC1_CFG2 = ADC_CFG2_MUXSEL + ADC_CFG2_ADLSTS(3);
 		#endif
 	} else if (analog_config_bits == 12) {
 		ADC0_CFG1 = ADC_CFG1_12MHZ + ADC_CFG1_MODE(1) + ADC_CFG1_ADLSMP;
 		ADC0_CFG2 = ADC_CFG2_MUXSEL + ADC_CFG2_ADLSTS(2);
-		#if defined(_mk20dx256_)
+		#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		ADC1_CFG1 = ADC_CFG1_12MHZ + ADC_CFG1_MODE(1) + ADC_CFG1_ADLSMP;
 		ADC1_CFG2 = ADC_CFG2_MUXSEL + ADC_CFG2_ADLSTS(2);
 		#endif
 	} else {
 		ADC0_CFG1 = ADC_CFG1_12MHZ + ADC_CFG1_MODE(3) + ADC_CFG1_ADLSMP;
 		ADC0_CFG2 = ADC_CFG2_MUXSEL + ADC_CFG2_ADLSTS(2);
-		#if defined(_mk20dx256_)
+		#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		ADC1_CFG1 = ADC_CFG1_12MHZ + ADC_CFG1_MODE(3) + ADC_CFG1_ADLSMP;
 		ADC1_CFG2 = ADC_CFG2_MUXSEL + ADC_CFG2_ADLSTS(2);
 		#endif
@@ -91,12 +91,12 @@ void analog_init(void)
 
 	if (analog_reference_internal) {
 		ADC0_SC2 = ADC_SC2_REFSEL(1); // 1.2V ref
-		#if defined(_mk20dx256_)
+		#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		ADC1_SC2 = ADC_SC2_REFSEL(1); // 1.2V ref
 		#endif
 	} else {
 		ADC0_SC2 = ADC_SC2_REFSEL(0); // vcc/ext ref
-		#if defined(_mk20dx256_)
+		#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		ADC1_SC2 = ADC_SC2_REFSEL(0); // vcc/ext ref
 		#endif
 	}
@@ -104,27 +104,27 @@ void analog_init(void)
 	num = analog_num_average;
 	if (num <= 1) {
 		ADC0_SC3 = ADC_SC3_CAL;  // begin cal
-		#if defined(_mk20dx256_)
+		#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		ADC1_SC3 = ADC_SC3_CAL;  // begin cal
 		#endif
 	} else if (num <= 4) {
 		ADC0_SC3 = ADC_SC3_CAL + ADC_SC3_AVGE + ADC_SC3_AVGS(0);
-		#if defined(_mk20dx256_)
+		#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		ADC1_SC3 = ADC_SC3_CAL + ADC_SC3_AVGE + ADC_SC3_AVGS(0);
 		#endif
 	} else if (num <= 8) {
 		ADC0_SC3 = ADC_SC3_CAL + ADC_SC3_AVGE + ADC_SC3_AVGS(1);
-		#if defined(_mk20dx256_)
+		#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		ADC1_SC3 = ADC_SC3_CAL + ADC_SC3_AVGE + ADC_SC3_AVGS(1);
 		#endif
 	} else if (num <= 16) {
 		ADC0_SC3 = ADC_SC3_CAL + ADC_SC3_AVGE + ADC_SC3_AVGS(2);
-		#if defined(_mk20dx256_)
+		#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		ADC1_SC3 = ADC_SC3_CAL + ADC_SC3_AVGE + ADC_SC3_AVGS(2);
 		#endif
 	} else {
 		ADC0_SC3 = ADC_SC3_CAL + ADC_SC3_AVGE + ADC_SC3_AVGS(3);
-		#if defined(_mk20dx256_)
+		#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		ADC1_SC3 = ADC_SC3_CAL + ADC_SC3_AVGE + ADC_SC3_AVGS(3);
 		#endif
 	}
@@ -140,7 +140,7 @@ static void wait_for_cal(void)
 	while (ADC0_SC3 & ADC_SC3_CAL) {
 		// wait
 	}
-#elif defined(_mk20dx256_)
+#elif defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 	while ((ADC0_SC3 & ADC_SC3_CAL) || (ADC1_SC3 & ADC_SC3_CAL)) {
 		// wait
 	}
@@ -160,7 +160,7 @@ static void wait_for_cal(void)
 		//serial_print("ADC0_MG = ");
 		//serial_phex16(sum);
 		//serial_print("\n");
-#if defined(_mk20dx256_)
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		sum = ADC1_CLPS + ADC1_CLP4 + ADC1_CLP3 + ADC1_CLP2 + ADC1_CLP1 + ADC1_CLP0;
 		sum = (sum / 2) | 0x8000;
 		ADC1_PG = sum;
@@ -192,7 +192,7 @@ void analogReference(uint8_t type)
 			analog_reference_internal = 1;
 			if (calibrating) {
 				ADC0_SC3 = 0; // cancel cal
-#if defined(_mk20dx256_)
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 				ADC1_SC3 = 0; // cancel cal
 #endif
 			}
@@ -204,7 +204,7 @@ void analogReference(uint8_t type)
 			analog_reference_internal = 0;
 			if (calibrating) {
 				ADC0_SC3 = 0; // cancel cal
-#if defined(_mk20dx256_)
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 				ADC1_SC3 = 0; // cancel cal
 #endif
 			}
@@ -266,7 +266,7 @@ static const uint8_t channel2sc1a[] = {
 	5, 14, 8, 9, 13, 12, 6, 7, 15, 4,
 	0, 19, 3, 21, 26, 22, 23
 };
-#elif defined(_mk20dx256_)
+#elif defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 static const uint8_t channel2sc1a[] = {
 	5, 14, 8, 9, 13, 12, 6, 7, 15, 4,
 	0, 19, 3, 19+128, 26, 22, 23,
@@ -284,7 +284,7 @@ static const uint8_t channel2sc1a[] = {
 
 // TODO: perhaps this should store the NVIC priority, so it works recursively?
 static volatile uint8_t analogReadBusyADC0 = 0;
-#if defined(_mk20dx256_)
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 static volatile uint8_t analogReadBusyADC1 = 0;
 #endif
 
@@ -300,7 +300,7 @@ int analogRead(uint8_t pin)
 		index = pin;      // 0-13 refer to A0-A13
 	} else if (pin <= 23) {
 		index = pin - 14; // 14-23 are A0-A9
-#if defined(_mk20dx256_)
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 	} else if (pin >= 26 && pin <= 31) {
 		index = pin - 9;  // 26-31 are A15-A20
 #endif
@@ -323,7 +323,7 @@ int analogRead(uint8_t pin)
 	if (calibrating) wait_for_cal();
 	//pin = 5; // PTD1/SE5b, pin 14, analog 0
 
-#if defined(_mk20dx256_)
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 	if (channel & 0x80) goto beginADC1;
 #endif
 
@@ -350,7 +350,7 @@ startADC0:
 		yield();
 	}
 
-#if defined(_mk20dx256_)
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 beginADC1:
 	__disable_irq();
 startADC1:
@@ -387,7 +387,7 @@ startADC1:
 
 void analogWriteDAC0(int val)
 {
-#if defined(_mk20dx256_)
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 	SIM_SCGC2 |= SIM_SCGC2_DAC0;
 	if (analog_reference_internal) {
 		DAC0_C0 = DAC_C0_DACEN;  // 1.2V ref is DACREF_1

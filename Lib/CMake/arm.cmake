@@ -25,7 +25,9 @@ set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
 
 #| Chip Name (Linker)
 #|
-#| "mk20dx128"        # Teensy   3.0 and McHCK mk20dx128
+#| "mk20dx128vlf5"    # McHCK / Kiibohd-dfu
+#| "mk20dx256vlh7"    # Kiibohd-dfu
+#| "mk20dx128"        # Teensy   3.0
 #| "mk20dx256"        # Teensy   3.1
 
 message( STATUS "Chip Selected:" )
@@ -34,10 +36,15 @@ set( MCU "${CHIP}" ) # For loading script compatibility
 
 
 #| Chip Size Database
-#| MCHCK Based
+#| MCHCK Based / Kiibohd-dfu
 if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
 	set( SIZE_RAM    16384 )
 	set( SIZE_FLASH 126976 )
+
+#| Kiibohd-dfu
+elseif ( "${CHIP}" MATCHES "mk20dx256vlh7" )
+	set( SIZE_RAM    65536 )
+	set( SIZE_FLASH 253952 )
 
 #| Teensy 3.0
 elseif ( "${CHIP}" MATCHES "mk20dx128" )
@@ -90,7 +97,7 @@ message( "${COMPILER_SRCS}" )
 
 #| USB Defines, this is how the loader programs detect which type of chip base is used
 message( STATUS "Bootloader Type:" )
-if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
+if ( "${CHIP}" MATCHES "mk20dx128vlf5" OR "${CHIP}" MATCHES "mk20dx256vlh7" )
 	set( VENDOR_ID       "0x1C11" )
 	set( PRODUCT_ID      "0xB04D" )
 	set( BOOT_VENDOR_ID  "0x1C11" )

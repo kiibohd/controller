@@ -67,7 +67,7 @@ volatile uint8_t KeyIndex_BufferUsed;
 // Scan Module command dictionary
 char scanCLIDictName[] = "ADC Test Module Commands";
 const CLIDictItem scanCLIDict[] = {
-#if defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+#if defined(_mk20dx128_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
 	{ "adc",     "Read the specified number of values from the ADC at the given pin: <pin> [# of reads]"
 	          NL "\t\t See \033[35mLib/pin_map.teensy3\033[0m for ADC0 channel number.", cliFunc_adc },
 	{ "adcInit", "Intialize/calibrate ADC: <ADC Resolution> <Vref> <Hardware averaging samples>"
@@ -75,7 +75,7 @@ const CLIDictItem scanCLIDict[] = {
 	          NL "\t\t          Vref -> 0 (1.2 V), 1 (External)"
 	          NL "\t\tHw Avg Samples -> 0 (disabled), 4, 8, 16, 32", cliFunc_adcInit },
 #endif
-#if defined(_mk20dx256_) // DAC is only supported on Teensy 3.1
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // DAC is only supported on Teensy 3.1
 	{ "dac",     "Set DAC output value, from 0 to 4095 (1/4096 Vref to Vref).", cliFunc_dac },
 	{ "dacVref", "Set DAC Vref. 0 is 1.2V. 1 is 3.3V.", cliFunc_dacVref },
 #endif
@@ -94,7 +94,7 @@ inline void Scan_setup()
 	// Register Scan CLI dictionary
 	CLI_registerDictionary( scanCLIDict, scanCLIDictName );
 }
-#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
 {
 	// Register Scan CLI dictionary
 	CLI_registerDictionary( scanCLIDict, scanCLIDictName );
@@ -103,7 +103,7 @@ inline void Scan_setup()
 	VREF_TRM = 0x60;
 	VREF_SC  = 0xE1; // Enable 1.2V Vref
 
-#if defined(_mk20dx256_) // DAC is only supported on Teensy 3.1
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // DAC is only supported on Teensy 3.1
 	// DAC Setup
 	SIM_SCGC2 |= SIM_SCGC2_DAC0;
 	DAC0_C0 = DAC_C0_DACEN | DAC_C0_DACRFS; // 3.3V VDDA is DACREF_2
@@ -167,7 +167,7 @@ void cliFunc_adc( char* args )
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 {
 }
-#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
 {
 	// Parse code from argument
 	//  NOTE: Only first argument is used
@@ -220,7 +220,7 @@ void cliFunc_adcInit( char* args )
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 {
 }
-#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
 {
 	// Parse code from argument
 	//  NOTE: Only first argument is used
@@ -335,7 +335,7 @@ void cliFunc_adcInit( char* args )
 
 void cliFunc_dac( char* args )
 {
-#if defined(_mk20dx256_) // DAC is only supported on Teensy 3.1
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // DAC is only supported on Teensy 3.1
 	// Parse code from argument
 	//  NOTE: Only first argument is used
 	char* arg1Ptr;
@@ -354,7 +354,7 @@ void cliFunc_dac( char* args )
 
 void cliFunc_dacVref( char* args )
 {
-#if defined(_mk20dx256_) // DAC is only supported on Teensy 3.1
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // DAC is only supported on Teensy 3.1
 	// Parse code from argument
 	//  NOTE: Only first argument is used
 	char* arg1Ptr;

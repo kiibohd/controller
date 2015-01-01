@@ -21,6 +21,7 @@
 #|
 set( CHIP
 	"mk20dx128vlf5"    # McHCK    mk20dx128vlf5
+#	"mk20dx256vlh7"    # Kiibohd-dfu
 )
 
 

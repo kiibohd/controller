@@ -1847,7 +1847,7 @@ typedef struct {
 #define IRQ_SOFTWARE		45
 #define NVIC_NUM_INTERRUPTS	46
 
-#elif defined(_mk20dx256_)
+#elif defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 #define IRQ_DMA_CH0		0
 #define IRQ_DMA_CH1		1
 #define IRQ_DMA_CH2		2
