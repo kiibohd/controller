@@ -567,17 +567,17 @@ struct usb_string_descriptor_struct string0 = {
 struct usb_string_descriptor_struct usb_string_manufacturer_name_default = {
         sizeof(STR_MANUFACTURER),
         3,
-        STR_MANUFACTURER
+        {STR_MANUFACTURER}
 };
 struct usb_string_descriptor_struct usb_string_product_name_default = {
 	sizeof(STR_PRODUCT),
         3,
-        STR_PRODUCT
+        {STR_PRODUCT}
 };
 struct usb_string_descriptor_struct usb_string_serial_number_default = {
 	sizeof(STR_SERIAL),
         3,
-	STR_SERIAL
+	{STR_SERIAL}
 };
 
 

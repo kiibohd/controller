@@ -404,6 +404,7 @@ const uint8_t flashconfigbytes[16] = {
 
 // ----- Functions -----
 
+#if defined(_mk20dx128vlf5_) && defined(_bootloader_) // Bootloader Section
 __attribute__((noreturn))
 static inline void jump_to_app( uintptr_t addr )
 {
@@ -414,6 +415,7 @@ static inline void jump_to_app( uintptr_t addr )
         // NOTREACHED
         __builtin_unreachable();
 }
+#endif
 
 void *memset( void *addr, int val, unsigned int len )
 {
@@ -475,8 +477,8 @@ void ResetHandler()
 	}
 #endif
 
-	uint32_t *src = &_etext;
-	uint32_t *dest = &_sdata;
+	uint32_t *src = (uint32_t*)&_etext;
+	uint32_t *dest = (uint32_t*)&_sdata;
 
 	// Enable clocks to always-used peripherals
 	SIM_SCGC5 = 0x00043F82; // Clocks active to all GPIO
@@ -504,9 +506,9 @@ void ResetHandler()
 	}
 
 	// Prepare RAM
-	while ( dest < &_edata ) *dest++ = *src++;
-	dest = &_sbss;
-	while ( dest < &_ebss ) *dest++ = 0;
+	while ( dest < (uint32_t*)&_edata ) *dest++ = *src++;
+	dest = (uint32_t*)&_sbss;
+	while ( dest < (uint32_t*)&_ebss ) *dest++ = 0;
 
 // MCHCK
 #if defined(_mk20dx128vlf5_)

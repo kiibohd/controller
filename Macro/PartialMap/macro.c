@@ -616,7 +616,7 @@ inline TriggerMacroVote Macro_evalLongTriggerMacroVote( TriggerGuide *key, Trigg
 
 
 // Evaluate/Update TriggerMacro
-inline TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
+TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 {
 	// Lookup TriggerMacro
 	const TriggerMacro *macro = &TriggerMacroList[ triggerMacroIndex ];
