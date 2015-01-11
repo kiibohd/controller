@@ -50,7 +50,7 @@ inline void init_errorLED()
 	// Setup pin - Pin 13 -> C5 - See Lib/pin_map.teensy3 for more details on pins
 	PORTC_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 
-// MCHCK
+// MCHCK / Kiibohd-dfu
 #elif defined(_mk20dx128vlf5_)
 
 /* Actual MCHCK
@@ -67,6 +67,14 @@ inline void init_errorLED()
 	// Setup pin - A19 - See Lib/pin_map.mchck for more details on pins
 	PORTA_PCR19 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 
+// Kiibohd-dfu
+#elif defined(_mk20dx256vlh7_)
+	// Kiibohd-dfu
+	// Enable pin
+	GPIOA_PDDR |= (1<<5);
+
+	// Setup pin - A5 - See Lib/pin_map.mchck for more details on pins
+	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 #endif
 }
 
@@ -118,6 +126,18 @@ inline void errorLED( uint8_t on )
 	// Error LED Off
 	else {
 		GPIOA_PCOR |= (1<<19);
+	}
+
+// Kiibohd-dfu
+#elif defined(_mk20dx256vlh7_)
+	// Kiibohd-dfu
+	// Error LED On (A5)
+	if ( on ) {
+		GPIOA_PSOR |= (1<<5);
+	}
+	// Error LED Off
+	else {
+		GPIOA_PCOR |= (1<<5);
 	}
 
 #endif

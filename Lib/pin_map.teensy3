@@ -1,39 +1,39 @@
-// Pin  Name    Function     Hardware
+// Pin  Name      Function     Hardware
 // ----------------------------------
-//  0   B16                  RX1
-//  1   B17                  TX1
-//  2   D0                   PCS0
-//  3   A12     FTM1_CH0     PWM (CAN TX - Teensy 3.1) I2S_TXD0
-//  4   A13     FTM1_CH1     PWM (CAN RX - Teensy 3.1) I2S_TX_FS
-//  5   D7      FTM0_CH7     PWM
-//  6   D4      FTM0_CH4     PWM PCS1
-//  7   D2                   RX3 SOUT0
-//  8   D3                   TX3 SIN0
-//  9   C3      FTM0_CH2     RX2 PWM PCS1 I2S_TX_BCLK
-// 10   C4      FTM0_CH3     TX2 PWM PCS0
-// 11   C6                   SOUT0 I2S_RX_BCLK I2S_MCLK
-// 12   C7                   SIN0 I2S_RX_FS
-// 13   C5      LED          SCK0 I2S_RXD0
-// 14   D1                   SCK0
-// 15   C0
-// 16   B0     (FTM1_CH0)    SCL0
-// 17   B1     (FTM1_CH1)    SDA0
-// 18   B3                   SDA0
-// 19   B2                   SCL0
-// 20   D5      FTM0_CH5     PWM PCS2
-// 21   D6      FTM0_CH6     PWM PCS3
-// 22   C1      FTM0_CH0     PWM PCS3 I2S_TXD0
-// 23   C2      FTM0_CH1     PWM PCS2 I2S_TX_FS
-// 24   A5     (FTM0_CH2)    I2S_TX_BCLK
-// 25   B19                 (PWM - Teensy 3.1) I2S_TX_FS
-// 26   E1
-// 27   C9                   I2S_RX_BCLK
-// 28   C8                   I2S_MCLK
-// 29   C10                 (SCL1 - Teensy 3.1) I2S_RX_FS
-// 30   C11                 (SDA1 - Teensy 3.1) I2S_RXD1
-// 31   E0
-// 32   B18                 (PWM - Teensy 3.1) I2S_TX_BCLK
-// 33   A4    (FTM0_CH1)
+//  0   PTB16                  RX0
+//  1   PTB17                  TX0
+//  2   PTD0                   PCS0
+//  3   PTA12     FTM1_CH0     PWM (CAN TX - Teensy 3.1) I2S_TXD0
+//  4   PTA13     FTM1_CH1     PWM (CAN RX - Teensy 3.1) I2S_TX_FS
+//  5   PTD7      FTM0_CH7     PWM
+//  6   PTD4      FTM0_CH4     PWM PCS1
+//  7   PTD2                   RX2 SOUT0
+//  8   PTD3                   TX2 SIN0
+//  9   PTC3      FTM0_CH2     RX1 PWM PCS1 I2S_TX_BCLK
+// 10   PTC4      FTM0_CH3     TX1 PWM PCS0
+// 11   PTC6                   SOUT0 I2S_RX_BCLK I2S_MCLK
+// 12   PTC7                   SIN0 I2S_RX_FS
+// 13   PTC5      LED          SCK0 I2S_RXD0
+// 14   PTD1                   SCK0
+// 15   PTC0                   PCS4 I2S_TXD1
+// 16   PTB0     (FTM1_CH0)    SCL0
+// 17   PTB1     (FTM1_CH1)    SDA0
+// 18   PTB3                   SDA0
+// 19   PTB2                   SCL0
+// 20   PTD5      FTM0_CH5     PWM PCS2
+// 21   PTD6      FTM0_CH6     PWM PCS3
+// 22   PTC1      FTM0_CH0     PWM PCS3 I2S_TXD0
+// 23   PTC2      FTM0_CH1     PWM PCS2 I2S_TX_FS
+// 24   PTA5     (FTM0_CH2)    I2S_TX_BCLK
+// 25   PTB19                 (PWM - Teensy 3.1) I2S_TX_FS
+// 26   PTE1                   RX1 SCL1
+// 27   PTC9                   I2S_RX_BCLK
+// 28   PTC8                   I2S_MCLK
+// 29   PTC10                 (SCL1 - Teensy 3.1) I2S_RX_FS
+// 30   PTC11                 (SDA1 - Teensy 3.1) I2S_RXD1
+// 31   PTE0                   TX1 SDA1
+// 32   PTB18                 (PWM - Teensy 3.1) I2S_TX_BCLK
+// 33   PTA4    (FTM0_CH1)
 // 34          analog only
 // 35          analog only
 // 36          analog only
@@ -43,13 +43,10 @@
 // 40          DAC/A14
 
 // not available to user:
-//      A0      FTM0_CH5      SWD Clock
-//      A1      FTM0_CH6      USB ID
-//      A2      FTM0_CH7      SWD Trace
-//      A3      FTM0_CH0      SWD Data
-
-// misc
-        C0                    PCS4 I2S_TXD1
+//      A0        FTM0_CH5      SWD Clock
+//      A1        FTM0_CH6      USB ID
+//      A2        FTM0_CH7      SWD Trace
+//      A3        FTM0_CH0      SWD Data
 
 // Analog              Channel     Channel
 //  Pin   Pin   Name   ADC0        ADC1

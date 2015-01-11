@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2015 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----- Local Includes -----
+// ----- Includes -----
 
+// Local Includes
 #include "mchck.h"
 #include "dfu.desc.h"
 
@@ -79,11 +80,23 @@ void init_usb_bootloader( int config )
 
 void main()
 {
+#if defined(_mk20dx128vlf5_) // Kiibohd-dfu / Infinity
+	// XXX McHCK uses B16 instead of A19
+
 	// Enabling LED to indicate we are in the bootloader
 	GPIOA_PDDR |= (1<<19);
 	// Setup pin - A19 - See Lib/pin_map.mchck for more details on pins
 	PORTA_PCR19 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOA_PSOR |= (1<<19);
+
+#elif defined(_mk20dx256vlh7_) // Kiibohd-dfu
+	// Enabling LED to indicate we are in the bootloader
+	GPIOA_PDDR |= (1<<5);
+	// Setup pin - A5 - See Lib/pin_map.mchck for more details on pins
+	PORTA_PCR19 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOA_PSOR |= (1<<5);
+
+#endif
 
         flash_prepare_flashing();
 
