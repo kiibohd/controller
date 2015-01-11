@@ -68,7 +68,6 @@ int flash_erase_sector(uintptr_t addr)
 
 int flash_program_section(uintptr_t addr, size_t num_words)
 {
-	GPIOA_PSOR |= (1<<19);
         FTFL.fccob.program_section.fcmd = FTFL_FCMD_PROGRAM_SECTION;
         FTFL.fccob.program_section.addr = addr;
         FTFL.fccob.program_section.num_words = num_words;
