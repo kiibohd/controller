@@ -1006,7 +1006,7 @@ inline void Macro_setup()
 void cliFunc_capList( char* args )
 {
 	print( NL );
-	info_msg("Capabilities List");
+	info_msg("Capabilities List ");
 	printHex( CapabilitiesNum );
 
 	// Iterate through all of the capabilities and display them
