@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Muxed UART and USB Output Module |###
 #
-# Written by Jacob Alexander in 2014 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -8,43 +8,26 @@
 
 
 ###
-# Module C files
+# Required Submodules
 #
 
-
-#| AVR Compiler
-if ( ${COMPILER_FAMILY} MATCHES "avr" )
-
-	set( OUTPUT_SRCS
-	)
-
-#| ARM Compiler
-elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
-
-	set( OUTPUT_SRCS
-		output_com.c
-		../pjrcUSB/arm/usb_desc.c
-		../pjrcUSB/arm/usb_dev.c
-		../pjrcUSB/arm/usb_keyboard.c
-		../pjrcUSB/arm/usb_mem.c
-		../pjrcUSB/arm/usb_serial.c
-		../uartOut/arm/uart_serial.c
-	)
-
-endif ()
-
+AddModule ( Output pjrcUSB )
+AddModule ( Output uartOut )
 
 
 ###
-# Module Specific Options
+# Module C files
 #
 
+set( Module_SRCS
+	output_com.c
+)
 
 
 ###
 # Compiler Family Compatibility
 #
-set( OutputModuleCompatibility
+set( ModuleCompatibility
 	arm
 #	avr # TODO
 )
