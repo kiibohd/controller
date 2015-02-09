@@ -590,8 +590,13 @@ void wdt_init()
 
 
 // initialize USB
-void usb_init()
+uint8_t usb_init()
 {
+	// Check to see if a usb cable has been plugged in
+	// XXX Not tested (also, not currently needed) -HaaTa
+	//if ( USB0_STAT & (1 << 1)
+	//	return 0;
+
 	HW_CONFIG();
 	USB_FREEZE();				// enable USB
 	PLL_CONFIG();				// config PLL
@@ -604,6 +609,8 @@ void usb_init()
 
 	// Disable watchdog timer after possible software reset
 	//wdt_init(); // XXX Not working...seems to be ok without this, not sure though
+
+	return 1;
 }
 
 // return 0 if the USB is not configured, or the configuration

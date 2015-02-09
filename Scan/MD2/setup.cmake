@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Scan Module |###
 #
-# Written by Jacob Alexander in 2014 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -8,27 +8,24 @@
 
 
 ###
-# Module C files
+# Required Sub-modules
 #
-
-set( SCAN_SRCS
-	scan_loop.c
-	../MatrixARM/matrix_scan.c
-)
+AddModule ( Scan ISSILed )
+AddModule ( Scan MatrixARM )
 
 
 ###
-# Module Specific Options
+# Module C files
 #
-add_definitions(
-	-I${HEAD_DIR}/Scan/MatrixARM
+set( Module_SRCS
+	scan_loop.c
 )
 
 
 ###
 # Compiler Family Compatibility
 #
-set( ScanModuleCompatibility
+set( ModuleCompatibility
 	arm
 )
 

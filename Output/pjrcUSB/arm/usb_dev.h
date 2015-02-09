@@ -61,8 +61,8 @@ extern volatile uint8_t usb_cdc_transmit_flush_timer;
 // ----- Functions -----
 
 uint8_t usb_configured(); // is the USB port configured
+uint8_t usb_init(); // Returns 1 on success, 0 if no cable is attached
 
-void usb_init();
 void usb_isr();
 void usb_tx( uint32_t endpoint, usb_packet_t *packet );
 void usb_tx_isr( uint32_t endpoint, usb_packet_t *packet );

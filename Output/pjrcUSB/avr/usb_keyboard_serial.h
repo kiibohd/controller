@@ -46,7 +46,7 @@
 // ----- Function Declarations -----
 
 // Basic USB Configuration
-void usb_init();			// initialize everything
+uint8_t usb_init();			// initialize everything
 uint8_t usb_configured();		// is the USB port configured
 
 // Keyboard HID Functions

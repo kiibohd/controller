@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,10 +33,10 @@
 // USB Includes
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
-#include "../uartOut/arm/uart_serial.h"
-#include "../pjrcUSB/arm/usb_dev.h"
-#include "../pjrcUSB/arm/usb_keyboard.h"
-#include "../pjrcUSB/arm/usb_serial.h"
+#include <uartOut/arm/uart_serial.h>
+#include <pjrcUSB/arm/usb_dev.h>
+#include <pjrcUSB/arm/usb_keyboard.h>
+#include <pjrcUSB/arm/usb_serial.h>
 #endif
 
 // Local Includes
@@ -129,6 +129,11 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 
 // count until idle timeout
          uint8_t  USBKeys_Idle_Count = 0;
+
+// Indicates whether the Output module is fully functional
+// 0 - Not fully functional, 1 - Fully functional
+// 0 is often used to show that a USB cable is not plugged in (but has power)
+         uint8_t  Output_Available = 0;
 
 
 
