@@ -1,6 +1,50 @@
 #!/bin/bash
+# Convenience script for loading firmware onto a teensy type device
+# By default, initiates teensy-load-cli
 
-#| First check to see teensy-loader-cli has been compiled
+SERIAL_PORT=""
+AUTO_SCREEN_SESSION=""
+PROG_NAME=$(basename $0)
+
+# Parse all the command line arguments
+while (( "$#" >= "1" )); do
+	# Scan each argument
+	key="$1"
+	case $key in
+	-a|--autoscreen)
+		AUTO_SCREEN_SESSION="$2"
+		shift
+		;;
+	-f|--fastload)
+		SERIAL_PORT="$2"
+		shift
+		;;
+	-h|--help)
+		echo "Usage: $PROG_NAME [options...]"
+		echo ""
+		echo "Loads the most recent built firmware (@TARGET_BIN@) to the device."
+		echo "  (load.teensy)"
+		echo ""
+		echo "Arguments:"
+		echo " -a, --autoscreen SERIAL_PORT  Use screen on the specified serial port after loading."
+		echo "                               e.g. /dev/ttyACM0"
+		echo " -f, --fastload SERIAL_PORT    Send the reload command to the debug terminal."
+		echo "                               e.g. /dev/ttyACM0"
+		echo "                               NOTE: May not work due to non-functional terminal, or disable remote flashing"
+		echo " -h, --help                    This message."
+		exit 1
+		;;
+	*)
+		echo "INVALID ARG: '$1'"
+		exit 2
+		;;
+	esac
+
+	# Shift to the next argument
+	shift
+done
+
+# First check to see teensy-loader-cli has been compiled
 if [ ! -e teensy-loader-cli/teensy-loader-cli ]; then
 	# Compile teensy-loader-cli
 	mkdir -p teensy-loader-cli
@@ -10,8 +54,23 @@ if [ ! -e teensy-loader-cli/teensy-loader-cli ]; then
 	cd -
 fi
 
-#| Loads the hex file onto the teensy
-teensy-loader-cli/teensy-loader-cli -mmcu=@MCU@ -w @TARGET_HEX@
+# If a SERIAL_PORT was specified set the uC into reflash mode
+# XXX May not be successful if uC is not in a good state (or does not allow remote flashing)
+if [[ "$SERIAL_PORT" != "" ]] && [[ -e "$SERIAL_PORT" ]]; then
+	echo "NOTE: This may fail if the uC is in a bad state or does not support remote flashing"
+	printf "reload\r" > $SERIAL_PORT
+	sleep 1
+fi
 
-exit $?
+# Loads the hex file onto the teensy
+teensy-loader-cli/teensy-loader-cli -mmcu=@MCU@ -w @TARGET_HEX@
+EXIT_STATUS=$?
+
+# Load Screen Session if specified
+if (( "$EXIT_STATUS" == "0" )) && [[ "$AUTO_SCREEN_SESSION" != "" ]]; then
+	sleep 0.1
+	screen $AUTO_SCREEN_SESSION
+fi
+
+exit $EXIT_STATUS
 
