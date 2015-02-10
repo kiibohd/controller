@@ -81,8 +81,9 @@ typedef enum MacroType {
 // Default Args (always sent): key state/analog of last key
 // Combo Length of 0 signifies end of sequence
 //
-// ResultMacro.type       -> <Type of macro>
-// ResultMacro.guide      -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
+// ResultMacro.type   -> <Type of macro>
+// ResultMacro.guide  -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
+// ResultMacro.record -> Pointer to ResultMacroRecord if MacroType_Normal
 //
 // ResultMacroRecord.pos       -> <current combo position>
 // ResultMacroRecord.state     -> <last key state>
@@ -133,6 +134,7 @@ typedef struct ResultGuide {
 // TriggerMacro.type   -> <Type of macro>
 // TriggerMacro.guide  -> [<combo length>|<key1 type>|<key1 state>|<key1>...<keyn type>|<keyn state>|<keyn>|<combo length>...|0]
 // TriggerMacro.result -> <index to result macro>
+// TriggerMacro.record -> Pointer to TriggrMacroRecord if MacroType_Normal
 //
 // TriggerMacroRecord.pos   -> <current combo position>
 // TriggerMacroRecord.state -> <status of the macro pos>
