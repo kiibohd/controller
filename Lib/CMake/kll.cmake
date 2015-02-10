@@ -64,7 +64,7 @@ endif ()
 
 #| Configure DefaultMap if specified
 if ( NOT "${DefaultMap}" STREQUAL "" )
-	set ( DefaultMap_Args -d )
+	set ( DefaultMap_Args --default )
 
 	string ( REPLACE " " ";" MAP_LIST ${DefaultMap} ) # Change spaces to semicolons
 	foreach ( MAP ${MAP_LIST} )
@@ -83,7 +83,7 @@ endif ()
 if ( NOT "${PartialMaps}" STREQUAL "" )
 	# For each partial layer
 	foreach ( MAP ${PartialMaps} )
-		set ( PartialMap_Args ${PartialMap_Args} -p )
+		set ( PartialMap_Args ${PartialMap_Args} --partial )
 
 		# Combine each layer
 		string ( REPLACE " " ";" MAP_LIST ${MAP} ) # Change spaces to semicolons
