@@ -132,17 +132,17 @@ var_uint_t macroTriggerListLayerCache[ MaxScanCode ];
 // TODO, figure out a good way to scale this array size without wasting too much memory, but not rejecting macros
 //       Possibly could be calculated by the KLL compiler
 // XXX It may be possible to calculate the worst case using the KLL compiler
-uint16_t macroTriggerMacroPendingList[ TriggerMacroNum ] = { 0 };
+uint16_t macroTriggerMacroPendingList[ TriggerMacroNum ];
 uint16_t macroTriggerMacroPendingListSize = 0;
 
 // Layer Index Stack
 //  * When modifying layer state and the state is non-0x0, the stack must be adjusted
-uint16_t macroLayerIndexStack[ LayerNum + 1 ] = { 0 };
+uint16_t macroLayerIndexStack[ LayerNum + 1 ];
 uint16_t macroLayerIndexStackSize = 0;
 
 // Pending Result Macro Index List
 //  * Any result macro that needs processing from a previous macro processing loop
-uint16_t macroResultMacroPendingList[ ResultMacroNum ] = { 0 };
+uint16_t macroResultMacroPendingList[ ResultMacroNum ];
 uint16_t macroResultMacroPendingListSize = 0;
 
 
@@ -452,6 +452,32 @@ inline void Macro_ledState( uint8_t ledCode, uint8_t state )
 }
 
 
+// Evaluate a ResultMacro Combination
+var_uint_t Macro_evalResultMacroCombo( const uint8_t *guidePos, var_uint_t comboItem, uint8_t comboLength, const uint8_t state, const uint8_t stateType )
+{
+	var_uint_t funcCount = 0;
+
+	// Iterate through the Result Combo
+	while ( funcCount < comboLength )
+	{
+		// Assign TriggerGuide element (key type, state and scancode)
+		ResultGuide *guide = (ResultGuide*)(&guidePos[ comboItem ]);
+
+		// Do lookup on capability function
+		void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
+
+		// Call capability
+		capability( state, stateType, &guide->args );
+
+		// Increment counters
+		funcCount++;
+		comboItem += ResultGuideSize( (ResultGuide*)(&guide[ comboItem ]) );
+	}
+
+	return comboItem;
+}
+
+
 // Append result macro to pending list, checking for duplicates
 // Do nothing if duplicate
 inline void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
@@ -481,40 +507,40 @@ inline void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMac
 	uint8_t scanCode = ((TriggerGuide*)&triggerMacro->guide[ pos - TriggerGuideSize ])->scanCode;
 
 	// Lookup scanCode in buffer list for the current state and stateType
+	TriggerGuide *guide = 0;
 	for ( uint8_t keyIndex = 0; keyIndex < macroTriggerListBufferSize; keyIndex++ )
 	{
 		if ( macroTriggerListBuffer[ keyIndex ].scanCode == scanCode )
 		{
-			ResultMacroList[ resultMacroIndex ].record->state     = macroTriggerListBuffer[ keyIndex ].state;
-			ResultMacroList[ resultMacroIndex ].record->stateType = macroTriggerListBuffer[ keyIndex ].type;
+			guide = &macroTriggerListBuffer[ keyIndex ];
+			break;
 		}
 	}
 
-	// Reset the macro position
-	ResultMacroList[ resultMacroIndex ].record->pos = 0;
-}
+	// Depending on the type of ResultMacro, either call the capability immediately, or delay
+	switch ( ResultMacroList[ resultMacroIndex ].type )
+	{
+	// Simple ResultMacro
+	case MacroType_Simple:
+		// Call Capability immediately instead of waiting
+		// This means we don't have to store the state and type information
+		// (It would be thrown away during this scan cycle anyways)
+		Macro_evalResultMacroCombo( ResultMacroList[ resultMacroIndex ].guide, 1, ResultMacroList[ resultMacroIndex ].guide[ 0 ], guide->state, guide->type );
+		break;
 
+	// Complex ResultMacro
+	case MacroType_Normal:
+		ResultMacroList[ resultMacroIndex ].record->state     = guide->state;
+		ResultMacroList[ resultMacroIndex ].record->stateType = guide->type;
 
-// Determine if long ResultMacro (more than 1 seqence element)
-inline uint8_t Macro_isLongResultMacro( const ResultMacro *macro )
-{
-	// Check the second sequence combo length
-	// If non-zero return non-zero (long sequence)
-	// 0 otherwise (short sequence)
-	var_uint_t position = 1;
-	for ( var_uint_t result = 0; result < macro->guide[0]; result++ )
-		position += ResultGuideSize( (ResultGuide*)&macro->guide[ position ] );
-	return macro->guide[ position ];
-}
+		// Reset the macro position
+		ResultMacroList[ resultMacroIndex ].record->pos = 0;
+		break;
 
-
-// Determine if long TriggerMacro (more than 1 sequence element)
-inline uint8_t Macro_isLongTriggerMacro( const TriggerMacro *macro )
-{
-	// Check the second sequence combo length
-	// If non-zero return non-zero (long sequence)
-	// 0 otherwise (short sequence)
-	return macro->guide[ macro->guide[0] * TriggerGuideSize + 1 ];
+	default:
+		erro_print("Invalid MacroType. This is a bug");
+		break;
+	}
 }
 
 
@@ -666,7 +692,7 @@ TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 	}
 
 	// Check if this is a long Trigger Macro
-	uint8_t longMacro = Macro_isLongTriggerMacro( macro );
+	uint8_t longMacro = macro->type == MacroType_Normal;
 
 	// Iterate through the items in the combo, voting the on the key state
 	// If any of the pressed keys do not match, fail the macro
@@ -752,7 +778,7 @@ TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 		if ( macro->guide[ pos + comboLength + 1 ] == 0 )
 		{
 			// Long result macro (more than 1 combo)
-			if ( Macro_isLongResultMacro( &ResultMacroList[ macro->result ] ) )
+			if ( ResultMacroList[ macro->result ].type == MacroType_Normal )
 			{
 				// Only ever trigger result once, on press
 				if ( overallVote == TriggerMacroVote_Pass )
@@ -764,7 +790,7 @@ TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 			else
 			{
 				// Only trigger result once, on press, if long trigger (more than 1 combo)
-				if ( Macro_isLongTriggerMacro( macro ) )
+				if ( macro->type == MacroType_Normal )
 				{
 					return TriggerMacroEval_DoResultAndRemove;
 				}
@@ -799,34 +825,23 @@ inline ResultMacroEval Macro_evalResultMacro( var_uint_t resultMacroIndex )
 	const ResultMacro *macro = &ResultMacroList[ resultMacroIndex ];
 	ResultMacroRecord *record = ResultMacroList[ resultMacroIndex ].record;
 
+	// If this is a simple ResultMacro, the capability has already been called, remove
+	if ( macro->type == MacroType_Simple )
+	{
+		return ResultMacroEval_Remove;
+	}
+
 	// Current Macro position
 	var_uint_t pos = record->pos;
 
 	// Length of combo being processed
 	uint8_t comboLength = macro->guide[ pos ];
 
-	// Function Counter, used to keep track of the combo items processed
-	var_uint_t funcCount = 0;
-
 	// Combo Item Position within the guide
 	var_uint_t comboItem = pos + 1;
 
-	// Iterate through the Result Combo
-	while ( funcCount < comboLength )
-	{
-		// Assign TriggerGuide element (key type, state and scancode)
-		ResultGuide *guide = (ResultGuide*)(&macro->guide[ comboItem ]);
-
-		// Do lookup on capability function
-		void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
-
-		// Call capability
-		capability( record->state, record->stateType, &guide->args );
-
-		// Increment counters
-		funcCount++;
-		comboItem += ResultGuideSize( (ResultGuide*)(&macro->guide[ comboItem ]) );
-	}
+	// Evaluate ResultCombo
+	comboItem = Macro_evalResultMacroCombo( macro->guide, comboItem, comboLength, record->state, record->stateType );
 
 	// Move to next item in the sequence
 	record->pos = comboItem;
@@ -1011,16 +1026,22 @@ inline void Macro_setup()
 	// Initialize TriggerMacro states
 	for ( var_uint_t macro = 0; macro < TriggerMacroNum; macro++ )
 	{
-		TriggerMacroList[ macro ].record->pos   = 0;
-		TriggerMacroList[ macro ].record->state = TriggerMacro_Waiting;
+		if ( TriggerMacroList[ macro ].type == MacroType_Normal )
+		{
+			TriggerMacroList[ macro ].record->pos   = 0;
+			TriggerMacroList[ macro ].record->state = TriggerMacro_Waiting;
+		}
 	}
 
 	// Initialize ResultMacro states
 	for ( var_uint_t macro = 0; macro < ResultMacroNum; macro++ )
 	{
-		ResultMacroList[ macro ].record->pos       = 0;
-		ResultMacroList[ macro ].record->state     = 0;
-		ResultMacroList[ macro ].record->stateType = 0;
+		if ( ResultMacroList[ macro ].type == MacroType_Normal )
+		{
+			ResultMacroList[ macro ].record->pos       = 0;
+			ResultMacroList[ macro ].record->state     = 0;
+			ResultMacroList[ macro ].record->stateType = 0;
+		}
 	}
 }
 
@@ -1502,10 +1523,13 @@ void macroDebugShowResult( var_uint_t index )
 	printInt16( (uint16_t)record->pos ); // Hopefully large enough :P (can't assume 32-bit)
 
 	// Display final trigger state/type
-	print( NL "Final Trigger State (State/Type): " );
-	printHex( record->state );
-	print("/");
-	printHex( record->stateType );
+	if ( macro->type == MacroType_Normal )
+	{
+		print( NL "Final Trigger State (State/Type): " );
+		printHex( record->state );
+		print("/");
+		printHex( record->stateType );
+	}
 }
 
 void cliFunc_macroShow( char* args )
