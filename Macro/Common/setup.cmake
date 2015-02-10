@@ -1,24 +1,29 @@
 ###| CMake Kiibohd Controller Macro Module |###
 #
-# Written by Jacob Alexander in 2014 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
 ###
 
 ###
-# Warning, that this module is not meant to be built stand-alone
+# Sub-module flag, cannot be included stand-alone
 #
-message( FATAL_ERROR
-"The 'Common' module is not a stand-alone module, and requires further setup."
-)
+set ( SubModule 1 )
+
 
 ###
 # Module C files
 #
+set ( Module_SRCS
+)
 
 
 ###
-# Module Specific Options
+# Compiler Family Compatibility
 #
+set ( ModuleCompatibility
+	arm
+	avr
+)
 

@@ -8,6 +8,12 @@
 
 
 ###
+# Required Sub-modules
+#
+AddModule ( Macro Common )
+
+
+###
 # Module C files
 #
 

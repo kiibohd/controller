@@ -83,24 +83,24 @@ typedef enum MacroType {
 //
 // ResultMacro.type       -> <Type of macro>
 // ResultMacro.guide      -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
-// ResultMacro.triggerKey -> <scanCode of last key in TriggerMacro>
 //
 // ResultMacroRecord.pos       -> <current combo position>
 // ResultMacroRecord.state     -> <last key state>
 // ResultMacroRecord.stateType -> <last key state type>
 
-// ResultMacro struct, one is created per ResultMacro, no duplicates
-typedef struct ResultMacro {
-	const MacroType type;
-	const uint8_t *guide;
-	const uint8_t triggerKey;
-} ResultMacro;
-
+// ResultMacroRecord struct, one is created per ResultMacro, no duplicates, if a MacroType_Normal
 typedef struct ResultMacroRecord {
 	var_uint_t pos;
-	uint8_t  state;
-	uint8_t  stateType;
+	uint8_t    state;
+	uint8_t    stateType;
 } ResultMacroRecord;
+
+// ResultMacro struct, one is created per ResultMacro, no duplicates
+typedef const struct ResultMacro {
+	const MacroType    type;
+	const uint8_t     *guide;
+	ResultMacroRecord *record;
+} ResultMacro;
 
 // Guide, key element
 #define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) - 1 + CapabilitiesList[ (guidePtr)->index ].argCount
@@ -144,17 +144,19 @@ typedef enum TriggerMacroState {
 	TriggerMacro_Waiting, // Awaiting user input
 } TriggerMacroState;
 
-// TriggerMacro struct, one is created per TriggerMacro, no duplicates
-typedef struct TriggerMacro {
-	const MacroType type;
-	const uint8_t *guide;
-	const var_uint_t result;
-} TriggerMacro;
-
+// TriggerMacroRecord struct, one is created per TriggerMacro, no duplicates, if a MacroType_Normal
 typedef struct TriggerMacroRecord {
-	var_uint_t pos;
+	var_uint_t        pos;
 	TriggerMacroState state;
 } TriggerMacroRecord;
+
+// TriggerMacro struct, one is created per TriggerMacro, no duplicates
+typedef const struct TriggerMacro {
+	const MacroType     type;
+	const uint8_t      *guide;
+	const var_uint_t    result;
+	TriggerMacroRecord *record;
+} TriggerMacro;
 
 // Guide, key element
 #define TriggerGuideSize sizeof( TriggerGuide )
@@ -170,8 +172,8 @@ typedef struct TriggerGuide {
 
 // Capability
 typedef struct Capability {
-	const void *func;
-	const uint8_t argCount;
+	const void    *func;
+	const uint8_t  argCount;
 } Capability;
 
 // Total Number of Capabilities
@@ -180,15 +182,20 @@ typedef struct Capability {
 
 // -- Result Macros
 
-// Guide_RM / Define_RM Pair
+// Guide_RM / Record_RM / Define_RM
 // Guide_RM( index ) = result;
 //  * index  - Result Macro index number
 //  * result - Result Macro guide (see ResultMacro)
+// Record_RM( index );
+//  * index  - Result Macro index number
 // Define_RM( index );
 //  * index  - Result Macro index number
-//  Must be used after Guide_RM
+//  Simple macros do not have a record
+//  Must be used after Guide_RM and Record_RM
 #define Guide_RM( index ) const uint8_t rm##index##_guide[]
-#define Define_RM( index ) { rm##index##_guide }
+#define Record_RM( index ) ResultMacroRecord rm##index##_record
+#define Define_RM_Normal( index ) { MacroType_Normal, rm##index##_guide, &rm##index##_record }
+#define Define_RM_Simple( index ) { MacroType_Simple, rm##index##_guide, 0 }
 
 
 // -- Result Macro List
@@ -200,21 +207,19 @@ typedef struct Capability {
 
 // -- Trigger Macros
 
-// Guide_TM / Define_TM Trigger Setup
+// Guide_TM / Record_TM / Define_TM Trigger Setup
 // Guide_TM( index ) = trigger;
 //  * index   - Trigger Macro index number
 //  * trigger - Trigger Macro guide (see TriggerMacro)
-// Define_TM( index, result );
-//  <State-ful sequence of combinations TriggerMacro>
+// Record_TM( index );
 //  * index   - Trigger Macro index number
-//  * result  - Result Macro index number which is triggered by this Trigger Macro
-// Define_STM( index, result );
-//  <State-less single combination TriggerMacro>
+// Define_TM( index, result );
 //  * index   - Trigger Macro index number
 //  * result  - Result Macro index number which is triggered by this Trigger Macro
 #define Guide_TM( index ) const uint8_t tm##index##_guide[]
-#define Define_TM( index, result ) { MacroType_Normal, tm##index##_guide, result }
-#define Define_STM( index, result ) { MacroType_Simple, tm##index##_guide, result }
+#define Record_TM( index ) TriggerMacroRecord tm##index##_record
+#define Define_TM_Normal( index, result ) { MacroType_Normal, tm##index##_guide, result, &tm##index##_record }
+#define Define_TM_Simple( index, result ) { MacroType_Simple, tm##index##_guide, result, 0 }
 
 
 // -- Trigger Macro List
@@ -259,9 +264,9 @@ typedef struct Capability {
 
 typedef struct Layer {
 	const nat_ptr_t **triggerMap;
-	const char *name;
-	const uint8_t first;
-	const uint8_t last;
+	const char       *name;
+	const uint8_t     first;
+	const uint8_t     last;
 } Layer;
 
 // Layer_IN( map, name, first );

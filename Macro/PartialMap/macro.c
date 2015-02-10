@@ -26,7 +26,7 @@
 #include <scan_loop.h>
 
 // Keymaps
-#include "usb_hid.h"
+#include <usb_hid.h>
 #include <generatedKeymap.h> // Generated using kll at compile time, in build directory
 
 // Local Includes
@@ -485,13 +485,13 @@ inline void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMac
 	{
 		if ( macroTriggerListBuffer[ keyIndex ].scanCode == scanCode )
 		{
-			ResultMacroRecordList[ resultMacroIndex ].state     = macroTriggerListBuffer[ keyIndex ].state;
-			ResultMacroRecordList[ resultMacroIndex ].stateType = macroTriggerListBuffer[ keyIndex ].type;
+			ResultMacroList[ resultMacroIndex ].record->state     = macroTriggerListBuffer[ keyIndex ].state;
+			ResultMacroList[ resultMacroIndex ].record->stateType = macroTriggerListBuffer[ keyIndex ].type;
 		}
 	}
 
 	// Reset the macro position
-	ResultMacroRecordList[ resultMacroIndex ].pos = 0;
+	ResultMacroList[ resultMacroIndex ].record->pos = 0;
 }
 
 
@@ -644,7 +644,7 @@ TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 {
 	// Lookup TriggerMacro
 	const TriggerMacro *macro = &TriggerMacroList[ triggerMacroIndex ];
-	TriggerMacroRecord *record = &TriggerMacroRecordList[ triggerMacroIndex ];
+	TriggerMacroRecord *record = TriggerMacroList[ triggerMacroIndex ].record;
 
 	// Check if macro has finished and should be incremented sequence elements
 	if ( record->state == TriggerMacro_Release )
@@ -797,7 +797,7 @@ inline ResultMacroEval Macro_evalResultMacro( var_uint_t resultMacroIndex )
 {
 	// Lookup ResultMacro
 	const ResultMacro *macro = &ResultMacroList[ resultMacroIndex ];
-	ResultMacroRecord *record = &ResultMacroRecordList[ resultMacroIndex ];
+	ResultMacroRecord *record = ResultMacroList[ resultMacroIndex ].record;
 
 	// Current Macro position
 	var_uint_t pos = record->pos;
@@ -889,8 +889,8 @@ inline void Macro_updateTriggerMacroPendingList()
 				macroTriggerMacroPendingList[ macroTriggerMacroPendingListSize++ ] = triggerMacroIndex;
 
 				// Reset macro position
-				TriggerMacroRecordList[ triggerMacroIndex ].pos   = 0;
-				TriggerMacroRecordList[ triggerMacroIndex ].state = TriggerMacro_Waiting;
+				TriggerMacroList[ triggerMacroIndex ].record->pos   = 0;
+				TriggerMacroList[ triggerMacroIndex ].record->state = TriggerMacro_Waiting;
 			}
 		}
 	}
@@ -1011,16 +1011,16 @@ inline void Macro_setup()
 	// Initialize TriggerMacro states
 	for ( var_uint_t macro = 0; macro < TriggerMacroNum; macro++ )
 	{
-		TriggerMacroRecordList[ macro ].pos   = 0;
-		TriggerMacroRecordList[ macro ].state = TriggerMacro_Waiting;
+		TriggerMacroList[ macro ].record->pos   = 0;
+		TriggerMacroList[ macro ].record->state = TriggerMacro_Waiting;
 	}
 
 	// Initialize ResultMacro states
 	for ( var_uint_t macro = 0; macro < ResultMacroNum; macro++ )
 	{
-		ResultMacroRecordList[ macro ].pos       = 0;
-		ResultMacroRecordList[ macro ].state     = 0;
-		ResultMacroRecordList[ macro ].stateType = 0;
+		ResultMacroList[ macro ].record->pos       = 0;
+		ResultMacroList[ macro ].record->state     = 0;
+		ResultMacroList[ macro ].record->stateType = 0;
 	}
 }
 
@@ -1358,7 +1358,7 @@ void macroDebugShowTrigger( var_uint_t index )
 
 	// Trigger Macro Show
 	const TriggerMacro *macro = &TriggerMacroList[ index ];
-	TriggerMacroRecord *record = &TriggerMacroRecordList[ index ];
+	TriggerMacroRecord *record = TriggerMacroList[ index ].record;
 
 	print( NL );
 	info_msg("Trigger Macro Index: ");
@@ -1430,7 +1430,7 @@ void macroDebugShowResult( var_uint_t index )
 
 	// Trigger Macro Show
 	const ResultMacro *macro = &ResultMacroList[ index ];
-	ResultMacroRecord *record = &ResultMacroRecordList[ index ];
+	ResultMacroRecord *record = ResultMacroList[ index ].record;
 
 	print( NL );
 	info_msg("Result Macro Index: ");
