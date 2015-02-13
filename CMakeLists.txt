@@ -22,9 +22,24 @@ set( CHIP
 #	"at90usb646"       # Teensy++ 1.0 (avr)
 #	"at90usb1286"      # Teensy++ 2.0 (avr)
 #	"mk20dx128"        # Teensy   3.0 (arm)
-	"mk20dx128vlf5"    # McHCK    mk20dx128vlf5
+	"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
 #	"mk20dx256"        # Teensy   3.1 (arm)
+#	"mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
 	CACHE STRING "Microcontroller Chip" )
+
+
+
+###
+# Compiler Selection
+#
+
+#| *** EXPERIMENTAL ***
+#| Stick with gcc unless you know what you're doing
+#| Currently only arm is supported with clang
+set( COMPILER
+	"gcc"	# arm-none-eabi-gcc / avr-gcc - Default
+#	"clang" # arm-none-eabi
+	CACHE STRING "Compiler Type" )
 
 
 

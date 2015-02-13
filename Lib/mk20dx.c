@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2014
+ * Modifications by Jacob Alexander 2014-2015
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -28,6 +28,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+// ----- Includes -----
 
 // Local Includes
 #include "mk20dx.h"
@@ -246,7 +248,7 @@ void (* const gVectors[])() =
 	portd_isr,                                      // 59 Pin detect (Port D)
 	porte_isr,                                      // 60 Pin detect (Port E)
 	software_isr,                                   // 61 Software interrupt
-#elif defined(_mk20dx256_)
+#elif defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 	dma_ch0_isr,                                    // 16 DMA channel 0 transfer complete
 	dma_ch1_isr,                                    // 17 DMA channel 1 transfer complete
 	dma_ch2_isr,                                    // 18 DMA channel 2 transfer complete
@@ -377,12 +379,34 @@ const uint8_t flashconfigbytes[16] = {
 	0xFF, // EEPROM Protection Byte FEPROT
 	0xFF, // Data Flash Protection Byte FDPROT
 };
+#elif defined(_mk20dx256vlh7_) && defined(_bootloader_)
+// XXX Byte labels may be in incorrect positions, double check before modifying
+//     FSEC is in correct location -Jacob
+__attribute__ ((section(".flashconfig"), used))
+const uint8_t flashconfigbytes[16] = {
+	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // Backdoor Verif Key 28.3.1
+
+	//
+	// Protecting the first 8k of Flash memory from being over-written while running (bootloader protection)
+	// Still possible to overwrite the bootloader using an external flashing device
+	// For more details see:
+	//  http://cache.freescale.com/files/training/doc/dwf/AMF_ENT_T1031_Boston.pdf (page 8)
+	//  http://cache.freescale.com/files/microcontrollers/doc/app_note/AN4507.pdf
+	//  http://cache.freescale.com/files/32bit/doc/ref_manual/K20P64M72SF1RM.pdf (28.34.6)
+	//
+	0xFF, 0xFF, 0xFF, 0xFE, // Program Flash Protection Bytes FPROT0-3
+
+	0xBE, // Flash security byte FSEC
+	0x03, // Flash nonvolatile option byte FOPT
+	0xFF, // EEPROM Protection Byte FEPROT
+	0xFF, // Data Flash Protection Byte FDPROT
 #endif
 
 
 
 // ----- Functions -----
 
+#if ( defined(_mk20dx128vlf5_) || defined(_mk20dx256vlh7_) ) && defined(_bootloader_) // Bootloader Section
 __attribute__((noreturn))
 static inline void jump_to_app( uintptr_t addr )
 {
@@ -393,6 +417,7 @@ static inline void jump_to_app( uintptr_t addr )
         // NOTREACHED
         __builtin_unreachable();
 }
+#endif
 
 void *memset( void *addr, int val, unsigned int len )
 {
@@ -430,18 +455,20 @@ void *memcpy( void *dst, const void *src, unsigned int len )
 __attribute__ ((section(".startup")))
 void ResetHandler()
 {
-	// Disable Watchdog
-	WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
-	WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
-	WDOG_STCTRLH = WDOG_STCTRLH_ALLOWUPDATE;
-
-#if defined(_mk20dx128vlf5_) && defined(_bootloader_) // Bootloader Section
+#if ( defined(_mk20dx128vlf5_) || defined(_mk20dx256vlh7_) ) && defined(_bootloader_) // Bootloader Section
 	extern uint32_t _app_rom;
 
 	// We treat _app_rom as pointer to directly read the stack
 	// pointer and check for valid app code.  This is no fool
 	// proof method, but it should help for the first flash.
-	if ( RCM_SRS0 & 0x40 || _app_rom == 0xffffffff ||
+	//
+	// Purposefully disabling the watchdog *after* the reset check this way
+	// if the chip goes into an odd state we'll reset to the bootloader (invalid firmware image)
+	// RCM_SRS0 & 0x20
+	//
+	// Also checking for ARM lock-up signal (invalid firmware image)
+	// RCM_SRS1 & 0x02
+	if ( RCM_SRS0 & 0x40 || RCM_SRS0 & 0x20 || RCM_SRS1 & 0x02 || _app_rom == 0xffffffff ||
 	  memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 ) // Check for soft reload
 	{
 		memset( (uint8_t*)&VBAT, 0, sizeof(VBAT) );
@@ -453,9 +480,13 @@ void ResetHandler()
 		jump_to_app( addr );
 	}
 #endif
+	// Disable Watchdog
+	WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
+	WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
+	WDOG_STCTRLH = WDOG_STCTRLH_ALLOWUPDATE;
 
-	uint32_t *src = &_etext;
-	uint32_t *dest = &_sdata;
+	uint32_t *src = (uint32_t*)&_etext;
+	uint32_t *dest = (uint32_t*)&_sdata;
 
 	// Enable clocks to always-used peripherals
 	SIM_SCGC5 = 0x00043F82; // Clocks active to all GPIO
@@ -483,11 +514,11 @@ void ResetHandler()
 	}
 
 	// Prepare RAM
-	while ( dest < &_edata ) *dest++ = *src++;
-	dest = &_sbss;
-	while ( dest < &_ebss ) *dest++ = 0;
+	while ( dest < (uint32_t*)&_edata ) *dest++ = *src++;
+	dest = (uint32_t*)&_sbss;
+	while ( dest < (uint32_t*)&_ebss ) *dest++ = 0;
 
-// MCHCK
+// MCHCK / Kiibohd-dfu
 #if defined(_mk20dx128vlf5_)
 	// Default all interrupts to medium priority level
 	for ( unsigned int i = 0; i < NVIC_NUM_INTERRUPTS; i++ )
@@ -501,14 +532,12 @@ void ResetHandler()
 	// USB Clock and FLL select
 	SIM_SOPT2 = SIM_SOPT2_USBSRC | SIM_SOPT2_TRACECLKSEL;
 
-// Teensy 3.0 and 3.1
+// Teensy 3.0 and 3.1 and Kiibohd-dfu (mk20dx256vlh7)
 #else
-	unsigned int i;
-
 	SCB_VTOR = 0;	// use vector table in flash
 
 	// default all interrupts to medium priority level
-	for ( i = 0; i < NVIC_NUM_INTERRUPTS; i++ )
+	for ( unsigned int i = 0; i < NVIC_NUM_INTERRUPTS; i++ )
 	{
 		NVIC_SET_PRIORITY( i, 128 );
 	}

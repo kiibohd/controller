@@ -8,27 +8,25 @@
 
 
 ###
-# Module C files
+# Required Submodules
 #
 
-set( SCAN_SRCS
-	scan_loop.c
-	../MatrixARM/matrix_scan.c
-)
+AddModule ( Scan MatrixARM )
 
 
 ###
-# Module Specific Options
+# Module C files
 #
-add_definitions(
-	-I${HEAD_DIR}/Scan/MatrixARM
+
+set ( Module_SRCS
+	scan_loop.c
 )
 
 
 ###
 # Compiler Family Compatibility
 #
-set( ScanModuleCompatibility
+set ( ModuleCompatibility
 	arm
 )
 

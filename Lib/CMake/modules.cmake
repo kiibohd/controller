@@ -24,6 +24,7 @@ endif ()
 
 
 
+
 ###
 # Path Setup
 #
@@ -41,36 +42,16 @@ set( HEAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
 # Module Check Function
 #
 
-#| Usage:
-#|  PathPrepend( ModulePath <ListOfFamiliesSupported> )
-#| Uses the ${COMPILER_FAMILY} variable
-function( ModuleCompatibility ModulePath )
-	foreach( mod_var ${ARGN} )
+function ( ModuleCompatibility ModulePath )
+	foreach ( mod_var ${ARGN} )
 		if ( ${mod_var} STREQUAL ${COMPILER_FAMILY} )
 			# Module found, no need to scan further
 			return()
 		endif ()
-	endforeach()
+	endforeach ()
 
-	message( FATAL_ERROR "${ModulePath} does not support the ${COMPILER_FAMILY} family..." )
-endfunction()
-
-
-
-###
-# Module Configuration
-#
-
-#| Additional options, usually define settings
-add_definitions()
-
-#| Include path for each of the modules
-add_definitions(
-	-I${HEAD_DIR}/${ScanModulePath}
-	-I${HEAD_DIR}/${MacroModulePath}
-	-I${HEAD_DIR}/${OutputModulePath}
-	-I${HEAD_DIR}/${DebugModulePath}
-)
+	message ( FATAL_ERROR "${ModulePath} does not support the ${COMPILER_FAMILY} family..." )
+endfunction ()
 
 
 
@@ -81,54 +62,86 @@ add_definitions(
 #| Go through lists of sources and append paths
 #| Usage:
 #|  PathPrepend( OutputListOfSources <Prepend Path> <InputListOfSources> )
-macro( PathPrepend Output SourcesPath )
-	unset( tmpSource )
+macro ( PathPrepend Output SourcesPath )
+	unset ( tmpSource )
 
 	# Loop through items
-	foreach( item ${ARGN} )
+	foreach ( item ${ARGN} )
 		# Set the path
-		set( tmpSource ${tmpSource} "${SourcesPath}/${item}" )
-	endforeach()
+		set ( tmpSource ${tmpSource} "${SourcesPath}/${item}" )
+	endforeach ()
 
 	# Finalize by writing the new list back over the old one
-	set( ${Output} ${tmpSource} )
-endmacro()
+	set ( ${Output} ${tmpSource} )
+endmacro ()
 
 
-#| Scan Module
-include    (            "${ScanModulePath}/setup.cmake"  )
-PathPrepend(  SCAN_SRCS  ${ScanModulePath} ${SCAN_SRCS}  )
 
-#| Macro Module
-include    (           "${MacroModulePath}/setup.cmake"  )
-PathPrepend( MACRO_SRCS ${MacroModulePath} ${MACRO_SRCS} )
+###
+# Add Module Macro
+#
+# Optional Arg 1: Main Module Check, set to True/1 if adding a main module
 
-#| Output Module
-include    (             "${OutputModulePath}/setup.cmake"   )
-PathPrepend( OUTPUT_SRCS  ${OutputModulePath} ${OUTPUT_SRCS} )
+function ( AddModule ModuleType ModuleName )
+	# Module path
+	set ( ModulePath                 ${ModuleType}/${ModuleName} )
+	set ( ModuleFullPath ${HEAD_DIR}/${ModuleType}/${ModuleName} )
 
-#| Debugging Module
-include    (           "${DebugModulePath}/setup.cmake"  )
-PathPrepend( DEBUG_SRCS ${DebugModulePath} ${DEBUG_SRCS} )
+	# Include setup.cmake file
+	include ( ${ModuleFullPath}/setup.cmake )
+
+	# Check if this is a main module add
+	foreach ( extraArg ${ARGN} )
+		# Make sure this isn't a submodule
+		if ( DEFINED SubModule )
+			message ( FATAL_ERROR
+			"The '${ModuleName}' module is not a stand-alone module, and requires further setup."
+			)
+		endif ()
+	endforeach ()
+
+	# PathPrepend to give proper paths to each of the source files
+	PathPrepend ( Module_SRCS ${ModulePath} ${Module_SRCS} )
+
+	# Check the current scope to see if a sub-module added some source files
+	set ( Module_SRCS ${${ModuleType}_SRCS} ${Module_SRCS} )
+
+	# Append each of the sources to each type of module srcs list
+	set ( ${ModuleType}_SRCS ${Module_SRCS} )
+
+	# Add .h files
+	add_definitions ( -I${ModuleFullPath} )
+
+	# Check module compatibility
+	ModuleCompatibility( ${ModulePath} ${ModuleCompatibility} )
+
+	# Check if this is a main module add
+	foreach ( extraArg ${ARGN} )
+		# Display detected source files
+		if ( NOT DEFINED SubModule )
+			message ( STATUS "Detected ${ModuleType} Module Source Files:" )
+			message ( "${${ModuleType}_SRCS}" )
+		endif ()
+	endforeach ()
+
+	# Finally, add the sources to the parent scope (i.e. return)
+	set ( ${ModuleType}_SRCS ${${ModuleType}_SRCS} PARENT_SCOPE )
+endfunction ()
 
 
-#| Print list of all module sources
-message( STATUS "Detected Scan Module Source Files:" )
-message( "${SCAN_SRCS}" )
-message( STATUS "Detected Macro Module Source Files:" )
-message( "${MACRO_SRCS}" )
-message( STATUS "Detected Output Module Source Files:" )
-message( "${OUTPUT_SRCS}" )
-message( STATUS "Detected Debug Module Source Files:" )
-message( "${DEBUG_SRCS}" )
+#| Add main modules
+AddModule ( Scan   ${ScanModule}   1 )
+AddModule ( Macro  ${MacroModule}  1 )
+AddModule ( Output ${OutputModule} 1 )
+AddModule ( Debug  ${DebugModule}  1 )
 
 
 
 ###
 # CMake Module Checking
 #
-find_package( Git REQUIRED )
-find_package( Ctags ) # Optional
+find_package ( Git REQUIRED )
+find_package ( Ctags ) # Optional
 
 
 
@@ -220,26 +233,14 @@ configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/Lib/_buildvars.h buildvars.h )
 set( SRCS
 	${MAIN_SRCS}
 	${COMPILER_SRCS}
-	${SCAN_SRCS}
-	${MACRO_SRCS}
-	${OUTPUT_SRCS}
-	${DEBUG_SRCS}
+	${Scan_SRCS}
+	${Macro_SRCS}
+	${Output_SRCS}
+	${Debug_SRCS}
 )
 
 #| Directories to include by default
 include_directories( ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} )
-
-
-
-###
-# Module Compatibility Check
-#
-
-#| Check for whether the set modules are compatible with the specified compiler family
-ModuleCompatibility( ${ScanModulePath}   ${ScanModuleCompatibility}   )
-ModuleCompatibility( ${MacroModulePath}  ${MacroModuleCompatibility}  )
-ModuleCompatibility( ${OutputModulePath} ${OutputModuleCompatibility} )
-ModuleCompatibility( ${DebugModulePath}  ${DebugModuleCompatibility}  )
 
 
 

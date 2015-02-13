@@ -22,10 +22,13 @@
 #ifndef __MATRIX_H
 #define __MATRIX_H
 
-// ----- Includes -----
+// ----- Macros -----
 
-// Project Includes
-#include <matrix_setup.h>
+// Convenience Macros
+#define gpio( port, pin ) { Port_##port, Pin_##pin }
+#define Matrix_colsNum sizeof( Matrix_cols ) / sizeof( GPIO_Pin )
+#define Matrix_rowsNum sizeof( Matrix_rows ) / sizeof( GPIO_Pin )
+#define Matrix_maxKeys sizeof( Matrix_scanArray ) / sizeof( KeyState )
 
 
 

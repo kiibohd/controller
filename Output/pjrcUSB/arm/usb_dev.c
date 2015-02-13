@@ -1098,11 +1098,16 @@ restart:
 
 
 
-void usb_init()
+uint8_t usb_init()
 {
 	#ifdef UART_DEBUG
 	print("USB INIT"NL);
 	#endif
+
+	// If no USB cable is attached, do not initialize usb
+	// XXX Test -HaaTa
+	//if ( USB0_OTGISTAT & USB_OTGSTAT_ID )
+	//	return 0;
 
 	// Clear out endpoints table
 	for ( int i = 0; i <= NUM_ENDPOINTS * 4; i++ )
@@ -1147,6 +1152,8 @@ void usb_init()
 
 	// enable d+ pullup
 	USB0_CONTROL = USB_CONTROL_DPPULLUPNONOTG;
+
+	return 1;
 }
 
 // return 0 if the USB is not configured, or the configuration

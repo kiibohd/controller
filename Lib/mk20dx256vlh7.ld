@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2014
+ * Modifications by Jacob Alexander 2014 for use with McHCK and Kiibohd-dfu
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,63 +29,73 @@
  * SOFTWARE.
  */
 
-#ifndef _usb_dev_h_
-#define _usb_dev_h_
+/* XXX Not tested yet -HaaTa */
 
-// ----- Includes -----
-
-// Local Includes
-#include "usb_mem.h"
-#include "usb_desc.h"
-
-
-
-// ----- Defines -----
-
-#define usb_device_software_reset() SOFTWARE_RESET()
-
-
-
-// ----- Variables -----
-
-extern volatile uint8_t usb_configuration;
-
-extern uint16_t usb_rx_byte_count_data[NUM_ENDPOINTS];
-
-extern volatile uint8_t usb_cdc_line_coding[7];
-extern volatile uint8_t usb_cdc_line_rtsdtr;
-extern volatile uint8_t usb_cdc_transmit_flush_timer;
-
-
-
-// ----- Functions -----
-
-uint8_t usb_configured(); // is the USB port configured
-uint8_t usb_init(); // Returns 1 on success, 0 if no cable is attached
-
-void usb_isr();
-void usb_tx( uint32_t endpoint, usb_packet_t *packet );
-void usb_tx_isr( uint32_t endpoint, usb_packet_t *packet );
-
-uint32_t usb_tx_byte_count( uint32_t endpoint );
-uint32_t usb_tx_packet_count( uint32_t endpoint );
-
-usb_packet_t *usb_rx( uint32_t endpoint );
-
-static inline uint32_t usb_rx_byte_count(uint32_t endpoint) __attribute__((always_inline));
-static inline uint32_t usb_rx_byte_count(uint32_t endpoint)
+MEMORY
 {
-        endpoint--;
-        if ( endpoint >= NUM_ENDPOINTS )
-		return 0;
-        return usb_rx_byte_count_data[ endpoint ];
+	FLASH (rx) : ORIGIN = 8K, LENGTH = 256K-8K
+	RAM  (rwx) : ORIGIN = 0x20000000 - 64K / 2, LENGTH = 64K
 }
 
-void usb_device_reload();
+/* Section Definitions */
+SECTIONS
+{
+	.text :
+	{
+		. = 0;
+		KEEP(* (.vectors))
+		*(.startup*)
+		*(.text*)
+		*(.rodata*)
+		. = ALIGN(4);
+		KEEP(*(.init))
+	} > FLASH
 
-extern void usb_serial_flush_callback();
+	.ARM.exidx :
+	{
+		__exidx_start = .;
+		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
+		__exidx_end = .;
+	} > FLASH
+	_etext = .;
 
+	.usbdescriptortable (NOLOAD) : {
+		. = ALIGN(512);
+		*(.usbdescriptortable*)
+	} > RAM
 
+	.dmabuffers (NOLOAD) : {
+		. = ALIGN(4);
+		*(.dmabuffers*)
+	} > RAM
 
-#endif
+	.usbbuffers (NOLOAD) : {
+		. = ALIGN(4);
+		*(.usbbuffers*)
+	} > RAM
+
+	.data : AT (_etext) {
+		. = ALIGN(4);
+		_sdata = .;
+		*(.data*)
+		. = ALIGN(4);
+		_edata = .;
+	} > RAM
+
+	.noinit (NOLOAD) : {
+		*(.noinit*)
+	} > RAM
+
+	.bss : {
+		. = ALIGN(4);
+		_sbss = .;
+		*(.bss*)
+		*(COMMON)
+		. = ALIGN(4);
+		_ebss = .;
+		__bss_end = .;
+	} > RAM
+
+	_estack = ORIGIN(RAM) + LENGTH(RAM);
+}
 

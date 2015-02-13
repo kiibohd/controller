@@ -13,9 +13,20 @@
 
 #| Set the Compilers (must be set first)
 include( CMakeForceCompiler )
-cmake_force_c_compiler  ( arm-none-eabi-gcc ARMCCompiler )
-cmake_force_cxx_compiler( arm-none-eabi-g++ ARMCxxCompiler )
-set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
+message( STATUS "Compiler Selected:" )
+if ( "${COMPILER}" MATCHES "gcc" )
+	cmake_force_c_compiler  ( arm-none-eabi-gcc ARMCCompiler )
+	cmake_force_cxx_compiler( arm-none-eabi-g++ ARMCxxCompiler )
+	set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
+	message( "gcc" )
+elseif ( "${COMPILER}" MATCHES "clang" )
+	cmake_force_c_compiler  ( clang   ARMCCompiler )
+	cmake_force_cxx_compiler( clang++ ARMCxxCompiler )
+	set( _CMAKE_TOOLCHAIN_PREFIX llvm- )
+	message( "clang" )
+else ()
+	message( AUTHOR_WARNING "COMPILER: ${COMPILER} - Unknown compiler selection" )
+endif ()
 
 
 
@@ -25,7 +36,9 @@ set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
 
 #| Chip Name (Linker)
 #|
-#| "mk20dx128"        # Teensy   3.0 and McHCK mk20dx128
+#| "mk20dx128vlf5"    # McHCK / Kiibohd-dfu
+#| "mk20dx256vlh7"    # Kiibohd-dfu
+#| "mk20dx128"        # Teensy   3.0
 #| "mk20dx256"        # Teensy   3.1
 
 message( STATUS "Chip Selected:" )
@@ -34,10 +47,15 @@ set( MCU "${CHIP}" ) # For loading script compatibility
 
 
 #| Chip Size Database
-#| MCHCK Based
+#| MCHCK Based / Kiibohd-dfu
 if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
 	set( SIZE_RAM    16384 )
 	set( SIZE_FLASH 126976 )
+
+#| Kiibohd-dfu
+elseif ( "${CHIP}" MATCHES "mk20dx256vlh7" )
+	set( SIZE_RAM    65536 )
+	set( SIZE_FLASH 253952 )
 
 #| Teensy 3.0
 elseif ( "${CHIP}" MATCHES "mk20dx128" )
@@ -89,18 +107,21 @@ message( "${COMPILER_SRCS}" )
 
 
 #| USB Defines, this is how the loader programs detect which type of chip base is used
-if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
+message( STATUS "Bootloader Type:" )
+if ( "${CHIP}" MATCHES "mk20dx128vlf5" OR "${CHIP}" MATCHES "mk20dx256vlh7" )
 	set( VENDOR_ID       "0x1C11" )
 	set( PRODUCT_ID      "0xB04D" )
 	set( BOOT_VENDOR_ID  "0x1C11" )
 	set( BOOT_PRODUCT_ID "0xB007" )
 	set( DFU 1 )
+	message( "dfu" )
 elseif ( "${CHIP}" MATCHES "mk20dx128" OR "${CHIP}" MATCHES "mk20dx256" )
 	set( VENDOR_ID       "0x1C11" )
 	set( PRODUCT_ID      "0xB04D" )
 	set( BOOT_VENDOR_ID  "0x16c0" ) # TODO Double check, this is likely incorrect
 	set( BOOT_PRODUCT_ID "0x0487" )
 	set( TEENSY 1 )
+	message( "Teensy" )
 endif ()
 
 
@@ -124,6 +145,8 @@ set( WARN "-Wall -ggdb3" )
 if( BOOTLOADER )
 	set( TUNING "-D_bootloader_ -Wno-main -msoft-float -mthumb -fplan9-extensions -ffunction-sections -fdata-sections -fno-builtin -fstrict-volatile-bitfields -flto -fno-use-linker-plugin -nostdlib" )
 	#set( TUNING "-mthumb -fdata-sections -ffunction-sections -fno-builtin -msoft-float -fstrict-volatile-bitfields -flto -fno-use-linker-plugin -fwhole-program -Wno-main -nostartfiles -fplan9-extensions -D_bootloader_" )
+elseif ( "${COMPILER}" MATCHES "clang" )
+	set( TUNING "-target arm-none-eabi -mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
 else()
 	set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
 endif()
@@ -171,5 +194,9 @@ set( BIN_FLAGS -O binary )
 
 
 #| Lss Flags
-set( LSS_FLAGS -h -S -z )
+if ( "${COMPILER}" MATCHES "clang" )
+	set( LSS_FLAGS -section-headers -triple=arm-none-eabi )
+else ()
+	set( LSS_FLAGS -h -S -z )
+endif ()
 

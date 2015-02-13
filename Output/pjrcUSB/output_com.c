@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2014 by Jacob Alexander
+/* Copyright (C) 2011-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,7 +33,7 @@
 // USB Includes
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 #include "avr/usb_keyboard_serial.h"
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_)
+#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 #include "arm/usb_dev.h"
 #include "arm/usb_keyboard.h"
 #include "arm/usb_serial.h"
@@ -123,6 +123,11 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 
 // count until idle timeout
          uint8_t  USBKeys_Idle_Count = 0;
+
+// Indicates whether the Output module is fully functional
+// 0 - Not fully functional, 1 - Fully functional
+// 0 is often used to show that a USB cable is not plugged in (but has power)
+         uint8_t  Output_Available = 0;
 
 
 
@@ -473,9 +478,11 @@ inline void Output_setup()
 {
 	// Initialize the USB, and then wait for the host to set configuration.
 	// This will hang forever if USB does not initialize
-	usb_init();
-
-	while ( !usb_configured() );
+	// If no USB cable is attached, does not try and initialize USB
+	if ( usb_init() )
+	{
+		while ( !usb_configured() );
+	}
 
 	// Register USB Output CLI dictionary
 	CLI_registerDictionary( outputCLIDict, outputCLIDictName );
@@ -549,7 +556,7 @@ inline int Output_putstr( char* str )
 {
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	uint16_t count = 0;
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // ARM
+#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
 	uint32_t count = 0;
 #endif
 	// Count characters until NULL character, then send the amount counted

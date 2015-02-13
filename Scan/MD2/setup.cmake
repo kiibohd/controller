@@ -1,4 +1,4 @@
-###| CMake Kiibohd Controller Muxed UART and USB Output Module |###
+###| CMake Kiibohd Controller Scan Module |###
 #
 # Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
 #
@@ -8,19 +8,17 @@
 
 
 ###
-# Required Submodules
+# Required Sub-modules
 #
-
-AddModule ( Output pjrcUSB )
-AddModule ( Output uartOut )
+AddModule ( Scan ISSILed )
+AddModule ( Scan MatrixARM )
 
 
 ###
 # Module C files
 #
-
 set( Module_SRCS
-	output_com.c
+	scan_loop.c
 )
 
 
@@ -29,6 +27,5 @@ set( Module_SRCS
 #
 set( ModuleCompatibility
 	arm
-#	avr # TODO
 )
 

@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Macro Module |###
 #
-# Written by Jacob Alexander in 2014 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -11,20 +11,15 @@
 # Module C files
 #
 
-set( MACRO_SRCS
+set ( Module_SRCS
 	macro.c
 )
 
 
 ###
-# Module Specific Options
-#
-
-
-###
 # Compiler Family Compatibility
 #
-set( MacroModuleCompatibility
+set ( ModuleCompatibility
 	arm
 	avr
 )

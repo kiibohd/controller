@@ -20,6 +20,8 @@ if ( "${MacroModule}" STREQUAL "PartialMap" )
 #
 
 if ( NOT EXISTS "${PROJECT_SOURCE_DIR}/kll/kll.py" )
+	message ( STATUS "Downloading latest kll version:" )
+
 	# Make sure git is available
 	find_package ( Git REQUIRED )
 
@@ -27,7 +29,9 @@ if ( NOT EXISTS "${PROJECT_SOURCE_DIR}/kll/kll.py" )
 	execute_process ( COMMAND ${GIT_EXECUTABLE} clone https://github.com/kiibohd/kll.git
 		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	)
-else () # Otherwise attempt to update the repo
+elseif ( REFRESH_KLL ) # Otherwise attempt to update the repo
+	message ( STATUS "Checking for latest kll version:" )
+
 	# Clone kll git repo
 	execute_process ( COMMAND ${GIT_EXECUTABLE} pull --rebase
 		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/kll
