@@ -49,7 +49,7 @@ if [ ! -e teensy-loader-cli/teensy-loader-cli ]; then
 	mkdir -p teensy-loader-cli
 	cd teensy-loader-cli
 	cmake -G "Unix Makefiles" $(cygpath -u @CMAKE_SOURCE_DIR@/LoadFile)
-	make
+	make || exit 3
 	cd -
 fi
 
