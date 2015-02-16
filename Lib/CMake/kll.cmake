@@ -133,6 +133,12 @@ add_custom_command ( OUTPUT ${kll_outputname}
 	COMMENT "Generating KLL Layout"
 )
 
+#| KLL Regen Convenience Target
+add_custom_target ( kll_regen
+	COMMAND ${kll_cmd}
+	COMMENT "Re-generating KLL Layout"
+)
+
 #| Append generated file to required sources so it becomes a dependency in the main build
 set ( SRCS ${SRCS} ${kll_outputname} )
 
