@@ -9,8 +9,9 @@ Teensy 3.0/3.1, McHCK).
 Linux is the ideal build environment (preferably recent'ish). In the near
 future I'll make available an Arch Linux VM for building/manufacturing tests.
 
-Building on Mac should be ok for 99% of users with Macports (haven't tried
-Brew). The dfu Bootloader will not build correctly with the old version of
+Building on Mac should be ok for 99% of users with Macports or Homebrew. For 
+Homebrew, use `brew tap PX4/homebrew-px4` to get the arm-none-eabi-gcc installer.
+The dfu Bootloader will not build correctly with the old version of
 arm-none-eabi-gcc that Macports currently has (4.7.3). This is due to a bug
 with lto (link time optimizations) which makes the resulting binary too big to
 fit on the chip (must be less than 4096 Bytes).
