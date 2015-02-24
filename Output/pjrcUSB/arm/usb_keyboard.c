@@ -162,7 +162,7 @@ void usb_keyboard_send()
 			{
 				print("SysCtrl[");
 				printHex_op( USBKeys_SysCtrl, 2 );
-				print("] ");
+				print( "] " NL );
 			}
 
 			*tx_buf++ = 0x02; // ID
@@ -181,7 +181,7 @@ void usb_keyboard_send()
 			{
 				print("ConsCtrl[");
 				printHex_op( USBKeys_ConsCtrl, 2 );
-				print("] ");
+				print( "] " NL );
 			}
 
 			*tx_buf++ = 0x03; // ID
