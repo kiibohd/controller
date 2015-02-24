@@ -219,7 +219,10 @@ void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *
 
 	// Only send keypresses if press or hold state
 	if ( stateType == 0x00 && state == 0x03 ) // Release state
+	{
+		USBKeys_ConsCtrl = 0;
 		return;
+	}
 
 	// Set consumer control code
 	USBKeys_ConsCtrl = *(uint16_t*)(&args[0]);
@@ -250,7 +253,10 @@ void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 	// Only send keypresses if press or hold state
 	if ( stateType == 0x00 && state == 0x03 ) // Release state
+	{
+		USBKeys_SysCtrl = 0;
 		return;
+	}
 
 	// Set system control code
 	USBKeys_SysCtrl = args[0];
