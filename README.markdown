@@ -59,7 +59,7 @@ ARM Specific (Teensy 3.0/3.1, Infinity Keyboard, McHCK)
 
 - Arch Linux / Mac Ports
     - arm-none-eabi-gcc
-    - arm-none-eaby-binutils
+    - arm-none-eabi-binutils
 
 - Windows (https://launchpad.net/gcc-arm-embedded/+download)
     - gcc-arm-none-eabi (win32.zip)
