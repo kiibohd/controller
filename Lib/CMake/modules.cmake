@@ -157,7 +157,7 @@ find_package ( Ctags ) # Optional
 #
 
 #| Manufacturer name
-set( MANUFACTURER "Kiibohd" )
+set ( MANUFACTURER "Kiibohd" )
 
 
 #| Serial Number
@@ -165,18 +165,28 @@ set( MANUFACTURER "Kiibohd" )
 
 #| Modified
 #| Takes a bit of work to extract the "M " using CMake, and not using it if there are no modifications
-execute_process( COMMAND ${GIT_EXECUTABLE} status -s -uno --porcelain
+execute_process ( COMMAND ${GIT_EXECUTABLE} status -s -uno --porcelain
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Modified_INFO
 	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-string( LENGTH "${Git_Modified_INFO}" Git_Modified_LENGTH )
-set( Git_Modified_Status "Clean" )
+string ( LENGTH "${Git_Modified_INFO}" Git_Modified_LENGTH )
+set ( Git_Modified_Status "Clean" )
 if ( ${Git_Modified_LENGTH} GREATER 2 )
-	string( SUBSTRING "${Git_Modified_INFO}" 1 2 Git_Modified_Flag_INFO )
-	set( Git_Modified_Status "Dirty" )
+	string ( SUBSTRING "${Git_Modified_INFO}" 1 2 Git_Modified_Flag_INFO )
+	set ( Git_Modified_Status "Dirty" )
 endif ()
+
+#| List of modified files
+execute_process ( COMMAND ${GIT_EXECUTABLE} diff-index --name-only HEAD --
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+	OUTPUT_VARIABLE Git_Modified_Files
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+string ( REGEX REPLACE "\n" "\\\\r\\\\n\\\\t" Git_Modified_Files "${Git_Modified_Files}" )
+set ( Git_Modified_Files "\\r\\n\\t${Git_Modified_Files}" )
 
 #| Branch
 execute_process( COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
@@ -187,7 +197,7 @@ execute_process( COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
 )
 
 #| Date
-execute_process( COMMAND ${GIT_EXECUTABLE} show -s --format=%ci
+execute_process ( COMMAND ${GIT_EXECUTABLE} show -s --format=%ci
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Date_INFO
 	ERROR_QUIET
@@ -195,7 +205,7 @@ execute_process( COMMAND ${GIT_EXECUTABLE} show -s --format=%ci
 )
 
 #| Commit Author and Email
-execute_process( COMMAND ${GIT_EXECUTABLE} show -s --format="%cn <%ce>"
+execute_process ( COMMAND ${GIT_EXECUTABLE} show -s --format="%cn <%ce>"
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Commit_Author
 	ERROR_QUIET
@@ -203,7 +213,7 @@ execute_process( COMMAND ${GIT_EXECUTABLE} show -s --format="%cn <%ce>"
 )
 
 #| Commit Revision
-execute_process( COMMAND ${GIT_EXECUTABLE} show -s --format=%H
+execute_process ( COMMAND ${GIT_EXECUTABLE} show -s --format=%H
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Commit_Revision
 	ERROR_QUIET
@@ -211,7 +221,7 @@ execute_process( COMMAND ${GIT_EXECUTABLE} show -s --format=%H
 )
 
 #| Origin URL
-execute_process( COMMAND ${GIT_EXECUTABLE} config --get remote.origin.url
+execute_process ( COMMAND ${GIT_EXECUTABLE} config --get remote.origin.url
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Origin_URL
 	ERROR_QUIET
@@ -219,25 +229,25 @@ execute_process( COMMAND ${GIT_EXECUTABLE} config --get remote.origin.url
 )
 
 #| Build Date
-execute_process( COMMAND "date" "+%Y-%m-%d %T %z"
+execute_process ( COMMAND "date" "+%Y-%m-%d %T %z"
 	OUTPUT_VARIABLE Build_Date
 	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
 #| Last Commit Date
-set( GitLastCommitDate "${Git_Modified_Status} ${Git_Branch_INFO} - ${Git_Date_INFO}" )
+set ( GitLastCommitDate "${Git_Modified_Status} ${Git_Branch_INFO} - ${Git_Date_INFO}" )
 
 #| Uses CMake variables to include as defines
 #| Primarily for USB configuration
-configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/Lib/_buildvars.h buildvars.h )
+configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/Lib/_buildvars.h buildvars.h )
 
 
 
 ###
 # Source Defines
 #
-set( SRCS
+set ( SRCS
 	${MAIN_SRCS}
 	${COMPILER_SRCS}
 	${Scan_SRCS}
@@ -247,7 +257,7 @@ set( SRCS
 )
 
 #| Directories to include by default
-include_directories( ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} )
+include_directories ( ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} )
 
 
 
@@ -255,20 +265,20 @@ include_directories( ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} )
 # ctag Generation
 #
 
-if( CTAGS_EXECUTABLE )
+if ( CTAGS_EXECUTABLE )
 	# Populate list of directories for ctags to parse
 	# NOTE: Doesn't support dots in the folder names...
-	foreach( filename ${SRCS} )
-		string( REGEX REPLACE "/[a-zA-Z0-9_-]+.c$" "" pathglob ${filename} )
-		file( GLOB filenames "${pathglob}/*.c" )
-		set( CTAG_PATHS ${CTAG_PATHS} ${filenames} )
-		file( GLOB filenames "${pathglob}/*.h" )
-		set( CTAG_PATHS ${CTAG_PATHS} ${filenames} )
-	endforeach()
+	foreach ( filename ${SRCS} )
+		string ( REGEX REPLACE "/[a-zA-Z0-9_-]+.c$" "" pathglob ${filename} )
+		file ( GLOB filenames "${pathglob}/*.c" )
+		set ( CTAG_PATHS ${CTAG_PATHS} ${filenames} )
+		file ( GLOB filenames "${pathglob}/*.h" )
+		set ( CTAG_PATHS ${CTAG_PATHS} ${filenames} )
+	endforeach ()
 
 	# Generate the ctags
-	execute_process( COMMAND ctags ${CTAG_PATHS}
+	execute_process ( COMMAND ctags ${CTAG_PATHS}
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	)
-endif()
+endif ()
 

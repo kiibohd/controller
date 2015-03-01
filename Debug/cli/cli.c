@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -422,7 +422,7 @@ void cliFunc_version( char* args )
 	print( NL );
 	print( " \033[1mRevision:\033[0m      " CLI_Revision       NL );
 	print( " \033[1mBranch:\033[0m        " CLI_Branch         NL );
-	print( " \033[1mTree Status:\033[0m   " CLI_ModifiedStatus NL );
+	print( " \033[1mTree Status:\033[0m   " CLI_ModifiedStatus CLI_ModifiedFiles NL );
 	print( " \033[1mRepo Origin:\033[0m   " CLI_RepoOrigin     NL );
 	print( " \033[1mCommit Date:\033[0m   " CLI_CommitDate     NL );
 	print( " \033[1mCommit Author:\033[0m " CLI_CommitAuthor   NL );
