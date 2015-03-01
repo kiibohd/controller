@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller KLL Configurator |###
 #
-# Written by Jacob Alexander in 2014 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -46,14 +46,10 @@ endif () # kll/kll.py exists
 
 #| KLL_DEPENDS is used to build a dependency tree for kll.py, this way when files are changed, kll.py gets re-run
 
-#| Search for capabilities.kll in each module directory
-foreach ( DIR ${ScanModulePath} ${MacroModulePath} ${OutputModulePath} ${DebugModulePath} )
-	# capabilities.kll exists, add to BaseMap
-	set ( filename "${PROJECT_SOURCE_DIR}/${DIR}/capabilities.kll" )
-	if ( EXISTS ${filename} )
-		set ( BaseMap_Args ${BaseMap_Args} ${filename} )
-		set ( KLL_DEPENDS ${KLL_DEPENDS} ${filename} )
-	endif ()
+#| Add each of the detected capabilities.kll
+foreach ( filename ${ScanModule_KLL} ${MacroModule_KLL} ${OutputModule_KLL} ${DebugModule_KLL} )
+	set ( BaseMap_Args ${BaseMap_Args} ${filename} )
+	set ( KLL_DEPENDS ${KLL_DEPENDS} ${filename} )
 endforeach ()
 
 #| If set BaseMap cannot be found, use default map

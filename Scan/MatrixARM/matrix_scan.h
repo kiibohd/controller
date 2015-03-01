@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,23 @@
 #define __MATRIX_SCAN_H
 
 // ----- Includes -----
+
+// KLL Generated Defines
+#include <kll_defs.h>
+
+
+
+// ----- Defines -----
+
+#if   ( DebounceDivThreshold_define < 0xFF + 1 )
+#define DebounceCounter uint8_t
+#elif ( DebounceDivThreshold_define < 0xFFFF + 1 )
+#define DebounceCounter uint16_t
+#elif ( DebounceDivThreshold_define < 0xFFFFFFFF + 1 )
+#define DebounceCounter uint32_t
+#else
+#error "Debounce threshold is too high... 32 bit max. Check .kll defines."
+#endif
 
 
 
@@ -110,10 +127,10 @@ typedef struct GPIO_Pin {
 
 // Debounce Element
 typedef struct KeyState {
-	KeyPosition prevState;
-	KeyPosition curState;
-	uint16_t activeCount;
-	uint16_t inactiveCount;
+	KeyPosition     prevState;
+	KeyPosition     curState;
+	DebounceCounter activeCount;
+	DebounceCounter inactiveCount;
 } KeyState;
 
 

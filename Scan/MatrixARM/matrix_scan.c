@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -191,7 +191,7 @@ void Matrix_setup()
 		Matrix_scanArray[ item ].prevState     = KeyState_Off;
 		Matrix_scanArray[ item ].curState      = KeyState_Off;
 		Matrix_scanArray[ item ].activeCount   = 0;
-		Matrix_scanArray[ item ].inactiveCount = 0xFFFF; // Start at 'off' steady state
+		Matrix_scanArray[ item ].inactiveCount = DebounceDivThreshold_define; // Start at 'off' steady state
 	}
 
 	// Clear scan stats counters
@@ -275,14 +275,14 @@ void Matrix_scan( uint16_t scanNum )
 			if ( Matrix_pin( Matrix_rows[ sense ], Type_Sense ) )
 			{
 				// Only update if not going to wrap around
-				if ( state->activeCount < 0xFFFF ) state->activeCount += 1;
+				if ( state->activeCount < DebounceDivThreshold_define ) state->activeCount += 1;
 				state->inactiveCount >>= 1;
 			}
 			// Signal Not Detected
 			else
 			{
 				// Only update if not going to wrap around
-				if ( state->inactiveCount < 0xFFFF ) state->inactiveCount += 1;
+				if ( state->inactiveCount < DebounceDivThreshold_define ) state->inactiveCount += 1;
 				state->activeCount >>= 1;
 			}
 

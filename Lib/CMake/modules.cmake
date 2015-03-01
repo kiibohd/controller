@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Source Configurator |###
 #
-# Written by Jacob Alexander in 2011-2014 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2015 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -104,10 +104,8 @@ function ( AddModule ModuleType ModuleName )
 	PathPrepend ( Module_SRCS ${ModulePath} ${Module_SRCS} )
 
 	# Check the current scope to see if a sub-module added some source files
-	set ( Module_SRCS ${${ModuleType}_SRCS} ${Module_SRCS} )
-
 	# Append each of the sources to each type of module srcs list
-	set ( ${ModuleType}_SRCS ${Module_SRCS} )
+	set ( ${ModuleType}_SRCS ${${ModuleType}_SRCS} ${Module_SRCS} )
 
 	# Add .h files
 	add_definitions ( -I${ModuleFullPath} )
@@ -124,8 +122,17 @@ function ( AddModule ModuleType ModuleName )
 		endif ()
 	endforeach ()
 
-	# Finally, add the sources to the parent scope (i.e. return)
+	# Check for any capabilities.kll files in the Module
+	set ( kll_capabilities_file "${ModuleFullPath}/capabilities.kll" )
+	if ( EXISTS ${kll_capabilities_file} )
+		# Add the kll file and any submodule kll files to the running list
+		set ( ${ModuleType}Module_KLL ${${ModuleType}Module_KLL} ${kll_capabilities_file} )
+	endif ()
+
+
+	# Finally, add the sources and kll files to the parent scope (i.e. return)
 	set ( ${ModuleType}_SRCS ${${ModuleType}_SRCS} PARENT_SCOPE )
+	set ( ${ModuleType}Module_KLL ${${ModuleType}Module_KLL} PARENT_SCOPE )
 endfunction ()
 
 

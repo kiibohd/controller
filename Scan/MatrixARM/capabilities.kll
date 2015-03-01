@@ -1,0 +1,20 @@
+Name = MatrixArmCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2015";
+KLL = 0.3a;
+
+# Modified Date
+Date = 2015-02-28;
+
+# Defines available to the MatrixArm sub-module
+# This debounce scheme uses a rolling counter for press/unpress on each key
+# Each counter is incremented if pressed/unpressed and the opposite counter is divided by 2
+# Using the default division threshold (0xFFFF), there are approximately 13 cycles in a perfect cycle
+# If debounce is actually necessary, this will increase (better switches will debounce faster)
+#
+# The maximum threshold is 0xFFFFFFFF, which will give around ~32 -> 36 cycles per perfect cycle
+# Using a threshold higher than 0xFFFF will require 32 bit variables, and double the ram usage.
+DebounceDivThreshold => DebounceDivThreshold_define;
+DebounceDivThreshold = 0xFFFF; # Default debounce
+#DebounceDivThreshold = 0xFFFFFFFF; # Max debounce
+
