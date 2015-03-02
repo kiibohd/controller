@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Source Configurator |###
 #
-# Written by Jacob Alexander in 2011-2014 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2015 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -46,12 +46,25 @@ endif ()
 
 
 #| Convert the .ELF into a .bin to load onto the McHCK
+#| Then sign using dfu-suffix (requries dfu-util)
 if ( DEFINED DFU )
+	# dfu-suffix is required to sign the dfu binary
+	find_package ( DFUSuffix )
+
 	set( TARGET_BIN ${TARGET}.dfu.bin )
-	add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
-		COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_ELF} ${TARGET_BIN}
-		COMMENT "Creating dfu binary file:      ${TARGET_BIN}"
-	)
+	if ( DFU_SUFFIX_FOUND )
+		add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+			COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_ELF} ${TARGET_BIN}
+			COMMAND ${DFU_SUFFIX_EXECUTABLE} --add ${TARGET_BIN} --vid ${BOOT_VENDOR_ID} --pid ${BOOT_PRODUCT_ID} 1> /dev/null
+			COMMENT "Create and sign dfu bin file:  ${TARGET_BIN}"
+		)
+	else ()
+		message ( WARNING "DFU Binary has not been signed, requires dfu-suffix..." )
+		add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+			COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_ELF} ${TARGET_BIN}
+			COMMENT "Creating dfu binary file:      ${TARGET_BIN}"
+		)
+	endif ()
 endif ()
 
 
