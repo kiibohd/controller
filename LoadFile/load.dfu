@@ -49,7 +49,7 @@ done
 if [[ "$SERIAL_PORT" != "" ]] && [[ -e "$SERIAL_PORT" ]]; then
 	echo "NOTE: This may fail if the uC is in a bad state or does not support remote flashing"
 	printf "reload\r" > $SERIAL_PORT
-	sleep 1
+	sleep 2
 fi
 
 # Load via dfu-util
