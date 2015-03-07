@@ -18,3 +18,17 @@ DebounceDivThreshold => DebounceDivThreshold_define;
 DebounceDivThreshold = 0xFFFF; # Default debounce
 #DebounceDivThreshold = 0xFFFFFFFF; # Max debounce
 
+# This defines how often the matrix is scanned
+# By, default the key matrix is scanned once per macro processing loop
+# For fast uCs and bouncy switches, this can be non-ideal
+# 0 - Bit-shift of 0
+# 1 - Bit-shift of 1 (i.e. divide by 2)
+# 2 - Bit-shift of 2 (i.e. divide by 4)
+# 3 - Bit-shift of 3 (i.e. divide by 8)
+# etc.
+# Depending on the architecture, this is either a maximum of 16 or 32
+# Increasing this value will increase switch latency
+DebounceThrottleDiv => DebounceThrottleDiv_define;
+DebounceThrottleDiv = 0; # Default
+#DebounceThrottleDiv = 2; # /4 divider
+

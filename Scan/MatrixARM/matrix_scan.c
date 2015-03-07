@@ -26,6 +26,7 @@
 
 // Project Includes
 #include <cli.h>
+#include <kll.h>
 #include <led.h>
 #include <print.h>
 #include <macro.h>
@@ -35,6 +36,14 @@
 
 // Matrix Configuration
 #include <matrix.h>
+
+
+
+// ----- Defines -----
+
+#if ( DebounceThrottleDiv_define > 0 )
+nat_ptr_t Matrix_divCounter = 0;
+#endif
 
 
 
@@ -232,6 +241,15 @@ void Matrix_keyPositionDebug( KeyPosition pos )
 // NOTE: scanNum should be reset to 0 after a USB send (to reset all the counters)
 void Matrix_scan( uint16_t scanNum )
 {
+#if ( DebounceThrottleDiv_define > 0 )
+	// Scan-rate throttling
+	// By scanning using a divider, the scan rate slowed down
+	// DebounceThrottleDiv_define == 1 means -> /2 or half scan rate
+	// This helps with bouncy switches on fast uCs
+	if ( !( Matrix_divCounter++ & (1 << ( DebounceThrottleDiv_define - 1 )) ) )
+		return;
+#endif
+
 	// Increment stats counters
 	if ( scanNum > matrixMaxScans ) matrixMaxScans = scanNum;
 	if ( scanNum == 0 )
