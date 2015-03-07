@@ -33,10 +33,10 @@
 // USB Includes
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
-#include <uartOut/arm/uart_serial.h>
-#include <pjrcUSB/arm/usb_dev.h>
-#include <pjrcUSB/arm/usb_keyboard.h>
-#include <pjrcUSB/arm/usb_serial.h>
+#include <arm/uart_serial.h>
+#include <arm/usb_dev.h>
+#include <arm/usb_keyboard.h>
+#include <arm/usb_serial.h>
 #endif
 
 // Local Includes
@@ -135,9 +135,68 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 // 0 is often used to show that a USB cable is not plugged in (but has power)
          uint8_t  Output_Available = 0;
 
+// Debug control variable for Output modules
+// 0 - Debug disabled (default)
+// 1 - Debug enabled
+         uint8_t  Output_DebugMode = 0;
+
 
 
 // ----- Capabilities -----
+
+// Set Boot Keyboard Protocol
+void Output_kbdProtocolBoot_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_kbdProtocolBoot()");
+		return;
+	}
+
+	// Only set if necessary
+	if ( USBKeys_Protocol == 0 )
+		return;
+
+	// TODO Analog inputs
+	// Only set on key press
+	if ( stateType != 0x01 )
+		return;
+
+	// Flush the key buffers
+	Output_flushBuffers();
+
+	// Set the keyboard protocol to Boot Mode
+	USBKeys_Protocol = 0;
+}
+
+
+// Set NKRO Keyboard Protocol
+void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_kbdProtocolNKRO()");
+		return;
+	}
+
+	// Only set if necessary
+	if ( USBKeys_Protocol == 1 )
+		return;
+
+	// TODO Analog inputs
+	// Only set on key press
+	if ( stateType != 0x01 )
+		return;
+
+	// Flush the key buffers
+	Output_flushBuffers();
+
+	// Set the keyboard protocol to NKRO Mode
+	USBKeys_Protocol = 1;
+}
+
 
 // Sends a Consumer Control code to the USB Output buffer
 void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
@@ -373,6 +432,20 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 
 // ----- Functions -----
+
+// Flush Key buffers
+void Output_flushBuffers()
+{
+	// Zero out USBKeys_Keys array
+	for ( uint8_t c = 0; c < USB_NKRO_BITFIELD_SIZE_KEYS; c++ )
+		USBKeys_Keys[ c ] = 0;
+
+	// Zero out other key buffers
+	USBKeys_ConsCtrl = 0;
+	USBKeys_Modifiers = 0;
+	USBKeys_SysCtrl = 0;
+}
+
 
 // USB Module Setup
 inline void Output_setup()
