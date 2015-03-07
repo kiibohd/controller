@@ -300,7 +300,7 @@ static void usb_setup()
 		data = reply_buffer;
 		break;
 	case 0x0082: // GET_STATUS (endpoint)
-		if (setup.wIndex > NUM_ENDPOINTS)
+		if ( setup.wIndex > NUM_ENDPOINTS )
 		{
 			// TODO: do we need to handle IN vs OUT here?
 			endpoint0_stall();
@@ -313,7 +313,12 @@ static void usb_setup()
 		data = reply_buffer;
 		datalen = 2;
 		break;
-	case 0x0102: // CLEAR_FEATURE (endpoint)
+	case 0x0100: // CLEAR_FEATURE (device)
+	case 0x0101: // CLEAR_FEATURE (interface)
+		// TODO: Currently ignoring, perhaps useful? -HaaTa
+		endpoint0_stall();
+		return;
+	case 0x0102: // CLEAR_FEATURE (interface)
 		i = setup.wIndex & 0x7F;
 		if ( i > NUM_ENDPOINTS || setup.wValue != 0 )
 		{
@@ -326,6 +331,11 @@ static void usb_setup()
 
 		// FIXME: Clearing causes keyboard to freeze, likely an invalid clear
 		// XXX: Ignoring seems to work, though this may not be the ideal behaviour -HaaTa
+		endpoint0_stall();
+		return;
+	case 0x0300: // SET_FEATURE (device)
+	case 0x0301: // SET_FEATURE (interface)
+		// TODO: Currently ignoring, perhaps useful? -HaaTa
 		endpoint0_stall();
 		return;
 	case 0x0302: // SET_FEATURE (endpoint)
