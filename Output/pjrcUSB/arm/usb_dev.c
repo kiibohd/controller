@@ -317,13 +317,17 @@ static void usb_setup()
 		i = setup.wIndex & 0x7F;
 		if ( i > NUM_ENDPOINTS || setup.wValue != 0 )
 		{
-			// TODO: do we need to handle IN vs OUT here?
 			endpoint0_stall();
 			return;
 		}
-		(*(uint8_t *)(&USB0_ENDPT0 + setup.wIndex * 4)) &= ~0x02;
+		//(*(uint8_t *)(&USB0_ENDPT0 + setup.wIndex * 4)) &= ~0x02;
 		// TODO: do we need to clear the data toggle here?
-		break;
+		//break;
+
+		// FIXME: Clearing causes keyboard to freeze, likely an invalid clear
+		// XXX: Ignoring seems to work, though this may not be the ideal behaviour -HaaTa
+		endpoint0_stall();
+		return;
 	case 0x0302: // SET_FEATURE (endpoint)
 		i = setup.wIndex & 0x7F;
 		if ( i > NUM_ENDPOINTS || setup.wValue != 0 )
