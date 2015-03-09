@@ -29,18 +29,18 @@
 // ----- Defines -----
 
 // You can change these to give your code its own name.
-#define STR_MANUFACTURER	u"Kiibohd"
-#define STR_PRODUCT		u"Kiibohd DFU Bootloader"
+#define STR_MANUFACTURER        u"Kiibohd"
+#define STR_PRODUCT             u"Kiibohd DFU Bootloader"
 #define STR_SERIAL              u"@CHIP@"
-#define STR_ALTNAME              u"@BOOT_DFU_ALTNAME@"
+#define STR_ALTNAME             u"@BOOT_DFU_ALTNAME"
 
 
 // Mac OS-X and Linux automatically load the correct drivers.  On
 // Windows, even though the driver is supplied by Microsoft, an
 // INF file is needed to load the driver.  These numbers need to
 // match the INF file.
-#define VENDOR_ID		@BOOT_VENDOR_ID@
-#define PRODUCT_ID		@BOOT_PRODUCT_ID@
+#define VENDOR_ID         @BOOT_VENDOR_ID@
+#define PRODUCT_ID        @BOOT_PRODUCT_ID@
 
 #endif
 
