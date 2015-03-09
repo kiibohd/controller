@@ -51,18 +51,18 @@
 //#define UART_DEBUG_UNKNOWN 1
 
 
-#define TX_STATE_BOTH_FREE_EVEN_FIRST	0
-#define TX_STATE_BOTH_FREE_ODD_FIRST	1
-#define TX_STATE_EVEN_FREE		2
-#define TX_STATE_ODD_FREE		3
-#define TX_STATE_NONE_FREE_EVEN_FIRST	4
-#define TX_STATE_NONE_FREE_ODD_FIRST	5
+#define TX_STATE_BOTH_FREE_EVEN_FIRST   0
+#define TX_STATE_BOTH_FREE_ODD_FIRST    1
+#define TX_STATE_EVEN_FREE              2
+#define TX_STATE_ODD_FREE               3
+#define TX_STATE_NONE_FREE_EVEN_FIRST   4
+#define TX_STATE_NONE_FREE_ODD_FIRST    5
 
-#define BDT_OWN		0x80
-#define BDT_DATA1	0x40
-#define BDT_DATA0	0x00
-#define BDT_DTS		0x08
-#define BDT_STALL	0x04
+#define BDT_OWN         0x80
+#define BDT_DATA1       0x40
+#define BDT_DATA0       0x00
+#define BDT_DTS         0x08
+#define BDT_STALL       0x04
 
 #define TX    1
 #define RX    0
@@ -72,23 +72,23 @@
 #define DATA1 1
 
 
-#define GET_STATUS		0
-#define CLEAR_FEATURE		1
-#define SET_FEATURE		3
-#define SET_ADDRESS		5
-#define GET_DESCRIPTOR		6
-#define SET_DESCRIPTOR		7
-#define GET_CONFIGURATION	8
-#define SET_CONFIGURATION	9
-#define GET_INTERFACE		10
-#define SET_INTERFACE		11
-#define SYNCH_FRAME		12
+#define GET_STATUS              0
+#define CLEAR_FEATURE           1
+#define SET_FEATURE             3
+#define SET_ADDRESS             5
+#define GET_DESCRIPTOR          6
+#define SET_DESCRIPTOR          7
+#define GET_CONFIGURATION       8
+#define SET_CONFIGURATION       9
+#define GET_INTERFACE           10
+#define SET_INTERFACE           11
+#define SYNCH_FRAME             12
 
-#define TX_STATE_BOTH_FREE_EVEN_FIRST	0
-#define TX_STATE_BOTH_FREE_ODD_FIRST	1
-#define TX_STATE_EVEN_FREE		2
-#define TX_STATE_ODD_FREE		3
-#define TX_STATE_NONE_FREE		4
+#define TX_STATE_BOTH_FREE_EVEN_FIRST   0
+#define TX_STATE_BOTH_FREE_ODD_FIRST    1
+#define TX_STATE_EVEN_FREE              2
+#define TX_STATE_ODD_FREE               3
+#define TX_STATE_NONE_FREE              4
 
 
 
@@ -96,9 +96,9 @@
 
 // ----- Macros -----
 
-#define BDT_PID(n)	(((n) >> 2) & 15)
+#define BDT_PID(n)      (((n) >> 2) & 15)
 
-#define BDT_DESC(count, data)	(BDT_OWN | BDT_DTS \
+#define BDT_DESC(count, data)   (BDT_OWN | BDT_DTS \
 				| ((data) ? BDT_DATA1 : BDT_DATA0) \
 				| ((count) << 16))
 
@@ -167,6 +167,7 @@ volatile uint8_t usb_reboot_timer = 0;
 
 static uint8_t reply_buffer[8];
 
+volatile uint8_t remote_wakeup_enabled = 0;
 
 
 // ----- Functions -----
@@ -294,7 +295,8 @@ static void usb_setup()
 		data = reply_buffer;
 		break;
 	case 0x0080: // GET_STATUS (device)
-		reply_buffer[0] = 0;
+		//I think this is the corrent endianess
+		reply_buffer[0] = (remote_wakeup_enabled)<<1;
 		reply_buffer[1] = 0;
 		datalen = 2;
 		data = reply_buffer;
@@ -314,6 +316,11 @@ static void usb_setup()
 		datalen = 2;
 		break;
 	case 0x0100: // CLEAR_FEATURE (device)
+		//Disable DEVICE_REMOTE_WAKEUP feature
+		if (setup.wValue == 0x01) {
+			remote_wakeup_enabled = 0;
+		}
+		break;
 	case 0x0101: // CLEAR_FEATURE (interface)
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
 		endpoint0_stall();
@@ -334,6 +341,11 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 	case 0x0300: // SET_FEATURE (device)
+		//Enable DEVICE_REMOTE_WAKEUP feature
+		if (setup.wValue == 0x01) {
+		    remote_wakeup_enabled = 1;
+		}
+		break;
 	case 0x0301: // SET_FEATURE (interface)
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
 		endpoint0_stall();
@@ -936,7 +948,7 @@ restart:
 			serial_phex(b->desc >> 16);
 			serial_print("\n");
 #endif
-			endpoint--;	// endpoint is index to zero-based arrays
+			endpoint--;     // endpoint is index to zero-based arrays
 
 			if ( stat & 0x08 )
 			{ // transmit
@@ -1108,6 +1120,11 @@ restart:
 		//serial_print("sleep\n");
 		USB0_ISTAT = USB_ISTAT_SLEEP;
 	}
+
+	if ( (status & USB_ISTAT_RESUME /* 20 */ ) ) {
+		//serial_print("resume\n");
+		USB0_ISTAT = USB_ISTAT_RESUME;
+	}
 }
 
 
@@ -1121,7 +1138,7 @@ uint8_t usb_init()
 	// If no USB cable is attached, do not initialize usb
 	// XXX Test -HaaTa
 	//if ( USB0_OTGISTAT & USB_OTGSTAT_ID )
-	//	return 0;
+	//      return 0;
 
 	// Clear out endpoints table
 	for ( int i = 0; i <= NUM_ENDPOINTS * 4; i++ )

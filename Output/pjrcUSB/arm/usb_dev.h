@@ -56,6 +56,8 @@ extern volatile uint8_t usb_cdc_line_coding[7];
 extern volatile uint8_t usb_cdc_line_rtsdtr;
 extern volatile uint8_t usb_cdc_transmit_flush_timer;
 
+extern volatile uint8_t remote_wakeup_enabled;
+
 
 
 // ----- Functions -----
@@ -75,10 +77,10 @@ usb_packet_t *usb_rx( uint32_t endpoint );
 static inline uint32_t usb_rx_byte_count(uint32_t endpoint) __attribute__((always_inline));
 static inline uint32_t usb_rx_byte_count(uint32_t endpoint)
 {
-        endpoint--;
-        if ( endpoint >= NUM_ENDPOINTS )
+	endpoint--;
+	if ( endpoint >= NUM_ENDPOINTS )
 		return 0;
-        return usb_rx_byte_count_data[ endpoint ];
+	return usb_rx_byte_count_data[ endpoint ];
 }
 
 void usb_device_reload();
