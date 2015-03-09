@@ -61,6 +61,7 @@
 // ----- Function Declarations -----
 
 void cliFunc_kbdProtocol( char* args );
+void cliFunc_outputDebug( char* args );
 void cliFunc_readLEDs   ( char* args );
 void cliFunc_sendKeys   ( char* args );
 void cliFunc_setKeys    ( char* args );
@@ -72,6 +73,7 @@ void cliFunc_setMod     ( char* args );
 
 // Output Module command dictionary
 CLIDict_Entry( kbdProtocol, "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode" );
+CLIDict_Entry( outputDebug, "Toggle Output Debug mode." );
 CLIDict_Entry( readLEDs,    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc." );
 CLIDict_Entry( sendKeys,    "Send the prepared list of USB codes and modifier byte." );
 CLIDict_Entry( setKeys,     "Prepare a space separated list of USB codes (decimal). Waits until \033[35msendKeys\033[0m." );
@@ -79,6 +81,7 @@ CLIDict_Entry( setMod,      "Set the modfier byte:" NL "\t\t1 LCtrl, 2 LShft, 4 
 
 CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
 	CLIDict_Item( kbdProtocol ),
+	CLIDict_Item( outputDebug ),
 	CLIDict_Item( readLEDs ),
 	CLIDict_Item( sendKeys ),
 	CLIDict_Item( setKeys ),
@@ -128,6 +131,11 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 // 0 - Not fully functional, 1 - Fully functional
 // 0 is often used to show that a USB cable is not plugged in (but has power)
 	uint8_t  Output_Available = 0;
+
+// Debug control variable for Output modules
+// 0 - Debug disabled (default)
+// 1 - Debug enabled
+         uint8_t  Output_DebugMode = 0;
 
 
 
@@ -211,7 +219,10 @@ void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *
 
 	// Only send keypresses if press or hold state
 	if ( stateType == 0x00 && state == 0x03 ) // Release state
+	{
+		USBKeys_ConsCtrl = 0;
 		return;
+	}
 
 	// Set consumer control code
 	USBKeys_ConsCtrl = *(uint16_t*)(&args[0]);
@@ -242,7 +253,10 @@ void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 	// Only send keypresses if press or hold state
 	if ( stateType == 0x00 && state == 0x03 ) // Release state
+	{
+		USBKeys_SysCtrl = 0;
 		return;
+	}
 
 	// Set system control code
 	USBKeys_SysCtrl = args[0];
@@ -581,6 +595,24 @@ void cliFunc_kbdProtocol( char* args )
 	print( NL );
 	info_msg("Keyboard Protocol: ");
 	printInt8( USBKeys_Protocol );
+}
+
+
+void cliFunc_outputDebug( char* args )
+{
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	// Default to 1 if no argument is given
+	Output_DebugMode = 1;
+
+	if ( arg1Ptr[0] != '\0' )
+	{
+		Output_DebugMode = (uint16_t)numToInt( arg1Ptr );
+	}
 }
 
 

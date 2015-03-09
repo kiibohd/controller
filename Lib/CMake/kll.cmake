@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller KLL Configurator |###
 #
-# Written by Jacob Alexander in 2014 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -46,14 +46,10 @@ endif () # kll/kll.py exists
 
 #| KLL_DEPENDS is used to build a dependency tree for kll.py, this way when files are changed, kll.py gets re-run
 
-#| Search for capabilities.kll in each module directory
-foreach ( DIR ${ScanModulePath} ${MacroModulePath} ${OutputModulePath} ${DebugModulePath} )
-	# capabilities.kll exists, add to BaseMap
-	set ( filename "${PROJECT_SOURCE_DIR}/${DIR}/capabilities.kll" )
-	if ( EXISTS ${filename} )
-		set ( BaseMap_Args ${BaseMap_Args} ${filename} )
-		set ( KLL_DEPENDS ${KLL_DEPENDS} ${filename} )
-	endif ()
+#| Add each of the detected capabilities.kll
+foreach ( filename ${ScanModule_KLL} ${MacroModule_KLL} ${OutputModule_KLL} ${DebugModule_KLL} )
+	set ( BaseMap_Args ${BaseMap_Args} ${filename} )
+	set ( KLL_DEPENDS ${KLL_DEPENDS} ${filename} )
 endforeach ()
 
 #| If set BaseMap cannot be found, use default map
@@ -118,19 +114,23 @@ endforeach ()
 #
 
 #| KLL Options
-set ( kll_backend   -b kiibohd )
-set ( kll_template  -t ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdKeymap.h )
-set ( kll_outputname generatedKeymap.h )
-set ( kll_output    -o ${kll_outputname} )
-set ( kll_define_output   --defines-output kll_defs.h )
-set ( kll_define_template --defines-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdDefs.h )
+set ( kll_backend   --backend kiibohd )
+set ( kll_template  --templates ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdKeymap.h ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdDefs.h )
+set ( kll_outputname generatedKeymap.h kll_defs.h )
+set ( kll_output    --outputs ${kll_outputname} )
 
 #| KLL Cmd
-set ( kll_cmd ${PROJECT_SOURCE_DIR}/kll/kll.py ${BaseMap_Args} ${DefaultMap_Args} ${PartialMap_Args} ${kll_backend} ${kll_template} ${kll_output} ${kll_define_template} ${kll_define_output} )
+set ( kll_cmd ${PROJECT_SOURCE_DIR}/kll/kll.py ${BaseMap_Args} ${DefaultMap_Args} ${PartialMap_Args} ${kll_backend} ${kll_template} ${kll_output} )
 add_custom_command ( OUTPUT ${kll_outputname}
 	COMMAND ${kll_cmd}
 	DEPENDS ${KLL_DEPENDS}
 	COMMENT "Generating KLL Layout"
+)
+
+#| KLL Regen Convenience Target
+add_custom_target ( kll_regen
+	COMMAND ${kll_cmd}
+	COMMENT "Re-generating KLL Layout"
 )
 
 #| Append generated file to required sources so it becomes a dependency in the main build

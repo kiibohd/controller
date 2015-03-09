@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2013-2014
+ * Modifications by Jacob Alexander 2013-2015
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -120,6 +120,23 @@ void usb_keyboard_send()
 	{
 	// Send boot keyboard interrupt packet(s)
 	case 0:
+		// USB Boot Mode debug output
+		if ( Output_DebugMode )
+		{
+			dbug_msg("Boot USB: ");
+			printHex_op( USBKeys_Modifiers, 2 );
+			print(" ");
+			printHex( 0 );
+			print(" ");
+			printHex_op( USBKeys_Keys[0], 2 );
+			printHex_op( USBKeys_Keys[1], 2 );
+			printHex_op( USBKeys_Keys[2], 2 );
+			printHex_op( USBKeys_Keys[3], 2 );
+			printHex_op( USBKeys_Keys[4], 2 );
+			printHex_op( USBKeys_Keys[5], 2 );
+			print( NL );
+		}
+
 		// Boot Mode
 		*tx_buf++ = USBKeys_Modifiers;
 		*tx_buf++ = 0;
@@ -133,9 +150,21 @@ void usb_keyboard_send()
 
 	// Send NKRO keyboard interrupts packet(s)
 	case 1:
+		if ( Output_DebugMode )
+		{
+			dbug_msg("NKRO USB: ");
+		}
+
 		// Check system control keys
 		if ( USBKeys_Changed & USBKeyChangeState_System )
 		{
+			if ( Output_DebugMode )
+			{
+				print("SysCtrl[");
+				printHex_op( USBKeys_SysCtrl, 2 );
+				print( "] " NL );
+			}
+
 			*tx_buf++ = 0x02; // ID
 			*tx_buf   = USBKeys_SysCtrl;
 			tx_packet->len = 2;
@@ -148,6 +177,13 @@ void usb_keyboard_send()
 		// Check consumer control keys
 		if ( USBKeys_Changed & USBKeyChangeState_Consumer )
 		{
+			if ( Output_DebugMode )
+			{
+				print("ConsCtrl[");
+				printHex_op( USBKeys_ConsCtrl, 2 );
+				print( "] " NL );
+			}
+
 			*tx_buf++ = 0x03; // ID
 			*tx_buf++ = (uint8_t)(USBKeys_ConsCtrl & 0x00FF);
 			*tx_buf   = (uint8_t)(USBKeys_ConsCtrl >> 8);
@@ -161,6 +197,24 @@ void usb_keyboard_send()
 		// Standard HID Keyboard
 		if ( USBKeys_Changed )
 		{
+			// USB NKRO Debug output
+			if ( Output_DebugMode )
+			{
+				printHex_op( USBKeys_Modifiers, 2 );
+				print(" ");
+				for ( uint8_t c = 0; c < 6; c++ )
+					printHex_op( USBKeys_Keys[ c ], 2 );
+				print(" ");
+				for ( uint8_t c = 6; c < 20; c++ )
+					printHex_op( USBKeys_Keys[ c ], 2 );
+				print(" ");
+				printHex_op( USBKeys_Keys[20], 2 );
+				print(" ");
+				for ( uint8_t c = 21; c < 27; c++ )
+					printHex_op( USBKeys_Keys[ c ], 2 );
+				print( NL );
+			}
+
 			tx_packet->len = 0;
 
 			// Modifiers

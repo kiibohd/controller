@@ -23,6 +23,12 @@ set( Module_SRCS
 	output_com.c
 )
 
+# Remove duplicate output_com.c files from pjrcUSB and uartOut
+list ( REMOVE_ITEM Output_SRCS
+	Output/pjrcUSB/output_com.c
+	Output/uartOut/output_com.c
+)
+
 
 ###
 # Compiler Family Compatibility

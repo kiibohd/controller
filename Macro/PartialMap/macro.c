@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -121,9 +121,11 @@ uint8_t macroPauseMode = 0;
 uint16_t macroStepCounter = 0;
 
 
-// Key Trigger List Buffer
+// Key Trigger List Buffer and Layer Cache
+// The layer cache is set on press only, hold and release events refer to the value set on press
 TriggerGuide macroTriggerListBuffer[ MaxScanCode ];
 uint8_t macroTriggerListBufferSize = 0;
+var_uint_t macroTriggerListLayerCache[ MaxScanCode ];
 
 // Pending Trigger Macro Index List
 //  * Any trigger macros that need processing from a previous macro processing loop
@@ -311,8 +313,24 @@ void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 
 // Looks up the trigger list for the given scan code (from the active layer)
 // NOTE: Calling function must handle the NULL pointer case
-nat_ptr_t *Macro_layerLookup( uint8_t scanCode, uint8_t latch_expire )
+nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 {
+	uint8_t scanCode = guide->scanCode;
+
+	// TODO Analog
+	// If a normal key, and not pressed, do a layer cache lookup
+	if ( guide->type == 0x00 && guide->state != 0x01 )
+	{
+		// Cached layer
+		var_uint_t cachedLayer = macroTriggerListLayerCache[ scanCode ];
+
+		// Lookup map, then layer
+		nat_ptr_t **map = (nat_ptr_t**)LayerIndex[ cachedLayer ].triggerMap;
+		const Layer *layer = &LayerIndex[ cachedLayer ];
+
+		return map[ scanCode - layer->first ];
+	}
+
 	// If no trigger macro is defined at the given layer, fallthrough to the next layer
 	for ( uint16_t layerIndex = 0; layerIndex < macroLayerIndexStackSize; layerIndex++ )
 	{
@@ -342,6 +360,9 @@ nat_ptr_t *Macro_layerLookup( uint8_t scanCode, uint8_t latch_expire )
 			  && scanCode >= layer->first
 			  && *map[ scanCode - layer->first ] != 0 )
 			{
+				// Set the layer cache
+				macroTriggerListLayerCache[ scanCode ] = macroLayerIndexStack[ layerIndex ];
+
 				return map[ scanCode - layer->first ];
 			}
 		}
@@ -359,6 +380,9 @@ nat_ptr_t *Macro_layerLookup( uint8_t scanCode, uint8_t latch_expire )
 	  && scanCode >= layer->first
 	  && *map[ scanCode - layer->first ] != 0 )
 	{
+		// Set the layer cache to default map
+		macroTriggerListLayerCache[ scanCode ] = 0;
+
 		return map[ scanCode - layer->first ];
 	}
 
@@ -836,7 +860,7 @@ inline void Macro_updateTriggerMacroPendingList()
 		uint8_t latch_expire = macroTriggerListBuffer[ key ].state == 0x03;
 
 		// Lookup Trigger List
-		nat_ptr_t *triggerList = Macro_layerLookup( macroTriggerListBuffer[ key ].scanCode, latch_expire );
+		nat_ptr_t *triggerList = Macro_layerLookup( &macroTriggerListBuffer[ key ], latch_expire );
 
 		// Number of Triggers in list
 		nat_ptr_t triggerListSize = triggerList[0];
