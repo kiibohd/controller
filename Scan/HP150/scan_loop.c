@@ -239,7 +239,7 @@ inline uint8_t Scan_loop()
 	return 0;
 }
 
-// Send data 
+// Send data
 uint8_t Scan_sendData( uint8_t dataPayload )
 {
 	return 0;

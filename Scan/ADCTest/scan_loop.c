@@ -69,11 +69,11 @@ char scanCLIDictName[] = "ADC Test Module Commands";
 const CLIDictItem scanCLIDict[] = {
 #if defined(_mk20dx128_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
 	{ "adc",     "Read the specified number of values from the ADC at the given pin: <pin> [# of reads]"
-	          NL "\t\t See \033[35mLib/pin_map.teensy3\033[0m for ADC0 channel number.", cliFunc_adc },
+		  NL "\t\t See \033[35mLib/pin_map.teensy3\033[0m for ADC0 channel number.", cliFunc_adc },
 	{ "adcInit", "Intialize/calibrate ADC: <ADC Resolution> <Vref> <Hardware averaging samples>"
-	          NL "\t\tADC Resolution -> 8, 10, 12, 16 (bit)"
-	          NL "\t\t          Vref -> 0 (1.2 V), 1 (External)"
-	          NL "\t\tHw Avg Samples -> 0 (disabled), 4, 8, 16, 32", cliFunc_adcInit },
+		  NL "\t\tADC Resolution -> 8, 10, 12, 16 (bit)"
+		  NL "\t\t          Vref -> 0 (1.2 V), 1 (External)"
+		  NL "\t\tHw Avg Samples -> 0 (disabled), 4, 8, 16, 32", cliFunc_adcInit },
 #endif
 #if defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // DAC is only supported on Teensy 3.1
 	{ "dac",     "Set DAC output value, from 0 to 4095 (1/4096 Vref to Vref).", cliFunc_dac },

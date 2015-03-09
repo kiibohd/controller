@@ -69,9 +69,9 @@ static inline void delayMicroseconds(uint32_t usec)
 	uint32_t n = usec << 3;
 #endif
 	asm volatile(
-		"L_%=_delayMicroseconds:"		"\n\t"
-		"subs   %0, #1"				"\n\t"
-		"bne    L_%=_delayMicroseconds"		"\n"
+		"L_%=_delayMicroseconds:"               "\n\t"
+		"subs   %0, #1"                         "\n\t"
+		"bne    L_%=_delayMicroseconds"         "\n"
 		: "+r" (n) :
 	);
 }

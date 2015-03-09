@@ -103,7 +103,7 @@ ISR(USART1_RX_vect)
 inline void Scan_setup()
 {
 	// Setup the the USART interface for keyboard data input
-	
+
 	// Setup baud rate
 	// 16 MHz / ( 16 * Baud ) = UBRR
 	// Baud: 4817 -> 16 MHz / ( 16 * 4817 ) = 207.5981
@@ -200,7 +200,7 @@ void removeKeyValue( uint8_t keyValue )
 	}
 }
 
-// Send data 
+// Send data
 uint8_t Scan_sendData( uint8_t dataPayload )
 {
 	// Debug

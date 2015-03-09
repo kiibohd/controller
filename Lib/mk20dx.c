@@ -410,12 +410,12 @@ const uint8_t flashconfigbytes[16] = {
 __attribute__((noreturn))
 static inline void jump_to_app( uintptr_t addr )
 {
-        // addr is in r0
-        __asm__("ldr sp, [%[addr], #0]\n"
-                "ldr pc, [%[addr], #4]"
-                :: [addr] "r" (addr));
-        // NOTREACHED
-        __builtin_unreachable();
+	// addr is in r0
+	__asm__("ldr sp, [%[addr], #0]\n"
+		"ldr pc, [%[addr], #4]"
+		:: [addr] "r" (addr));
+	// NOTREACHED
+	__builtin_unreachable();
 }
 #endif
 
@@ -526,7 +526,7 @@ void ResetHandler()
 		NVIC_SET_PRIORITY( i, 128 );
 	}
 
-        // FLL at 48MHz
+	// FLL at 48MHz
 	MCG_C4 = MCG_C4_DMX32 | MCG_C4_DRST_DRS( 1 );
 
 	// USB Clock and FLL select
@@ -534,7 +534,7 @@ void ResetHandler()
 
 // Teensy 3.0 and 3.1 and Kiibohd-dfu (mk20dx256vlh7)
 #else
-	SCB_VTOR = 0;	// use vector table in flash
+	SCB_VTOR = 0;   // use vector table in flash
 
 	// default all interrupts to medium priority level
 	for ( unsigned int i = 0; i < NVIC_NUM_INTERRUPTS; i++ )

@@ -21,7 +21,7 @@
 #|
 set( CHIP
 	"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
-#	"mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
+#       "mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
 )
 
 
@@ -34,8 +34,8 @@ set( CHIP
 #| Stick with gcc unless you know what you're doing
 #| Currently only arm is supported with clang
 set( COMPILER
-	"gcc"	# arm-none-eabi-gcc / avr-gcc - Default
-#	"clang" # arm-none-eabi
+	"gcc"   # arm-none-eabi-gcc / avr-gcc - Default
+#       "clang" # arm-none-eabi
 	CACHE STRING "Compiler Type" )
 
 

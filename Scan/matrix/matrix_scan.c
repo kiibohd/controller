@@ -39,7 +39,7 @@
 // ----- Macros -----
 
 // -- pinSetup Macros --
-#define REG_SET(reg)	reg |=  (1 << ( matrix[row*(MAX_ROW_SIZE+1)+col] % 10 ) ) // Modulo 10 for the define offset for each pin set 12 or 32 -> shift of 2
+#define REG_SET(reg)    reg |=  (1 << ( matrix[row*(MAX_ROW_SIZE+1)+col] % 10 ) ) // Modulo 10 for the define offset for each pin set 12 or 32 -> shift of 2
 #define REG_UNSET(reg)  reg &= ~(1 << ( matrix[row*(MAX_ROW_SIZE+1)+col] % 10 ) )
 
 #define PIN_SET(pin,scan,direction) \
@@ -57,7 +57,7 @@
 			case scanDual: \
 				REG_SET(port##pin); break; \
 			case scanCol_powrRow: REG_UNSET(ddr##pin); REG_UNSET(DDR##pin); \
-			                      REG_SET(port##pin);  REG_SET(PORT##pin); break; \
+		                              REG_SET(port##pin);  REG_SET(PORT##pin); break; \
 			case powrRow: break; \
 			case powrCol: REG_SET(ddr##pin);  REG_SET(DDR##pin); \
 			              REG_SET(port##pin); REG_SET(PORT##pin); break; \
@@ -72,9 +72,9 @@
 			case scanDual: \
 				REG_SET(port##pin); break; \
 			case scanCol_powrRow: REG_SET(ddr##pin);    REG_SET(DDR##pin); \
-			                      REG_UNSET(port##pin); REG_UNSET(PORT##pin); break; \
+					      REG_UNSET(port##pin); REG_UNSET(PORT##pin); break; \
 			case powrRow: REG_SET(ddr##pin);  REG_SET(DDR##pin); \
-			              REG_SET(port##pin); REG_SET(PORT##pin); break; \
+				      REG_SET(port##pin); REG_SET(PORT##pin); break; \
 			case powrCol: break; \
 			} \
 			break
@@ -261,7 +261,7 @@ void matrix_pinSetup( uint8_t *matrix, uint8_t scanType )
 	if ( showDebug == 0 ) // Only show once
 	{
 		matrix_debugPins();
-	}
+	}	
 }
 
 // Scans the given matrix determined by the scanMode method
@@ -380,7 +380,7 @@ inline void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 	_delay_us( 1 );
 	col = 1;
 	row = 1;
-	for ( ; col < (MAX_ROW_SIZE+1); col++ ) for ( ; row < (MAX_COL_SIZE+1); row++ ) 
+	for ( ; col < (MAX_ROW_SIZE+1); col++ ) for ( ; row < (MAX_COL_SIZE+1); row++ )	
 	{
 		// Scan over the pins for each of the rows, and using the pin alias to determine which pin to set
 		// (e.g. / 10 is for the pin name (A,B,C,etc.) and % 10 is for the position of the pin (A1,A2,etc.))
@@ -404,4 +404,4 @@ inline void matrix_scan( uint8_t *matrix, uint8_t *detectArray )
 	}
 #endif
 }
- 
+

@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 		num = read_intel_hex(filename);
 		if (num < 0) die("error reading intel hex file \"%s\"", filename);
 		printf_verbose("Read \"%s\": %d bytes, %.1f%% usage\n",
-		 	filename, num, (double)num / (double)code_size * 100.0);
+			filename, num, (double)num / (double)code_size * 100.0);
 	}
 
 	// program the data
@@ -690,23 +690,23 @@ int
 parse_hex_line(char *line)
 {
 	int addr, code, num;
-        int sum, len, cksum, i;
-        char *ptr;
+	int sum, len, cksum, i;
+	char *ptr;
 
-        num = 0;
-        if (line[0] != ':') return 0;
-        if (strlen(line) < 11) return 0;
-        ptr = line+1;
-        if (!sscanf(ptr, "%02x", &len)) return 0;
-        ptr += 2;
-        if ((int)strlen(line) < (11 + (len * 2)) ) return 0;
-        if (!sscanf(ptr, "%04x", &addr)) return 0;
-        ptr += 4;
-          /* printf("Line: length=%d Addr=%d\n", len, addr); */
-        if (!sscanf(ptr, "%02x", &code)) return 0;
+	num = 0;
+	if (line[0] != ':') return 0;
+	if (strlen(line) < 11) return 0;
+	ptr = line+1;
+	if (!sscanf(ptr, "%02x", &len)) return 0;
+	ptr += 2;
+	if ((int)strlen(line) < (11 + (len * 2)) ) return 0;
+	if (!sscanf(ptr, "%04x", &addr)) return 0;
+	ptr += 4;
+	  /* printf("Line: length=%d Addr=%d\n", len, addr); */
+	if (!sscanf(ptr, "%02x", &code)) return 0;
 	if (addr + extended_addr + len >= MAX_MEMORY_SIZE) return 0;
-        ptr += 2;
-        sum = (len & 255) + ((addr >> 8) & 255) + (addr & 255) + (code & 255);
+	ptr += 2;
+	sum = (len & 255) + ((addr >> 8) & 255) + (addr & 255) + (code & 255);
 	if (code != 0) {
 		if (code == 1) {
 			end_record_seen = 1;
@@ -716,7 +716,7 @@ parse_hex_line(char *line)
 			if (!sscanf(ptr, "%04x", &i)) return 1;
 			ptr += 4;
 			sum += ((i >> 8) & 255) + (i & 255);
-        		if (!sscanf(ptr, "%02x", &cksum)) return 1;
+			if (!sscanf(ptr, "%02x", &cksum)) return 1;
 			if (((sum & 255) + (cksum & 255)) & 255) return 1;
 			extended_addr = i << 4;
 			//printf("ext addr = %05X\n", extended_addr);
@@ -725,27 +725,27 @@ parse_hex_line(char *line)
 			if (!sscanf(ptr, "%04x", &i)) return 1;
 			ptr += 4;
 			sum += ((i >> 8) & 255) + (i & 255);
-        		if (!sscanf(ptr, "%02x", &cksum)) return 1;
+			if (!sscanf(ptr, "%02x", &cksum)) return 1;
 			if (((sum & 255) + (cksum & 255)) & 255) return 1;
 			extended_addr = i << 16;
 			//printf("ext addr = %08X\n", extended_addr);
 		}
-		return 1;	// non-data line
+		return 1;       // non-data line
 	}
 	byte_count += len;
-        while (num != len) {
-                if (sscanf(ptr, "%02x", &i) != 1) return 0;
+	while (num != len) {
+		if (sscanf(ptr, "%02x", &i) != 1) return 0;
 		i &= 255;
 		firmware_image[addr + extended_addr + num] = i;
 		firmware_mask[addr + extended_addr + num] = 1;
-                ptr += 2;
-                sum += i;
-                (num)++;
-                if (num >= 256) return 0;
-        }
-        if (!sscanf(ptr, "%02x", &cksum)) return 0;
-        if (((sum & 255) + (cksum & 255)) & 255) return 0; /* checksum error */
-        return 1;
+		ptr += 2;
+		sum += i;
+		(num)++;
+		if (num >= 256) return 0;
+	}
+	if (!sscanf(ptr, "%02x", &cksum)) return 0;
+	if (((sum & 255) + (cksum & 255)) & 255) return 0; /* checksum error */
+	return 1;
 }
 
 int ihex_bytes_within_range(int begin, int end)

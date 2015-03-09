@@ -180,7 +180,7 @@ ISR(USART1_RX_vect)
 	sei(); // Re-enable Interrupts
 }
 
-// Send data 
+// Send data
 //
 // Keyboard Input Guide for Micro Switch 8304
 // 0xBX is for LED F1,F2,Over Type,Lock

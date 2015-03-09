@@ -92,7 +92,7 @@ inline void Scan_setup()
 	// Configured as a Pull-up Input - This pin "can" be read as well, it will go to GND when the "Power On" switch is pressed, and will read ~5V otherwise
 	// XXX Currently not used by the controller
 	POWR_DDR  &= ~(1 << POWR_POS);
-	POWR_PORT |= (1 << POWR_POS); 
+	POWR_PORT |= (1 << POWR_POS);
 
 	// Reset the keyboard before scanning, we might be in a wierd state
 	scan_resetKeyboard();
