@@ -48,13 +48,13 @@
 
 // Used to build a bitmap lookup table from a byte addressable array
 #define byteLookup( byte ) case (( byte ) * ( 8 )):         bytePosition = byte; byteShift = 0; break; \
-			   case (( byte ) * ( 8 ) + ( 1 )): bytePosition = byte; byteShift = 1; break; \
-			   case (( byte ) * ( 8 ) + ( 2 )): bytePosition = byte; byteShift = 2; break; \
-			   case (( byte ) * ( 8 ) + ( 3 )): bytePosition = byte; byteShift = 3; break; \
-			   case (( byte ) * ( 8 ) + ( 4 )): bytePosition = byte; byteShift = 4; break; \
-			   case (( byte ) * ( 8 ) + ( 5 )): bytePosition = byte; byteShift = 5; break; \
-			   case (( byte ) * ( 8 ) + ( 6 )): bytePosition = byte; byteShift = 6; break; \
-			   case (( byte ) * ( 8 ) + ( 7 )): bytePosition = byte; byteShift = 7; break
+                           case (( byte ) * ( 8 ) + ( 1 )): bytePosition = byte; byteShift = 1; break; \
+                           case (( byte ) * ( 8 ) + ( 2 )): bytePosition = byte; byteShift = 2; break; \
+                           case (( byte ) * ( 8 ) + ( 3 )): bytePosition = byte; byteShift = 3; break; \
+                           case (( byte ) * ( 8 ) + ( 4 )): bytePosition = byte; byteShift = 4; break; \
+                           case (( byte ) * ( 8 ) + ( 5 )): bytePosition = byte; byteShift = 5; break; \
+                           case (( byte ) * ( 8 ) + ( 6 )): bytePosition = byte; byteShift = 6; break; \
+                           case (( byte ) * ( 8 ) + ( 7 )): bytePosition = byte; byteShift = 7; break
 
 
 
@@ -138,7 +138,7 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 // Debug control variable for Output modules
 // 0 - Debug disabled (default)
 // 1 - Debug enabled
-         uint8_t  Output_DebugMode = 0;
+	 uint8_t  Output_DebugMode = 0;
 
 
 

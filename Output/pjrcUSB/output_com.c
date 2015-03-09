@@ -135,7 +135,7 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 // Debug control variable for Output modules
 // 0 - Debug disabled (default)
 // 1 - Debug enabled
-         uint8_t  Output_DebugMode = 0;
+	 uint8_t  Output_DebugMode = 0;
 
 
 
