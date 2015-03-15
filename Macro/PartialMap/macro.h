@@ -35,9 +35,10 @@ void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 
 // ----- Functions -----
 
-void Macro_keyState( uint8_t scanCode, uint8_t state );
 void Macro_analogState( uint8_t scanCode, uint8_t state );
+void Macro_keyState( uint8_t scanCode, uint8_t state );
 void Macro_ledState( uint8_t ledCode, uint8_t state );
+void Macro_triggerState( void *triggers, uint8_t num ); // triggers is of type TriggerGuide, void* for circular dependencies
 void Macro_process();
 void Macro_setup();
 

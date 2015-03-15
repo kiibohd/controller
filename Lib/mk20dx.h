@@ -1467,7 +1467,9 @@ typedef struct {
 #define UART0_IR		*(volatile uint8_t  *)0x4006A00E // UART Infrared Register
 #define UART0_PFIFO		*(volatile uint8_t  *)0x4006A010 // UART FIFO Parameters
 #define UART_PFIFO_TXFE			(uint8_t)0x80
+#define UART_PFIFO_TXFIFOSIZE           (uint8_t)0x70
 #define UART_PFIFO_RXFE			(uint8_t)0x08
+#define UART_PFIFO_RXFIFOSIZE           (uint8_t)0x07
 #define UART0_CFIFO             *(volatile uint8_t  *)0x4006A011 // UART FIFO Control Register
 #define UART_CFIFO_TXFLUSH		(uint8_t)0x80			// 
 #define UART_CFIFO_RXFLUSH		(uint8_t)0x40			// 

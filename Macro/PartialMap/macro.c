@@ -393,6 +393,16 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 }
 
 
+// Update the scancode using a list of TriggerGuides
+// TODO Handle led state and analog
+inline void Macro_triggerState( void *triggers, uint8_t num )
+{
+	// Copy each of the TriggerGuides to the TriggerListBuffer
+	for ( uint8_t c = 0; c < num; c++ )
+		macroTriggerListBuffer[ macroTriggerListBufferSize++ ] = ((TriggerGuide*)triggers)[ c ];
+}
+
+
 // Update the scancode key state
 // States:
 //   * 0x00 - Off
