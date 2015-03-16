@@ -31,3 +31,7 @@ Projects
 * template.bash (Example template for new keyboards)
 
 
+**Extra files**
+
+* cmake.bash (Used by the compilation script, does nothing on it's own)
+
