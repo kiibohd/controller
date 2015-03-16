@@ -73,20 +73,20 @@ CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
 // Which modifier keys are currently pressed
 // 1=left ctrl,    2=left shift,   4=left alt,    8=left gui
 // 16=right ctrl, 32=right shift, 64=right alt, 128=right gui
-         uint8_t  USBKeys_Modifiers    = 0;
-         uint8_t  USBKeys_ModifiersCLI = 0; // Separate CLI send buffer
+	uint8_t  USBKeys_Modifiers    = 0;
+	uint8_t  USBKeys_ModifiersCLI = 0; // Separate CLI send buffer
 
 // Currently pressed keys, max is defined by USB_MAX_KEY_SEND
-         uint8_t  USBKeys_Keys   [USB_NKRO_BITFIELD_SIZE_KEYS];
-         uint8_t  USBKeys_KeysCLI[USB_NKRO_BITFIELD_SIZE_KEYS]; // Separate CLI send buffer
+	uint8_t  USBKeys_Keys   [USB_NKRO_BITFIELD_SIZE_KEYS];
+	uint8_t  USBKeys_KeysCLI[USB_NKRO_BITFIELD_SIZE_KEYS]; // Separate CLI send buffer
 
 // System Control and Consumer Control 1KRO containers
-         uint8_t  USBKeys_SysCtrl;
-         uint16_t USBKeys_ConsCtrl;
+	uint8_t  USBKeys_SysCtrl;
+	uint16_t USBKeys_ConsCtrl;
 
 // The number of keys sent to the usb in the array
-         uint8_t  USBKeys_Sent    = 0;
-         uint8_t  USBKeys_SentCLI = 0;
+	uint8_t  USBKeys_Sent    = 0;
+	uint8_t  USBKeys_SentCLI = 0;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t  USBKeys_LEDs = 0;
@@ -102,15 +102,15 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
-         uint8_t  USBKeys_Idle_Config = 125;
+	uint8_t  USBKeys_Idle_Config = 125;
 
 // count until idle timeout
-         uint8_t  USBKeys_Idle_Count = 0;
+	uint8_t  USBKeys_Idle_Count = 0;
 
 // Indicates whether the Output module is fully functional
 // 0 - Not fully functional, 1 - Fully functional
 // 0 is often used to show that a USB cable is not plugged in (but has power)
-         uint8_t  Output_Available = 0;
+	uint8_t  Output_Available = 0;
 
 
 

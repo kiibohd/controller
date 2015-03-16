@@ -149,7 +149,7 @@ inline void Scan_setup()
 
 
 	// Setup the the USART interface for keyboard data input
-	
+
 	// Setup baud rate
 	// 16 MHz / ( 16 * Baud ) = UBRR
 	// Baud <- 1200 as per the spec (see datasheet archives), rounding to 1200.1 (as that's as accurate as the timer can be)

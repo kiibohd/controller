@@ -57,7 +57,7 @@ void analog_init(void)
 	uint32_t num;
 
 	VREF_TRM = 0x60;
-	VREF_SC = 0xE1;		// enable 1.2 volt ref
+	VREF_SC = 0xE1;         // enable 1.2 volt ref
 
 	if (analog_config_bits == 8) {
 		ADC0_CFG1 = ADC_CFG1_24MHZ + ADC_CFG1_MODE(0);

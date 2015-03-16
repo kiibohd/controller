@@ -45,7 +45,7 @@
 
 // ----- Defines -----
 
-#define TRANSMIT_FLUSH_TIMEOUT	5   /* in milliseconds */
+#define TRANSMIT_FLUSH_TIMEOUT  5   /* in milliseconds */
 
 // Maximum number of transmit packets to queue so we don't starve other endpoints for memory
 #define TX_PACKET_LIMIT 8

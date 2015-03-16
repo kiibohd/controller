@@ -55,8 +55,8 @@
 // Windows, even though the driver is supplied by Microsoft, an
 // INF file is needed to load the driver.  These numbers need to
 // match the INF file.
-#define VENDOR_ID		@VENDOR_ID@
-#define PRODUCT_ID		@PRODUCT_ID@
+#define VENDOR_ID               @VENDOR_ID@
+#define PRODUCT_ID              @PRODUCT_ID@
 
 #endif
 

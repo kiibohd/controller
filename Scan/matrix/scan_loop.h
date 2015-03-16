@@ -46,7 +46,7 @@
 // NOTE: Highest Bit: Valid keypress (0x80 is valid keypress)
 //        Other Bits: Pressed state sample counter
 extern                       uint8_t KeyIndex_Array [KEYBOARD_KEYS + 1];
-                static const uint8_t KeyIndex_Size = KEYBOARD_KEYS;
+		static const uint8_t KeyIndex_Size = KEYBOARD_KEYS;
 
 extern volatile              uint8_t KeyIndex_Buffer[KEYBOARD_BUFFER];
 extern volatile              uint8_t KeyIndex_BufferUsed;

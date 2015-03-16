@@ -609,7 +609,7 @@ void recovery( uint8_t on )
 		PORTD &= ~D_MASK;
 		PORTE &= ~E_MASK;
 
-		DDRB  |= (1 << RECOVERY_SINK);	 // SINK pull
+		DDRB  |= (1 << RECOVERY_SINK);   // SINK pull
 		PORTB |= (1 << RECOVERY_CONTROL);
 		PORTB |= (1 << RECOVERY_SOURCE); // SOURCE high
 		DDRB  |= (1 << RECOVERY_SOURCE);
@@ -619,7 +619,7 @@ void recovery( uint8_t on )
 		PORTB &= ~(1 << RECOVERY_CONTROL);
 		DDRB  &= ~(1 << RECOVERY_SOURCE);
 		PORTB &= ~(1 << RECOVERY_SOURCE); // SOURCE low
-		DDRB  &= ~(1 << RECOVERY_SINK);	  // SINK high-imp
+		DDRB  &= ~(1 << RECOVERY_SINK);   // SINK high-imp
 	}
 }
 

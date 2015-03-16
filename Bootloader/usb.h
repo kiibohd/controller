@@ -37,113 +37,113 @@
 #define USB_CTRL_REQ_TYPE_SHIFT 1
 #define USB_CTRL_REQ_RECP_SHIFT 3
 #define USB_CTRL_REQ_CODE_SHIFT 8
-#define USB_CTRL_REQ(req_inout, req_type, req_code)			\
-	(uint16_t)							\
-	((USB_CTRL_REQ_##req_inout << USB_CTRL_REQ_DIR_SHIFT)		\
-	 |(USB_CTRL_REQ_##req_type << USB_CTRL_REQ_TYPE_SHIFT)		\
+#define USB_CTRL_REQ(req_inout, req_type, req_code)                     \
+	(uint16_t)                                                      \
+	((USB_CTRL_REQ_##req_inout << USB_CTRL_REQ_DIR_SHIFT)           \
+	 |(USB_CTRL_REQ_##req_type << USB_CTRL_REQ_TYPE_SHIFT)          \
 	 |(USB_CTRL_REQ_##req_code << USB_CTRL_REQ_CODE_SHIFT))
 
 
 
 // ----- Macros -----
 
-#define USB_DESC_STRING(s)					\
-        (const void *)&(const struct {				\
-			struct usb_desc_string_t dsc;		\
-			char16_t str[sizeof(s) / 2 - 1];	\
-        }) {{						\
-			.bLength = sizeof(struct usb_desc_string_t) +	\
-				sizeof(s) - 2,			\
-			.bDescriptorType = USB_DESC_STRING,	\
-			},					\
-			s					\
+#define USB_DESC_STRING(s)                                      \
+	(const void *)&(const struct {                          \
+			struct usb_desc_string_t dsc;           \
+			char16_t str[sizeof(s) / 2 - 1];        \
+	}) {{                                           \
+			.bLength = sizeof(struct usb_desc_string_t) +   \
+				sizeof(s) - 2,                  \
+			.bDescriptorType = USB_DESC_STRING,     \
+			},                                      \
+			s                                       \
 	}
 #define USB_DESC_STRING_LANG_ENUS USB_DESC_STRING(u"\x0409")
 #define USB_DESC_STRING_SERIALNO ((const void *)1)
 
-#define USB_FUNCTION_IFACE(iface, iface_off, tx_ep_off, rx_ep_off)	\
+#define USB_FUNCTION_IFACE(iface, iface_off, tx_ep_off, rx_ep_off)      \
 	((iface_off) + (iface))
-#define USB_FUNCTION_TX_EP(ep, iface_off, tx_ep_off, rx_ep_off)	\
+#define USB_FUNCTION_TX_EP(ep, iface_off, tx_ep_off, rx_ep_off) \
 	((tx_ep_off) + (ep))
-#define USB_FUNCTION_RX_EP(ep, iface_off, tx_ep_off, rx_ep_off)	\
+#define USB_FUNCTION_RX_EP(ep, iface_off, tx_ep_off, rx_ep_off) \
 	((rx_ep_off) + (ep))
 
 
 #define USB__INCREMENT(i, _0) (i + 1)
-#define USB__COUNT_IFACE_EP(i, e)			\
+#define USB__COUNT_IFACE_EP(i, e)                       \
 	__DEFER(USB__COUNT_IFACE_EP_)(__EXPAND i, e)
 #define USB__COUNT_IFACE_EP_(iface, tx_ep, rx_ep, func)   \
-	(iface + USB_FUNCTION_ ## func ## _IFACE_COUNT,	  \
-	 tx_ep + USB_FUNCTION_ ## func ## _TX_EP_COUNT,	  \
+	(iface + USB_FUNCTION_ ## func ## _IFACE_COUNT,   \
+	 tx_ep + USB_FUNCTION_ ## func ## _TX_EP_COUNT,   \
 	 rx_ep + USB_FUNCTION_ ## func ## _RX_EP_COUNT)
-#define USB__GET_FUNCTION_IFACE_COUNT(iter, func)	\
+#define USB__GET_FUNCTION_IFACE_COUNT(iter, func)       \
 	USB_FUNCTION_ ## func ## _IFACE_COUNT +
 
-#define USB__DEFINE_FUNCTION_DESC(iter, func)				\
+#define USB__DEFINE_FUNCTION_DESC(iter, func)                           \
 	USB_FUNCTION_DESC_ ## func ## _DECL __CAT(__usb_func_desc, __COUNTER__);
-#define USB__INIT_FUNCTION_DESC(iter, func)	\
+#define USB__INIT_FUNCTION_DESC(iter, func)     \
 	USB_FUNCTION_DESC_ ## func iter,
 
-#define USB__DEFINE_CONFIG_DESC(confignum, name, ...)			\
-	&((const struct name {						\
-		struct usb_desc_config_t config;			\
+#define USB__DEFINE_CONFIG_DESC(confignum, name, ...)                   \
+	&((const struct name {                                          \
+		struct usb_desc_config_t config;                        \
 		__REPEAT_INNER(, __EAT, USB__DEFINE_FUNCTION_DESC, __VA_ARGS__) \
-	}){								\
-		.config = {						\
-			.bLength = sizeof(struct usb_desc_config_t),	\
-			.bDescriptorType = USB_DESC_CONFIG,		\
-			.wTotalLength = sizeof(struct name),		\
+	}){                                                             \
+		.config = {                                             \
+			.bLength = sizeof(struct usb_desc_config_t),    \
+			.bDescriptorType = USB_DESC_CONFIG,             \
+			.wTotalLength = sizeof(struct name),            \
 			.bNumInterfaces = __REPEAT_INNER(, __EAT, USB__GET_FUNCTION_IFACE_COUNT, __VA_ARGS__) 0, \
-			.bConfigurationValue = confignum,		\
-			.iConfiguration = 0,				\
-			.one = 1,					\
-			.bMaxPower = 50					\
-		},							\
+			.bConfigurationValue = confignum,               \
+			.iConfiguration = 0,                            \
+			.one = 1,                                       \
+			.bMaxPower = 50                                 \
+		},                                                      \
 		__REPEAT_INNER((0, 0, 0), USB__COUNT_IFACE_EP, USB__INIT_FUNCTION_DESC, __VA_ARGS__) \
 	}).config
 
 
-#define USB__DEFINE_CONFIG(iter, args)				\
+#define USB__DEFINE_CONFIG(iter, args)                          \
 	__DEFER(USB__DEFINE_CONFIG_)(iter, __EXPAND args)
 
-#define USB__DEFINE_CONFIG_(confignum, initfun, ...)			\
-	&(const struct usbd_config){					\
-		.init = initfun,					\
-		.desc = USB__DEFINE_CONFIG_DESC(			\
-			confignum,					\
-			__CAT(__usb_desc, __COUNTER__),			\
-			__VA_ARGS__)					\
+#define USB__DEFINE_CONFIG_(confignum, initfun, ...)                    \
+	&(const struct usbd_config){                                    \
+		.init = initfun,                                        \
+		.desc = USB__DEFINE_CONFIG_DESC(                        \
+			confignum,                                      \
+			__CAT(__usb_desc, __COUNTER__),                 \
+			__VA_ARGS__)                                    \
 	},
 
-#define USB_INIT_DEVICE(vid, pid, manuf, product, ...)			\
-	{								\
-		.dev_desc = &(const struct usb_desc_dev_t){		\
-			.bLength = sizeof(struct usb_desc_dev_t),	\
-			.bDescriptorType = USB_DESC_DEV,		\
-			.bcdUSB = { .maj = 2 },				\
-			.bDeviceClass = USB_DEV_CLASS_SEE_IFACE,	\
-			.bDeviceSubClass = USB_DEV_SUBCLASS_SEE_IFACE,	\
-			.bDeviceProtocol = USB_DEV_PROTO_SEE_IFACE,	\
-			.bMaxPacketSize0 = EP0_BUFSIZE,			\
-			.idVendor = vid,				\
-			.idProduct = pid,				\
-			.bcdDevice = { .raw = 0 },			\
-			.iManufacturer = 1,				\
-			.iProduct = 2,					\
-			.iSerialNumber = 3,				\
-			.bNumConfigurations = __PP_NARG(__VA_ARGS__),	\
-		},							\
+#define USB_INIT_DEVICE(vid, pid, manuf, product, ...)                  \
+	{                                                               \
+		.dev_desc = &(const struct usb_desc_dev_t){             \
+			.bLength = sizeof(struct usb_desc_dev_t),       \
+			.bDescriptorType = USB_DESC_DEV,                \
+			.bcdUSB = { .maj = 2 },                         \
+			.bDeviceClass = USB_DEV_CLASS_SEE_IFACE,        \
+			.bDeviceSubClass = USB_DEV_SUBCLASS_SEE_IFACE,  \
+			.bDeviceProtocol = USB_DEV_PROTO_SEE_IFACE,     \
+			.bMaxPacketSize0 = EP0_BUFSIZE,                 \
+			.idVendor = vid,                                \
+			.idProduct = pid,                               \
+			.bcdDevice = { .raw = 0 },                      \
+			.iManufacturer = 1,                             \
+			.iProduct = 2,                                  \
+			.iSerialNumber = 3,                             \
+			.bNumConfigurations = __PP_NARG(__VA_ARGS__),   \
+		},                                                      \
 		.string_descs = (const struct usb_desc_string_t * const []){ \
-			USB_DESC_STRING_LANG_ENUS,			\
-			USB_DESC_STRING(manuf),				\
-			USB_DESC_STRING(product),			\
-			USB_DESC_STRING_SERIALNO,			\
-			NULL						\
-		},							\
-		.configs = {						\
+			USB_DESC_STRING_LANG_ENUS,                      \
+			USB_DESC_STRING(manuf),                         \
+			USB_DESC_STRING(product),                       \
+			USB_DESC_STRING_SERIALNO,                       \
+			NULL                                            \
+		},                                                      \
+		.configs = {                                            \
 			__REPEAT(1, USB__INCREMENT, USB__DEFINE_CONFIG, __VA_ARGS__) \
-			NULL						\
-		}							\
+			NULL                                            \
+		}                                                       \
 	}
 
 
@@ -220,7 +220,7 @@ CTASSERT_SIZE_BYTE(struct usb_desc_generic_t, 2);
 struct usb_desc_dev_t {
 	uint8_t bLength;
 	enum usb_desc_type bDescriptorType : 8; /* = USB_DESC_DEV */
-	struct usb_bcd_t bcdUSB;	     /* = 0x0200 */
+	struct usb_bcd_t bcdUSB;             /* = 0x0200 */
 	enum usb_dev_class bDeviceClass : 8;
 	enum usb_dev_subclass bDeviceSubClass : 8;
 	enum usb_dev_proto bDeviceProtocol : 8;
@@ -290,7 +290,7 @@ CTASSERT_SIZE_BYTE(struct usb_desc_iface_t, 9);
 struct usb_desc_config_t {
 	uint8_t bLength;
 	enum usb_desc_type bDescriptorType : 8; /* = USB_DESC_CONFIG */
-	uint16_t wTotalLength;	     /* size of config, iface, ep */
+	uint16_t wTotalLength;       /* size of config, iface, ep */
 	uint8_t bNumInterfaces;
 	uint8_t bConfigurationValue;
 	uint8_t iConfiguration;
@@ -300,7 +300,7 @@ struct usb_desc_config_t {
 		uint8_t self_powered : 1;
 		uint8_t one : 1; /* = 1 for historical reasons */
 	};
-	uint8_t bMaxPower;	/* units of 2mA */
+	uint8_t bMaxPower;      /* units of 2mA */
 } __packed;
 CTASSERT_SIZE_BYTE(struct usb_desc_config_t, 9);
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 ###| Builder Script |###
-# 
+#
 # Builds all permutations of modules
 # This script is an attempt to maintain module sanity as new ones are added
 #

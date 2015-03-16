@@ -725,7 +725,7 @@ Under `Category->Connections->Serial`: `Flow control: DTR/DSR`.
 
 If stuff is hard to read (you have a dumb colour scheme):
 `Category->Window->Colours->Use system color`.  That seems to make text at
-least readable 
+least readable
 
 > I use a custom colour scheme that makes each colour easy to see.
 > -HaaTa.

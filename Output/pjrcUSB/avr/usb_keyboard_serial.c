@@ -595,16 +595,16 @@ uint8_t usb_init()
 	// Check to see if a usb cable has been plugged in
 	// XXX Not tested (also, not currently needed) -HaaTa
 	//if ( USB0_STAT & (1 << 1)
-	//	return 0;
+	//      return 0;
 
 	HW_CONFIG();
-	USB_FREEZE();				// enable USB
-	PLL_CONFIG();				// config PLL
-        while (!(PLLCSR & (1<<PLOCK))) ;	// wait for PLL lock
-        USB_CONFIG();				// start USB clock
-        UDCON = 0;				// enable attach resistor
+	USB_FREEZE();                           // enable USB
+	PLL_CONFIG();                           // config PLL
+	while (!(PLLCSR & (1<<PLOCK))) ;        // wait for PLL lock
+	USB_CONFIG();                           // start USB clock
+	UDCON = 0;                              // enable attach resistor
 	usb_configuration = 0;
-        UDIEN = (1<<EORSTE) | (1<<SOFE);
+	UDIEN = (1<<EORSTE) | (1<<SOFE);
 	sei();
 
 	// Disable watchdog timer after possible software reset
@@ -627,9 +627,9 @@ ISR( USB_GEN_vect )
 {
 	uint8_t intbits, t_cdc;
 
-        intbits = UDINT;
-        UDINT = 0;
-        if ( intbits & (1 << EORSTI) )
+	intbits = UDINT;
+	UDINT = 0;
+	if ( intbits & (1 << EORSTI) )
 	{
 		UENUM = 0;
 		UECONX = 1;
@@ -638,7 +638,7 @@ ISR( USB_GEN_vect )
 		UEIENX = (1 << RXSTPE);
 		usb_configuration = 0;
 		cdc_line_rtsdtr = 0;
-        }
+	}
 	if ( (intbits & (1 << SOFI)) && usb_configuration )
 	{
 		t_cdc = transmit_flush_timer;
@@ -701,9 +701,9 @@ static inline void usb_ack_out()
 //
 ISR( USB_COM_vect )
 {
-        uint8_t intbits;
+	uint8_t intbits;
 	const uint8_t *list;
-        const uint8_t *cfg;
+	const uint8_t *cfg;
 	uint8_t i, n, len, en;
 	uint8_t *p;
 	uint8_t bmRequestType;
@@ -713,23 +713,23 @@ ISR( USB_COM_vect )
 	uint16_t wLength;
 	uint16_t desc_val;
 	const uint8_t *desc_addr;
-	uint8_t	desc_length;
+	uint8_t desc_length;
 
-        UENUM = 0;
+	UENUM = 0;
 	intbits = UEINTX;
 	if (intbits & (1<<RXSTPI))
 	{
-                bmRequestType = UEDATX;
-                bRequest = UEDATX;
-                wValue = UEDATX;
-                wValue |= (UEDATX << 8);
-                wIndex = UEDATX;
-                wIndex |= (UEDATX << 8);
-                wLength = UEDATX;
-                wLength |= (UEDATX << 8);
-                UEINTX = ~((1<<RXSTPI) | (1<<RXOUTI) | (1<<TXINI));
+		bmRequestType = UEDATX;
+		bRequest = UEDATX;
+		wValue = UEDATX;
+		wValue |= (UEDATX << 8);
+		wIndex = UEDATX;
+		wIndex |= (UEDATX << 8);
+		wLength = UEDATX;
+		wLength |= (UEDATX << 8);
+		UEINTX = ~((1<<RXSTPI) | (1<<RXOUTI) | (1<<TXINI));
 
-                if ( bRequest == GET_DESCRIPTOR )
+		if ( bRequest == GET_DESCRIPTOR )
 		{
 			list = (const uint8_t *)descriptor_list;
 			for ( i = 0; ; i++ )
@@ -765,7 +765,7 @@ ISR( USB_COM_vect )
 				do {
 					i = UEINTX;
 				} while (!(i & ((1<<TXINI)|(1<<RXOUTI))));
-				if (i & (1<<RXOUTI)) return;	// abort
+				if (i & (1<<RXOUTI)) return;    // abort
 				// send IN packet
 				n = len < ENDPOINT0_SIZE ? len : ENDPOINT0_SIZE;
 				for (i = n; i; i--) {
@@ -775,7 +775,7 @@ ISR( USB_COM_vect )
 				usb_send_in();
 			} while (len || n == ENDPOINT0_SIZE);
 			return;
-                }
+		}
 
 		if (bRequest == SET_ADDRESS) {
 			usb_send_in();
@@ -803,8 +803,8 @@ ISR( USB_COM_vect )
 					UECFG1X = pgm_read_byte(cfg++);
 				}
 			}
-        		UERST = 0x7E;
-        		UERST = 0;
+			UERST = 0x7E;
+			UERST = 0;
 			return;
 		}
 
@@ -940,6 +940,6 @@ ISR( USB_COM_vect )
 			}
 		}
 	}
-	UECONX = (1 << STALLRQ) | (1 << EPEN);	// stall
+	UECONX = (1 << STALLRQ) | (1 << EPEN);  // stall
 }
 

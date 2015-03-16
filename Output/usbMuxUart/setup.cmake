@@ -35,6 +35,6 @@ list ( REMOVE_ITEM Output_SRCS
 #
 set( ModuleCompatibility
 	arm
-#	avr # TODO
+#       avr # TODO
 )
 

@@ -171,10 +171,10 @@ static int usb_rx_next(struct usbd_ep_pipe_state_t *s)
 	 */
 	size_t nextlen = s->transfer_size;
 
-        if (nextlen > s->ep_maxsize)
-                nextlen = s->ep_maxsize;
+	if (nextlen > s->ep_maxsize)
+		nextlen = s->ep_maxsize;
 
-        void *addr = s->data_buf + s->pos;
+	void *addr = s->data_buf + s->pos;
 	usb_queue_next(s, addr, nextlen);
 
 	return (1);
