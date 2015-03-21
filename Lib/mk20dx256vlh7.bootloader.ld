@@ -55,8 +55,8 @@ SECTIONS
 		. = 0;
 		KEEP(* (.vectors))
 		*(.startup*)
-		*(.rodata*)
 		. = 0x400;
+		*(.rodata*)
 		KEEP(* (.flashconfig))
 		*(.text*)
 		. = ALIGN(4);
