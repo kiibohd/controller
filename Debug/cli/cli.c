@@ -72,6 +72,11 @@ inline void CLI_init()
 	// Reset the Line Buffer
 	CLILineBufferCurrent = 0;
 
+	// History starts empty
+	CLIHistoryHead = 0;
+	CLIHistoryCurrent = 0;
+	CLIHistoryTail = 0;
+
 	// Set prompt
 	prompt();
 
@@ -154,6 +159,22 @@ void CLI_process()
 			// Process the current line buffer
 			CLI_commandLookup();
 
+			// Add the command to the history
+			cli_saveHistory(CLILineBuffer);
+
+			// Keep the array circular, discarding the older entries
+			if (CLIHistoryTail < CLIHistoryHead)
+				CLIHistoryHead = (CLIHistoryHead+1)%CLIMaxHistorySize;
+			CLIHistoryTail++;
+			if (CLIHistoryTail==CLIMaxHistorySize)
+			{
+				CLIHistoryTail = 0;
+				CLIHistoryHead = 1;
+			}
+
+			CLIHistoryCurrent = CLIHistoryTail; // 'Up' starts at the last item
+			cli_saveHistory(NULL); // delete the old temp buffer
+
 			// Reset the buffer
 			CLILineBufferCurrent = 0;
 
@@ -175,9 +196,38 @@ void CLI_process()
 			//     Doesn't look like it will happen *that* often, so not handling it for now -HaaTa
 			return;
 
-		case 0x1B: // Esc
-			// Check for escape sequence
-			// TODO
+		case 0x1B: // Esc / Escape codes
+			// Check for other escape sequence
+
+			// \e[ is an escape code in vt100 compatable terminals
+			if (CLILineBufferCurrent>=prev_buf_pos+3
+				&& CLILineBuffer[prev_buf_pos]==0x1B
+				&& CLILineBuffer[prev_buf_pos+1]==0x5B)
+			{
+				// Arrow Keys: A (0x41) = Up, B (0x42) = Down, C (0x43) = Right, D (0x44) = Left
+
+				if (CLILineBuffer[prev_buf_pos+2]==0x41) // Hist prev
+				{
+					if (CLIHistoryCurrent==CLIHistoryTail)
+					{
+						// Is first time pressing arrow. Save the current buffer
+						CLILineBuffer[prev_buf_pos] = '\0';
+						cli_saveHistory(CLILineBuffer);
+					}
+
+					// Grab the previus item from the history if there is one
+					if (RING_PREV(CLIHistoryCurrent)!=RING_PREV(CLIHistoryHead))
+						CLIHistoryCurrent = RING_PREV(CLIHistoryCurrent);
+					cli_retreiveHistory(CLIHistoryCurrent);
+				}
+				if (CLILineBuffer[prev_buf_pos+2]==0x42) // Hist next
+				{
+					// Grab the next item from the history if it exists
+					if (RING_NEXT(CLIHistoryCurrent)!=RING_NEXT(CLIHistoryTail))
+						CLIHistoryCurrent = RING_NEXT(CLIHistoryCurrent);
+					cli_retreiveHistory(CLIHistoryCurrent);
+				}
+			}
 			return;
 
 		case 0x08:
@@ -345,6 +395,51 @@ inline void CLI_tabCompletion()
 		{
 			CLILineBuffer[CLILineBufferCurrent++] = *tabMatch++;
 		}
+	}
+}
+
+inline int wrap(int kX, int const kLowerBound, int const kUpperBound)
+{
+	int range_size = kUpperBound - kLowerBound + 1;
+
+	if (kX < kLowerBound)
+		kX += range_size * ((kLowerBound - kX) / range_size + 1);
+
+	return kLowerBound + (kX - kLowerBound) % range_size;
+}
+
+inline void cli_saveHistory(char *buff) {
+	if (buff==NULL) {
+		//clear the item
+		CLIHistoryBuffer[CLIHistoryTail][0] = '\0';
+		return;
+	}
+
+	// Copy the line to the history
+	int i;
+	for (i=0; i<CLILineBufferCurrent; i++)
+	{
+		CLIHistoryBuffer[CLIHistoryTail][i] = CLILineBuffer[i];
+	}
+}
+
+void cli_retreiveHistory(int index) {
+	char *histMatch = CLIHistoryBuffer[index];
+
+	// Reset the buffer
+	CLILineBufferCurrent = 0;
+
+	// Reprint the prompt (automatically clears the line)
+	prompt();
+
+	// Display the command
+	dPrint( histMatch );
+
+	// There are no index counts, so just copy the whole string to the input buffe
+	CLILineBufferCurrent = 0;
+	while ( *histMatch != '\0' )
+	{
+		CLILineBuffer[CLILineBufferCurrent++] = *histMatch++;
 	}
 }
 
