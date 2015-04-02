@@ -108,6 +108,7 @@ void CLI_tabCompletion();
 // CLI Command Functions
 void cliFunc_arch    ( char* args );
 void cliFunc_chip    ( char* args );
+void cliFunc_clear   ( char* args );
 void cliFunc_cliDebug( char* args );
 void cliFunc_device  ( char* args );
 void cliFunc_help    ( char* args );

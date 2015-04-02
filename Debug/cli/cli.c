@@ -35,6 +35,7 @@
 // ----- Variables -----
 
 // Basic command dictionary
+CLIDict_Entry( clear, "Clear the screen.");
 CLIDict_Entry( cliDebug, "Enables/Disables hex output of the most recent cli input." );
 CLIDict_Entry( help,     "You're looking at it :P" );
 CLIDict_Entry( led,      "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules..." );
@@ -44,6 +45,7 @@ CLIDict_Entry( restart,  "Sends a software restart, should be similar to powerin
 CLIDict_Entry( version,  "Version information about this firmware." );
 
 CLIDict_Def( basicCLIDict, "General Commands" ) = {
+	CLIDict_Item( clear ),
 	CLIDict_Item( cliDebug ),
 	CLIDict_Item( help ),
 	CLIDict_Item( led ),
@@ -349,6 +351,11 @@ inline void CLI_tabCompletion()
 
 
 // ----- CLI Command Functions -----
+
+void cliFunc_clear( char* args)
+{
+	print("\033[2J\033[H\r"); // Erases the whole screen
+}
 
 void cliFunc_cliDebug( char* args )
 {
