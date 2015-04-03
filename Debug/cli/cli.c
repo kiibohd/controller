@@ -160,20 +160,20 @@ void CLI_process()
 			CLI_commandLookup();
 
 			// Add the command to the history
-			cli_saveHistory(CLILineBuffer);
+			cli_saveHistory( CLILineBuffer );
 
 			// Keep the array circular, discarding the older entries
-			if (CLIHistoryTail < CLIHistoryHead)
-				CLIHistoryHead = (CLIHistoryHead+1)%CLIMaxHistorySize;
+			if ( CLIHistoryTail < CLIHistoryHead )
+				CLIHistoryHead = ( CLIHistoryHead + 1 ) % CLIMaxHistorySize;
 			CLIHistoryTail++;
-			if (CLIHistoryTail==CLIMaxHistorySize)
+			if ( CLIHistoryTail == CLIMaxHistorySize )
 			{
 				CLIHistoryTail = 0;
 				CLIHistoryHead = 1;
 			}
 
 			CLIHistoryCurrent = CLIHistoryTail; // 'Up' starts at the last item
-			cli_saveHistory(NULL); // delete the old temp buffer
+			cli_saveHistory( NULL ); // delete the old temp buffer
 
 			// Reset the buffer
 			CLILineBufferCurrent = 0;
@@ -200,32 +200,32 @@ void CLI_process()
 			// Check for other escape sequence
 
 			// \e[ is an escape code in vt100 compatable terminals
-			if (CLILineBufferCurrent>=prev_buf_pos+3
-				&& CLILineBuffer[prev_buf_pos]==0x1B
-				&& CLILineBuffer[prev_buf_pos+1]==0x5B)
+			if ( CLILineBufferCurrent >= prev_buf_pos + 3
+				&& CLILineBuffer[ prev_buf_pos ] == 0x1B
+				&& CLILineBuffer[ prev_buf_pos + 1] == 0x5B )
 			{
 				// Arrow Keys: A (0x41) = Up, B (0x42) = Down, C (0x43) = Right, D (0x44) = Left
 
-				if (CLILineBuffer[prev_buf_pos+2]==0x41) // Hist prev
+				if ( CLILineBuffer[ prev_buf_pos + 2 ] == 0x41 ) // Hist prev
 				{
-					if (CLIHistoryCurrent==CLIHistoryTail)
+					if ( CLIHistoryCurrent == CLIHistoryTail )
 					{
 						// Is first time pressing arrow. Save the current buffer
-						CLILineBuffer[prev_buf_pos] = '\0';
-						cli_saveHistory(CLILineBuffer);
+						CLILineBuffer[ prev_buf_pos ] = '\0';
+						cli_saveHistory( CLILineBuffer );
 					}
 
 					// Grab the previus item from the history if there is one
-					if (RING_PREV(CLIHistoryCurrent)!=RING_PREV(CLIHistoryHead))
-						CLIHistoryCurrent = RING_PREV(CLIHistoryCurrent);
-					cli_retreiveHistory(CLIHistoryCurrent);
+					if ( RING_PREV( CLIHistoryCurrent ) != RING_PREV( CLIHistoryHead ) )
+						CLIHistoryCurrent = RING_PREV( CLIHistoryCurrent );
+					cli_retreiveHistory( CLIHistoryCurrent );
 				}
-				if (CLILineBuffer[prev_buf_pos+2]==0x42) // Hist next
+				if ( CLILineBuffer[ prev_buf_pos + 2 ] == 0x42 ) // Hist next
 				{
 					// Grab the next item from the history if it exists
-					if (RING_NEXT(CLIHistoryCurrent)!=RING_NEXT(CLIHistoryTail))
-						CLIHistoryCurrent = RING_NEXT(CLIHistoryCurrent);
-					cli_retreiveHistory(CLIHistoryCurrent);
+					if ( RING_NEXT( CLIHistoryCurrent ) != RING_NEXT( CLIHistoryTail ) )
+						CLIHistoryCurrent = RING_NEXT( CLIHistoryCurrent );
+					cli_retreiveHistory( CLIHistoryCurrent );
 				}
 			}
 			return;
@@ -398,33 +398,36 @@ inline void CLI_tabCompletion()
 	}
 }
 
-inline int wrap(int kX, int const kLowerBound, int const kUpperBound)
+inline int CLI_wrap( int kX, int const kLowerBound, int const kUpperBound )
 {
 	int range_size = kUpperBound - kLowerBound + 1;
 
-	if (kX < kLowerBound)
+	if ( kX < kLowerBound )
 		kX += range_size * ((kLowerBound - kX) / range_size + 1);
 
 	return kLowerBound + (kX - kLowerBound) % range_size;
 }
 
-inline void cli_saveHistory(char *buff) {
-	if (buff==NULL) {
+inline void CLI_saveHistory( char *buff )
+{
+	if ( buff == NULL )
+	{
 		//clear the item
-		CLIHistoryBuffer[CLIHistoryTail][0] = '\0';
+		CLIHistoryBuffer[ CLIHistoryTail ][ 0 ] = '\0';
 		return;
 	}
 
 	// Copy the line to the history
 	int i;
-	for (i=0; i<CLILineBufferCurrent; i++)
+	for (i = 0; i < CLILineBufferCurrent; i++)
 	{
-		CLIHistoryBuffer[CLIHistoryTail][i] = CLILineBuffer[i];
+		CLIHistoryBuffer[ CLIHistoryTail ][ i ] = CLILineBuffer[ i ];
 	}
 }
 
-void cli_retreiveHistory(int index) {
-	char *histMatch = CLIHistoryBuffer[index];
+void CLI_retreiveHistory( int index )
+{
+	char *histMatch = CLIHistoryBuffer[ index ];
 
 	// Reset the buffer
 	CLILineBufferCurrent = 0;
@@ -439,7 +442,7 @@ void cli_retreiveHistory(int index) {
 	CLILineBufferCurrent = 0;
 	while ( *histMatch != '\0' )
 	{
-		CLILineBuffer[CLILineBufferCurrent++] = *histMatch++;
+		CLILineBuffer[ CLILineBufferCurrent++ ] = *histMatch++;
 	}
 }
 

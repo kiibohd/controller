@@ -111,11 +111,11 @@ void CLI_process();
 void CLI_registerDictionary( const CLIDictItem *cmdDict, const char* dictName );
 void CLI_argumentIsolation( char* string, char** first, char** second );
 
-int wrap( int x, int low, int high );
+int CLI_wrap( int x, int low, int high );
 void CLI_commandLookup();
 void CLI_tabCompletion();
-void cli_saveHistory( char *buff );
-void cli_retreiveHistory( int index );
+void CLI_saveHistory( char *buff );
+void CLI_retreiveHistory( int index );
 
 // CLI Command Functions
 void cliFunc_arch    ( char* args );
