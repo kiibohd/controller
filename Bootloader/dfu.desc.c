@@ -1,5 +1,5 @@
 // Originally Generated from MCHCK Toolkit
-/* Copyright (c) Jacob Alexander 2014 <haata@kiibohd.com>
+/* Copyright (c) Jacob Alexander 2014-2015 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ static const struct usb_config_1 usb_config_1 = {
 		},
 		.will_detach = 1,
 		.manifestation_tolerant = 0,
-		.can_upload = 0,
+		.can_upload = 1,
 		.can_download = 1,
 		.wDetachTimeOut = 0,
 		.wTransferSize = USB_DFU_TRANSFER_SIZE,

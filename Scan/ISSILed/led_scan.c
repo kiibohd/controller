@@ -271,7 +271,6 @@ inline void I2C_setup()
 	I2C0_FLT = 4;
 	I2C0_C1 = I2C_C1_IICEN;
 	I2C0_C2 = I2C_C2_HDRS; // High drive select
-//},
 
 	// Enable I2C Interrupt
 	NVIC_ENABLE_IRQ( IRQ_I2C0 );

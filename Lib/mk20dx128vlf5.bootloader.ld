@@ -50,12 +50,10 @@ SECTIONS
 {
 	.text :
 	{
-		. = 0;
-		KEEP(* (.vectors))
+		. = 0; KEEP(* (.vectors)) /* MUST BE AT 0 */
 		*(.startup*)
 		*(.rodata*)
-		. = 0x400;
-		KEEP(* (.flashconfig))
+		. = 0x400; KEEP(* (.flashconfig)) /* MUST BE AT 0x400 */
 		*(.text*)
 		. = ALIGN(4);
 		KEEP(*(.init))

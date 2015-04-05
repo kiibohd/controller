@@ -21,11 +21,13 @@ fi
 
 # Make sure the toolchain is up to date
 cd programmer
-git pull --rebase
+#git pull --rebase
 cd ..
 
 # Attempt to flash
 # Udev rules have been applied to name the buspirate as /dev/buspirate (instead of something like /dev/ttyUSB0)
 # By default only root can access serial devices on Linux
+#ruby programmer/flash.rb name=buspirate:dev=/dev/buspirate --mass-erase
 ruby programmer/flash.rb name=buspirate:dev=/dev/buspirate "$1" "$2"
+#ruby programmer/flash.rb name=buspirate:dev=/dev/buspirate --mass-erase "$1" "$2"
 

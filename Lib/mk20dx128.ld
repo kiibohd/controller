@@ -85,10 +85,10 @@ SECTIONS
 
 	.data : AT (_etext) {
 		. = ALIGN(4);
-		_sdata = .; 
+		_sdata = .;
 		*(.data*)
 		. = ALIGN(4);
-		_edata = .; 
+		_edata = .;
 	} > RAM
 
 	.noinit (NOLOAD) : {
@@ -97,7 +97,7 @@ SECTIONS
 
 	.bss : {
 		. = ALIGN(4);
-		_sbss = .; 
+		_sbss = .;
 		*(.bss*)
 		*(COMMON)
 		. = ALIGN(4);

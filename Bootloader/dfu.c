@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2015 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -98,12 +98,80 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 			dfu_dnload_complete(NULL, 0, ctx);
 		goto out_no_status;
 	}
+	case USB_CTRL_REQ_DFU_UPLOAD: {
+		return (0); // TODO
+		/*
+		void *buf;
+
+		switch (ctx->state) {
+		case DFU_STATE_dfuIDLE:
+			ctx->off = 0;
+			break;
+		case DFU_STATE_dfuUPLOAD_IDLE:
+			break;
+		default:
+			goto err;
+		}
+
+		// XXX Don't STALL? -HaaTa
+		// TODO
+		ctx->status = ctx->setup_write(ctx->off, req->wLength, &buf);
+		if (ctx->status != DFU_STATUS_OK) {
+			ctx->state = DFU_STATE_dfuERROR;
+			goto err_have_status;
+		}
+
+		if (req->wLength > 0)
+			usb_ep0_rx(buf, req->wLength, dfu_dnload_complete, ctx);
+		else
+			dfu_dnload_complete(NULL, 0, ctx);
+		goto out_no_status;
+		*/
+	}
 	case USB_CTRL_REQ_DFU_GETSTATUS: {
 		struct dfu_status_t st;
 
 		st.bState = ctx->state;
 		st.bStatus = ctx->status;
 		st.bwPollTimeout = 1000; /* XXX */
+
+		// XXX FAKE WRITE
+		if ( ctx->state == DFU_STATE_dfuMANIFEST )
+		{
+			uint8_t data[] = { 0x10, 0x20, 0x30, 0x40 };
+			flash_program_longword((uintptr_t)&_app_rom, data);
+		}
+		/*
+
+			uint32_t *position = &_app_rom + 0x100;
+		for ( ; position < &_app_rom + 0x200; position++ )
+		//for ( ; position < &_app_rom + 0x800; position++ )
+		{
+			if ( *position != 0xFFFFFFFF )
+			{
+			while( 1 )
+			{
+				GPIOA_PTOR |= (1<<5);
+				for (uint32_t d = 0; d < 7200000; d++ );
+			}
+			}
+		}*/
+
+		// Check to see if vector table was flashed correctly
+		// Return a flash error if it was not
+		if (_app_rom == 0xffffffff && ctx->state == DFU_STATE_dfuMANIFEST)
+			st.bStatus = DFU_STATUS_errPROG;
+		//}
+		/*
+		if (ctx->state == DFU_STATE_dfuMANIFEST)
+		{
+			uint8_t *addr = (uint8_t*)_app_rom;
+			//while (*(addr++) != 0x80);
+			//st.bStatus = DFU_STATUS_errPROG;
+			st.bStatus = (uint8_t)((uint32_t)(&_app_rom) >> 16);
+		}
+		*/
+
 		/**
 		 * If we're in DFU_STATE_dfuMANIFEST, we just finished
 		 * the download, and we're just about to send our last
@@ -131,14 +199,13 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		switch (ctx->state) {
 		case DFU_STATE_dfuIDLE:
 		case DFU_STATE_dfuDNLOAD_IDLE:
-		/* case DFU_STATE_dfuUPLOAD_IDLE: */
+		case DFU_STATE_dfuUPLOAD_IDLE:
 			ctx->state = DFU_STATE_dfuIDLE;
 			break;
 		default:
 			goto err;
 		}
 		break;
-	/* case USB_CTRL_REQ_DFU_UPLOAD: */
 	default:
 		return (0);
 	}

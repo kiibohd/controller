@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2014 for use with McHCK and Kiibohd-dfu
+ * Modifications by Jacob Alexander 2014-2015 for use with McHCK and Kiibohd-dfu
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,8 +29,6 @@
  * SOFTWARE.
  */
 
-/* XXX Not tested yet -HaaTa */
-
 MEMORY
 {
 	FLASH (rx)     : ORIGIN = 0x0, LENGTH = 256K
@@ -52,12 +50,10 @@ SECTIONS
 {
 	.text :
 	{
-		. = 0;
-		KEEP(* (.vectors))
+		. = 0; KEEP(* (.vectors)) /* MUST BE AT 0 */
 		*(.startup*)
-		. = 0x400;
+		. = 0x400; KEEP(* (.flashconfig)) /* MUST BE AT 0x400 */
 		*(.rodata*)
-		KEEP(* (.flashconfig))
 		*(.text*)
 		. = ALIGN(4);
 		KEEP(*(.init))

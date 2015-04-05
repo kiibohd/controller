@@ -394,7 +394,7 @@ const uint8_t flashconfigbytes[16] = {
 	//  http://cache.freescale.com/files/microcontrollers/doc/app_note/AN4507.pdf
 	//  http://cache.freescale.com/files/32bit/doc/ref_manual/K20P64M72SF1RM.pdf (28.34.6)
 	//
-	0xFF, 0xFF, 0xFF, 0xFE, // Program Flash Protection Bytes FPROT0-3
+	0xFF, 0xFF, 0xFF, 0xFF, // Program Flash Protection Bytes FPROT0-3 // XXX TODO PROTECT
 
 	0xBE, // Flash security byte FSEC
 	0x03, // Flash nonvolatile option byte FOPT
@@ -469,8 +469,17 @@ void ResetHandler()
 	//
 	// Also checking for ARM lock-up signal (invalid firmware image)
 	// RCM_SRS1 & 0x02
-	if ( RCM_SRS0 & 0x40 || RCM_SRS0 & 0x20 || RCM_SRS1 & 0x02 || _app_rom == 0xffffffff ||
-	  memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 ) // Check for soft reload
+	if (    // PIN  (External Reset Pin/Switch)
+		   RCM_SRS0 & 0x40
+		// WDOG (Watchdog timeout)
+		|| RCM_SRS0 & 0x20
+		// LOCKUP (ARM Core LOCKUP event)
+		|| RCM_SRS1 & 0x02
+		// Blank flash check
+		|| _app_rom == 0xffffffff
+		// Software reset
+		|| memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0
+	)
 	{
 		memset( (uint8_t*)&VBAT, 0, sizeof(VBAT) );
 	}

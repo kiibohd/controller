@@ -28,27 +28,29 @@
 /**
  * Unfortunately we can't DMA directly to FlexRAM, so we'll have to stage here.
  */
-static char staging[FLASH_SECTOR_SIZE];
+static char staging[ FLASH_SECTOR_SIZE ];
 
 
 
 // ----- Functions -----
 
-static enum dfu_status setup_write(size_t off, size_t len, void **buf)
+static enum dfu_status setup_write( size_t off, size_t len, void **buf )
 {
+	GPIOA_PCOR |= (1<<5);
 	static int last = 0;
 
-	if (len > sizeof(staging))
+	if ( len > sizeof(staging) )
 		return (DFU_STATUS_errADDRESS);
 
 	// We only allow the last write to be less than one sector size.
-	if (off == 0)
+	if ( off == 0 )
 		last = 0;
-	if (last && len != 0)
+	if ( last && len != 0 )
 		return (DFU_STATUS_errADDRESS);
-	if (len != FLASH_SECTOR_SIZE) {
+	if ( len != FLASH_SECTOR_SIZE )
+	{
 		last = 1;
-		memset(staging, 0xff, sizeof(staging));
+		memset( staging, 0xff, sizeof(staging) );
 	}
 
 	*buf = staging;
@@ -58,16 +60,30 @@ static enum dfu_status setup_write(size_t off, size_t len, void **buf)
 static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 {
 	void *target;
-	if (len == 0)
+	if ( len == 0 )
 		return (DFU_STATUS_OK);
 
 	target = flash_get_staging_area(off + (uintptr_t)&_app_rom, FLASH_SECTOR_SIZE);
-	if (!target)
+	if ( !target )
 		return (DFU_STATUS_errADDRESS);
-	memcpy(target, buf, len);
-	if (flash_program_sector(off + (uintptr_t)&_app_rom, FLASH_SECTOR_SIZE) != 0)
+	memcpy( target, buf, len );
+
+	// Depending on the error return a different status
+	switch ( flash_program_sector(off + (uintptr_t)&_app_rom, FLASH_SECTOR_SIZE) )
+	{
+	/*
+	case FTFL_FSTAT_RDCOLERR: // Flash Read Collision Error
+	case FTFL_FSTAT_ACCERR:   // Flash Access Error
+	case FTFL_FSTAT_FPVIOL:   // Flash Protection Violation Error
 		return (DFU_STATUS_errADDRESS);
-	return (DFU_STATUS_OK);
+	case FTFL_FSTAT_MGSTAT0:  // Memory Controller Command Completion Error
+		return (DFU_STATUS_errADDRESS);
+	*/
+
+	case 0:
+	default: // No error
+		return (DFU_STATUS_OK);
+	}
 }
 
 
@@ -93,17 +109,51 @@ void main()
 	// Enabling LED to indicate we are in the bootloader
 	GPIOA_PDDR |= (1<<5);
 	// Setup pin - A5 - See Lib/pin_map.mchck for more details on pins
-	PORTA_PCR19 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOA_PSOR |= (1<<5);
-
+#else
+#error "Incompatible chip for bootloader"
 #endif
+
+	//for (uint8_t c = 0; c < 20; c++)
+	/*
+	while( 1 )
+	{
+		GPIOA_PTOR |= (1<<5);
+		for (uint32_t d = 0; d < 7200000; d++ );
+	}
+	*/
+
+	// XXX REMOVEME
+	/*
+	GPIOB_PDDR |= (1<<16);
+	PORTB_PCR16 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOB_PSOR |= (1<<16);
+	*/
 
 	flash_prepare_flashing();
 
+	uint32_t *position = &_app_rom;
 	usb_init( &dfu_device );
 	for (;;)
 	{
 		usb_poll();
+
+		/*
+		for ( ; position < &_app_rom + 0x201; position++ )
+		//for ( ; position < &_app_rom + 0x800; position++ )
+		{
+			if ( *position != 0xFFFFFFFF )
+			{
+			while( 1 )
+			{
+				GPIOA_PTOR |= (1<<5);
+				for (uint32_t d = 0; d < 7200000; d++ );
+			}
+			}
+		}
+		*/
+
 	}
 }
 
