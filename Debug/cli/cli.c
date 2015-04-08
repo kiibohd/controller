@@ -160,7 +160,7 @@ void CLI_process()
 			CLI_commandLookup();
 
 			// Add the command to the history
-			cli_saveHistory( CLILineBuffer );
+			CLI_saveHistory( CLILineBuffer );
 
 			// Keep the array circular, discarding the older entries
 			if ( CLIHistoryTail < CLIHistoryHead )
@@ -173,7 +173,7 @@ void CLI_process()
 			}
 
 			CLIHistoryCurrent = CLIHistoryTail; // 'Up' starts at the last item
-			cli_saveHistory( NULL ); // delete the old temp buffer
+			CLI_saveHistory( NULL ); // delete the old temp buffer
 
 			// Reset the buffer
 			CLILineBufferCurrent = 0;
@@ -212,20 +212,20 @@ void CLI_process()
 					{
 						// Is first time pressing arrow. Save the current buffer
 						CLILineBuffer[ prev_buf_pos ] = '\0';
-						cli_saveHistory( CLILineBuffer );
+						CLI_saveHistory( CLILineBuffer );
 					}
 
 					// Grab the previus item from the history if there is one
 					if ( RING_PREV( CLIHistoryCurrent ) != RING_PREV( CLIHistoryHead ) )
 						CLIHistoryCurrent = RING_PREV( CLIHistoryCurrent );
-					cli_retreiveHistory( CLIHistoryCurrent );
+					CLI_retreiveHistory( CLIHistoryCurrent );
 				}
 				if ( CLILineBuffer[ prev_buf_pos + 2 ] == 0x42 ) // Hist next
 				{
 					// Grab the next item from the history if it exists
 					if ( RING_NEXT( CLIHistoryCurrent ) != RING_NEXT( CLIHistoryTail ) )
 						CLIHistoryCurrent = RING_NEXT( CLIHistoryCurrent );
-					cli_retreiveHistory( CLIHistoryCurrent );
+					CLI_retreiveHistory( CLIHistoryCurrent );
 				}
 			}
 			return;

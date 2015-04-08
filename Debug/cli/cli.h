@@ -67,8 +67,8 @@
 	const char name##CLIDict_DescEntry[] = description;
 #endif
 
-#define RING_PREV(i) wrap(i-1,0,CLIMaxHistorySize-1)
-#define RING_NEXT(i) wrap(i+1,0,CLIMaxHistorySize-1)
+#define RING_PREV(i) CLI_wrap(i - 1, 0, CLIMaxHistorySize - 1)
+#define RING_NEXT(i) CLI_wrap(i + 1, 0, CLIMaxHistorySize - 1)
 
 
 // ----- Structs -----
