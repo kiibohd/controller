@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2014
+# Jacob Alexander 2011-2015
 # Due to this file's usefulness:
 #
 # Released into the Public Domain

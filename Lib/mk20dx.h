@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander 2014
+ * Modified by Jacob Alexander 2014-2015
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -1343,6 +1343,10 @@
 #define SPI_SR_TFFF                     (uint32_t)0x02000000            // Transmit FIFO Fill Flag
 #define SPI_SR_RFOF                     (uint32_t)0x00080000            // Receive FIFO Overflow Flag
 #define SPI_SR_RFDF                     (uint32_t)0x00020000            // Receive FIFO Drain Flag
+#define SPI_SR_TXCTR                    (uint32_t)0x0000F000            // Transmit FIFO Counter
+#define SPI_SR_TXNXTPTR                 (uint32_t)0x00000F00            // Transmit Next, Pointer
+#define SPI_SR_RXCTR                    (uint32_t)0x000000F0            // Receive FIFO Counter
+#define SPI_SR_POPNXTPTR                (uint32_t)0x0000000F            // Pop Next, Pointer
 #define SPI0_RSER               *(volatile uint32_t *)0x4002C030 // DSPI DMA/Interrupt Request Select and Enable Register
 #define SPI_RSER_TCF_RE                 (uint32_t)0x80000000            // Transmission Complete Request Enable
 #define SPI_RSER_EOQF_RE                (uint32_t)0x10000000            // DSPI Finished Request Request Enable

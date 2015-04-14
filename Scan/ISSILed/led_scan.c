@@ -56,9 +56,10 @@ typedef struct LED_Buffer {
 // ----- Function Declarations -----
 
 // CLI Functions
-void cliFunc_echo( char* args );
 void cliFunc_i2cRecv( char* args );
 void cliFunc_i2cSend( char* args );
+void cliFunc_ledPage( char* args );
+void cliFunc_ledStart( char* args );
 void cliFunc_ledTest( char* args );
 void cliFunc_ledZero( char* args );
 
@@ -74,12 +75,16 @@ uint8_t I2C_Send( uint8_t *data, uint8_t sendLen, uint8_t recvLen );
 // Scan Module command dictionary
 CLIDict_Entry( i2cRecv,     "Send I2C sequence of bytes and expect a reply of 1 byte on the last sequence." NL "\t\tUse |'s to split sequences with a stop." );
 CLIDict_Entry( i2cSend,     "Send I2C sequence of bytes. Use |'s to split sequences with a stop." );
+CLIDict_Entry( ledPage,     "Read the given register page." );
+CLIDict_Entry( ledStart,    "Disable software shutdown." );
 CLIDict_Entry( ledTest,     "Test out the led pages." );
 CLIDict_Entry( ledZero,     "Zero out LED register pages (non-configuration)." );
 
 CLIDict_Def( ledCLIDict, "ISSI LED Module Commands" ) = {
 	CLIDict_Item( i2cRecv ),
 	CLIDict_Item( i2cSend ),
+	CLIDict_Item( ledPage ),
+	CLIDict_Item( ledStart ),
 	CLIDict_Item( ledTest ),
 	CLIDict_Item( ledZero ),
 	{ 0, 0, 0 } // Null entry for dictionary end
@@ -97,7 +102,9 @@ volatile I2C_Buffer I2C_RxBuffer = { 0, 0, 0, I2C_RxBufferLength, (uint8_t*)I2C_
 
 LED_Buffer LED_pageBuffer;
 
+/*
 // A bit mask determining which LEDs are enabled in the ISSI chip
+// All channel mask example
 // 0x00 -> 0x11
 const uint8_t LED_ledEnableMask[] = {
 0xE8, // I2C address
@@ -112,7 +119,58 @@ const uint8_t LED_ledEnableMask[] = {
 0xFF, 0xFF, // C8-1 -> C8-16
 0xFF, 0xFF, // C9-1 -> C9-16
 };
+*/
 
+/*
+// A bit mask determining which LEDs are enabled in the ISSI chip
+// Infinity ErgoDox full mask
+// 0x00 -> 0x11
+const uint8_t LED_ledEnableMask[] = {
+0xE8, // I2C address
+0x00, // Starting register address
+0xFC, 0xFC, // C1-1 -> C1-16
+0xFB, 0xFB, // C2-1 -> C2-16
+0xFF, 0xFF, // C3-1 -> C3-16
+0xFE, 0xFE, // C4-1 -> C4-16
+0x7F, 0x7F, // C5-1 -> C5-16
+0xFF, 0xFF, // C6-1 -> C6-16
+0xCF, 0xCF, // C7-1 -> C7-16
+0xC7, 0xC7, // C8-1 -> C8-16
+0x43, 0x43, // C9-1 -> C9-16
+};
+*/
+const uint8_t LED_ledEnableMask[] = {
+0xE8, // I2C address
+0x00, // Starting register address
+0x00, 0x00, // C1-1 -> C1-16
+//0xEC, 0xEC, // C1-1 -> C1-16
+0x00, 0x00, // C2-1 -> C2-16
+0x00, 0x00, // C3-1 -> C3-16
+0x00, 0x00, // C4-1 -> C4-16
+0x00, 0x00, // C5-1 -> C5-16
+0x00, 0x00, // C6-1 -> C6-16
+0x08, 0x08, // C7-1 -> C7-16
+0x00, 0x00, // C8-1 -> C8-16
+0x00, 0x00, // C9-1 -> C9-16
+};
+
+
+// XXX Pre-fill example of buffers
+const uint8_t examplePage[] = {
+0xE8, // I2C address
+0x24, // Starting register address
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // C1-1 -> C1-16
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // C2-1 -> C2-16
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // C3-1 -> C3-16
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // C4-1 -> C4-16
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // C5-1 -> C5-16
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // C6-1 -> C6-16
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // C7-1 -> C7-16
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // C8-1 -> C8-16
+0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // C9-1 -> C9-16
+};
+
+/*
 // XXX Pre-fill example of buffers
 const uint8_t examplePage[] = {
 0xE8, // I2C address
@@ -127,6 +185,7 @@ const uint8_t examplePage[] = {
 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F, // C8-1 -> C8-16
 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D, 0x8E, 0x8F, // C9-1 -> C9-16
 };
+*/
 
 
 
@@ -317,6 +376,34 @@ void LED_sendPage( uint8_t *buffer, uint8_t len, uint8_t page )
 
 }
 
+void LED_readPage( uint8_t len, uint8_t page )
+{
+	// Page Setup
+	uint8_t pageSetup[] = { 0xE8, 0xFD, page };
+
+	// Setup page
+	while ( I2C_Send( pageSetup, sizeof( pageSetup ), 0 ) == 0 )
+		delay(1);
+
+	// Register Setup
+	uint8_t regSetup[] = { 0xE8, 0x00 };
+
+	// Setup starting register
+	while ( I2C_Send( regSetup, sizeof( regSetup ), 0 ) == 0 )
+		delay(1);
+
+	// Register Read Command
+	uint8_t regReadCmd[] = { 0xE9 };
+
+	// Read each register in the page
+	for ( uint8_t reg = 0; reg < len; reg++ )
+	{
+		// Request register data
+		while ( I2C_Send( regReadCmd, sizeof( regReadCmd ), 0 ) == 0 )
+			delay(1);
+	}
+}
+
 void LED_writeReg( uint8_t reg, uint8_t val, uint8_t page )
 {
 	// Page Setup
@@ -342,6 +429,7 @@ inline void LED_setup()
 	// Initialize I2C
 	I2C_setup();
 
+	/* TODO Make work
 	// Zero out Frame Registers
 	// This needs to be done before disabling the hardware shutdown (or the leds will do undefined things)
 	LED_zeroPages( 0x0B, 1, 0x00, 0x0C ); // Control Registers
@@ -359,6 +447,7 @@ inline void LED_setup()
 
 	// Disable Software shutdown of ISSI chip
 	LED_writeReg( 0x0A, 0x01, 0x0B );
+	*/
 }
 
 
@@ -446,6 +535,9 @@ inline uint16_t I2C_BufferLen( I2C_Buffer *buffer )
 
 void I2C_BufferPush( uint8_t byte, I2C_Buffer *buffer )
 {
+	dbug_msg("DATA: ");
+	printHex( byte );
+
 	// Make sure buffer isn't full
 	if ( buffer->tail + 1 == buffer->head || ( buffer->head > buffer->tail && buffer->tail + 1 - buffer->size == buffer->head ) )
 	{
@@ -689,6 +781,38 @@ void cliFunc_i2cRecv( char* args )
 	print( NL );
 
 	I2C_Send( buffer, bufferLen, 1 ); // Only 1 byte is ever read at a time with the ISSI chip
+}
+
+void cliFunc_ledPage( char* args )
+{
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	// Default to 0 if no argument is given
+	uint8_t page = 0;
+
+	if ( arg1Ptr[0] != '\0' )
+	{
+		 page = (uint8_t)numToInt( arg1Ptr );
+	}
+
+	// No \r\n by default after the command is entered
+	print( NL );
+
+	LED_readPage( 0xB4, page );
+}
+
+void cliFunc_ledStart( char* args )
+{
+	print( NL ); // No \r\n by default after the command is entered
+	LED_zeroPages( 0x0B, 1, 0x00, 0x0C ); // Control Registers
+	//LED_zeroPages( 0x00, 8, 0x00, 0xB4 ); // LED Registers
+	LED_writeReg( 0x0A, 0x01, 0x0B );
+	LED_sendPage( (uint8_t*)LED_ledEnableMask, sizeof( LED_ledEnableMask ), 0 );
+
 }
 
 void cliFunc_ledTest( char* args )
