@@ -46,26 +46,35 @@ message( "${CHIP}" )
 set( MCU "${CHIP}" ) # For loading script compatibility
 
 
-#| Chip Size Database
+#| Chip Size and CPU Frequency Database
+#| Processor frequency.
+#|   Normally the first thing your program should do is set the clock prescaler,
+#|   so your program will run at the correct speed.  You should also set this
+#|   variable to same clock speed.  The _delay_ms() macro uses this, and many
+#|   examples use this variable to calculate timings.  Do not add a "UL" here.
 #| MCHCK Based / Kiibohd-dfu
 if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
 	set( SIZE_RAM    16384 )
 	set( SIZE_FLASH 126976 )
+	set( F_CPU "48000000" )
 
 #| Kiibohd-dfu
 elseif ( "${CHIP}" MATCHES "mk20dx256vlh7" )
 	set( SIZE_RAM    65536 )
 	set( SIZE_FLASH 253952 )
+	set( F_CPU "72000000" )
 
 #| Teensy 3.0
 elseif ( "${CHIP}" MATCHES "mk20dx128" )
 	set( SIZE_RAM    16384 )
 	set( SIZE_FLASH 131072 )
+	set( F_CPU "48000000" )
 
 #| Teensy 3.1
 elseif ( "${CHIP}" MATCHES "mk20dx256" )
 	set( SIZE_RAM    65536 )
 	set( SIZE_FLASH 262144 )
+	set( F_CPU "48000000" ) # XXX Also supports 72 MHz, but may requires code changes
 
 #| Unknown ARM
 else ()
@@ -157,14 +166,6 @@ endif()
 #|     0 = turn off optimization. s = optimize for size.
 #|     (Note: 3 is not always the best optimization level.)
 set( OPT "s" )
-
-
-#| Processor frequency.
-#|   Normally the first thing your program should do is set the clock prescaler,
-#|   so your program will run at the correct speed.  You should also set this
-#|   variable to same clock speed.  The _delay_ms() macro uses this, and many
-#|   examples use this variable to calculate timings.  Do not add a "UL" here.
-set( F_CPU "48000000" )
 
 
 #| Dependency Files

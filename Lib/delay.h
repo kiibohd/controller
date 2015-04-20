@@ -63,6 +63,8 @@ static inline void delayMicroseconds(uint32_t usec)
 {
 #if F_CPU == 96000000
 	uint32_t n = usec << 5;
+#elif F_CPU == 72000000
+	uint32_t n = usec << 5; // XXX Not accurate, assembly snippet needs to be updated
 #elif F_CPU == 48000000
 	uint32_t n = usec << 4;
 #elif F_CPU == 24000000
