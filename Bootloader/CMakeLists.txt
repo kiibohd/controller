@@ -60,6 +60,7 @@ include( initialize )
 #
 set( SRCS
 	main.c
+	debug.c # TODO only compile in if necessary
 	dfu.c
 	dfu.desc.c
 	flash.c

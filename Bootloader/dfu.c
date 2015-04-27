@@ -19,6 +19,7 @@
 
 #include "usb.h"
 #include "dfu.h"
+#include "debug.h"
 
 
 
@@ -68,7 +69,8 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 	struct dfu_ctx *ctx = data;
 	int fail = 1;
 
-	switch ((enum dfu_ctrl_req_code)req->bRequest) {
+	switch ((enum dfu_ctrl_req_code)req->bRequest)
+	{
 	case USB_CTRL_REQ_DFU_DNLOAD: {
 		void *buf;
 
@@ -99,13 +101,12 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		goto out_no_status;
 	}
 	case USB_CTRL_REQ_DFU_UPLOAD: {
-		return (0); // TODO
-		/*
 		void *buf;
+		size_t len = 0;
 
-		switch (ctx->state) {
+		switch ( ctx->state )
+		{
 		case DFU_STATE_dfuIDLE:
-			ctx->off = 0;
 			break;
 		case DFU_STATE_dfuUPLOAD_IDLE:
 			break;
@@ -113,20 +114,33 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 			goto err;
 		}
 
-		// XXX Don't STALL? -HaaTa
-		// TODO
-		ctx->status = ctx->setup_write(ctx->off, req->wLength, &buf);
-		if (ctx->status != DFU_STATUS_OK) {
+		// Find which sector to read
+		ctx->status = ctx->setup_read(ctx->off, &len, &buf);
+		print("UPLOAD off:");
+		printHex( ctx->off );
+		print(" len:");
+		printHex( len );
+		print(" addr:");
+		printHex( (uint32_t)buf );
+		print( NL );
+
+		if ( ctx->status != DFU_STATUS_OK || len > req->wLength )
+		{
 			ctx->state = DFU_STATE_dfuERROR;
 			goto err_have_status;
 		}
 
-		if (req->wLength > 0)
-			usb_ep0_rx(buf, req->wLength, dfu_dnload_complete, ctx);
+		// Send bytes to Host
+		if ( len > 0 )
+		{
+			usb_ep0_rx( buf, len, NULL, NULL );
+		}
 		else
-			dfu_dnload_complete(NULL, 0, ctx);
+		{
+			ctx->state = DFU_STATE_dfuIDLE;
+		}
+
 		goto out_no_status;
-		*/
 	}
 	case USB_CTRL_REQ_DFU_GETSTATUS: {
 		struct dfu_status_t st;
@@ -223,9 +237,10 @@ out_no_status:
 	return (1);
 }
 
-void dfu_init( dfu_setup_write_t setup_write, dfu_finish_write_t finish_write, struct dfu_ctx *ctx )
+void dfu_init( dfu_setup_read_t setup_read, dfu_setup_write_t setup_write, dfu_finish_write_t finish_write, struct dfu_ctx *ctx )
 {
 	ctx->state = DFU_STATE_dfuIDLE;
+	ctx->setup_read = setup_read;
 	ctx->setup_write = setup_write;
 	ctx->finish_write = finish_write;
 	usb_attach_function(&dfu_function, &ctx->header);

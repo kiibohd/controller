@@ -192,14 +192,14 @@ void uart_serial_setup()
 #elif defined(_mk20dx256vlh7_) // UART2 Debug
 	// Setup baud rate - 115200 Baud
 	// Uses Bus Clock
-	// 24 MHz / ( 16 * Baud ) = BDH/L
-	// Baud: 115200 -> 24 MHz / ( 16 * 115200 ) = 13.021
-	// Thus baud setting = 13
+	// 36 MHz / ( 16 * Baud ) = BDH/L
+	// Baud: 115200 -> 36 MHz / ( 16 * 115200 ) = 19.53125
+	// Thus baud setting = 19
 	// NOTE: If finer baud adjustment is needed see UARTx_C4 -> BRFA in the datasheet
-	uint16_t baud = 13; // Max setting of 8191
+	uint16_t baud = 19; // Max setting of 8191
 	UART_BDH = (uint8_t)(baud >> 8);
 	UART_BDL = (uint8_t)baud;
-	UART_C4 = 0x01;
+	UART_C4 = 0x11;
 
 #endif
 

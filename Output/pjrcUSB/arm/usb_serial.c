@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander 2013-2014
+ * Modified by Jacob Alexander 2013-2015
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -56,11 +56,13 @@
 #define TX_TIMEOUT_MSEC 70
 
 #if F_CPU == 96000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 596)
+	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 596)
+#elif F_CPU == 72000000
+	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 512) // XXX Correct?
 #elif F_CPU == 48000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 428)
+	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 428)
 #elif F_CPU == 24000000
-  #define TX_TIMEOUT (TX_TIMEOUT_MSEC * 262)
+	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 262)
 #endif
 
 

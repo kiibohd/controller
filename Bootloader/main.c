@@ -21,6 +21,8 @@
 #include "mchck.h"
 #include "dfu.desc.h"
 
+#include "debug.h"
+
 
 
 // ----- Variables -----
@@ -34,9 +36,60 @@ static char staging[ FLASH_SECTOR_SIZE ];
 
 // ----- Functions -----
 
+void sector_print( void* buf, size_t sector, size_t chunks )
+{
+	uint8_t* start = (uint8_t*)buf + sector * USB_DFU_TRANSFER_SIZE;
+	uint8_t* end = (uint8_t*)buf + (sector + 1) * USB_DFU_TRANSFER_SIZE;
+	uint8_t* pos = start;
+
+	print( NL );
+	print("Block ");
+	printHex( sector );
+	print(" ");
+	printHex( (size_t)start );
+	print(" -> ");
+	printHex( (size_t)end );
+	print( NL );
+
+	// Display sector
+	for ( size_t line = 0; pos < end - 24; line++ )
+	{
+		// Each Line
+		printHex_op( (size_t)pos, 4 );
+		print(" ");
+
+		// Each 2 byte chunk
+		for ( size_t chunk = 0; chunk < chunks; chunk++ )
+		{
+			// Print out the two bytes (second one first)
+			printHex_op( *(pos + 1), 2 );
+			printHex_op( *pos, 2 );
+			print(" ");
+			pos += 2;
+		}
+
+		print( NL );
+	}
+}
+
+static enum dfu_status setup_read( size_t off, size_t *len, void **buf )
+{
+	// Calculate starting address from offset
+	*buf = (void*)&_app_rom + (USB_DFU_TRANSFER_SIZE / 4) * off;
+
+	// Calculate length of transfer
+	*len = *buf > (void*)(&_app_rom_end) - USB_DFU_TRANSFER_SIZE
+		? 0 : USB_DFU_TRANSFER_SIZE;
+
+	// Check for error
+	if ( *buf > (void*)&_app_rom_end )
+		return (DFU_STATUS_errADDRESS);
+
+	return (DFU_STATUS_OK);
+}
+
 static enum dfu_status setup_write( size_t off, size_t len, void **buf )
 {
-	GPIOA_PCOR |= (1<<5);
 	static int last = 0;
 
 	if ( len > sizeof(staging) )
@@ -67,6 +120,9 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 	if ( !target )
 		return (DFU_STATUS_errADDRESS);
 	memcpy( target, buf, len );
+	print("BUF: ");
+	printHex( off );
+	sector_print( target, 0, 16 );
 
 	// Depending on the error return a different status
 	switch ( flash_program_sector(off + (uintptr_t)&_app_rom, FLASH_SECTOR_SIZE) )
@@ -91,7 +147,7 @@ static struct dfu_ctx dfu_ctx;
 
 void init_usb_bootloader( int config )
 {
-	dfu_init(setup_write, finish_write, &dfu_ctx);
+	dfu_init( setup_read, setup_write, finish_write, &dfu_ctx );
 }
 
 void main()
@@ -115,26 +171,25 @@ void main()
 #error "Incompatible chip for bootloader"
 #endif
 
-	//for (uint8_t c = 0; c < 20; c++)
-	/*
-	while( 1 )
-	{
-		GPIOA_PTOR |= (1<<5);
-		for (uint32_t d = 0; d < 7200000; d++ );
-	}
-	*/
+	uart_serial_setup();
+	printNL( NL "Bootloader DFU-Mode" );
+
+	// TODO REMOVEME
+	for ( uint8_t sector = 0; sector < 3; sector++ )
+		sector_print( &_app_rom, sector, 16 );
+	print( NL );
 
 	// XXX REMOVEME
 	/*
 	GPIOB_PDDR |= (1<<16);
 	PORTB_PCR16 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOB_PSOR |= (1<<16);
-	*/
+
 	// RST
 	GPIOC_PDDR |= (1<<8);
 	PORTC_PCR8 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOC_PSOR |= (1<<8);
-	/*
+
 	// CS1B
 	GPIOC_PDDR |= (1<<4);
 	PORTC_PCR4 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
@@ -151,31 +206,14 @@ void main()
 	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOC_PCOR |= (1<<3);
 
-
-
 	flash_prepare_flashing();
 
-	uint32_t *position = &_app_rom;
+	//uint32_t *position = &_app_rom;
 	usb_init( &dfu_device );
+
 	for (;;)
 	{
 		usb_poll();
-
-		/*
-		for ( ; position < &_app_rom + 0x201; position++ )
-		//for ( ; position < &_app_rom + 0x800; position++ )
-		{
-			if ( *position != 0xFFFFFFFF )
-			{
-			while( 1 )
-			{
-				GPIOA_PTOR |= (1<<5);
-				for (uint32_t d = 0; d < 7200000; d++ );
-			}
-			}
-		}
-		*/
-
 	}
 }
 

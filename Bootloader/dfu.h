@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2015 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,39 +39,6 @@
 #define USB_FUNCTION_DFU_IFACE_COUNT    1
 #define USB_FUNCTION_DFU_RX_EP_COUNT    0
 #define USB_FUNCTION_DFU_TX_EP_COUNT    0
-
-
-
-// ----- Macros -----
-
-#define USB_FUNCTION_DESC_DFU(state...)                                 \
-	{                                                               \
-		.iface = {                                              \
-			.bLength = sizeof(struct usb_desc_iface_t),     \
-			.bDescriptorType = USB_DESC_IFACE,              \
-			.bInterfaceNumber = USB_FUNCTION_IFACE(0, state), \
-			.bAlternateSetting = 0,                         \
-			.bNumEndpoints = 0,                             \
-			.bInterfaceClass = USB_DEV_CLASS_APP,           \
-			.bInterfaceSubClass = USB_DEV_SUBCLASS_APP_DFU, \
-			.bInterfaceProtocol = USB_DEV_PROTO_DFU_DFU,    \
-			.iInterface = 0,                                \
-		},                                                      \
-			.dfu = {                                        \
-			.bLength = sizeof(struct dfu_desc_functional),  \
-			.bDescriptorType = {                            \
-				.id = 0x1,                              \
-				.type_type = USB_DESC_TYPE_CLASS        \
-			},                                              \
-			.will_detach = 1,                               \
-			.manifestation_tolerant = 0,                    \
-			.can_upload = 0,                                \
-			.can_download = 1,                              \
-			.wDetachTimeOut = 0,                            \
-			.wTransferSize = USB_DFU_TRANSFER_SIZE,         \
-			.bcdDFUVersion = { .maj = 1, .min = 1 }         \
-		}                                                       \
-	}
 
 
 
@@ -143,6 +110,7 @@ struct dfu_status_t {
 CTASSERT_SIZE_BYTE(struct dfu_status_t, 6);
 
 
+typedef enum dfu_status (*dfu_setup_read_t)(size_t off, size_t *len, void **buf);
 typedef enum dfu_status (*dfu_setup_write_t)(size_t off, size_t len, void **buf);
 typedef enum dfu_status (*dfu_finish_write_t)(void *, size_t off, size_t len);
 typedef void (*dfu_detach_t)(void);
@@ -151,6 +119,7 @@ struct dfu_ctx {
 	struct usbd_function_ctx_header header;
 	enum dfu_state state;
 	enum dfu_status status;
+	dfu_setup_read_t setup_read;
 	dfu_setup_write_t setup_write;
 	dfu_finish_write_t finish_write;
 	size_t off;
@@ -190,8 +159,8 @@ extern const struct usbd_function dfu_app_function;
 
 // ----- Functions -----
 
-void dfu_write_done(enum dfu_status, struct dfu_ctx *ctx);
-void dfu_init(dfu_setup_write_t setup_write, dfu_finish_write_t finish_write, struct dfu_ctx *ctx);
-void dfu_app_init(dfu_detach_t detachcb);
+void dfu_write_done( enum dfu_status, struct dfu_ctx *ctx );
+void dfu_init( dfu_setup_read_t setup_read, dfu_setup_write_t setup_write, dfu_finish_write_t finish_write, struct dfu_ctx *ctx );
+void dfu_app_init( dfu_detach_t detachcb );
 
 #endif
