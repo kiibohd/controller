@@ -229,6 +229,21 @@ void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *
 }
 
 
+// Ignores the given key status update
+// Used to prevent fall-through, this is the None keyword in KLL
+void Output_noneSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_noneSend()");
+		return;
+	}
+
+	// Nothing to do, because that's the point :P
+}
+
+
 // Sends a System Control code to the USB Output buffer
 void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {

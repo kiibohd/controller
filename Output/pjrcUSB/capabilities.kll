@@ -1,14 +1,15 @@
 Name = pjrcUSBCapabilities;
-Version = 0.3;
-Author = "HaaTa (Jacob Alexander) 2014";
-KLL = 0.3;
+Version = 0.4;
+Author = "HaaTa (Jacob Alexander) 2014-2015";
+KLL = 0.3b;
 
 # Modified Date
-Date = 2014-10-01;
+Date = 2015-05-02;
 
 
 # Output capabilities
 consCtrlOut => Output_consCtrlSend_capability( consCode : 2 );
+NoneOut     => Output_noneSend_capability();
 sysCtrlOut  => Output_sysCtrlSend_capability( sysCode : 1 );
 usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
 
