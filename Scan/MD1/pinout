@@ -49,6 +49,19 @@ PTA19 (LED only for PCB, not McHCK) (XTAL)
 PTA1 - RX0
 PTA2 - TX0
 
+* Tag Connect
+
+1  - Vdd +5
+2  - PTA3 / SWD_IO
+3  - Vss / Gnd
+4  - PTA0 / SWD_CLK
+5  - +5V
+6  - PTA2 / TRACE_SWO
+7  - N/C
+8  - PTA1 / JTAG_TDI
+9  - N/C
+10 - Reset_b
+
 
  ------
 |Unused|

@@ -9,7 +9,7 @@ Date = 2015-05-02;
 
 # Output capabilities
 consCtrlOut => Output_consCtrlSend_capability( consCode : 2 );
-NoneOut     => Output_noneSend_capability();
+noneOut     => Output_noneSend_capability();
 sysCtrlOut  => Output_sysCtrlSend_capability( sysCode : 1 );
 usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
 
