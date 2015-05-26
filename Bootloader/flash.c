@@ -101,15 +101,20 @@ int flash_program_section_phrases( uintptr_t addr, size_t num_phrases )
 
 int flash_program_sector( uintptr_t addr, size_t len )
 {
-#if defined(_mk20dx128vlf5_)
-	return (len != FLASH_SECTOR_SIZE
-		|| (addr & (FLASH_SECTOR_SIZE - 1)) != 0
-		|| flash_erase_sector( addr )
-		|| flash_program_section_longwords( addr, FLASH_SECTOR_SIZE / 4 ));
-#elif defined(_mk20dx256vlh7_)
 	if ( len != FLASH_SECTOR_SIZE )
 		return 1;
 
+#if defined(_mk20dx128vlf5_)
+	// Check if this is the beginning of a sector
+	// Only erase if necessary
+	if ( (addr & (FLASH_SECTOR_SIZE - 1)) == 0
+		&& flash_read_1s_sector( addr, FLASH_SECTOR_SIZE / 4 )
+		&& flash_erase_sector( addr ) )
+			return 1;
+
+	// Program sector
+	return flash_program_section_longwords( addr, FLASH_SECTOR_SIZE / 4 );
+#elif defined(_mk20dx256vlh7_)
 	// Check if beginning of sector and erase if not empty
 	// Each sector is 2 kB in length, but we can only write to half a sector at a time
 	// We can only erase an entire sector at a time

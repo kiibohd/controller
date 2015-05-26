@@ -60,13 +60,20 @@ include( initialize )
 #
 set( SRCS
 	main.c
-	debug.c # TODO only compile in if necessary
 	dfu.c
 	dfu.desc.c
 	flash.c
 	kinetis.c
 	usb.c
 )
+
+# Only compile in if necessary
+if( CHIP STREQUAL "mk20dx256vlh7" )
+	set( SRCS ${SRCS}
+		debug.c
+	)
+endif()
+
 
 message( STATUS "Bootloader Source Files:" )
 message( "${SRCS}" )

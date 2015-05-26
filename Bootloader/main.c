@@ -36,7 +36,7 @@ static char staging[ USB_DFU_TRANSFER_SIZE ];
 
 // ----- Functions -----
 
-void sector_print( void* buf, size_t sector, size_t chunks )
+int sector_print( void* buf, size_t sector, size_t chunks )
 {
 	uint8_t* start = (uint8_t*)buf + sector * USB_DFU_TRANSFER_SIZE;
 	uint8_t* end = (uint8_t*)buf + (sector + 1) * USB_DFU_TRANSFER_SIZE;
@@ -79,6 +79,8 @@ void sector_print( void* buf, size_t sector, size_t chunks )
 
 		print( NL );
 	}
+
+	return retval;
 }
 
 static enum dfu_status setup_read( size_t off, size_t *len, void **buf )
@@ -133,9 +135,6 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 	if ( !target )
 		return (DFU_STATUS_errADDRESS);
 	memcpy( target, buf, len );
-	print("BUF: ");
-	printHex( off );
-	sector_print( target, 0, 16 );
 
 	// Depending on the error return a different status
 	switch ( flash_program_sector(off + (uintptr_t)&_app_rom, FLASH_SECTOR_SIZE) )
