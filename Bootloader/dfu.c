@@ -101,6 +101,7 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		goto out_no_status;
 	}
 	case USB_CTRL_REQ_DFU_UPLOAD: {
+		/*
 		void *buf;
 		size_t len = 0;
 
@@ -141,6 +142,8 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		}
 
 		goto out_no_status;
+		*/
+		return 0;
 	}
 	case USB_CTRL_REQ_DFU_GETSTATUS: {
 		struct dfu_status_t st;
@@ -148,43 +151,6 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		st.bState = ctx->state;
 		st.bStatus = ctx->status;
 		st.bwPollTimeout = 1000; /* XXX */
-
-		// XXX FAKE WRITE
-		if ( ctx->state == DFU_STATE_dfuMANIFEST )
-		{
-			uint8_t data[] = { 0x10, 0x20, 0x30, 0x40 };
-			flash_program_longword((uintptr_t)&_app_rom, data);
-		}
-		/*
-
-			uint32_t *position = &_app_rom + 0x100;
-		for ( ; position < &_app_rom + 0x200; position++ )
-		//for ( ; position < &_app_rom + 0x800; position++ )
-		{
-			if ( *position != 0xFFFFFFFF )
-			{
-			while( 1 )
-			{
-				GPIOA_PTOR |= (1<<5);
-				for (uint32_t d = 0; d < 7200000; d++ );
-			}
-			}
-		}*/
-
-		// Check to see if vector table was flashed correctly
-		// Return a flash error if it was not
-		if (_app_rom == 0xffffffff && ctx->state == DFU_STATE_dfuMANIFEST)
-			st.bStatus = DFU_STATUS_errPROG;
-		//}
-		/*
-		if (ctx->state == DFU_STATE_dfuMANIFEST)
-		{
-			uint8_t *addr = (uint8_t*)_app_rom;
-			//while (*(addr++) != 0x80);
-			//st.bStatus = DFU_STATUS_errPROG;
-			st.bStatus = (uint8_t)((uint32_t)(&_app_rom) >> 16);
-		}
-		*/
 
 		/**
 		 * If we're in DFU_STATE_dfuMANIFEST, we just finished

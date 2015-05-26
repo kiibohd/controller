@@ -37,7 +37,7 @@
 
 #include "mchck-cdefs.h"
 
-extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _app_rom, _app_rom_end;
+extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _app_rom, _app_rom_end, _bootloader;
 
 #include "ftfl.h"
 #include "usbotg.h"

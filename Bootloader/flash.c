@@ -31,7 +31,7 @@ uint32_t flash_ALLOW_BRICKABLE_ADDRESSES;
 
 /* This will have to live in SRAM. */
 __attribute__((section(".ramtext.ftfl_submit_cmd"), long_call))
-int ftfl_submit_cmd(void)
+int ftfl_submit_cmd()
 {
 	FTFL.fstat.raw = ((struct FTFL_FSTAT_t){
 			.ccif = 1,
@@ -49,10 +49,11 @@ int ftfl_submit_cmd(void)
 	//return (!!stat.mgstat0);
 }
 
-int flash_prepare_flashing(void)
+int flash_prepare_flashing()
 {
 	/* switch to FlexRAM */
-	if (!FTFL.fcnfg.ramrdy) {
+	if ( !FTFL.fcnfg.ramrdy )
+	{
 		FTFL.fccob.set_flexram.fcmd = FTFL_FCMD_SET_FLEXRAM;
 		FTFL.fccob.set_flexram.flexram_function = FTFL_FLEXRAM_RAM;
 		return (ftfl_submit_cmd());
@@ -60,17 +61,27 @@ int flash_prepare_flashing(void)
 	return (0);
 }
 
-int flash_erase_sector(uintptr_t addr)
+int flash_read_1s_sector( uintptr_t addr, size_t num )
 {
-	if (addr < (uintptr_t)&_app_rom &&
-		flash_ALLOW_BRICKABLE_ADDRESSES != 0x00023420)
+	FTFL.fccob.read_1s_section.fcmd = FTFL_FCMD_READ_1s_SECTION;
+	FTFL.fccob.read_1s_section.addr = addr;
+	FTFL.fccob.read_1s_section.margin = FTFL_MARGIN_NORMAL;
+	FTFL.fccob.read_1s_section.num_words = num;
+
+	return ftfl_submit_cmd();
+}
+
+int flash_erase_sector( uintptr_t addr )
+{
+	if ( addr < (uintptr_t)&_app_rom && flash_ALLOW_BRICKABLE_ADDRESSES != 0x00023420 )
 		return (-1);
 	FTFL.fccob.erase.fcmd = FTFL_FCMD_ERASE_SECTOR;
 	FTFL.fccob.erase.addr = addr;
-	return (ftfl_submit_cmd());
+
+	return ftfl_submit_cmd();
 }
 
-int flash_program_section_longwords(uintptr_t addr, size_t num_words)
+int flash_program_section_longwords( uintptr_t addr, size_t num_words )
 {
 	FTFL.fccob.program_section.fcmd = FTFL_FCMD_PROGRAM_SECTION;
 	FTFL.fccob.program_section.addr = addr;
@@ -79,7 +90,7 @@ int flash_program_section_longwords(uintptr_t addr, size_t num_words)
 	return ftfl_submit_cmd();
 }
 
-int flash_program_section_phrases(uintptr_t addr, size_t num_phrases)
+int flash_program_section_phrases( uintptr_t addr, size_t num_phrases )
 {
 	FTFL.fccob.program_section.fcmd = FTFL_FCMD_PROGRAM_SECTION;
 	FTFL.fccob.program_section.addr = addr;
@@ -88,53 +99,43 @@ int flash_program_section_phrases(uintptr_t addr, size_t num_phrases)
 	return ftfl_submit_cmd();
 }
 
-int flash_program_longword(uintptr_t addr, uint8_t *data)
-{
-	FTFL.fccob.program_longword.fcmd = FTFL_FCMD_PROGRAM_LONGWORD;
-	FTFL.fccob.program_longword.addr = addr;
-	FTFL.fccob.program_longword.data_be[0] = data[0];
-	FTFL.fccob.program_longword.data_be[1] = data[1];
-	FTFL.fccob.program_longword.data_be[2] = data[2];
-	FTFL.fccob.program_longword.data_be[3] = data[3];
-
-	return ftfl_submit_cmd();
-}
-
-int flash_program_sector(uintptr_t addr, size_t len)
+int flash_program_sector( uintptr_t addr, size_t len )
 {
 #if defined(_mk20dx128vlf5_)
-	return (len != FLASH_SECTOR_SIZE ||
-		(addr & (FLASH_SECTOR_SIZE - 1)) != 0 ||
-		flash_erase_sector(addr) ||
-		flash_program_section_longwords(addr, FLASH_SECTOR_SIZE / 4));
+	return (len != FLASH_SECTOR_SIZE
+		|| (addr & (FLASH_SECTOR_SIZE - 1)) != 0
+		|| flash_erase_sector( addr )
+		|| flash_program_section_longwords( addr, FLASH_SECTOR_SIZE / 4 ));
 #elif defined(_mk20dx256vlh7_)
-	/*
-	return (len != FLASH_SECTOR_SIZE ||
-		(addr & (FLASH_SECTOR_SIZE - 1)) != 0 ||
-		flash_erase_sector(addr) ||
-		flash_program_section_phrases(addr, FLASH_SECTOR_SIZE / 8));
-	*/
-	return (len != FLASH_SECTOR_SIZE ||
-		(addr & (FLASH_SECTOR_SIZE - 1)) != 0 ||
-		flash_erase_sector(addr) ||
-		flash_program_section_phrases(addr, FLASH_SECTOR_SIZE / 8));
+	if ( len != FLASH_SECTOR_SIZE )
+		return 1;
+
+	// Check if beginning of sector and erase if not empty
+	// Each sector is 2 kB in length, but we can only write to half a sector at a time
+	// We can only erase an entire sector at a time
+	if ( (addr & (FLASH_SECTOR_SIZE - 1)) == 0
+		&& flash_read_1s_sector( addr, FLASH_SECTOR_SIZE / 8 )
+		&& flash_erase_sector( addr ) )
+			return 1;
+
+	// Program half-sector
+	return flash_program_section_phrases( addr, FLASH_SECTOR_SIZE / 16 );
 #endif
 }
 
-int flash_prepare_reading(void)
+int flash_prepare_reading()
 {
 	return (0);
 }
 
-int flash_read_sector(uintptr_t addr, size_t len)
+int flash_read_sector( uintptr_t addr, size_t len )
 {
 	return (0);
 }
 
-void *flash_get_staging_area(uintptr_t addr, size_t len)
+void *flash_get_staging_area( uintptr_t addr, size_t len )
 {
-	if ((addr & (FLASH_SECTOR_SIZE - 1)) != 0 ||
-	    len != FLASH_SECTOR_SIZE)
+	if ( (addr & (FLASH_SECTOR_SIZE - 1)) != 0 || len != FLASH_SECTOR_SIZE )
 		return (NULL);
 	return (FlexRAM);
 }

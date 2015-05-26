@@ -61,7 +61,7 @@ static const struct usb_config_1 usb_config_1 = {
 		},
 		.will_detach = 1,
 		.manifestation_tolerant = 0,
-		.can_upload = 1,
+		.can_upload = 0,
 		.can_download = 1,
 		.wDetachTimeOut = 0,
 		.wTransferSize = USB_DFU_TRANSFER_SIZE,

@@ -30,7 +30,15 @@
 
 
 #ifndef USB_DFU_TRANSFER_SIZE
-#define USB_DFU_TRANSFER_SIZE   FLASH_SECTOR_SIZE
+// Sector size is the same as the program flash size
+#if defined(_mk20dx128vlf5_)
+#define USB_DFU_TRANSFER_SIZE FLASH_SECTOR_SIZE
+
+// Sector size is double the program flash size
+#elif defined(_mk20dx256vlh7_ )
+#define USB_DFU_TRANSFER_SIZE FLASH_SECTOR_SIZE / 2
+
+#endif
 #endif
 
 #define USB_FUNCTION_DESC_DFU_DECL                         \

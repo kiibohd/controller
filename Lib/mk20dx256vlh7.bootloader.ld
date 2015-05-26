@@ -33,13 +33,12 @@ MEMORY
 {
 	FLASH (rx)     : ORIGIN = 0x0, LENGTH = 256K
 	FLASH_APP (rx) : ORIGIN = 8K, LENGTH = 256K-8K
-	FLASH_END (r)  : ORIGIN = 256K, LENGTH = 32
 	RAM  (rwx)     : ORIGIN = 0x20000000 - 64K / 2, LENGTH = 64K
 }
 
 /* Starting Address of the application ROM */
+_bootloader = ORIGIN( FLASH );
 _app_rom = ORIGIN( FLASH_APP );
-_app_rom_end = ORIGIN( FLASH_END );
 
 FlexRAM = 0x14000000;
 FTFL = 0x40020000;

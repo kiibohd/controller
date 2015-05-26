@@ -43,6 +43,7 @@ SECTIONS
 		. = 0;
 		KEEP(* (.vectors))
 		*(.startup*)
+		. = 0x400; KEEP(* (.flashconfig)) /* MUST BE AT 0x400 */
 		*(.text*)
 		*(.rodata*)
 		. = ALIGN(4);
