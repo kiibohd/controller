@@ -18,6 +18,7 @@
 // ----- Local Includes -----
 
 #include "mchck.h"
+#include "debug.h"
 
 
 
@@ -73,6 +74,13 @@ int flash_read_1s_sector( uintptr_t addr, size_t num )
 
 int flash_erase_sector( uintptr_t addr )
 {
+#ifdef FLASH_DEBUG
+	// Debug
+	print("Erasing Sector: address(");
+	printHex( addr );
+	printNL(")");
+#endif
+
 	if ( addr < (uintptr_t)&_app_rom && flash_ALLOW_BRICKABLE_ADDRESSES != 0x00023420 )
 		return (-1);
 	FTFL.fccob.erase.fcmd = FTFL_FCMD_ERASE_SECTOR;
@@ -83,6 +91,15 @@ int flash_erase_sector( uintptr_t addr )
 
 int flash_program_section_longwords( uintptr_t addr, size_t num_words )
 {
+#ifdef FLASH_DEBUG
+	// Debug
+	print("Programming Sector: address(");
+	printHex( addr );
+	print(") longwords(");
+	printHex( num_words );
+	printNL(")");
+#endif
+
 	FTFL.fccob.program_section.fcmd = FTFL_FCMD_PROGRAM_SECTION;
 	FTFL.fccob.program_section.addr = addr;
 	FTFL.fccob.program_section.num_words = num_words;
@@ -92,6 +109,15 @@ int flash_program_section_longwords( uintptr_t addr, size_t num_words )
 
 int flash_program_section_phrases( uintptr_t addr, size_t num_phrases )
 {
+#ifdef FLASH_DEBUG
+	// Debug
+	print("Programming Sector: address(");
+	printHex( addr );
+	print(") phrases(");
+	printHex( num_phrases );
+	printNL(")");
+#endif
+
 	FTFL.fccob.program_section.fcmd = FTFL_FCMD_PROGRAM_SECTION;
 	FTFL.fccob.program_section.addr = addr;
 	FTFL.fccob.program_section.num_words = num_phrases;
@@ -101,7 +127,7 @@ int flash_program_section_phrases( uintptr_t addr, size_t num_phrases )
 
 int flash_program_sector( uintptr_t addr, size_t len )
 {
-	if ( len != FLASH_SECTOR_SIZE )
+	if ( len != USB_DFU_TRANSFER_SIZE )
 		return 1;
 
 #if defined(_mk20dx128vlf5_)
@@ -140,7 +166,7 @@ int flash_read_sector( uintptr_t addr, size_t len )
 
 void *flash_get_staging_area( uintptr_t addr, size_t len )
 {
-	if ( (addr & (FLASH_SECTOR_SIZE - 1)) != 0 || len != FLASH_SECTOR_SIZE )
+	if ( (addr & (USB_DFU_TRANSFER_SIZE - 1)) != 0 || len != USB_DFU_TRANSFER_SIZE )
 		return (NULL);
 	return (FlexRAM);
 }

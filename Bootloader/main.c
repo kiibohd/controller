@@ -49,6 +49,7 @@ int sector_print( void* buf, size_t sector, size_t chunks )
 	FTFL.fccob.read_1s_section.num_words = 250; // 2000 kB / 64 bits
 	int retval = ftfl_submit_cmd();
 
+#ifdef FLASH_DEBUG
 	print( NL );
 	print("Block ");
 	printHex( sector );
@@ -59,6 +60,7 @@ int sector_print( void* buf, size_t sector, size_t chunks )
 	print(" Erased: ");
 	printHex( retval );
 	print( NL );
+#endif
 
 	// Display sector
 	for ( size_t line = 0; pos < end - 24; line++ )
@@ -107,6 +109,17 @@ static enum dfu_status setup_write( size_t off, size_t len, void **buf )
 {
 	static int last = 0;
 
+#ifdef FLASH_DEBUG
+	// Debug
+	print("Setup Write: offset(");
+	printHex( off );
+	print(") len(");
+	printHex( len );
+	print(") last(");
+	printHex( last );
+	printNL(")");
+#endif
+
 	if ( len > sizeof(staging) )
 		return (DFU_STATUS_errADDRESS);
 
@@ -115,7 +128,7 @@ static enum dfu_status setup_write( size_t off, size_t len, void **buf )
 		last = 0;
 	if ( last && len != 0 )
 		return (DFU_STATUS_errADDRESS);
-	if ( len != FLASH_SECTOR_SIZE )
+	if ( len != USB_DFU_TRANSFER_SIZE )
 	{
 		last = 1;
 		memset( staging, 0xff, sizeof(staging) );
@@ -131,13 +144,13 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 	if ( len == 0 )
 		return (DFU_STATUS_OK);
 
-	target = flash_get_staging_area(off + (uintptr_t)&_app_rom, FLASH_SECTOR_SIZE);
+	target = flash_get_staging_area( off + (uintptr_t)&_app_rom, USB_DFU_TRANSFER_SIZE );
 	if ( !target )
 		return (DFU_STATUS_errADDRESS);
 	memcpy( target, buf, len );
 
 	// Depending on the error return a different status
-	switch ( flash_program_sector(off + (uintptr_t)&_app_rom, FLASH_SECTOR_SIZE) )
+	switch ( flash_program_sector( off + (uintptr_t)&_app_rom, USB_DFU_TRANSFER_SIZE ) )
 	{
 	/*
 	case FTFL_FSTAT_RDCOLERR: // Flash Read Collision Error
@@ -186,6 +199,17 @@ void main()
 	uart_serial_setup();
 	printNL( NL "Bootloader DFU-Mode" );
 
+	// Bootloader Enter Reasons
+	print(" RCM_SRS0 - ");
+	printHex( RCM_SRS0 & 0x60 );
+	print( NL " RCM_SRS1 - ");
+	printHex( RCM_SRS1 & 0x02 );
+	print( NL " _app_rom - ");
+	printHex( (uint32_t)_app_rom );
+	print( NL " Soft Rst - " );
+	printHex( memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 );
+	print( NL );
+
 	// XXX REMOVEME
 	/*
 	GPIOB_PDDR |= (1<<16);
@@ -215,94 +239,14 @@ void main()
 	GPIOC_PCOR |= (1<<3);
 	*/
 
-	/*
-	// Read Firmware 1 Status
-	FTFL.fccob.read_1s_block.fcmd = FTFL_FCMD_READ_1s_BLOCK;
-	FTFL.fccob.read_1s_block.addr = (uintptr_t)&_app_rom;
-	FTFL.fccob.read_1s_block.margin = FTFL_MARGIN_NORMAL;
-
-	int retval = ftfl_submit_cmd();
-	print("Firmware Erase Status: ");
-	printHex( retval );
-	print( NL );
-
-
-	// Read Bootloader 1 Status
-	FTFL.fccob.read_1s_block.fcmd = FTFL_FCMD_READ_1s_BLOCK;
-	FTFL.fccob.read_1s_block.addr = (uintptr_t)&_bootloader;
-	FTFL.fccob.read_1s_block.margin = FTFL_MARGIN_NORMAL;
-
-	retval = ftfl_submit_cmd();
-	print("Bootloader Erase Status: ");
-	printHex( retval );
-	print( NL );
-	*/
-
-	/*
-	// Program First Longword of firmware
-	FTFL.fccob.program_longword.fcmd = FTFL_FCMD_PROGRAM_LONGWORD;
-	FTFL.fccob.program_longword.addr = (uintptr_t)&_app_rom;
-	FTFL.fccob.program_longword.data_be[0] = 0x1;
-	FTFL.fccob.program_longword.data_be[1] = 0x2;
-	FTFL.fccob.program_longword.data_be[2] = 0x4;
-	FTFL.fccob.program_longword.data_be[3] = 0x8;
-	int retval = ftfl_submit_cmd();
-	print("Write Longword Status: ");
-	printHex( retval );
-	print( NL );
-	*/
-
-	/*
-	// Erase Sector
-	FTFL.fccob.erase.fcmd = FTFL_FCMD_ERASE_SECTOR;
-	FTFL.fccob.erase.addr = (uintptr_t)&_app_rom;
-	int retval = ftfl_submit_cmd();
-	print("Erase Status: ");
-	printHex( retval );
-	print( NL );
-
-	// Prepare FlexRAM
-	FTFL.fccob.set_flexram.fcmd = FTFL_FCMD_SET_FLEXRAM;
-	FTFL.fccob.set_flexram.flexram_function = FTFL_FLEXRAM_RAM;
-	retval = ftfl_submit_cmd();
-	print("Set FlexRAM Status: ");
-	printHex( retval );
-	print( NL );
-
-	// Write to FlexRAM
-	memset( FlexRAM, 0xB4, 1000 );
-	memset( &FlexRAM[1000], 0xE3, 1000 );
-
-	// Program Sector
-	FTFL.fccob.program_section.fcmd = FTFL_FCMD_PROGRAM_SECTION;
-	FTFL.fccob.program_section.addr = (uintptr_t)&_app_rom;
-	FTFL.fccob.program_section.num_words = 128;
-	//FTFL.fccob.program_section.num_words = 250; // 2000 kb / 64 bits
-	retval = ftfl_submit_cmd();
-	print("Program Sector1 Status: ");
-	printHex( retval );
-	print( NL );
-
-	FTFL.fccob.program_section.fcmd = FTFL_FCMD_PROGRAM_SECTION;
-	FTFL.fccob.program_section.addr = (uintptr_t)&_app_rom + 0x400;
-	FTFL.fccob.program_section.num_words = 128;
-	//FTFL.fccob.program_section.num_words = 250; // 2000 kb / 64 bits
-	retval = ftfl_submit_cmd();
-	print("Program Sector2 Status: ");
-	printHex( retval );
-	print( NL );
-
-	for ( uint8_t sector = 0; sector < 1; sector++ )
-		//sector_print( &_bootloader, sector, 16 );
+#ifdef FLASH_DEBUG
+	for ( uint8_t sector = 0; sector < 3; sector++ )
 		sector_print( &_app_rom, sector, 16 );
 	print( NL );
-	*/
+#endif
 
 	flash_prepare_flashing();
-
-	//uint32_t *position = &_app_rom;
 	usb_init( &dfu_device );
-
 	for (;;)
 	{
 		usb_poll();
