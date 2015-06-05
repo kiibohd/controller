@@ -149,31 +149,41 @@ void CLI_process()
 		// Check for control characters
 		switch ( CLILineBuffer[prev_buf_pos] )
 		{
-		case 0x0D: // Enter
+		// Enter
+		case 0x0A: // LF
+		case 0x0D: // CR
 			CLILineBuffer[CLILineBufferCurrent - 1] = ' '; // Replace Enter with a space (resolves a bug in args)
 
 			// Remove the space if there is no command
 			if ( CLILineBufferCurrent == 1 )
-				CLILineBufferCurrent--;
-
-			// Process the current line buffer
-			CLI_commandLookup();
-
-			// Add the command to the history
-			CLI_saveHistory( CLILineBuffer );
-
-			// Keep the array circular, discarding the older entries
-			if ( CLIHistoryTail < CLIHistoryHead )
-				CLIHistoryHead = ( CLIHistoryHead + 1 ) % CLIMaxHistorySize;
-			CLIHistoryTail++;
-			if ( CLIHistoryTail == CLIMaxHistorySize )
 			{
-				CLIHistoryTail = 0;
-				CLIHistoryHead = 1;
+				CLILineBufferCurrent--;
 			}
+			else
+			{
+			// Only do command-related stuff if there was actually a command
+			// Avoids clogging command history with blanks
 
-			CLIHistoryCurrent = CLIHistoryTail; // 'Up' starts at the last item
-			CLI_saveHistory( NULL ); // delete the old temp buffer
+				// Process the current line buffer
+				CLI_commandLookup();
+
+				// Add the command to the history
+				CLI_saveHistory( CLILineBuffer );
+
+				// Keep the array circular, discarding the older entries
+				if ( CLIHistoryTail < CLIHistoryHead )
+					CLIHistoryHead = ( CLIHistoryHead + 1 ) % CLIMaxHistorySize;
+				CLIHistoryTail++;
+				if ( CLIHistoryTail == CLIMaxHistorySize )
+				{
+					CLIHistoryTail = 0;
+					CLIHistoryHead = 1;
+				}
+
+				CLIHistoryCurrent = CLIHistoryTail; // 'Up' starts at the last item
+				CLI_saveHistory( NULL ); // delete the old temp buffer
+
+			}
 
 			// Reset the buffer
 			CLILineBufferCurrent = 0;
@@ -199,7 +209,7 @@ void CLI_process()
 		case 0x1B: // Esc / Escape codes
 			// Check for other escape sequence
 
-			// \e[ is an escape code in vt100 compatable terminals
+			// \e[ is an escape code in vt100 compatible terminals
 			if ( CLILineBufferCurrent >= prev_buf_pos + 3
 				&& CLILineBuffer[ prev_buf_pos ] == 0x1B
 				&& CLILineBuffer[ prev_buf_pos + 1] == 0x5B )
