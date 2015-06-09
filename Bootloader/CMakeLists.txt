@@ -22,6 +22,7 @@
 set( CHIP
 	#"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
 	"mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
+	CACHE STRING "Chip"
 )
 
 
@@ -36,7 +37,8 @@ set( CHIP
 set( COMPILER
 	"gcc"   # arm-none-eabi-gcc / avr-gcc - Default
 #       "clang" # arm-none-eabi
-	CACHE STRING "Compiler Type" )
+	CACHE STRING "Compiler Type"
+)
 
 
 
