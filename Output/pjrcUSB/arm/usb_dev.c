@@ -167,6 +167,7 @@ volatile uint8_t usb_reboot_timer = 0;
 
 static uint8_t reply_buffer[8];
 
+volatile uint8_t remote_wakeup_enabled = 0;
 
 
 // ----- Functions -----
@@ -294,7 +295,8 @@ static void usb_setup()
 		data = reply_buffer;
 		break;
 	case 0x0080: // GET_STATUS (device)
-		reply_buffer[0] = 0;
+		//I think this is the corrent endianess
+		reply_buffer[0] = (remote_wakeup_enabled)<<1;
 		reply_buffer[1] = 0;
 		datalen = 2;
 		data = reply_buffer;
@@ -314,6 +316,11 @@ static void usb_setup()
 		datalen = 2;
 		break;
 	case 0x0100: // CLEAR_FEATURE (device)
+		//Disable DEVICE_REMOTE_WAKEUP feature
+		if (setup.wValue == 0x01) {
+			remote_wakeup_enabled = 0;
+		}
+		break;
 	case 0x0101: // CLEAR_FEATURE (interface)
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
 		endpoint0_stall();
@@ -334,6 +341,11 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 	case 0x0300: // SET_FEATURE (device)
+		//Enable DEVICE_REMOTE_WAKEUP feature
+		if (setup.wValue == 0x01) {
+		    remote_wakeup_enabled = 1;
+		}
+		break;
 	case 0x0301: // SET_FEATURE (interface)
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
 		endpoint0_stall();
@@ -1107,6 +1119,11 @@ restart:
 	{
 		//serial_print("sleep\n");
 		USB0_ISTAT = USB_ISTAT_SLEEP;
+	}
+
+	if ( (status & USB_ISTAT_RESUME /* 20 */ ) ) {
+		//serial_print("resume\n");
+		USB0_ISTAT = USB_ISTAT_RESUME;
 	}
 }
 

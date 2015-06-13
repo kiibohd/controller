@@ -56,6 +56,8 @@ extern volatile uint8_t usb_cdc_line_coding[7];
 extern volatile uint8_t usb_cdc_line_rtsdtr;
 extern volatile uint8_t usb_cdc_transmit_flush_timer;
 
+extern volatile uint8_t remote_wakeup_enabled;
+
 
 
 // ----- Functions -----
