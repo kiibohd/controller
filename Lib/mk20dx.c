@@ -31,6 +31,14 @@
 
 // ----- Includes -----
 
+// Debug Includes
+#if defined(_bootloader_)
+#include <inttypes.h>
+#include <debug.h>
+#else
+#include <print.h>
+#endif
+
 // Local Includes
 #include "mk20dx.h"
 
@@ -62,6 +70,7 @@ void ResetHandler();
 // NVIC - Default ISR
 void fault_isr()
 {
+	print("Fault!");
 	while ( 1 )
 	{
 		// keep polling some communication while in fault
@@ -87,12 +96,47 @@ void systick_default_isr()
 }
 
 
+// NVIC - Non-Maskable Interrupt ISR
+void nmi_default_isr()
+{
+	print("NMI!");
+}
+
+
+// NVIC - Hard Fault ISR
+void hard_fault_default_isr()
+{
+	print("Hard Fault!");
+}
+
+
+// NVIC - Memory Manager Fault ISR
+void memmanage_fault_default_isr()
+{
+	print("Memory Manager Fault!");
+}
+
+
+// NVIC - Bus Fault ISR
+void bus_fault_default_isr()
+{
+	print("Bus Fault!");
+}
+
+
+// NVIC - Usage Fault ISR
+void usage_fault_default_isr()
+{
+	print("Usage Fault!");
+}
+
+
 // NVIC - Default ISR/Vector Linking
-void nmi_isr()              __attribute__ ((weak, alias("unused_isr")));
-void hard_fault_isr()       __attribute__ ((weak, alias("unused_isr")));
-void memmanage_fault_isr()  __attribute__ ((weak, alias("unused_isr")));
-void bus_fault_isr()        __attribute__ ((weak, alias("unused_isr")));
-void usage_fault_isr()      __attribute__ ((weak, alias("unused_isr")));
+void nmi_isr()              __attribute__ ((weak, alias("nmi_default_isr")));
+void hard_fault_isr()       __attribute__ ((weak, alias("hard_fault_default_isr")));
+void memmanage_fault_isr()  __attribute__ ((weak, alias("memmanage_fault_default_isr")));
+void bus_fault_isr()        __attribute__ ((weak, alias("bus_fault_default_isr")));
+void usage_fault_isr()      __attribute__ ((weak, alias("usage_fault_default_isr")));
 void svcall_isr()           __attribute__ ((weak, alias("unused_isr")));
 void debugmonitor_isr()     __attribute__ ((weak, alias("unused_isr")));
 void pendablesrvreq_isr()   __attribute__ ((weak, alias("unused_isr")));
@@ -394,7 +438,7 @@ const uint8_t flashconfigbytes[16] = {
 	//  http://cache.freescale.com/files/microcontrollers/doc/app_note/AN4507.pdf
 	//  http://cache.freescale.com/files/32bit/doc/ref_manual/K20P64M72SF1RM.pdf (28.34.6)
 	//
-	0xFF, 0xFF, 0xFF, 0xFF, // Program Flash Protection Bytes FPROT0-3 // XXX TODO PROTECT
+	0xFF, 0xFF, 0xFF, 0xFE, // Program Flash Protection Bytes FPROT0-3
 
 	0xBE, // Flash security byte FSEC
 	0x03, // Flash nonvolatile option byte FOPT
@@ -503,7 +547,7 @@ void ResetHandler()
 	SIM_SCGC6 = SIM_SCGC6_FTM0 | SIM_SCGC6_FTM1 | SIM_SCGC6_ADC0 | SIM_SCGC6_FTFL;
 #if defined(_mk20dx128_)
 	SIM_SCGC6 |= SIM_SCGC6_RTC;
-#elif defined(_mk20dx256_)
+#elif defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 	SIM_SCGC3 = SIM_SCGC3_ADC1 | SIM_SCGC3_FTM2;
 	SIM_SCGC6 |= SIM_SCGC6_RTC;
 #endif
@@ -544,7 +588,10 @@ void ResetHandler()
 
 // Teensy 3.0 and 3.1 and Kiibohd-dfu (mk20dx256vlh7)
 #else
-	SCB_VTOR = 0;   // use vector table in flash
+#if defined(_mk20dx128_) || defined(_mk20dx256_)
+	// use vector table in flash
+	SCB_VTOR = 0;
+#endif
 
 	// default all interrupts to medium priority level
 	for ( unsigned int i = 0; i < NVIC_NUM_INTERRUPTS; i++ )

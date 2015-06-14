@@ -113,8 +113,7 @@ void uart2_status_isr()
 			// Cleanup
 			available = UART_D;
 			UART_CFIFO = UART_CFIFO_RXFLUSH;
-			sei();
-			return;
+			goto done;
 		}
 
 		// Read UART0 into buffer until FIFO is empty
@@ -143,6 +142,7 @@ void uart2_status_isr()
 		}
 	}
 
+done:
 	sei(); // Re-enable Interrupts
 }
 

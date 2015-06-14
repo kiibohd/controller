@@ -33,6 +33,7 @@
 #include <led.h>
 #include <print.h>
 
+extern volatile uint32_t systick_millis_count;
 
 
 // ----- Functions -----

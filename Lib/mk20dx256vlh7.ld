@@ -40,8 +40,7 @@ SECTIONS
 {
 	.text :
 	{
-		. = 0;
-		KEEP(* (.vectors))
+		. = 0; KEEP(* (.vectors)) /* MUST BE AT 0 */
 		*(.startup*)
 		. = 0x400; KEEP(* (.flashconfig)) /* MUST BE AT 0x400 */
 		*(.text*)

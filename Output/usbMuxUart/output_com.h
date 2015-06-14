@@ -36,7 +36,7 @@
 
 // Max size of key buffer needed for NKRO
 // Boot mode uses only the first 6 bytes
-#define USB_NKRO_BITFIELD_SIZE_KEYS 26
+#define USB_NKRO_BITFIELD_SIZE_KEYS 27
 #define USB_BOOT_MAX_KEYS 6
 
 
@@ -51,9 +51,10 @@ typedef enum USBKeyChangeState {
 	USBKeyChangeState_MainKeys      = 0x02,
 	USBKeyChangeState_SecondaryKeys = 0x04,
 	USBKeyChangeState_TertiaryKeys  = 0x08,
-	USBKeyChangeState_System        = 0x10,
-	USBKeyChangeState_Consumer      = 0x20,
-	USBKeyChangeState_All           = 0x3F,
+	USBKeyChangeState_QuartiaryKeys = 0x10,
+	USBKeyChangeState_System        = 0x20,
+	USBKeyChangeState_Consumer      = 0x40,
+	USBKeyChangeState_All           = 0x7F,
 } USBKeyChangeState;
 
 
@@ -87,6 +88,7 @@ extern          uint8_t  Output_DebugMode; // 0 - Debug disabled, 1 - Debug enab
 // ----- Capabilities -----
 
 void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+void Output_noneSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
 void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
 void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
 

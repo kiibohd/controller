@@ -91,7 +91,10 @@ endforeach()
 ###
 # Directory Includes
 #
-include_directories( ${CMAKE_SOURCE_DIR}/../Lib )
+include_directories (
+	${CMAKE_SOURCE_DIR}/../Lib
+	${CMAKE_SOURCE_DIR}
+)
 
 
 
