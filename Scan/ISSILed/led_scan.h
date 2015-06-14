@@ -14,8 +14,7 @@
  * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LED_SCAN_H
-#define __LED_SCAN_H
+#pragma once
 
 // ----- Includes -----
 
@@ -28,7 +27,4 @@
 
 void LED_setup();
 uint8_t LED_scan();
-
-
-#endif // __LED_SCAN_H
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __SCAN_LOOP_H
-#define __SCAN_LOOP_H
+#pragma once
 
 // ----- Includes -----
 
@@ -38,7 +37,4 @@ uint8_t Scan_loop( void );
 // Call-backs
 void Scan_finishedWithMacro( uint8_t sentKeys );  // Called by Macro Module
 void Scan_finishedWithOutput( uint8_t sentKeys ); // Called by Output Module
-
-
-#endif // __SCAN_LOOP_H
 

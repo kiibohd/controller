@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef debug_h__
-#define debug_h__
+#pragma once
 
 // ----- Includes -----
 
@@ -62,7 +61,5 @@ void printHex_op( uint32_t in, uint8_t op );
 #define uart_serial_setup()
 #define printHex(hex)
 #define printHex_op(in,op)
-#endif
-
 #endif
 

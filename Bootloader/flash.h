@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __FLASH_H
-#define __FLASH_H
+#pragma once
 
 // ----- Defines -----
 
@@ -34,10 +33,7 @@ __attribute__((section(".ramtext.ftfl_submit_cmd"), long_call))
 int ftfl_submit_cmd(void);
 int flash_prepare_flashing(void);
 int flash_erase_sector(uintptr_t);
-//int flash_program_section(uintptr_t, size_t);
 int flash_program_sector(uintptr_t, size_t);
 int flash_program_longword(uintptr_t, uint8_t*);
 void *flash_get_staging_area(uintptr_t, size_t);
-
-#endif
 

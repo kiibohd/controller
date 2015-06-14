@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __KEYMAP_H
-#define __KEYMAP_H
+#pragma once
 
 
 // ----- Variables -----
@@ -33,7 +32,4 @@ static uint8_t DefaultMap_Lookup[] = {
 				0, // 0x03
 				0, // 0x04
 };
-
-
-#endif
 

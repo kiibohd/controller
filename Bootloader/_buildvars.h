@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2014 by Jacob Alexander
+/* Copyright (C) 2013-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __buildvars_h
-#define __buildvars_h
+#pragma once
 
 // ----- Includes -----
 
@@ -41,6 +40,4 @@
 // match the INF file.
 #define VENDOR_ID         @BOOT_VENDOR_ID@
 #define PRODUCT_ID        @BOOT_PRODUCT_ID@
-
-#endif
 

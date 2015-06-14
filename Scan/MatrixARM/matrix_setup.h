@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __MATRIX_SETUP_H
-#define __MATRIX_SETUP_H
+#pragma once
 
 // ----- Macros -----
 
@@ -29,7 +28,4 @@
 #define Matrix_colsNum sizeof( Matrix_cols ) / sizeof( GPIO_Pin )
 #define Matrix_rowsNum sizeof( Matrix_rows ) / sizeof( GPIO_Pin )
 #define Matrix_maxKeys sizeof( Matrix_scanArray ) / sizeof( KeyState )
-
-
-#endif // __MATRIX_SETUP_H
 

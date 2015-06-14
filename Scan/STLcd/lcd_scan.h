@@ -14,8 +14,7 @@
  * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LCD_SCAN_H
-#define __LCD_SCAN_H
+#pragma once
 
 // ----- Includes -----
 
@@ -28,7 +27,4 @@
 
 void LCD_setup();
 uint8_t LCD_scan();
-
-
-#endif // __LCD_SCAN_H
 

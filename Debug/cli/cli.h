@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef cli_h__
-#define cli_h__
+#pragma once
 
 // ----- Includes -----
 
@@ -129,7 +128,4 @@ void cliFunc_reload  ( char* args );
 void cliFunc_reset   ( char* args );
 void cliFunc_restart ( char* args );
 void cliFunc_version ( char* args );
-
-
-#endif
 

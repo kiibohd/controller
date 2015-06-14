@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2015 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __FTFL_H
-#define __FTFL_H
+#pragma once
 
 // ----- Local Includes -----
 
@@ -241,6 +240,4 @@ CTASSERT_SIZE_BYTE(struct FTFL_CONFIG_t, 16);
 extern volatile struct FTFL_t FTFL;
 extern char FlexRAM[];
 extern struct FTFL_CONFIG_t FTFL_CONFIG;
-
-#endif
 

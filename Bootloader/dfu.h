@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _USB_DFU_H
-#define _USB_DFU_H
+#pragma once
 
 // ----- Compiler Includes -----
 
@@ -171,4 +170,3 @@ void dfu_write_done( enum dfu_status, struct dfu_ctx *ctx );
 void dfu_init( dfu_setup_read_t setup_read, dfu_setup_write_t setup_write, dfu_finish_write_t finish_write, struct dfu_ctx *ctx );
 void dfu_app_init( dfu_detach_t detachcb );
 
-#endif

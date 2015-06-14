@@ -1,4 +1,4 @@
-/* Copyright (C) 2011,2014 by Jacob Alexander
+/* Copyright (C) 2011,2014-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __MATRIX_SCAN_H
-#define __MATRIX_SCAN_H
+#pragma once
 
 // ----- Includes -----
 
@@ -118,6 +117,4 @@
 
 void matrix_pinSetup( uint8_t *matrix, uint8_t scanType );
 void matrix_scan( uint8_t *matrix, uint8_t *detectArray );
-
-#endif // __MATRIX_SCAN_H
 

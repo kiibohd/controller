@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2014 by Jacob Alexander
+/* Copyright (C) 2013-2015 by Jacob Alexander
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -14,8 +14,7 @@
  * License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SCAN_LOOP_H
-#define __SCAN_LOOP_H
+#pragma once
 
 // ----- Includes -----
 
@@ -55,7 +54,4 @@ uint8_t Scan_sendData( uint8_t dataPayload );
 
 void Scan_finishedWithMacro( uint8_t sentKeys );
 void Scan_finishedWithOutput( uint8_t sentKeys );
-
-
-#endif // __SCAN_LOOP_H
 

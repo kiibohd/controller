@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2015 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _MCHCK_CDEFS_H
-#define _MCHCK_CDEFS_H
+#pragma once
 
 // ----- Compiler Includes -----
 
@@ -133,6 +132,4 @@ typedef __CHAR16_TYPE__ char16_t;
 				itermacro(iter, a), itermacro, macro, __VA_ARGS__ \
 				)                                       \
 			)
-
-#endif
 

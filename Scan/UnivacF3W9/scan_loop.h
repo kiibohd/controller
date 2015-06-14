@@ -1,4 +1,4 @@
-/* Copyright (C) 2012,2014 by Jacob Alexander
+/* Copyright (C) 2012,2014-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __SCAN_LOOP_H
-#define __SCAN_LOOP_H
+#pragma once
 
 // ----- Includes -----
 
@@ -60,7 +59,4 @@ void Scan_finishedWithUSBBuffer( uint8_t sentKeys );
 void Scan_lockKeyboard( void );
 void Scan_unlockKeyboard( void );
 void Scan_resetKeyboard( void );
-
-
-#endif // __SCAN_LOOP_H
 

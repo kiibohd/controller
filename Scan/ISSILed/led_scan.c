@@ -23,6 +23,7 @@
 #include <cli.h>
 #include <led.h>
 #include <print.h>
+#include <led_conf.h> // Located with scan_loop.c
 
 // Local Includes
 #include "led_scan.h"
@@ -139,6 +140,8 @@ const uint8_t LED_ledEnableMask[] = {
 0x43, 0x43, // C9-1 -> C9-16
 };
 */
+
+/*
 const uint8_t LED_ledEnableMask[] = {
 0xE8, // I2C address
 0x00, // Starting register address
@@ -153,8 +156,10 @@ const uint8_t LED_ledEnableMask[] = {
 0x00, 0x00, // C8-1 -> C8-16
 0x00, 0x00, // C9-1 -> C9-16
 };
+*/
 
 
+/*
 // XXX Pre-fill example of buffers
 const uint8_t examplePage[] = {
 0xE8, // I2C address
@@ -169,8 +174,8 @@ const uint8_t examplePage[] = {
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // C8-1 -> C8-16
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // C9-1 -> C9-16
 };
+*/
 
-/*
 // XXX Pre-fill example of buffers
 const uint8_t examplePage[] = {
 0xE8, // I2C address
@@ -185,7 +190,6 @@ const uint8_t examplePage[] = {
 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7A, 0x7B, 0x7C, 0x7D, 0x7E, 0x7F, // C8-1 -> C8-16
 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D, 0x8E, 0x8F, // C9-1 -> C9-16
 };
-*/
 
 
 
@@ -429,15 +433,14 @@ inline void LED_setup()
 	// Initialize I2C
 	I2C_setup();
 
-	/* TODO Make work
 	// Zero out Frame Registers
 	// This needs to be done before disabling the hardware shutdown (or the leds will do undefined things)
 	LED_zeroPages( 0x0B, 1, 0x00, 0x0C ); // Control Registers
 
 	// Disable Hardware shutdown of ISSI chip (pull high)
-	GPIOD_PDDR |= (1<<1);
-	PORTD_PCR1 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOD_PSOR |= (1<<1);
+	GPIOB_PDDR |= (1<<16);
+	PORTB_PCR16 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOB_PSOR |= (1<<16);
 
 	// Clear LED Pages
 	LED_zeroPages( 0x00, 8, 0x00, 0xB4 ); // LED Registers
@@ -447,7 +450,6 @@ inline void LED_setup()
 
 	// Disable Software shutdown of ISSI chip
 	LED_writeReg( 0x0A, 0x01, 0x0B );
-	*/
 }
 
 

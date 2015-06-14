@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __uart_serial_h_
-#define __uart_serial_h_
+#pragma once
 
 #include <inttypes.h>
 
@@ -35,6 +34,4 @@ void uart_serial_flush_output();
 void uart_serial_setup();
 
 void uart_device_reload();
-
-#endif // __uart_serial_h_
 

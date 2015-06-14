@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2014
+ * Modifications by Jacob Alexander 2014-2015
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,8 +29,7 @@
  * SOFTWARE.
  */
 
-#ifndef _usb_dev_h_
-#define _usb_dev_h_
+#pragma once
 
 // ----- Includes -----
 
@@ -86,8 +85,4 @@ static inline uint32_t usb_rx_byte_count(uint32_t endpoint)
 void usb_device_reload();
 
 extern void usb_serial_flush_callback();
-
-
-
-#endif
 

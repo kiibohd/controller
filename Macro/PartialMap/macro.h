@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,8 +14,7 @@
  * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __macro_h
-#define __macro_h
+#pragma once
 
 // ----- Includes -----
 
@@ -41,6 +40,4 @@ void Macro_ledState( uint8_t ledCode, uint8_t state );
 void Macro_triggerState( void *triggers, uint8_t num ); // triggers is of type TriggerGuide, void* for circular dependencies
 void Macro_process();
 void Macro_setup();
-
-#endif
 

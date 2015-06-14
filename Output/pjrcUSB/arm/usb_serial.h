@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander (2013-2014)
+ * Modifications by Jacob Alexander (2013-2015)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,8 +29,7 @@
  * SOFTWARE.
  */
 
-#ifndef USBserial_h_
-#define USBserial_h_
+#pragma once
 
 // ----- Includes -----
 
@@ -72,8 +71,4 @@ int usb_serial_write( const void *buffer, uint32_t size );
 
 void usb_serial_flush_input();
 void usb_serial_flush_output();
-
-
-
-#endif // USBserial_h_
 

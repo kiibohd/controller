@@ -31,6 +31,16 @@ endif ()
 
 
 ###
+# Includes
+#
+
+# Use pjrcUSB output_com.h
+include_directories (
+	${CMAKE_CURRENT_LIST_DIR}/../pjrcUSB
+)
+
+
+###
 # Compiler Family Compatibility
 #
 set( ModuleCompatibility

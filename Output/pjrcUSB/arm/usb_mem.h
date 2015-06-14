@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander (2013-2014)
+ * Modifications by Jacob Alexander (2013-2015)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,8 +29,7 @@
  * SOFTWARE.
  */
 
-#ifndef _usb_mem_h_
-#define _usb_mem_h_
+#pragma once
 
 // ----- Includes -----
 
@@ -54,8 +53,4 @@ typedef struct usb_packet_struct {
 
 usb_packet_t *usb_malloc();
 void usb_free( usb_packet_t *p );
-
-
-
-#endif
 

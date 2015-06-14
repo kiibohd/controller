@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,8 +14,7 @@
  * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __kll_h
-#define __kll_h
+#pragma once
 
 // ----- Includes -----
 
@@ -251,8 +250,4 @@ typedef struct Layer {
 
 // Total number of layers
 #define LayerNum sizeof( LayerIndex ) / sizeof( Layer )
-
-
-
-#endif // __kll_h
 

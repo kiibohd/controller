@@ -14,8 +14,7 @@
  * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __CONNECT_SCAN_H
-#define __CONNECT_SCAN_H
+#pragma once
 
 // ----- Includes -----
 
@@ -116,7 +115,4 @@ typedef struct AnimationCommand {
 
 void Connect_setup( uint8_t master );
 void Connect_scan();
-
-
-#endif // __CONNECT_SCAN_H
 

@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __MATRIX_SCAN_H
-#define __MATRIX_SCAN_H
+#pragma once
 
 // ----- Includes -----
 
@@ -139,7 +138,4 @@ typedef struct KeyState {
 
 void Matrix_setup();
 void Matrix_scan( uint16_t scanNum );
-
-
-#endif // __MATRIX_SCAN_H
 

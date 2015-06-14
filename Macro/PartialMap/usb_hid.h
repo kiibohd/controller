@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __usb_hid_h
-#define __usb_hid_h
+#pragma once
 
 // ----- Defines -----
 
@@ -772,8 +771,4 @@
 #define AC_DISTRIBUTE_HORIZONTALLY  0x29B
 #define AC_DISTRIBUTE_VERTICALLY    0x29C
 // 0x29D-0xFFFF Reserved
-
-
-
-#endif
 

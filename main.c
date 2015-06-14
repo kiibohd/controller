@@ -40,17 +40,6 @@ extern volatile uint32_t systick_millis_count;
 
 int main()
 {
-	/*
-	GPIOA_PDDR |= (1<<5);
-	// Setup pin - A5 - See Lib/pin_map.mchck for more details on pins
-	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	while( 1 )
-	{
-		GPIOA_PTOR |= (1<<5);
-		for (uint32_t d = 0; d < 720000; d++ );
-	}
-	*/
-
 	// AVR - Teensy Set Clock speed to 16 MHz
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 	CLKPR = 0x80;

@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __MATRIX_H
-#define __MATRIX_H
+#pragma once
 
 // ----- Includes -----
 
@@ -54,7 +53,4 @@ GPIO_Pin Matrix_rows[] = { gpio(D,1), gpio(D,2), gpio(D,3), gpio(D,4), gpio(D,5)
 
 // Define type of scan matrix
 Config Matrix_type = Config_Pulldown;
-
-
-#endif // __MATRIX_H
 

@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2015 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __USB_H
-#define __USB_H
+#pragma once
 
 // ----- Compiler Includes -----
 
@@ -508,6 +507,4 @@ int usb_ep0_tx_cp(const void *, size_t, size_t, ep_callback_t, void *);
 // ----- DFU USB Additional Includes -----
 
 #include "dfu.h"
-
-#endif
 

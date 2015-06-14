@@ -1,5 +1,5 @@
 // Originally Generated from MCHCK Toolkit
-/* Copyright (c) Jacob Alexander 2014 <haata@kiibohd.com>
+/* Copyright (c) Jacob Alexander 2014-2015 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __DFU_DESC_H
-#define __DFU_DESC_H
+#pragma once
 
 // ----- Local Includes -----
 
@@ -38,6 +37,4 @@ struct usb_config_1 {
 	struct usb_desc_config_t config;
 	struct dfu_function_desc usb_function_0;
 };
-
-#endif
 

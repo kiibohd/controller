@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __output_com_h
-#define __output_com_h
+#pragma once
 
 // ----- Includes -----
 
@@ -115,6 +114,4 @@ unsigned int Output_availablechar();
 int Output_getchar();
 int Output_putchar( char c );
 int Output_putstr( char* str );
-
-#endif
 

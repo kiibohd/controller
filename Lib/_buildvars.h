@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __buildvars_h
-#define __buildvars_h
+#pragma once
 
 // ----- Includes -----
 
@@ -57,6 +56,4 @@
 // match the INF file.
 #define VENDOR_ID               @VENDOR_ID@
 #define PRODUCT_ID              @PRODUCT_ID@
-
-#endif
 

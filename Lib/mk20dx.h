@@ -29,8 +29,7 @@
  * SOFTWARE.
  */
 
-#ifndef _mk20dx_h_
-#define _mk20dx_h_
+#pragma once
 
 // ----- Defines -----
 
@@ -2089,6 +2088,4 @@ extern void portc_isr(void);
 extern void portd_isr(void);
 extern void porte_isr(void);
 extern void software_isr(void);
-
-#endif
 

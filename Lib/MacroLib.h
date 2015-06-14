@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2014 by Jacob Alexander
+/* Copyright (C) 2013-2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,7 @@
 // This include file decides which set of compiler family include files to use on typical Macro modules.
 // Additional includes should only be added to this file if they should be added to *all* Macro modules.
 
-
-#ifndef __MACROLIB_H
-#define __MACROLIB_H
+#pragma once
 
 // ----- Includes -----
 
@@ -47,9 +45,6 @@
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 
 #include <util/delay.h>
-
-#endif
-
 
 #endif
 

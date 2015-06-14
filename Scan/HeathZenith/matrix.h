@@ -1,4 +1,4 @@
-/* Copyright (C) 2011 by Jacob Alexander
+/* Copyright (C) 2011,2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,8 +19,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef __MATRIX_H
-#define __MATRIX_H
+#pragma once
 
 // ----- Includes -----
 
@@ -62,8 +61,4 @@ static const uint8_t matrix_pinout[][MAX_ROW_SIZE + 1] = {
 
 
 };
-
-
-
-#endif // __MATRIX_H
 

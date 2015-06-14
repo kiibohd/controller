@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2015 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __SIM_H
-#define __SIM_H
+#pragma once
 
 // ----- Local Includes -----
 
@@ -327,6 +326,4 @@ struct SIM_t {
 CTASSERT_SIZE_BYTE(struct SIM_t, 0x1064);
 
 extern volatile struct SIM_t SIM;
-
-#endif
 

@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2013-2014
+ * Modifications by Jacob Alexander 2013-2015
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,8 +29,7 @@
  * SOFTWARE.
  */
 
-#ifndef USBkeyboard_h_
-#define USBkeyboard_h_
+#pragma once
 
 // ----- Includes -----
 
@@ -45,8 +44,4 @@
 // ----- Functions -----
 
 void usb_keyboard_send();
-
-
-
-#endif // USBkeyboard_h_
 

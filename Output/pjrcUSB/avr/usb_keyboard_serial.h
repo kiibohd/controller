@@ -1,6 +1,6 @@
 /* USB Keyboard and CDC Serial Device for Teensy USB Development Board
  * Copyright (c) 2009 PJRC.COM, LLC
- * Modifications by Jacob Alexander (2011-2014)
+ * Modifications by Jacob Alexander (2011-2015)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,8 +21,7 @@
  * THE SOFTWARE.
  */
 
-#ifndef usb_keyboard_serial_h__
-#define usb_keyboard_serial_h__
+#pragma once
 
 // ----- Includes -----
 
@@ -700,8 +699,4 @@ static const struct descriptor_list_struct {
 	{0x0303, 0x0409, (const uint8_t *)&string3, sizeof(STR_SERIAL)}
 };
 #define NUM_DESC_LIST (sizeof(descriptor_list)/sizeof(struct descriptor_list_struct))
-
-
-
-#endif // usb_keyboard_serial_h__
 
