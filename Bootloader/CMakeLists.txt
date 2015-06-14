@@ -20,8 +20,8 @@
 #| You _MUST_ clean the build directory if you change this value
 #|
 set( CHIP
-	#"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
-	"mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
+	"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
+#	"mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
 	CACHE STRING "Chip"
 )
 
