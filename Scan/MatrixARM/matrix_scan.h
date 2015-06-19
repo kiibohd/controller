@@ -40,6 +40,12 @@
 #error "Debounce threshold is too high... 32 bit max. Check .kll defines."
 #endif
 
+#if   ( MinDebounceTime_define > 0xFF )
+#error "MinDebounceTime is a maximum of 255 ms"
+#elif ( MinDebounceTime_define < 0x00 )
+#error "MinDebounceTime is a minimum 0 ms"
+#endif
+
 
 
 // ----- Enums -----
@@ -126,11 +132,12 @@ typedef struct GPIO_Pin {
 
 // Debounce Element
 typedef struct KeyState {
-	KeyPosition     prevState;
-	KeyPosition     curState;
 	DebounceCounter activeCount;
 	DebounceCounter inactiveCount;
-} KeyState;
+	KeyPosition     prevState;
+	KeyPosition     curState;
+	uint8_t         prevDecisionTime;
+} __attribute__((packed)) KeyState;
 
 
 

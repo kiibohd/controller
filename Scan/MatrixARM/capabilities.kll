@@ -32,3 +32,10 @@ DebounceThrottleDiv => DebounceThrottleDiv_define;
 DebounceThrottleDiv = 0; # Default
 #DebounceThrottleDiv = 2; # /4 divider
 
+# This defines the minimum amount of time after a transition until allowing another transition
+# Generally switches require a minimum 5 ms debounce period
+# Since a decision can usually be made quite quickly, there is little latency on each press
+# However, this defines the latency at which the switch state can change
+MinDebounceTime => MinDebounceTime_define;
+MinDebounceTime = 5; # 5 ms
+

@@ -82,6 +82,9 @@ uint16_t matrixMaxScans  = 0;
 uint16_t matrixCurScans  = 0;
 uint16_t matrixPrevScans = 0;
 
+// System Timer used for delaying debounce decisions
+extern volatile uint32_t systick_millis_count;
+
 
 
 // ----- Functions -----
@@ -197,10 +200,11 @@ void Matrix_setup()
 	// Clear out Debounce Array
 	for ( uint8_t item = 0; item < Matrix_maxKeys; item++ )
 	{
-		Matrix_scanArray[ item ].prevState     = KeyState_Off;
-		Matrix_scanArray[ item ].curState      = KeyState_Off;
-		Matrix_scanArray[ item ].activeCount   = 0;
-		Matrix_scanArray[ item ].inactiveCount = DebounceDivThreshold_define; // Start at 'off' steady state
+		Matrix_scanArray[ item ].prevState        = KeyState_Off;
+		Matrix_scanArray[ item ].curState         = KeyState_Off;
+		Matrix_scanArray[ item ].activeCount      = 0;
+		Matrix_scanArray[ item ].inactiveCount    = DebounceDivThreshold_define; // Start at 'off' steady state
+		Matrix_scanArray[ item ].prevDecisionTime = 0;
 	}
 
 	// Clear scan stats counters
@@ -262,6 +266,9 @@ void Matrix_scan( uint16_t scanNum )
 		matrixCurScans++;
 	}
 
+	// Read systick for event scheduling
+	uint8_t currentTime = (uint8_t)systick_millis_count;
+
 	// For each strobe, scan each of the sense pins
 	for ( uint8_t strobe = 0; strobe < Matrix_colsNum; strobe++ )
 	{
@@ -305,11 +312,16 @@ void Matrix_scan( uint16_t scanNum )
 			}
 
 			// Check for state change if it hasn't been set
+			// But only if enough time has passed since last state change
 			// Only check if the minimum number of scans has been met
 			//   the current state is invalid
 			//   and either active or inactive count is over the debounce threshold
 			if ( state->curState == KeyState_Invalid )
 			{
+				// Determine time since last decision
+				uint8_t lastTransition = currentTime - state->prevDecisionTime;
+
+				// Attempt state transition
 				switch ( state->prevState )
 				{
 				case KeyState_Press:
@@ -320,6 +332,15 @@ void Matrix_scan( uint16_t scanNum )
 					}
 					else
 					{
+						// If not enough time has passed since Hold
+						// Keep previous state
+						if ( lastTransition < MinDebounceTime_define )
+						{
+							//warn_print("FAST Release stopped");
+							state->curState = state->prevState;
+							continue;
+						}
+
 						state->curState = KeyState_Release;
 					}
 					break;
@@ -328,6 +349,15 @@ void Matrix_scan( uint16_t scanNum )
 				case KeyState_Off:
 					if ( state->activeCount > state->inactiveCount )
 					{
+						// If not enough time has passed since Hold
+						// Keep previous state
+						if ( lastTransition < MinDebounceTime_define )
+						{
+							//warn_print("FAST Press stopped");
+							state->curState = state->prevState;
+							continue;
+						}
+
 						state->curState = KeyState_Press;
 					}
 					else
@@ -341,6 +371,9 @@ void Matrix_scan( uint16_t scanNum )
 					erro_print("Matrix scan bug!! Report me!");
 					break;
 				}
+
+				// Update decision time
+				state->prevDecisionTime = currentTime;
 
 				// Send keystate to macro module
 				Macro_keyState( key, state->curState );
