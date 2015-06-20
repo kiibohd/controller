@@ -41,6 +41,7 @@ void cliFunc_capSelect ( char* args );
 void cliFunc_keyHold   ( char* args );
 void cliFunc_keyPress  ( char* args );
 void cliFunc_keyRelease( char* args );
+void cliFunc_layerDebug( char* args );
 void cliFunc_layerList ( char* args );
 void cliFunc_layerState( char* args );
 void cliFunc_macroDebug( char* args );
@@ -86,6 +87,7 @@ CLIDict_Entry( capSelect,   "Triggers the specified capabilities. First two args
 CLIDict_Entry( keyHold,     "Send key-hold events to the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A" );
 CLIDict_Entry( keyPress,    "Send key-press events to the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A" );
 CLIDict_Entry( keyRelease,  "Send key-release event to macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A" );
+CLIDict_Entry( layerDebug,  "Layer debug mode. Shows layer stack and any changes." );
 CLIDict_Entry( layerList,   "List available layers." );
 CLIDict_Entry( layerState,  "Modify specified indexed layer state <layer> <state byte>." NL "\t\t\033[35mL2\033[0m Indexed Layer 0x02" NL "\t\t0 Off, 1 Shift, 2 Latch, 4 Lock States" );
 CLIDict_Entry( macroDebug,  "Disables/Enables sending USB keycodes to the Output Module and prints U/K codes." );
@@ -100,6 +102,7 @@ CLIDict_Def( macroCLIDict, "Macro Module Commands" ) = {
 	CLIDict_Item( keyHold ),
 	CLIDict_Item( keyPress ),
 	CLIDict_Item( keyRelease ),
+	CLIDict_Item( layerDebug ),
 	CLIDict_Item( layerList ),
 	CLIDict_Item( layerState ),
 	CLIDict_Item( macroDebug ),
@@ -110,6 +113,9 @@ CLIDict_Def( macroCLIDict, "Macro Module Commands" ) = {
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
+
+// Layer debug flag - If set, displays any changes to layers and the full layer stack on change
+uint8_t layerDebugMode = 0;
 
 // Macro debug flag - If set, clears the USB Buffers after signalling processing completion
 uint8_t macroDebugMode = 0;
@@ -203,6 +209,30 @@ void Macro_layerState( uint8_t state, uint8_t stateType, uint16_t layer, uint8_t
 
 		// Reduce LayerIndexStack size
 		macroLayerIndexStackSize--;
+	}
+
+	// Layer Debug Mode
+	if ( layerDebugMode )
+	{
+		dbug_msg("Layer ");
+
+		// Iterate over each of the layers displaying the state as a hex value
+		for ( uint16_t index = 0; index < LayerNum; index++ )
+		{
+			printHex_op( LayerState[ index ], 0 );
+		}
+
+		// Always show the default layer (it's always 0)
+		print(" 0");
+
+		// Iterate over the layer stack starting from the bottom of the stack
+		for ( uint16_t index = 0; index < macroLayerIndexStackSize; index++ )
+		{
+			print(":");
+			printHex_op( macroLayerIndexStack[ index ], 0 );
+		}
+
+		print( NL );
 	}
 }
 
@@ -1202,6 +1232,16 @@ void cliFunc_keyRelease( char* args )
 			break;
 		}
 	}
+}
+
+void cliFunc_layerDebug( char *args )
+{
+	// Toggle layer debug mode
+	layerDebugMode = layerDebugMode ? 0 : 1;
+
+	print( NL );
+	info_msg("Layer Debug Mode: ");
+	printInt8( layerDebugMode );
 }
 
 void cliFunc_layerList( char* args )
