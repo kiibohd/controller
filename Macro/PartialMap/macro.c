@@ -226,10 +226,10 @@ void Macro_layerState( uint8_t state, uint8_t stateType, uint16_t layer, uint8_t
 		print(" 0");
 
 		// Iterate over the layer stack starting from the bottom of the stack
-		for ( uint16_t index = 0; index < macroLayerIndexStackSize; index++ )
+		for ( uint16_t index = macroLayerIndexStackSize; index > 0; index-- )
 		{
 			print(":");
-			printHex_op( macroLayerIndexStack[ index ], 0 );
+			printHex_op( macroLayerIndexStack[ index - 1 ], 0 );
 		}
 
 		print( NL );

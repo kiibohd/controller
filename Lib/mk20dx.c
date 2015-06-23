@@ -70,7 +70,7 @@ void ResetHandler();
 // NVIC - Default ISR
 void fault_isr()
 {
-	print("Fault!");
+	print("Fault!" NL );
 	while ( 1 )
 	{
 		// keep polling some communication while in fault
@@ -99,35 +99,35 @@ void systick_default_isr()
 // NVIC - Non-Maskable Interrupt ISR
 void nmi_default_isr()
 {
-	print("NMI!");
+	print("NMI!" NL );
 }
 
 
 // NVIC - Hard Fault ISR
 void hard_fault_default_isr()
 {
-	print("Hard Fault!");
+	print("Hard Fault!" NL );
 }
 
 
 // NVIC - Memory Manager Fault ISR
 void memmanage_fault_default_isr()
 {
-	print("Memory Manager Fault!");
+	print("Memory Manager Fault!" NL );
 }
 
 
 // NVIC - Bus Fault ISR
 void bus_fault_default_isr()
 {
-	print("Bus Fault!");
+	print("Bus Fault!" NL );
 }
 
 
 // NVIC - Usage Fault ISR
 void usage_fault_default_isr()
 {
-	print("Usage Fault!");
+	print("Usage Fault!" NL );
 }
 
 
