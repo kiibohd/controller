@@ -78,13 +78,6 @@ void usb_keyboard_send()
 	uint32_t wait_count = 0;
 	usb_packet_t *tx_packet;
 
-	if (remote_wakeup_enabled) {
-		USB0_CTL |= USB_CTL_RESUME;
-		_delay_ms(5); //wait 1 to 15ms
-		USB0_CTL &= ~USB_CTL_RESUME;
-		_delay_ms(5);
-	}
-
 	// Wait till ready
 	while ( 1 )
 	{
