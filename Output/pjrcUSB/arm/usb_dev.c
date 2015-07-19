@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander (2013-2014)
+ * Modifications by Jacob Alexander (2013-2015)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -204,6 +204,7 @@ static void usb_setup()
 		print("CONFIGURE - ");
 		#endif
 		usb_configuration = setup.wValue;
+		Output_Available = usb_configuration;
 		reg = &USB0_ENDPT1;
 		cfg = usb_endpoint_config_table;
 		// clear all BDT entries, free any allocated memory...
@@ -861,6 +862,13 @@ void usb_device_reload()
 		SOFTWARE_RESET();
 	}
 
+// Kiibohd mk20dx256vlh7
+#elif defined(_mk20dx256vlh7_)
+	// Copies variable into the VBAT register, must be identical to the variable in the bootloader to jump to the bootloader flash mode
+	for ( int pos = 0; pos < sizeof(sys_reset_to_loader_magic); pos++ )
+		(&VBAT)[ pos ] = sys_reset_to_loader_magic[ pos ];
+	SOFTWARE_RESET();
+
 // Teensy 3.0 and 3.1
 #else
 	asm volatile("bkpt");
@@ -1117,11 +1125,6 @@ uint8_t usb_init()
 	#ifdef UART_DEBUG
 	print("USB INIT"NL);
 	#endif
-
-	// If no USB cable is attached, do not initialize usb
-	// XXX Test -HaaTa
-	//if ( USB0_OTGISTAT & USB_OTGSTAT_ID )
-	//      return 0;
 
 	// Clear out endpoints table
 	for ( int i = 0; i <= NUM_ENDPOINTS * 4; i++ )

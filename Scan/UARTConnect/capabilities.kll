@@ -26,6 +26,16 @@ UARTConnectBaudFine => UARTConnectBaudFine_define;
 # Thus baud setting = 26
 # NOTE: If finer baud adjustment is needed see UARTx_C4 -> BRFA in the datasheet
 # Baud fine setting = 0x02
-UARTConnectBaud = 26;
-UARTConnectBaudFine = 0x02;
+UARTConnectBaud = 1; # 4.5 Mbps @ 72 MHz
+UARTConnectBaudFine = 0x0;
+
+# Cable Check Command Length
+# This defines the length of the cable command
+# 0xD2 11010010 is used for each check byte
+#
+# For example:
+# Length: 4
+# Args: 0xD2 0xD2 0xD2 0xD2
+UARTConnectCableCheckLength => UARTConnectCableCheckLength_define;
+UARTConnectCableCheckLength = 2;
 

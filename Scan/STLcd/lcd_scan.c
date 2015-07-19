@@ -258,7 +258,6 @@ inline void LCD_setup()
 	// Initialize SPI
 	SPI_setup();
 
-
 	// Setup Register Control Signal (A0)
 	// Start in display register mode (1)
 	GPIOC_PDDR |= (1<<7);
@@ -274,6 +273,19 @@ inline void LCD_setup()
 
 	// Run LCD intialization sequence
 	LCD_initialize();
+
+	// Setup Backlight
+	// TODO Expose default settings
+	// TODO Setup PWM
+	GPIOC_PDDR |= (1<<1);
+	PORTC_PCR1 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOC_PCOR |= (1<<1);
+	GPIOC_PDDR |= (1<<2);
+	PORTC_PCR2 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOC_PCOR |= (1<<2);
+	GPIOC_PDDR |= (1<<3);
+	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOC_PCOR |= (1<<3);
 }
 
 

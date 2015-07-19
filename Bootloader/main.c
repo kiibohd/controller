@@ -210,35 +210,6 @@ void main()
 	printHex( memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 );
 	print( NL );
 
-	// XXX REMOVEME
-	/*
-	GPIOB_PDDR |= (1<<16);
-	PORTB_PCR16 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOB_PSOR |= (1<<16);
-
-	// RST
-	GPIOC_PDDR |= (1<<8);
-	PORTC_PCR8 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOC_PSOR |= (1<<8);
-
-	// CS1B
-	GPIOC_PDDR |= (1<<4);
-	PORTC_PCR4 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOC_PCOR |= (1<<4);
-	*/
-	// Backlight
-	/*
-	GPIOC_PDDR |= (1<<1);
-	PORTC_PCR1 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOC_PCOR |= (1<<1);
-	GPIOC_PDDR |= (1<<2);
-	PORTC_PCR2 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOC_PCOR |= (1<<2);
-	GPIOC_PDDR |= (1<<3);
-	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOC_PCOR |= (1<<3);
-	*/
-
 #ifdef FLASH_DEBUG
 	for ( uint8_t sector = 0; sector < 3; sector++ )
 		sector_print( &_app_rom, sector, 16 );

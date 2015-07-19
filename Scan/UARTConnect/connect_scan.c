@@ -42,8 +42,11 @@ case uartNum: \
 	} \
 	for ( uint8_t c = 0; c < count; c++ ) \
 	{ \
-		printHex( buffer[ c ] ); \
-		print( " +" #uartNum NL ); \
+		if ( Connect_debug ) \
+		{ \
+			printHex( buffer[ c ] ); \
+			print( " +" #uartNum NL ); \
+		} \
 		uart##uartNum##_buffer[ uart##uartNum##_buffer_tail++ ] = buffer[ c ]; \
 		uart##uartNum##_buffer_items++; \
 		if ( uart##uartNum##_buffer_tail >= uart_buffer_size ) \
@@ -87,23 +90,35 @@ case uartNum: \
 	while ( available-- > 0 ) \
 	{ \
 		uint8_t byteRead = UART##uartNum##_D; \
-		printHex( byteRead ); \
-		print( "(" ); \
-		printInt8( available ); \
-		print( ") <-" ); \
+		if ( Connect_debug ) \
+		{ \
+			printHex( byteRead ); \
+			print( "(" ); \
+			printInt8( available ); \
+			print( ") <-" ); \
+		} \
 		switch ( uart##uartNum##_rx_status ) \
 		{ \
 		case UARTStatus_Wait: \
-			print(" SYN "); \
+			if ( Connect_debug ) \
+			{ \
+				print(" SYN "); \
+			} \
 			uart##uartNum##_rx_status = byteRead == 0x16 ? UARTStatus_SYN : UARTStatus_Wait; \
 			break; \
 		case UARTStatus_SYN: \
-			print(" SOH "); \
+			if ( Connect_debug ) \
+			{ \
+				print(" SOH "); \
+			} \
 			uart##uartNum##_rx_status = byteRead == 0x01 ? UARTStatus_SOH : UARTStatus_Wait; \
 			break; \
 		case UARTStatus_SOH: \
 		{ \
-			print(" CMD "); \
+			if ( Connect_debug ) \
+			{ \
+				print(" CMD "); \
+			} \
 			uint8_t byte = byteRead; \
 			if ( byte <= Animation ) \
 			{ \
@@ -122,14 +137,20 @@ case uartNum: \
 				uart##uartNum##_rx_status = UARTStatus_Wait; \
 				break; \
 			default: \
-				print("###"); \
+				if ( Connect_debug ) \
+				{ \
+					print("###"); \
+				} \
 				break; \
 			} \
 			break; \
 		} \
 		case UARTStatus_Command: \
 		{ \
-			print(" CMD "); \
+			if ( Connect_debug ) \
+			{ \
+				print(" CMD "); \
+			} \
 			uint8_t (*rcvFunc)(uint8_t, uint16_t(*), uint8_t) = (uint8_t(*)(uint8_t, uint16_t(*), uint8_t))(Connect_receiveFunctions[ uart##uartNum##_rx_command ]); \
 			if ( rcvFunc( byteRead, (uint16_t*)&uart##uartNum##_rx_bytes_waiting, uartNum ) ) \
 				uart##uartNum##_rx_status = UARTStatus_Wait; \
@@ -141,7 +162,10 @@ case uartNum: \
 			available++; \
 			continue; \
 		} \
-		print( NL ); \
+		if ( Connect_debug ) \
+		{ \
+			print( NL ); \
+		} \
 	} \
 }
 
@@ -191,6 +215,11 @@ CLIDict_Def( uartConnectCLIDict, "UARTConnect Module Commands" ) = {
 // -- Connect Device Id Variables --
 uint8_t Connect_id = 255; // Invalid, unset
 uint8_t Connect_master = 0;
+
+
+// -- Control Variables --
+uint32_t Connect_lastCheck = 0; // Cable Check scheduler
+uint8_t Connect_debug = 0; // Set 1 for debug
 
 
 // -- Rx Status Variables --
@@ -398,12 +427,16 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 	// Check if this is the first byte
 	if ( *pending_bytes == 0xFFFF )
 	{
-		dbug_msg("PENDING SET -> ");
-		printHex( byte );
-		print(" ");
 		*pending_bytes = byte;
-		printHex( *pending_bytes );
-		print( NL );
+
+		if ( Connect_debug )
+		{
+			dbug_msg("PENDING SET -> ");
+			printHex( byte );
+			print(" ");
+			printHex( *pending_bytes );
+			print( NL );
+		}
 	}
 	// Verify byte
 	else
@@ -448,11 +481,15 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 			Connect_cableOkSlave = 1;
 		}
 	}
-	dbug_msg("CABLECHECK RECEIVE - ");
-	printHex( byte );
-	print(" ");
-	printHex( *pending_bytes );
-	print(NL);
+
+	if ( Connect_debug )
+	{
+		dbug_msg("CABLECHECK RECEIVE - ");
+		printHex( byte );
+		print(" ");
+		printHex( *pending_bytes );
+		print( NL );
+	}
 
 	// Check whether the cable check has finished
 	return *pending_bytes == 0 ? 1 : 0;
@@ -462,7 +499,7 @@ uint8_t Connect_receive_IdRequest( uint8_t byte, uint16_t *pending_bytes, uint8_
 {
 	dbug_print("IdRequest");
 	// Check the directionality
-	if ( !to_master )
+	if ( to_master )
 	{
 		erro_print("Invalid IdRequest direction...");
 	}
@@ -487,7 +524,7 @@ uint8_t Connect_receive_IdEnumeration( uint8_t id, uint16_t *pending_bytes, uint
 {
 	dbug_print("IdEnumeration");
 	// Check the directionality
-	if ( to_master )
+	if ( !to_master )
 	{
 		erro_print("Invalid IdEnumeration direction...");
 	}
@@ -511,7 +548,7 @@ uint8_t Connect_receive_IdReport( uint8_t id, uint16_t *pending_bytes, uint8_t t
 {
 	dbug_print("IdReport");
 	// Check the directionality
-	if ( !to_master )
+	if ( to_master )
 	{
 		erro_print("Invalid IdRequest direction...");
 	}
@@ -690,7 +727,10 @@ void Connect_setup( uint8_t master )
 	// Register Connect CLI dictionary
 	CLI_registerDictionary( uartConnectCLIDict, uartConnectCLIDictName );
 
+	// Check if master
 	Connect_master = master;
+	if ( Connect_master )
+		Connect_id = 0; // 0x00 is always the master Id
 
 	// Master / UART0 setup
 	// Slave  / UART1 setup
@@ -699,15 +739,10 @@ void Connect_setup( uint8_t master )
 	SIM_SCGC4 |= SIM_SCGC4_UART1; // Disable clock gating
 
 	// Pin Setup for UART0 / UART1
-	// XXX TODO Set to actual (Teensy 3.1s don't have the correct pins available)
-	PORTB_PCR16 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(3); // RX Pin
-	PORTB_PCR17 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
-	PORTC_PCR3  = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(3); // RX Pin
-	PORTC_PCR4  = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
-	//PORTA_PCR1 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(2); // RX Pin
-	//PORTA_PCR2 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(2); // TX Pin
-	//PORTE_PCR0 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(3); // RX Pin
-	//PORTE_PCR1 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
+	PORTA_PCR1 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(2); // RX Pin
+	PORTA_PCR2 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(2); // TX Pin
+	PORTE_PCR0 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(3); // RX Pin
+	PORTE_PCR1 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
 
 	// Baud Rate setting
 	UART0_BDH = (uint8_t)(Connect_baud >> 8);
@@ -771,12 +806,44 @@ void Connect_setup( uint8_t master )
 // - SyncEvent is also blocking until sent
 void Connect_scan()
 {
-	// Check if Tx Buffers are empty and the Tx Ring buffers have data to send
-	// This happens if there was previously nothing to send
-	if ( uart0_buffer_items > 0 && UART0_TCFIFO == 0 )
-		uart_fillTxFifo( 0 );
-	if ( uart1_buffer_items > 0 && UART1_TCFIFO == 0 )
-		uart_fillTxFifo( 1 );
+	// Check if initially configured as a slave and usb comes up
+	// Then reconfigure as a master
+	if ( !Connect_master && Output_Available )
+	{
+		Connect_setup( Output_Available );
+	}
+
+	// Limit how often we do cable checks
+	uint32_t time_compare = 0x7FF; // Must be all 1's, 0x3FF is valid, 0x4FF is not
+	uint32_t current_time = systick_millis_count;
+	if ( Connect_lastCheck != current_time
+		&& ( current_time & time_compare ) == time_compare
+	)
+	{
+		// Make sure we don't double check if the clock speed is too high
+		Connect_lastCheck = current_time;
+
+		// Send a cable check command of 2 bytes
+		Connect_send_CableCheck( UARTConnectCableCheckLength_define );
+
+		// If this is a slave, and we don't have an id yeth
+		// Don't bother sending if there are cable issues
+		if ( !Connect_master && Connect_id == 0xFF && Connect_cableOkMaster )
+		{
+			Connect_send_IdRequest();
+		}
+	}
+
+	// Only process commands if uarts have been configured
+	if ( uarts_configured )
+	{
+		// Check if Tx Buffers are empty and the Tx Ring buffers have data to send
+		// This happens if there was previously nothing to send
+		if ( uart0_buffer_items > 0 && UART0_TCFIFO == 0 )
+			uart_fillTxFifo( 0 );
+		if ( uart1_buffer_items > 0 && UART1_TCFIFO == 0 )
+			uart_fillTxFifo( 1 );
+	}
 }
 
 
@@ -796,7 +863,7 @@ void cliFunc_connectCmd( char* args )
 	switch ( numToInt( &arg1Ptr[0] ) )
 	{
 	case CableCheck:
-		Connect_send_CableCheck( 2 );
+		Connect_send_CableCheck( UARTConnectCableCheckLength_define );
 		break;
 
 	case IdRequest:

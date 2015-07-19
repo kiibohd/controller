@@ -41,7 +41,7 @@ typedef enum UARTStatus {
 	UARTStatus_SYN     = 1, // Rx: SYN Received, waiting for SOH
 	UARTStatus_SOH     = 2, // Rx: SOH Received, waiting for Command
 	UARTStatus_Command = 3, // Rx: Command Received, waiting for data
-	UARTStatus_Ready   = 4, // Tx: Ready to receive commands
+	UARTStatus_Ready   = 4, // Tx: Ready to send commands
 } UARTStatus;
 
 
