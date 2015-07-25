@@ -27,12 +27,20 @@
 
 // Functions
 typedef enum Command {
-	CableCheck    = 0, // Comm check
-	IdRequest     = 1, // Slave initialization (request id from master)
-	IdEnumeration = 2, // Slave initialization (begin enumeration from master)
-	IdReport      = 3, // Slave initialization complete, report id to master
-	ScanCode      = 4, // ScanCode event status change
-	Animation     = 5, // Master trigger animation event (same command is sent back to master when ready)
+	CableCheck,       // Comm check
+
+	IdRequest,        // Slave initialization (request id from master)
+	IdEnumeration,    // Slave initialization (begin enumeration from master)
+	IdReport,         // Slave initialization complete, report id to master
+
+	ScanCode,         // ScanCode event status change
+	Animation,        // Master trigger animation event (same command is sent back to master when ready)
+
+	RemoteCapability, // Activate a capability on the given node
+	RemoteOutput,     // Remote debug output from a given node
+	RemoteInput,      // Remote command to send to a given node's debug cli
+
+	Command_TOP,      // Enum bounds
 } Command;
 
 // UART Rx/Tx Status
@@ -71,7 +79,6 @@ typedef struct IdRequestCommand {
 
 // Id Enumeration Command
 // Issued by the master whenever an Id Request is received
-// XXX Future work may include an "external capabilities" list in this command
 typedef struct IdEnumerationCommand {
 	Command command;
 	uint8_t id;
@@ -79,7 +86,6 @@ typedef struct IdEnumerationCommand {
 
 // Id Report Command
 // Issued by each slave to the master when assigned an Id
-// XXX Future work will include an "external capabilities" list in this command
 typedef struct IdReportCommand {
 	Command command;
 	uint8_t id;
@@ -108,6 +114,37 @@ typedef struct AnimationCommand {
 	uint8_t numParams;
 	uint8_t firstParam[0];
 } AnimationCommand;
+
+// Remote Capability Command
+// Initiated by the master to trigger a capability on a given node
+// RemoteOutput is enabled while capability is activated
+typedef struct RemoteCapabilityCommand {
+	Command command;
+	uint8_t id;
+	Capability capability;
+	uint8_t numArgs;
+	uint8_t firstArg[0];
+} RemoteCapabilityCommand;
+
+// Remote Output Command
+// Sends debug output to the master node
+// Uses print command redirection to generate each command message
+typedef struct RemoteOutputCommand {
+	Command command;
+	uint8_t id;
+	uint8_t length;
+	uint8_t firstChar[0];
+} RemoteOutputCommand;
+
+// Remote Input Command
+// Sends debug input to given node (usually from master)
+// Uses debug cli to execute command and sends all output using Remote Output Command
+typedef struct RemoteInputCommand {
+	Command command;
+	uint8_t id;
+	uint8_t length;
+	uint8_t firstChar[0];
+} RemoteInputCommand;
 
 
 

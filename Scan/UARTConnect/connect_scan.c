@@ -188,6 +188,7 @@ case uartNum: \
 // CLI Functions
 void cliFunc_connectCmd ( char *args );
 void cliFunc_connectIdl ( char *args );
+void cliFunc_connectLst ( char *args );
 void cliFunc_connectMst ( char *args );
 void cliFunc_connectRst ( char *args );
 void cliFunc_connectSts ( char *args );
@@ -199,12 +200,14 @@ void cliFunc_connectSts ( char *args );
 // Connect Module command dictionary
 CLIDict_Entry( connectCmd,  "Sends a command via UART Connect, first arg is which uart, next arg is the command, rest are the arguments." );
 CLIDict_Entry( connectIdl,  "Sends N number of Idle commands, 2 is the default value, and should be sufficient in most cases." );
+CLIDict_Entry( connectLst,  "Lists available UARTConnect commands and index id" );
 CLIDict_Entry( connectMst,  "Sets the device as master. Use argument of s to set as slave." );
 CLIDict_Entry( connectRst,  "Resets both Rx and Tx connect buffers and state variables." );
 CLIDict_Entry( connectSts,  "UARTConnect status." );
 CLIDict_Def( uartConnectCLIDict, "UARTConnect Module Commands" ) = {
 	CLIDict_Item( connectCmd ),
 	CLIDict_Item( connectIdl ),
+	CLIDict_Item( connectLst ),
 	CLIDict_Item( connectMst ),
 	CLIDict_Item( connectRst ),
 	CLIDict_Item( connectSts ),
@@ -885,6 +888,20 @@ void cliFunc_connectCmd( char* args )
 		break;
 	}
 	case Animation:
+		break;
+
+	case RemoteCapability:
+		// TODO
+		break;
+
+	case RemoteOutput:
+		// TODO
+		break;
+
+	case RemoteInput:
+		// TODO
+		break;
+
 	default:
 		break;
 	}
@@ -907,6 +924,31 @@ void cliFunc_connectIdl( char* args )
 		count = 2;
 
 	Connect_send_Idle( count );
+}
+
+void cliFunc_connectLst( char* args )
+{
+	const char *Command_strs[] = {
+		"CableCheck",
+		"IdRequest",
+		"IdEnumeration",
+		"IdReport",
+		"ScanCode",
+		"Animation",
+		"RemoteCapability",
+		"RemoteOutput",
+		"RemoteInput",
+	};
+
+	print( NL );
+	info_msg("List of UARTConnect commands");
+	for ( uint8_t cmd = 0; cmd < Command_TOP; cmd++ )
+	{
+		print( NL );
+		printInt8( cmd );
+		print(" - ");
+		dPrint( (char*)Command_strs[ cmd ] );
+	}
 }
 
 void cliFunc_connectMst( char* args )
@@ -944,7 +986,8 @@ void cliFunc_connectRst( char* args )
 	info_msg("Resetting UARTConnect state...");
 	Connect_reset();
 
-	// TODO - Argument for re-sync
+	// Reset node id
+	Connect_id = 0xFF;
 }
 
 void cliFunc_connectSts( char* args )
