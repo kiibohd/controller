@@ -33,6 +33,7 @@
 // ----- Defines -----
 
 #define LCD_TOTAL_VISIBLE_PAGES 4
+#define LCD_TOTAL_PAGES 9
 #define LCD_PAGE_LEN 128
 
 
@@ -51,6 +52,7 @@
 // CLI Functions
 void cliFunc_lcdCmd  ( char* args );
 void cliFunc_lcdColor( char* args );
+void cliFunc_lcdDisp ( char* args );
 void cliFunc_lcdInit ( char* args );
 void cliFunc_lcdTest ( char* args );
 
@@ -70,12 +72,14 @@ uint8_t cliNormalReverseToggleState = 0;
 // Scan Module command dictionary
 CLIDict_Entry( lcdCmd,      "Send byte via SPI, second argument enables a0. Defaults to control." );
 CLIDict_Entry( lcdColor,    "Set backlight color. 3 16-bit numbers: R G B. i.e. 0xFFF 0x1444 0x32" );
+CLIDict_Entry( lcdDisp,     "Write byte(s) to given page starting at given address. i.e. 0x1 0x5 0xFF 0x00" );
 CLIDict_Entry( lcdInit,     "Re-initialize the LCD display." );
 CLIDict_Entry( lcdTest,     "Test out the LCD display." );
 
 CLIDict_Def( lcdCLIDict, "ST LCD Module Commands" ) = {
 	CLIDict_Item( lcdCmd ),
 	CLIDict_Item( lcdColor ),
+	CLIDict_Item( lcdDisp ),
 	CLIDict_Item( lcdInit ),
 	CLIDict_Item( lcdTest ),
 	{ 0, 0, 0 } // Null entry for dictionary end
@@ -204,7 +208,7 @@ inline void LCD_clearPage( uint8_t page )
 void LCD_clear()
 {
 	// Setup each page
-	for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
+	for ( uint8_t page = 0; page < LCD_TOTAL_PAGES; page++ )
 	{
 		LCD_clearPage( page );
 	}
@@ -286,7 +290,6 @@ inline void LCD_setup()
 		LCD_writeDisplayReg( page, (uint8_t*)&STLcdDefaultImage[page * LCD_PAGE_LEN], LCD_PAGE_LEN );
 
 	// Setup Backlight
-	// TODO Expose default settings
 	SIM_SCGC6 |= SIM_SCGC6_FTM0;
 	FTM0_CNT = 0; // Reset counter
 
@@ -300,7 +303,7 @@ inline void LCD_setup()
 	FTM0_C2SC = 0x24;
 
 	// Base FTM clock selection (72 MHz system clock)
-	// @ 0xFFFF period, 72 MHz / 0xFFFF * 2 = Actual period
+	// @ 0xFFFF period, 72 MHz / (0xFFFF * 2) = Actual period
 	// Higher pre-scalar will use the most power (also look the best)
 	// Pre-scalar calculations
 	// 0 -      72 MHz -> 549 Hz
@@ -334,8 +337,6 @@ inline void LCD_setup()
 // LCD State processing loop
 inline uint8_t LCD_scan()
 {
-	// NOP - Screen Refresh
-	//LCD_writeControlReg( 0xE3 );
 	return 0;
 }
 
@@ -415,5 +416,52 @@ void cliFunc_lcdColor( char* args )
 	FTM0_C0V = rgb[0];
 	FTM0_C1V = rgb[1];
 	FTM0_C2V = rgb[2];
+}
+
+void cliFunc_lcdDisp( char* args )
+{
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// First process page and starting address
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Stop processing args if no more are found
+	if ( *arg1Ptr == '\0' )
+		return;
+	uint8_t page = numToInt( arg1Ptr );
+
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Stop processing args if no more are found
+	if ( *arg1Ptr == '\0' )
+		return;
+	uint8_t address = numToInt( arg1Ptr );
+
+	// Set the register page
+	LCD_writeControlReg( 0xB0 | ( 0x0F & page ) );
+
+	// Set starting address
+	LCD_writeControlReg( 0x10 | ( ( 0xF0 & address ) >> 4 ) );
+	LCD_writeControlReg( 0x00 | ( 0x0F & address ));
+
+	// Process all args
+	for ( ;; )
+	{
+		curArgs = arg2Ptr;
+		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+		// Stop processing args if no more are found
+		if ( *arg1Ptr == '\0' )
+			break;
+
+		uint8_t value = numToInt( arg1Ptr );
+
+		// Write buffer to SPI
+		SPI_write( &value, 1 );
+	}
 }
 

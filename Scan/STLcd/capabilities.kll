@@ -17,7 +17,7 @@ Date = 2015-08-01;
 # Prescalars range from 0 to 7 (1 to 128)
 
 # Base FTM clock selection (72 MHz system clock)
-# @ 0xFFFF period, 72 MHz / 0xFFFF * 2 = Actual period
+# @ 0xFFFF period, 72 MHz / (0xFFFF * 2) = Actual period
 # Higher pre-scalar will use the most power (also look the best)
 # Pre-scalar calculations
 # 0 -      72 MHz -> 549 Hz
