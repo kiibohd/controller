@@ -15,15 +15,19 @@ Date = 2015-08-01;
 #
 # Here's a calculation table valid at a 72 MHz system clock
 # Prescalars range from 0 to 7 (1 to 128)
-# 0 -      72 MHz - Highest power usage/best result
-# 1 -      36 MHz
-# 2 -      18 MHz
-# 3 -       9 MHz - Slightly visible flicker (peripheral vision)
-# 4 -   4 500 kHz - Visible flickering
-# 5 -   2 250 kHz
-# 6 -   1 125 kHz
-# 7 - 562 500  Hz
-# Defaulting to no prescalar, looks the best
+
+# Base FTM clock selection (72 MHz system clock)
+# @ 0xFFFF period, 72 MHz / 0xFFFF * 2 = Actual period
+# Higher pre-scalar will use the most power (also look the best)
+# Pre-scalar calculations
+# 0 -      72 MHz -> 549 Hz
+# 1 -      36 MHz -> 275 Hz
+# 2 -      18 MHz -> 137 Hz
+# 3 -       9 MHz ->  69 Hz (Slightly visible flicker)
+# 4 -   4 500 kHz ->  34 Hz (Visible flickering)
+# 5 -   2 250 kHz ->  17 Hz
+# 6 -   1 125 kHz ->   9 Hz
+# 7 - 562 500  Hz ->   4 Hz
 STLcdBacklightPrescalar => STLcdBacklightPrescalar_define;
 STLcdBacklightPrescalar = 0;
 
@@ -38,7 +42,7 @@ STLcdBacklightGreen => STLcdBacklightGreen_define;
 STLcdBacklightBlue  => STLcdBacklightBlue_define;
 
 # Defaults to 6% brightness, white
-STLcdBacklightRed   = 0xFFF;
-STLcdBacklightGreen = 0xFFF;
-STLcdBacklightBlue  = 0xFFF;
+STLcdBacklightRed   = 0x0FFF;
+STLcdBacklightGreen = 0x0FFF;
+STLcdBacklightBlue  = 0x0FFF;
 

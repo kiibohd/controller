@@ -49,9 +49,10 @@
 // ----- Function Declarations -----
 
 // CLI Functions
-void cliFunc_lcdCmd( char* args );
-void cliFunc_lcdInit( char* args );
-void cliFunc_lcdTest( char* args );
+void cliFunc_lcdCmd  ( char* args );
+void cliFunc_lcdColor( char* args );
+void cliFunc_lcdInit ( char* args );
+void cliFunc_lcdTest ( char* args );
 
 
 
@@ -65,11 +66,13 @@ uint8_t cliNormalReverseToggleState = 0;
 
 // Scan Module command dictionary
 CLIDict_Entry( lcdCmd,      "Send byte via SPI, second argument enables a0. Defaults to control." );
+CLIDict_Entry( lcdColor,    "Set backlight color. 3 16-bit numbers: R G B. i.e. 0xFFF 0x1444 0x32" );
 CLIDict_Entry( lcdInit,     "Re-initialize the LCD display." );
 CLIDict_Entry( lcdTest,     "Test out the LCD display." );
 
 CLIDict_Def( lcdCLIDict, "ST LCD Module Commands" ) = {
 	CLIDict_Item( lcdCmd ),
+	CLIDict_Item( lcdColor ),
 	CLIDict_Item( lcdInit ),
 	CLIDict_Item( lcdTest ),
 	{ 0, 0, 0 } // Null entry for dictionary end
@@ -290,24 +293,22 @@ inline void LCD_setup()
 	FTM0_C2SC = 0x24;
 
 	// Base FTM clock selection (72 MHz system clock)
+	// @ 0xFFFF period, 72 MHz / 0xFFFF * 2 = Actual period
+	// Higher pre-scalar will use the most power (also look the best)
 	// Pre-scalar calculations
-	// 0 -      72 MHz - Highest power usage/best result
-	// 1 -      36 MHz
-	// 2 -      18 MHz
-	// 3 -       9 MHz - Slightly visible flicker (peripheral vision)
-	// 4 -   4 500 kHz - Visible flickering
-	// 5 -   2 250 kHz
-	// 6 -   1 125 kHz
-	// 7 - 562 500  Hz
+	// 0 -      72 MHz -> 549 Hz
+	// 1 -      36 MHz -> 275 Hz
+	// 2 -      18 MHz -> 137 Hz
+	// 3 -       9 MHz ->  69 Hz (Slightly visible flicker)
+	// 4 -   4 500 kHz ->  34 Hz (Visible flickering)
+	// 5 -   2 250 kHz ->  17 Hz
+	// 6 -   1 125 kHz ->   9 Hz
+	// 7 - 562 500  Hz ->   4 Hz
+	// Using a higher pre-scalar without flicker is possible but FTM0_MOD will need to be reduced
+	// Which will reduce the brightness range
+
 	// System clock, /w prescalar setting
 	FTM0_SC = FTM_SC_CLKS(1) | FTM_SC_PS( STLcdBacklightPrescalar_define );
-
-	/* Write frequency TODO API
-	FTM0_SC = 0;
-	FTM0_CNT = 0;
-	FTM0_MOD = mod;
-	FTM0_SC = FTM_SC_CLKS(1) | FTM_SC_PS(prescale);
-	*/
 
 	// Red
 	FTM0_C0V = STLcdBacklightRed_define;
@@ -398,5 +399,36 @@ cmd:
 	printHex( cmd );
 	print( NL );
 	LCD_writeControlReg( cmd );
+}
+
+void cliFunc_lcdColor( char* args )
+{
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// Colors
+	uint16_t rgb[3]; // Red, Green, Blue
+
+	// Parse integers from 3 arguments
+	for ( uint8_t color = 0; color < 3; color++ )
+	{
+		curArgs = arg2Ptr;
+		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+		// Give up if not enough args given
+		if ( *arg1Ptr == '\0' )
+			return;
+
+		// Convert argument to integer
+		rgb[ color ] = numToInt( arg1Ptr );
+	}
+
+	// Set PWM channels
+	FTM0_C0V = rgb[0];
+	FTM0_C1V = rgb[1];
+	FTM0_C2V = rgb[2];
+
+	print( NL ); // No \r\n by default after the command is entered
 }
 
