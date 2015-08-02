@@ -21,6 +21,7 @@
 
 // Project Includes
 #include <cli.h>
+#include <kll.h>
 #include <led.h>
 #include <print.h>
 
@@ -276,16 +277,49 @@ inline void LCD_setup()
 
 	// Setup Backlight
 	// TODO Expose default settings
-	// TODO Setup PWM
-	GPIOC_PDDR |= (1<<1);
-	PORTC_PCR1 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOC_PCOR |= (1<<1);
-	GPIOC_PDDR |= (1<<2);
-	PORTC_PCR2 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOC_PCOR |= (1<<2);
-	GPIOC_PDDR |= (1<<3);
-	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOC_PCOR |= (1<<3);
+	SIM_SCGC6 |= SIM_SCGC6_FTM0;
+	FTM0_CNT = 0; // Reset counter
+
+	// PWM Period
+	// 16-bit maximum
+	FTM0_MOD = 0xFFFF;
+
+	// Set FTM to PWM output - Edge Aligned, Low-true pulses
+	FTM0_C0SC = 0x24; // MSnB:MSnA = 10, ELSnB:ELSnA = 01
+	FTM0_C1SC = 0x24;
+	FTM0_C2SC = 0x24;
+
+	// Base FTM clock selection (72 MHz system clock)
+	// Pre-scalar calculations
+	// 0 -      72 MHz - Highest power usage/best result
+	// 1 -      36 MHz
+	// 2 -      18 MHz
+	// 3 -       9 MHz - Slightly visible flicker (peripheral vision)
+	// 4 -   4 500 kHz - Visible flickering
+	// 5 -   2 250 kHz
+	// 6 -   1 125 kHz
+	// 7 - 562 500  Hz
+	// System clock, /w prescalar setting
+	FTM0_SC = FTM_SC_CLKS(1) | FTM_SC_PS( STLcdBacklightPrescalar_define );
+
+	/* Write frequency TODO API
+	FTM0_SC = 0;
+	FTM0_CNT = 0;
+	FTM0_MOD = mod;
+	FTM0_SC = FTM_SC_CLKS(1) | FTM_SC_PS(prescale);
+	*/
+
+	// Red
+	FTM0_C0V = STLcdBacklightRed_define;
+	PORTC_PCR1 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(4);
+
+	// Green
+	FTM0_C1V = STLcdBacklightGreen_define;
+	PORTC_PCR2 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(4);
+
+	// Blue
+	FTM0_C2V = STLcdBacklightBlue_define;
+	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(4);
 }
 
 

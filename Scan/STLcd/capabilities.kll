@@ -1,0 +1,44 @@
+Name = STLcdCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2015";
+KLL = 0.3c;
+
+# Modified Date
+Date = 2015-08-01;
+
+# Defines available to the STLcd sub-module
+
+# PWM Prescalar
+# In general this can be left alone
+# A higher prescalar should be lower power usage (less switching)
+# However, flickering may be noticeable.
+#
+# Here's a calculation table valid at a 72 MHz system clock
+# Prescalars range from 0 to 7 (1 to 128)
+# 0 -      72 MHz - Highest power usage/best result
+# 1 -      36 MHz
+# 2 -      18 MHz
+# 3 -       9 MHz - Slightly visible flicker (peripheral vision)
+# 4 -   4 500 kHz - Visible flickering
+# 5 -   2 250 kHz
+# 6 -   1 125 kHz
+# 7 - 562 500  Hz
+# Defaulting to no prescalar, looks the best
+STLcdBacklightPrescalar => STLcdBacklightPrescalar_define;
+STLcdBacklightPrescalar = 0;
+
+# Default Backlight Channel Brightness
+# There are 3 channels, RGB
+# In order to get other colors you must mix the 3 colors
+# Each channel is a 16-bit register (65536 levels)
+# Technically, this means, the backlight is a 48-bit RGB pixel
+# In practice, it may be difficult to get color consistency at times if too bright or too dim
+STLcdBacklightRed   => STLcdBacklightRed_define;
+STLcdBacklightGreen => STLcdBacklightGreen_define;
+STLcdBacklightBlue  => STLcdBacklightBlue_define;
+
+# Defaults to 6% brightness, white
+STLcdBacklightRed   = 0xFFF;
+STLcdBacklightGreen = 0xFFF;
+STLcdBacklightBlue  = 0xFFF;
+
