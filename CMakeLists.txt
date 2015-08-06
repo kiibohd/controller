@@ -106,7 +106,6 @@ set(  DebugModule "full"
 
 ##| Set the base keyboard .kll map, defaults to "defaultMap" if not found
 ##| Looks in Scan/<Module Name> for the available BaseMaps
-##| TODO Support layering in basemap
 set(     BaseMap "defaultMap"
 	CACHE STRING "KLL BaseMap/Scancode Keymapping" )
 

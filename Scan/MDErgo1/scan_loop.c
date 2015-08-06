@@ -56,7 +56,7 @@ inline void Scan_setup()
 	Connect_setup( Output_Available );
 
 	// Setup GPIO pins for matrix scanning
-	//Matrix_setup();
+	Matrix_setup();
 
 	// Setup ISSI chip to control the leds
 	LED_setup();
@@ -73,7 +73,7 @@ inline void Scan_setup()
 inline uint8_t Scan_loop()
 {
 	// Scan Matrix
-	//Matrix_scan( Scan_scanCount++ );
+	Matrix_scan( Scan_scanCount++ );
 
 	// Process any interconnect commands
 	Connect_scan();
