@@ -29,6 +29,11 @@
 #include "usb_hid.h"
 #include <generatedKeymap.h> // Generated using kll at compile time, in build directory
 
+// Connect Includes
+#if defined(ConnectEnabled_define)
+#include <connect_scan.h>
+#endif
+
 // Local Includes
 #include "macro.h"
 
@@ -941,6 +946,23 @@ inline void Macro_updateTriggerMacroPendingList()
 // Called once per USB buffer send
 inline void Macro_process()
 {
+#if defined(ConnectEnabled_define)
+	// Only compile in if a Connect node module is available
+	// If this is a interconnect slave node, send all scancodes to master node
+	if ( !Connect_master )
+	{
+		if ( macroTriggerListBufferSize > 0 )
+		{
+			dbug_msg("Yuh");
+			printHex( macroTriggerListBufferSize );
+			print( NL );
+			//Connect_send_ScanCode( Connect_id, macroTriggerListBuffer, macroTriggerListBufferSize );
+			macroTriggerListBufferSize = 0;
+		}
+		return;
+	}
+#endif
+
 	// Only do one round of macro processing between Output Module timer sends
 	if ( USBKeys_Sent != 0 )
 		return;

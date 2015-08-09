@@ -36,11 +36,13 @@
 // Macro for adding to each uart Tx ring buffer
 #define uart_addTxBuffer( uartNum ) \
 case uartNum: \
+	/* Delay UART copy until there's some space left */ \
 	while ( uart##uartNum##_buffer_items + count > uart_buffer_size ) \
 	{ \
 		warn_msg("Too much data to send on UART0, waiting..."); \
 		delay( 1 ); \
 	} \
+	/* Append data to ring buffer */ \
 	for ( uint8_t c = 0; c < count; c++ ) \
 	{ \
 		if ( Connect_debug ) \
@@ -88,6 +90,7 @@ case uartNum: \
 		UART##uartNum##_CFIFO = UART_CFIFO_RXFLUSH; \
 		return; \
 	} \
+	/* Process each byte in the UART buffer */ \
 	while ( available-- > 0 ) \
 	{ \
 		uint8_t byteRead = UART##uartNum##_D; \
@@ -152,6 +155,7 @@ case uartNum: \
 			{ \
 				print(" CMD "); \
 			} \
+			/* Call specific UARTConnect command receive function */ \
 			uint8_t (*rcvFunc)(uint8_t, uint16_t(*), uint8_t) = (uint8_t(*)(uint8_t, uint16_t(*), uint8_t))(Connect_receiveFunctions[ uart##uartNum##_rx_command ]); \
 			if ( rcvFunc( byteRead, (uint16_t*)&uart##uartNum##_rx_bytes_waiting, uartNum ) ) \
 				uart##uartNum##_rx_status = UARTStatus_Wait; \
@@ -426,7 +430,7 @@ uint32_t Connect_cableFaultsSlave = 0;
 uint8_t  Connect_cableOkMaster = 0;
 uint8_t  Connect_cableOkSlave = 0;
 
-uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8_t to_master )
+uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8_t to_slave )
 {
 	// Check if this is the first byte
 	if ( *pending_bytes == 0xFFFF )
@@ -453,7 +457,7 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 			warn_print("Cable Fault!");
 
 			// Check which side of the chain
-			if ( to_master )
+			if ( to_slave )
 			{
 				Connect_cableFaultsMaster++;
 				Connect_cableOkMaster = 0;
@@ -476,7 +480,7 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 	// If cable check was successful, set cable ok
 	if ( *pending_bytes == 0 )
 	{
-		if ( to_master )
+		if ( to_slave )
 		{
 			Connect_cableOkMaster = 1;
 		}
@@ -499,11 +503,11 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 	return *pending_bytes == 0 ? 1 : 0;
 }
 
-uint8_t Connect_receive_IdRequest( uint8_t byte, uint16_t *pending_bytes, uint8_t to_master )
+uint8_t Connect_receive_IdRequest( uint8_t byte, uint16_t *pending_bytes, uint8_t to_slave )
 {
 	dbug_print("IdRequest");
 	// Check the directionality
-	if ( to_master )
+	if ( to_slave )
 	{
 		erro_print("Invalid IdRequest direction...");
 	}
@@ -524,11 +528,11 @@ uint8_t Connect_receive_IdRequest( uint8_t byte, uint16_t *pending_bytes, uint8_
 	return 1;
 }
 
-uint8_t Connect_receive_IdEnumeration( uint8_t id, uint16_t *pending_bytes, uint8_t to_master )
+uint8_t Connect_receive_IdEnumeration( uint8_t id, uint16_t *pending_bytes, uint8_t to_slave )
 {
 	dbug_print("IdEnumeration");
 	// Check the directionality
-	if ( !to_master )
+	if ( !to_slave )
 	{
 		erro_print("Invalid IdEnumeration direction...");
 	}
@@ -548,11 +552,11 @@ uint8_t Connect_receive_IdEnumeration( uint8_t id, uint16_t *pending_bytes, uint
 	return 1;
 }
 
-uint8_t Connect_receive_IdReport( uint8_t id, uint16_t *pending_bytes, uint8_t to_master )
+uint8_t Connect_receive_IdReport( uint8_t id, uint16_t *pending_bytes, uint8_t to_slave )
 {
 	dbug_print("IdReport");
 	// Check the directionality
-	if ( to_master )
+	if ( to_slave )
 	{
 		erro_print("Invalid IdRequest direction...");
 	}
@@ -580,11 +584,11 @@ TriggerGuide Connect_receive_ScanCodeBuffer;
 uint8_t Connect_receive_ScanCodeBufferPos;
 uint8_t Connect_receive_ScanCodeDeviceId;
 
-uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t to_master )
+uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t to_slave )
 {
 	dbug_print("ScanCode");
 	// Check the directionality
-	if ( !to_master )
+	if ( to_slave )
 	{
 		erro_print("Invalid ScanCode direction...");
 	}
@@ -592,12 +596,13 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 	// Master node, trigger scan codes
 	if ( Connect_master ) switch ( (*pending_bytes)-- )
 	{
+	// Byte count always starts at 0xFFFF
 	case 0xFFFF: // Device Id
 		Connect_receive_ScanCodeDeviceId = byte;
 		break;
 
 	case 0xFFFE: // Number of TriggerGuides in bytes (byte * 3)
-		*pending_bytes = byte * 3;
+		*pending_bytes = byte * sizeof( TriggerGuide );
 		Connect_receive_ScanCodeBufferPos = 0;
 		break;
 
@@ -605,12 +610,32 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 		// Set the specific TriggerGuide entry
 		((uint8_t*)&Connect_receive_ScanCodeBuffer)[ Connect_receive_ScanCodeBufferPos++ ] = byte;
 
-		// Reset the BufferPos if higher than 3
+		// Reset the BufferPos if higher than sizeof TriggerGuide
 		// And send the TriggerGuide to the Macro Module
-		if ( Connect_receive_ScanCodeBufferPos > 3 )
+		if ( Connect_receive_ScanCodeBufferPos > sizeof( TriggerGuide ) )
 		{
 			Connect_receive_ScanCodeBufferPos = 0;
-			Macro_triggerState( &Connect_receive_ScanCodeBuffer, 1 );
+
+			// Adjust ScanCode offset
+			if ( Connect_receive_ScanCodeDeviceId > 0 )
+			{
+				// This variable is in generatedKeymaps.h
+				extern uint8_t InterconnectOffsetList[];
+				Connect_receive_ScanCodeBuffer.scanCode = Connect_receive_ScanCodeBuffer.scanCode + InterconnectOffsetList[ Connect_receive_ScanCodeDeviceId - 1 ];
+			}
+
+			// ScanCode receive debug
+			dbug_print("");
+			printHex( Connect_receive_ScanCodeBuffer.type );
+			print(" ");
+			printHex( Connect_receive_ScanCodeBuffer.state );
+			print(" ");
+			printHex( Connect_receive_ScanCodeBuffer.scanCode );
+			print( NL );
+
+			// Send ScanCode to macro module
+			// TODO
+			//Macro_triggerState( &Connect_receive_ScanCodeBuffer, 1 );
 		}
 
 		break;
@@ -618,6 +643,7 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 	// Propagate ScanCode packet
 	else switch ( (*pending_bytes)-- )
 	{
+	// Byte count always starts at 0xFFFF
 	case 0xFFFF: // Device Id
 	{
 		Connect_receive_ScanCodeDeviceId = byte;
@@ -630,8 +656,8 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 		Connect_addBytes( header, sizeof( header ), 1 ); // Master
 		break;
 	}
-	case 0xFFFE: // Number of TriggerGuides in bytes (byte * 3)
-		*pending_bytes = byte * 3;
+	case 0xFFFE: // Number of TriggerGuides in bytes
+		*pending_bytes = byte * sizeof( TriggerGuide );
 		Connect_receive_ScanCodeBufferPos = 0;
 
 		// Pass through byte
@@ -652,7 +678,7 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 	return *pending_bytes == 0 ? 1 : 0;
 }
 
-uint8_t Connect_receive_Animation( uint8_t byte, uint16_t *pending_bytes, uint8_t to_master )
+uint8_t Connect_receive_Animation( uint8_t byte, uint16_t *pending_bytes, uint8_t to_slave )
 {
 	dbug_print("Animation");
 	return 1;

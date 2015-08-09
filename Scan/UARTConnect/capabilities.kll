@@ -39,3 +39,8 @@ UARTConnectBaudFine = 0x0;
 UARTConnectCableCheckLength => UARTConnectCableCheckLength_define;
 UARTConnectCableCheckLength = 2;
 
+# Connect Enable
+# Define used to indicate to non-connect modules that support should be compiled in
+ConnectEnabled => ConnectEnabled_define;
+ConnectEnabled = 1;
+

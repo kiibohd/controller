@@ -148,8 +148,17 @@ typedef struct RemoteInputCommand {
 
 
 
+// ----- Variables -----
+
+extern uint8_t Connect_id;
+extern uint8_t Connect_master; // Set if master
+
+
+
 // ----- Functions -----
 
 void Connect_setup( uint8_t master );
 void Connect_scan();
+
+void Connect_send_ScanCode( uint8_t id, TriggerGuide *scanCodeStateList, uint8_t numScanCodes );
 
