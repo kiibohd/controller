@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ###| Builder Script |###
 #
 # Builds all permutations of modules

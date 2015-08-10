@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Just in case there was an extra ledTest.bash (don't care if error)
 rm /dev/ttyACM0

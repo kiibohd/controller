@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #| Jacob Alexander 2014
 #| Arg List
 #| 1 - File to write to         (e.g. final_chip)
