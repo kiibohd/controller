@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ISSILed
 # Virtual Serial Port API Example
 # Jacob Alexander 2015
