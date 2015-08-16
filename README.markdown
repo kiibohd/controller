@@ -12,7 +12,9 @@ Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](
 Official Keyboards
 ------------------
 
-* MD1 (Infinity Keyboard 2014/10/15)
+* MD1      (Infinity Keyboard/IC60 2014/10/15)
+* MDErgo1  (Infinity Ergodox /ICED 2015/03/31)
+* WhiteFox (Soon to be released?)
 
 
 The Kiibohd firmware supports a lot of other keyboards, but these are more obscure/custom/lesser known.

@@ -456,7 +456,7 @@ inline void Macro_interconnectAdd( void *trigger_ptr )
 		case 0x03:
 			break;
 		default:
-			erro_print("Invalid key state");
+			erro_msg("Invalid key state - ");
 			error = 1;
 			break;
 		}
@@ -464,9 +464,16 @@ inline void Macro_interconnectAdd( void *trigger_ptr )
 
 	// Invalid TriggerGuide type
 	default:
-		erro_print("Invalid type");
+		erro_msg("Invalid type - ");
 		error = 1;
 		break;
+	}
+
+	// Check if ScanCode is out of range
+	if ( scanCode > MaxScanCode )
+	{
+		warn_msg("ScanCode is out of range/not defined - ");
+		error = 1;
 	}
 
 	// Display TriggerGuide
@@ -529,6 +536,15 @@ inline void Macro_keyState( uint8_t scanCode, uint8_t state )
 	case 0x01: // Pressed
 	case 0x02: // Held
 	case 0x03: // Released
+		// Check if ScanCode is out of range
+		if ( scanCode > MaxScanCode )
+		{
+			warn_msg("ScanCode is out of range/not defined: ");
+			printHex( scanCode );
+			print( NL );
+			return;
+		}
+
 		macroTriggerListBuffer[ macroTriggerListBufferSize ].scanCode = scanCode;
 		macroTriggerListBuffer[ macroTriggerListBufferSize ].state    = state;
 		macroTriggerListBuffer[ macroTriggerListBufferSize ].type     = 0x00; // Normal key
@@ -549,6 +565,15 @@ inline void Macro_analogState( uint8_t scanCode, uint8_t state )
 	// TODO Handle change for interconnect
 	if ( state != 0x00 )
 	{
+		// Check if ScanCode is out of range
+		if ( scanCode > MaxScanCode )
+		{
+			warn_msg("ScanCode is out of range/not defined: ");
+			printHex( scanCode );
+			print( NL );
+			return;
+		}
+
 		macroTriggerListBuffer[ macroTriggerListBufferSize ].scanCode = scanCode;
 		macroTriggerListBuffer[ macroTriggerListBufferSize ].state    = state;
 		macroTriggerListBuffer[ macroTriggerListBufferSize ].type     = 0x02; // Analog key
@@ -567,6 +592,9 @@ inline void Macro_ledState( uint8_t ledCode, uint8_t state )
 	// TODO Handle change for interconnect
 	if ( state != 0x00 )
 	{
+		// Check if LedCode is out of range
+		// TODO
+
 		macroTriggerListBuffer[ macroTriggerListBufferSize ].scanCode = ledCode;
 		macroTriggerListBuffer[ macroTriggerListBufferSize ].state    = state;
 		macroTriggerListBuffer[ macroTriggerListBufferSize ].type     = 0x01; // LED key
