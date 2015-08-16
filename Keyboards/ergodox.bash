@@ -11,17 +11,17 @@
 
 # Feel free to change the variables in this section to configure your keyboard
 
-BuildPath="IC60"
+BuildPath="ICED"
 
 ## KLL Configuration ##
 
 # Generally shouldn't be changed, this will affect every layer
-BaseMap="defaultMap"
+BaseMap="defaultMap leftHand slave1 rightHand"
 
 # This is the default layer of the keyboard
 # NOTE: To combine kll files into a single layout, separate them by spaces
 # e.g.  DefaultMap="mylayout mylayoutmod"
-DefaultMap="md1Overlay stdFuncMap"
+DefaultMap="stdFuncMap"
 
 # This is where you set the additional layers
 # NOTE: Indexing starts at 1
@@ -42,13 +42,13 @@ PartialMaps[1]="hhkbpro2"
 # NOTE: Changing any of these variables will require a force build to compile correctly
 
 # Keyboard Module Configuration
-ScanModule="MD1"
+ScanModule="MDErgo1"
 MacroModule="PartialMap"
 OutputModule="pjrcUSB"
 DebugModule="full"
 
 # Microcontroller
-Chip="mk20dx128vlf5"
+Chip="mk20dx256vlh7"
 
 # Compiler Selection
 Compiler="gcc"

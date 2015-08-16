@@ -28,6 +28,7 @@ Projects
 --------
 
 * infinity.bash (Infinity Keyboard 2014/10/15)
+* ergodox.bash  (Infinity Ergodox 2015/08/15)
 * template.bash (Example template for new keyboards)
 * whitefox.bash (Soon?)
 
