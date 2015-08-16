@@ -1,10 +1,10 @@
 Name = MD1;
-Version = 0.2;
-Author = "HaaTa (Jacob Alexander) 2014";
-KLL = 0.3;
+Version = 0.3;
+Author = "HaaTa (Jacob Alexander) 2014-2015";
+KLL = 0.3c;
 
 # Modified Date
-Date = 2014-09-14;
+Date = 2015-08-16;
 
 
 S0x00 : U"Esc";
@@ -70,4 +70,16 @@ S0x3B : U"RGui";
 S0x3C : U"RAlt";
 S0x3D : U"Function3"; # Right Blank Key 1
 S0x3E : U"Function4"; # Right Blank Key 2
+
+
+# Custom Action Examples
+
+# Example capability, prints to cli
+action1 => CustomAction_action1_capability(); # No arguments
+
+# Blocks given USB Code, must be used with blockLink
+# Simple example, supports only blocking a single key at a time
+# Keys must be specified using numbers see Macro/PartialMap/usb_hid.h
+blockHold => CustomAction_blockHold_capability( usbCode : 1 ); # Single 8-bit argument
+blockKey => CustomAction_blockKey_capability( usbCode : 1 );
 
