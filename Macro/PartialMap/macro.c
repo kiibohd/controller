@@ -470,7 +470,7 @@ inline void Macro_interconnectAdd( void *trigger_ptr )
 	}
 
 	// Check if ScanCode is out of range
-	if ( scanCode > MaxScanCode )
+	if ( trigger->scanCode > MaxScanCode )
 	{
 		warn_msg("ScanCode is out of range/not defined - ");
 		error = 1;
