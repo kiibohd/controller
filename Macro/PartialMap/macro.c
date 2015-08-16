@@ -156,6 +156,13 @@ uint16_t macroLayerIndexStackSize = 0;
 uint16_t macroResultMacroPendingList[ ResultMacroNum ] = { 0 };
 uint16_t macroResultMacroPendingListSize = 0;
 
+// Interconnect ScanCode Cache
+#if defined(ConnectEnabled_define)
+// TODO This can be shrunk by the size of the max node 0 ScanCode
+TriggerGuide macroInterconnectCache[ MaxScanCode ];
+uint8_t macroInterconnectCacheSize = 0;
+#endif
+
 
 
 // ----- Capabilities -----
@@ -424,18 +431,73 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 	// Otherwise no defined Trigger Macro
 	erro_msg("Scan Code has no defined Trigger Macro: ");
 	printHex( scanCode );
+	print( NL );
 	return 0;
 }
 
 
-// Update the scancode using a list of TriggerGuides
-// TODO Handle led state and analog
-inline void Macro_triggerState( void *triggers, uint8_t num )
+// Add an interconnect ScanCode
+// These are handled differently (less information is sent, hold/off states must be assumed)
+#if defined(ConnectEnabled_define)
+inline void Macro_interconnectAdd( void *trigger_ptr )
 {
-	// Copy each of the TriggerGuides to the TriggerListBuffer
-	for ( uint8_t c = 0; c < num; c++ )
-		macroTriggerListBuffer[ macroTriggerListBufferSize++ ] = ((TriggerGuide*)triggers)[ c ];
+	TriggerGuide *trigger = (TriggerGuide*)trigger_ptr;
+
+	// Error checking
+	uint8_t error = 0;
+	switch ( trigger->type )
+	{
+	case 0x00: // Normal key
+		switch ( trigger->state )
+		{
+		case 0x00:
+		case 0x01:
+		case 0x02:
+		case 0x03:
+			break;
+		default:
+			erro_print("Invalid key state");
+			error = 1;
+			break;
+		}
+		break;
+
+	// Invalid TriggerGuide type
+	default:
+		erro_print("Invalid type");
+		error = 1;
+		break;
+	}
+
+	// Display TriggerGuide
+	if ( error )
+	{
+		printHex( trigger->type );
+		print(" ");
+		printHex( trigger->state );
+		print(" ");
+		printHex( trigger->scanCode );
+		print( NL );
+		return;
+	}
+
+	// Add trigger to the Interconnect Cache
+	// During each processing loop, a scancode may be re-added depending on it's state
+	for ( uint8_t c = 0; c < macroInterconnectCacheSize; c++ )
+	{
+		// Check if the same ScanCode
+		if ( macroInterconnectCache[ c ].scanCode == trigger->scanCode )
+		{
+			// Update the state
+			macroInterconnectCache[ c ].state = trigger->state;
+			return;
+		}
+	}
+
+	// If not in the list, add it
+	macroInterconnectCache[ macroInterconnectCacheSize++ ] = *trigger;
 }
+#endif
 
 
 // Update the scancode key state
@@ -447,6 +509,20 @@ inline void Macro_triggerState( void *triggers, uint8_t num )
 //   * 0x04 - Unpressed (this is currently ignored)
 inline void Macro_keyState( uint8_t scanCode, uint8_t state )
 {
+#if defined(ConnectEnabled_define)
+	// Only compile in if a Connect node module is available
+	if ( !Connect_master )
+	{
+		// ScanCodes are only added if there was a state change (on/off)
+		switch ( state )
+		{
+		case 0x00: // Off
+		case 0x02: // Held
+			return;
+		}
+	}
+#endif
+
 	// Only add to macro trigger list if one of three states
 	switch ( state )
 	{
@@ -470,6 +546,7 @@ inline void Macro_keyState( uint8_t scanCode, uint8_t state )
 inline void Macro_analogState( uint8_t scanCode, uint8_t state )
 {
 	// Only add to macro trigger list if non-off
+	// TODO Handle change for interconnect
 	if ( state != 0x00 )
 	{
 		macroTriggerListBuffer[ macroTriggerListBufferSize ].scanCode = scanCode;
@@ -487,6 +564,7 @@ inline void Macro_analogState( uint8_t scanCode, uint8_t state )
 inline void Macro_ledState( uint8_t ledCode, uint8_t state )
 {
 	// Only add to macro trigger list if non-off
+	// TODO Handle change for interconnect
 	if ( state != 0x00 )
 	{
 		macroTriggerListBuffer[ macroTriggerListBufferSize ].scanCode = ledCode;
@@ -907,6 +985,10 @@ inline void Macro_updateTriggerMacroPendingList()
 		// Lookup Trigger List
 		nat_ptr_t *triggerList = Macro_layerLookup( &macroTriggerListBuffer[ key ], latch_expire );
 
+		// If there was an error during lookup, skip
+		if ( triggerList == 0 )
+			continue;
+
 		// Number of Triggers in list
 		nat_ptr_t triggerListSize = triggerList[0];
 
@@ -953,10 +1035,7 @@ inline void Macro_process()
 	{
 		if ( macroTriggerListBufferSize > 0 )
 		{
-			dbug_msg("Yuh");
-			printHex( macroTriggerListBufferSize );
-			print( NL );
-			//Connect_send_ScanCode( Connect_id, macroTriggerListBuffer, macroTriggerListBufferSize );
+			Connect_send_ScanCode( Connect_id, macroTriggerListBuffer, macroTriggerListBufferSize );
 			macroTriggerListBufferSize = 0;
 		}
 		return;
@@ -966,6 +1045,41 @@ inline void Macro_process()
 	// Only do one round of macro processing between Output Module timer sends
 	if ( USBKeys_Sent != 0 )
 		return;
+
+#if defined(ConnectEnabled_define)
+	// Check if there are any ScanCodes in the interconnect cache to process
+	if ( Connect_master && macroInterconnectCacheSize > 0 )
+	{
+		// Iterate over all the cache ScanCodes
+		uint8_t currentInterconnectCacheSize = macroInterconnectCacheSize;
+		macroInterconnectCacheSize = 0;
+		for ( uint8_t c = 0; c < currentInterconnectCacheSize; c++ )
+		{
+			// Add to the trigger list
+			macroTriggerListBuffer[ macroTriggerListBufferSize++ ] = macroInterconnectCache[ c ];
+
+			// TODO Handle other TriggerGuide types (e.g. analog)
+			switch ( macroInterconnectCache[ c ].type )
+			{
+			// Normal (Press/Hold/Release)
+			case 0x00:
+				// Decide what to do based on the current state
+				switch ( macroInterconnectCache[ c ].state )
+				{
+				// Re-add to interconnect cache in hold state
+				case 0x01: // Press
+				//case 0x02: // Hold // XXX Why does this not work? -HaaTa
+					macroInterconnectCache[ c ].state = 0x02;
+					macroInterconnectCache[ macroInterconnectCacheSize++ ] = macroInterconnectCache[ c ];
+					break;
+				case 0x03: // Remove
+					break;
+				// Otherwise, do not re-add
+				}
+			}
+		}
+	}
+#endif
 
 	// If the pause flag is set, only process if the step counter is non-zero
 	if ( macroPauseMode )

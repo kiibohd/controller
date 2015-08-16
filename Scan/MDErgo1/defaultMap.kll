@@ -4,7 +4,7 @@ Author = "HaaTa (Jacob Alexander) 2014-2015";
 KLL = 0.3c;
 
 # Modified Date
-Date = 2015-08-05;
+Date = 2015-08-15;
 
 ########
 # NOTE #
@@ -30,7 +30,6 @@ Date = 2015-08-05;
 #
 # Each LED is represented by a single bit
 # See (http://www.issi.com/WW/pdf/31FL3731C.pdf) for details
-ISSILedMask1 => ISSILedMask1_define;
 ISSILedMask1 = "
 	0xFF, 0x00, /* C1-1 -> C1-16 */
 	0xFF, 0x00, /* C2-1 -> C2-16 */
@@ -46,7 +45,6 @@ ISSILedMask1 = "
 # LED Brightness Override
 #
 # Each LED channel supports 256 levels (8-bit control)
-ISSILedBrightness1 => ISSILedBrightness1_define;
 ISSILedBrightness1 = "
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* C1-1 -> C1-16 */
 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, /* C2-1 -> C2-16 */

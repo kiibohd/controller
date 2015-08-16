@@ -41,6 +41,7 @@ typedef enum Command {
 	RemoteInput,      // Remote command to send to a given node's debug cli
 
 	Command_TOP,      // Enum bounds
+	Command_SYN = 0x16, // Reserved for error handling
 } Command;
 
 // UART Rx/Tx Status
