@@ -342,6 +342,95 @@ inline uint8_t LCD_scan()
 
 
 
+// ----- Capabilities -----
+
+uint16_t LCD_layerStack_prevSize = 0;
+void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("LCD_layerStack_capability");
+		return;
+	}
+
+	// Parse the layer stack, top to bottom
+	extern uint16_t macroLayerIndexStack[];
+	extern uint16_t macroLayerIndexStackSize;
+
+	// Only process if the stack size has changed
+	if ( macroLayerIndexStackSize == LCD_layerStack_prevSize )
+	{
+		return;
+	}
+	LCD_layerStack_prevSize = macroLayerIndexStackSize;
+
+	// Number data for LCD
+	const uint8_t numbers[10][128] = {
+		{ STLcdNumber0_define },
+		{ STLcdNumber1_define },
+		{ STLcdNumber2_define },
+		{ STLcdNumber3_define },
+		{ STLcdNumber4_define },
+		{ STLcdNumber5_define },
+		{ STLcdNumber6_define },
+		{ STLcdNumber7_define },
+		{ STLcdNumber8_define },
+		{ STLcdNumber9_define },
+	};
+
+	// Only display if there are layers active
+	if ( macroLayerIndexStackSize > 0 )
+	{
+
+		// Iterate through each of the pages
+		// XXX Many of the values here are hard-coded
+		//     Eventually a proper font rendering engine should take care of things like this... -HaaTa
+		for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
+		{
+			// Set the register page
+			LCD_writeControlReg( 0xB0 | ( 0x0F & page ) );
+
+			// Set starting address
+			LCD_writeControlReg( 0x10 );
+			LCD_writeControlReg( 0x00 );
+
+			// Write data
+			for ( uint16_t layer = 1; layer <= macroLayerIndexStackSize; layer++ )
+			{
+				uint16_t layerIndex = macroLayerIndexStack[ macroLayerIndexStackSize - layer ];
+
+				// Default to 0, if over 9
+				if ( layerIndex > 9 )
+				{
+					layerIndex = 0;
+				}
+
+				// Write page of number to display
+				SPI_write( (uint8_t*)&numbers[ layerIndex ][ page * 32 ], 32 );
+			}
+
+			// Blank out rest of display
+			uint8_t data = 0;
+			for ( uint8_t c = 0; c < 4 - macroLayerIndexStackSize; c++ )
+			{
+				for ( uint8_t byte = 0; byte < 32; byte++ )
+				{
+					SPI_write( &data, 1 );
+				}
+			}
+		}
+	}
+	else
+	{
+		// Write default image
+		for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
+			LCD_writeDisplayReg( page, (uint8_t *)&STLcdDefaultImage[page * LCD_PAGE_LEN], LCD_PAGE_LEN );
+	}
+}
+
+
+
 // ----- CLI Command Functions -----
 
 void cliFunc_lcdInit( char* args )
