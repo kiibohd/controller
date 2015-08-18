@@ -379,9 +379,28 @@ void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 		{ STLcdNumber9_define },
 	};
 
+	// Color data for numbers
+	const uint16_t colors[10][3] = {
+		{ STLcdNumber0Color_define },
+		{ STLcdNumber1Color_define },
+		{ STLcdNumber2Color_define },
+		{ STLcdNumber3Color_define },
+		{ STLcdNumber4Color_define },
+		{ STLcdNumber5Color_define },
+		{ STLcdNumber6Color_define },
+		{ STLcdNumber7Color_define },
+		{ STLcdNumber8Color_define },
+		{ STLcdNumber9Color_define },
+	};
+
 	// Only display if there are layers active
 	if ( macroLayerIndexStackSize > 0 )
 	{
+		// Set the color according to the "top-of-stack" layer
+		uint16_t layerIndex = macroLayerIndexStack[ macroLayerIndexStackSize - 1 ];
+		FTM0_C0V = colors[ layerIndex ][0];
+		FTM0_C1V = colors[ layerIndex ][1];
+		FTM0_C2V = colors[ layerIndex ][2];
 
 		// Iterate through each of the pages
 		// XXX Many of the values here are hard-coded
@@ -398,7 +417,7 @@ void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 			// Write data
 			for ( uint16_t layer = 1; layer <= macroLayerIndexStackSize; layer++ )
 			{
-				uint16_t layerIndex = macroLayerIndexStack[ macroLayerIndexStackSize - layer ];
+				layerIndex = macroLayerIndexStack[ macroLayerIndexStackSize - layer ];
 
 				// Default to 0, if over 9
 				if ( layerIndex > 9 )
@@ -423,6 +442,11 @@ void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 	}
 	else
 	{
+		// Set default backlight
+		FTM0_C0V = STLcdBacklightRed_define;
+		FTM0_C1V = STLcdBacklightGreen_define;
+		FTM0_C2V = STLcdBacklightBlue_define;
+
 		// Write default image
 		for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
 			LCD_writeDisplayReg( page, (uint8_t *)&STLcdDefaultImage[page * LCD_PAGE_LEN], LCD_PAGE_LEN );
