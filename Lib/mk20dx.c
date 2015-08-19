@@ -106,28 +106,41 @@ void nmi_default_isr()
 // NVIC - Hard Fault ISR
 void hard_fault_default_isr()
 {
-	print("Hard Fault!" NL );
+	print("Hard Fault! SCB_HFSR: ");
+	printHex32( SCB_HFSR );
+	print( NL );
+	SOFTWARE_RESET();
 }
 
 
 // NVIC - Memory Manager Fault ISR
 void memmanage_fault_default_isr()
 {
-	print("Memory Manager Fault!" NL );
+	print("Memory Manager Fault! SCB_CFSR: ");
+	printHex32( SCB_CFSR );
+	print(" SCB_MMAR: ");
+	printHex32( SCB_MMAR );
+	print( NL );
 }
 
 
 // NVIC - Bus Fault ISR
 void bus_fault_default_isr()
 {
-	print("Bus Fault!" NL );
+	print("Bus Fault! SCB_CFSR: ");
+	printHex32( SCB_CFSR );
+	print(" SCB_BFAR: ");
+	printHex32( SCB_BFAR );
+	print( NL );
 }
 
 
 // NVIC - Usage Fault ISR
 void usage_fault_default_isr()
 {
-	print("Usage Fault!" NL );
+	print("Usage Fault! SCB_CFSR: ");
+	printHex32( SCB_CFSR );
+	print( NL );
 }
 
 

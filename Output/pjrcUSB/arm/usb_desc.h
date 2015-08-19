@@ -54,19 +54,21 @@
 #define DEVICE_SUBCLASS         0x00
 #define DEVICE_PROTOCOL         0x00
 #define EP0_SIZE                64
-#define NUM_ENDPOINTS           5
+#define NUM_ENDPOINTS           8
 #define NUM_USB_BUFFERS         30
-#define NUM_INTERFACE           4
+#define NUM_INTERFACE           7
 
 #define KEYBOARD_INTERFACE      0 // Keyboard
 #define KEYBOARD_ENDPOINT       1
 #define KEYBOARD_SIZE           8
 #define KEYBOARD_INTERVAL       1
+#define KEYBOARD_NAME           L"Boot Keyboard"
 
 #define NKRO_KEYBOARD_INTERFACE 1 // NKRO Keyboard
 #define NKRO_KEYBOARD_ENDPOINT  2
 #define NKRO_KEYBOARD_SIZE      64
 #define NKRO_KEYBOARD_INTERVAL  1
+#define NKRO_KEYBOARD_NAME      L"NKRO Keyboard"
 
 #define CDC_IAD_DESCRIPTOR      1
 #define CDC_STATUS_INTERFACE    2
@@ -77,25 +79,34 @@
 #define CDC_ACM_SIZE            16
 #define CDC_RX_SIZE             64
 #define CDC_TX_SIZE             64
+#define CDC_STATUS_NAME         L"Virtual Serial Port - Status"
+#define CDC_DATA_NAME           L"Virtual Serial Port - Data"
 
 #define MOUSE_INTERFACE         4 // Mouse
 #define MOUSE_ENDPOINT          6
 #define MOUSE_SIZE              8
 #define MOUSE_INTERVAL          2
+#define MOUSE_NAME              L"Mouse"
 
 #define JOYSTICK_INTERFACE      5 // Joystick
 #define JOYSTICK_ENDPOINT       7
 #define JOYSTICK_SIZE           16
 #define JOYSTICK_INTERVAL       1
+#define JOYSTICK_NAME           L"Joystick"
+
+#define SYS_CTRL_INTERFACE      6 // Media Keys
+#define SYS_CTRL_ENDPOINT       8
+#define SYS_CTRL_SIZE           8
+#define SYS_CTRL_INTERVAL       1
+#define SYS_CTRL_NAME           L"Media Keys"
 
 #define KEYBOARD_DESC_OFFSET      (9 + 9)
 #define NKRO_KEYBOARD_DESC_OFFSET (9 + 9+9+7 + 9)
 #define SERIAL_CDC_DESC_OFFSET    (9 + 9+9+7 + 9+9+7 + 8)
-#define CONFIG_DESC_SIZE          (9 + 9+9+7 + 9+9+7 + 8+9+5+5+4+5+7+9+7+7)
-
-// XXX Unused
 #define MOUSE_DESC_OFFSET         (9 + 9+9+7 + 9+9+7 + 8+9+5+5+4+5+7+9+7+7 + 9)
 #define JOYSTICK_DESC_OFFSET      (9 + 9+9+7 + 9+9+7 + 8+9+5+5+4+5+7+9+7+7 + 9+9+7 + 9)
+#define SYS_CTRL_DESC_OFFSET      (9 + 9+9+7 + 9+9+7 + 8+9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7 + 9)
+#define CONFIG_DESC_SIZE          (9 + 9+9+7 + 9+9+7 + 8+9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7 + 9+9+7)
 
 #define ENDPOINT1_CONFIG        ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT2_CONFIG        ENDPOINT_TRANSIMIT_ONLY
@@ -104,6 +115,7 @@
 #define ENDPOINT5_CONFIG        ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT6_CONFIG        ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT7_CONFIG        ENDPOINT_TRANSIMIT_ONLY
+#define ENDPOINT8_CONFIG        ENDPOINT_TRANSIMIT_ONLY
 
 
 

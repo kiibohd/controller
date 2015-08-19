@@ -1,10 +1,10 @@
 Name = pjrcUSBCapabilities;
-Version = 0.4;
+Version = 0.5;
 Author = "HaaTa (Jacob Alexander) 2014-2015";
 KLL = 0.3b;
 
 # Modified Date
-Date = 2015-05-02;
+Date = 2015-07-12;
 
 
 # Output capabilities
@@ -16,4 +16,8 @@ usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
 # Configuration capabilities
 kbdProtocolBoot => Output_kbdProtocolBoot_capability();
 kbdProtocolNKRO => Output_kbdProtocolNKRO_capability();
+
+# Locale Settings
+keyboardLocale => KeyboardLocale_define;
+keyboardLocale = 0;
 

@@ -52,10 +52,16 @@
 // When the PC isn't listening, how long do we wait before discarding data?
 #define TX_TIMEOUT_MSEC 50
 
-#if F_CPU == 96000000
+#if F_CPU == 168000000
+	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 1100)
+#elif F_CPU == 144000000
+	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 932)
+#elif F_CPU == 120000000
+	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 764)
+#elif F_CPU == 96000000
 	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 596)
 #elif F_CPU == 72000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 512) // XXX Correct?
+	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 512)
 #elif F_CPU == 48000000
 	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 428)
 #elif F_CPU == 24000000
@@ -89,7 +95,7 @@ void usb_keyboard_send()
 
 		if ( USBKeys_Protocol == 0 ) // Boot Mode
 		{
-			if ( usb_tx_packet_count( NKRO_KEYBOARD_ENDPOINT ) < TX_PACKET_LIMIT )
+			if ( usb_tx_packet_count( KEYBOARD_ENDPOINT ) < TX_PACKET_LIMIT )
 			{
 				tx_packet = usb_malloc();
 				if ( tx_packet )
@@ -98,7 +104,18 @@ void usb_keyboard_send()
 		}
 		else if ( USBKeys_Protocol == 1 ) // NKRO Mode
 		{
-			if ( usb_tx_packet_count( KEYBOARD_ENDPOINT ) < TX_PACKET_LIMIT )
+			if ( usb_tx_packet_count( NKRO_KEYBOARD_ENDPOINT ) < TX_PACKET_LIMIT )
+			{
+				tx_packet = usb_malloc();
+				if ( tx_packet )
+					break;
+			}
+		}
+		else if ( USBKeys_Changed &
+			( USBKeyChangeState_System | USBKeyChangeState_Consumer )
+		)
+		{
+			if ( usb_tx_packet_count( SYS_CTRL_ENDPOINT ) < TX_PACKET_LIMIT )
 			{
 				tx_packet = usb_malloc();
 				if ( tx_packet )
@@ -117,6 +134,47 @@ void usb_keyboard_send()
 
 	// Pointer to USB tx packet buffer
 	uint8_t *tx_buf = tx_packet->buf;
+
+	// Check system control keys
+	if ( USBKeys_Changed & USBKeyChangeState_System )
+	{
+		if ( Output_DebugMode )
+		{
+			print("SysCtrl[");
+			printHex_op( USBKeys_SysCtrl, 2 );
+			print( "] " NL );
+		}
+
+		*tx_buf++ = 0x02; // ID
+		*tx_buf   = USBKeys_SysCtrl;
+		tx_packet->len = 2;
+
+		// Send USB Packet
+		usb_tx( SYS_CTRL_ENDPOINT, tx_packet );
+		USBKeys_Changed &= ~USBKeyChangeState_System; // Mark sent
+		return;
+	}
+
+	// Check consumer control keys
+	if ( USBKeys_Changed & USBKeyChangeState_Consumer )
+	{
+		if ( Output_DebugMode )
+		{
+			print("ConsCtrl[");
+			printHex_op( USBKeys_ConsCtrl, 2 );
+			print( "] " NL );
+		}
+
+		*tx_buf++ = 0x03; // ID
+		*tx_buf++ = (uint8_t)(USBKeys_ConsCtrl & 0x00FF);
+		*tx_buf   = (uint8_t)(USBKeys_ConsCtrl >> 8);
+		tx_packet->len = 3;
+
+		// Send USB Packet
+		usb_tx( SYS_CTRL_ENDPOINT, tx_packet );
+		USBKeys_Changed &= ~USBKeyChangeState_Consumer; // Mark sent
+		return;
+	}
 
 	switch ( USBKeys_Protocol )
 	{
@@ -155,45 +213,6 @@ void usb_keyboard_send()
 		if ( Output_DebugMode )
 		{
 			dbug_msg("NKRO USB: ");
-		}
-
-		// Check system control keys
-		if ( USBKeys_Changed & USBKeyChangeState_System )
-		{
-			if ( Output_DebugMode )
-			{
-				print("SysCtrl[");
-				printHex_op( USBKeys_SysCtrl, 2 );
-				print( "] " NL );
-			}
-
-			*tx_buf++ = 0x02; // ID
-			*tx_buf   = USBKeys_SysCtrl;
-			tx_packet->len = 2;
-
-			// Send USB Packet
-			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
-			USBKeys_Changed &= ~USBKeyChangeState_System; // Mark sent
-		}
-
-		// Check consumer control keys
-		if ( USBKeys_Changed & USBKeyChangeState_Consumer )
-		{
-			if ( Output_DebugMode )
-			{
-				print("ConsCtrl[");
-				printHex_op( USBKeys_ConsCtrl, 2 );
-				print( "] " NL );
-			}
-
-			*tx_buf++ = 0x03; // ID
-			*tx_buf++ = (uint8_t)(USBKeys_ConsCtrl & 0x00FF);
-			*tx_buf   = (uint8_t)(USBKeys_ConsCtrl >> 8);
-			tx_packet->len = 3;
-
-			// Send USB Packet
-			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
-			USBKeys_Changed &= ~USBKeyChangeState_Consumer; // Mark sent
 		}
 
 		// Standard HID Keyboard

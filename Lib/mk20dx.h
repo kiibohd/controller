@@ -1951,7 +1951,9 @@ typedef struct {
 #define SCB_CFSR                *(volatile uint32_t *)0xE000ED28 // Configurable Fault Status Register
 #define SCB_HFSR                *(volatile uint32_t *)0xE000ED2C // HardFault Status
 #define SCB_DFSR                *(volatile uint32_t *)0xE000ED30 // Debug Fault Status
-#define SCB_MMFAR               *(volatile uint32_t *)0xE000ED34 // MemManage Fault Address
+#define SCB_MMAR                *(volatile uint32_t *)0xE000ED34 // MemManage Fault Address
+#define SCB_BFAR                *(volatile uint32_t *)0xE000ED38 // BusFault Addreses Register
+#define SCB_AFSR                *(volatile uint32_t *)0xE000ED3C // Auxilary Fault Status Register
 
 #define SYST_CSR                *(volatile uint32_t *)0xE000E010 // SysTick Control and Status
 #define SYST_CSR_COUNTFLAG              (uint32_t)0x00010000

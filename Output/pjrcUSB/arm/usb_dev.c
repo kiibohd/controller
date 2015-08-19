@@ -173,6 +173,9 @@ static uint8_t reply_buffer[8];
 
 static void endpoint0_stall()
 {
+	#ifdef UART_DEBUG_UNKNOWN
+	print("STALL" NL );
+	#endif
 	USB0_ENDPT0 = USB_ENDPT_EPSTALL | USB_ENDPT_EPRXEN | USB_ENDPT_EPTXEN | USB_ENDPT_EPHSHK;
 }
 
@@ -198,7 +201,8 @@ static void usb_setup()
 	switch ( setup.wRequestAndType )
 	{
 	case 0x0500: // SET_ADDRESS
-		break;
+		goto send;
+
 	case 0x0900: // SET_CONFIGURATION
 		#ifdef UART_DEBUG
 		print("CONFIGURE - ");
@@ -288,18 +292,21 @@ static void usb_setup()
 			table[ index( i, TX, EVEN ) ].desc = 0;
 			table[ index( i, TX, ODD ) ].desc = 0;
 		}
-		break;
+		goto send;
+
 	case 0x0880: // GET_CONFIGURATION
 		reply_buffer[0] = usb_configuration;
 		datalen = 1;
 		data = reply_buffer;
-		break;
+		goto send;
+
 	case 0x0080: // GET_STATUS (device)
 		reply_buffer[0] = 0;
 		reply_buffer[1] = 0;
 		datalen = 2;
 		data = reply_buffer;
-		break;
+		goto send;
+
 	case 0x0082: // GET_STATUS (endpoint)
 		if ( setup.wIndex > NUM_ENDPOINTS )
 		{
@@ -313,12 +320,15 @@ static void usb_setup()
 			reply_buffer[0] = 1;
 		data = reply_buffer;
 		datalen = 2;
-		break;
+		goto send;
+
 	case 0x0100: // CLEAR_FEATURE (device)
 	case 0x0101: // CLEAR_FEATURE (interface)
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
+		warn_print("CLEAR_FEATURE - Device/Interface");
 		endpoint0_stall();
 		return;
+
 	case 0x0102: // CLEAR_FEATURE (interface)
 		i = setup.wIndex & 0x7F;
 		if ( i > NUM_ENDPOINTS || setup.wValue != 0 )
@@ -326,6 +336,7 @@ static void usb_setup()
 			endpoint0_stall();
 			return;
 		}
+		warn_print("CLEAR_FEATURE - Interface");
 		//(*(uint8_t *)(&USB0_ENDPT0 + setup.wIndex * 4)) &= ~0x02;
 		// TODO: do we need to clear the data toggle here?
 		//break;
@@ -334,11 +345,14 @@ static void usb_setup()
 		// XXX: Ignoring seems to work, though this may not be the ideal behaviour -HaaTa
 		endpoint0_stall();
 		return;
+
 	case 0x0300: // SET_FEATURE (device)
 	case 0x0301: // SET_FEATURE (interface)
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
+		warn_print("SET_FEATURE");
 		endpoint0_stall();
 		return;
+
 	case 0x0302: // SET_FEATURE (endpoint)
 		i = setup.wIndex & 0x7F;
 		if ( i > NUM_ENDPOINTS || setup.wValue != 0 )
@@ -349,7 +363,8 @@ static void usb_setup()
 		}
 		(*(uint8_t *)(&USB0_ENDPT0 + setup.wIndex * 4)) |= 0x02;
 		// TODO: do we need to clear the data toggle here?
-		break;
+		goto send;
+
 	case 0x0680: // GET_DESCRIPTOR
 	case 0x0681:
 		#ifdef UART_DEBUG
@@ -401,8 +416,7 @@ static void usb_setup()
 	case 0x2221: // CDC_SET_CONTROL_LINE_STATE
 		usb_cdc_line_rtsdtr = setup.wValue;
 		//serial_print("set control line state\n");
-		endpoint0_stall();
-		return;
+		goto send;
 
 	case 0x21A1: // CDC_GET_LINE_CODING
 		data = (uint8_t*)usb_cdc_line_coding;
@@ -412,30 +426,44 @@ static void usb_setup()
 	case 0x2021: // CDC_SET_LINE_CODING
 		// XXX Needed?
 		//serial_print("set coding, waiting...\n");
-		endpoint0_stall();
-		return; // Cannot stall here (causes issues)
+		return;
 
 	case 0x0921: // HID SET_REPORT
 		#ifdef UART_DEBUG
-		print("SET_REPORT - ");
+		warn_msg("SET_REPORT - ");
 		printHex( setup.wValue );
 		print(" - ");
 		printHex( setup.wValue & 0xFF );
 		print( NL );
 		#endif
 		USBKeys_LEDs = setup.wValue & 0xFF;
+
+		// Must be stall for some reason... -HaaTa
 		endpoint0_stall();
 		return;
 
 	case 0x01A1: // HID GET_REPORT
 		#ifdef UART_DEBUG
 		print("GET_REPORT - ");
-		printHex( USBKeys_LEDs );
+		printHex( setup.wIndex );
 		print(NL);
 		#endif
-		data = (uint8_t*)&USBKeys_LEDs;
-		datalen = 1;
-		goto send;
+		// Search through descriptors returning necessary info
+		for ( list = usb_descriptor_list; 1; list++ )
+		{
+			if ( list->addr == NULL )
+				break;
+			if ( list->wValue != 0x2200 )
+				continue;
+			if ( setup.wIndex == list->wIndex )
+			{
+				data = list->addr;
+				datalen = list->length;
+				goto send;
+			}
+                }
+                endpoint0_stall();
+                return;
 
 	case 0x0A21: // HID SET_IDLE
 		#ifdef UART_DEBUG
@@ -445,8 +473,7 @@ static void usb_setup()
 		#endif
 		USBKeys_Idle_Config = (setup.wValue >> 8);
 		USBKeys_Idle_Count = 0;
-		endpoint0_stall();
-		return;
+		goto send;
 
 	case 0x0B21: // HID SET_PROTOCOL
 		#ifdef UART_DEBUG
@@ -457,8 +484,7 @@ static void usb_setup()
 		print(NL);
 		#endif
 		USBKeys_Protocol = setup.wValue & 0xFF; // 0 - Boot Mode, 1 - NKRO Mode
-		endpoint0_stall();
-		return;
+		goto send;
 
 	// case 0xC940:
 	default:
@@ -472,10 +498,16 @@ static void usb_setup()
 send:
 	#ifdef UART_DEBUG
 	print("setup send ");
-	printHex32((uint32_t)data);
+	printHex32( (uint32_t)data );
 	print(",");
-	printHex(datalen);
-	print(NL);
+	for ( uint8_t c = 0; c < datalen; c++ )
+	{
+		printHex( data[c] );
+		print(" ");
+	}
+	print(",");
+	printHex( datalen );
+	print( NL );
 	#endif
 
 	if ( datalen > setup.wLength )
@@ -592,6 +624,7 @@ static void usb_control( uint32_t stat )
 		// unfreeze the USB, now that we're ready
 		USB0_CTL = USB_CTL_USBENSOFEN; // clear TXSUSPENDTOKENBUSY bit
 		break;
+
 	case 0x01:  // OUT transaction received from host
 	case 0x02:
 		#ifdef UART_DEBUG
@@ -663,6 +696,7 @@ static void usb_control( uint32_t stat )
 		}
 
 		break;
+
 	default:
 		#ifdef UART_DEBUG
 		print("PID=unknown:");

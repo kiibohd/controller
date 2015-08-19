@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2013-2014)
+ * Modified by Jacob Alexander (2013-2015)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -33,6 +33,9 @@
 
 // Local Includes
 #include "usb_desc.h"
+
+// Generated Includes
+#include <kll_defs.h>
 
 
 
@@ -260,7 +263,10 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	0x95, 0x01,          //   Report Count (1),
 	0x81, 0x03,          //   Input (Constant),
 	0xc0,                // End Collection - Keyboard
+};
 
+// System Control and Consumer Control
+static uint8_t sys_ctrl_report_desc[] = {
 	// System Control Collection
 	//
 	// NOTES:
@@ -290,16 +296,15 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	0x85, 0x03,          //   Report ID (3),
 	0x75, 0x10,          //   Report Size (16),
 	0x95, 0x01,          //   Report Count (1),
-	0x16, 0x20, 0x00,    //   Logical Minimum (32),
+	0x16, 0x01, 0x00,    //   Logical Minimum (1),
 	0x26, 0x9C, 0x02,    //   Logical Maximum (668),
 	0x05, 0x0C,          //   Usage Page (Consumer),
-	0x19, 0x20,          //   Usage Minimum (32),
+	0x19, 0x01,          //   Usage Minimum (1),
 	0x2A, 0x9C, 0x02,    //   Usage Maximum (668),
 	0x81, 0x00,          //   Input (Data, Array),
 	0xc0,                // End Collection - Consumer Control
 };
 
-/* MOUSE
 // Mouse Protocol 1, HID 1.11 spec, Appendix B, page 59-60, with wheel extension
 static uint8_t mouse_report_desc[] = {
 	0x05, 0x01,                     // Usage Page (Generic Desktop)
@@ -332,7 +337,52 @@ static uint8_t mouse_report_desc[] = {
 	0x81, 0x06,                     //   Input (Data, Variable, Relative)
 	0xC0                            // End Collection
 };
-*/
+
+// Joystick Protocol, HID 1.11 spec, Apendix D, page 64-65
+static uint8_t joystick_report_desc[] = {
+        0x05, 0x01,                     // Usage Page (Generic Desktop)
+        0x09, 0x04,                     // Usage (Joystick)
+        0xA1, 0x01,                     // Collection (Application)
+        0x15, 0x00,                     // Logical Minimum (0)
+        0x25, 0x01,                     // Logical Maximum (1)
+        0x75, 0x01,                     // Report Size (1)
+        0x95, 0x20,                     // Report Count (32)
+        0x05, 0x09,                     // Usage Page (Button)
+        0x19, 0x01,                     // Usage Minimum (Button #1)
+        0x29, 0x20,                     // Usage Maximum (Button #32)
+        0x81, 0x02,                     // Input (variable,absolute)
+        0x15, 0x00,                     // Logical Minimum (0)
+        0x25, 0x07,                     // Logical Maximum (7)
+        0x35, 0x00,                     // Physical Minimum (0)
+        0x46, 0x3B, 0x01,               // Physical Maximum (315)
+        0x75, 0x04,                     // Report Size (4)
+        0x95, 0x01,                     // Report Count (1)
+        0x65, 0x14,                     // Unit (20)
+        0x05, 0x01,                     // Usage Page (Generic Desktop)
+        0x09, 0x39,                     // Usage (Hat switch)
+        0x81, 0x42,                     // Input (variable,absolute,null_state)
+        0x05, 0x01,                     // Usage Page (Generic Desktop)
+        0x09, 0x01,                     // Usage (Pointer)
+        0xA1, 0x00,                     // Collection ()
+        0x15, 0x00,                     //   Logical Minimum (0)
+        0x26, 0xFF, 0x03,               //   Logical Maximum (1023)
+        0x75, 0x0A,                     //   Report Size (10)
+        0x95, 0x04,                     //   Report Count (4)
+        0x09, 0x30,                     //   Usage (X)
+        0x09, 0x31,                     //   Usage (Y)
+        0x09, 0x32,                     //   Usage (Z)
+        0x09, 0x35,                     //   Usage (Rz)
+        0x81, 0x02,                     //   Input (variable,absolute)
+        0xC0,                           // End Collection
+        0x15, 0x00,                     // Logical Minimum (0)
+        0x26, 0xFF, 0x03,               // Logical Maximum (1023)
+        0x75, 0x0A,                     // Report Size (10)
+        0x95, 0x02,                     // Report Count (2)
+        0x09, 0x36,                     // Usage (Slider)
+        0x09, 0x36,                     // Usage (Slider)
+        0x81, 0x02,                     // Input (variable,absolute)
+        0xC0                            // End Collection
+};
 
 
 
@@ -365,13 +415,13 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
 	0x03,                                   // bInterfaceClass (0x03 = HID)
 	0x01,                                   // bInterfaceSubClass (0x00 = Non-Boot, 0x01 = Boot)
 	0x01,                                   // bInterfaceProtocol (0x01 = Keyboard)
-	0,                                      // iInterface
+	KEYBOARD_INTERFACE + 4,                 // iInterface
 // - 9 bytes -
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,                                      // bLength
 	0x21,                                   // bDescriptorType
 	0x11, 0x01,                             // bcdHID
-	0,                                      // bCountryCode
+	KeyboardLocale_define,                  // bCountryCode
 	1,                                      // bNumDescriptors
 	0x22,                                   // bDescriptorType
 	LSB(sizeof(keyboard_report_desc)),      // wDescriptorLength
@@ -396,13 +446,13 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
 	0x03,                                   // bInterfaceClass (0x03 = HID)
 	0x00,                                   // bInterfaceSubClass (0x00 = Non-Boot, 0x01 = Boot)
 	0x01,                                   // bInterfaceProtocol (0x01 = Keyboard)
-	0,                                      // iInterface
+	NKRO_KEYBOARD_INTERFACE + 4,            // iInterface
 // - 9 bytes -
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,                                      // bLength
 	0x21,                                   // bDescriptorType
 	0x11, 0x01,                             // bcdHID
-	0,                                      // bCountryCode
+	KeyboardLocale_define,                  // bCountryCode
 	1,                                      // bNumDescriptors
 	0x22,                                   // bDescriptorType
 	LSB(sizeof(nkro_keyboard_report_desc)), // wDescriptorLength
@@ -426,7 +476,7 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
 	0x02,                                   // bFunctionClass
 	0x02,                                   // bFunctionSubClass
 	0x01,                                   // bFunctionProtocol
-	0,                                      // iFunction
+	CDC_STATUS_INTERFACE + 4,               // iFunction
 
 // --- Serial CDC --- CDC Data Interface
 // - 9 bytes -
@@ -439,7 +489,7 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
 	0x02,                                   // bInterfaceClass
 	0x02,                                   // bInterfaceSubClass
 	0x01,                                   // bInterfaceProtocol
-	0,                                      // iInterface
+	CDC_STATUS_INTERFACE + 4,               // iInterface
 // - 5 bytes -
 	// CDC Header Functional Descriptor, CDC Spec 5.2.3.1, Table 26
 	5,                                      // bFunctionLength
@@ -484,7 +534,7 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
 	0x0A,                                   // bInterfaceClass
 	0x00,                                   // bInterfaceSubClass
 	0x00,                                   // bInterfaceProtocol
-	0,                                      // iInterface
+	CDC_DATA_INTERFACE + 4,                 // iInterface
 // - 7 bytes -
 	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
 	7,                                      // bLength
@@ -502,8 +552,7 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
 	CDC_TX_SIZE, 0,                         // wMaxPacketSize
 	0,                                      // bInterval
 
-/*
-// Mouse Interface
+// --- Mouse Interface ---
 // - 9 bytes -
 	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
 	9,                                      // bLength
@@ -513,8 +562,8 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
 	1,                                      // bNumEndpoints
 	0x03,                                   // bInterfaceClass (0x03 = HID)
 	0x00,                                   // bInterfaceSubClass (0x01 = Boot)
-	0x00,                                   // bInterfaceProtocol (0x02 = Mouse)
-	0,                                      // iInterface
+	0x02,                                   // bInterfaceProtocol (0x02 = Mouse)
+	MOUSE_INTERFACE + 4,                    // iInterface
 // - 9 bytes -
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,                                      // bLength
@@ -533,8 +582,68 @@ static uint8_t config_descriptor[CONFIG_DESC_SIZE] = {
 	0x03,                                   // bmAttributes (0x03=intr)
 	MOUSE_SIZE, 0,                          // wMaxPacketSize
 	MOUSE_INTERVAL,                         // bInterval
-#endif // MOUSE_INTERFACE
-*/
+
+// --- Joystick Interface ---
+// - 9 bytes -
+	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
+	9,                                      // bLength
+	4,                                      // bDescriptorType
+	JOYSTICK_INTERFACE,                     // bInterfaceNumber
+	0,                                      // bAlternateSetting
+	1,                                      // bNumEndpoints
+	0x03,                                   // bInterfaceClass (0x03 = HID)
+	0x00,                                   // bInterfaceSubClass
+	0x00,                                   // bInterfaceProtocol
+	JOYSTICK_INTERFACE + 4,                 // iInterface
+// - 9 bytes -
+	// HID interface descriptor, HID 1.11 spec, section 6.2.1
+	9,                                      // bLength
+	0x21,                                   // bDescriptorType
+	0x11, 0x01,                             // bcdHID
+	0,                                      // bCountryCode
+	1,                                      // bNumDescriptors
+	0x22,                                   // bDescriptorType
+	LSB(sizeof(joystick_report_desc)),      // wDescriptorLength
+	MSB(sizeof(joystick_report_desc)),
+// - 7 bytes -
+	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+	7,                                      // bLength
+	5,                                      // bDescriptorType
+	JOYSTICK_ENDPOINT | 0x80,               // bEndpointAddress
+	0x03,                                   // bmAttributes (0x03=intr)
+	JOYSTICK_SIZE, 0,                       // wMaxPacketSize
+	JOYSTICK_INTERVAL,                      // bInterval
+
+// --- System/Consumer Control ---
+// - 9 bytes -
+	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
+	9,                                      // bLength
+	4,                                      // bDescriptorType
+	SYS_CTRL_INTERFACE,                     // bInterfaceNumber
+	0,                                      // bAlternateSetting
+	1,                                      // bNumEndpoints
+	0x03,                                   // bInterfaceClass (0x03 = HID)
+	0x01,                                   // bInterfaceSubClass (0x00 = Non-Boot, 0x01 = Boot)
+	0x00,                                   // bInterfaceProtocol (0x00 = None)
+	SYS_CTRL_INTERFACE + 4,                 // iInterface
+// - 9 bytes -
+	// HID interface descriptor, HID 1.11 spec, section 6.2.1
+	9,                                      // bLength
+	0x21,                                   // bDescriptorType
+	0x11, 0x01,                             // bcdHID
+	KeyboardLocale_define,                  // bCountryCode
+	1,                                      // bNumDescriptors
+	0x22,                                   // bDescriptorType
+	LSB(sizeof(sys_ctrl_report_desc)),      // wDescriptorLength
+	MSB(sizeof(sys_ctrl_report_desc)),
+// - 7 bytes -
+	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+	7,                                      // bLength
+	5,                                      // bDescriptorType
+	SYS_CTRL_ENDPOINT | 0x80,               // bEndpointAddress
+	0x03,                                   // bmAttributes (0x03=intr)
+	SYS_CTRL_SIZE, 0,                       // wMaxPacketSize
+	SYS_CTRL_INTERVAL,                      // bInterval
 };
 
 
@@ -564,21 +673,23 @@ struct usb_string_descriptor_struct string0 = {
 	{0x0409}
 };
 
-struct usb_string_descriptor_struct usb_string_manufacturer_name_default = {
-	sizeof(STR_MANUFACTURER),
-	3,
-	{STR_MANUFACTURER}
-};
-struct usb_string_descriptor_struct usb_string_product_name_default = {
-	sizeof(STR_PRODUCT),
-	3,
-	{STR_PRODUCT}
-};
-struct usb_string_descriptor_struct usb_string_serial_number_default = {
-	sizeof(STR_SERIAL),
-	3,
-	{STR_SERIAL}
-};
+#define usb_string_descriptor(name, str) \
+	struct usb_string_descriptor_struct name = { \
+		sizeof(str), \
+		3, \
+		{str} \
+	}
+
+usb_string_descriptor( usb_string_manufacturer_name_default, STR_MANUFACTURER );
+usb_string_descriptor( usb_string_product_name_default, STR_PRODUCT );
+usb_string_descriptor( usb_string_serial_number_default, STR_SERIAL );
+usb_string_descriptor( usb_string_keyboard_name, KEYBOARD_NAME );
+usb_string_descriptor( usb_string_nkro_keyboard_name, NKRO_KEYBOARD_NAME );
+usb_string_descriptor( usb_string_cdc_status_name, CDC_STATUS_NAME );
+usb_string_descriptor( usb_string_cdc_data_name, CDC_DATA_NAME );
+usb_string_descriptor( usb_string_mouse_name, MOUSE_NAME );
+usb_string_descriptor( usb_string_joystick_name, JOYSTICK_NAME );
+usb_string_descriptor( usb_string_sys_ctrl_name, SYS_CTRL_NAME );
 
 
 
@@ -592,18 +703,36 @@ const usb_descriptor_list_t usb_descriptor_list[] = {
 	{0x0200, 0x0000, config_descriptor, sizeof(config_descriptor)},
 	{0x0600, 0x0000, device_qualifier_descriptor, sizeof(device_qualifier_descriptor)},
 	{0x0A00, 0x0000, usb_debug_descriptor, sizeof(usb_debug_descriptor)},
+
 	{0x2200, KEYBOARD_INTERFACE, keyboard_report_desc, sizeof(keyboard_report_desc)},
 	{0x2100, KEYBOARD_INTERFACE, config_descriptor + KEYBOARD_DESC_OFFSET, 9},
+
 	{0x2200, NKRO_KEYBOARD_INTERFACE, nkro_keyboard_report_desc, sizeof(nkro_keyboard_report_desc)},
 	{0x2100, NKRO_KEYBOARD_INTERFACE, config_descriptor + NKRO_KEYBOARD_DESC_OFFSET, 9},
-/* MOUSE
+
 	{0x2200, MOUSE_INTERFACE, mouse_report_desc, sizeof(mouse_report_desc)},
-	{0x2100, MOUSE_INTERFACE, config_descriptor+MOUSE_DESC_OFFSET, 9},
-*/
+	{0x2100, MOUSE_INTERFACE, config_descriptor + MOUSE_DESC_OFFSET, 9},
+
+	{0x2200, JOYSTICK_INTERFACE, joystick_report_desc, sizeof(joystick_report_desc)},
+	{0x2100, JOYSTICK_INTERFACE, config_descriptor + JOYSTICK_DESC_OFFSET, 9},
+
+	{0x2200, SYS_CTRL_INTERFACE, sys_ctrl_report_desc, sizeof(sys_ctrl_report_desc)},
+	{0x2100, SYS_CTRL_INTERFACE, config_descriptor + SYS_CTRL_DESC_OFFSET, 9},
+
+#define iInterfaceString(num, var) \
+	{0x0300 + 4 + num, 0x409, (const uint8_t *)&var, 0 }
+
 	{0x0300, 0x0000, (const uint8_t *)&string0, 0},
 	{0x0301, 0x0409, (const uint8_t *)&usb_string_manufacturer_name, 0},
 	{0x0302, 0x0409, (const uint8_t *)&usb_string_product_name, 0},
 	{0x0303, 0x0409, (const uint8_t *)&usb_string_serial_number, 0},
+	iInterfaceString( KEYBOARD_INTERFACE, usb_string_keyboard_name ),
+	iInterfaceString( NKRO_KEYBOARD_INTERFACE, usb_string_nkro_keyboard_name ),
+	iInterfaceString( CDC_STATUS_INTERFACE, usb_string_cdc_status_name ),
+	iInterfaceString( CDC_DATA_INTERFACE, usb_string_cdc_data_name ),
+	iInterfaceString( MOUSE_INTERFACE, usb_string_mouse_name ),
+	iInterfaceString( JOYSTICK_INTERFACE, usb_string_joystick_name ),
+	iInterfaceString( SYS_CTRL_INTERFACE, usb_string_sys_ctrl_name ),
 	{0, 0, NULL, 0}
 };
 

@@ -26,8 +26,10 @@ elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 		output_com.c
 		arm/usb_desc.c
 		arm/usb_dev.c
+		arm/usb_joystick.c
 		arm/usb_keyboard.c
 		arm/usb_mem.c
+		arm/usb_mouse.c
 		arm/usb_serial.c
 	)
 
