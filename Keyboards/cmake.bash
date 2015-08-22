@@ -85,4 +85,5 @@ cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DScanModule="${ScanModule}" -DM
 make
 
 echo "Firmware has been compiled into: '${BuildPath}'"
+cd -
 

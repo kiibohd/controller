@@ -169,6 +169,7 @@ void CustomAction_blockKey_capability( uint8_t state, uint8_t stateType, uint8_t
 	// If key is not blocked, process
 	if ( key != CustomAction_blockHold_storage )
 	{
+		extern void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
 		Output_usbCodeSend_capability( state, stateType, &key );
 	}
 }
