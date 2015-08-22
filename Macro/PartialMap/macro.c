@@ -374,7 +374,7 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 	}
 
 	// If no trigger macro is defined at the given layer, fallthrough to the next layer
-	for ( uint16_t layerIndex = 0; layerIndex < macroLayerIndexStackSize; layerIndex++ )
+	for ( uint16_t layerIndex = macroLayerIndexStackSize; layerIndex != 0xFFFF; layerIndex-- )
 	{
 		// Lookup Layer
 		const Layer *layer = &LayerIndex[ macroLayerIndexStack[ layerIndex ] ];
