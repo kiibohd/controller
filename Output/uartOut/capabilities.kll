@@ -1,12 +1,21 @@
 Name = uartOutCapabilities;
-Version = 0.1;
+Version = 0.2;
 Author = "HaaTa (Jacob Alexander) 2014";
 KLL = 0.3;
 
 # Modified Date
-Date = 2014-09-27;
+Date = 2014-08-21;
 
 
 # Capabilties available to the uartOut output module
 usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
+
+# Bootloader Mode capability
+# XXX
+# By default this is disabled on purpose
+# It is a large security hazard
+flashModeEnabled => flashModeEnabled_define;
+flashModeEnabled = 0;
+
+flashMode => Output_flashMode_capability();
 

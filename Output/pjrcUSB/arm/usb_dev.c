@@ -34,6 +34,7 @@
 // Project Includes
 #include <Lib/OutputLib.h>
 #include <print.h>
+#include <kll_defs.h>
 
 // Local Includes
 #include "usb_dev.h"
@@ -872,6 +873,14 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 
 void usb_device_reload()
 {
+	if ( flashModeEnabled_define == 0 )
+	{
+		print( NL );
+		warn_print("flashModeEnabled not set, cancelling firmware reload...");
+		info_msg("Set flashModeEnabled to 1 in your kll configuration.");
+		return;
+	}
+
 // MCHCK
 #if defined(_mk20dx128vlf5_)
 
@@ -882,7 +891,7 @@ void usb_device_reload()
 	PORTA_PCR3 = PORT_PCR_PFE | PORT_PCR_MUX(1); // Internal pull-up
 
 	// Check for jumper
-	if ( GPIOA_PDIR & (1<<3) )
+	if ( GPIOA_PDIR & (1<<3) && flashModeEnabled_define != 0 )
 	{
 		print( NL );
 		warn_print("Security jumper not present, cancelling firmware reload...");

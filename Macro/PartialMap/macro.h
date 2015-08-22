@@ -23,15 +23,6 @@
 
 
 
-// ----- Capabilities -----
-
-void Macro_layerState_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-void Macro_layerLatch_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-void Macro_layerLock_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-
-
-
 // ----- Functions -----
 
 void Macro_analogState( uint8_t scanCode, uint8_t state );

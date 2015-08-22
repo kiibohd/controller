@@ -1,10 +1,10 @@
 Name = pjrcUSBCapabilities;
-Version = 0.5;
+Version = 0.6;
 Author = "HaaTa (Jacob Alexander) 2014-2015";
-KLL = 0.3b;
+KLL = 0.3c;
 
 # Modified Date
-Date = 2015-07-12;
+Date = 2015-08-21;
 
 
 # Output capabilities
@@ -20,4 +20,13 @@ kbdProtocolNKRO => Output_kbdProtocolNKRO_capability();
 # Locale Settings
 keyboardLocale => KeyboardLocale_define;
 keyboardLocale = 0;
+
+# Bootloader Mode capability
+# XXX
+# By default this is disabled on purpose
+# It is a large security hazard
+flashModeEnabled => flashModeEnabled_define;
+flashModeEnabled = 0;
+
+flashMode => Output_flashMode_capability();
 

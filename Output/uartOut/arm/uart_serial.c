@@ -27,6 +27,8 @@
 // Project Includes
 #include <Lib/OutputLib.h>
 #include <Lib/Interrupts.h>
+#include <print.h>
+#include <kll_defs.h>
 
 // Local Includes
 #include "uart_serial.h"
@@ -325,6 +327,48 @@ void uart_serial_flush_output()
 
 void uart_device_reload()
 {
+	if ( flashModeEnabled_define == 0 )
+	{
+		print( NL );
+		warn_print("flashModeEnabled not set, cancelling firmware reload...");
+		info_msg("Set flashModeEnabled to 1 in your kll configuration.");
+		return;
+	}
+
+// MCHCK
+#if defined(_mk20dx128vlf5_)
+
+	// MCHCK Kiibohd Variant
+	// Check to see if PTA3 (has a pull-up) is connected to GND (usually via jumper)
+	// Only allow reload if the jumper is present (security)
+	GPIOA_PDDR &= ~(1<<3); // Input
+	PORTA_PCR3 = PORT_PCR_PFE | PORT_PCR_MUX(1); // Internal pull-up
+
+	// Check for jumper
+	if ( GPIOA_PDIR & (1<<3) && flashModeEnabled_define != 0 )
+	{
+		print( NL );
+		warn_print("Security jumper not present, cancelling firmware reload...");
+		info_msg("Replace jumper on middle 2 pins, or manually press the firmware reload button.");
+	}
+	else
+	{
+		// Copies variable into the VBAT register, must be identical to the variable in the bootloader to jump to the bootloader flash mode
+		for ( int pos = 0; pos < sizeof(sys_reset_to_loader_magic); pos++ )
+			(&VBAT)[ pos ] = sys_reset_to_loader_magic[ pos ];
+		SOFTWARE_RESET();
+	}
+
+// Kiibohd mk20dx256vlh7
+#elif defined(_mk20dx256vlh7_)
+	// Copies variable into the VBAT register, must be identical to the variable in the bootloader to jump to the bootloader flash mode
+	for ( int pos = 0; pos < sizeof(sys_reset_to_loader_magic); pos++ )
+		(&VBAT)[ pos ] = sys_reset_to_loader_magic[ pos ];
+	SOFTWARE_RESET();
+
+// Teensy 3.0 and 3.1
+#else
 	asm volatile("bkpt");
+#endif
 }
 

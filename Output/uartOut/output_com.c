@@ -129,6 +129,19 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 	}
 }
 
+void Output_flashMode_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_flashMode(usbCode)");
+		return;
+	}
+
+	// Start flash mode
+	Output_firmwareReload();
+}
+
 
 
 // ----- Functions -----

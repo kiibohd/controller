@@ -84,20 +84,6 @@ extern          uint8_t  Output_DebugMode; // 0 - Debug disabled, 1 - Debug enab
 
 
 
-// ----- Capabilities -----
-
-// Output capabilities
-void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-void Output_noneSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-
-// Configuration capabilities
-void Output_kbdProtocolBoot_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-
-
-
 // ----- Functions -----
 
 void Output_setup();
