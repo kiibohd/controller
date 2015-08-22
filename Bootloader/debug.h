@@ -53,6 +53,7 @@ void uart_serial_setup();
 
 // Convenience
 #define printHex(hex) printHex_op(hex, 1)
+#define printHex32(hex) printHex_op(hex, 1)
 void printHex_op( uint32_t in, uint8_t op );
 
 #else
@@ -60,6 +61,7 @@ void printHex_op( uint32_t in, uint8_t op );
 #define uart_serial_write(buf,size)
 #define uart_serial_setup()
 #define printHex(hex)
+#define printHex32(hex)
 #define printHex_op(in,op)
 #endif
 
