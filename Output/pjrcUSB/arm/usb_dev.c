@@ -1031,8 +1031,8 @@ restart:
 						break;
 					default:
 						tx_state[ endpoint ] = ((uint32_t)b & 8)
-						  ? TX_STATE_ODD_FREE
-						  : TX_STATE_EVEN_FREE;
+							? TX_STATE_ODD_FREE
+							: TX_STATE_EVEN_FREE;
 						break;
 					}
 				}

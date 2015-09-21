@@ -267,7 +267,7 @@ static uint8_t nkro_keyboard_report_desc[] = {
 
 // System Control and Consumer Control
 static uint8_t sys_ctrl_report_desc[] = {
-	// System Control Collection
+	// System Control Collection (8 bits)
 	//
 	// NOTES:
 	// Not bothering with NKRO for this table. If there's need, I can implement it. -HaaTa
@@ -285,7 +285,7 @@ static uint8_t sys_ctrl_report_desc[] = {
 	0x81, 0x00,          //   Input (Data, Array),
 	0xc0,                // End Collection - System Control
 
-	// Consumer Control Collection - Media Keys
+	// Consumer Control Collection - Media Keys (16 bits)
 	//
 	// NOTES:
 	// Not bothering with NKRO for this table. If there's a need, I can implement it. -HaaTa
@@ -307,35 +307,84 @@ static uint8_t sys_ctrl_report_desc[] = {
 
 // Mouse Protocol 1, HID 1.11 spec, Appendix B, page 59-60, with wheel extension
 static uint8_t mouse_report_desc[] = {
-	0x05, 0x01,                     // Usage Page (Generic Desktop)
-	0x09, 0x02,                     // Usage (Mouse)
-	0xA1, 0x01,                     // Collection (Application)
-	0x05, 0x09,                     //   Usage Page (Button)
-	0x19, 0x01,                     //   Usage Minimum (Button #1)
-	0x29, 0x03,                     //   Usage Maximum (Button #3)
-	0x15, 0x00,                     //   Logical Minimum (0)
-	0x25, 0x01,                     //   Logical Maximum (1)
-	0x95, 0x03,                     //   Report Count (3)
-	0x75, 0x01,                     //   Report Size (1)
-	0x81, 0x02,                     //   Input (Data, Variable, Absolute)
-	0x95, 0x01,                     //   Report Count (1)
-	0x75, 0x05,                     //   Report Size (5)
-	0x81, 0x03,                     //   Input (Constant)
-	0x05, 0x01,                     //   Usage Page (Generic Desktop)
-	0x09, 0x30,                     //   Usage (X)
-	0x09, 0x31,                     //   Usage (Y)
-	0x15, 0x00,                     //   Logical Minimum (0)
-	0x26, 0xFF, 0x7F,               //   Logical Maximum (32767)
-	0x75, 0x10,                     //   Report Size (16),
-	0x95, 0x02,                     //   Report Count (2),
-	0x81, 0x02,                     //   Input (Data, Variable, Absolute)
-	0x09, 0x38,                     //   Usage (Wheel)
-	0x15, 0x81,                     //   Logical Minimum (-127)
-	0x25, 0x7F,                     //   Logical Maximum (127)
-	0x75, 0x08,                     //   Report Size (8),
-	0x95, 0x01,                     //   Report Count (1),
-	0x81, 0x06,                     //   Input (Data, Variable, Relative)
-	0xC0                            // End Collection
+	0x05, 0x01,        // Usage Page (Generic Desktop)
+	0x09, 0x02,        // Usage (Mouse)
+	0xa1, 0x01,        // Collection (Application)
+	0x09, 0x02,        //   Usage (Mouse)
+	0xa1, 0x02,        //   Collection (Logical)
+	0x09, 0x01,        //     Usage (Pointer)
+
+	// Buttons (5 bits)
+	0xa1, 0x00,        //     Collection (Physical) - Buttons
+	0x05, 0x09,        //       Usage Page (Button)
+	0x19, 0x01,        //       Usage Minimum (Button 1)
+	0x29, 0x05,        //       Usage Maximum (Button 5)
+	0x15, 0x00,        //       Logical Minimum (0)
+	0x25, 0x01,        //       Logical Maximum (1)
+	0x75, 0x01,        //       Report Size (1)
+	0x95, 0x05,        //       Report Count (5)
+	0x81, 0x02,        //       Input (Data,Var,Abs)
+
+	// Padding (3 bits)
+	0x75, 0x03,        //       Report Size (3)
+	0x95, 0x01,        //       Report Count (1)
+	0x81, 0x03,        //       Input (Cnst,Var,Abs)
+
+	// Pointer (16 bits)
+	0x05, 0x01,        //       Usage PAGE (Generic Desktop)
+	0x09, 0x30,        //       Usage (X)
+	0x09, 0x31,        //       Usage (Y)
+	0x15, 0x81,        //       Logical Minimum (-127)
+	0x25, 0x7f,        //       Logical Maximum (127)
+	0x75, 0x08,        //       Report Size (8)
+	0x95, 0x02,        //       Report Count (2)
+	0x81, 0x06,        //       Input (Data,Var,Rel)
+
+	// Vertical Wheel
+	// - Multiplier (2 bits)
+	0xa1, 0x02,        //       Collection (Logical)
+	0x09, 0x48,        //         Usage (Resolution Multiplier)
+	0x15, 0x00,        //         Logical Minimum (0)
+	0x25, 0x01,        //         Logical Maximum (1)
+	0x35, 0x01,        //         Physical Minimum (1)
+	0x45, 0x04,        //         Physical Maximum (4)
+	0x75, 0x02,        //         Report Size (2)
+	0x95, 0x01,        //         Report Count (1)
+	0xa4,              //         Push
+	0xb1, 0x02,        //         Feature (Data,Var,Abs)
+	// - Device (8 bits)
+	0x09, 0x38,        //         Usage (Wheel)
+	0x15, 0x81,        //         Logical Minimum (-127)
+	0x25, 0x7f,        //         Logical Maximum (127)
+	0x35, 0x00,        //         Physical Minimum (0)        - reset physical
+	0x45, 0x00,        //         Physical Maximum (0)
+	0x75, 0x08,        //         Report Size (8)
+	0x81, 0x06,        //         Input (Data,Var,Rel)
+	0xc0,              //       End Collection - Vertical Wheel
+
+	// Horizontal Wheel
+	// - Multiplier (2 bits)
+	0xa1, 0x02,        //       Collection (Logical)
+	0x09, 0x48,        //         Usage (Resolution Multiplier)
+	0xb4,              //         Pop
+	0xb1, 0x02,        //         Feature (Data,Var,Abs)
+	// - Padding (4 bits)
+	0x35, 0x00,        //         Physical Minimum (0)        - reset physical
+	0x45, 0x00,        //         Physical Maximum (0)
+	0x75, 0x04,        //         Report Size (4)
+	0xb1, 0x03,        //         Feature (Cnst,Var,Abs)
+	// - Device (8 bits)
+	0x05, 0x0c,        //         Usage Page (Consumer Devices)
+	0x0a, 0x38, 0x02,  //         Usage (AC Pan)
+	0x15, 0x81,        //         Logical Minimum (-127)
+	0x25, 0x7f,        //         Logical Maximum (127)
+	0x75, 0x08,        //         Report Size (8)
+	0x81, 0x06,        //         Input (Data,Var,Rel)
+	0xc0,              //       End Collection - Horizontal Wheel
+
+	0xc0,              //     End Collection - Buttons
+	0xc0,              //   End Collection - Mouse Logical
+	0xc0               // End Collection - Mouse Application
 };
 
 // Joystick Protocol, HID 1.11 spec, Apendix D, page 64-65

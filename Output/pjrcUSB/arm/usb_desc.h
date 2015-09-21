@@ -85,7 +85,7 @@
 #define MOUSE_INTERFACE         4 // Mouse
 #define MOUSE_ENDPOINT          6
 #define MOUSE_SIZE              8
-#define MOUSE_INTERVAL          2
+#define MOUSE_INTERVAL          1
 #define MOUSE_NAME              L"Mouse"
 
 #define JOYSTICK_INTERFACE      5 // Joystick
