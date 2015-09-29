@@ -345,6 +345,7 @@ inline uint8_t LCD_scan()
 // ----- Capabilities -----
 
 uint16_t LCD_layerStack_prevSize = 0;
+uint16_t LCD_layerStack_prevTop  = 0;
 void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
@@ -358,12 +359,14 @@ void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 	extern uint16_t macroLayerIndexStack[];
 	extern uint16_t macroLayerIndexStackSize;
 
-	// Only process if the stack size has changed
-	if ( macroLayerIndexStackSize == LCD_layerStack_prevSize )
+	// Ignore if the stack size hasn't changed and the top of the stack is the same
+	if ( macroLayerIndexStackSize == LCD_layerStack_prevSize
+		&& macroLayerIndexStack[macroLayerIndexStackSize - 1] == LCD_layerStack_prevTop )
 	{
 		return;
 	}
 	LCD_layerStack_prevSize = macroLayerIndexStackSize;
+	LCD_layerStack_prevTop  = macroLayerIndexStack[macroLayerIndexStackSize - 1];
 
 	// Number data for LCD
 	const uint8_t numbers[10][128] = {

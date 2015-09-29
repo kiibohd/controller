@@ -170,8 +170,8 @@ uint8_t macroInterconnectCacheSize = 0;
 // Sets the given layer with the specified layerState
 void Macro_layerState( uint8_t state, uint8_t stateType, uint16_t layer, uint8_t layerState )
 {
-	// Ignore if layer does not exist
-	if ( layer >= LayerNum )
+	// Ignore if layer does not exist or trying to manipulate layer 0/Default layer
+	if ( layer >= LayerNum || layer == 0 )
 		return;
 
 	// Is layer in the LayerIndexStack?
@@ -350,6 +350,58 @@ void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 }
 
 
+// Rotate layer to next/previous
+// Uses state variable to keep track of the current layer position
+// Layers are still evaluated using the layer stack
+uint16_t Macro_rotationLayer;
+void Macro_layerRotate_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Macro_layerRotate(previous)");
+		return;
+	}
+
+	// Only use capability on press
+	// TODO Analog
+	// XXX Could also be on release, but that's sorta dumb -HaaTa
+	if ( stateType == 0x00 && state != 0x01 ) // All normal key conditions except press
+		return;
+
+	// Unset previous rotation layer if not 0
+	if ( Macro_rotationLayer != 0 )
+	{
+		Macro_layerState( state, stateType, Macro_rotationLayer, 0x04 );
+	}
+
+	// Get direction of rotation, 0, next, non-zero previous
+	uint8_t direction = *args;
+
+	// Next
+	if ( !direction )
+	{
+		Macro_rotationLayer++;
+
+		// Invalid layer
+		if ( Macro_rotationLayer >= LayerNum )
+			Macro_rotationLayer = 0;
+	}
+	// Previous
+	else
+	{
+		Macro_rotationLayer--;
+
+		// Layer wrap
+		if ( Macro_rotationLayer >= LayerNum )
+			Macro_rotationLayer = LayerNum - 1;
+	}
+
+	// Toggle the computed layer rotation
+	Macro_layerState( state, stateType, Macro_rotationLayer, 0x04 );
+}
+
+
 
 // ----- Functions -----
 
@@ -398,9 +450,9 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 			// Determine if layer has key defined
 			// Make sure scanCode is between layer first and last scancodes
 			if ( map != 0
-			  && scanCode <= layer->last
-			  && scanCode >= layer->first
-			  && *map[ scanCode - layer->first ] != 0 )
+				&& scanCode <= layer->last
+				&& scanCode >= layer->first
+				&& *map[ scanCode - layer->first ] != 0 )
 			{
 				// Set the layer cache
 				macroTriggerListLayerCache[ scanCode ] = macroLayerIndexStack[ layerIndex ];
@@ -418,9 +470,9 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 
 	// Make sure scanCode is between layer first and last scancodes
 	if ( map != 0
-	  && scanCode <= layer->last
-	  && scanCode >= layer->first
-	  && *map[ scanCode - layer->first ] != 0 )
+		&& scanCode <= layer->last
+		&& scanCode >= layer->first
+		&& *map[ scanCode - layer->first ] != 0 )
 	{
 		// Set the layer cache to default map
 		macroTriggerListLayerCache[ scanCode ] = 0;
@@ -892,7 +944,7 @@ TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 	}
 	// If passing and in Waiting state, set macro state to Press
 	else if ( overallVote & TriggerMacroVote_Pass
-	     && ( record->state == TriggerMacro_Waiting || record->state == TriggerMacro_Press ) )
+		&& ( record->state == TriggerMacro_Waiting || record->state == TriggerMacro_Press ) )
 	{
 		record->state = TriggerMacro_Press;
 
@@ -1211,6 +1263,9 @@ inline void Macro_setup()
 
 	// Make sure macro trigger buffer is empty
 	macroTriggerListBufferSize = 0;
+
+	// Set the current rotated layer to 0
+	Macro_rotationLayer = 0;
 
 	// Initialize TriggerMacro states
 	for ( var_uint_t macro = 0; macro < TriggerMacroNum; macro++ )

@@ -1,17 +1,22 @@
 Name = PartialMapCapabilities;
-Version = 0.1;
-Author = "HaaTa (Jacob Alexander) 2014";
-KLL = 0.3a;
+Version = 0.2;
+Author = "HaaTa (Jacob Alexander) 2014-2015";
+KLL = 0.3b;
 
 # Modified Date
-Date = 2014-11-21;
+Date = 2015-09-24;
 
 
 # Capabilties available to the PartialMap module
-layerState => Macro_layerState_capability( layer : 2, state : 1 );
-layerLatch => Macro_layerLatch_capability( layer : 2 );
-layerLock  => Macro_layerLock_capability( layer : 2 );
-layerShift => Macro_layerShift_capability( layer : 2 );
+layerState  => Macro_layerState_capability( layer : 2, state : 1 );
+layerLatch  => Macro_layerLatch_capability( layer : 2 );
+layerLock   => Macro_layerLock_capability( layer : 2 );
+layerShift  => Macro_layerShift_capability( layer : 2 );
+# By default, rotate to the next layer
+# The current rotating layer is stored separately to the layer stack
+# But still sets the layer stack using the layerLock/unlock mechanism
+# Argument 0 -> Next, 1 -> Previous
+layerRotate => Macro_layerRotate_capability( previous : 1 );
 
 # Defines available to the PartialMap module
 stateWordSize => StateWordSize_define;
