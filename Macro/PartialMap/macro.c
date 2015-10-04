@@ -422,7 +422,22 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 		nat_ptr_t **map = (nat_ptr_t**)LayerIndex[ cachedLayer ].triggerMap;
 		const Layer *layer = &LayerIndex[ cachedLayer ];
 
-		return map[ scanCode - layer->first ];
+		// Cache trigger list before attempting to expire latch
+		nat_ptr_t *trigger_list = map[ scanCode - layer->first ];
+
+		// Check if latch has been pressed for this layer
+		uint8_t latch = LayerState[ cachedLayer ] & 0x02;
+		if ( latch && latch_expire )
+		{
+			Macro_layerState( 0, 0, cachedLayer, 0x02 );
+#if defined(ConnectEnabled_define) && defined(LCDEnabled_define)
+			// Evaluate the layerStack capability if available (LCD + Interconnect)
+			extern void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+			LCD_layerStack_capability( 0, 0, 0 );
+#endif
+		}
+
+		return trigger_list;
 	}
 
 	// If no trigger macro is defined at the given layer, fallthrough to the next layer
