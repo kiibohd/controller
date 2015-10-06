@@ -330,27 +330,21 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-	case 0x0102: // CLEAR_FEATURE (interface)
+	case 0x0102: // CLEAR_FEATURE (endpoint)
 		i = setup.wIndex & 0x7F;
 		if ( i > NUM_ENDPOINTS || setup.wValue != 0 )
 		{
 			endpoint0_stall();
 			return;
 		}
-		warn_print("CLEAR_FEATURE - Interface");
-		//(*(uint8_t *)(&USB0_ENDPT0 + setup.wIndex * 4)) &= ~0x02;
+		(*(uint8_t *)(&USB0_ENDPT0 + setup.wIndex * 4)) &= ~0x02;
 		// TODO: do we need to clear the data toggle here?
-		//break;
-
-		// FIXME: Clearing causes keyboard to freeze, likely an invalid clear
-		// XXX: Ignoring seems to work, though this may not be the ideal behaviour -HaaTa
-		endpoint0_stall();
-		return;
+		goto send;
 
 	case 0x0300: // SET_FEATURE (device)
 	case 0x0301: // SET_FEATURE (interface)
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
-		warn_print("SET_FEATURE");
+		warn_print("SET_FEATURE - Device/Interface");
 		endpoint0_stall();
 		return;
 
