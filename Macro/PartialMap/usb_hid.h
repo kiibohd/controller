@@ -74,8 +74,8 @@
 #define KEY_SPACE          0x2C
 #define KEY_MINUS          0x2D
 #define KEY_EQUAL          0x2E
-#define KEY_LEFT_BRACE     0x2F
-#define KEY_RIGHT_BRACE    0x30
+#define KEY_LEFT_BRACKET   0x2F
+#define KEY_RIGHT_BRACKET  0x30
 #define KEY_BACKSLASH      0x31
 #define KEY_NUMBER         0x32
 #define KEY_SEMICOLON      0x33
