@@ -424,17 +424,23 @@ static void usb_setup()
 		return;
 
 	case 0x0921: // HID SET_REPORT
-		#ifdef UART_DEBUG
-		warn_msg("SET_REPORT - ");
-		printHex( setup.wValue );
-		print(" - ");
-		printHex( setup.wValue & 0xFF );
-		print( NL );
-		#endif
-		USBKeys_LEDs = setup.wValue & 0xFF;
+		// Interface
+		switch ( setup.wIndex & 0xFF )
+		{
+		// Keyboard Interface
+		case KEYBOARD_INTERFACE:
+			break;
+		// NKRO Keyboard Interface
+		case NKRO_KEYBOARD_INTERFACE:
+			break;
+		default:
+			warn_msg("Unknown interface - ");
+			printHex( setup.wIndex );
+			print( NL );
+			endpoint0_stall();
+			break;
+		}
 
-		// Must be stall for some reason... -HaaTa
-		endpoint0_stall();
 		return;
 
 	case 0x01A1: // HID GET_REPORT
@@ -612,6 +618,10 @@ static void usb_control( uint32_t stat )
 		printHex(setup.wIndex);
 		print(", len:");
 		printHex(setup.wLength);
+		print(" -- ");
+		printHex32(setup.word1);
+		print(" ");
+		printHex32(setup.word2);
 		print(NL);
 		#endif
 		// actually "do" the setup request
@@ -622,9 +632,22 @@ static void usb_control( uint32_t stat )
 
 	case 0x01:  // OUT transaction received from host
 	case 0x02:
-		#ifdef UART_DEBUG
-		print("PID=OUT"NL);
+		#ifdef UART_DEBUG_UNKNOWN
+		print("PID=OUT wRequestAndType:");
+		printHex(setup.wRequestAndType);
+		print(", wValue:");
+		printHex(setup.wValue);
+		print(", wIndex:");
+		printHex(setup.wIndex);
+		print(", len:");
+		printHex(setup.wLength);
+		print(" -- ");
+		printHex32(setup.word1);
+		print(" ");
+		printHex32(setup.word2);
+		print(NL);
 		#endif
+
 		// CDC Interface
 		if ( setup.wRequestAndType == 0x2021 /*CDC_SET_LINE_CODING*/ )
 		{
@@ -643,17 +666,38 @@ static void usb_control( uint32_t stat )
 			endpoint0_transmit( NULL, 0 );
 		}
 
-		// Keyboard Interface
-		if ( setup.word1 == 0x02000921 && setup.word2 == ( (1<<16) | KEYBOARD_INTERFACE ) )
+		// Keyboard SET_REPORT
+		if ( setup.wRequestAndType == 0x921 && setup.wValue & 0x200 )
 		{
-			USBKeys_LEDs = buf[0];
-			endpoint0_transmit( NULL, 0 );
-		}
-		// NKRO Keyboard Interface
-		if ( setup.word1 == 0x02000921 && setup.word2 == ( (1<<16) | NKRO_KEYBOARD_INTERFACE ) )
-		{
-			USBKeys_LEDs = buf[0];
-			endpoint0_transmit( NULL, 0 );
+			// Interface
+			switch ( setup.wIndex & 0xFF )
+			{
+			// Keyboard Interface
+			case KEYBOARD_INTERFACE:
+				USBKeys_LEDs = buf[0];
+				endpoint0_transmit( NULL, 0 );
+				break;
+			// NKRO Keyboard Interface
+			case NKRO_KEYBOARD_INTERFACE:
+				// Only use 2nd byte, first byte is the report id
+				USBKeys_LEDs = buf[1];
+				endpoint0_transmit( NULL, 0 );
+				break;
+			default:
+				warn_msg("Unknown interface - ");
+				printHex( setup.wIndex );
+				print( NL );
+				break;
+			}
+
+			#ifdef UART_DEBUG
+			for ( size_t len = 0; len < setup.wLength; len++ )
+			{
+				printHex( buf[ len ] );
+				print(" ");
+			}
+			print( NL );
+			#endif
 		}
 
 		// give the buffer back
