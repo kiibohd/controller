@@ -49,6 +49,8 @@ typedef struct I2C_Buffer {
 } I2C_Buffer;
 
 typedef struct LED_Buffer {
+	uint8_t i2c_addr;
+	uint8_t reg_addr;
 	uint8_t buffer[LED_BufferLength];
 } LED_Buffer;
 
@@ -59,6 +61,7 @@ typedef struct LED_Buffer {
 // CLI Functions
 void cliFunc_i2cRecv ( char* args );
 void cliFunc_i2cSend ( char* args );
+void cliFunc_ledCtrl ( char* args );
 void cliFunc_ledRPage( char* args );
 void cliFunc_ledStart( char* args );
 void cliFunc_ledTest ( char* args );
@@ -77,6 +80,7 @@ uint8_t I2C_Send( uint8_t *data, uint8_t sendLen, uint8_t recvLen );
 // Scan Module command dictionary
 CLIDict_Entry( i2cRecv,     "Send I2C sequence of bytes and expect a reply of 1 byte on the last sequence." NL "\t\tUse |'s to split sequences with a stop." );
 CLIDict_Entry( i2cSend,     "Send I2C sequence of bytes. Use |'s to split sequences with a stop." );
+CLIDict_Entry( ledCtrl,     "Basic LED control. Args: <mode> <amount> [<index>]" );
 CLIDict_Entry( ledRPage,    "Read the given register page." );
 CLIDict_Entry( ledStart,    "Disable software shutdown." );
 CLIDict_Entry( ledTest,     "Test out the led pages." );
@@ -86,6 +90,7 @@ CLIDict_Entry( ledZero,     "Zero out LED register pages (non-configuration)." )
 CLIDict_Def( ledCLIDict, "ISSI LED Module Commands" ) = {
 	CLIDict_Item( i2cRecv ),
 	CLIDict_Item( i2cSend ),
+	CLIDict_Item( ledCtrl ),
 	CLIDict_Item( ledRPage ),
 	CLIDict_Item( ledStart ),
 	CLIDict_Item( ledTest ),
@@ -178,7 +183,9 @@ void i2c0_isr()
 			}
 			else
 			{
-				dbug_print("Attempting to read byte");
+				dbug_msg("Attempting to read byte - ");
+				printHex( I2C_RxBuffer.sequencePos );
+				print( NL );
 				I2C0_C1 = I2C_RxBuffer.sequencePos == 1
 					? I2C_C1_IICEN | I2C_C1_IICIE | I2C_C1_MST | I2C_C1_TXAK // Single byte read
 					: I2C_C1_IICEN | I2C_C1_IICIE | I2C_C1_MST; // Multi-byte read
@@ -309,34 +316,6 @@ void LED_sendPage( uint8_t *buffer, uint8_t len, uint8_t page )
 
 }
 
-void LED_readPage( uint8_t len, uint8_t page )
-{
-	// Page Setup
-	uint8_t pageSetup[] = { 0xE8, 0xFD, page };
-
-	// Setup page
-	while ( I2C_Send( pageSetup, sizeof( pageSetup ), 0 ) == 0 )
-		delay(1);
-
-	// Register Setup
-	uint8_t regSetup[] = { 0xE8, 0x00 };
-
-	// Setup starting register
-	while ( I2C_Send( regSetup, sizeof( regSetup ), 0 ) == 0 )
-		delay(1);
-
-	// Register Read Command
-	uint8_t regReadCmd[] = { 0xE9 };
-
-	// Read each register in the page
-	for ( uint8_t reg = 0; reg < len; reg++ )
-	{
-		// Request register data
-		while ( I2C_Send( regReadCmd, sizeof( regReadCmd ), 0 ) == 0 )
-			delay(1);
-	}
-}
-
 void LED_writeReg( uint8_t reg, uint8_t val, uint8_t page )
 {
 	// Page Setup
@@ -351,6 +330,44 @@ void LED_writeReg( uint8_t reg, uint8_t val, uint8_t page )
 
 	while ( I2C_Send( writeData, sizeof( writeData ), 0 ) == 0 )
 		delay(1);
+}
+
+void LED_readPage( uint8_t len, uint8_t page )
+{
+	// Software shutdown must be enabled to read registers
+	LED_writeReg( 0x0A, 0x00, 0x0B );
+
+	// Page Setup
+	uint8_t pageSetup[] = { 0xE8, 0xFD, page };
+
+	// Setup page
+	while ( I2C_Send( pageSetup, sizeof( pageSetup ), 0 ) == 0 )
+		delay(1);
+
+	// Register Setup
+	uint8_t regSetup[] = { 0xE8, 0x00 };
+
+	// Read each register in the page
+	for ( uint8_t reg = 0; reg < len; reg++ )
+	{
+		// Update register to read
+		regSetup[1] = reg;
+
+		// Configure register
+		while ( I2C_Send( regSetup, sizeof( regSetup ), 0 ) == 0 )
+			delay(1);
+
+		// Register Read Command
+		uint8_t regReadCmd[] = { 0xE9 };
+
+		// Request single register byte
+		while ( I2C_Send( regReadCmd, sizeof( regReadCmd ), 1 ) == 0 )
+			delay(1);
+		dbug_print("NEXT");
+	}
+
+	// Disable software shutdown
+	LED_writeReg( 0x0A, 0x01, 0x0B );
 }
 
 // Setup
@@ -619,8 +636,122 @@ inline uint8_t LED_scan()
 
 
 
+// ----- Capabilities -----
+
+// Basic LED Control Capability
+typedef enum LedControlMode {
+	// Single LED Modes
+	LedControlMode_brightness_decrease,
+	LedControlMode_brightness_increase,
+	LedControlMode_brightness_set,
+	// Set all LEDs (index argument not required)
+	LedControlMode_brightness_decrease_all,
+	LedControlMode_brightness_increase_all,
+	LedControlMode_brightness_set_all,
+} LedControlMode;
+
+typedef struct LedControl {
+	LedControlMode mode;   // XXX Make sure to adjust the .kll capability if this variable is larger than 8 bits
+	uint8_t        amount;
+	uint16_t       index;
+} LedControl;
+
+uint8_t LED_control_timer = 0;
+void LED_control( LedControl *control )
+{
+	// Only send if we've completed all other transactions
+	if ( I2C_TxBuffer.sequencePos > 0 )
+		return;
+
+	// XXX
+	// ISSI Chip locks up if we spam updates too quickly (might be an I2C bug on this side too -HaaTa)
+	// Make sure we only send an update every 30 milliseconds at most
+	// It may be possible to optimize speed even further, but will likely require serious time with a logic analyzer
+
+	uint8_t currentTime = (uint8_t)systick_millis_count;
+	int8_t compare = (int8_t)(currentTime - LED_control_timer) & 0x7F;
+	if ( compare < 30 )
+	{
+		return;
+	}
+	LED_control_timer = currentTime;
+
+	// Configure based upon the given mode
+	// TODO Handle multiple issi chips per node
+	// TODO Perhaps do gamma adjustment?
+	switch ( control->mode )
+	{
+	case LedControlMode_brightness_decrease:
+		// Don't worry about rolling over, the cycle is quick
+		LED_pageBuffer.buffer[ control->index ] -= control->amount;
+		break;
+
+	case LedControlMode_brightness_increase:
+		// Don't worry about rolling over, the cycle is quick
+		LED_pageBuffer.buffer[ control->index ] += control->amount;
+		break;
+
+	case LedControlMode_brightness_set:
+		LED_pageBuffer.buffer[ control->index ] = control->amount;
+		break;
+
+	case LedControlMode_brightness_decrease_all:
+		for ( uint8_t channel = 0; channel < LED_BufferLength; channel++ )
+		{
+			// Don't worry about rolling over, the cycle is quick
+			LED_pageBuffer.buffer[ channel ] -= control->amount;
+		}
+		break;
+
+	case LedControlMode_brightness_increase_all:
+		for ( uint8_t channel = 0; channel < LED_BufferLength; channel++ )
+		{
+			// Don't worry about rolling over, the cycle is quick
+			LED_pageBuffer.buffer[ channel ] += control->amount;
+		}
+		break;
+
+	case LedControlMode_brightness_set_all:
+		for ( uint8_t channel = 0; channel < LED_BufferLength; channel++ )
+		{
+			LED_pageBuffer.buffer[ channel ] = control->amount;
+		}
+		break;
+	}
+
+	// Sync LED buffer with ISSI chip buffer
+	// TODO Support multiple frames
+	LED_pageBuffer.i2c_addr = 0xE8; // Chip 1
+	LED_pageBuffer.reg_addr = 0x24; // Brightness section
+	LED_sendPage( (uint8_t*)&LED_pageBuffer, sizeof( LED_Buffer ), 0 );
+}
+
+void LED_control_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("LED_control_capability(mode,amount,index)");
+		return;
+	}
+
+	// Only use capability on press
+	// TODO Analog
+	if ( stateType == 0x00 && state == 0x03 ) // Not on release
+		return;
+
+	// Set the input structure
+	LedControl *control = (LedControl*)args;
+
+	// TODO broadcast to rest of interconnect nodes if necessary
+	LED_control( control );
+}
+
+
+
 // ----- CLI Command Functions -----
 
+// TODO Currently not working correctly
 void cliFunc_i2cSend( char* args )
 {
 	char* curArgs;
@@ -717,6 +848,7 @@ void cliFunc_i2cRecv( char* args )
 	I2C_Send( buffer, bufferLen, 1 ); // Only 1 byte is ever read at a time with the ISSI chip
 }
 
+// TODO Currently not working correctly
 void cliFunc_ledRPage( char* args )
 {
 	// Parse number from argument
@@ -730,13 +862,14 @@ void cliFunc_ledRPage( char* args )
 
 	if ( arg1Ptr[0] != '\0' )
 	{
-		 page = (uint8_t)numToInt( arg1Ptr );
+		page = (uint8_t)numToInt( arg1Ptr );
 	}
 
 	// No \r\n by default after the command is entered
 	print( NL );
 
-	LED_readPage( 0xB4, page );
+	LED_readPage( 0x1, page );
+	//LED_readPage( 0xB4, page );
 }
 
 void cliFunc_ledWPage( char* args )
@@ -807,5 +940,42 @@ void cliFunc_ledZero( char* args )
 {
 	print( NL ); // No \r\n by default after the command is entered
 	LED_zeroPages( 0x00, 8, 0x24, 0xB4 ); // Only PWMs
+}
+
+void cliFunc_ledCtrl( char* args )
+{
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+	LedControl control;
+
+	// First process mode
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Stop processing args if no more are found
+	if ( *arg1Ptr == '\0' )
+		return;
+	control.mode = numToInt( arg1Ptr );
+
+
+	// Next process amount
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Stop processing args if no more are found
+	if ( *arg1Ptr == '\0' )
+		return;
+	control.amount = numToInt( arg1Ptr );
+
+
+	// Finally process led index, if it exists
+	// Default to 0
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+	control.index = *arg1Ptr == '\0' ? 0 : numToInt( arg1Ptr );
+
+	// Process request
+	LED_control( &control );
 }
 

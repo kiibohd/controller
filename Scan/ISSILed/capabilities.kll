@@ -1,10 +1,26 @@
 Name = ISSILedCapabilities;
-Version = 0.1;
+Version = 0.2;
 Author = "HaaTa (Jacob Alexander) 2015";
 KLL = 0.3c;
 
 # Modified Date
-Date = 2015-08-02;
+Date = 2015-10-09;
+
+# Basic ISSI Capabilities
+# Modes
+#  0: Decrease single led brightness
+#  1: Increase single led brightness
+#  2: Set single led brightness
+#  3: Decrease brightness of all leds
+#  4: Increase brightness of all leds
+#  5: Set brightness of all leds
+# Amount -> 0 -> 255
+# Index:
+#  Depends on keyboard. At least from from 0 -> 143 (single chip).
+#  Remember, it may be possible that all leds on a single chip are connected.
+#  So it may be possible that you may have index gaps.
+#  i.e. 23 then 144
+ledControl => LED_control_capability( mode : 1, amount : 1, index : 2 );
 
 # Defines available to the ISSILed sub-module
 
