@@ -1378,6 +1378,19 @@ void cliFunc_capSelect( char* args )
 			printHex( argSet[2] );
 			print( "..." NL );
 
+			// Make sure this isn't the reload capability
+			// If it is, and the remote reflash define is not set, ignore
+			if ( flashModeEnabled_define == 0 ) for ( uint32_t cap = 0; cap < CapabilitiesNum; cap++ )
+			{
+				if ( CapabilitiesList[ cap ].func == (const void*)Output_flashMode_capability )
+				{
+					print( NL );
+					warn_print("flashModeEnabled not set, cancelling firmware reload...");
+					info_msg("Set flashModeEnabled to 1 in your kll configuration.");
+					return;
+				}
+			}
+
 			void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ cap ].func);
 			capability( argSet[0], argSet[1], &argSet[2] );
 		}

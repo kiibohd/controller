@@ -21,14 +21,12 @@
 
 // ----- Includes -----
 
-// Compiler Includes
-//#include <stdarg.h>
-
 // Project Includes
 #include <buildvars.h>
 #include "cli.h"
 #include <led.h>
 #include <print.h>
+#include <kll_defs.h>
 
 
 
@@ -517,6 +515,14 @@ void cliFunc_led( char* args )
 
 void cliFunc_reload( char* args )
 {
+	if ( flashModeEnabled_define == 0 )
+	{
+		print( NL );
+		warn_print("flashModeEnabled not set, cancelling firmware reload...");
+		info_msg("Set flashModeEnabled to 1 in your kll configuration.");
+		return;
+	}
+
 	// Request to output module to be set into firmware reload mode
 	Output_firmwareReload();
 }

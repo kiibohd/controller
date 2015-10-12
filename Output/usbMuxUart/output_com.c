@@ -495,7 +495,7 @@ void Output_flashMode_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
-		print("Output_flashMode(usbCode)");
+		print("Output_flashMode()");
 		return;
 	}
 
