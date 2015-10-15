@@ -25,6 +25,11 @@
 #include <led.h>
 #include <print.h>
 
+// Interconnect module if compiled in
+#if defined(ConnectEnabled_define)
+#include <connect_scan.h>
+#endif
+
 // Local Includes
 #include "lcd_scan.h"
 
@@ -344,29 +349,26 @@ inline uint8_t LCD_scan()
 
 // ----- Capabilities -----
 
-uint16_t LCD_layerStack_prevSize = 0;
-uint16_t LCD_layerStack_prevTop  = 0;
-void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+// Takes 1 8 bit length and 4 16 bit arguments, each corresponding to a layer index
+// Ordered from top to bottom
+// The first argument indicates how many numbers to display (max 4), set to 0 to load default image
+uint16_t LCD_layerStackExact[4];
+uint8_t LCD_layerStackExact_size = 0;
+typedef struct LCD_layerStackExact_args {
+	uint8_t numArgs;
+	uint16_t layers[4];
+} LCD_layerStackExact_args;
+void LCD_layerStackExact_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
-		print("LCD_layerStack_capability");
+		print("LCD_layerStackExact_capability(num,layer1,layer2,layer3,layer4)");
 		return;
 	}
 
-	// Parse the layer stack, top to bottom
-	extern uint16_t macroLayerIndexStack[];
-	extern uint16_t macroLayerIndexStackSize;
-
-	// Ignore if the stack size hasn't changed and the top of the stack is the same
-	if ( macroLayerIndexStackSize == LCD_layerStack_prevSize
-		&& macroLayerIndexStack[macroLayerIndexStackSize - 1] == LCD_layerStack_prevTop )
-	{
-		return;
-	}
-	LCD_layerStack_prevSize = macroLayerIndexStackSize;
-	LCD_layerStack_prevTop  = macroLayerIndexStack[macroLayerIndexStackSize - 1];
+	// Read arguments
+	LCD_layerStackExact_args *stack_args = (LCD_layerStackExact_args*)args;
 
 	// Number data for LCD
 	const uint8_t numbers[10][128] = {
@@ -397,10 +399,10 @@ void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 	};
 
 	// Only display if there are layers active
-	if ( macroLayerIndexStackSize > 0 )
+	if ( stack_args->numArgs > 0 )
 	{
 		// Set the color according to the "top-of-stack" layer
-		uint16_t layerIndex = macroLayerIndexStack[ macroLayerIndexStackSize - 1 ];
+		uint16_t layerIndex = stack_args->layers[0];
 		FTM0_C0V = colors[ layerIndex ][0];
 		FTM0_C1V = colors[ layerIndex ][1];
 		FTM0_C2V = colors[ layerIndex ][2];
@@ -418,9 +420,9 @@ void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 			LCD_writeControlReg( 0x00 );
 
 			// Write data
-			for ( uint16_t layer = 1; layer <= macroLayerIndexStackSize; layer++ )
+			for ( uint16_t layer = 0; layer < stack_args->numArgs; layer++ )
 			{
-				layerIndex = macroLayerIndexStack[ macroLayerIndexStackSize - layer ];
+				layerIndex = stack_args->layers[ layer ];
 
 				// Default to 0, if over 9
 				if ( layerIndex > 9 )
@@ -434,7 +436,7 @@ void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 
 			// Blank out rest of display
 			uint8_t data = 0;
-			for ( uint8_t c = 0; c < 4 - macroLayerIndexStackSize; c++ )
+			for ( uint8_t c = 0; c < 4 - stack_args->numArgs; c++ )
 			{
 				for ( uint8_t byte = 0; byte < 32; byte++ )
 				{
@@ -454,6 +456,65 @@ void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 		for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
 			LCD_writeDisplayReg( page, (uint8_t *)&STLcdDefaultImage[page * LCD_PAGE_LEN], LCD_PAGE_LEN );
 	}
+}
+
+// Determines the current layer stack, and sets the LCD output accordingly
+// Will only work on a master node when using the interconnect (use LCD_layerStackExact_capability instead)
+uint16_t LCD_layerStack_prevSize = 0;
+uint16_t LCD_layerStack_prevTop  = 0;
+void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("LCD_layerStack_capability()");
+		return;
+	}
+
+	// Parse the layer stack, top to bottom
+	extern uint16_t macroLayerIndexStack[];
+	extern uint16_t macroLayerIndexStackSize;
+
+	// Ignore if the stack size hasn't changed and the top of the stack is the same
+	if ( macroLayerIndexStackSize == LCD_layerStack_prevSize
+		&& macroLayerIndexStack[macroLayerIndexStackSize - 1] == LCD_layerStack_prevTop )
+	{
+		return;
+	}
+	LCD_layerStack_prevSize = macroLayerIndexStackSize;
+	LCD_layerStack_prevTop  = macroLayerIndexStack[macroLayerIndexStackSize - 1];
+
+	LCD_layerStackExact_args stack_args;
+	memset( stack_args.layers, 0, sizeof( stack_args.layers ) );
+
+	// Use the LCD_layerStackExact_capability to set the LCD using the determined stack
+	// Construct argument set for capability
+	stack_args.numArgs = macroLayerIndexStackSize;
+	for ( uint16_t layer = 1; layer <= macroLayerIndexStackSize; layer++ )
+	{
+		stack_args.layers[ layer - 1 ] = macroLayerIndexStack[ macroLayerIndexStackSize - layer ];
+	}
+
+	// Only deal with the interconnect if it has been compiled in
+#if defined(ConnectEnabled_define)
+	if ( Connect_master )
+	{
+		// generatedKeymap.h
+		extern const Capability CapabilitiesList[];
+
+		// Broadcast layerStackExact remote capability (0xFF is the broadcast id)
+		Connect_send_RemoteCapability(
+			0xFF,
+			LCD_layerStackExact_capability_index,
+			state,
+			stateType,
+			CapabilitiesList[ LCD_layerStackExact_capability_index ].argCount,
+			(uint8_t*)&stack_args
+		);
+	}
+#endif
+	// Call LCD_layerStackExact directly
+	LCD_layerStackExact_capability( state, stateType, (uint8_t*)&stack_args );
 }
 
 

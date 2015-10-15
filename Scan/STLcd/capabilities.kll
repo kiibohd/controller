@@ -66,7 +66,8 @@ STLcdDefaultImage = "
 
 # Layer Status Display
 
-LCDLayerDisplay => LCD_layerStack_capability();
+LCDLayerDisplay      => LCD_layerStack_capability();
+LCDLayerDisplayExact => LCD_layerStackExact_capability( display : 1, stack1 : 2, stack2 : 2, stack3 : 2, stack4 : 2 );
 
 
 # LCD Module Enabled

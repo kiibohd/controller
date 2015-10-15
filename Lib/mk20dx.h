@@ -511,11 +511,37 @@
 #define DMA_ERQ_ERQ1                    ((uint32_t)1<<1)        // Enable DMA Request 1
 #define DMA_ERQ_ERQ2                    ((uint32_t)1<<2)        // Enable DMA Request 2
 #define DMA_ERQ_ERQ3                    ((uint32_t)1<<3)        // Enable DMA Request 3
+#define DMA_ERQ_ERQ4                    ((uint32_t)1<<4)        // Enable DMA Request 4
+#define DMA_ERQ_ERQ5                    ((uint32_t)1<<5)        // Enable DMA Request 5
+#define DMA_ERQ_ERQ6                    ((uint32_t)1<<6)        // Enable DMA Request 6
+#define DMA_ERQ_ERQ7                    ((uint32_t)1<<7)        // Enable DMA Request 7
+#define DMA_ERQ_ERQ8                    ((uint32_t)1<<8)        // Enable DMA Request 8
+#define DMA_ERQ_ERQ9                    ((uint32_t)1<<9)        // Enable DMA Request 9
+#define DMA_ERQ_ERQ10                   ((uint32_t)1<<10)       // Enable DMA Request 10
+#define DMA_ERQ_ERQ11                   ((uint32_t)1<<11)       // Enable DMA Request 11
+#define DMA_ERQ_ERQ12                   ((uint32_t)1<<12)       // Enable DMA Request 12
+#define DMA_ERQ_ERQ13                   ((uint32_t)1<<13)       // Enable DMA Request 13
+#define DMA_ERQ_ERQ14                   ((uint32_t)1<<14)       // Enable DMA Request 14
+#define DMA_ERQ_ERQ15                   ((uint32_t)1<<15)       // Enable DMA Request 15
+#define DMA_ERQ_ERQ16                   ((uint32_t)1<<16)       // Enable DMA Request 16
 #define DMA_EEI                 *(volatile uint32_t *)0x40008014 // Enable Error Interrupt Register
 #define DMA_EEI_EEI0                    ((uint32_t)1<<0)        // Enable Error Interrupt 0
 #define DMA_EEI_EEI1                    ((uint32_t)1<<1)        // Enable Error Interrupt 1
 #define DMA_EEI_EEI2                    ((uint32_t)1<<2)        // Enable Error Interrupt 2
 #define DMA_EEI_EEI3                    ((uint32_t)1<<3)        // Enable Error Interrupt 3
+#define DMA_EEI_EEI4                    ((uint32_t)1<<4)        // Enable Error Interrupt 4
+#define DMA_EEI_EEI5                    ((uint32_t)1<<5)        // Enable Error Interrupt 5
+#define DMA_EEI_EEI6                    ((uint32_t)1<<6)        // Enable Error Interrupt 6
+#define DMA_EEI_EEI7                    ((uint32_t)1<<7)        // Enable Error Interrupt 7
+#define DMA_EEI_EEI8                    ((uint32_t)1<<8)        // Enable Error Interrupt 8
+#define DMA_EEI_EEI9                    ((uint32_t)1<<9)        // Enable Error Interrupt 9
+#define DMA_EEI_EEI10                   ((uint32_t)1<<10)       // Enable Error Interrupt 10
+#define DMA_EEI_EEI11                   ((uint32_t)1<<11)       // Enable Error Interrupt 11
+#define DMA_EEI_EEI12                   ((uint32_t)1<<12)       // Enable Error Interrupt 12
+#define DMA_EEI_EEI13                   ((uint32_t)1<<13)       // Enable Error Interrupt 13
+#define DMA_EEI_EEI14                   ((uint32_t)1<<14)       // Enable Error Interrupt 14
+#define DMA_EEI_EEI15                   ((uint32_t)1<<15)       // Enable Error Interrupt 15
+#define DMA_EEI_EEI16                   ((uint32_t)1<<16)       // Enable Error Interrupt 16
 #define DMA_CEEI                *(volatile uint8_t  *)0x40008018 // Clear Enable Error Interrupt Register
 #define DMA_CEEI_CEEI(n)                ((uint8_t)(n & 3)<<0)   // Clear Enable Error Interrupt
 #define DMA_CEEI_CAEE                   ((uint8_t)1<<6)         // Clear All Enable Error Interrupts
@@ -1468,6 +1494,8 @@ typedef struct {
 #define UART0_MA2               *(volatile uint8_t  *)0x4006A009 // UART Match Address Registers 2
 #define UART0_C4                *(volatile uint8_t  *)0x4006A00A // UART Control Register 4
 #define UART0_C5                *(volatile uint8_t  *)0x4006A00B // UART Control Register 5
+#define UART_C5_TDMAS           0x80
+#define UART_C5_RDMAS           0x20
 #define UART0_ED                *(volatile uint8_t  *)0x4006A00C // UART Extended Data Register
 #define UART0_MODEM             *(volatile uint8_t  *)0x4006A00D // UART Modem Register
 #define UART0_IR                *(volatile uint8_t  *)0x4006A00E // UART Infrared Register

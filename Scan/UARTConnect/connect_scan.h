@@ -119,11 +119,14 @@ typedef struct AnimationCommand {
 // Remote Capability Command
 // Initiated by the master to trigger a capability on a given node
 // RemoteOutput is enabled while capability is activated
+// Set id to 255 if command should be sent in all directions
 typedef struct RemoteCapabilityCommand {
 	Command command;
 	uint8_t id;
-	Capability capability;
-	uint8_t numArgs;
+	uint8_t capabilityIndex;
+	uint8_t state;
+	uint8_t stateType;
+	uint8_t numArgs; // # of bytes, args may be larger than 1 byte
 	uint8_t firstArg[0];
 } RemoteCapabilityCommand;
 
@@ -162,4 +165,5 @@ void Connect_setup( uint8_t master );
 void Connect_scan();
 
 void Connect_send_ScanCode( uint8_t id, TriggerGuide *scanCodeStateList, uint8_t numScanCodes );
+void Connect_send_RemoteCapability( uint8_t id, uint8_t capabilityIndex, uint8_t state, uint8_t stateType, uint8_t numArgs, uint8_t *args );
 

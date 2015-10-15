@@ -97,7 +97,7 @@ static uint8_t usb_debug_descriptor[] = {
 
 
 
-// ----- USB HID Report Descriptsors -----
+// ----- USB HID Report Descriptors -----
 
 // Each HID interface needs a special report descriptor that tells
 // the meaning and format of the data.
