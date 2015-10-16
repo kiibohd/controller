@@ -42,34 +42,6 @@
 
 // ----- Macros -----
 
-// Macro for adding to each uart Tx ring buffer
-#define uart_addTxBuffer( uartNum ) \
-case uartNum: \
-	/* Delay UART copy until there's some space left */ \
-	while ( uart_tx_buf[ uartNum ].items + count > UART_Buffer_Size ) \
-	{ \
-		warn_msg("Too much data to send on UART0, waiting..."); \
-		delay( 1 ); \
-	} \
-	/* Append data to ring buffer */ \
-	for ( uint8_t c = 0; c < count; c++ ) \
-	{ \
-		if ( Connect_debug ) \
-		{ \
-			printHex( buffer[ c ] ); \
-			print( " +" #uartNum NL ); \
-		} \
-		uart_tx_buf[ uartNum ].buffer[ uart_tx_buf[ uartNum ].tail++ ] = buffer[ c ]; \
-		uart_tx_buf[ uartNum ].items++; \
-		if ( uart_tx_buf[ uartNum ].tail >= UART_Buffer_Size ) \
-			uart_tx_buf[ uartNum ].tail = 0; \
-		if ( uart_tx_buf[ uartNum ].head == uart_tx_buf[ uartNum ].tail ) \
-			uart_tx_buf[ uartNum ].head++; \
-		if ( uart_tx_buf[ uartNum ].head >= UART_Buffer_Size ) \
-			uart_tx_buf[ uartNum ].head = 0; \
-	} \
-	break
-
 // Macro for popping from Tx ring buffer
 #define uart_fillTxFifo( uartNum ) \
 { \
@@ -233,14 +205,41 @@ void Connect_addBytes( uint8_t *buffer, uint8_t count, uint8_t uart )
 		return;
 	}
 
-	// Choose the uart
-	switch ( uart )
+	// Invalid UART
+	if ( uart >= UART_Num_Interfaces )
 	{
-	uart_addTxBuffer( UART_Master );
-	uart_addTxBuffer( UART_Slave );
-	default:
-		erro_msg("Invalid UART to send from...");
-		break;
+		erro_print("Invalid UART to send from...");
+		return;
+	}
+
+	// Delay UART copy until there's some space left
+	while ( uart_tx_buf[ uart ].items + count > UART_Buffer_Size )
+	{
+		warn_msg("Too much data to send on UART");
+		printInt8( uart );
+		print( ", waiting..." NL );
+		delay( 1 );
+	}
+
+	// Append data to ring buffer
+	for ( uint8_t c = 0; c < count; c++ )
+	{
+		if ( Connect_debug )
+		{
+			printHex( buffer[ c ] );
+			print(" +");
+			printInt8( uart );
+			print( NL );
+		}
+
+		uart_tx_buf[ uart ].buffer[ uart_tx_buf[ uart ].tail++ ] = buffer[ c ];
+		uart_tx_buf[ uart ].items++;
+		if ( uart_tx_buf[ uart ].tail >= UART_Buffer_Size )
+			uart_tx_buf[ uart ].tail = 0;
+		if ( uart_tx_buf[ uart ].head == uart_tx_buf[ uart ].tail )
+			uart_tx_buf[ uart ].head++;
+		if ( uart_tx_buf[ uart ].head >= UART_Buffer_Size )
+			uart_tx_buf[ uart ].head = 0;
 	}
 }
 
@@ -718,7 +717,7 @@ uint8_t Connect_receive_Animation( uint8_t byte, uint16_t *pending_bytes, uint8_
 }
 
 // - Remote Capability Variables -
-#define Connect_receive_RemoteCapabilityMaxArgs 5 // XXX Calculate the max using kll
+#define Connect_receive_RemoteCapabilityMaxArgs 25 // XXX Calculate the max using kll
 RemoteCapabilityCommand Connect_receive_RemoteCapabilityBuffer;
 uint8_t Connect_receive_RemoteCapabilityArgs[Connect_receive_RemoteCapabilityMaxArgs];
 

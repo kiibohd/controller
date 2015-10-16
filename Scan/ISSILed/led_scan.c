@@ -25,6 +25,11 @@
 #include <led.h>
 #include <print.h>
 
+// Interconnect module if compiled in
+#if defined(ConnectEnabled_define)
+#include <connect_scan.h>
+#endif
+
 // Local Includes
 #include "led_scan.h"
 
@@ -36,6 +41,10 @@
 #define I2C_RxBufferLength 8
 
 #define LED_BufferLength 144
+
+// TODO Needs to be defined per keyboard
+#define LED_TotalChannels 144
+
 
 
 // ----- Structs -----
@@ -656,28 +665,15 @@ typedef struct LedControl {
 	uint16_t       index;
 } LedControl;
 
-uint8_t LED_control_timer = 0;
 void LED_control( LedControl *control )
 {
 	// Only send if we've completed all other transactions
+	/*
 	if ( I2C_TxBuffer.sequencePos > 0 )
 		return;
-
-	// XXX
-	// ISSI Chip locks up if we spam updates too quickly (might be an I2C bug on this side too -HaaTa)
-	// Make sure we only send an update every 30 milliseconds at most
-	// It may be possible to optimize speed even further, but will likely require serious time with a logic analyzer
-
-	uint8_t currentTime = (uint8_t)systick_millis_count;
-	int8_t compare = (int8_t)(currentTime - LED_control_timer) & 0x7F;
-	if ( compare < 30 )
-	{
-		return;
-	}
-	LED_control_timer = currentTime;
+	*/
 
 	// Configure based upon the given mode
-	// TODO Handle multiple issi chips per node
 	// TODO Perhaps do gamma adjustment?
 	switch ( control->mode )
 	{
@@ -696,7 +692,7 @@ void LED_control( LedControl *control )
 		break;
 
 	case LedControlMode_brightness_decrease_all:
-		for ( uint8_t channel = 0; channel < LED_BufferLength; channel++ )
+		for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
 		{
 			// Don't worry about rolling over, the cycle is quick
 			LED_pageBuffer.buffer[ channel ] -= control->amount;
@@ -704,7 +700,7 @@ void LED_control( LedControl *control )
 		break;
 
 	case LedControlMode_brightness_increase_all:
-		for ( uint8_t channel = 0; channel < LED_BufferLength; channel++ )
+		for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
 		{
 			// Don't worry about rolling over, the cycle is quick
 			LED_pageBuffer.buffer[ channel ] += control->amount;
@@ -712,7 +708,7 @@ void LED_control( LedControl *control )
 		break;
 
 	case LedControlMode_brightness_set_all:
-		for ( uint8_t channel = 0; channel < LED_BufferLength; channel++ )
+		for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
 		{
 			LED_pageBuffer.buffer[ channel ] = control->amount;
 		}
@@ -726,6 +722,7 @@ void LED_control( LedControl *control )
 	LED_sendPage( (uint8_t*)&LED_pageBuffer, sizeof( LED_Buffer ), 0 );
 }
 
+uint8_t LED_control_timer = 0;
 void LED_control_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
@@ -740,10 +737,84 @@ void LED_control_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 	if ( stateType == 0x00 && state == 0x03 ) // Not on release
 		return;
 
+	// XXX
+	// ISSI Chip locks up if we spam updates too quickly (might be an I2C bug on this side too -HaaTa)
+	// Make sure we only send an update every 30 milliseconds at most
+	// It may be possible to optimize speed even further, but will likely require serious time with a logic analyzer
+
+	uint8_t currentTime = (uint8_t)systick_millis_count;
+	int8_t compare = (int8_t)(currentTime - LED_control_timer) & 0x7F;
+	if ( compare < 30 )
+	{
+		return;
+	}
+	LED_control_timer = currentTime;
+
 	// Set the input structure
 	LedControl *control = (LedControl*)args;
 
-	// TODO broadcast to rest of interconnect nodes if necessary
+	// Interconnect broadcasting
+#if defined(ConnectEnabled_define)
+	uint8_t send_packet = 0;
+	uint8_t ignore_node = 0;
+
+	// By default send to the *next* node, which will determine where to go next
+	extern uint8_t Connect_id; // connect_scan.c
+	uint8_t addr = Connect_id + 1;
+
+	switch ( control->mode )
+	{
+	// Calculate the led address to send
+	// If greater than the Total hannels
+	// Set address - Total channels
+	// Otherwise, ignore
+	case LedControlMode_brightness_decrease:
+	case LedControlMode_brightness_increase:
+	case LedControlMode_brightness_set:
+		// Ignore if led is on this node
+		if ( control->index < LED_TotalChannels )
+			break;
+
+		// Calculate new led index
+		control->index -= LED_TotalChannels;
+
+		ignore_node = 1;
+		send_packet = 1;
+		break;
+
+	// Broadcast to all nodes
+	// XXX Do not set broadcasting address
+	//     Will send command twice
+	case LedControlMode_brightness_decrease_all:
+	case LedControlMode_brightness_increase_all:
+	case LedControlMode_brightness_set_all:
+		send_packet = 1;
+		break;
+	}
+
+	// Only send interconnect remote capability packet if necessary
+	if ( send_packet )
+	{
+		// generatedKeymap.h
+		extern const Capability CapabilitiesList[];
+
+		// Broadcast layerStackExact remote capability (0xFF is the broadcast id)
+		Connect_send_RemoteCapability(
+			addr,
+			LED_control_capability_index,
+			state,
+			stateType,
+			CapabilitiesList[ LED_control_capability_index ].argCount,
+			args
+		);
+	}
+
+	// If there is nothing to do on this node, ignore
+	if ( ignore_node )
+		return;
+#endif
+
+	// Modify led state of this node
 	LED_control( control );
 }
 
