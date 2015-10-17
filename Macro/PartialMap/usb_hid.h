@@ -438,7 +438,15 @@
 #define CONSUMER_BROADCAST_MODE          0x064
 #define CONSUMER_SNAPSHOT                0x065
 #define CONSUMER_STILL                   0x066
-// 0x067 - 0x07F Reserved
+// 0x067 - 0x06E Reserved?
+#define CONSUMER_BRIGHTNESS_INCREMENT    0x06F
+#define CONSUMER_BRIGHTNESS_DECREMENT    0x070
+
+#define CONSUMER_BACKLIGHT_TOGGLE        0x072
+#define CONSUMER_BRIGHTNESS_MIN          0x073
+#define CONSUMER_BRIGHTNESS_MAX          0x074
+#define CONSUMER_BRIGHTNESS_AUTO         0x075
+// 0x076 - 0x07F Reserved
 
 #define CONSUMER_ASSIGN_SELECTION        0x081
 #define CONSUMER_MODE_STEP               0x082
@@ -770,5 +778,6 @@
 #define AC_SPLIT                    0x29A
 #define AC_DISTRIBUTE_HORIZONTALLY  0x29B
 #define AC_DISTRIBUTE_VERTICALLY    0x29C
-// 0x29D-0xFFFF Reserved
+#define AC_NEXT_KEYBOARD_LAYOUT_SEL 0x29D
+// 0x29E-0xFFFF Reserved
 
