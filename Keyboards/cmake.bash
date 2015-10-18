@@ -82,7 +82,18 @@ done
 mkdir -p "${BuildPath}"
 cd "${BuildPath}"
 cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DScanModule="${ScanModule}" -DMacroModule="${MacroModule}" -DOutputModule="${OutputModule}" -DDebugModule="${DebugModule}" -DBaseMap="${BaseMap}" -DDefaultMap="${DefaultMap}" -DPartialMaps="${PartialMapsExpanded}" "${CMakeListsPath}"
+return_code=$?
+if [ $return_code != 0 ] ; then
+  echo "Error in cmake. Exiting..."
+  exit $return_code
+fi
+
 make
+return_code=$?
+if [ $return_code != 0 ] ; then
+  echo "Error in make. Exiting..."
+  exit $return_code
+fi
 
 echo "Firmware has been compiled into: '${BuildPath}'"
 cd -
