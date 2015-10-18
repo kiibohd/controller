@@ -297,7 +297,7 @@ static uint8_t sys_ctrl_report_desc[] = {
 	0x75, 0x10,          //   Report Size (16),
 	0x95, 0x01,          //   Report Count (1),
 	0x16, 0x01, 0x00,    //   Logical Minimum (1),
-	0x26, 0x9C, 0x02,    //   Logical Maximum (668),
+	0x26, 0x9D, 0x02,    //   Logical Maximum (669),
 	0x05, 0x0C,          //   Usage Page (Consumer),
 	0x19, 0x01,          //   Usage Minimum (1),
 	0x2A, 0x9D, 0x02,    //   Usage Maximum (669),
