@@ -19,7 +19,7 @@
 import sys
 
 from array import *
-from PIL import Image
+from PIL import Image # Use pillow instead of PIL, it works with Python 3
 
 
 # Convenience class to deal with converting images to a C array
