@@ -3,9 +3,15 @@
 # Virtual Serial Port API Example
 # Jacob Alexander 2015
 
+if [ $# -eq 0 ]; then
+  echo "You must specify your virtual serialport. (/dev/ttyACM0 on linux, /dev/cu.usbmodemXXXX on OSX)"
+  echo "  ex: $0 /dev/ttyACM0"
+  exit 1
+fi
 # XXX Set this to match your virtual serialport
-# TODO Show examples for Mac OSX and Cygwin/Windows
-SERIALPORT=/dev/ttyACM0
+# TODO Show example for Cygwin/Windows
+# For Mac OSX it will be something like /dev/cu.usbmodem1413 (number may differ)
+SERIALPORT=$1
 
 # NOTE: Make sure you don't write too quickly to the serial port, it can get overwhelmed by a modern computer
 #       Generally this just means commands will get ignored
