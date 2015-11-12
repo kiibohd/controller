@@ -110,7 +110,10 @@ class STLcdGraphic:
 		return display
 
 
-filename = "ic_logo_lcd.bmp"
+filename = sys.argv[1]
+if filename is None:
+	print( "You must specify a bitmap filename. Try './bitmap2Struct.py ic_logo_lcd.bmp'" )
+	sys.exit( 1 )
 max_height = 32
 max_width = 128
 x_offset = 0
