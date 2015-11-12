@@ -196,7 +196,6 @@ void Matrix_setup()
 	print( NL );
 	info_msg("Max Keys: ");
 	printHex( Matrix_maxKeys );
-	print( NL );
 
 	// Clear out Debounce Array
 	for ( uint8_t item = 0; item < Matrix_maxKeys; item++ )

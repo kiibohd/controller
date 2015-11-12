@@ -26,7 +26,7 @@ UARTConnectBaudFine => UARTConnectBaudFine_define;
 # Thus baud setting = 26
 # NOTE: If finer baud adjustment is needed see UARTx_C4 -> BRFA in the datasheet
 # Baud fine setting = 0x02
-UARTConnectBaud = 1; # 4.5 Mbpsa  @ 72 MHz
+UARTConnectBaud = 1; # 4.5 Mbps @ 72 MHz
 UARTConnectBaudFine = 0x0;
 
 #UARTConnectBaud = 39; # 115385 bps @ 72 MHz (close to 115200)

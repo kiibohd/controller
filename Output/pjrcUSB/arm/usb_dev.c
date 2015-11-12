@@ -1176,6 +1176,9 @@ uint8_t usb_init()
 	print("USB INIT"NL);
 	#endif
 
+	// Unset usb configuration
+	usb_configuration = 0;
+
 	// Clear out endpoints table
 	for ( int i = 0; i <= NUM_ENDPOINTS * 4; i++ )
 	{
