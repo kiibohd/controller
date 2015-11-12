@@ -1,0 +1,114 @@
+Pin Usage
+=========
+
+mk20dx256vlh7
+
+ ----
+|Keys|
+ ----
+
+* Strobe (Columns)
+
+PTB2
+PTB3
+PTB18
+PTB19
+PTC0
+PTC8
+PTC9
+PTC10
+PTC11
+
+* Sense (Rows)
+
+PTD0
+PTD1
+PTD4
+PTD5
+PTD6
+PTD7
+PTC1
+PTC2
+
+
+ -----
+|Clock|
+ -----
+
+PTA18 <-> PTA19
+
+
+ ---
+|I2C|
+ ---
+
+* IS31FL3731C
+
+PTB0  - SCL0 (add header pin, label as SCL0)
+PTB1  - SDA0 (add header pin, label as SDA0)
+PTB17 - INTB Chip 1
+PTB16 - SDB (tied to all Chips, hardware shutdown)
+
+
+
+ ---
+|DAC|
+ ---
+
+DAC0 (N/C)
+
+
+ ----
+|UART|
+ ----
+
+* Comm - For bi-directional communication between halves
+
+PTA1 - RX0 (Master Side)
+PTA2 - TX0 (Master Side)
+
+PTE1 - RX1 (Slave Side)
+PTE0 - TX1 (Slave Side)
+
+PTD2 - RX2 (UART Debug Header)
+PTD3 - TX2 (UART Debug Header)
+
+
+ -----
+|Debug|
+ -----
+
+* SWD - (Main reflash header)
+
+PTA0 (Pull-down)
+PTA3 (Pull-up)
+
+* LEDs
+
+PTA5 (LED only for PCB, not Teensy)
+
+* UARTs
+
+PTD2 - RX2 (UART Debug Header, label as RX2)
+PTD3 - TX2 (UART Debug Header, label as TX2)
+
+
+ ------
+|Unused|
+ ------
+
+* GPIO
+
+PTA4
+PTA12
+PTA13
+PTC3
+PTC4
+PTC5
+PTC6
+PTC7
+
+* Analog
+
+TODO
+

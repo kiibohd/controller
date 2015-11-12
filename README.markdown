@@ -38,7 +38,7 @@ Supported Microcontrollers
 
 * Teensy 2.0 (Partial)
 * Teensy 2.0++
-* Teensy 3.0
+* Teesny 3.0
 * Teensy 3.1
 * mk20dx128vlf5
 * mk20dx256vlh7

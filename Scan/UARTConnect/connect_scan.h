@@ -163,6 +163,7 @@ extern uint8_t Connect_master; // Set if master
 
 void Connect_setup( uint8_t master );
 void Connect_scan();
+void Connect_reset();
 
 void Connect_send_ScanCode( uint8_t id, TriggerGuide *scanCodeStateList, uint8_t numScanCodes );
 void Connect_send_RemoteCapability( uint8_t id, uint8_t capabilityIndex, uint8_t state, uint8_t stateType, uint8_t numArgs, uint8_t *args );

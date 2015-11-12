@@ -37,13 +37,53 @@
 
 // ----- Defines -----
 
+// Increase buffer sizes for RGB
+#ifdef ISSI_RGB_define
+#define I2C_TxBufferLength 600
+#define I2C_RxBufferLength 16
+#else
 #define I2C_TxBufferLength 300
 #define I2C_RxBufferLength 8
+#endif
 
-#define LED_BufferLength 144
+#define LED_BufferLength       144
+#define LED_EnableBufferLength 18
 
-// TODO Needs to be defined per keyboard
-#define LED_TotalChannels 144
+#define LED_TotalChannels (144 * ISSI_Chips_define)
+
+// ISSI Addresses
+// IS31FL3731 (max 4 channels per bus)
+#if 1
+#define ISSI_Ch1 0xE8
+#define ISSI_Ch2 0xEA
+#define ISSI_Ch3 0xEC
+#define ISSI_Ch4 0xEE
+
+// IS31FL3732 (max 16 channels per bus)
+#else
+#define ISSI_Ch1 0xB0
+#define ISSI_Ch2 0xB2
+#define ISSI_Ch3 0xB4
+#define ISSI_Ch4 0xB6
+#endif
+
+
+
+// ----- Macros -----
+
+#define LED_MaskDefine(ch) \
+	{ \
+		ISSI_Ch##ch, /* I2C address */ \
+		0x00, /* Starting register address */ \
+		{ ISSILedMask##ch##_define }, \
+	}
+
+#define LED_BrightnessDefine(ch) \
+	{ \
+		ISSI_Ch##ch, /* I2C address */ \
+		0x24, /* Starting register address */ \
+		{ ISSILedBrightness##ch##_define }, \
+	}
 
 
 
@@ -62,6 +102,12 @@ typedef struct LED_Buffer {
 	uint8_t reg_addr;
 	uint8_t buffer[LED_BufferLength];
 } LED_Buffer;
+
+typedef struct LED_EnableBuffer {
+	uint8_t i2c_addr;
+	uint8_t reg_addr;
+	uint8_t buffer[LED_EnableBufferLength];
+} LED_EnableBuffer;
 
 
 
@@ -93,7 +139,7 @@ CLIDict_Entry( ledCtrl,     "Basic LED control. Args: <mode> <amount> [<index>]"
 CLIDict_Entry( ledRPage,    "Read the given register page." );
 CLIDict_Entry( ledStart,    "Disable software shutdown." );
 CLIDict_Entry( ledTest,     "Test out the led pages." );
-CLIDict_Entry( ledWPage,    "Write to given register page starting at address. i.e. 0x2 0x24 0xF0 0x12" );
+CLIDict_Entry( ledWPage,    "Write to given register page starting at address. i.e. 0xE8 0x2 0x24 0xF0 0x12" );
 CLIDict_Entry( ledZero,     "Zero out LED register pages (non-configuration)." );
 
 CLIDict_Def( ledCLIDict, "ISSI LED Module Commands" ) = {
@@ -118,21 +164,40 @@ volatile uint8_t I2C_RxBufferPtr[ I2C_TxBufferLength ];
 volatile I2C_Buffer I2C_TxBuffer = { 0, 0, 0, I2C_TxBufferLength, (uint8_t*)I2C_TxBufferPtr };
 volatile I2C_Buffer I2C_RxBuffer = { 0, 0, 0, I2C_RxBufferLength, (uint8_t*)I2C_RxBufferPtr };
 
-LED_Buffer LED_pageBuffer;
+LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
 
-// A bit mask determining which LEDs are enabled in the ISSI chip
-const uint8_t LED_ledEnableMask1[] = {
-	0xE8, // I2C address
-	0x00, // Starting register address
-	ISSILedMask1_define
+// Enable mask and default brightness for ISSI chip channel
+const LED_EnableBuffer LED_ledEnableMask[ISSI_Chips_define] = {
+	LED_MaskDefine( 1 ),
+#if ISSI_Chips_define >= 2
+	LED_MaskDefine( 2 ),
+#endif
+#if ISSI_Chips_define >= 3
+	LED_MaskDefine( 3 ),
+#endif
+#if ISSI_Chips_define >= 4
+	LED_MaskDefine( 4 ),
+#endif
 };
 
 // Default LED brightness
-const uint8_t LED_defaultBrightness1[] = {
-	0xE8, // I2C address
-	0x24, // Starting register address
-	ISSILedBrightness1_define
+const LED_Buffer LED_defaultBrightness[ISSI_Chips_define] = {
+	LED_BrightnessDefine( 1 ),
+#if ISSI_Chips_define >= 2
+	LED_BrightnessDefine( 2 ),
+#endif
+#if ISSI_Chips_define >= 3
+	LED_BrightnessDefine( 3 ),
+#endif
+#if ISSI_Chips_define >= 4
+	LED_BrightnessDefine( 4 ),
+#endif
 };
+
+
+#if ISSI_Chips_define >= 5
+#error "Invalid number of ISSI Chips"
+#endif
 
 
 
@@ -274,7 +339,10 @@ inline void I2C_setup()
 	PORTB_PCR1 = PORT_PCR_ODE | PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(2);
 
 	// SCL Frequency Divider
-	// 400kHz -> 120 (0x85) @ 48 MHz F_BUS
+	// 1.8 MBaud (likely higher than spec)
+	// 0x85 -> 36 MHz / (4 * 5) = 1.8 MBaud
+	// 0x80 => mul(4)
+	// 0x05 => ICL(5)
 	I2C0_F = 0x85;
 	I2C0_FLT = 4;
 	I2C0_C1 = I2C_C1_IICEN;
@@ -284,14 +352,14 @@ inline void I2C_setup()
 	NVIC_ENABLE_IRQ( IRQ_I2C0 );
 }
 
-void LED_zeroPages( uint8_t startPage, uint8_t numPages, uint8_t startReg, uint8_t endReg )
+void LED_zeroPages( uint8_t addr, uint8_t startPage, uint8_t numPages, uint8_t startReg, uint8_t endReg )
 {
 	// Page Setup
-	uint8_t pageSetup[] = { 0xE8, 0xFD, 0x00 };
+	uint8_t pageSetup[] = { addr, 0xFD, 0x00 };
 
 	// Max length of a page + chip id + reg start
 	uint8_t fullPage[ 0xB4 + 2 ] = { 0 }; // Max size of page
-	fullPage[0] = 0xE8;     // Set chip id
+	fullPage[0] = addr;     // Set chip id
 	fullPage[1] = startReg; // Set start reg
 
 	// Iterate through given pages, zero'ing out the given register regions
@@ -310,10 +378,10 @@ void LED_zeroPages( uint8_t startPage, uint8_t numPages, uint8_t startReg, uint8
 	}
 }
 
-void LED_sendPage( uint8_t *buffer, uint8_t len, uint8_t page )
+void LED_sendPage( uint8_t addr, uint8_t *buffer, uint8_t len, uint8_t page )
 {
 	// Page Setup
-	uint8_t pageSetup[] = { 0xE8, 0xFD, page };
+	uint8_t pageSetup[] = { addr, 0xFD, page };
 
 	// Setup page
 	while ( I2C_Send( pageSetup, sizeof( pageSetup ), 0 ) == 0 )
@@ -325,58 +393,55 @@ void LED_sendPage( uint8_t *buffer, uint8_t len, uint8_t page )
 
 }
 
-void LED_writeReg( uint8_t reg, uint8_t val, uint8_t page )
+// Write address
+void LED_writeReg( uint8_t addr, uint8_t reg, uint8_t val, uint8_t page )
 {
 	// Page Setup
-	uint8_t pageSetup[] = { 0xE8, 0xFD, page };
+	uint8_t pageSetup[] = { addr, 0xFD, page };
 
 	// Reg Write Setup
-	uint8_t writeData[] = { 0xE8, reg, val };
+	uint8_t writeData[] = { addr, reg, val };
 
 	// Setup page
 	while ( I2C_Send( pageSetup, sizeof( pageSetup ), 0 ) == 0 )
 		delay(1);
 
+	// Write register
 	while ( I2C_Send( writeData, sizeof( writeData ), 0 ) == 0 )
 		delay(1);
 }
 
-void LED_readPage( uint8_t len, uint8_t page )
+// Read address
+void LED_readReg( uint8_t addr, uint8_t reg, uint8_t page )
 {
 	// Software shutdown must be enabled to read registers
-	LED_writeReg( 0x0A, 0x00, 0x0B );
+	LED_writeReg( addr, 0x0A, 0x00, 0x0B );
 
 	// Page Setup
-	uint8_t pageSetup[] = { 0xE8, 0xFD, page };
+	uint8_t pageSetup[] = { addr, 0xFD, page };
 
 	// Setup page
 	while ( I2C_Send( pageSetup, sizeof( pageSetup ), 0 ) == 0 )
 		delay(1);
 
 	// Register Setup
-	uint8_t regSetup[] = { 0xE8, 0x00 };
+	uint8_t regSetup[] = { addr, reg };
 
-	// Read each register in the page
-	for ( uint8_t reg = 0; reg < len; reg++ )
-	{
-		// Update register to read
-		regSetup[1] = reg;
+	// Configure register
+	while ( I2C_Send( regSetup, sizeof( regSetup ), 0 ) == 0 )
+		delay(1);
 
-		// Configure register
-		while ( I2C_Send( regSetup, sizeof( regSetup ), 0 ) == 0 )
-			delay(1);
+	// Register Read Command
+	uint8_t regReadCmd[] = { addr | 0x1 };
 
-		// Register Read Command
-		uint8_t regReadCmd[] = { 0xE9 };
+	// Request single register byte
+	while ( I2C_Send( regReadCmd, sizeof( regReadCmd ), 1 ) == 0 )
+		delay(1);
 
-		// Request single register byte
-		while ( I2C_Send( regReadCmd, sizeof( regReadCmd ), 1 ) == 0 )
-			delay(1);
-		dbug_print("NEXT");
-	}
+	// TODO get byte from buffer
 
 	// Disable software shutdown
-	LED_writeReg( 0x0A, 0x01, 0x0B );
+	LED_writeReg( addr, 0x0A, 0x01, 0x0B );
 }
 
 // Setup
@@ -388,9 +453,29 @@ inline void LED_setup()
 	// Initialize I2C
 	I2C_setup();
 
+	// Setup LED_pageBuffer addresses and brightness section
+	LED_pageBuffer[0].i2c_addr = ISSI_Ch1;
+	LED_pageBuffer[0].reg_addr = 0x24;
+#if ISSI_Chips_define >= 2
+	LED_pageBuffer[1].i2c_addr = ISSI_Ch2;
+	LED_pageBuffer[1].reg_addr = 0x24;
+#endif
+#if ISSI_Chips_define >= 3
+	LED_pageBuffer[2].i2c_addr = ISSI_Ch3;
+	LED_pageBuffer[2].reg_addr = 0x24;
+#endif
+#if ISSI_Chips_define >= 4
+	LED_pageBuffer[3].i2c_addr = ISSI_Ch4;
+	LED_pageBuffer[3].reg_addr = 0x24;
+#endif
+
 	// Zero out Frame Registers
 	// This needs to be done before disabling the hardware shutdown (or the leds will do undefined things)
-	LED_zeroPages( 0x0B, 1, 0x00, 0x0C ); // Control Registers
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t addr = LED_pageBuffer[ ch ].i2c_addr;
+		LED_zeroPages( addr, 0x0B, 1, 0x00, 0x0C ); // Control Registers
+	}
 
 	// Disable Hardware shutdown of ISSI chip (pull high)
 	GPIOB_PDDR |= (1<<16);
@@ -398,16 +483,22 @@ inline void LED_setup()
 	GPIOB_PSOR |= (1<<16);
 
 	// Clear LED Pages
-	LED_zeroPages( 0x00, 8, 0x00, 0xB4 ); // LED Registers
-
 	// Enable LEDs based upon mask
-	LED_sendPage( (uint8_t*)LED_ledEnableMask1, sizeof( LED_ledEnableMask1 ), 0 );
-
 	// Set default brightness
-	LED_sendPage( (uint8_t*)LED_defaultBrightness1, sizeof( LED_defaultBrightness1 ), 0 );
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t addr = LED_pageBuffer[ ch ].i2c_addr;
+		LED_zeroPages( addr, 0x00, 8, 0x00, 0xB4 ); // LED Registers
+		LED_sendPage( addr, (uint8_t*)&LED_ledEnableMask[ ch ], sizeof( LED_EnableBuffer ), 0 );
+		LED_sendPage( addr, (uint8_t*)&LED_defaultBrightness[ ch ], sizeof( LED_Buffer ), 0 );
+	}
 
 	// Disable Software shutdown of ISSI chip
-	LED_writeReg( 0x0A, 0x01, 0x0B );
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t addr = LED_pageBuffer[ ch ].i2c_addr;
+		LED_writeReg( addr, 0x0A, 0x01, 0x0B );
+	}
 }
 
 
@@ -635,11 +726,6 @@ uint8_t I2C_Send( uint8_t *data, uint8_t sendLen, uint8_t recvLen )
 // LED State processing loop
 inline uint8_t LED_scan()
 {
-
-	// I2C Busy
-	// S & I2C_S_BUSY
-	//I2C_S_BUSY
-
 	return 0;
 }
 
@@ -667,59 +753,57 @@ typedef struct LedControl {
 
 void LED_control( LedControl *control )
 {
-	// Only send if we've completed all other transactions
-	/*
-	if ( I2C_TxBuffer.sequencePos > 0 )
-		return;
-	*/
-
 	// Configure based upon the given mode
-	// TODO Perhaps do gamma adjustment?
-	switch ( control->mode )
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
-	case LedControlMode_brightness_decrease:
-		// Don't worry about rolling over, the cycle is quick
-		LED_pageBuffer.buffer[ control->index ] -= control->amount;
-		break;
-
-	case LedControlMode_brightness_increase:
-		// Don't worry about rolling over, the cycle is quick
-		LED_pageBuffer.buffer[ control->index ] += control->amount;
-		break;
-
-	case LedControlMode_brightness_set:
-		LED_pageBuffer.buffer[ control->index ] = control->amount;
-		break;
-
-	case LedControlMode_brightness_decrease_all:
-		for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
+		// TODO Perhaps do gamma adjustment?
+		switch ( control->mode )
 		{
+		case LedControlMode_brightness_decrease:
 			// Don't worry about rolling over, the cycle is quick
-			LED_pageBuffer.buffer[ channel ] -= control->amount;
-		}
-		break;
+			LED_pageBuffer[ ch ].buffer[ control->index ] -= control->amount;
+			break;
 
-	case LedControlMode_brightness_increase_all:
-		for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
-		{
+		case LedControlMode_brightness_increase:
 			// Don't worry about rolling over, the cycle is quick
-			LED_pageBuffer.buffer[ channel ] += control->amount;
-		}
-		break;
+			LED_pageBuffer[ ch ].buffer[ control->index ] += control->amount;
+			break;
 
-	case LedControlMode_brightness_set_all:
-		for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
-		{
-			LED_pageBuffer.buffer[ channel ] = control->amount;
+		case LedControlMode_brightness_set:
+			LED_pageBuffer[ ch ].buffer[ control->index ] = control->amount;
+			break;
+
+		case LedControlMode_brightness_decrease_all:
+			for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
+			{
+				// Don't worry about rolling over, the cycle is quick
+				LED_pageBuffer[ ch ].buffer[ channel ] -= control->amount;
+			}
+			break;
+
+		case LedControlMode_brightness_increase_all:
+			for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
+			{
+				// Don't worry about rolling over, the cycle is quick
+				LED_pageBuffer[ ch ].buffer[ channel ] += control->amount;
+			}
+			break;
+
+		case LedControlMode_brightness_set_all:
+			for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
+			{
+				LED_pageBuffer[ ch ].buffer[ channel ] = control->amount;
+			}
+			break;
 		}
-		break;
 	}
 
 	// Sync LED buffer with ISSI chip buffer
 	// TODO Support multiple frames
-	LED_pageBuffer.i2c_addr = 0xE8; // Chip 1
-	LED_pageBuffer.reg_addr = 0x24; // Brightness section
-	LED_sendPage( (uint8_t*)&LED_pageBuffer, sizeof( LED_Buffer ), 0 );
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		LED_sendPage( LED_pageBuffer[ ch ].i2c_addr, (uint8_t*)&LED_pageBuffer[ ch ], sizeof( LED_Buffer ), 0 );
+	}
 }
 
 uint8_t LED_control_timer = 0;
@@ -922,6 +1006,7 @@ void cliFunc_i2cRecv( char* args )
 // TODO Currently not working correctly
 void cliFunc_ledRPage( char* args )
 {
+	/* TODO Use readReg command instead
 	// Parse number from argument
 	//  NOTE: Only first argument is used
 	char* arg1Ptr;
@@ -939,8 +1024,9 @@ void cliFunc_ledRPage( char* args )
 	// No \r\n by default after the command is entered
 	print( NL );
 
-	LED_readPage( 0x1, page );
-	//LED_readPage( 0xB4, page );
+	// TODO, multi-channel
+	LED_readPage( ISSI_Ch1, 0xB4, page );
+	*/
 }
 
 void cliFunc_ledWPage( char* args )
@@ -949,14 +1035,23 @@ void cliFunc_ledWPage( char* args )
 	char* arg1Ptr;
 	char* arg2Ptr = args;
 
-	// First process page and starting address
+	// First specify the write address
 	curArgs = arg2Ptr;
 	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
 
 	// Stop processing args if no more are found
 	if ( *arg1Ptr == '\0' )
 		return;
-	uint8_t page[] = { 0xE8, 0xFD, numToInt( arg1Ptr ) };
+	uint8_t addr = numToInt( arg1Ptr );
+
+	// Next process page and starting address
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Stop processing args if no more are found
+	if ( *arg1Ptr == '\0' )
+		return;
+	uint8_t page[] = { addr, 0xFD, numToInt( arg1Ptr ) };
 
 	curArgs = arg2Ptr;
 	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
@@ -964,7 +1059,7 @@ void cliFunc_ledWPage( char* args )
 	// Stop processing args if no more are found
 	if ( *arg1Ptr == '\0' )
 		return;
-	uint8_t data[] = { 0xE8, numToInt( arg1Ptr ), 0 };
+	uint8_t data[] = { addr, numToInt( arg1Ptr ), 0 };
 
 	// Set the register page
 	while ( I2C_Send( page, sizeof( page ), 0 ) == 0 )
@@ -994,23 +1089,34 @@ void cliFunc_ledWPage( char* args )
 void cliFunc_ledStart( char* args )
 {
 	print( NL ); // No \r\n by default after the command is entered
-	LED_zeroPages( 0x0B, 1, 0x00, 0x0C ); // Control Registers
-	//LED_zeroPages( 0x00, 8, 0x00, 0xB4 ); // LED Registers
-	LED_writeReg( 0x0A, 0x01, 0x0B );
-	LED_sendPage( (uint8_t*)LED_ledEnableMask1, sizeof( LED_ledEnableMask1 ), 0 );
 
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		LED_zeroPages( LED_ledEnableMask[ ch ].i2c_addr, 0x0B, 1, 0x00, 0x0C ); // Control Registers
+		//LED_zeroPages( 0x00, 8, 0x00, 0xB4 ); // LED Registers
+		LED_writeReg( LED_ledEnableMask[ ch ].i2c_addr, 0x0A, 0x01, 0x0B );
+		LED_sendPage( LED_ledEnableMask[ ch ].i2c_addr, (uint8_t*)&LED_ledEnableMask[ ch ], sizeof( LED_EnableBuffer ), 0 );
+	}
 }
 
 void cliFunc_ledTest( char* args )
 {
 	print( NL ); // No \r\n by default after the command is entered
-	LED_sendPage( (uint8_t*)LED_defaultBrightness1, sizeof( LED_defaultBrightness1 ), 0 );
+
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		LED_sendPage( LED_defaultBrightness[ ch ].i2c_addr, (uint8_t*)&LED_defaultBrightness[ ch ], sizeof( LED_Buffer ), 0 );
+	}
 }
 
 void cliFunc_ledZero( char* args )
 {
 	print( NL ); // No \r\n by default after the command is entered
-	LED_zeroPages( 0x00, 8, 0x24, 0xB4 ); // Only PWMs
+
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		LED_zeroPages( LED_defaultBrightness[ ch ].i2c_addr, 0x00, 8, 0x24, 0xB4 ); // Only PWMs
+	}
 }
 
 void cliFunc_ledCtrl( char* args )
