@@ -17,11 +17,16 @@
 
 // ----- Includes -----
 
+// Project Includes
+#include <delay.h>
+
 // Local Includes
 #include "mchck.h"
 #include "dfu.desc.h"
 
 #include "debug.h"
+
+#include "usb-internal.h"
 
 
 
@@ -173,6 +178,9 @@ static struct dfu_ctx dfu_ctx;
 void init_usb_bootloader( int config )
 {
 	dfu_init( setup_read, setup_write, finish_write, &dfu_ctx );
+
+	// Make sure SysTick counter is disabled
+	SYST_CSR = 0;
 }
 
 void main()
@@ -224,9 +232,43 @@ void main()
 
 	flash_prepare_flashing();
 	usb_init( &dfu_device );
+
+#if defined(_mk20dx256vlh7_) // Kiibohd-dfu
+	// PTA13 - USB Swap
+	// Start, disabled
+	GPIOA_PDDR |= (1<<13);
+	PORTA_PCR13 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOA_PCOR |= (1<<13);
+
+	#define USBPortSwapDelay_ms 1000
+	// For keyboards with dual usb ports, doesn't do anything on keyboards without them
+	// If a USB connection is not detected in 2 seconds, switch to the other port to see if it's plugged in there
+	uint32_t last_ms = systick_millis_count;
+	for (;;)
+	{
+		usb_poll();
+
+		// Only check for swapping after delay
+		uint32_t wait_ms = systick_millis_count - last_ms;
+		if ( wait_ms < USBPortSwapDelay_ms )
+		{
+			continue;
+		}
+
+		last_ms = systick_millis_count;
+
+		// USB not initialized, attempt to swap
+		if ( usb.state != USBD_STATE_ADDRESS )
+		{
+			print("USB not initializing, port swapping (if supported)");
+			GPIOA_PTOR |= (1<<13);
+		}
+	}
+#else
 	for (;;)
 	{
 		usb_poll();
 	}
+#endif
 }
 

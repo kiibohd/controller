@@ -527,7 +527,7 @@ void ResetHandler()
 	// Also checking for ARM lock-up signal (invalid firmware image)
 	// RCM_SRS1 & 0x02
 	if (    // PIN  (External Reset Pin/Switch)
-		   RCM_SRS0 & 0x40
+		RCM_SRS0 & 0x40
 		// WDOG (Watchdog timeout)
 		|| RCM_SRS0 & 0x20
 		// LOCKUP (ARM Core LOCKUP event)
@@ -690,11 +690,11 @@ void ResetHandler()
 
 #endif
 
-#if !defined(_bootloader_)
 	// Initialize the SysTick counter
 	SYST_RVR = (F_CPU / 1000) - 1;
 	SYST_CSR = SYST_CSR_CLKSOURCE | SYST_CSR_TICKINT | SYST_CSR_ENABLE;
 
+#if !defined(_bootloader_)
 	__enable_irq();
 #else
 	// Disable Watchdog for bootloader
