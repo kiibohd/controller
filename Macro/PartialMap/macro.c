@@ -135,7 +135,7 @@ uint16_t macroStepCounter = 0;
 // Key Trigger List Buffer and Layer Cache
 // The layer cache is set on press only, hold and release events refer to the value set on press
 TriggerGuide macroTriggerListBuffer[ MaxScanCode ];
-uint8_t macroTriggerListBufferSize = 0;
+var_uint_t macroTriggerListBufferSize = 0;
 var_uint_t macroTriggerListLayerCache[ MaxScanCode ];
 
 // Pending Trigger Macro Index List
@@ -557,7 +557,7 @@ inline void Macro_interconnectAdd( void *trigger_ptr )
 
 	// Add trigger to the Interconnect Cache
 	// During each processing loop, a scancode may be re-added depending on it's state
-	for ( uint8_t c = 0; c < macroInterconnectCacheSize; c++ )
+	for ( var_uint_t c = 0; c < macroInterconnectCacheSize; c++ )
 	{
 		// Check if the same ScanCode
 		if ( macroInterconnectCache[ c ].scanCode == trigger->scanCode )
@@ -699,7 +699,7 @@ inline void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMac
 	uint8_t scanCode = ((TriggerGuide*)&triggerMacro->guide[ pos - TriggerGuideSize ])->scanCode;
 
 	// Lookup scanCode in buffer list for the current state and stateType
-	for ( uint8_t keyIndex = 0; keyIndex < macroTriggerListBufferSize; keyIndex++ )
+	for ( var_uint_t keyIndex = 0; keyIndex < macroTriggerListBufferSize; keyIndex++ )
 	{
 		if ( macroTriggerListBuffer[ keyIndex ].scanCode == scanCode )
 		{
@@ -905,7 +905,7 @@ TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 
 		TriggerMacroVote vote = TriggerMacroVote_Invalid;
 		// Iterate through the key buffer, comparing to each key in the combo
-		for ( uint8_t key = 0; key < macroTriggerListBufferSize; key++ )
+		for ( var_uint_t key = 0; key < macroTriggerListBufferSize; key++ )
 		{
 			// Lookup key information
 			TriggerGuide *keyInfo = &macroTriggerListBuffer[ key ];
@@ -1065,7 +1065,7 @@ inline ResultMacroEval Macro_evalResultMacro( var_uint_t resultMacroIndex )
 inline void Macro_updateTriggerMacroPendingList()
 {
 	// Iterate over the macroTriggerListBuffer to add any new Trigger Macros to the pending list
-	for ( uint8_t key = 0; key < macroTriggerListBufferSize; key++ )
+	for ( var_uint_t key = 0; key < macroTriggerListBufferSize; key++ )
 	{
 		// TODO LED States
 		// TODO Analog Switches
@@ -1586,7 +1586,7 @@ void cliFunc_macroList( char* args )
 	info_msg("Pending Key Events: ");
 	printInt16( (uint16_t)macroTriggerListBufferSize );
 	print(" : ");
-	for ( uint8_t key = 0; key < macroTriggerListBufferSize; key++ )
+	for ( var_uint_t key = 0; key < macroTriggerListBufferSize; key++ )
 	{
 		printHex( macroTriggerListBuffer[ key ].scanCode );
 		print(" ");
