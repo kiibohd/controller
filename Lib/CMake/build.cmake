@@ -24,7 +24,7 @@ endif ()
 
 #| Create the .ELF file
 set( TARGET_ELF ${TARGET}.elf )
-add_executable( ${TARGET_ELF} ${SRCS} generatedKeymap.h )
+add_executable( ${TARGET_ELF} ${SRCS} generatedKeymap.h kll_defs.h )
 
 
 #| .ELF Properties

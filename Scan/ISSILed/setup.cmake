@@ -17,6 +17,7 @@ set ( SubModule 1 )
 # Module C files
 #
 set ( Module_SRCS
+	i2c.c
 	led_scan.c
 )
 

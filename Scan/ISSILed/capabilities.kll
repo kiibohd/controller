@@ -28,6 +28,22 @@ ledControl => LED_control_capability( mode : 1, amount : 1, index : 2 );
 ISSI_Chips => ISSI_Chips_define;
 ISSI_Chips = 1; # 1 by default
 
+# Default animation speed
+# Can be set from 0 to 63 (A)
+# Formula is TxA (T is approx 11ms)
+# 0 -  1.4 fps (represents 64)
+# 1 - 90   fps
+# 2 - 45   fps
+# 3 - 30   fps
+# 4 - 22   fps
+# etc.
+# For a 400 kHz I2C, with a single chip, updating all 144 channels, generally 30 fps is the max for continuous animations
+# Each additional chip consumes more bandwidth
+# 20 - 4.5 fps - Slow, but should always work without glitches
+# See (http://www.issi.com/WW/pdf/31FL3731C.pdf) for details
+ISSI_AnimationSpeed => ISSI_AnimationSpeed_define;
+ISSI_AnimationSpeed = 20; # 20 by default
+
 # LED Default Enable Mask
 #
 # By default, all LEDs are enabled

@@ -11,7 +11,7 @@
 
 # Feel free to change the variables in this section to configure your keyboard
 
-BuildPath="ICPad"
+BuildPath="KType"
 
 ## KLL Configuration ##
 
@@ -42,7 +42,7 @@ PartialMaps[1]=""
 # NOTE: Changing any of these variables will require a force build to compile correctly
 
 # Keyboard Module Configuration
-ScanModule="ICPad"
+ScanModule="KType"
 MacroModule="PixelMap"
 OutputModule="pjrcUSB"
 DebugModule="full"

@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@
 #include <macro.h>
 #include <output_com.h>
 #include <port_scan.h>
+#include <pixel.h>
 
 // Local Includes
 #include "scan_loop.h"
@@ -66,6 +67,9 @@ inline void Scan_setup()
 	// Setup ISSI chip to control the leds
 	LED_setup();
 
+	// Setup Pixel Map
+	Pixel_setup();
+
 	// Reset scan count
 	Scan_scanCount = 0;
 }
@@ -82,6 +86,9 @@ inline uint8_t Scan_loop()
 
 	// Process any interconnect commands
 	Connect_scan();
+
+	// Prepare any LED events
+	Pixel_process();
 
 	// Process any LED events
 	LED_scan();

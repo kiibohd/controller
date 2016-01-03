@@ -23,8 +23,14 @@
 
 
 
+// ----- Variables -----
+
+extern uint8_t LED_FrameBuffersReady;
+
+
+
 // ----- Functions -----
 
 void LED_setup();
-uint8_t LED_scan();
+void LED_scan();
 

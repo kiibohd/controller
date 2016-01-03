@@ -11,7 +11,7 @@
 # Check if KLL compiler is needed
 #
 
-if ( "${MacroModule}" STREQUAL "PartialMap" )
+if ( "${MacroModule}" STREQUAL "PartialMap" OR "${MacroModule}" STREQUAL "PixelMap" )
 
 
 
@@ -148,6 +148,7 @@ add_custom_target ( kll_regen
 set ( SRCS ${SRCS} ${kll_outputname} )
 
 
-
+else ()
+message ( AUTHOR_WARNING "Unknown Macro module, ignoring kll generation" )
 endif () # PartialMap
 

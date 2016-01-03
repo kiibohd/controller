@@ -32,6 +32,7 @@
 #include <matrix_scan.h>
 #include <macro.h>
 #include <output_com.h>
+#include <pixel.h>
 
 // Local Includes
 #include "scan_loop.h"
@@ -58,6 +59,9 @@ inline void Scan_setup()
 	// Setup ISSI chip to control the leds
 	LED_setup();
 
+	// Setup Pixel Map
+	Pixel_setup();
+
 	// Reset scan count
 	Scan_scanCount = 0;
 }
@@ -68,6 +72,9 @@ inline uint8_t Scan_loop()
 {
 	// Scan Matrix
 	Matrix_scan( Scan_scanCount++ );
+
+	// Prepare any LED events
+	Pixel_process();
 
 	// Process any LED events
 	LED_scan();

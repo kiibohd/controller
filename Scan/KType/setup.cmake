@@ -12,6 +12,7 @@
 #
 AddModule ( Scan ISSILed )
 AddModule ( Scan MatrixARM )
+AddModule ( Scan PortSwap )
 AddModule ( Scan UARTConnect )
 
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2015 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,6 +33,8 @@
 #include <matrix_scan.h>
 #include <macro.h>
 #include <output_com.h>
+#include <port_scan.h>
+#include <pixel.h>
 
 // Local Includes
 #include "scan_loop.h"
@@ -53,6 +55,9 @@ uint16_t Scan_scanCount = 0;
 // Setup
 inline void Scan_setup()
 {
+	// Setup Port Swap module
+	Port_setup();
+
 	// Setup UART Connect, if Output_Available, this is the master node
 	Connect_setup( Output_Available );
 
@@ -62,6 +67,9 @@ inline void Scan_setup()
 	// Setup ISSI chip to control the leds
 	LED_setup();
 
+	// Setup Pixel Map
+	Pixel_setup();
+
 	// Reset scan count
 	Scan_scanCount = 0;
 }
@@ -70,11 +78,17 @@ inline void Scan_setup()
 // Main Detection Loop
 inline uint8_t Scan_loop()
 {
+	// Port Swap detection
+	Port_scan();
+
 	// Scan Matrix
 	Matrix_scan( Scan_scanCount++ );
 
 	// Process any interconnect commands
 	Connect_scan();
+
+	// Prepare any LED events
+	Pixel_process();
 
 	// Process any LED events
 	LED_scan();
