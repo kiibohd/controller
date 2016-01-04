@@ -32,6 +32,8 @@
 
 // ----- Function Declarations -----
 
+void cliFunc_aniAdd    ( char* args );
+void cliFunc_aniDel    ( char* args );
 void cliFunc_chanTest  ( char* args );
 void cliFunc_pixelList ( char* args );
 void cliFunc_pixelTest ( char* args );
@@ -53,11 +55,15 @@ typedef enum PixelTest {
 // ----- Variables -----
 
 // Macro Module command dictionary
+CLIDict_Entry( aniAdd,       "Add the given animation id to the stack" );
+CLIDict_Entry( aniDel,       "Remove the given stack index animation" );
 CLIDict_Entry( chanTest,     "Channel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
 CLIDict_Entry( pixelList,    "Prints out pixel:channel mappings." );
 CLIDict_Entry( pixelTest,    "Pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
 
 CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
+	CLIDict_Item( aniAdd ),
+	CLIDict_Item( aniDel ),
 	CLIDict_Item( chanTest ),
 	CLIDict_Item( pixelList ),
 	CLIDict_Item( pixelTest ),
@@ -71,6 +77,9 @@ uint16_t  Pixel_testPos;
 // Frame State
 //  Indicates to pixel and output modules current state of the buffer
 FrameState Pixel_FrameState;
+
+// Animation Stack
+AnimationStack Pixel_AnimationStack;
 
 
 
@@ -225,6 +234,47 @@ const uint8_t testani_frame2[] = {
 	Pixel_ModRGB(0, Set, 60, 90, 140),
 };
 
+
+
+// Rainbow Animation - Hardcoded
+const uint8_t rainbow_frame0[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, 127,0,255),
+};
+
+const uint8_t rainbow_frame1[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, 127,0,255),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, 127,0,255),
+	Pixel_ModRGB(35, Set, 127,0,255),
+	Pixel_ModRGB(53, Set, 127,0,255),
+	Pixel_ModRGB(68, Set, 127,0,255),
+	Pixel_ModRGB(85, Set, 127,0,255),
+};
+
+const uint8_t rainbow_frame2[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, 127,0,255),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, 127,0,255),
+	Pixel_ModRGB(35, Set, 127,0,255),
+	Pixel_ModRGB(53, Set, 127,0,255),
+	Pixel_ModRGB(68, Set, 127,0,255),
+	Pixel_ModRGB(85, Set, 127,0,255),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, 127,0,255),
+	Pixel_ModRGB(17, Set, 127,0,255),
+	Pixel_ModRGB(36, Set, 127,0,255),
+	Pixel_ModRGB(54, Set, 127,0,255),
+	Pixel_ModRGB(70, Set, 127,0,255),
+	Pixel_ModRGB(86, Set, 127,0,255),
+};
+
+
 // Index of frames for animations
 //  uint8_t *<animation>_frames[] = { <animation>_frame<num>, ... }
 const uint8_t *testani_frames[] = {
@@ -233,10 +283,20 @@ const uint8_t *testani_frames[] = {
 	testani_frame2,
 };
 
+
+// Rainbow frame index
+const uint8_t *rainbow_frames[] = {
+	rainbow_frame0,
+	rainbow_frame1,
+	rainbow_frame2,
+};
+
+
 // Index of animations
 //  uint8_t *Pixel_Animations[] = { <animation>_frames, ... }
 const uint8_t **Pixel_Animations[] = {
 	testani_frames,
+	rainbow_frames,
 };
 
 // -------------------------------
@@ -391,6 +451,9 @@ inline void Pixel_process()
 		break;
 	}
 
+	// Start from the top of the Animation Stack
+	// TODO
+
 
 pixel_process_done:
 	// Frame is now ready to send
@@ -408,6 +471,9 @@ inline void Pixel_setup()
 
 	// Disable test modes by default, start at position 0
 	Pixel_testMode = PixelTest_Off;
+
+	// Clear animation stack
+	Pixel_AnimationStack.size = 0;
 }
 
 
@@ -590,5 +656,27 @@ void cliFunc_chanTest( char* args )
 	Pixel_testPos++;
 	if ( Pixel_testPos >= Pixel_TotalChannels )
 		Pixel_testPos = 0;
+}
+
+void cliFunc_aniAdd( char* args )
+{
+	print( NL ); // No \r\n by default after the command is entered
+
+	// TODO
+	uint16_t index = Pixel_AnimationStack.size;
+	Pixel_AnimationStack.stack[index].index = 1;
+	Pixel_AnimationStack.stack[index].pos = 1;
+	Pixel_AnimationStack.stack[index].loops = 1;
+	Pixel_AnimationStack.stack[index].divider = 0;
+	Pixel_AnimationStack.stack[index].modifier = AnimationModifier_None;
+	Pixel_AnimationStack.size++;
+}
+
+void cliFunc_aniDel( char* args )
+{
+	print( NL ); // No \r\n by default after the command is entered
+
+	// TODO
+	Pixel_AnimationStack.size--;
 }
 

@@ -44,7 +44,7 @@ typedef enum FrameState {
 //   * Add no-rollover
 //   * Subtract no-rollover
 typedef enum PixelChange {
-	PixelChange_Set = 0,          // <no op>
+	PixelChange_Set = 0,          // =
 	PixelChange_Add,              // +
 	PixelChange_Subtract,         // -
 	PixelChange_NoRoll_Add,       // +:
@@ -52,6 +52,13 @@ typedef enum PixelChange {
 	PixelChange_LeftShift,        // <<
 	PixelChange_RightShift,       // >>
 } PixelChange;
+
+
+// Animation modifiers
+typedef enum AnimationModifier {
+	AnimationModifier_None        = 0x00,
+	AnimationModifier_Fallthrough = 0x01, // Process lower animation first
+} AnimationModifier;
 
 
 
@@ -74,7 +81,7 @@ typedef struct PixelBuf {
 typedef struct PixelElement {
 	uint8_t  width;      // Number of bits in a channel
 	uint8_t  channels;   // Number of channels
-	                     // Hardware indices for each channel
+                             // Hardware indices for each channel
 	uint16_t indices[Pixel_MaxChannelPerPixel];
 } PixelElement;
 #define Pixel_RGBChannel(r,g,b) { 8, 3, { r, g, b } }
@@ -88,6 +95,22 @@ typedef struct PixelMod {
 	uint8_t     contiguousPixels; // # of contiguous pixels to apply same changes too
 	uint8_t     data[0];          // Data size depends on PixelElement definition
 } PixelMod;
+
+// Animation stack element
+typedef struct AnimationElement {
+	uint16_t          index;    // Animation id
+	uint16_t          pos;      // Current frame
+	uint8_t           loops;    // # of loops to run animation, 0 indicates infinite
+	uint8_t           divider;  // # of times to repeat each frame
+	AnimationModifier modifier; // Modifier applied to the entire animation
+} AnimationElement;
+
+// Animation stack
+#define Pixel_AnimationStackSize 16
+typedef struct AnimationStack {
+	uint16_t size;
+	AnimationElement stack[Pixel_AnimationStackSize];
+} AnimationStack;
 
 
 
