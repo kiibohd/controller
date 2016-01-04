@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 by Jacob Alexander
+/* Copyright (C) 2015-2016 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,14 +70,16 @@ typedef struct PixelBuf {
 
 
 // Individual Pixel element
+#define Pixel_MaxChannelPerPixel 3 // TODO Generate
 typedef struct PixelElement {
 	uint8_t  width;      // Number of bits in a channel
 	uint8_t  channels;   // Number of channels
-	uint16_t indices[0]; // Hardware indices for each channel
+	                     // Hardware indices for each channel
+	uint16_t indices[Pixel_MaxChannelPerPixel];
 } PixelElement;
-#define s2b(num) (num >> 8), (num & 0xFF)
-#define Pixel_RGBChannel(r,g,b) 8, 3, s2b(r), s2b(g), s2b(b)
-#define Pixel_8bitChannel(c)    8, 1, s2b(c)
+#define Pixel_RGBChannel(r,g,b) { 8, 3, { r, g, b } }
+// TODO generate macro based on max channels
+//#define Pixel_8bitChannel(c)  {  8, 1, { c } }
 
 
 typedef struct PixelMod {
