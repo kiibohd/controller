@@ -19,7 +19,7 @@
 import sys
 
 from array import *
-from PIL import Image
+from PIL import Image # Use pillow instead of PIL, it works with Python 3
 
 
 # Convenience class to deal with converting images to a C array
@@ -110,7 +110,10 @@ class STLcdGraphic:
 		return display
 
 
-filename = "ic_logo_lcd.bmp"
+filename = sys.argv[1]
+if filename is None:
+	print( "You must specify a bitmap filename. Try './bitmap2Struct.py ic_logo_lcd.bmp'" )
+	sys.exit( 1 )
 max_height = 32
 max_width = 128
 x_offset = 0

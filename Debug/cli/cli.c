@@ -159,14 +159,11 @@ void CLI_process()
 			}
 			else
 			{
-			// Only do command-related stuff if there was actually a command
-			// Avoids clogging command history with blanks
+				// Add the command to the history
+				CLI_saveHistory( CLILineBuffer );
 
 				// Process the current line buffer
 				CLI_commandLookup();
-
-				// Add the command to the history
-				CLI_saveHistory( CLILineBuffer );
 
 				// Keep the array circular, discarding the older entries
 				if ( CLIHistoryTail < CLIHistoryHead )
@@ -424,6 +421,11 @@ inline void CLI_saveHistory( char *buff )
 		CLIHistoryBuffer[ CLIHistoryTail ][ 0 ] = '\0';
 		return;
 	}
+
+        // Don't write empty lines to the history
+        const char *cursor = buff;
+        while (*cursor == ' ') { cursor++; } // advance past the leading whitespace
+        if (*cursor == '\0') { return ; }
 
 	// Copy the line to the history
 	int i;
