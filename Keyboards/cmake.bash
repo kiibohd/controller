@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # This is bash lib file for the convenience build scripts
 # Don't call this script directly
 # Jacob Alexander 2015

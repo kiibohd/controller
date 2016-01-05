@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Loads firmware image using an SWD Flasher
 # Uses MCHCK ruby flasher toolchain
 # NOTE: Only tested with a buspirate on Linux
