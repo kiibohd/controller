@@ -48,6 +48,7 @@ typedef enum PixelTest {
 	PixelTest_Chan_Roll,  // Iterate over all positions
 	PixelTest_Pixel_All,  // Enable all positions
 	PixelTest_Pixel_Roll, // Iterate over all positions
+	PixelTest_Pixel_Test,
 } PixelTest;
 
 
@@ -223,56 +224,2108 @@ PixelElement Pixel_Mapping[] = {
 
 // Frame of led changes
 //  const uint8_t <animation>_frame<num>[] = { PixelMod, ... }
-#define Pixel_ModRGB(pixel,type,r,g,b) pixel, PixelChange_##type, 1, r, g, b
+#define s2bs(n) (n & 0xFF), (n >> 8)
+#define Pixel_ModRGB(pixel,type,color) s2bs(pixel), PixelChange_##type, 1, color
+#define Pixel_ModRGB_(pixel,type,r,g,b) pixel, PixelChange_##type, 1, r, g, b
 const uint8_t testani_frame0[] = {
-	Pixel_ModRGB(0, Set, 30, 70, 120),
+	Pixel_ModRGB_(0, Set, 30, 70, 120),
 };
 const uint8_t testani_frame1[] = {
-	Pixel_ModRGB(0, Set, 0, 0, 0),
+	Pixel_ModRGB_(0, Set, 0, 0, 0),
 };
 const uint8_t testani_frame2[] = {
-	Pixel_ModRGB(0, Set, 60, 90, 140),
+	Pixel_ModRGB_(0, Set, 60, 90, 140),
 };
 
+// Temp convenience colours
+#define RGB_HalfRed      127,0,0
+#define RGB_Red          255,0,0
+#define RGB_RedOrange    255,64,0
+#define RGB_Orange       255,127,0
+#define RGB_OrangeYellow 255,191,0
+#define RGB_Yellow       255,255,0
+#define RGB_YellowGreen  127,255,0
+#define RGB_Green        0,255,0
+#define RGB_GreenBlue    0,127,127
+#define RGB_Blue         0,0,255
+#define RGB_BlueIndigo   38,0,193
+#define RGB_Indigo       75,0,130
+#define RGB_IndigoViolet 101,0,193
+#define RGB_Violet       127,0,255
+#define RGB_HalfViolet   64,0,127
 
+#define RGB_White        255,255,255
+#define RGB_Black        0,0,0
 
 // Rainbow Animation - Hardcoded
 const uint8_t rainbow_frame0[] = {
 	// Set 1
-	Pixel_ModRGB(84, Set, 127,0,255),
+	Pixel_ModRGB(84, Set, RGB_HalfRed),
 };
 
 const uint8_t rainbow_frame1[] = {
 	// Set 1
-	Pixel_ModRGB(84, Set, 127,0,255),
+	Pixel_ModRGB(84, Set, RGB_Red),
 
 	// Set 2
-	Pixel_ModRGB(16, Set, 127,0,255),
-	Pixel_ModRGB(35, Set, 127,0,255),
-	Pixel_ModRGB(53, Set, 127,0,255),
-	Pixel_ModRGB(68, Set, 127,0,255),
-	Pixel_ModRGB(85, Set, 127,0,255),
+	Pixel_ModRGB(16, Set, RGB_HalfRed),
+	Pixel_ModRGB(35, Set, RGB_HalfRed),
+	Pixel_ModRGB(53, Set, RGB_HalfRed),
+	Pixel_ModRGB(68, Set, RGB_HalfRed),
+	Pixel_ModRGB(85, Set, RGB_HalfRed),
 };
 
 const uint8_t rainbow_frame2[] = {
 	// Set 1
-	Pixel_ModRGB(84, Set, 127,0,255),
+	Pixel_ModRGB(84, Set, RGB_RedOrange),
 
 	// Set 2
-	Pixel_ModRGB(16, Set, 127,0,255),
-	Pixel_ModRGB(35, Set, 127,0,255),
-	Pixel_ModRGB(53, Set, 127,0,255),
-	Pixel_ModRGB(68, Set, 127,0,255),
-	Pixel_ModRGB(85, Set, 127,0,255),
+	Pixel_ModRGB(16, Set, RGB_Red),
+	Pixel_ModRGB(35, Set, RGB_Red),
+	Pixel_ModRGB(53, Set, RGB_Red),
+	Pixel_ModRGB(68, Set, RGB_Red),
+	Pixel_ModRGB(85, Set, RGB_Red),
 
 	// Set 3
-	Pixel_ModRGB(0, Set, 127,0,255),
-	Pixel_ModRGB(17, Set, 127,0,255),
-	Pixel_ModRGB(36, Set, 127,0,255),
-	Pixel_ModRGB(54, Set, 127,0,255),
-	Pixel_ModRGB(70, Set, 127,0,255),
-	Pixel_ModRGB(86, Set, 127,0,255),
+	Pixel_ModRGB(0, Set, RGB_HalfRed),
+	Pixel_ModRGB(17, Set, RGB_HalfRed),
+	Pixel_ModRGB(36, Set, RGB_HalfRed),
+	Pixel_ModRGB(54, Set, RGB_HalfRed),
+	Pixel_ModRGB(70, Set, RGB_HalfRed),
+	Pixel_ModRGB(86, Set, RGB_HalfRed),
 };
+
+const uint8_t rainbow_frame3[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_Orange),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_RedOrange),
+	Pixel_ModRGB(35, Set, RGB_RedOrange),
+	Pixel_ModRGB(53, Set, RGB_RedOrange),
+	Pixel_ModRGB(68, Set, RGB_RedOrange),
+	Pixel_ModRGB(85, Set, RGB_RedOrange),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_Red),
+	Pixel_ModRGB(17, Set, RGB_Red),
+	Pixel_ModRGB(36, Set, RGB_Red),
+	Pixel_ModRGB(54, Set, RGB_Red),
+	Pixel_ModRGB(70, Set, RGB_Red),
+	Pixel_ModRGB(86, Set, RGB_Red),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_HalfRed),
+	Pixel_ModRGB(37, Set, RGB_HalfRed),
+	Pixel_ModRGB(55, Set, RGB_HalfRed),
+	Pixel_ModRGB(71, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame4[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_OrangeYellow),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_Orange),
+	Pixel_ModRGB(35, Set, RGB_Orange),
+	Pixel_ModRGB(53, Set, RGB_Orange),
+	Pixel_ModRGB(68, Set, RGB_Orange),
+	Pixel_ModRGB(85, Set, RGB_Orange),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_RedOrange),
+	Pixel_ModRGB(17, Set, RGB_RedOrange),
+	Pixel_ModRGB(36, Set, RGB_RedOrange),
+	Pixel_ModRGB(54, Set, RGB_RedOrange),
+	Pixel_ModRGB(70, Set, RGB_RedOrange),
+	Pixel_ModRGB(86, Set, RGB_RedOrange),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_Red),
+	Pixel_ModRGB(37, Set, RGB_Red),
+	Pixel_ModRGB(55, Set, RGB_Red),
+	Pixel_ModRGB(71, Set, RGB_Red),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_HalfRed),
+	Pixel_ModRGB(19, Set, RGB_HalfRed),
+	Pixel_ModRGB(38, Set, RGB_HalfRed),
+	Pixel_ModRGB(56, Set, RGB_HalfRed),
+	Pixel_ModRGB(72, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame5[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_Yellow),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(35, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(53, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(68, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(85, Set, RGB_OrangeYellow),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_Orange),
+	Pixel_ModRGB(17, Set, RGB_Orange),
+	Pixel_ModRGB(36, Set, RGB_Orange),
+	Pixel_ModRGB(54, Set, RGB_Orange),
+	Pixel_ModRGB(70, Set, RGB_Orange),
+	Pixel_ModRGB(86, Set, RGB_Orange),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_RedOrange),
+	Pixel_ModRGB(37, Set, RGB_RedOrange),
+	Pixel_ModRGB(55, Set, RGB_RedOrange),
+	Pixel_ModRGB(71, Set, RGB_RedOrange),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_Red),
+	Pixel_ModRGB(19, Set, RGB_Red),
+	Pixel_ModRGB(38, Set, RGB_Red),
+	Pixel_ModRGB(56, Set, RGB_Red),
+	Pixel_ModRGB(72, Set, RGB_Red),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_HalfRed),
+	Pixel_ModRGB(20, Set, RGB_HalfRed),
+	Pixel_ModRGB(39, Set, RGB_HalfRed),
+	Pixel_ModRGB(57, Set, RGB_HalfRed),
+	Pixel_ModRGB(73, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame6[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_YellowGreen),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_Yellow),
+	Pixel_ModRGB(35, Set, RGB_Yellow),
+	Pixel_ModRGB(53, Set, RGB_Yellow),
+	Pixel_ModRGB(68, Set, RGB_Yellow),
+	Pixel_ModRGB(85, Set, RGB_Yellow),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(17, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(36, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(54, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(70, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(86, Set, RGB_OrangeYellow),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_Orange),
+	Pixel_ModRGB(37, Set, RGB_Orange),
+	Pixel_ModRGB(55, Set, RGB_Orange),
+	Pixel_ModRGB(71, Set, RGB_Orange),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_RedOrange),
+	Pixel_ModRGB(19, Set, RGB_RedOrange),
+	Pixel_ModRGB(38, Set, RGB_RedOrange),
+	Pixel_ModRGB(56, Set, RGB_RedOrange),
+	Pixel_ModRGB(72, Set, RGB_RedOrange),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_Red),
+	Pixel_ModRGB(20, Set, RGB_Red),
+	Pixel_ModRGB(39, Set, RGB_Red),
+	Pixel_ModRGB(57, Set, RGB_Red),
+	Pixel_ModRGB(73, Set, RGB_Red),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_HalfRed),
+	Pixel_ModRGB(21, Set, RGB_HalfRed),
+	Pixel_ModRGB(40, Set, RGB_HalfRed),
+	Pixel_ModRGB(58, Set, RGB_HalfRed),
+	Pixel_ModRGB(74, Set, RGB_HalfRed),
+	Pixel_ModRGB(87, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame7[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_Green),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_YellowGreen),
+	Pixel_ModRGB(35, Set, RGB_YellowGreen),
+	Pixel_ModRGB(53, Set, RGB_YellowGreen),
+	Pixel_ModRGB(68, Set, RGB_YellowGreen),
+	Pixel_ModRGB(85, Set, RGB_YellowGreen),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_Yellow),
+	Pixel_ModRGB(17, Set, RGB_Yellow),
+	Pixel_ModRGB(36, Set, RGB_Yellow),
+	Pixel_ModRGB(54, Set, RGB_Yellow),
+	Pixel_ModRGB(70, Set, RGB_Yellow),
+	Pixel_ModRGB(86, Set, RGB_Yellow),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(37, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(55, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(71, Set, RGB_OrangeYellow),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_Orange),
+	Pixel_ModRGB(19, Set, RGB_Orange),
+	Pixel_ModRGB(38, Set, RGB_Orange),
+	Pixel_ModRGB(56, Set, RGB_Orange),
+	Pixel_ModRGB(72, Set, RGB_Orange),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_RedOrange),
+	Pixel_ModRGB(20, Set, RGB_RedOrange),
+	Pixel_ModRGB(39, Set, RGB_RedOrange),
+	Pixel_ModRGB(57, Set, RGB_RedOrange),
+	Pixel_ModRGB(73, Set, RGB_RedOrange),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_Red),
+	Pixel_ModRGB(21, Set, RGB_Red),
+	Pixel_ModRGB(40, Set, RGB_Red),
+	Pixel_ModRGB(58, Set, RGB_Red),
+	Pixel_ModRGB(74, Set, RGB_Red),
+	Pixel_ModRGB(87, Set, RGB_Red),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_HalfRed),
+	Pixel_ModRGB(22, Set, RGB_HalfRed),
+	Pixel_ModRGB(41, Set, RGB_HalfRed),
+	Pixel_ModRGB(59, Set, RGB_HalfRed),
+	Pixel_ModRGB(75, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame8[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_GreenBlue),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_Green),
+	Pixel_ModRGB(35, Set, RGB_Green),
+	Pixel_ModRGB(53, Set, RGB_Green),
+	Pixel_ModRGB(68, Set, RGB_Green),
+	Pixel_ModRGB(85, Set, RGB_Green),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_YellowGreen),
+	Pixel_ModRGB(17, Set, RGB_YellowGreen),
+	Pixel_ModRGB(36, Set, RGB_YellowGreen),
+	Pixel_ModRGB(54, Set, RGB_YellowGreen),
+	Pixel_ModRGB(70, Set, RGB_YellowGreen),
+	Pixel_ModRGB(86, Set, RGB_YellowGreen),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_Yellow),
+	Pixel_ModRGB(37, Set, RGB_Yellow),
+	Pixel_ModRGB(55, Set, RGB_Yellow),
+	Pixel_ModRGB(71, Set, RGB_Yellow),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(19, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(38, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(56, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(72, Set, RGB_OrangeYellow),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_Orange),
+	Pixel_ModRGB(20, Set, RGB_Orange),
+	Pixel_ModRGB(39, Set, RGB_Orange),
+	Pixel_ModRGB(57, Set, RGB_Orange),
+	Pixel_ModRGB(73, Set, RGB_Orange),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_RedOrange),
+	Pixel_ModRGB(21, Set, RGB_RedOrange),
+	Pixel_ModRGB(40, Set, RGB_RedOrange),
+	Pixel_ModRGB(58, Set, RGB_RedOrange),
+	Pixel_ModRGB(74, Set, RGB_RedOrange),
+	Pixel_ModRGB(87, Set, RGB_RedOrange),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_Red),
+	Pixel_ModRGB(22, Set, RGB_Red),
+	Pixel_ModRGB(41, Set, RGB_Red),
+	Pixel_ModRGB(59, Set, RGB_Red),
+	Pixel_ModRGB(75, Set, RGB_Red),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_HalfRed),
+	Pixel_ModRGB(23, Set, RGB_HalfRed),
+	Pixel_ModRGB(42, Set, RGB_HalfRed),
+	Pixel_ModRGB(60, Set, RGB_HalfRed),
+	Pixel_ModRGB(76, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame9[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_Blue),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_GreenBlue),
+	Pixel_ModRGB(35, Set, RGB_GreenBlue),
+	Pixel_ModRGB(53, Set, RGB_GreenBlue),
+	Pixel_ModRGB(68, Set, RGB_GreenBlue),
+	Pixel_ModRGB(85, Set, RGB_GreenBlue),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_Green),
+	Pixel_ModRGB(17, Set, RGB_Green),
+	Pixel_ModRGB(36, Set, RGB_Green),
+	Pixel_ModRGB(54, Set, RGB_Green),
+	Pixel_ModRGB(70, Set, RGB_Green),
+	Pixel_ModRGB(86, Set, RGB_Green),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_YellowGreen),
+	Pixel_ModRGB(37, Set, RGB_YellowGreen),
+	Pixel_ModRGB(55, Set, RGB_YellowGreen),
+	Pixel_ModRGB(71, Set, RGB_YellowGreen),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_Yellow),
+	Pixel_ModRGB(19, Set, RGB_Yellow),
+	Pixel_ModRGB(38, Set, RGB_Yellow),
+	Pixel_ModRGB(56, Set, RGB_Yellow),
+	Pixel_ModRGB(72, Set, RGB_Yellow),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(20, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(39, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(57, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(73, Set, RGB_OrangeYellow),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_Orange),
+	Pixel_ModRGB(21, Set, RGB_Orange),
+	Pixel_ModRGB(40, Set, RGB_Orange),
+	Pixel_ModRGB(58, Set, RGB_Orange),
+	Pixel_ModRGB(74, Set, RGB_Orange),
+	Pixel_ModRGB(87, Set, RGB_Orange),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_RedOrange),
+	Pixel_ModRGB(22, Set, RGB_RedOrange),
+	Pixel_ModRGB(41, Set, RGB_RedOrange),
+	Pixel_ModRGB(59, Set, RGB_RedOrange),
+	Pixel_ModRGB(75, Set, RGB_RedOrange),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_Red),
+	Pixel_ModRGB(23, Set, RGB_Red),
+	Pixel_ModRGB(42, Set, RGB_Red),
+	Pixel_ModRGB(60, Set, RGB_Red),
+	Pixel_ModRGB(76, Set, RGB_Red),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_HalfRed),
+	Pixel_ModRGB(24, Set, RGB_HalfRed),
+	Pixel_ModRGB(43, Set, RGB_HalfRed),
+	Pixel_ModRGB(61, Set, RGB_HalfRed),
+	Pixel_ModRGB(77, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame10[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_BlueIndigo),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_Blue),
+	Pixel_ModRGB(35, Set, RGB_Blue),
+	Pixel_ModRGB(53, Set, RGB_Blue),
+	Pixel_ModRGB(68, Set, RGB_Blue),
+	Pixel_ModRGB(85, Set, RGB_Blue),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_GreenBlue),
+	Pixel_ModRGB(17, Set, RGB_GreenBlue),
+	Pixel_ModRGB(36, Set, RGB_GreenBlue),
+	Pixel_ModRGB(54, Set, RGB_GreenBlue),
+	Pixel_ModRGB(70, Set, RGB_GreenBlue),
+	Pixel_ModRGB(86, Set, RGB_GreenBlue),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_Green),
+	Pixel_ModRGB(37, Set, RGB_Green),
+	Pixel_ModRGB(55, Set, RGB_Green),
+	Pixel_ModRGB(71, Set, RGB_Green),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_YellowGreen),
+	Pixel_ModRGB(19, Set, RGB_YellowGreen),
+	Pixel_ModRGB(38, Set, RGB_YellowGreen),
+	Pixel_ModRGB(56, Set, RGB_YellowGreen),
+	Pixel_ModRGB(72, Set, RGB_YellowGreen),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_Yellow),
+	Pixel_ModRGB(20, Set, RGB_Yellow),
+	Pixel_ModRGB(39, Set, RGB_Yellow),
+	Pixel_ModRGB(57, Set, RGB_Yellow),
+	Pixel_ModRGB(73, Set, RGB_Yellow),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(21, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(40, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(58, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(74, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(87, Set, RGB_OrangeYellow),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_Orange),
+	Pixel_ModRGB(22, Set, RGB_Orange),
+	Pixel_ModRGB(41, Set, RGB_Orange),
+	Pixel_ModRGB(59, Set, RGB_Orange),
+	Pixel_ModRGB(75, Set, RGB_Orange),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_RedOrange),
+	Pixel_ModRGB(23, Set, RGB_RedOrange),
+	Pixel_ModRGB(42, Set, RGB_RedOrange),
+	Pixel_ModRGB(60, Set, RGB_RedOrange),
+	Pixel_ModRGB(76, Set, RGB_RedOrange),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_Red),
+	Pixel_ModRGB(24, Set, RGB_Red),
+	Pixel_ModRGB(43, Set, RGB_Red),
+	Pixel_ModRGB(61, Set, RGB_Red),
+	Pixel_ModRGB(77, Set, RGB_Red),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_HalfRed),
+	Pixel_ModRGB(25, Set, RGB_HalfRed),
+	Pixel_ModRGB(44, Set, RGB_HalfRed),
+	Pixel_ModRGB(62, Set, RGB_HalfRed),
+	Pixel_ModRGB(78, Set, RGB_HalfRed),
+	Pixel_ModRGB(88, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame11[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_Indigo),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(35, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(53, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(68, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(85, Set, RGB_BlueIndigo),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_Blue),
+	Pixel_ModRGB(17, Set, RGB_Blue),
+	Pixel_ModRGB(36, Set, RGB_Blue),
+	Pixel_ModRGB(54, Set, RGB_Blue),
+	Pixel_ModRGB(70, Set, RGB_Blue),
+	Pixel_ModRGB(86, Set, RGB_Blue),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_GreenBlue),
+	Pixel_ModRGB(37, Set, RGB_GreenBlue),
+	Pixel_ModRGB(55, Set, RGB_GreenBlue),
+	Pixel_ModRGB(71, Set, RGB_GreenBlue),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_Green),
+	Pixel_ModRGB(19, Set, RGB_Green),
+	Pixel_ModRGB(38, Set, RGB_Green),
+	Pixel_ModRGB(56, Set, RGB_Green),
+	Pixel_ModRGB(72, Set, RGB_Green),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_YellowGreen),
+	Pixel_ModRGB(20, Set, RGB_YellowGreen),
+	Pixel_ModRGB(39, Set, RGB_YellowGreen),
+	Pixel_ModRGB(57, Set, RGB_YellowGreen),
+	Pixel_ModRGB(73, Set, RGB_YellowGreen),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_Yellow),
+	Pixel_ModRGB(21, Set, RGB_Yellow),
+	Pixel_ModRGB(40, Set, RGB_Yellow),
+	Pixel_ModRGB(58, Set, RGB_Yellow),
+	Pixel_ModRGB(74, Set, RGB_Yellow),
+	Pixel_ModRGB(87, Set, RGB_Yellow),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(22, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(41, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(59, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(75, Set, RGB_OrangeYellow),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_Orange),
+	Pixel_ModRGB(23, Set, RGB_Orange),
+	Pixel_ModRGB(42, Set, RGB_Orange),
+	Pixel_ModRGB(60, Set, RGB_Orange),
+	Pixel_ModRGB(76, Set, RGB_Orange),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_RedOrange),
+	Pixel_ModRGB(24, Set, RGB_RedOrange),
+	Pixel_ModRGB(43, Set, RGB_RedOrange),
+	Pixel_ModRGB(61, Set, RGB_RedOrange),
+	Pixel_ModRGB(77, Set, RGB_RedOrange),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_Red),
+	Pixel_ModRGB(25, Set, RGB_Red),
+	Pixel_ModRGB(44, Set, RGB_Red),
+	Pixel_ModRGB(62, Set, RGB_Red),
+	Pixel_ModRGB(78, Set, RGB_Red),
+	Pixel_ModRGB(88, Set, RGB_Red),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_HalfRed),
+	Pixel_ModRGB(26, Set, RGB_HalfRed),
+	Pixel_ModRGB(45, Set, RGB_HalfRed),
+	Pixel_ModRGB(63, Set, RGB_HalfRed),
+	Pixel_ModRGB(79, Set, RGB_HalfRed),
+	Pixel_ModRGB(89, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame12[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_IndigoViolet),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_Indigo),
+	Pixel_ModRGB(35, Set, RGB_Indigo),
+	Pixel_ModRGB(53, Set, RGB_Indigo),
+	Pixel_ModRGB(68, Set, RGB_Indigo),
+	Pixel_ModRGB(85, Set, RGB_Indigo),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(17, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(36, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(54, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(70, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(86, Set, RGB_BlueIndigo),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_Blue),
+	Pixel_ModRGB(37, Set, RGB_Blue),
+	Pixel_ModRGB(55, Set, RGB_Blue),
+	Pixel_ModRGB(71, Set, RGB_Blue),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_GreenBlue),
+	Pixel_ModRGB(19, Set, RGB_GreenBlue),
+	Pixel_ModRGB(38, Set, RGB_GreenBlue),
+	Pixel_ModRGB(56, Set, RGB_GreenBlue),
+	Pixel_ModRGB(72, Set, RGB_GreenBlue),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_Green),
+	Pixel_ModRGB(20, Set, RGB_Green),
+	Pixel_ModRGB(39, Set, RGB_Green),
+	Pixel_ModRGB(57, Set, RGB_Green),
+	Pixel_ModRGB(73, Set, RGB_Green),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_YellowGreen),
+	Pixel_ModRGB(21, Set, RGB_YellowGreen),
+	Pixel_ModRGB(40, Set, RGB_YellowGreen),
+	Pixel_ModRGB(58, Set, RGB_YellowGreen),
+	Pixel_ModRGB(74, Set, RGB_YellowGreen),
+	Pixel_ModRGB(87, Set, RGB_YellowGreen),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_Yellow),
+	Pixel_ModRGB(22, Set, RGB_Yellow),
+	Pixel_ModRGB(41, Set, RGB_Yellow),
+	Pixel_ModRGB(59, Set, RGB_Yellow),
+	Pixel_ModRGB(75, Set, RGB_Yellow),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(23, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(42, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(60, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(76, Set, RGB_OrangeYellow),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_Orange),
+	Pixel_ModRGB(24, Set, RGB_Orange),
+	Pixel_ModRGB(43, Set, RGB_Orange),
+	Pixel_ModRGB(61, Set, RGB_Orange),
+	Pixel_ModRGB(77, Set, RGB_Orange),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_RedOrange),
+	Pixel_ModRGB(25, Set, RGB_RedOrange),
+	Pixel_ModRGB(44, Set, RGB_RedOrange),
+	Pixel_ModRGB(62, Set, RGB_RedOrange),
+	Pixel_ModRGB(78, Set, RGB_RedOrange),
+	Pixel_ModRGB(88, Set, RGB_RedOrange),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_Red),
+	Pixel_ModRGB(26, Set, RGB_Red),
+	Pixel_ModRGB(45, Set, RGB_Red),
+	Pixel_ModRGB(63, Set, RGB_Red),
+	Pixel_ModRGB(79, Set, RGB_Red),
+	Pixel_ModRGB(89, Set, RGB_Red),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_HalfRed),
+	Pixel_ModRGB(27, Set, RGB_HalfRed),
+	Pixel_ModRGB(46, Set, RGB_HalfRed),
+	Pixel_ModRGB(64, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame13[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_Violet),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(35, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(53, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(68, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(85, Set, RGB_IndigoViolet),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_Indigo),
+	Pixel_ModRGB(17, Set, RGB_Indigo),
+	Pixel_ModRGB(36, Set, RGB_Indigo),
+	Pixel_ModRGB(54, Set, RGB_Indigo),
+	Pixel_ModRGB(70, Set, RGB_Indigo),
+	Pixel_ModRGB(86, Set, RGB_Indigo),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(37, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(55, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(71, Set, RGB_BlueIndigo),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_Blue),
+	Pixel_ModRGB(19, Set, RGB_Blue),
+	Pixel_ModRGB(38, Set, RGB_Blue),
+	Pixel_ModRGB(56, Set, RGB_Blue),
+	Pixel_ModRGB(72, Set, RGB_Blue),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_GreenBlue),
+	Pixel_ModRGB(20, Set, RGB_GreenBlue),
+	Pixel_ModRGB(39, Set, RGB_GreenBlue),
+	Pixel_ModRGB(57, Set, RGB_GreenBlue),
+	Pixel_ModRGB(73, Set, RGB_GreenBlue),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_Green),
+	Pixel_ModRGB(21, Set, RGB_Green),
+	Pixel_ModRGB(40, Set, RGB_Green),
+	Pixel_ModRGB(58, Set, RGB_Green),
+	Pixel_ModRGB(74, Set, RGB_Green),
+	Pixel_ModRGB(87, Set, RGB_Green),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_YellowGreen),
+	Pixel_ModRGB(22, Set, RGB_YellowGreen),
+	Pixel_ModRGB(41, Set, RGB_YellowGreen),
+	Pixel_ModRGB(59, Set, RGB_YellowGreen),
+	Pixel_ModRGB(75, Set, RGB_YellowGreen),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_Yellow),
+	Pixel_ModRGB(23, Set, RGB_Yellow),
+	Pixel_ModRGB(42, Set, RGB_Yellow),
+	Pixel_ModRGB(60, Set, RGB_Yellow),
+	Pixel_ModRGB(76, Set, RGB_Yellow),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(24, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(43, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(61, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(77, Set, RGB_OrangeYellow),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_Orange),
+	Pixel_ModRGB(25, Set, RGB_Orange),
+	Pixel_ModRGB(44, Set, RGB_Orange),
+	Pixel_ModRGB(62, Set, RGB_Orange),
+	Pixel_ModRGB(78, Set, RGB_Orange),
+	Pixel_ModRGB(88, Set, RGB_Orange),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_RedOrange),
+	Pixel_ModRGB(26, Set, RGB_RedOrange),
+	Pixel_ModRGB(45, Set, RGB_RedOrange),
+	Pixel_ModRGB(63, Set, RGB_RedOrange),
+	Pixel_ModRGB(79, Set, RGB_RedOrange),
+	Pixel_ModRGB(89, Set, RGB_RedOrange),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_Red),
+	Pixel_ModRGB(27, Set, RGB_Red),
+	Pixel_ModRGB(46, Set, RGB_Red),
+	Pixel_ModRGB(64, Set, RGB_Red),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_HalfRed),
+	Pixel_ModRGB(28, Set, RGB_HalfRed),
+	Pixel_ModRGB(47, Set, RGB_HalfRed),
+	Pixel_ModRGB(90, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame14[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_HalfViolet),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_Violet),
+	Pixel_ModRGB(35, Set, RGB_Violet),
+	Pixel_ModRGB(53, Set, RGB_Violet),
+	Pixel_ModRGB(68, Set, RGB_Violet),
+	Pixel_ModRGB(85, Set, RGB_Violet),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(17, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(36, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(54, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(70, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(86, Set, RGB_IndigoViolet),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_Indigo),
+	Pixel_ModRGB(37, Set, RGB_Indigo),
+	Pixel_ModRGB(55, Set, RGB_Indigo),
+	Pixel_ModRGB(71, Set, RGB_Indigo),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(19, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(38, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(56, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(72, Set, RGB_BlueIndigo),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_Blue),
+	Pixel_ModRGB(20, Set, RGB_Blue),
+	Pixel_ModRGB(39, Set, RGB_Blue),
+	Pixel_ModRGB(57, Set, RGB_Blue),
+	Pixel_ModRGB(73, Set, RGB_Blue),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_GreenBlue),
+	Pixel_ModRGB(21, Set, RGB_GreenBlue),
+	Pixel_ModRGB(40, Set, RGB_GreenBlue),
+	Pixel_ModRGB(58, Set, RGB_GreenBlue),
+	Pixel_ModRGB(74, Set, RGB_GreenBlue),
+	Pixel_ModRGB(87, Set, RGB_GreenBlue),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_Green),
+	Pixel_ModRGB(22, Set, RGB_Green),
+	Pixel_ModRGB(41, Set, RGB_Green),
+	Pixel_ModRGB(59, Set, RGB_Green),
+	Pixel_ModRGB(75, Set, RGB_Green),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_YellowGreen),
+	Pixel_ModRGB(23, Set, RGB_YellowGreen),
+	Pixel_ModRGB(42, Set, RGB_YellowGreen),
+	Pixel_ModRGB(60, Set, RGB_YellowGreen),
+	Pixel_ModRGB(76, Set, RGB_YellowGreen),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_Yellow),
+	Pixel_ModRGB(24, Set, RGB_Yellow),
+	Pixel_ModRGB(43, Set, RGB_Yellow),
+	Pixel_ModRGB(61, Set, RGB_Yellow),
+	Pixel_ModRGB(77, Set, RGB_Yellow),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(25, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(44, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(62, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(78, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(88, Set, RGB_OrangeYellow),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_Orange),
+	Pixel_ModRGB(26, Set, RGB_Orange),
+	Pixel_ModRGB(45, Set, RGB_Orange),
+	Pixel_ModRGB(63, Set, RGB_Orange),
+	Pixel_ModRGB(79, Set, RGB_Orange),
+	Pixel_ModRGB(89, Set, RGB_Orange),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_RedOrange),
+	Pixel_ModRGB(27, Set, RGB_RedOrange),
+	Pixel_ModRGB(46, Set, RGB_RedOrange),
+	Pixel_ModRGB(64, Set, RGB_RedOrange),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_Red),
+	Pixel_ModRGB(28, Set, RGB_Red),
+	Pixel_ModRGB(47, Set, RGB_Red),
+	Pixel_ModRGB(90, Set, RGB_Red),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_HalfRed),
+	Pixel_ModRGB(30, Set, RGB_HalfRed),
+	Pixel_ModRGB(66, Set, RGB_HalfRed),
+	Pixel_ModRGB(81, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame15[] = {
+	// Set 1
+	Pixel_ModRGB(84, Set, RGB_Black),
+
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_HalfViolet),
+	Pixel_ModRGB(35, Set, RGB_HalfViolet),
+	Pixel_ModRGB(53, Set, RGB_HalfViolet),
+	Pixel_ModRGB(68, Set, RGB_HalfViolet),
+	Pixel_ModRGB(85, Set, RGB_HalfViolet),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_Violet),
+	Pixel_ModRGB(17, Set, RGB_Violet),
+	Pixel_ModRGB(36, Set, RGB_Violet),
+	Pixel_ModRGB(54, Set, RGB_Violet),
+	Pixel_ModRGB(70, Set, RGB_Violet),
+	Pixel_ModRGB(86, Set, RGB_Violet),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(37, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(55, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(71, Set, RGB_IndigoViolet),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_Indigo),
+	Pixel_ModRGB(19, Set, RGB_Indigo),
+	Pixel_ModRGB(38, Set, RGB_Indigo),
+	Pixel_ModRGB(56, Set, RGB_Indigo),
+	Pixel_ModRGB(72, Set, RGB_Indigo),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(20, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(39, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(57, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(73, Set, RGB_BlueIndigo),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_Blue),
+	Pixel_ModRGB(21, Set, RGB_Blue),
+	Pixel_ModRGB(40, Set, RGB_Blue),
+	Pixel_ModRGB(58, Set, RGB_Blue),
+	Pixel_ModRGB(74, Set, RGB_Blue),
+	Pixel_ModRGB(87, Set, RGB_Blue),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_GreenBlue),
+	Pixel_ModRGB(22, Set, RGB_GreenBlue),
+	Pixel_ModRGB(41, Set, RGB_GreenBlue),
+	Pixel_ModRGB(59, Set, RGB_GreenBlue),
+	Pixel_ModRGB(75, Set, RGB_GreenBlue),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_Green),
+	Pixel_ModRGB(23, Set, RGB_Green),
+	Pixel_ModRGB(42, Set, RGB_Green),
+	Pixel_ModRGB(60, Set, RGB_Green),
+	Pixel_ModRGB(76, Set, RGB_Green),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_YellowGreen),
+	Pixel_ModRGB(24, Set, RGB_YellowGreen),
+	Pixel_ModRGB(43, Set, RGB_YellowGreen),
+	Pixel_ModRGB(61, Set, RGB_YellowGreen),
+	Pixel_ModRGB(77, Set, RGB_YellowGreen),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_Yellow),
+	Pixel_ModRGB(25, Set, RGB_Yellow),
+	Pixel_ModRGB(44, Set, RGB_Yellow),
+	Pixel_ModRGB(62, Set, RGB_Yellow),
+	Pixel_ModRGB(78, Set, RGB_Yellow),
+	Pixel_ModRGB(88, Set, RGB_Yellow),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(26, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(45, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(63, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(79, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(89, Set, RGB_OrangeYellow),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_Orange),
+	Pixel_ModRGB(27, Set, RGB_Orange),
+	Pixel_ModRGB(46, Set, RGB_Orange),
+	Pixel_ModRGB(64, Set, RGB_Orange),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_RedOrange),
+	Pixel_ModRGB(28, Set, RGB_RedOrange),
+	Pixel_ModRGB(47, Set, RGB_RedOrange),
+	Pixel_ModRGB(90, Set, RGB_RedOrange),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_Red),
+	Pixel_ModRGB(30, Set, RGB_Red),
+	Pixel_ModRGB(66, Set, RGB_Red),
+	Pixel_ModRGB(81, Set, RGB_Red),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_HalfRed),
+	Pixel_ModRGB(48, Set, RGB_HalfRed),
+	Pixel_ModRGB(91, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame16[] = {
+	// Set 2
+	Pixel_ModRGB(16, Set, RGB_Black),
+	Pixel_ModRGB(35, Set, RGB_Black),
+	Pixel_ModRGB(53, Set, RGB_Black),
+	Pixel_ModRGB(68, Set, RGB_Black),
+	Pixel_ModRGB(85, Set, RGB_Black),
+
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_HalfViolet),
+	Pixel_ModRGB(17, Set, RGB_HalfViolet),
+	Pixel_ModRGB(36, Set, RGB_HalfViolet),
+	Pixel_ModRGB(54, Set, RGB_HalfViolet),
+	Pixel_ModRGB(70, Set, RGB_HalfViolet),
+	Pixel_ModRGB(86, Set, RGB_HalfViolet),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_Violet),
+	Pixel_ModRGB(37, Set, RGB_Violet),
+	Pixel_ModRGB(55, Set, RGB_Violet),
+	Pixel_ModRGB(71, Set, RGB_Violet),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(19, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(38, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(56, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(72, Set, RGB_IndigoViolet),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_Indigo),
+	Pixel_ModRGB(20, Set, RGB_Indigo),
+	Pixel_ModRGB(39, Set, RGB_Indigo),
+	Pixel_ModRGB(57, Set, RGB_Indigo),
+	Pixel_ModRGB(73, Set, RGB_Indigo),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(21, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(40, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(58, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(74, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(87, Set, RGB_BlueIndigo),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_Blue),
+	Pixel_ModRGB(22, Set, RGB_Blue),
+	Pixel_ModRGB(41, Set, RGB_Blue),
+	Pixel_ModRGB(59, Set, RGB_Blue),
+	Pixel_ModRGB(75, Set, RGB_Blue),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_GreenBlue),
+	Pixel_ModRGB(23, Set, RGB_GreenBlue),
+	Pixel_ModRGB(42, Set, RGB_GreenBlue),
+	Pixel_ModRGB(60, Set, RGB_GreenBlue),
+	Pixel_ModRGB(76, Set, RGB_GreenBlue),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_Green),
+	Pixel_ModRGB(24, Set, RGB_Green),
+	Pixel_ModRGB(43, Set, RGB_Green),
+	Pixel_ModRGB(61, Set, RGB_Green),
+	Pixel_ModRGB(77, Set, RGB_Green),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_YellowGreen),
+	Pixel_ModRGB(25, Set, RGB_YellowGreen),
+	Pixel_ModRGB(44, Set, RGB_YellowGreen),
+	Pixel_ModRGB(62, Set, RGB_YellowGreen),
+	Pixel_ModRGB(78, Set, RGB_YellowGreen),
+	Pixel_ModRGB(88, Set, RGB_YellowGreen),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_Yellow),
+	Pixel_ModRGB(26, Set, RGB_Yellow),
+	Pixel_ModRGB(45, Set, RGB_Yellow),
+	Pixel_ModRGB(63, Set, RGB_Yellow),
+	Pixel_ModRGB(79, Set, RGB_Yellow),
+	Pixel_ModRGB(89, Set, RGB_Yellow),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(27, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(46, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(64, Set, RGB_OrangeYellow),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_Orange),
+	Pixel_ModRGB(28, Set, RGB_Orange),
+	Pixel_ModRGB(47, Set, RGB_Orange),
+	Pixel_ModRGB(90, Set, RGB_Orange),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_RedOrange),
+	Pixel_ModRGB(30, Set, RGB_RedOrange),
+	Pixel_ModRGB(66, Set, RGB_RedOrange),
+	Pixel_ModRGB(81, Set, RGB_RedOrange),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_Red),
+	Pixel_ModRGB(48, Set, RGB_Red),
+	Pixel_ModRGB(91, Set, RGB_Red),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_HalfRed),
+	Pixel_ModRGB(32, Set, RGB_HalfRed),
+	Pixel_ModRGB(50, Set, RGB_HalfRed),
+	Pixel_ModRGB(92, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame17[] = {
+	// Set 3
+	Pixel_ModRGB(0, Set, RGB_Black),
+	Pixel_ModRGB(17, Set, RGB_Black),
+	Pixel_ModRGB(36, Set, RGB_Black),
+	Pixel_ModRGB(54, Set, RGB_Black),
+	Pixel_ModRGB(70, Set, RGB_Black),
+	Pixel_ModRGB(86, Set, RGB_Black),
+
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_HalfViolet),
+	Pixel_ModRGB(37, Set, RGB_HalfViolet),
+	Pixel_ModRGB(55, Set, RGB_HalfViolet),
+	Pixel_ModRGB(71, Set, RGB_HalfViolet),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_Violet),
+	Pixel_ModRGB(19, Set, RGB_Violet),
+	Pixel_ModRGB(38, Set, RGB_Violet),
+	Pixel_ModRGB(56, Set, RGB_Violet),
+	Pixel_ModRGB(72, Set, RGB_Violet),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(20, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(39, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(57, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(73, Set, RGB_IndigoViolet),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_Indigo),
+	Pixel_ModRGB(21, Set, RGB_Indigo),
+	Pixel_ModRGB(40, Set, RGB_Indigo),
+	Pixel_ModRGB(58, Set, RGB_Indigo),
+	Pixel_ModRGB(74, Set, RGB_Indigo),
+	Pixel_ModRGB(87, Set, RGB_Indigo),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(22, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(41, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(59, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(75, Set, RGB_BlueIndigo),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_Blue),
+	Pixel_ModRGB(23, Set, RGB_Blue),
+	Pixel_ModRGB(42, Set, RGB_Blue),
+	Pixel_ModRGB(60, Set, RGB_Blue),
+	Pixel_ModRGB(76, Set, RGB_Blue),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_GreenBlue),
+	Pixel_ModRGB(24, Set, RGB_GreenBlue),
+	Pixel_ModRGB(43, Set, RGB_GreenBlue),
+	Pixel_ModRGB(61, Set, RGB_GreenBlue),
+	Pixel_ModRGB(77, Set, RGB_GreenBlue),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_Green),
+	Pixel_ModRGB(25, Set, RGB_Green),
+	Pixel_ModRGB(44, Set, RGB_Green),
+	Pixel_ModRGB(62, Set, RGB_Green),
+	Pixel_ModRGB(78, Set, RGB_Green),
+	Pixel_ModRGB(88, Set, RGB_Green),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_YellowGreen),
+	Pixel_ModRGB(26, Set, RGB_YellowGreen),
+	Pixel_ModRGB(45, Set, RGB_YellowGreen),
+	Pixel_ModRGB(63, Set, RGB_YellowGreen),
+	Pixel_ModRGB(79, Set, RGB_YellowGreen),
+	Pixel_ModRGB(89, Set, RGB_YellowGreen),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_Yellow),
+	Pixel_ModRGB(27, Set, RGB_Yellow),
+	Pixel_ModRGB(46, Set, RGB_Yellow),
+	Pixel_ModRGB(64, Set, RGB_Yellow),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(28, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(47, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(90, Set, RGB_OrangeYellow),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_Orange),
+	Pixel_ModRGB(30, Set, RGB_Orange),
+	Pixel_ModRGB(66, Set, RGB_Orange),
+	Pixel_ModRGB(81, Set, RGB_Orange),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_RedOrange),
+	Pixel_ModRGB(48, Set, RGB_RedOrange),
+	Pixel_ModRGB(91, Set, RGB_RedOrange),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_Red),
+	Pixel_ModRGB(32, Set, RGB_Red),
+	Pixel_ModRGB(50, Set, RGB_Red),
+	Pixel_ModRGB(92, Set, RGB_Red),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_HalfRed),
+	Pixel_ModRGB(33, Set, RGB_HalfRed),
+	Pixel_ModRGB(51, Set, RGB_HalfRed),
+	Pixel_ModRGB(83, Set, RGB_HalfRed),
+	Pixel_ModRGB(93, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame18[] = {
+	// Set 4
+	Pixel_ModRGB(18, Set, RGB_Black),
+	Pixel_ModRGB(37, Set, RGB_Black),
+	Pixel_ModRGB(55, Set, RGB_Black),
+	Pixel_ModRGB(71, Set, RGB_Black),
+
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_HalfViolet),
+	Pixel_ModRGB(19, Set, RGB_HalfViolet),
+	Pixel_ModRGB(38, Set, RGB_HalfViolet),
+	Pixel_ModRGB(56, Set, RGB_HalfViolet),
+	Pixel_ModRGB(72, Set, RGB_HalfViolet),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_Violet),
+	Pixel_ModRGB(20, Set, RGB_Violet),
+	Pixel_ModRGB(39, Set, RGB_Violet),
+	Pixel_ModRGB(57, Set, RGB_Violet),
+	Pixel_ModRGB(73, Set, RGB_Violet),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(21, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(40, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(58, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(74, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(87, Set, RGB_IndigoViolet),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_Indigo),
+	Pixel_ModRGB(22, Set, RGB_Indigo),
+	Pixel_ModRGB(41, Set, RGB_Indigo),
+	Pixel_ModRGB(59, Set, RGB_Indigo),
+	Pixel_ModRGB(75, Set, RGB_Indigo),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(23, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(42, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(60, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(76, Set, RGB_BlueIndigo),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_Blue),
+	Pixel_ModRGB(24, Set, RGB_Blue),
+	Pixel_ModRGB(43, Set, RGB_Blue),
+	Pixel_ModRGB(61, Set, RGB_Blue),
+	Pixel_ModRGB(77, Set, RGB_Blue),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_GreenBlue),
+	Pixel_ModRGB(25, Set, RGB_GreenBlue),
+	Pixel_ModRGB(44, Set, RGB_GreenBlue),
+	Pixel_ModRGB(62, Set, RGB_GreenBlue),
+	Pixel_ModRGB(78, Set, RGB_GreenBlue),
+	Pixel_ModRGB(88, Set, RGB_GreenBlue),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_Green),
+	Pixel_ModRGB(26, Set, RGB_Green),
+	Pixel_ModRGB(45, Set, RGB_Green),
+	Pixel_ModRGB(63, Set, RGB_Green),
+	Pixel_ModRGB(79, Set, RGB_Green),
+	Pixel_ModRGB(89, Set, RGB_Green),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_YellowGreen),
+	Pixel_ModRGB(27, Set, RGB_YellowGreen),
+	Pixel_ModRGB(46, Set, RGB_YellowGreen),
+	Pixel_ModRGB(64, Set, RGB_YellowGreen),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_Yellow),
+	Pixel_ModRGB(28, Set, RGB_Yellow),
+	Pixel_ModRGB(47, Set, RGB_Yellow),
+	Pixel_ModRGB(90, Set, RGB_Yellow),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(30, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(66, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(81, Set, RGB_OrangeYellow),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_Orange),
+	Pixel_ModRGB(48, Set, RGB_Orange),
+	Pixel_ModRGB(91, Set, RGB_Orange),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_RedOrange),
+	Pixel_ModRGB(32, Set, RGB_RedOrange),
+	Pixel_ModRGB(50, Set, RGB_RedOrange),
+	Pixel_ModRGB(92, Set, RGB_RedOrange),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_Red),
+	Pixel_ModRGB(33, Set, RGB_Red),
+	Pixel_ModRGB(51, Set, RGB_Red),
+	Pixel_ModRGB(83, Set, RGB_Red),
+	Pixel_ModRGB(93, Set, RGB_Red),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_HalfRed),
+	Pixel_ModRGB(34, Set, RGB_HalfRed),
+	Pixel_ModRGB(52, Set, RGB_HalfRed),
+	Pixel_ModRGB(94, Set, RGB_HalfRed),
+};
+
+const uint8_t rainbow_frame19[] = {
+	// Set 5
+	Pixel_ModRGB(1, Set, RGB_Black),
+	Pixel_ModRGB(19, Set, RGB_Black),
+	Pixel_ModRGB(38, Set, RGB_Black),
+	Pixel_ModRGB(56, Set, RGB_Black),
+	Pixel_ModRGB(72, Set, RGB_Black),
+
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_HalfViolet),
+	Pixel_ModRGB(20, Set, RGB_HalfViolet),
+	Pixel_ModRGB(39, Set, RGB_HalfViolet),
+	Pixel_ModRGB(57, Set, RGB_HalfViolet),
+	Pixel_ModRGB(73, Set, RGB_HalfViolet),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_Violet),
+	Pixel_ModRGB(21, Set, RGB_Violet),
+	Pixel_ModRGB(40, Set, RGB_Violet),
+	Pixel_ModRGB(58, Set, RGB_Violet),
+	Pixel_ModRGB(74, Set, RGB_Violet),
+	Pixel_ModRGB(87, Set, RGB_Violet),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(22, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(41, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(59, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(75, Set, RGB_IndigoViolet),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_Indigo),
+	Pixel_ModRGB(23, Set, RGB_Indigo),
+	Pixel_ModRGB(42, Set, RGB_Indigo),
+	Pixel_ModRGB(60, Set, RGB_Indigo),
+	Pixel_ModRGB(76, Set, RGB_Indigo),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(24, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(43, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(61, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(77, Set, RGB_BlueIndigo),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_Blue),
+	Pixel_ModRGB(25, Set, RGB_Blue),
+	Pixel_ModRGB(44, Set, RGB_Blue),
+	Pixel_ModRGB(62, Set, RGB_Blue),
+	Pixel_ModRGB(78, Set, RGB_Blue),
+	Pixel_ModRGB(88, Set, RGB_Blue),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_GreenBlue),
+	Pixel_ModRGB(26, Set, RGB_GreenBlue),
+	Pixel_ModRGB(45, Set, RGB_GreenBlue),
+	Pixel_ModRGB(63, Set, RGB_GreenBlue),
+	Pixel_ModRGB(79, Set, RGB_GreenBlue),
+	Pixel_ModRGB(89, Set, RGB_GreenBlue),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_Green),
+	Pixel_ModRGB(27, Set, RGB_Green),
+	Pixel_ModRGB(46, Set, RGB_Green),
+	Pixel_ModRGB(64, Set, RGB_Green),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_YellowGreen),
+	Pixel_ModRGB(28, Set, RGB_YellowGreen),
+	Pixel_ModRGB(47, Set, RGB_YellowGreen),
+	Pixel_ModRGB(90, Set, RGB_YellowGreen),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_Yellow),
+	Pixel_ModRGB(30, Set, RGB_Yellow),
+	Pixel_ModRGB(66, Set, RGB_Yellow),
+	Pixel_ModRGB(81, Set, RGB_Yellow),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(48, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(91, Set, RGB_OrangeYellow),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_Orange),
+	Pixel_ModRGB(32, Set, RGB_Orange),
+	Pixel_ModRGB(50, Set, RGB_Orange),
+	Pixel_ModRGB(92, Set, RGB_Orange),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_RedOrange),
+	Pixel_ModRGB(33, Set, RGB_RedOrange),
+	Pixel_ModRGB(51, Set, RGB_RedOrange),
+	Pixel_ModRGB(83, Set, RGB_RedOrange),
+	Pixel_ModRGB(93, Set, RGB_RedOrange),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_Red),
+	Pixel_ModRGB(34, Set, RGB_Red),
+	Pixel_ModRGB(52, Set, RGB_Red),
+	Pixel_ModRGB(94, Set, RGB_Red),
+};
+
+const uint8_t rainbow_frame20[] = {
+	// Set 6
+	Pixel_ModRGB(2, Set, RGB_Black),
+	Pixel_ModRGB(20, Set, RGB_Black),
+	Pixel_ModRGB(39, Set, RGB_Black),
+	Pixel_ModRGB(57, Set, RGB_Black),
+	Pixel_ModRGB(73, Set, RGB_Black),
+
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_HalfViolet),
+	Pixel_ModRGB(21, Set, RGB_HalfViolet),
+	Pixel_ModRGB(40, Set, RGB_HalfViolet),
+	Pixel_ModRGB(58, Set, RGB_HalfViolet),
+	Pixel_ModRGB(74, Set, RGB_HalfViolet),
+	Pixel_ModRGB(87, Set, RGB_HalfViolet),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_Violet),
+	Pixel_ModRGB(22, Set, RGB_Violet),
+	Pixel_ModRGB(41, Set, RGB_Violet),
+	Pixel_ModRGB(59, Set, RGB_Violet),
+	Pixel_ModRGB(75, Set, RGB_Violet),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(23, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(42, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(60, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(76, Set, RGB_IndigoViolet),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_Indigo),
+	Pixel_ModRGB(24, Set, RGB_Indigo),
+	Pixel_ModRGB(43, Set, RGB_Indigo),
+	Pixel_ModRGB(61, Set, RGB_Indigo),
+	Pixel_ModRGB(77, Set, RGB_Indigo),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(25, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(44, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(62, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(78, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(88, Set, RGB_BlueIndigo),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_Blue),
+	Pixel_ModRGB(26, Set, RGB_Blue),
+	Pixel_ModRGB(45, Set, RGB_Blue),
+	Pixel_ModRGB(63, Set, RGB_Blue),
+	Pixel_ModRGB(79, Set, RGB_Blue),
+	Pixel_ModRGB(89, Set, RGB_Blue),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_GreenBlue),
+	Pixel_ModRGB(27, Set, RGB_GreenBlue),
+	Pixel_ModRGB(46, Set, RGB_GreenBlue),
+	Pixel_ModRGB(64, Set, RGB_GreenBlue),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_Green),
+	Pixel_ModRGB(28, Set, RGB_Green),
+	Pixel_ModRGB(47, Set, RGB_Green),
+	Pixel_ModRGB(90, Set, RGB_Green),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_YellowGreen),
+	Pixel_ModRGB(30, Set, RGB_YellowGreen),
+	Pixel_ModRGB(66, Set, RGB_YellowGreen),
+	Pixel_ModRGB(81, Set, RGB_YellowGreen),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_Yellow),
+	Pixel_ModRGB(48, Set, RGB_Yellow),
+	Pixel_ModRGB(91, Set, RGB_Yellow),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(32, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(50, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(92, Set, RGB_OrangeYellow),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_Orange),
+	Pixel_ModRGB(33, Set, RGB_Orange),
+	Pixel_ModRGB(51, Set, RGB_Orange),
+	Pixel_ModRGB(83, Set, RGB_Orange),
+	Pixel_ModRGB(93, Set, RGB_Orange),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_RedOrange),
+	Pixel_ModRGB(34, Set, RGB_RedOrange),
+	Pixel_ModRGB(52, Set, RGB_RedOrange),
+	Pixel_ModRGB(94, Set, RGB_RedOrange),
+};
+
+const uint8_t rainbow_frame21[] = {
+	// Set 7
+	Pixel_ModRGB(3, Set, RGB_Black),
+	Pixel_ModRGB(21, Set, RGB_Black),
+	Pixel_ModRGB(40, Set, RGB_Black),
+	Pixel_ModRGB(58, Set, RGB_Black),
+	Pixel_ModRGB(74, Set, RGB_Black),
+	Pixel_ModRGB(87, Set, RGB_Black),
+
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_HalfViolet),
+	Pixel_ModRGB(22, Set, RGB_HalfViolet),
+	Pixel_ModRGB(41, Set, RGB_HalfViolet),
+	Pixel_ModRGB(59, Set, RGB_HalfViolet),
+	Pixel_ModRGB(75, Set, RGB_HalfViolet),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_Violet),
+	Pixel_ModRGB(23, Set, RGB_Violet),
+	Pixel_ModRGB(42, Set, RGB_Violet),
+	Pixel_ModRGB(60, Set, RGB_Violet),
+	Pixel_ModRGB(76, Set, RGB_Violet),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(24, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(43, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(61, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(77, Set, RGB_IndigoViolet),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_Indigo),
+	Pixel_ModRGB(25, Set, RGB_Indigo),
+	Pixel_ModRGB(44, Set, RGB_Indigo),
+	Pixel_ModRGB(62, Set, RGB_Indigo),
+	Pixel_ModRGB(78, Set, RGB_Indigo),
+	Pixel_ModRGB(88, Set, RGB_Indigo),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(26, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(45, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(63, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(79, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(89, Set, RGB_BlueIndigo),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_Blue),
+	Pixel_ModRGB(27, Set, RGB_Blue),
+	Pixel_ModRGB(46, Set, RGB_Blue),
+	Pixel_ModRGB(64, Set, RGB_Blue),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_GreenBlue),
+	Pixel_ModRGB(28, Set, RGB_GreenBlue),
+	Pixel_ModRGB(47, Set, RGB_GreenBlue),
+	Pixel_ModRGB(90, Set, RGB_GreenBlue),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_Green),
+	Pixel_ModRGB(30, Set, RGB_Green),
+	Pixel_ModRGB(66, Set, RGB_Green),
+	Pixel_ModRGB(81, Set, RGB_Green),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_YellowGreen),
+	Pixel_ModRGB(48, Set, RGB_YellowGreen),
+	Pixel_ModRGB(91, Set, RGB_YellowGreen),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_Yellow),
+	Pixel_ModRGB(32, Set, RGB_Yellow),
+	Pixel_ModRGB(50, Set, RGB_Yellow),
+	Pixel_ModRGB(92, Set, RGB_Yellow),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(33, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(51, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(83, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(93, Set, RGB_OrangeYellow),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_Orange),
+	Pixel_ModRGB(34, Set, RGB_Orange),
+	Pixel_ModRGB(52, Set, RGB_Orange),
+	Pixel_ModRGB(94, Set, RGB_Orange),
+};
+
+const uint8_t rainbow_frame22[] = {
+	// Set 8
+	Pixel_ModRGB(4, Set, RGB_Black),
+	Pixel_ModRGB(22, Set, RGB_Black),
+	Pixel_ModRGB(41, Set, RGB_Black),
+	Pixel_ModRGB(59, Set, RGB_Black),
+	Pixel_ModRGB(75, Set, RGB_Black),
+
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_HalfViolet),
+	Pixel_ModRGB(23, Set, RGB_HalfViolet),
+	Pixel_ModRGB(42, Set, RGB_HalfViolet),
+	Pixel_ModRGB(60, Set, RGB_HalfViolet),
+	Pixel_ModRGB(76, Set, RGB_HalfViolet),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_Violet),
+	Pixel_ModRGB(24, Set, RGB_Violet),
+	Pixel_ModRGB(43, Set, RGB_Violet),
+	Pixel_ModRGB(61, Set, RGB_Violet),
+	Pixel_ModRGB(77, Set, RGB_Violet),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(25, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(44, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(62, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(78, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(88, Set, RGB_IndigoViolet),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_Indigo),
+	Pixel_ModRGB(26, Set, RGB_Indigo),
+	Pixel_ModRGB(45, Set, RGB_Indigo),
+	Pixel_ModRGB(63, Set, RGB_Indigo),
+	Pixel_ModRGB(79, Set, RGB_Indigo),
+	Pixel_ModRGB(89, Set, RGB_Indigo),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(27, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(46, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(64, Set, RGB_BlueIndigo),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_Blue),
+	Pixel_ModRGB(28, Set, RGB_Blue),
+	Pixel_ModRGB(47, Set, RGB_Blue),
+	Pixel_ModRGB(90, Set, RGB_Blue),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_GreenBlue),
+	Pixel_ModRGB(30, Set, RGB_GreenBlue),
+	Pixel_ModRGB(66, Set, RGB_GreenBlue),
+	Pixel_ModRGB(81, Set, RGB_GreenBlue),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_Green),
+	Pixel_ModRGB(48, Set, RGB_Green),
+	Pixel_ModRGB(91, Set, RGB_Green),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_YellowGreen),
+	Pixel_ModRGB(32, Set, RGB_YellowGreen),
+	Pixel_ModRGB(50, Set, RGB_YellowGreen),
+	Pixel_ModRGB(92, Set, RGB_YellowGreen),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_Yellow),
+	Pixel_ModRGB(33, Set, RGB_Yellow),
+	Pixel_ModRGB(51, Set, RGB_Yellow),
+	Pixel_ModRGB(83, Set, RGB_Yellow),
+	Pixel_ModRGB(93, Set, RGB_Yellow),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(34, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(52, Set, RGB_OrangeYellow),
+	Pixel_ModRGB(94, Set, RGB_OrangeYellow),
+};
+
+const uint8_t rainbow_frame23[] = {
+	// Set 9
+	Pixel_ModRGB(5, Set, RGB_Black),
+	Pixel_ModRGB(23, Set, RGB_Black),
+	Pixel_ModRGB(42, Set, RGB_Black),
+	Pixel_ModRGB(60, Set, RGB_Black),
+	Pixel_ModRGB(76, Set, RGB_Black),
+
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_HalfViolet),
+	Pixel_ModRGB(24, Set, RGB_HalfViolet),
+	Pixel_ModRGB(43, Set, RGB_HalfViolet),
+	Pixel_ModRGB(61, Set, RGB_HalfViolet),
+	Pixel_ModRGB(77, Set, RGB_HalfViolet),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_Violet),
+	Pixel_ModRGB(25, Set, RGB_Violet),
+	Pixel_ModRGB(44, Set, RGB_Violet),
+	Pixel_ModRGB(62, Set, RGB_Violet),
+	Pixel_ModRGB(78, Set, RGB_Violet),
+	Pixel_ModRGB(88, Set, RGB_Violet),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(26, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(45, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(63, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(79, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(89, Set, RGB_IndigoViolet),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_Indigo),
+	Pixel_ModRGB(27, Set, RGB_Indigo),
+	Pixel_ModRGB(46, Set, RGB_Indigo),
+	Pixel_ModRGB(64, Set, RGB_Indigo),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(28, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(47, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(90, Set, RGB_BlueIndigo),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_Blue),
+	Pixel_ModRGB(30, Set, RGB_Blue),
+	Pixel_ModRGB(66, Set, RGB_Blue),
+	Pixel_ModRGB(81, Set, RGB_Blue),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_GreenBlue),
+	Pixel_ModRGB(48, Set, RGB_GreenBlue),
+	Pixel_ModRGB(91, Set, RGB_GreenBlue),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_Green),
+	Pixel_ModRGB(32, Set, RGB_Green),
+	Pixel_ModRGB(50, Set, RGB_Green),
+	Pixel_ModRGB(92, Set, RGB_Green),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_YellowGreen),
+	Pixel_ModRGB(33, Set, RGB_YellowGreen),
+	Pixel_ModRGB(51, Set, RGB_YellowGreen),
+	Pixel_ModRGB(83, Set, RGB_YellowGreen),
+	Pixel_ModRGB(93, Set, RGB_YellowGreen),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_Yellow),
+	Pixel_ModRGB(34, Set, RGB_Yellow),
+	Pixel_ModRGB(52, Set, RGB_Yellow),
+	Pixel_ModRGB(94, Set, RGB_Yellow),
+};
+
+const uint8_t rainbow_frame24[] = {
+	// Set 10
+	Pixel_ModRGB(6, Set, RGB_Black),
+	Pixel_ModRGB(24, Set, RGB_Black),
+	Pixel_ModRGB(43, Set, RGB_Black),
+	Pixel_ModRGB(61, Set, RGB_Black),
+	Pixel_ModRGB(77, Set, RGB_Black),
+
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_HalfViolet),
+	Pixel_ModRGB(25, Set, RGB_HalfViolet),
+	Pixel_ModRGB(44, Set, RGB_HalfViolet),
+	Pixel_ModRGB(62, Set, RGB_HalfViolet),
+	Pixel_ModRGB(78, Set, RGB_HalfViolet),
+	Pixel_ModRGB(88, Set, RGB_HalfViolet),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_Violet),
+	Pixel_ModRGB(26, Set, RGB_Violet),
+	Pixel_ModRGB(45, Set, RGB_Violet),
+	Pixel_ModRGB(63, Set, RGB_Violet),
+	Pixel_ModRGB(79, Set, RGB_Violet),
+	Pixel_ModRGB(89, Set, RGB_Violet),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(27, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(46, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(64, Set, RGB_IndigoViolet),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_Indigo),
+	Pixel_ModRGB(28, Set, RGB_Indigo),
+	Pixel_ModRGB(47, Set, RGB_Indigo),
+	Pixel_ModRGB(90, Set, RGB_Indigo),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(30, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(66, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(81, Set, RGB_BlueIndigo),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_Blue),
+	Pixel_ModRGB(48, Set, RGB_Blue),
+	Pixel_ModRGB(91, Set, RGB_Blue),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_GreenBlue),
+	Pixel_ModRGB(32, Set, RGB_GreenBlue),
+	Pixel_ModRGB(50, Set, RGB_GreenBlue),
+	Pixel_ModRGB(92, Set, RGB_GreenBlue),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_Green),
+	Pixel_ModRGB(33, Set, RGB_Green),
+	Pixel_ModRGB(51, Set, RGB_Green),
+	Pixel_ModRGB(83, Set, RGB_Green),
+	Pixel_ModRGB(93, Set, RGB_Green),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_YellowGreen),
+	Pixel_ModRGB(34, Set, RGB_YellowGreen),
+	Pixel_ModRGB(52, Set, RGB_YellowGreen),
+	Pixel_ModRGB(94, Set, RGB_YellowGreen),
+};
+
+const uint8_t rainbow_frame25[] = {
+	// Set 11
+	Pixel_ModRGB(7, Set, RGB_Black),
+	Pixel_ModRGB(25, Set, RGB_Black),
+	Pixel_ModRGB(44, Set, RGB_Black),
+	Pixel_ModRGB(62, Set, RGB_Black),
+	Pixel_ModRGB(78, Set, RGB_Black),
+	Pixel_ModRGB(88, Set, RGB_Black),
+
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_HalfViolet),
+	Pixel_ModRGB(26, Set, RGB_HalfViolet),
+	Pixel_ModRGB(45, Set, RGB_HalfViolet),
+	Pixel_ModRGB(63, Set, RGB_HalfViolet),
+	Pixel_ModRGB(79, Set, RGB_HalfViolet),
+	Pixel_ModRGB(89, Set, RGB_HalfViolet),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_Violet),
+	Pixel_ModRGB(27, Set, RGB_Violet),
+	Pixel_ModRGB(46, Set, RGB_Violet),
+	Pixel_ModRGB(64, Set, RGB_Violet),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(28, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(47, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(90, Set, RGB_IndigoViolet),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_Indigo),
+	Pixel_ModRGB(30, Set, RGB_Indigo),
+	Pixel_ModRGB(66, Set, RGB_Indigo),
+	Pixel_ModRGB(81, Set, RGB_Indigo),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(48, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(91, Set, RGB_BlueIndigo),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_Blue),
+	Pixel_ModRGB(32, Set, RGB_Blue),
+	Pixel_ModRGB(50, Set, RGB_Blue),
+	Pixel_ModRGB(92, Set, RGB_Blue),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_GreenBlue),
+	Pixel_ModRGB(33, Set, RGB_GreenBlue),
+	Pixel_ModRGB(51, Set, RGB_GreenBlue),
+	Pixel_ModRGB(83, Set, RGB_GreenBlue),
+	Pixel_ModRGB(93, Set, RGB_GreenBlue),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_Green),
+	Pixel_ModRGB(34, Set, RGB_Green),
+	Pixel_ModRGB(52, Set, RGB_Green),
+	Pixel_ModRGB(94, Set, RGB_Green),
+};
+
+const uint8_t rainbow_frame26[] = {
+	// Set 12
+	Pixel_ModRGB(8, Set, RGB_Black),
+	Pixel_ModRGB(26, Set, RGB_Black),
+	Pixel_ModRGB(45, Set, RGB_Black),
+	Pixel_ModRGB(63, Set, RGB_Black),
+	Pixel_ModRGB(79, Set, RGB_Black),
+	Pixel_ModRGB(89, Set, RGB_Black),
+
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_HalfViolet),
+	Pixel_ModRGB(27, Set, RGB_HalfViolet),
+	Pixel_ModRGB(46, Set, RGB_HalfViolet),
+	Pixel_ModRGB(64, Set, RGB_HalfViolet),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_Violet),
+	Pixel_ModRGB(28, Set, RGB_Violet),
+	Pixel_ModRGB(47, Set, RGB_Violet),
+	Pixel_ModRGB(90, Set, RGB_Violet),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(30, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(66, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(81, Set, RGB_IndigoViolet),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_Indigo),
+	Pixel_ModRGB(48, Set, RGB_Indigo),
+	Pixel_ModRGB(91, Set, RGB_Indigo),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(32, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(50, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(92, Set, RGB_BlueIndigo),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_Blue),
+	Pixel_ModRGB(33, Set, RGB_Blue),
+	Pixel_ModRGB(51, Set, RGB_Blue),
+	Pixel_ModRGB(83, Set, RGB_Blue),
+	Pixel_ModRGB(93, Set, RGB_Blue),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_GreenBlue),
+	Pixel_ModRGB(34, Set, RGB_GreenBlue),
+	Pixel_ModRGB(52, Set, RGB_GreenBlue),
+	Pixel_ModRGB(94, Set, RGB_GreenBlue),
+};
+
+const uint8_t rainbow_frame27[] = {
+	// Set 13
+	Pixel_ModRGB(9, Set, RGB_Black),
+	Pixel_ModRGB(27, Set, RGB_Black),
+	Pixel_ModRGB(46, Set, RGB_Black),
+	Pixel_ModRGB(64, Set, RGB_Black),
+
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_HalfViolet),
+	Pixel_ModRGB(28, Set, RGB_HalfViolet),
+	Pixel_ModRGB(47, Set, RGB_HalfViolet),
+	Pixel_ModRGB(90, Set, RGB_HalfViolet),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_Violet),
+	Pixel_ModRGB(30, Set, RGB_Violet),
+	Pixel_ModRGB(66, Set, RGB_Violet),
+	Pixel_ModRGB(81, Set, RGB_Violet),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(48, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(91, Set, RGB_IndigoViolet),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_Indigo),
+	Pixel_ModRGB(32, Set, RGB_Indigo),
+	Pixel_ModRGB(50, Set, RGB_Indigo),
+	Pixel_ModRGB(92, Set, RGB_Indigo),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(33, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(51, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(83, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(93, Set, RGB_BlueIndigo),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_Blue),
+	Pixel_ModRGB(34, Set, RGB_Blue),
+	Pixel_ModRGB(52, Set, RGB_Blue),
+	Pixel_ModRGB(94, Set, RGB_Blue),
+};
+
+const uint8_t rainbow_frame28[] = {
+	// Set 14
+	Pixel_ModRGB(10, Set, RGB_Black),
+	Pixel_ModRGB(28, Set, RGB_Black),
+	Pixel_ModRGB(47, Set, RGB_Black),
+	Pixel_ModRGB(90, Set, RGB_Black),
+
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_HalfViolet),
+	Pixel_ModRGB(30, Set, RGB_HalfViolet),
+	Pixel_ModRGB(66, Set, RGB_HalfViolet),
+	Pixel_ModRGB(81, Set, RGB_HalfViolet),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_Violet),
+	Pixel_ModRGB(48, Set, RGB_Violet),
+	Pixel_ModRGB(91, Set, RGB_Violet),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(32, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(50, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(92, Set, RGB_IndigoViolet),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_Indigo),
+	Pixel_ModRGB(33, Set, RGB_Indigo),
+	Pixel_ModRGB(51, Set, RGB_Indigo),
+	Pixel_ModRGB(83, Set, RGB_Indigo),
+	Pixel_ModRGB(93, Set, RGB_Indigo),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(34, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(52, Set, RGB_BlueIndigo),
+	Pixel_ModRGB(94, Set, RGB_BlueIndigo),
+};
+
+const uint8_t rainbow_frame29[] = {
+	// Set 15
+	Pixel_ModRGB(11, Set, RGB_Black),
+	Pixel_ModRGB(30, Set, RGB_Black),
+	Pixel_ModRGB(66, Set, RGB_Black),
+	Pixel_ModRGB(81, Set, RGB_Black),
+
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_HalfViolet),
+	Pixel_ModRGB(48, Set, RGB_HalfViolet),
+	Pixel_ModRGB(91, Set, RGB_HalfViolet),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_Violet),
+	Pixel_ModRGB(32, Set, RGB_Violet),
+	Pixel_ModRGB(50, Set, RGB_Violet),
+	Pixel_ModRGB(92, Set, RGB_Violet),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(33, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(51, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(83, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(93, Set, RGB_IndigoViolet),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_Indigo),
+	Pixel_ModRGB(34, Set, RGB_Indigo),
+	Pixel_ModRGB(52, Set, RGB_Indigo),
+	Pixel_ModRGB(94, Set, RGB_Indigo),
+};
+
+const uint8_t rainbow_frame30[] = {
+	// Set 16
+	Pixel_ModRGB(12, Set, RGB_Black),
+	Pixel_ModRGB(48, Set, RGB_Black),
+	Pixel_ModRGB(91, Set, RGB_Black),
+
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_HalfViolet),
+	Pixel_ModRGB(32, Set, RGB_HalfViolet),
+	Pixel_ModRGB(50, Set, RGB_HalfViolet),
+	Pixel_ModRGB(92, Set, RGB_HalfViolet),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_Violet),
+	Pixel_ModRGB(33, Set, RGB_Violet),
+	Pixel_ModRGB(51, Set, RGB_Violet),
+	Pixel_ModRGB(83, Set, RGB_Violet),
+	Pixel_ModRGB(93, Set, RGB_Violet),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(34, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(52, Set, RGB_IndigoViolet),
+	Pixel_ModRGB(94, Set, RGB_IndigoViolet),
+};
+
+const uint8_t rainbow_frame31[] = {
+	// Set 17
+	Pixel_ModRGB(13, Set, RGB_Black),
+	Pixel_ModRGB(32, Set, RGB_Black),
+	Pixel_ModRGB(50, Set, RGB_Black),
+	Pixel_ModRGB(92, Set, RGB_Black),
+
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_HalfViolet),
+	Pixel_ModRGB(33, Set, RGB_HalfViolet),
+	Pixel_ModRGB(51, Set, RGB_HalfViolet),
+	Pixel_ModRGB(83, Set, RGB_HalfViolet),
+	Pixel_ModRGB(93, Set, RGB_HalfViolet),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_Violet),
+	Pixel_ModRGB(34, Set, RGB_Violet),
+	Pixel_ModRGB(52, Set, RGB_Violet),
+	Pixel_ModRGB(94, Set, RGB_Violet),
+};
+
+const uint8_t rainbow_frame32[] = {
+	// Set 18
+	Pixel_ModRGB(14, Set, RGB_Black),
+	Pixel_ModRGB(33, Set, RGB_Black),
+	Pixel_ModRGB(51, Set, RGB_Black),
+	Pixel_ModRGB(83, Set, RGB_Black),
+	Pixel_ModRGB(93, Set, RGB_Black),
+
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_HalfViolet),
+	Pixel_ModRGB(34, Set, RGB_HalfViolet),
+	Pixel_ModRGB(52, Set, RGB_HalfViolet),
+	Pixel_ModRGB(94, Set, RGB_HalfViolet),
+};
+
+const uint8_t rainbow_frame33[] = {
+	// Set 19
+	Pixel_ModRGB(15, Set, RGB_Black),
+	Pixel_ModRGB(34, Set, RGB_Black),
+	Pixel_ModRGB(52, Set, RGB_Black),
+	Pixel_ModRGB(94, Set, RGB_Black),
+};
+
 
 
 // Index of frames for animations
@@ -289,7 +2342,78 @@ const uint8_t *rainbow_frames[] = {
 	rainbow_frame0,
 	rainbow_frame1,
 	rainbow_frame2,
+	rainbow_frame3,
+	rainbow_frame4,
+	rainbow_frame5,
+	rainbow_frame6,
+	rainbow_frame7,
+	rainbow_frame8,
+	rainbow_frame9,
+	rainbow_frame10,
+	rainbow_frame11,
+	rainbow_frame12,
+	rainbow_frame13,
+	rainbow_frame14,
+	rainbow_frame15,
+	rainbow_frame16,
+	rainbow_frame17,
+	rainbow_frame18,
+	rainbow_frame19,
+	rainbow_frame20,
+	rainbow_frame21,
+	rainbow_frame22,
+	rainbow_frame23,
+	rainbow_frame24,
+	rainbow_frame25,
+	rainbow_frame26,
+	rainbow_frame27,
+	rainbow_frame28,
+	rainbow_frame29,
+	rainbow_frame30,
+	rainbow_frame31,
+	rainbow_frame32,
+	rainbow_frame33,
 };
+
+const uint16_t rainbow_framesizes[] = {
+	sizeof( rainbow_frame0 ),
+	sizeof( rainbow_frame1 ),
+	sizeof( rainbow_frame2 ),
+	sizeof( rainbow_frame3 ),
+	sizeof( rainbow_frame4 ),
+	sizeof( rainbow_frame5 ),
+	sizeof( rainbow_frame6 ),
+	sizeof( rainbow_frame7 ),
+	sizeof( rainbow_frame8 ),
+	sizeof( rainbow_frame9 ),
+	sizeof( rainbow_frame10 ),
+	sizeof( rainbow_frame11 ),
+	sizeof( rainbow_frame12 ),
+	sizeof( rainbow_frame13 ),
+	sizeof( rainbow_frame14 ),
+	sizeof( rainbow_frame15 ),
+	sizeof( rainbow_frame16 ),
+	sizeof( rainbow_frame17 ),
+	sizeof( rainbow_frame18 ),
+	sizeof( rainbow_frame19 ),
+	sizeof( rainbow_frame20 ),
+	sizeof( rainbow_frame21 ),
+	sizeof( rainbow_frame22 ),
+	sizeof( rainbow_frame23 ),
+	sizeof( rainbow_frame24 ),
+	sizeof( rainbow_frame25 ),
+	sizeof( rainbow_frame26 ),
+	sizeof( rainbow_frame27 ),
+	sizeof( rainbow_frame28 ),
+	sizeof( rainbow_frame29 ),
+	sizeof( rainbow_frame30 ),
+	sizeof( rainbow_frame31 ),
+	sizeof( rainbow_frame32 ),
+	sizeof( rainbow_frame33 ),
+};
+
+// XXX Temp
+uint16_t rainbow_pos = 0;
 
 
 // Index of animations
@@ -311,33 +2435,33 @@ const uint8_t **Pixel_Animations[] = {
 
 // ----- Functions -----
 
-PixelBuf Pixel_bufferMap( uint16_t channel )
+PixelBuf *Pixel_bufferMap( uint16_t channel )
 {
 	// TODO Generate
-	if      ( channel < 144 ) return Pixel_Buffers[0];
-	else if ( channel < 288 ) return Pixel_Buffers[1];
-	else if ( channel < 432 ) return Pixel_Buffers[2];
+	if      ( channel < 144 ) return &Pixel_Buffers[0];
+	else if ( channel < 288 ) return &Pixel_Buffers[1];
+	else if ( channel < 432 ) return &Pixel_Buffers[2];
 
 	// Invalid channel, return first channel and display error
 	erro_msg("Invalid channel: ");
 	printHex( channel );
 	print( NL );
-	return Pixel_Buffers[0];
+	return &Pixel_Buffers[0];
 }
 
 // Toggle the given channel
 void Pixel_channelToggle( uint16_t channel )
 {
 	// Determine which buffer we are in
-	PixelBuf pixbuf = Pixel_bufferMap( channel );
+	PixelBuf *pixbuf = Pixel_bufferMap( channel );
 
 	// Toggle channel accordingly
-	switch ( pixbuf.width )
+	switch ( pixbuf->width )
 	{
 	// Invalid width, default to 8
 	default:
 		warn_msg("Unknown width, using 8: ");
-		printInt8( pixbuf.width );
+		printInt8( pixbuf->width );
 		print(" Ch: ");
 		printHex( channel );
 		print( NL );
@@ -362,6 +2486,47 @@ void Pixel_pixelToggle( PixelElement *elem )
 	for ( uint8_t ch = 0; ch < elem->channels; ch++ )
 	{
 		Pixel_channelToggle( elem->indices[ch] );
+	}
+}
+
+// Process each pixel in the frame
+// TODO Handle non-8bit channel widths
+void Pixel_pixelProcess( const uint8_t *frame, uint16_t size )
+{
+	// Map each pixel modification then apply change accordingly
+	for ( uint16_t pos = 0; pos < size; pos += sizeof( PixelMod ) )
+	{
+		// Map pixel
+		PixelMod *mod = (PixelMod*)&frame[pos];
+		PixelElement *elem = &Pixel_Mapping[mod->pixel];
+		PixelBuf *pixbuf;
+
+		// Lookup number of channels in pixel
+		uint8_t channels = elem->channels;
+
+		// Apply operation to each channel of the pixel
+		for ( uint8_t ch = 0; ch < channels; ch++ )
+		{
+			uint16_t ch_pos = elem->indices[ch];
+
+			// Operation
+			switch ( mod->change )
+			{
+			case PixelChange_Set: // =
+				// Determine which buffer we are in
+				pixbuf = Pixel_bufferMap( ch_pos );
+				PixelBuf16( pixbuf, ch_pos ) = mod->data[ch];
+				break;
+
+			default:
+				warn_print("Unimplemented pixel modifier");
+				break;
+			}
+		}
+
+		// Skip extra channels
+		// TODO account for non-8bit widths
+		pos += channels;
 	}
 }
 
@@ -446,6 +2611,18 @@ inline void Pixel_process()
 
 		return;
 	}
+	case PixelTest_Pixel_Test:
+	// Start from the top of the Animation Stack
+	// TODO
+	dbug_print("YSSS");
+	// XXX Temp - Play rainbow
+	Pixel_pixelProcess( rainbow_frames[rainbow_pos], rainbow_framesizes[rainbow_pos] );
+	rainbow_pos++;
+	Pixel_testMode = PixelTest_Off;
+
+	if ( rainbow_pos >= sizeof( rainbow_frames ) )
+		rainbow_pos = 0;
+		goto pixel_process_done;
 
 	default:
 		break;
@@ -453,6 +2630,16 @@ inline void Pixel_process()
 
 	// Start from the top of the Animation Stack
 	// TODO
+
+	// XXX Temp - Play rainbow
+	Pixel_pixelProcess( rainbow_frames[rainbow_pos], rainbow_framesizes[rainbow_pos] );
+	rainbow_pos++;
+	Pixel_testMode = PixelTest_Off;
+
+	if ( rainbow_pos >= sizeof( rainbow_framesizes ) / 2 )
+	{
+		rainbow_pos = 0;
+	}
 
 
 pixel_process_done:
@@ -580,6 +2767,12 @@ void cliFunc_pixelTest( char* args )
 		info_msg("Stopping pixel test");
 		Pixel_testMode = PixelTest_Off;
 		return;
+
+	case 't':
+	case 'T':
+		info_msg("Starting pixel test");
+		Pixel_testMode = PixelTest_Pixel_Test;
+		return;
 	}
 
 	// Check for specific position
@@ -635,6 +2828,7 @@ void cliFunc_chanTest( char* args )
 	case 'S':
 		info_msg("Stopping channel test");
 		Pixel_testMode = PixelTest_Off;
+		rainbow_pos = 0;
 		return;
 	}
 

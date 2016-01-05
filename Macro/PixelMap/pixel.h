@@ -72,8 +72,8 @@ typedef struct PixelBuf {
 	void    *data;   // Pointer to start of buffer
 } PixelBuf;
 #define PixelBufElem(len,width,offset,ptr) { len, width, offset, (void*)ptr }
-#define PixelBuf8(pixbuf, ch)  ( ((uint8_t*) (pixbuf.data))[ ch - pixbuf.offset ] )
-#define PixelBuf16(pixbuf, ch) ( ((uint16_t*)(pixbuf.data))[ ch - pixbuf.offset ] )
+#define PixelBuf8(pixbuf, ch)  ( ((uint8_t*) (pixbuf->data))[ ch - pixbuf->offset ] )
+#define PixelBuf16(pixbuf, ch) ( ((uint16_t*)(pixbuf->data))[ ch - pixbuf->offset ] )
 
 
 // Individual Pixel element
