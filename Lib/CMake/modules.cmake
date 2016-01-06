@@ -215,7 +215,7 @@ if ( CTAGS_EXECUTABLE )
 	endforeach ()
 
 	# Generate the ctags
-	execute_process ( COMMAND ctags --fields=+l ${CTAG_PATHS}
+	execute_process ( COMMAND ${CTAGS_EXECUTABLE} --fields=+l ${CTAG_PATHS}
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	)
 endif ()

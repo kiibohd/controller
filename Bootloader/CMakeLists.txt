@@ -179,7 +179,7 @@ find_package ( Ctags ) # Optional
 
 if ( CTAGS_EXECUTABLE )
 	# Generate the ctags
-	execute_process( COMMAND ctags ${SRCS}
+	execute_process( COMMAND ${CTAGS_EXECUTABLE} ${SRCS}
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	)
 endif ()
