@@ -2620,9 +2620,11 @@ inline void Pixel_process()
 	rainbow_pos++;
 	Pixel_testMode = PixelTest_Off;
 
-	if ( rainbow_pos >= sizeof( rainbow_frames ) )
+	if ( rainbow_pos >= sizeof( rainbow_frames ) / 2 )
+	{
 		rainbow_pos = 0;
 		goto pixel_process_done;
+	}
 
 	default:
 		break;
@@ -2631,6 +2633,7 @@ inline void Pixel_process()
 	// Start from the top of the Animation Stack
 	// TODO
 
+	/*
 	// XXX Temp - Play rainbow
 	Pixel_pixelProcess( rainbow_frames[rainbow_pos], rainbow_framesizes[rainbow_pos] );
 	rainbow_pos++;
@@ -2640,6 +2643,7 @@ inline void Pixel_process()
 	{
 		rainbow_pos = 0;
 	}
+	*/
 
 
 pixel_process_done:
