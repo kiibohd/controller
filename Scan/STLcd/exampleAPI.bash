@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # STLcd
 # Virtual Serial Port API Example
 # Jacob Alexander 2015
