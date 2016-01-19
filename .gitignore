@@ -61,3 +61,8 @@ cmake_install.cmake
 ##################
 kll
 
+
+# Build directories #
+#######################
+Keyboards/ICED-L/
+Keyboards/ICED-R/
