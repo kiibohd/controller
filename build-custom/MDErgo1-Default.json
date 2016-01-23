@@ -15,8 +15,8 @@
             "h": 4,
             "layers": {
                 "0": {
-                    "key": "ESCAPE",
-                    "label": "ESC"
+                    "key": "CONS:PAUSEPLAY",
+                    "label": "PL/PS"
                 },
                 "1": {
                     "key": "F11",
@@ -134,8 +134,16 @@
             "h": 6,
             "layers": {
                 "0": {
-                    "key": "LCK1",
-                    "label": "LOCK-1"
+                    "key": "FUN2",
+                    "label": "\u01922"
+                },
+                "1": {
+                    "key": "LCK2",
+                    "label": "LOCK-2"
+                },
+                "2": {
+                    "key": "LCK2",
+                    "label": "LOCK-2"
                 }
             },
             "w": 4,
@@ -335,6 +343,10 @@
                 "0": {
                     "key": "FUN1",
                     "label": "\u01921"
+                },
+                "1": {
+                    "key": "LCK1",
+                    "label": "LOCK-1"
                 }
             },
             "w": 4,
@@ -545,8 +557,8 @@
             "h": 4,
             "layers": {
                 "0": {
-                    "key": "LCK2",
-                    "label": "LOCK-2"
+                    "key": "LCK3",
+                    "label": "LOCK-3"
                 },
                 "1": {
                     "key": "F12",
@@ -586,7 +598,7 @@
                     "key": "F7",
                     "label": "F7"
                 },
-                "2": {
+                "3": {
                     "key": "NUMLOCK",
                     "label": "NMLK"
                 }
@@ -607,7 +619,7 @@
                     "key": "F8",
                     "label": "F8"
                 },
-                "2": {
+                "3": {
                     "key": "P/",
                     "label": "P/"
                 }
@@ -628,7 +640,7 @@
                     "key": "F9",
                     "label": "F9"
                 },
-                "2": {
+                "3": {
                     "key": "P*",
                     "label": "P*"
                 }
@@ -649,9 +661,9 @@
                     "key": "F10",
                     "label": "F10"
                 },
-                "2": {
-                    "key": "P-",
-                    "label": "P-"
+                "3": {
+                    "key": "P=",
+                    "label": "P="
                 }
             },
             "w": 4,
@@ -713,7 +725,7 @@
                     "key": "#:'('",
                     "label": "("
                 },
-                "2": {
+                "3": {
                     "key": "P7",
                     "label": "P7"
                 }
@@ -734,7 +746,7 @@
                     "key": "#:')'",
                     "label": ")"
                 },
-                "2": {
+                "3": {
                     "key": "P8",
                     "label": "P8"
                 }
@@ -751,7 +763,11 @@
                     "key": "O",
                     "label": "O"
                 },
-                "2": {
+                "1": {
+                    "key": "#:'<'",
+                    "label": "<"
+                },
+                "3": {
                     "key": "P9",
                     "label": "P9"
                 }
@@ -768,9 +784,13 @@
                     "key": "P",
                     "label": "P"
                 },
-                "2": {
-                    "key": "P+",
-                    "label": "P+"
+                "1": {
+                    "key": "#:'>'",
+                    "label": ">"
+                },
+                "3": {
+                    "key": "P-",
+                    "label": "P-"
                 }
             },
             "w": 4,
@@ -801,6 +821,10 @@
                 "0": {
                     "key": "H",
                     "label": "H"
+                },
+                "1": {
+                    "key": "LEFT",
+                    "label": "\u2190"
                 }
             },
             "w": 4,
@@ -816,10 +840,10 @@
                     "label": "J"
                 },
                 "1": {
-                    "key": "#:'<'",
-                    "label": "<"
+                    "key": "DOWN",
+                    "label": "\u2193"
                 },
-                "2": {
+                "3": {
                     "key": "P4",
                     "label": "P4"
                 }
@@ -837,10 +861,10 @@
                     "label": "K"
                 },
                 "1": {
-                    "key": "#:'>'",
-                    "label": ">"
+                    "key": "UP",
+                    "label": "\u2191"
                 },
-                "2": {
+                "3": {
                     "key": "P5",
                     "label": "P5"
                 }
@@ -857,7 +881,11 @@
                     "key": "L",
                     "label": "L"
                 },
-                "2": {
+                "1": {
+                    "key": "RIGHT",
+                    "label": "\u2192"
+                },
+                "3": {
                     "key": "P6",
                     "label": "P6"
                 }
@@ -874,7 +902,7 @@
                     "key": "SEMICOLON",
                     "label": ";"
                 },
-                "2": {
+                "3": {
                     "key": "P+",
                     "label": "P+"
                 }
@@ -929,6 +957,10 @@
                 "0": {
                     "key": "FUN1",
                     "label": "\u01921"
+                },
+                "1": {
+                    "key": "LCK1",
+                    "label": "LOCK-1"
                 }
             },
             "w": 4,
@@ -956,7 +988,7 @@
                     "key": "M",
                     "label": "M"
                 },
-                "2": {
+                "3": {
                     "key": "P1",
                     "label": "P1"
                 }
@@ -973,7 +1005,7 @@
                     "key": "COMMA",
                     "label": ","
                 },
-                "2": {
+                "3": {
                     "key": "P2",
                     "label": "P2"
                 }
@@ -990,7 +1022,7 @@
                     "key": "PERIOD",
                     "label": "."
                 },
-                "2": {
+                "3": {
                     "key": "P3",
                     "label": "P3"
                 }
@@ -1007,9 +1039,9 @@
                     "key": "SLASH",
                     "label": "/"
                 },
-                "2": {
-                    "key": "PENTER",
-                    "label": "P\u21b5"
+                "3": {
+                    "key": "P.",
+                    "label": "P."
                 }
             },
             "w": 4,
@@ -1063,9 +1095,13 @@
                     "key": "ENTER",
                     "label": "\u21b5"
                 },
-                "1": {
+                "2": {
                     "key": "CONS:MUTE",
                     "label": "MUTE"
+                },
+                "3": {
+                    "key": "PENTER",
+                    "label": "P\u21b5"
                 }
             },
             "w": 4,
@@ -1080,11 +1116,11 @@
                     "key": "SPACE",
                     "label": "[&nbsp;]"
                 },
-                "1": {
+                "2": {
                     "key": "CONS:PAUSEPLAY",
                     "label": "PL/PS"
                 },
-                "2": {
+                "3": {
                     "key": "P0",
                     "label": "P0"
                 }
@@ -1101,7 +1137,7 @@
                     "key": "LEFT",
                     "label": "\u2190"
                 },
-                "1": {
+                "2": {
                     "key": "CONS:REWIND",
                     "label": "RW"
                 }
@@ -1118,7 +1154,7 @@
                     "key": "DOWN",
                     "label": "\u2193"
                 },
-                "1": {
+                "2": {
                     "key": "CONS:VOLUMEDOWN",
                     "label": "VOL-"
                 }
@@ -1135,13 +1171,9 @@
                     "key": "UP",
                     "label": "\u2191"
                 },
-                "1": {
+                "2": {
                     "key": "CONS:VOLUMEUP",
                     "label": "VOL+"
-                },
-                "2": {
-                    "key": "P.",
-                    "label": "P."
                 }
             },
             "w": 4,
@@ -1156,13 +1188,9 @@
                     "key": "RIGHT",
                     "label": "\u2192"
                 },
-                "1": {
+                "2": {
                     "key": "CONS:FASTFORWARD",
                     "label": "FF"
-                },
-                "2": {
-                    "key": "PENTER",
-                    "label": "P\u21b5"
                 }
             },
             "w": 4,
