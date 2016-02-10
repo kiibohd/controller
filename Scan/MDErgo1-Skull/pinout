@@ -1,0 +1,144 @@
+Pin Usage
+=========
+
+mk20dx256vlh7
+
+ ----
+|Keys|
+ ----
+
+* Strobe (Columns)
+
+TODO
+
+* Sense (Rows)
+
+TODO
+
+
+ -----
+|Clock|
+ -----
+
+PTA18 <-> PTA19
+
+
+ ---
+|I2C|
+ ---
+
+* Main - Connect to all ISSI Chips - Also break out header for debugging
+
+PTB0 - SCL0 (add header pin, label as SCL0)
+PTB1 - SDA0 (add header pin, label as SDA0)
+
+* Reserved for I2C usage
+
+PTC10 - SCL1 (Reserved, can use as GPIO)
+PTC11 - SDA1 (Reserved, can use as GPIO)
+
+* ISSI Control (enough pins for 3 chips reserved)
+
+PTB17 - INTB Chip 1
+PTB18 - INTB Chip 2 (Reserved, can use as GPIO)
+PTB19 - INTB Chip 3 (Reserved, can use as GPIO)
+
+PTB16 - SDB (tied to all Chips, hardware shutdown)
+
+
+ ---
+|PWM|
+ ---
+
+NHD-C12832A1Z-FS(RGB)-FBW-3V
+
+PTC1 - K(R)
+PTC2 - K(G)
+PTC3 - K(B)
+
+
+ ---
+|SPI|
+ ---
+
+NHD-C12832A1Z-FS(RGB)-FBW-3V
+
+PTC4 - CS1B    - SS1
+PTC5 - SCL     - SCLK
+PTC6 - SDA(SI) - MOSI
+PTC7 - A0  (Not SPI, used for display)
+PTC8 - RST (Not SPI, used for display)
+
+
+ ---
+|DAC|
+ ---
+
+DAC0 (N/C)
+
+
+ ----
+|UART|
+ ----
+
+* Comm - For bi-directional communication between halves
+
+PTA1 - RX0 (Master Side)
+PTA2 - TX0 (Master Side)
+
+PTE0 - TX1 (Slave Side)
+PTE1 - RX1 (Slave Side)
+
+PTD2 - RX2 (UART Debug Header)
+PTD3 - TX2 (UART Debug Header)
+
+
+ -----
+|Debug|
+ -----
+
+* SWD - (Main reflash header)
+
+PTA0 (Pull-down)
+PTA3 (Pull-up)
+
+* LEDs
+
+PTA5 (LED only for PCB, not Teensy)
+
+* UARTs
+
+PTD2 - RX2 (UART Debug Header, label as RX2)
+PTD3 - TX2 (UART Debug Header, label as TX2)
+
+
+ ------
+|Unused|
+ ------
+
+* GPIO
+
+PTA4
+PTA12
+PTA13
+PTB2
+PTB3
+PTB16
+PTB17
+PTB18
+PTB19
+PTC0
+PTC9
+PTC10
+PTC11
+PTD0
+PTD1
+PTD4
+PTD5
+PTD6
+PTD7
+
+* Analog
+
+TODO
+
