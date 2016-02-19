@@ -70,6 +70,15 @@ CLIDict_Def( matrixCLIDict, "Matrix Module Commands" ) = {
 // Debounce Array
 KeyState Matrix_scanArray[ Matrix_colsNum * Matrix_rowsNum ];
 
+// Ghost Arrays
+#ifdef GHOST
+KeyGhost Matrix_ghostArray[ Matrix_colsNum * Matrix_rowsNum ];
+
+uint8_t col_use[Matrix_colsNum], row_use[Matrix_rowsNum];  // used count
+uint8_t col_ghost[Matrix_colsNum], row_ghost[Matrix_rowsNum];  // marked as having ghost if 1
+#endif
+
+
 // Matrix debug flag - If set to 1, for each keypress the scan code is displayed in hex
 //                     If set to 2, for each key state change, the scan code is displayed along with the state
 uint8_t matrixDebugMode = 0;
@@ -111,10 +120,17 @@ uint8_t Matrix_pin( GPIO_Pin gpio, Type type )
 	{
 	case Type_StrobeOn:
 		*GPIO_PSOR |= (1 << gpio.pin);
+		#ifdef GHOST
+		*GPIO_PDDR |= (1 << gpio.pin);  // output
+		#endif
 		break;
 
 	case Type_StrobeOff:
 		*GPIO_PCOR |= (1 << gpio.pin);
+		#ifdef GHOST
+		// Ghosting martix needs to put not used (off) strobes in high impedance state
+		*GPIO_PDDR &= ~(1 << gpio.pin);  // input, high Z state
+		#endif
 		break;
 
 	case Type_StrobeSetup:
@@ -206,6 +222,11 @@ void Matrix_setup()
 		Matrix_scanArray[ item ].activeCount      = 0;
 		Matrix_scanArray[ item ].inactiveCount    = DebounceDivThreshold_define; // Start at 'off' steady state
 		Matrix_scanArray[ item ].prevDecisionTime = 0;
+		#ifdef GHOST
+		Matrix_ghostArray[ item ].prev            = KeyState_Off;
+		Matrix_ghostArray[ item ].cur             = KeyState_Off;
+		Matrix_ghostArray[ item ].saved           = KeyState_Off;
+		#endif
 	}
 
 	// Clear scan stats counters
@@ -372,12 +393,14 @@ void Matrix_scan( uint16_t scanNum )
 					erro_print("Matrix scan bug!! Report me!");
 					break;
 				}
-
+				
 				// Update decision time
 				state->prevDecisionTime = currentTime;
 
 				// Send keystate to macro module
+				#ifndef GHOST
 				Macro_keyState( key, state->curState );
+				#endif
 
 				// Matrix Debug, only if there is a state change
 				if ( matrixDebugMode && state->curState != state->prevState )
@@ -402,6 +425,101 @@ void Matrix_scan( uint16_t scanNum )
 		// Unstrobe Pin
 		Matrix_pin( Matrix_cols[ strobe ], Type_StrobeOff );
 	}
+
+
+	// Matrix ghosting check and elimination
+	// . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+#ifdef GHOST
+	// strobe = column, sense = row
+
+	// Count (rows) use for columns
+	//print("C ");
+	for ( uint8_t col = 0; col < Matrix_colsNum; col++ )
+	{
+		uint8_t used = 0;
+		for ( uint8_t row = 0; row < Matrix_rowsNum; row++ )
+		{
+			uint8_t key = Matrix_colsNum * row + col;
+			KeyState *state = &Matrix_scanArray[ key ];
+			if ( keyOn(state->curState) )
+				used++;
+		}
+		//printInt8(used);
+		col_use[col] = used;
+		col_ghost[col] = 0;  // clear
+	}
+
+	// Count (columns) use for rows
+	//print("  R ");
+	for ( uint8_t row = 0; row < Matrix_rowsNum; row++ )
+	{
+		uint8_t used = 0;
+		for ( uint8_t col = 0; col < Matrix_colsNum; col++ )
+		{
+			uint8_t key = Matrix_colsNum * row + col;
+			KeyState *state = &Matrix_scanArray[ key ];
+			if ( keyOn(state->curState) )
+				used++;
+		}
+		//printInt8(used);
+		row_use[row] = used;
+		row_ghost[row] = 0;  // clear
+	}
+	
+	// Check if matrix has ghost
+	// Happens when key is pressed and some other key is pressed in same row and another in same column
+	//print("  G ");
+	for ( uint8_t col = 0; col < Matrix_colsNum; col++ )
+	{
+		for ( uint8_t row = 0; row < Matrix_rowsNum; row++ )
+		{
+			uint8_t key = Matrix_colsNum * row + col;
+			KeyState *state = &Matrix_scanArray[ key ];
+			if ( keyOn(state->curState) && col_use[col] >= 2 && row_use[row] >= 2 )
+			{
+				// mark col and row as having ghost
+				col_ghost[col] = 1;
+				row_ghost[row] = 1;
+				//print(" ");  printInt8(col);  print(",");  printInt8(row);
+			}
+		}
+	}
+	//print( NL );
+
+	// Send keys
+	for ( uint8_t col = 0; col < Matrix_colsNum; col++ )
+	{
+		for ( uint8_t row = 0; row < Matrix_rowsNum; row++ )
+		{
+			uint8_t key = Matrix_colsNum * row + col;
+			KeyState *state = &Matrix_scanArray[ key ];
+			KeyGhost *st = &Matrix_ghostArray[ key ];
+			
+			// col or row is ghosting (crossed)
+			uint8_t ghost = (col_ghost[col] > 0 || row_ghost[row] > 0) ? 1 : 0;
+			
+			st->prev = st->cur;  // previous
+			// save state if no ghost or outside ghosted area
+			if ( ghost == 0 )
+				st->saved = state->curState;  // save state if no ghost
+			// final
+			// use saved state if ghosting, or current if not
+			st->cur = ghost > 0 ? st->saved : state->curState;
+			
+			//  Send keystate to macro module
+			KeyPosition k = !st->cur 
+				? (!st->prev ? KeyState_Off : KeyState_Release)
+				: ( st->prev ? KeyState_Hold : KeyState_Press);
+			//if (!st->cur && !st->prev)  k = KeyState_Off; else
+			//if ( st->cur &&  st->prev)  k = KeyState_Hold; else
+			//if ( st->cur && !st->prev)  k = KeyState_Press; else
+			//if (!st->cur &&  st->prev)  k = KeyState_Release;
+			Macro_keyState( key, k );
+		}
+	}
+#endif
+	// . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+
 
 	// State Table Output Debug
 	if ( matrixDebugStateCounter > 0 )

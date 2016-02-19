@@ -1,0 +1,88 @@
+Pin Usage
+=========
+
+mk20dx128vlf5
+
+ ----
+|Keys|
+ ----
+
+* Strobe (Columns)
+
+PTB0
+PTB1
+PTB2
+PTB3
+PTB16
+PTB17
+PTC4
+PTC5
+PTD0
+
+
+* Sense (Rows)
+
+PTD1
+PTD2
+PTD3
+PTD4
+PTD5
+PTD6
+PTD7
+
+
+ -----
+|Debug|
+ -----
+
+* SWD
+
+PTA0 (Pull-down)
+PTA3 (Pull-up)
+
+* LEDs
+
+PTA19 (LED only for PCB, not McHCK) (XTAL)
+
+* UARTs
+
+PTA1 - RX0
+PTA2 - TX0
+
+* Tag Connect
+
+1  - Vdd +5
+2  - PTA3 / SWD_IO
+3  - Vss / Gnd
+4  - PTA0 / SWD_CLK
+5  - +5V
+6  - PTA2 / TRACE_SWO
+7  - N/C
+8  - PTA1 / JTAG_TDI
+9  - N/C
+10 - Reset_b
+
+
+ ------
+|Unused|
+ ------
+
+* GPIO
+
+PTA1 (Not broken out on PCB, available on McHCK) (Pull-up)
+PTA2 (")
+PTA4 (Pull-up)
+PTA18 (EXTAL)
+
+PTC0
+PTC1
+PTC2
+PTC3
+PTC6
+PTC7
+
+* Analog
+
+ADC0_DP0
+ADC0_DM0
+
