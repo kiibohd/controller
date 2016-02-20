@@ -1139,6 +1139,7 @@ void Connect_scan()
 	}
 
 	// Limit how often we do cable checks
+	//uint32_t time_compare = 0x007; // Used for debugging cables -HaaTa
 	uint32_t time_compare = 0x7FF; // Must be all 1's, 0x3FF is valid, 0x4FF is not
 	uint32_t current_time = systick_millis_count;
 	if ( Connect_lastCheck != current_time
