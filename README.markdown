@@ -84,6 +84,7 @@ Contact
 If you really need to get a hold of HaaTa, email is best: `haata@kiibohd.com`
 
 IRC is likely faster though.
+`#input.club@irc.freenode.net`
 `#geekhack@irc.freenode.net`
 `#deskthority@irc.freenode.net`
 
