@@ -146,9 +146,11 @@ typedef struct KeyGhost {
 	KeyPosition     saved;  // state before ghosting
 } __attribute__((packed)) KeyGhost;
 
-//  utility
+// utility
 inline uint8_t keyOn(/*KeyPosition*/uint8_t st)
-{	return (st == KeyState_Press || st == KeyState_Hold) ? 1 : 0;   }
+{
+	return (st == KeyState_Press || st == KeyState_Hold) ? 1 : 0;
+}
 
 
 // ----- Functions -----
