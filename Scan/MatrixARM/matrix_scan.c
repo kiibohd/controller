@@ -71,7 +71,7 @@ CLIDict_Def( matrixCLIDict, "Matrix Module Commands" ) = {
 KeyState Matrix_scanArray[ Matrix_colsNum * Matrix_rowsNum ];
 
 // Ghost Arrays
-#ifdef GHOST
+#ifdef GHOSTING_MATRIX
 KeyGhost Matrix_ghostArray[ Matrix_colsNum * Matrix_rowsNum ];
 
 uint8_t col_use[Matrix_colsNum], row_use[Matrix_rowsNum];  // used count
@@ -120,14 +120,14 @@ uint8_t Matrix_pin( GPIO_Pin gpio, Type type )
 	{
 	case Type_StrobeOn:
 		*GPIO_PSOR |= (1 << gpio.pin);
-		#ifdef GHOST
+		#ifdef GHOSTING_MATRIX
 		*GPIO_PDDR |= (1 << gpio.pin);  // output
 		#endif
 		break;
 
 	case Type_StrobeOff:
 		*GPIO_PCOR |= (1 << gpio.pin);
-		#ifdef GHOST
+		#ifdef GHOSTING_MATRIX
 		// Ghosting martix needs to put not used (off) strobes in high impedance state
 		*GPIO_PDDR &= ~(1 << gpio.pin);  // input, high Z state
 		#endif
@@ -222,7 +222,7 @@ void Matrix_setup()
 		Matrix_scanArray[ item ].activeCount      = 0;
 		Matrix_scanArray[ item ].inactiveCount    = DebounceDivThreshold_define; // Start at 'off' steady state
 		Matrix_scanArray[ item ].prevDecisionTime = 0;
-		#ifdef GHOST
+		#ifdef GHOSTING_MATRIX
 		Matrix_ghostArray[ item ].prev            = KeyState_Off;
 		Matrix_ghostArray[ item ].cur             = KeyState_Off;
 		Matrix_ghostArray[ item ].saved           = KeyState_Off;
@@ -393,12 +393,12 @@ void Matrix_scan( uint16_t scanNum )
 					erro_print("Matrix scan bug!! Report me!");
 					break;
 				}
-				
+
 				// Update decision time
 				state->prevDecisionTime = currentTime;
 
 				// Send keystate to macro module
-				#ifndef GHOST
+				#ifndef GHOSTING_MATRIX
 				Macro_keyState( key, state->curState );
 				#endif
 
@@ -429,7 +429,7 @@ void Matrix_scan( uint16_t scanNum )
 
 	// Matrix ghosting check and elimination
 	// . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
-#ifdef GHOST
+#ifdef GHOSTING_MATRIX
 	// strobe = column, sense = row
 
 	// Count (rows) use for columns

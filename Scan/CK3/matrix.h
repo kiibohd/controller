@@ -49,5 +49,6 @@ GPIO_Pin Matrix_rows[] = { gpio(D,1), gpio(D,2), gpio(D,3), gpio(D,4), gpio(D,5)
 Config Matrix_type = Config_Pulldown;
 
 
-// define this if your matrix has ghosting (i.e. regular keyboard without diodes)
-#define GHOST
+// Define this if your matrix has ghosting (i.e. regular keyboard without diodes)
+// this will enable the anti-ghosting code
+#define GHOSTING_MATRIX
