@@ -1,4 +1,4 @@
-/* Copyright (C) 2014 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -172,6 +172,15 @@ void CustomAction_blockKey_capability( uint8_t state, uint8_t stateType, uint8_t
 		extern void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
 		Output_usbCodeSend_capability( state, stateType, &key );
 	}
+}
+
+
+// Signal from the Output Module that the available current has changed
+// current - mA
+void Scan_currentChange( unsigned int current )
+{
+	// Indicate to all submodules current change
+	Matrix_currentChange( current );
 }
 
 

@@ -383,11 +383,17 @@ void LED_reset()
 		LED_writeReg( addr, 0x00, 0x08, 0x0B );
 	}
 
-	// Disable Software shutdown of ISSI chip
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	// Do not disable software shutdown of ISSI chip unless current is high enough
+	// Require at least 150 mA
+	// May be enabled/disabled at a later time
+	if ( Output_current_available() >= 150 )
 	{
-		uint8_t addr = LED_pageBuffer[ ch ].i2c_addr;
-		LED_writeReg( addr, 0x0A, 0x01, 0x0B );
+		// Disable Software shutdown of ISSI chip
+		for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+		{
+			uint8_t addr = LED_pageBuffer[ ch ].i2c_addr;
+			LED_writeReg( addr, 0x0A, 0x01, 0x0B );
+		}
 	}
 }
 
@@ -509,8 +515,35 @@ void LED_linkedSend()
 
 // LED State processing loop
 uint32_t LED_timePrev = 0;
+unsigned int LED_currentEvent = 0;
 inline void LED_scan()
 {
+	// Check for current change event
+	if ( LED_currentEvent )
+	{
+		// TODO dim LEDs in low power mode instead of shutting off
+		if ( LED_currentEvent < 150 )
+		{
+			// Enable Software shutdown of ISSI chip
+			for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+			{
+				uint8_t addr = LED_pageBuffer[ ch ].i2c_addr;
+				LED_writeReg( addr, 0x0A, 0x00, 0x0B );
+			}
+		}
+		else
+		{
+			// Disable Software shutdown of ISSI chip
+			for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+			{
+				uint8_t addr = LED_pageBuffer[ ch ].i2c_addr;
+				LED_writeReg( addr, 0x0A, 0x01, 0x0B );
+			}
+		}
+
+		LED_currentEvent = 0;
+	}
+
 	// Check to see if frame buffers are ready to replenish
 	if ( LED_FrameBufferReset )
 	{
@@ -582,6 +615,15 @@ inline void LED_scan()
 	// Pixel_FrameState will be updated when complete
 	LED_chipSend = 0; // Start with chip 0
 	LED_linkedSend();
+}
+
+
+// Called by parent Scan Module whenver the available current has changed
+// current - mA
+void LED_currentChange( unsigned int current )
+{
+	// Delay action till next LED scan loop (as this callback sometimes occurs during interrupt requests)
+	LED_currentEvent = current;
 }
 
 

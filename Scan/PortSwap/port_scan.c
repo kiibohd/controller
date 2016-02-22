@@ -144,6 +144,14 @@ inline uint8_t Port_scan()
 }
 
 
+// Signal from parent Scan Module that available current has changed
+// current - mA
+void Port_currentChange( unsigned int current )
+{
+	// TODO - Power savings?
+}
+
+
 
 // ----- Capabilities -----
 

@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2015 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2016 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -241,8 +241,11 @@ void main()
 	GPIOA_PCOR |= (1<<13);
 
 	#define USBPortSwapDelay_ms 1000
+	#define USBPortSwapIncrement_ms 100
 	// For keyboards with dual usb ports, doesn't do anything on keyboards without them
-	// If a USB connection is not detected in 2 seconds, switch to the other port to see if it's plugged in there
+	// If a USB connection is not detected in 1 second, switch to the other port to see if it's plugged in there
+	// Incremement the delay by 100 ms each attempt, just in case the device is slow
+	uint32_t attempt = 0;
 	uint32_t last_ms = systick_millis_count;
 	for (;;)
 	{
@@ -250,7 +253,7 @@ void main()
 
 		// Only check for swapping after delay
 		uint32_t wait_ms = systick_millis_count - last_ms;
-		if ( wait_ms < USBPortSwapDelay_ms )
+		if ( wait_ms < USBPortSwapDelay_ms + attempt * USBPortSwapIncrement_ms )
 		{
 			continue;
 		}
@@ -262,6 +265,7 @@ void main()
 		{
 			print("USB not initializing, port swapping (if supported)");
 			GPIOA_PTOR |= (1<<13);
+			attempt++;
 		}
 	}
 #else

@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 by Jacob Alexander
+/* Copyright (C) 2015-2016 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -343,6 +343,14 @@ inline void LCD_setup()
 inline uint8_t LCD_scan()
 {
 	return 0;
+}
+
+
+// Signal from parent Scan Module that available current has changed
+// current - mA
+void LCD_currentChange( unsigned int current )
+{
+	// TODO - Power savings?
 }
 
 

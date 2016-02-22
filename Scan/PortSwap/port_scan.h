@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 by Jacob Alexander
+/* Copyright (C) 2015-2016 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,4 +27,6 @@
 
 void Port_setup();
 uint8_t Port_scan();
+
+void Port_currentChange( unsigned int current ); // Called by Output Module
 
