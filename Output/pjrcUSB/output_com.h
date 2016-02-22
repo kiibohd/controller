@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2015 by Jacob Alexander
+/* Copyright (C) 2013-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -82,6 +82,8 @@ extern volatile uint8_t  Output_Available; // 0 - Output module not fully functi
 
 extern          uint8_t  Output_DebugMode; // 0 - Debug disabled, 1 - Debug enabled
 
+extern          uint16_t Output_ExtCurrent_Available; // mA - Set by outside module if not using USB (i.e. Interconnect)
+
 
 
 // ----- Functions -----
@@ -96,6 +98,12 @@ void Output_softReset();
 
 // Relies on USB serial module
 unsigned int Output_availablechar();
+
+// Returns the total mA available (total, if used in a chain, each device will have to use a slice of it)
+unsigned int Output_current_available();
+
+void Output_update_external_current( unsigned int current );
+void Output_update_usb_current( unsigned int current );
 
 int Output_getchar();
 int Output_putchar( char c );

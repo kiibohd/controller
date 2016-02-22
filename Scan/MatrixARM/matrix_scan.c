@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -428,7 +428,7 @@ void Matrix_scan( uint16_t scanNum )
 
 
 	// Matrix ghosting check and elimination
-	// . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+	// . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 #ifdef GHOSTING_MATRIX
 	// strobe = column, sense = row
 
@@ -465,7 +465,7 @@ void Matrix_scan( uint16_t scanNum )
 		row_use[row] = used;
 		row_ghost[row] = 0;  // clear
 	}
-	
+
 	// Check if matrix has ghost
 	// Happens when key is pressed and some other key is pressed in same row and another in same column
 	//print("  G ");
@@ -494,10 +494,10 @@ void Matrix_scan( uint16_t scanNum )
 			uint8_t key = Matrix_colsNum * row + col;
 			KeyState *state = &Matrix_scanArray[ key ];
 			KeyGhost *st = &Matrix_ghostArray[ key ];
-			
+
 			// col or row is ghosting (crossed)
 			uint8_t ghost = (col_ghost[col] > 0 || row_ghost[row] > 0) ? 1 : 0;
-			
+
 			st->prev = st->cur;  // previous
 			// save state if no ghost or outside ghosted area
 			if ( ghost == 0 )
@@ -505,9 +505,9 @@ void Matrix_scan( uint16_t scanNum )
 			// final
 			// use saved state if ghosting, or current if not
 			st->cur = ghost > 0 ? st->saved : state->curState;
-			
+
 			//  Send keystate to macro module
-			KeyPosition k = !st->cur 
+			KeyPosition k = !st->cur
 				? (!st->prev ? KeyState_Off : KeyState_Release)
 				: ( st->prev ? KeyState_Hold : KeyState_Press);
 			//if (!st->cur && !st->prev)  k = KeyState_Off; else
@@ -518,7 +518,7 @@ void Matrix_scan( uint16_t scanNum )
 		}
 	}
 #endif
-	// . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
+	// . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 
 	// State Table Output Debug
@@ -565,6 +565,15 @@ void Matrix_scan( uint16_t scanNum )
 		print( NL );
 	}
 }
+
+
+// Called by parent scan module whenever the available current changes
+// current - mA
+void Matrix_currentChange( unsigned int current )
+{
+	// TODO - Any potential power savings?
+}
+
 
 
 // ----- CLI Command Functions -----

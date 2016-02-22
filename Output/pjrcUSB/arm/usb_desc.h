@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2013-2015)
+ * Modified by Jacob Alexander (2013-2016)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -136,4 +136,6 @@ typedef struct {
 extern const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS];
 
 extern const usb_descriptor_list_t usb_descriptor_list[];
+
+extern uint8_t *usb_bMaxPower;
 

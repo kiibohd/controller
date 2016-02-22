@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -406,8 +406,14 @@ inline void LED_setup()
 	// Set default brightness
 	LED_sendPage( (uint8_t*)LED_defaultBrightness1, sizeof( LED_defaultBrightness1 ), 0 );
 
-	// Disable Software shutdown of ISSI chip
-	LED_writeReg( 0x0A, 0x01, 0x0B );
+	// Do not disable software shutdown of ISSI chip unless current is high enough
+	// Require at least 150 mA
+	// May be enabled/disabled at a later time
+	if ( Output_current_available() >= 150 )
+	{
+		// Disable Software shutdown of ISSI chip
+		LED_writeReg( 0x0A, 0x01, 0x0B );
+	}
 }
 
 
@@ -641,6 +647,24 @@ inline uint8_t LED_scan()
 	//I2C_S_BUSY
 
 	return 0;
+}
+
+
+// Called by parent Scan Module whenver the available current has changed
+// current - mA
+void LED_currentChange( unsigned int current )
+{
+	// TODO dim LEDs in low power mode instead of shutting off
+	if ( current < 150 )
+	{
+		// Enabled Software shutdown of ISSI chip
+		LED_writeReg( 0x0A, 0x00, 0x0B );
+	}
+	else
+	{
+		// Disable Software shutdown of ISSI chip
+		LED_writeReg( 0x0A, 0x01, 0x0B );
+	}
 }
 
 
