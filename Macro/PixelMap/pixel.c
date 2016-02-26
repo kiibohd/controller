@@ -2614,13 +2614,11 @@ inline void Pixel_process()
 	case PixelTest_Pixel_Test:
 	// Start from the top of the Animation Stack
 	// TODO
-	dbug_print("YSSS");
 	// XXX Temp - Play rainbow
 	Pixel_pixelProcess( rainbow_frames[rainbow_pos], rainbow_framesizes[rainbow_pos] );
 	rainbow_pos++;
-	Pixel_testMode = PixelTest_Off;
 
-	if ( rainbow_pos >= sizeof( rainbow_frames ) / 2 )
+	if ( rainbow_pos > 33 )
 	{
 		rainbow_pos = 0;
 		goto pixel_process_done;
@@ -2629,22 +2627,6 @@ inline void Pixel_process()
 	default:
 		break;
 	}
-
-	// Start from the top of the Animation Stack
-	// TODO
-
-	/*
-	// XXX Temp - Play rainbow
-	Pixel_pixelProcess( rainbow_frames[rainbow_pos], rainbow_framesizes[rainbow_pos] );
-	rainbow_pos++;
-	Pixel_testMode = PixelTest_Off;
-
-	if ( rainbow_pos >= sizeof( rainbow_framesizes ) / 2 )
-	{
-		rainbow_pos = 0;
-	}
-	*/
-
 
 pixel_process_done:
 	// Frame is now ready to send
@@ -2661,7 +2643,8 @@ inline void Pixel_setup()
 	Pixel_FrameState = FrameState_Update;
 
 	// Disable test modes by default, start at position 0
-	Pixel_testMode = PixelTest_Off;
+	Pixel_testMode = PixelTest_Pixel_Test; // TODO Remove when better default available
+	//Pixel_testMode = PixelTest_Off;
 
 	// Clear animation stack
 	Pixel_AnimationStack.size = 0;
