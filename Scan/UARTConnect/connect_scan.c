@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -470,6 +470,14 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 			}
 			else
 			{
+				// Lower current requirement during errors
+				// USB minimum
+				// Only if this is not the master node
+				if ( Connect_id != 0 )
+				{
+					Output_update_external_current( 100 );
+				}
+
 				Connect_cableFaultsMaster++;
 				Connect_cableOkMaster = 0;
 				print(" Master ");
@@ -489,6 +497,12 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 			}
 			else
 			{
+				// If we already have an Id, then set max current again
+				if ( Connect_id != 255 && Connect_id != 0 )
+				{
+					// TODO reset to original negotiated current
+					Output_update_external_current( 500 );
+				}
 				Connect_cableChecksMaster++;
 			}
 		}
@@ -559,6 +573,14 @@ uint8_t Connect_receive_IdEnumeration( uint8_t id, uint16_t *pending_bytes, uint
 
 	// Send reponse back to master
 	Connect_send_IdReport( id );
+
+	// Node now enumerated, set external power to USB Max
+	// Only set if this is not the master node
+	// TODO Determine power slice for each node as part of protocol
+	if ( Connect_id != 0 )
+	{
+		Output_update_external_current( 500 );
+	}
 
 	// Propogate next Id if the connection is ok
 	if ( Connect_cableOkSlave )
@@ -1139,6 +1161,7 @@ void Connect_scan()
 	}
 
 	// Limit how often we do cable checks
+	//uint32_t time_compare = 0x007; // Used for debugging cables -HaaTa
 	uint32_t time_compare = 0x7FF; // Must be all 1's, 0x3FF is valid, 0x4FF is not
 	uint32_t current_time = systick_millis_count;
 	if ( Connect_lastCheck != current_time
@@ -1173,6 +1196,13 @@ void Connect_scan()
 		Connect_rx_process( 0 );
 		Connect_rx_process( 1 );
 	}
+}
+
+
+// Called by parent Scan module whenever the available current changes
+void Connect_currentChange( unsigned int current )
+{
+	// TODO - Any potential power saving here?
 }
 
 

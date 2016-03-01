@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -100,5 +100,17 @@ inline void Scan_finishedWithOutput( uint8_t sentKeys )
 	// Reset scan loop indicator (resets each key debounce state)
 	// TODO should this occur after USB send or Macro processing?
 	Scan_scanCount = 0;
+}
+
+
+// Signal from the Output Module that the available current has changed
+// current - mA
+void Scan_currentChange( unsigned int current )
+{
+	// Indicate to all submodules current change
+	Connect_currentChange( current );
+	Matrix_currentChange( current );
+	LED_currentChange( current );
+	LCD_currentChange( current );
 }
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 by Jacob Alexander
+/* Copyright (C) 2015-2016 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,4 +27,6 @@
 
 void LCD_setup();
 uint8_t LCD_scan();
+
+void LCD_currentChange( unsigned int current );
 

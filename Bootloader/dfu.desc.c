@@ -1,5 +1,5 @@
 // Originally Generated from MCHCK Toolkit
-/* Copyright (c) Jacob Alexander 2014-2015 <haata@kiibohd.com>
+/* Copyright (c) Jacob Alexander 2014-2016 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@ static const struct usb_config_1 usb_config_1 = {
 		.bConfigurationValue = 1,
 		.iConfiguration = 0,
 		.one = 1,
-		.bMaxPower = 100
+		.bMaxPower = 50
 	},
 	.usb_function_0 = {
 		.iface = {

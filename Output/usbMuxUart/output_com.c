@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -142,6 +142,14 @@ volatile uint8_t  Output_Available = 0;
 // 0 - Debug disabled (default)
 // 1 - Debug enabled
 uint8_t  Output_DebugMode = 0;
+
+// mA - Set by outside module if not using USB (i.e. Interconnect)
+// Generally set to 100 mA (low power) or 500 mA (high power)
+uint16_t Output_ExtCurrent_Available = 0;
+
+// mA - Set by USB module (if exists)
+// Initially 100 mA, but may be negotiated higher (e.g. 500 mA)
+uint16_t Output_USBCurrent_Available = 0;
 
 
 
@@ -544,6 +552,10 @@ inline void Output_setup()
 // USB Data Send
 inline void Output_send()
 {
+	// USB status checks
+	// Non-standard USB state manipulation, usually does nothing
+	usb_device_check();
+
 	// Boot Mode Only, unset stale keys
 	if ( USBKeys_Protocol == 0 )
 		for ( uint8_t c = USBKeys_Sent; c < USB_BOOT_MAX_KEYS; c++ )
@@ -639,6 +651,72 @@ inline void Output_softReset()
 {
 	usb_device_software_reset();
 }
+
+
+// Update USB current (mA)
+// Triggers power change event
+void Output_update_usb_current( unsigned int current )
+{
+	// Only signal if changed
+	if ( current == Output_USBCurrent_Available )
+		return;
+
+	// Update USB current
+	Output_USBCurrent_Available = current;
+
+	unsigned int total_current = Output_current_available();
+	info_msg("USB Available Current Changed. Total Available: ");
+	printInt32( total_current );
+	print(" mA" NL);
+
+	// Send new total current to the Scan Modules
+	Scan_currentChange( Output_current_available() );
+}
+
+
+// Update external current (mA)
+// Triggers power change event
+void Output_update_external_current( unsigned int current )
+{
+	// Only signal if changed
+	if ( current == Output_ExtCurrent_Available )
+		return;
+
+	// Update external current
+	Output_ExtCurrent_Available = current;
+
+	unsigned int total_current = Output_current_available();
+	info_msg("External Available Current Changed. Total Available: ");
+	printInt32( total_current );
+	print(" mA" NL);
+
+	// Send new total current to the Scan Modules
+	Scan_currentChange( Output_current_available() );
+}
+
+
+// Power/Current Available
+unsigned int Output_current_available()
+{
+	unsigned int total_current = 0;
+
+	// Check for USB current source
+	total_current += Output_USBCurrent_Available;
+
+	// Check for external current source
+	total_current += Output_ExtCurrent_Available;
+
+	// XXX If the total available current is still 0
+	// Set to 100 mA, which is generally a safe assumption at startup
+	// before we've been able to determine actual available current
+	if ( total_current == 0 )
+	{
+		total_current = 100;
+	}
+
+	return total_current;
+}
+
 
 
 // ----- CLI Command Functions -----

@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander (2013-2015)
+ * Modifications by Jacob Alexander (2013-2016)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -168,6 +168,9 @@ volatile uint8_t usb_reboot_timer = 0;
 
 static uint8_t reply_buffer[8];
 
+static uint8_t power_neg_delay;
+static uint32_t power_neg_time;
+
 
 
 // ----- Functions -----
@@ -188,6 +191,34 @@ static void endpoint0_transmit( const void *data, uint32_t len )
 	ep0_tx_bdt_bank ^= 1;
 }
 
+// Used to check any USB state changes that may not have a proper interrupt
+// Called once per scan loop, should take minimal processing time or it may affect other modules
+void usb_device_check()
+{
+	// Check to see if we're still waiting for the next USB request after Get Configuration Descriptor
+	// If still waiting, restart the USB initialization with a lower power requirement
+	if ( power_neg_delay )
+	{
+		// Check if 100 ms has elapsed
+		if ( systick_millis_count - power_neg_time > 100 )
+		{
+			// Update bMaxPower
+			// The value set is in increments of 2 mA
+			// So 50 * 2 mA = 100 mA
+			// XXX Currently only transitions to 100 mA
+			//     It may be possible to transition down again to 20 mA
+			*usb_bMaxPower = 50;
+
+			// Re-initialize USB
+			power_neg_delay = 0;
+			usb_configuration = 0; // Clear USB configuration if we have one
+			USB0_CONTROL = 0; // Disable D+ Pullup to simulate disconnect
+			delay(10); // Delay is necessary to simulate disconnect
+			usb_init();
+		}
+	}
+}
+
 static void usb_setup()
 {
 	const uint8_t *data = NULL;
@@ -198,6 +229,13 @@ static void usb_setup()
 	uint8_t epconf;
 	const uint8_t *cfg;
 	int i;
+
+	// If another request is made, disable the power negotiation check
+	// See GET_DESCRIPTOR - Configuration
+	if ( power_neg_delay )
+	{
+		power_neg_delay = 0;
+	}
 
 	switch ( setup.wRequestAndType )
 	{
@@ -212,6 +250,10 @@ static void usb_setup()
 		Output_Available = usb_configuration;
 		reg = &USB0_ENDPT1;
 		cfg = usb_endpoint_config_table;
+
+		// Now configured so we can utilize bMaxPower now
+		Output_update_usb_current( *usb_bMaxPower * 2 );
+
 		// clear all BDT entries, free any allocated memory...
 		for ( i = 4; i < ( NUM_ENDPOINTS + 1) * 4; i++ )
 		{
@@ -324,9 +366,27 @@ static void usb_setup()
 		goto send;
 
 	case 0x0100: // CLEAR_FEATURE (device)
+		switch ( setup.wValue )
+		{
+		// CLEAR_FEATURE(DEVICE_REMOTE_WAKEUP)
+		// See SET_FEATURE(DEVICE_REMOTE_WAKEUP) for details
+		case 0x1:
+			goto send;
+		}
+
+		warn_msg("SET_FEATURE - Device wValue(");
+		printHex( setup.wValue );
+		print( ")" NL );
+		endpoint0_stall();
+		return;
+
 	case 0x0101: // CLEAR_FEATURE (interface)
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
-		warn_print("CLEAR_FEATURE - Device/Interface");
+		warn_msg("CLEAR_FEATURE - Interface wValue(");
+		printHex( setup.wValue );
+		print(") wIndex(");
+		printHex( setup.wIndex );
+		print( ")" NL );
 		endpoint0_stall();
 		return;
 
@@ -342,9 +402,30 @@ static void usb_setup()
 		goto send;
 
 	case 0x0300: // SET_FEATURE (device)
+		switch ( setup.wValue )
+		{
+		// SET_FEATURE(DEVICE_REMOTE_WAKEUP)
+		// XXX: Only used to confirm Remote Wake
+		//      Used on Mac OSX and Windows not on Linux
+		// Good post on the behaviour:
+		// http://community.silabs.com/t5/8-bit-MCU/Remote-wakeup-HID/m-p/74957#M30802
+		case 0x1:
+			goto send;
+		}
+
+		warn_msg("SET_FEATURE - Device wValue(");
+		printHex( setup.wValue );
+		print( ")" NL );
+		endpoint0_stall();
+		return;
+
 	case 0x0301: // SET_FEATURE (interface)
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
-		warn_print("SET_FEATURE - Device/Interface");
+		warn_msg("SET_FEATURE - Interface wValue(");
+		printHex( setup.wValue );
+		print(") wIndex(");
+		printHex( setup.wIndex );
+		print( ")" NL );
 		endpoint0_stall();
 		return;
 
@@ -385,6 +466,27 @@ static void usb_setup()
 				{
 					datalen = list->length;
 				}
+
+				// XXX Power negotiation hack -HaaTa
+				// Some devices such as the Apple Ipad do not support bMaxPower greater than 100 mA
+				// However, there is no provision in the basic USB 2.0 stack for power negotiation
+				// To get around this:
+				//  * Attempt to set bMaxPower to 500 mA first
+				//  * If more than 100 ms passes since retrieving a Get Configuration Descriptor
+				//    (Descriptor with bMaxPower in it)
+				//  * Change usb_bMaxPower to 50 (100 mA)
+				//  * Restart the USB init process
+				// According to notes online, it says that some Apple devices can only do 20 mA
+				// However, in my testing this hasn't been the case
+				// (you can also draw as much current as you want if you just lie in the descriptor :P)
+				// If this becomes an issue we can use this hack a second time to negotiate down to 20 mA
+				// (which should be fine for just the mcu)
+				if ( setup.wValue == 0x0200 && setup.wIndex == 0x0 )
+				{
+					power_neg_delay = 1;
+					power_neg_time = systick_millis_count;
+				}
+
 				#if UART_DEBUG
 				print("Desc found, ");
 				printHex32( (uint32_t)data );
@@ -862,6 +964,11 @@ void usb_rx_memory( usb_packet_t *packet )
 
 void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 {
+	// Since we are transmitting data, USB will be brought out of sleep/suspend
+	// if it's in that state
+	// Use the currently set descriptor value
+	Output_update_usb_current( *usb_bMaxPower * 2 );
+
 	bdt_t *b = &table[ index( endpoint, TX, EVEN ) ];
 	uint8_t next;
 
@@ -1161,9 +1268,12 @@ restart:
 		USB0_ISTAT = USB_ISTAT_ERROR;
 	}
 
+	// USB Host signalling device to enter 'sleep' state
+	// The USB Module triggers this interrupt when it detects the bus has been idle for 3 ms
 	if ( (status & USB_ISTAT_SLEEP /* 10 */ ) )
 	{
-		//serial_print("sleep\n");
+		info_print("Host has requested USB sleep/suspend state");
+		Output_update_usb_current( 100 ); // Set to 100 mA
 		USB0_ISTAT = USB_ISTAT_SLEEP;
 	}
 }
@@ -1219,6 +1329,9 @@ uint8_t usb_init()
 
 	// enable d+ pullup
 	USB0_CONTROL = USB_CONTROL_DPPULLUPNONOTG;
+
+	// Do not check for power negotiation delay until Get Configuration Descriptor
+	power_neg_delay = 0;
 
 	return 1;
 }

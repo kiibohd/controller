@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -157,4 +157,6 @@ inline uint8_t keyOn(/*KeyPosition*/uint8_t st)
 
 void Matrix_setup();
 void Matrix_scan( uint16_t scanNum );
+
+void Matrix_currentChange( unsigned int current );
 
