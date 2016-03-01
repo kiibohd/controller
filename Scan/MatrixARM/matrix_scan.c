@@ -30,6 +30,7 @@
 #include <led.h>
 #include <print.h>
 #include <macro.h>
+#include <Lib/delay.h>
 
 // Local Includes
 #include "matrix_scan.h"
@@ -110,7 +111,9 @@ uint8_t Matrix_pin( GPIO_Pin gpio, Type type )
 	// Assumes 0x40 between GPIO Port registers and 0x1000 between PORT pin registers
 	// See Lib/mk20dx.h
 	volatile unsigned int *GPIO_PDDR = (unsigned int*)(&GPIOA_PDDR) + gpio_offset;
+	#ifndef GHOSTING_MATRIX
 	volatile unsigned int *GPIO_PSOR = (unsigned int*)(&GPIOA_PSOR) + gpio_offset;
+	#endif
 	volatile unsigned int *GPIO_PCOR = (unsigned int*)(&GPIOA_PCOR) + gpio_offset;
 	volatile unsigned int *GPIO_PDIR = (unsigned int*)(&GPIOA_PDIR) + gpio_offset;
 	volatile unsigned int *PORT_PCR  = (unsigned int*)(&PORTA_PCR0) + port_offset;
@@ -119,23 +122,30 @@ uint8_t Matrix_pin( GPIO_Pin gpio, Type type )
 	switch ( type )
 	{
 	case Type_StrobeOn:
-		*GPIO_PSOR |= (1 << gpio.pin);
 		#ifdef GHOSTING_MATRIX
-		*GPIO_PDDR |= (1 << gpio.pin);  // output
+		*GPIO_PCOR |= (1 << gpio.pin);
+		*GPIO_PDDR |= (1 << gpio.pin);  // output, low
+		#else
+		*GPIO_PSOR |= (1 << gpio.pin);
 		#endif
 		break;
 
 	case Type_StrobeOff:
-		*GPIO_PCOR |= (1 << gpio.pin);
 		#ifdef GHOSTING_MATRIX
 		// Ghosting martix needs to put not used (off) strobes in high impedance state
 		*GPIO_PDDR &= ~(1 << gpio.pin);  // input, high Z state
 		#endif
+		*GPIO_PCOR |= (1 << gpio.pin);
 		break;
 
 	case Type_StrobeSetup:
+		#ifdef GHOSTING_MATRIX
+		*GPIO_PDDR &= ~(1 << gpio.pin);  // input, high Z state
+		*GPIO_PCOR |= (1 << gpio.pin);
+		#else
 		// Set as output pin
 		*GPIO_PDDR |= (1 << gpio.pin);
+		#endif
 
 		// Configure pin with slow slew, high drive strength and GPIO mux
 		*PORT_PCR = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
@@ -154,7 +164,11 @@ uint8_t Matrix_pin( GPIO_Pin gpio, Type type )
 		break;
 
 	case Type_Sense:
+		#ifdef GHOSTING_MATRIX  // inverted
+		return *GPIO_PDIR & (1 << gpio.pin) ? 0 : 1;
+		#else
 		return *GPIO_PDIR & (1 << gpio.pin) ? 1 : 0;
+		#endif
 
 	case Type_SenseSetup:
 		// Set as input pin
@@ -294,8 +308,18 @@ void Matrix_scan( uint16_t scanNum )
 	// For each strobe, scan each of the sense pins
 	for ( uint8_t strobe = 0; strobe < Matrix_colsNum; strobe++ )
 	{
+		#ifdef STROBE_DELAY
+		uint32_t start = micros();
+		while ((micros() - start) < STROBE_DELAY);
+		#endif
+
 		// Strobe Pin
 		Matrix_pin( Matrix_cols[ strobe ], Type_StrobeOn );
+
+		#ifdef STROBE_DELAY
+		start = micros();
+		while ((micros() - start) < STROBE_DELAY);
+		#endif
 
 		// Scan each of the sense pins
 		for ( uint8_t sense = 0; sense < Matrix_rowsNum; sense++ )
@@ -510,10 +534,6 @@ void Matrix_scan( uint16_t scanNum )
 			KeyPosition k = !st->cur 
 				? (!st->prev ? KeyState_Off : KeyState_Release)
 				: ( st->prev ? KeyState_Hold : KeyState_Press);
-			//if (!st->cur && !st->prev)  k = KeyState_Off; else
-			//if ( st->cur &&  st->prev)  k = KeyState_Hold; else
-			//if ( st->cur && !st->prev)  k = KeyState_Press; else
-			//if (!st->cur &&  st->prev)  k = KeyState_Release;
 			Macro_keyState( key, k );
 		}
 	}
