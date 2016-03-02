@@ -639,12 +639,26 @@ uint8_t I2C_Send( uint8_t *data, uint8_t sendLen, uint8_t recvLen )
 
 
 // LED State processing loop
+unsigned int LED_currentEvent = 0;
 inline uint8_t LED_scan()
 {
+	// Check for current change event
+	if ( LED_currentEvent )
+	{
+		// TODO dim LEDs in low power mode instead of shutting off
+		if ( LED_currentEvent < 150 )
+		{
+			// Enable Software shutdown of ISSI chip
+			LED_writeReg( 0x0A, 0x00, 0x0B );
+		}
+		else
+		{
+			// Disable Software shutdown of ISSI chip
+			LED_writeReg( 0x0A, 0x01, 0x0B );
+		}
 
-	// I2C Busy
-	// S & I2C_S_BUSY
-	//I2C_S_BUSY
+		LED_currentEvent = 0;
+	}
 
 	return 0;
 }
@@ -654,17 +668,8 @@ inline uint8_t LED_scan()
 // current - mA
 void LED_currentChange( unsigned int current )
 {
-	// TODO dim LEDs in low power mode instead of shutting off
-	if ( current < 150 )
-	{
-		// Enabled Software shutdown of ISSI chip
-		LED_writeReg( 0x0A, 0x00, 0x0B );
-	}
-	else
-	{
-		// Disable Software shutdown of ISSI chip
-		LED_writeReg( 0x0A, 0x01, 0x0B );
-	}
+	// Delay action till next LED scan loop (as this callback sometimes occurs during interrupt requests)
+	LED_currentEvent = current;
 }
 
 
