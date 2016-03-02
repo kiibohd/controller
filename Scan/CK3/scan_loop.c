@@ -175,6 +175,15 @@ void CustomAction_blockKey_capability( uint8_t state, uint8_t stateType, uint8_t
 }
 
 
+// Signal from the Output Module that the available current has changed
+// current - mA
+void Scan_currentChange( unsigned int current )
+{
+	// Indicate to all submodules current change
+	Matrix_currentChange( current );
+}
+
+
 
 // ----- CLI Command Functions -----
 
