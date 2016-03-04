@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2014
+# Jacob Alexander 2011-2016
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -110,6 +110,13 @@ set( COMPILER_SRCS
 	Lib/${CHIP_FAMILY}.c
 	Lib/delay.c
 )
+
+#| Clang needs a few more functions for linking
+if ( "${COMPILER}" MATCHES "clang" )
+	set( COMPILER_SRCS ${COMPILER_SRCS}
+		Lib/clang.c
+	)
+endif ()
 
 message( STATUS "Compiler Source Files:" )
 message( "${COMPILER_SRCS}" )

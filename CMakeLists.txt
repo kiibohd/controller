@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2015
+# Jacob Alexander 2011-2016
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -25,7 +25,8 @@ set( CHIP
 	"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
 #       "mk20dx256"        # Teensy   3.1,3.2 (arm)
 #       "mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
-	CACHE STRING "Microcontroller Chip" )
+	CACHE STRING "Microcontroller Chip"
+)
 
 
 
@@ -33,13 +34,14 @@ set( CHIP
 # Compiler Selection
 #
 
-#| *** EXPERIMENTAL ***
-#| Stick with gcc unless you know what you're doing
+#| gcc has been tested much more (and will likely give smaller binaries)
+#| clang does work though
 #| Currently only arm is supported with clang
 set( COMPILER
 	"gcc"   # arm-none-eabi-gcc / avr-gcc - Default
 #       "clang" # arm-none-eabi
-	CACHE STRING "Compiler Type" )
+	CACHE STRING "Compiler Type"
+)
 
 
 
@@ -72,11 +74,13 @@ set(  MacroModule "PartialMap"
 
 ##| Sends the current list of usb key codes through USB HID
 set( OutputModule "pjrcUSB"
-	CACHE STRING "Output Module" )
+	CACHE STRING "Output Module"
+)
 
 ##| Debugging source to use, each module has it's own set of defines that it sets
 set(  DebugModule "full"
-	CACHE STRING "Debug Module" )
+	CACHE STRING "Debug Module"
+)
 
 
 
