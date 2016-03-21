@@ -2,20 +2,26 @@
 ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789]?", ENV{ID_MM_DEVICE_IGNORE}="1"
 ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789]?", ENV{MTP_NO_PROBE}="1"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789]?", MODE:="0666"
+
 # Kiibohd Serial Interface
 KERNEL=="ttyACM*", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789]?", SYMLINK+="kiibohd", MODE:="0666",
 KERNEL=="ttyACM*", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="b04d", SYMLINK+="kiibohd", MODE:="0666"
 KERNEL=="ttyACM*", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="f05c", SYMLINK+="kiibohd", MODE:="0666"
+
 # Kiibohd Device
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="b04d", MODE:="0666"
+
 # DFU Bootloader (MCHCK)
 ATTRS{idVendor}=="2323", ATTRS{idProduct}=="0001", ENV{ID_MM_DEVICE_IGNORE}="1"
 ATTRS{idVendor}=="2323", ATTRS{idProduct}=="0001", ENV{MTP_NO_PROBE}="1"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="2323", ATTRS{idProduct}=="0001", MODE:="0666"
+
 # Kiibohd DFU Bootloader
 ATTRS{idVendor}=="1C11", ATTRS{idProduct}=="b007", ENV{ID_MM_DEVICE_IGNORE}="1"
 ATTRS{idVendor}=="1C11", ATTRS{idProduct}=="b007", ENV{MTP_NO_PROBE}="1"
 SUBSYSTEMS=="usb", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="b007", MODE:="0666"
+
 # Kiibohd Force Gauge
 SUBSYSTEM=="tty", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="f05c", GROUP="users", MODE="0666", SYMLINK+="force"
+SUBSYSTEMS=="usb", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="f05c", MODE:="0666"
 

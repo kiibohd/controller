@@ -1,10 +1,10 @@
 Name = pjrcUSBCapabilities;
-Version = 0.6;
-Author = "HaaTa (Jacob Alexander) 2014-2015";
-KLL = 0.3c;
+Version = 0.7;
+Author = "HaaTa (Jacob Alexander) 2014-2016";
+KLL = 0.3d;
 
 # Modified Date
-Date = 2015-08-21;
+Date = 2016-03-20;
 
 
 # Output capabilities
@@ -12,6 +12,7 @@ consCtrlOut => Output_consCtrlSend_capability( consCode : 2 );
 noneOut     => Output_noneSend_capability();
 sysCtrlOut  => Output_sysCtrlSend_capability( sysCode : 1 );
 usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
+mouseOut    => Output_usbMouse_capability( mouseCode : 2 );
 
 # Configuration capabilities
 kbdProtocolBoot => Output_kbdProtocolBoot_capability();
@@ -20,6 +21,12 @@ kbdProtocolNKRO => Output_kbdProtocolNKRO_capability();
 # Locale Settings
 keyboardLocale => KeyboardLocale_define;
 keyboardLocale = 0;
+
+# Default KRO Mode
+# Set to 0 for Boot Mode (6KRO)
+# Set to 1 for NKRO Mode (default)
+usbProtocol => USBProtocol_define;
+usbProtocol = 1;
 
 # Bootloader Mode capability
 # XXX

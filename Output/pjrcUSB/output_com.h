@@ -72,11 +72,14 @@ extern          uint16_t USBKeys_ConsCtrl; // 1KRO container for Consumer Contro
 
 extern volatile uint8_t  USBKeys_Protocol; // 0 - Boot Mode, 1 - NKRO Mode
 
+extern volatile uint16_t USBMouse_Buttons; // Bitmask for mouse buttons
+
 // Misc variables (XXX Some are only properly utilized using AVR)
 extern          uint8_t  USBKeys_Idle_Config;
 extern          uint8_t  USBKeys_Idle_Count;
 
 extern USBKeyChangeState USBKeys_Changed;
+extern          uint8_t  USBMouse_Changed;
 
 extern volatile uint8_t  Output_Available; // 0 - Output module not fully functional, 1 - Output module working
 

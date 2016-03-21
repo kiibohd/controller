@@ -314,21 +314,16 @@ static uint8_t mouse_report_desc[] = {
 	0xa1, 0x02,        //   Collection (Logical)
 	0x09, 0x01,        //     Usage (Pointer)
 
-	// Buttons (5 bits)
+	// Buttons (8 bits)
 	0xa1, 0x00,        //     Collection (Physical) - Buttons
 	0x05, 0x09,        //       Usage Page (Button)
 	0x19, 0x01,        //       Usage Minimum (Button 1)
-	0x29, 0x05,        //       Usage Maximum (Button 5)
+	0x29, 0x08,        //       Usage Maximum (Button 8)
 	0x15, 0x00,        //       Logical Minimum (0)
 	0x25, 0x01,        //       Logical Maximum (1)
 	0x75, 0x01,        //       Report Size (1)
-	0x95, 0x05,        //       Report Count (5)
+	0x95, 0x08,        //       Report Count (8)
 	0x81, 0x02,        //       Input (Data,Var,Abs)
-
-	// Padding (3 bits)
-	0x75, 0x03,        //       Report Size (3)
-	0x95, 0x01,        //       Report Count (1)
-	0x81, 0x03,        //       Input (Cnst,Var,Abs)
 
 	// Pointer (16 bits)
 	0x05, 0x01,        //       Usage PAGE (Generic Desktop)
