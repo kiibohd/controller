@@ -171,18 +171,18 @@ void usb_mouse_send()
         transmit_previous_timeout = 0;
 
         // Prepare USB Mouse Packet
-        // TODO Document each byte
         // TODO Dynamically generate this code based on KLL requirements
-        *(tx_packet->buf + 0) = USBMouse_Buttons;
-        *(tx_packet->buf + 1) = 0;
-        *(tx_packet->buf + 2) = 0;
-        *(tx_packet->buf + 3) = 0;
-        *(tx_packet->buf + 4) = 0;
-        tx_packet->len = 5;
+        uint16_t *packet_data = (uint16_t*)(&tx_packet->buf[0]);
+        packet_data[0] = USBMouse_Buttons;
+        packet_data[1] = USBMouse_Relative_x;
+        packet_data[2] = USBMouse_Relative_y;
+        tx_packet->len = 6;
         usb_tx( MOUSE_ENDPOINT, tx_packet );
 
         // Clear status and state
         USBMouse_Buttons = 0;
+        USBMouse_Relative_x = 0;
+        USBMouse_Relative_y = 0;
         USBMouse_Changed = 0;
 }
 

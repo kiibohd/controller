@@ -1,10 +1,10 @@
 Name = pjrcUSBCapabilities;
-Version = 0.7;
+Version = 0.8;
 Author = "HaaTa (Jacob Alexander) 2014-2016";
 KLL = 0.3d;
 
 # Modified Date
-Date = 2016-03-20;
+Date = 2016-03-21;
 
 
 # Output capabilities
@@ -12,7 +12,7 @@ consCtrlOut => Output_consCtrlSend_capability( consCode : 2 );
 noneOut     => Output_noneSend_capability();
 sysCtrlOut  => Output_sysCtrlSend_capability( sysCode : 1 );
 usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
-mouseOut    => Output_usbMouse_capability( mouseCode : 2 );
+mouseOut    => Output_usbMouse_capability( mouseCode : 2, relative_x : 2, relative_y : 2 );
 
 # Configuration capabilities
 kbdProtocolBoot => Output_kbdProtocolBoot_capability();

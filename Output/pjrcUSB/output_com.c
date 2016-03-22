@@ -119,6 +119,10 @@ volatile uint8_t  USBKeys_LEDs = 0;
 // Currently pressed mouse buttons, bitmask, 0 represents no buttons pressed
 volatile uint16_t USBMouse_Buttons = 0;
 
+// Relative mouse axis movement, stores pending movement
+volatile uint16_t USBMouse_Relative_x = 0;
+volatile uint16_t USBMouse_Relative_y = 0;
+
 // Protocol setting from the host.
 // 0 - Boot Mode
 // 1 - NKRO Mode (Default, unless set by a BIOS or boot interface)
@@ -129,7 +133,7 @@ volatile uint8_t  USBKeys_Protocol = USBProtocol_define;
 USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 
 // Indicate if USB should send update
-uint8_t USBMouse_Changed = 0;
+USBMouseChangeState USBMouse_Changed = 0;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
@@ -519,13 +523,15 @@ void Output_flashMode_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 // Sends a mouse command over the USB Output buffer
 // XXX This function *will* be changing in the future
 //     If you use it, be prepared that your .kll files will break in the future (post KLL 0.5)
-// Argument #1: USB Mouse Button #
+// Argument #1: USB Mouse Button (16 bit)
+// Argument #2: USB X Axis (16 bit) relative
+// Argument #3: USB Y Axis (16 bit) relative
 void Output_usbMouse_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
-		print("Output_usbMouse(mouseButton)");
+		print("Output_usbMouse(mouseButton,relX,relY)");
 		return;
 	}
 
@@ -537,25 +543,38 @@ void Output_usbMouse_capability( uint8_t state, uint8_t stateType, uint8_t *args
 	// 3 - Button 3 - (Tertiary)
 	uint16_t mouse_button = *(uint16_t*)(&args[0]);
 
-	// If set to zero, ignore
-	if ( mouse_button == 0 )
-		return;
+	// X/Y Relative Axis
+	uint16_t mouse_x = *(uint16_t*)(&args[2]);
+	uint16_t mouse_y = *(uint16_t*)(&args[4]);
 
 	// Adjust for bit shift
-	mouse_button -= 1;
+	uint16_t mouse_button_shift = mouse_button - 1;
 
 	// Only send mouse button if in press or hold state
 	if ( stateType == 0x00 && state == 0x03 ) // Release state
 	{
-		USBMouse_Buttons &= ~(1 << mouse_button);
+		// Release
+		if ( mouse_button )
+			USBMouse_Buttons &= ~(1 << mouse_button_shift);
 	}
 	else
 	{
-		USBMouse_Buttons |= (1 << mouse_button);
+		// Press or hold
+		if ( mouse_button )
+			USBMouse_Buttons |= (1 << mouse_button_shift);
+
+		if ( mouse_x )
+			USBMouse_Relative_x = mouse_x;
+		if ( mouse_y )
+			USBMouse_Relative_y = mouse_y;
 	}
 
-	// TODO Add more states when adding full support
-	USBMouse_Changed = 1;
+	// Trigger updates
+	if ( mouse_button )
+		USBMouse_Changed |= USBMouseChangeState_Buttons;
+
+	if ( mouse_x || mouse_y )
+		USBMouse_Changed |= USBMouseChangeState_Relative;
 }
 
 
