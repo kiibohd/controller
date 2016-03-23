@@ -52,6 +52,7 @@ nat_ptr_t Matrix_divCounter = 0;
 
 // CLI Functions
 void cliFunc_matrixDebug( char* args );
+void cliFunc_matrixInfo( char* args );
 void cliFunc_matrixState( char* args );
 
 
@@ -60,10 +61,12 @@ void cliFunc_matrixState( char* args );
 
 // Scan Module command dictionary
 CLIDict_Entry( matrixDebug,  "Enables matrix debug mode, prints out each scan code." NL "\t\tIf argument \033[35mT\033[0m is given, prints out each scan code state transition." );
+CLIDict_Entry( matrixInfo,   "Print info about the configured matrix." );
 CLIDict_Entry( matrixState,  "Prints out the current scan table N times." NL "\t\t \033[1mO\033[0m - Off, \033[1;33mP\033[0m - Press, \033[1;32mH\033[0m - Hold, \033[1;35mR\033[0m - Release, \033[1;31mI\033[0m - Invalid" );
 
 CLIDict_Def( matrixCLIDict, "Matrix Module Commands" ) = {
 	CLIDict_Item( matrixDebug ),
+	CLIDict_Item( matrixInfo ),
 	CLIDict_Item( matrixState ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
@@ -204,29 +207,17 @@ void Matrix_setup()
 	// Register Matrix CLI dictionary
 	CLI_registerDictionary( matrixCLIDict, matrixCLIDictName );
 
-	info_msg("Columns:  ");
-	printHex( Matrix_colsNum );
-
 	// Setup Strobe Pins
 	for ( uint8_t pin = 0; pin < Matrix_colsNum; pin++ )
 	{
 		Matrix_pin( Matrix_cols[ pin ], Type_StrobeSetup );
 	}
 
-	print( NL );
-	info_msg("Rows:     ");
-	printHex( Matrix_rowsNum );
-
 	// Setup Sense Pins
 	for ( uint8_t pin = 0; pin < Matrix_rowsNum; pin++ )
 	{
 		Matrix_pin( Matrix_rows[ pin ], Type_SenseSetup );
 	}
-
-	print( NL );
-	info_msg("Max Keys: ");
-	printHex( Matrix_maxKeys );
-	print( NL );
 
 	// Clear out Debounce Array
 	for ( uint8_t item = 0; item < Matrix_maxKeys; item++ )
@@ -598,7 +589,22 @@ void Matrix_currentChange( unsigned int current )
 
 // ----- CLI Command Functions -----
 
-void cliFunc_matrixDebug ( char* args )
+void cliFunc_matrixInfo( char* args )
+{
+	print( NL );
+	info_msg("Columns:  ");
+	printHex( Matrix_colsNum );
+
+	print( NL );
+	info_msg("Rows:     ");
+	printHex( Matrix_rowsNum );
+
+	print( NL );
+	info_msg("Max Keys: ");
+	printHex( Matrix_maxKeys );
+}
+
+void cliFunc_matrixDebug( char* args )
 {
 	// Parse number from argument
 	//  NOTE: Only first argument is used
@@ -632,7 +638,7 @@ void cliFunc_matrixDebug ( char* args )
 	printInt8( matrixDebugMode );
 }
 
-void cliFunc_matrixState ( char* args )
+void cliFunc_matrixState( char* args )
 {
 	// Parse number from argument
 	//  NOTE: Only first argument is used
