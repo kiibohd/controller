@@ -1,0 +1,11 @@
+Name = CapSenseCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2016";
+KLL = 0.3d;
+
+# Modified Date
+Date = 2016-04-11;
+
+# Defines available to the CapSense sub-module
+# TODO Add cap sense configuration here
+
