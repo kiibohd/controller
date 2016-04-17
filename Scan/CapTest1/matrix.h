@@ -25,8 +25,39 @@
 
 // ----- Matrix Definition -----
 
+// CapTest
+// (TODO)
+//
+// Strobe
+//  PTB0..3,16,17
+//  PTC4,5
+//  PTD0
+//
+// Sense
+//  PTD1..7
+
+
+// -- Strobes --
+// Format
+//  gpio( <port letter>, <port #> )
+// Freescale ARM MK20's support GPIO PTA, PTB, PTC, PTD and PTE 0..31
+// Not all chips have access to all of these pins (most don't have 160 pins :P)
+//
+
+GPIO_Pin Matrix_strobe[] = { gpio(B,0), gpio(B,1), gpio(B,2), gpio(B,3), gpio(B,16), gpio(B,17), gpio(C,4), gpio(C,5), gpio(D,0) };
+
+
+// -- Sense --
+// Format
+//  sense( <port letter>, <port #>, <adc #>, <adc channel #> )
+// Freescale ARM MK20's support 32 ADC channels
+// However, not every channel is useful for reading from an input pin.
+//
+// NOTE: Be careful that you are not using a strobe and a sense at the same time!
+//
+
+ADC_Pin Matrix_sense[] = { sense(B,4,0,5) };
+
 // TODO
-// Define possible strobes
-// Define possible senses
 // Misc pins required for control
 

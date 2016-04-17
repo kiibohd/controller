@@ -64,10 +64,125 @@ CLIDict_Def( matrixCLIDict, "Matrix Module Commands" ) = {
 
 // ----- Functions -----
 
+// TODO
+// - Support multiple ADCs
+// - Channel/Mux setup
+void ADC_setup( ADC adc )
+{
+
+	// Enable ADC clock
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_)
+	SIM_SCGC6 |= SIM_SCGC6_ADC0;
+#elif defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+	SIM_SCGC6 |= SIM_SCGC6_ADC0;
+	SIM_SCGC3 |= SIM_SCGC3_ADC1;
+#endif
+
+	// Lookup base ADC register
+	volatile unsigned int *ADC_SC1A = (unsigned int*)(&ADC_reg_offset_map[adc]);
+
+	// Calculate Register offsets
+	volatile unsigned int *ADC_CFG1 = (unsigned int*)(&ADC_SC1A) + 0x08;
+	volatile unsigned int *ADC_CFG2 = (unsigned int*)(&ADC_SC1A) + 0x0C;
+	volatile unsigned int *ADC_SC2  = (unsigned int*)(&ADC_SC1A) + 0x20;
+	volatile unsigned int *ADC_SC3  = (unsigned int*)(&ADC_SC1A) + 0x24;
+	volatile unsigned int *ADC_PG   = (unsigned int*)(&ADC_SC1A) + 0x2C;
+	volatile unsigned int *ADC_CLPS = (unsigned int*)(&ADC_SC1A) + 0x38;
+	volatile unsigned int *ADC_CLP4 = (unsigned int*)(&ADC_SC1A) + 0x3C;
+	volatile unsigned int *ADC_CLP3 = (unsigned int*)(&ADC_SC1A) + 0x40;
+	volatile unsigned int *ADC_CLP2 = (unsigned int*)(&ADC_SC1A) + 0x44;
+	volatile unsigned int *ADC_CLP1 = (unsigned int*)(&ADC_SC1A) + 0x48;
+	volatile unsigned int *ADC_CLP0 = (unsigned int*)(&ADC_SC1A) + 0x4C;
+
+	// Make sure calibration has stopped
+	*ADC_SC3 = 0;
+
+	// - CFG1 -
+	// ADIV:   (input)/2 divider
+	// ADICLK:   (bus)/2 divider
+	// MODE:   16-bit
+	// ADLSMP: Long sample
+	//ADC_CFG1 = ADC_CFG1_ADIV(1) | ADC_CFG1_ADICLK(1) | ADC_CFG1_MODE(3) | ADC_CFG1_ADLSMP;
+	// ADIV:   (input)/8 divider
+	*ADC_CFG1 = ADC_CFG1_ADIV(3) | ADC_CFG1_ADICLK(1) | ADC_CFG1_MODE(3) | ADC_CFG1_ADLSMP;
+
+	// - CFG2 -
+	// ADLSTS: 6 extra ADCK cycles; 10 ADCK cycles total sample time
+	//ADC_CFG2 = ADC_CFG2_ADLSTS(2);
+	// ADLSTS: 20 extra ADCK cycles; 24 ADCK cycles total sample time
+	*ADC_CFG2 = ADC_CFG2_ADLSTS(0);
+
+	// - SC2 -
+	// REFSEL: Use default 3.3V reference
+	*ADC_SC2 = ADC_SC2_REFSEL(0);
+	/*
+	// Setup VREF to 1.2 V
+	VREF_TRM = 0x60;
+	VREF_SC = 0xE1; // Enable 1.2 volt ref
+	// REFSEL: Use 1.2V reference VREF
+	*ADC_SC2 = ADC_SC2_REFSEL(1);
+	*/
+
+	// - SC3 -
+	// CAL:  Start calibration
+	// AVGE: Enable hardware averaging
+	// AVGS: 32 samples averaged
+	// 32 sample averaging
+	*ADC_SC3 = ADC_SC3_CAL | ADC_SC3_AVGE | ADC_SC3_AVGS(3);
+
+	// Wait for calibration
+	while ( *ADC_SC3 & ADC_SC3_CAL );
+
+	// Apply computed calibration offset
+	// XXX Note, for single-ended, only the plus side offsets have to be applied
+	//     For differential the minus side also has to be set as well
+
+	__disable_irq(); // Disable interrupts while reading/setting offsets
+
+	// Set calibration
+	// ADC Plus-Side Gain Register
+	// See Section 31.4.7 in the datasheet (mk20dx256vlh7) for details
+	uint16_t sum = *ADC_CLPS + *ADC_CLP4 + *ADC_CLP3 + *ADC_CLP2 + *ADC_CLP1 + *ADC_CLP0;
+	sum = (sum / 2) | 0x8000;
+	*ADC_PG = sum;
+
+	__enable_irq(); // Re-enable interrupts
+
+	// Start ADC reading loop
+	// - SC1A -
+	// ADCH: Channel DAD0 (A10)
+	// AIEN: Enable interrupt
+	//*ADC_SC1A = ADC_SC1_AIEN | ADC_SC1_ADCH(0);
+
+	// Enable ADC0 IRQ Vector
+	//NVIC_ENABLE_IRQ( IRQ_ADC0 );
+}
+
+// TODO
+// - Enable/Disable strobe detection (IBM)
+// - Setup strobe matrix
+void Strobe_setup()
+{
+}
+
+// TODO
+// - Setup ADCs
+// - Setup ADC muxes
+// - Setup voltage stab
+void Sense_setup()
+{
+}
+
 void Matrix_setup()
 {
 	// Register Matrix CLI dictionary
 	CLI_registerDictionary( matrixCLIDict, matrixCLIDictName );
+
+	// Setup sense
+	Sense_setup();
+
+	// Setup strobes
+	Strobe_setup();
 }
 
 // Scan the matrix for keypresses
