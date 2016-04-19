@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2015)
+ * Modified by Jacob Alexander (2015-2016)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -115,37 +115,77 @@
 
 // ----- Variables -----
 
-// which buttons are currently pressed
-uint8_t usb_mouse_buttons_state=0;
+static uint8_t transmit_previous_timeout = 0;
 
-static uint16_t usb_mouse_resolution_x=DEFAULT_XRES;
-static uint16_t usb_mouse_resolution_y=DEFAULT_YRES;
-static uint16_t usb_mouse_position_x=DEFAULT_XRES/2;
-static uint16_t usb_mouse_position_y=DEFAULT_YRES/2;
-static uint32_t usb_mouse_scale_x=DEFAULT_XSCALE;
-static uint32_t usb_mouse_scale_y=DEFAULT_YSCALE;
-static uint32_t usb_mouse_offset_x=DEFAULT_XSCALE/2-1;
-static uint32_t usb_mouse_offset_y=DEFAULT_YSCALE/2-1;
+// which buttons are currently pressed
+uint8_t usb_mouse_buttons_state = 0;
+
+static uint16_t usb_mouse_resolution_x = DEFAULT_XRES;
+static uint16_t usb_mouse_resolution_y = DEFAULT_YRES;
+static uint16_t usb_mouse_position_x   = DEFAULT_XRES / 2;
+static uint16_t usb_mouse_position_y   = DEFAULT_YRES / 2;
+static uint32_t usb_mouse_scale_x      = DEFAULT_XSCALE;
+static uint32_t usb_mouse_scale_y      = DEFAULT_YSCALE;
+static uint32_t usb_mouse_offset_x     = DEFAULT_XSCALE / 2 - 1;
+static uint32_t usb_mouse_offset_y     = DEFAULT_YSCALE / 2 - 1;
 
 
 
 // ----- Functions -----
 
-// Set the mouse buttons.  To create a "click", 2 calls are needed,
-// one to push the button down and the second to release it
-int usb_mouse_buttons(uint8_t left, uint8_t middle, uint8_t right)
+// Process pending mouse commands
+// XXX Missing mouse movement and wheels
+//     Proper support will require KLL generation of the USB descriptors
+//     Similar support will be required for joystick control
+void usb_mouse_send()
 {
-        uint8_t mask=0;
+	uint32_t wait_count = 0;
+	usb_packet_t *tx_packet;
 
-        if (left) mask |= 1;
-        if (middle) mask |= 4;
-        if (right) mask |= 2;
-        usb_mouse_buttons_state = mask;
-        return usb_mouse_move(0, 0, 0);
+	// Wait till ready
+	while ( 1 )
+	{
+		if ( !usb_configuration )
+		{
+			erro_print("USB not configured...");
+			return;
+		}
+
+                // Attempt to acquire a USB packet for the mouse endpoint
+                if ( usb_tx_packet_count( MOUSE_ENDPOINT ) < TX_PACKET_LIMIT )
+                {
+                        tx_packet = usb_malloc();
+                        if ( tx_packet )
+                                break;
+                }
+
+		if ( ++wait_count > TX_TIMEOUT || transmit_previous_timeout )
+		{
+			transmit_previous_timeout = 1;
+			warn_print("USB Transmit Timeout...");
+			return;
+		}
+		yield();
+        }
+
+        transmit_previous_timeout = 0;
+
+        // Prepare USB Mouse Packet
+        // TODO Dynamically generate this code based on KLL requirements
+        uint16_t *packet_data = (uint16_t*)(&tx_packet->buf[0]);
+        packet_data[0] = USBMouse_Buttons;
+        packet_data[1] = USBMouse_Relative_x;
+        packet_data[2] = USBMouse_Relative_y;
+        tx_packet->len = 6;
+        usb_tx( MOUSE_ENDPOINT, tx_packet );
+
+        // Clear status and state
+        USBMouse_Buttons = 0;
+        USBMouse_Relative_x = 0;
+        USBMouse_Relative_y = 0;
+        USBMouse_Changed = 0;
 }
 
-
-static uint8_t transmit_previous_timeout=0;
 
 // Move the mouse.  x, y and wheel are -127 to 127.  Use 0 for no movement.
 int usb_mouse_move(int8_t x, int8_t y, int8_t wheel)

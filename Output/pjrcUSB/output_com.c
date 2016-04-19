@@ -37,7 +37,11 @@
 #include "arm/usb_dev.h"
 #include "arm/usb_keyboard.h"
 #include "arm/usb_serial.h"
+#include "arm/usb_mouse.h"
 #endif
+
+// KLL
+#include <kll_defs.h>
 
 // Local Includes
 #include "output_com.h"
@@ -47,14 +51,15 @@
 // ----- Macros -----
 
 // Used to build a bitmap lookup table from a byte addressable array
-#define byteLookup( byte ) case (( byte ) * ( 8 )):         bytePosition = byte; byteShift = 0; break; \
-                           case (( byte ) * ( 8 ) + ( 1 )): bytePosition = byte; byteShift = 1; break; \
-                           case (( byte ) * ( 8 ) + ( 2 )): bytePosition = byte; byteShift = 2; break; \
-                           case (( byte ) * ( 8 ) + ( 3 )): bytePosition = byte; byteShift = 3; break; \
-                           case (( byte ) * ( 8 ) + ( 4 )): bytePosition = byte; byteShift = 4; break; \
-                           case (( byte ) * ( 8 ) + ( 5 )): bytePosition = byte; byteShift = 5; break; \
-                           case (( byte ) * ( 8 ) + ( 6 )): bytePosition = byte; byteShift = 6; break; \
-                           case (( byte ) * ( 8 ) + ( 7 )): bytePosition = byte; byteShift = 7; break
+#define byteLookup( byte ) \
+	case (( byte ) * ( 8 )):         bytePosition = byte; byteShift = 0; break; \
+	case (( byte ) * ( 8 ) + ( 1 )): bytePosition = byte; byteShift = 1; break; \
+	case (( byte ) * ( 8 ) + ( 2 )): bytePosition = byte; byteShift = 2; break; \
+	case (( byte ) * ( 8 ) + ( 3 )): bytePosition = byte; byteShift = 3; break; \
+	case (( byte ) * ( 8 ) + ( 4 )): bytePosition = byte; byteShift = 4; break; \
+	case (( byte ) * ( 8 ) + ( 5 )): bytePosition = byte; byteShift = 5; break; \
+	case (( byte ) * ( 8 ) + ( 6 )): bytePosition = byte; byteShift = 6; break; \
+	case (( byte ) * ( 8 ) + ( 7 )): bytePosition = byte; byteShift = 7; break
 
 
 
@@ -111,14 +116,24 @@ uint8_t  USBKeys_SentCLI = 0;
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t  USBKeys_LEDs = 0;
 
+// Currently pressed mouse buttons, bitmask, 0 represents no buttons pressed
+volatile uint16_t USBMouse_Buttons = 0;
+
+// Relative mouse axis movement, stores pending movement
+volatile uint16_t USBMouse_Relative_x = 0;
+volatile uint16_t USBMouse_Relative_y = 0;
+
 // Protocol setting from the host.
 // 0 - Boot Mode
 // 1 - NKRO Mode (Default, unless set by a BIOS or boot interface)
-volatile uint8_t  USBKeys_Protocol = 1;
+volatile uint8_t  USBKeys_Protocol = USBProtocol_define;
 
 // Indicate if USB should send update
 // OS only needs update if there has been a change in state
 USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
+
+// Indicate if USB should send update
+USBMouseChangeState USBMouse_Changed = 0;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
@@ -505,6 +520,63 @@ void Output_flashMode_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 	Output_firmwareReload();
 }
 
+// Sends a mouse command over the USB Output buffer
+// XXX This function *will* be changing in the future
+//     If you use it, be prepared that your .kll files will break in the future (post KLL 0.5)
+// Argument #1: USB Mouse Button (16 bit)
+// Argument #2: USB X Axis (16 bit) relative
+// Argument #3: USB Y Axis (16 bit) relative
+void Output_usbMouse_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_usbMouse(mouseButton,relX,relY)");
+		return;
+	}
+
+	// Determine which mouse button was sent
+	// The USB spec defines up to a max of 0xFFFF buttons
+	// The usual are:
+	// 1 - Button 1 - (Primary)
+	// 2 - Button 2 - (Secondary)
+	// 3 - Button 3 - (Tertiary)
+	uint16_t mouse_button = *(uint16_t*)(&args[0]);
+
+	// X/Y Relative Axis
+	uint16_t mouse_x = *(uint16_t*)(&args[2]);
+	uint16_t mouse_y = *(uint16_t*)(&args[4]);
+
+	// Adjust for bit shift
+	uint16_t mouse_button_shift = mouse_button - 1;
+
+	// Only send mouse button if in press or hold state
+	if ( stateType == 0x00 && state == 0x03 ) // Release state
+	{
+		// Release
+		if ( mouse_button )
+			USBMouse_Buttons &= ~(1 << mouse_button_shift);
+	}
+	else
+	{
+		// Press or hold
+		if ( mouse_button )
+			USBMouse_Buttons |= (1 << mouse_button_shift);
+
+		if ( mouse_x )
+			USBMouse_Relative_x = mouse_x;
+		if ( mouse_y )
+			USBMouse_Relative_y = mouse_y;
+	}
+
+	// Trigger updates
+	if ( mouse_button )
+		USBMouse_Changed |= USBMouseChangeState_Buttons;
+
+	if ( mouse_x || mouse_y )
+		USBMouse_Changed |= USBMouseChangeState_Relative;
+}
+
 
 
 // ----- Functions -----
@@ -551,6 +623,10 @@ inline void Output_send()
 	if ( USBKeys_Protocol == 0 )
 		for ( uint8_t c = USBKeys_Sent; c < USB_BOOT_MAX_KEYS; c++ )
 			USBKeys_Keys[c] = 0;
+
+	// Process mouse actions
+	while ( USBMouse_Changed )
+		usb_mouse_send();
 
 	// Send keypresses while there are pending changes
 	while ( USBKeys_Changed )

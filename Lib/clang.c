@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,32 +19,43 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+
+// This file adds various functions that clang doesn't link properly
+// AFAIK, clang doesn't have an elegant solution for this, so this is what we gotta do...
 
 // ----- Includes -----
 
 // Compiler Includes
-#include <stdint.h>
+#include <string.h>
 
 
+void __aeabi_memcpy( void *dest, const void *src, size_t n )
+{
+	(void)memcpy(dest, src, n);
+}
 
-// ----- Functions -----
+void __aeabi_memcpy4( void *dest, const void *src, size_t n )
+{
+	memcpy(dest, src, n);
+}
 
-// Functions to be called by main.c
-void Scan_setup( void );
-uint8_t Scan_loop( void );
+void __aeabi_memclr( void *dest, size_t n )
+{
+	memset(dest, 0, n);
+}
 
-// Call-backs
-void Scan_finishedWithMacro( uint8_t sentKeys );  // Called by Macro Module
-void Scan_finishedWithOutput( uint8_t sentKeys ); // Called by Output Module
+void __aeabi_memclr4( void *dest, size_t n )
+{
+	memset(dest, 0, n);
+}
 
-void Scan_currentChange( unsigned int current ); // Called by Output Module
+void __aeabi_memmove( void *dest, const void *src, size_t n )
+{
+	(void)memmove(dest, src, n);
+}
 
-
-// ----- Capabilities -----
-
-// Example capabilities
-void CustomAction_action1_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-void CustomAction_blockHold_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-void CustomAction_blockKey_capability( uint8_t state, uint8_t stateType, uint8_t *args );
+void __aeabi_memset( void *s, size_t n, int c )
+{
+	(void)memset(s, c, n);
+}
 

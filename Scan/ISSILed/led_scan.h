@@ -36,3 +36,5 @@ void LED_scan();
 
 void LED_currentChange( unsigned int current );
 
+void LED_currentChange( unsigned int current );
+

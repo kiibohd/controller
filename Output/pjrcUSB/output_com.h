@@ -56,6 +56,14 @@ typedef enum USBKeyChangeState {
 	USBKeyChangeState_All           = 0x7F,
 } USBKeyChangeState;
 
+// Allows for selective USB descriptor pushes
+// However, in most cases everything is updated for each packet push
+typedef enum USBMouseChangeState {
+	USBMouseChangeState_None     = 0x00,
+	USBMouseChangeState_Buttons  = 0x01,
+	USBMouseChangeState_Relative = 0x02,
+} USBMouseChangeState;
+
 
 
 // ----- Variables -----
@@ -72,11 +80,16 @@ extern          uint16_t USBKeys_ConsCtrl; // 1KRO container for Consumer Contro
 
 extern volatile uint8_t  USBKeys_Protocol; // 0 - Boot Mode, 1 - NKRO Mode
 
+extern volatile uint16_t USBMouse_Buttons; // Bitmask for mouse buttons
+extern volatile uint16_t USBMouse_Relative_x;
+extern volatile uint16_t USBMouse_Relative_y;
+
 // Misc variables (XXX Some are only properly utilized using AVR)
 extern          uint8_t  USBKeys_Idle_Config;
 extern          uint8_t  USBKeys_Idle_Count;
 
-extern USBKeyChangeState USBKeys_Changed;
+extern USBKeyChangeState   USBKeys_Changed;
+extern USBMouseChangeState USBMouse_Changed;
 
 extern volatile uint8_t  Output_Available; // 0 - Output module not fully functional, 1 - Output module working
 

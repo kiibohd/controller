@@ -135,3 +135,23 @@ elseif ( DEFINED TEENSY )
 	endif()
 endif()
 
+
+
+###
+# Compiler Command Generation
+#
+
+#| Generate list of compiler commands for clang-tidy usage
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+
+#| Make sure symlink exists (for convenience)
+if ( UNIX )
+	# Make sure symlink is created immediately
+	execute_process ( COMMAND ln -sfn ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_SOURCE_DIR}/. )
+
+	# Also update before each build
+	add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+		COMMAND ln -sfn ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_SOURCE_DIR}/.
+	)
+endif ()
+
