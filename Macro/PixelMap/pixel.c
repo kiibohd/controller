@@ -100,17 +100,18 @@ extern LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
 
 
 // Buffer list
-#define Pixel_BuffersLen 3
-#define Pixel_TotalChannels 432
+#define Pixel_BuffersLen 4
+#define Pixel_TotalChannels 576
 PixelBuf Pixel_Buffers[] = {
 	PixelBufElem( LED_BufferLength, 16, 0, LED_pageBuffer[0].buffer ),
 	PixelBufElem( LED_BufferLength, 16, 144, LED_pageBuffer[1].buffer ),
 	PixelBufElem( LED_BufferLength, 16, 288, LED_pageBuffer[2].buffer ),
+	PixelBufElem( LED_BufferLength, 16, 432, LED_pageBuffer[3].buffer ),
 };
 
 
 // Pixel Mapping
-#define Pixel_TotalPixels 95 // TODO Generate
+#define Pixel_TotalPixels 128 // TODO Generate
 PixelElement Pixel_Mapping[] = {
 	// Function Row (1-16)
 	Pixel_RGBChannel(0,33,49), // 1
@@ -219,7 +220,40 @@ PixelElement Pixel_Mapping[] = {
 	Pixel_RGBChannel(429,413,397), // 94
 	Pixel_RGBChannel(430,414,381), // 95
 
-	// Underlighting - TODO
+	// Underlighting
+	// TODO Deal with missing channel 96 here
+	Pixel_RGBChannel(432,465,481), // 97
+	Pixel_RGBChannel(433,449,482), // 98
+	Pixel_RGBChannel(434,450,466), // 99
+	Pixel_RGBChannel(435,451,467), // 100
+	Pixel_RGBChannel(436,452,468), // 101
+	Pixel_RGBChannel(437,453,469), // 102
+	Pixel_RGBChannel(438,454,470), // 103
+	Pixel_RGBChannel(439,455,471), // 104
+	Pixel_RGBChannel(560,544,528), // 105
+	Pixel_RGBChannel(561,545,529), // 106
+	Pixel_RGBChannel(562,546,530), // 107
+	Pixel_RGBChannel(563,547,531), // 108
+	Pixel_RGBChannel(564,548,532), // 109
+	Pixel_RGBChannel(565,549,533), // 110
+	Pixel_RGBChannel(566,550,517), // 111
+	Pixel_RGBChannel(567,534,518), // 112
+	Pixel_RGBChannel(440,473,489), // 113
+	Pixel_RGBChannel(441,457,490), // 114
+	Pixel_RGBChannel(442,458,474), // 115
+	Pixel_RGBChannel(443,459,475), // 116
+	Pixel_RGBChannel(444,460,476), // 117
+	Pixel_RGBChannel(445,461,477), // 118
+	Pixel_RGBChannel(446,462,478), // 119
+	Pixel_RGBChannel(447,463,479), // 120
+	Pixel_RGBChannel(568,552,536), // 121
+	Pixel_RGBChannel(569,553,537), // 122
+	Pixel_RGBChannel(570,554,538), // 123
+	Pixel_RGBChannel(571,555,539), // 124
+	Pixel_RGBChannel(572,556,540), // 125
+	Pixel_RGBChannel(573,557,541), // 126
+	Pixel_RGBChannel(574,558,525), // 127
+	Pixel_RGBChannel(575,542,526), // 128
 };
 
 // Frame of led changes
@@ -2441,6 +2475,7 @@ PixelBuf *Pixel_bufferMap( uint16_t channel )
 	if      ( channel < 144 ) return &Pixel_Buffers[0];
 	else if ( channel < 288 ) return &Pixel_Buffers[1];
 	else if ( channel < 432 ) return &Pixel_Buffers[2];
+	else if ( channel < 576 ) return &Pixel_Buffers[3];
 
 	// Invalid channel, return first channel and display error
 	erro_msg("Invalid channel: ");

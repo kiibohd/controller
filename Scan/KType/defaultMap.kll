@@ -116,7 +116,7 @@ S0x5E : U"Right";
 
 
 # Available ISSI Chips
-ISSI_Chips = 3; # 1 by default
+ISSI_Chips = 4; # 1 by default
 
 # Default animation speed
 ISSI_AnimationSpeed = 14; # 20 by default
@@ -176,17 +176,17 @@ ISSILedMask4 = "
 ";
 
 # Disabled for now
-ISSILedMask4 = "
-	0x00, 0x00, /* C1-1 -> C1-16 */
-	0x00, 0x00, /* C2-1 -> C2-16 */
-	0x00, 0x00, /* C3-1 -> C3-16 */
-	0x00, 0x00, /* C4-1 -> C4-16 */
-	0x00, 0x00, /* C5-1 -> C5-16 */
-	0x00, 0x00, /* C6-1 -> C6-16 */
-	0x00, 0x00, /* C7-1 -> C7-16 */
-	0x00, 0x00, /* C8-1 -> C8-16 */
-	0x00, 0x00, /* C9-1 -> C9-16 */
-";
+#ISSILedMask4 = "
+#	0x00, 0x00, /* C1-1 -> C1-16 */
+#	0x00, 0x00, /* C2-1 -> C2-16 */
+#	0x00, 0x00, /* C3-1 -> C3-16 */
+#	0x00, 0x00, /* C4-1 -> C4-16 */
+#	0x00, 0x00, /* C5-1 -> C5-16 */
+#	0x00, 0x00, /* C6-1 -> C6-16 */
+#	0x00, 0x00, /* C7-1 -> C7-16 */
+#	0x00, 0x00, /* C8-1 -> C8-16 */
+#	0x00, 0x00, /* C9-1 -> C9-16 */
+#";
 
 ISSILedBrightness1 = "
 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, /* C1-1 -> C1-16 */
