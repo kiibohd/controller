@@ -73,37 +73,6 @@
 	} \
 }
 
-// Macros for locking/unlock Tx buffers
-#define uart_lockTx( uartNum ) \
-{ \
-	/* First, secure place in line for the resource */ \
-	while ( uart_tx_status[ uartNum ].lock ); \
-	uart_tx_status[ uartNum ].lock = 1; \
-	/* Next, wait unit the UART is ready */ \
-	while ( uart_tx_status[ uartNum ].status != UARTStatus_Ready ); \
-	uart_tx_status[ uartNum ].status = UARTStatus_Wait; \
-}
-
-#define uart_lockBothTx( uartNum1, uartNum2 ) \
-{ \
-	/* First, secure place in line for the resource */ \
-	while ( uart_tx_status[ uartNum1 ].lock || uart_tx_status[ uartNum2 ].lock ); \
-	uart_tx_status[ uartNum1 ].lock = 1; \
-	uart_tx_status[ uartNum2 ].lock = 1; \
-	/* Next, wait unit the UARTs are ready */ \
-	while ( uart_tx_status[ uartNum1 ].status != UARTStatus_Ready || uart_tx_status[ uartNum2 ].status != UARTStatus_Ready ); \
-	uart_tx_status[ uartNum1 ].status = UARTStatus_Wait; \
-	uart_tx_status[ uartNum2 ].status = UARTStatus_Wait; \
-}
-
-#define uart_unlockTx( uartNum ) \
-{ \
-	/* Ready the UART */ \
-	uart_tx_status[ uartNum ].status = UARTStatus_Ready; \
-	/* Unlock the resource */ \
-	uart_tx_status[ uartNum ].lock = 0; \
-}
-
 
 
 // ----- Function Declarations -----
@@ -193,6 +162,31 @@ volatile UARTStatusRx uart_rx_status[UART_Num_Interfaces];
 UARTRingBuf  uart_tx_buf   [UART_Num_Interfaces];
 UARTStatusTx uart_tx_status[UART_Num_Interfaces];
 
+
+// -- Functions for locking/unlocking Tx buffers --
+
+// Note that these functions are mere placeholders, as the UARTs are not
+// currently used by multiple execution contexts.  If/when they are,
+// they should be replaced by some sort of platform lock (such as a CAS
+// and yield, or whatever lock the executive might provide).
+
+static inline void uart_lockTx( int uartNum )
+{
+	uart_tx_status[ uartNum ].lock = 1;
+}
+
+static inline void uart_lockBothTx( int uartNum1, int uartNum2 )
+{
+	uart_lockTx( uartNum1 );
+	uart_lockTx( uartNum2 );
+}
+
+static inline void uart_unlockTx( int uartNum )
+{
+	// FIXME: Is this necessary?  Certainly it should be before unlock ...
+	uart_tx_status[ uartNum ].status = UARTStatus_Ready;
+	uart_tx_status[ uartNum ].lock = 0;
+}
 
 // -- Ring Buffer Convenience Functions --
 
