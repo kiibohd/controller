@@ -145,7 +145,7 @@ endif()
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 #| Make sure symlink exists (for convenience)
-if ( UNIX )
+if ( UNIX AND NOT DEFINED CONFIGURATOR )
 	# Make sure symlink is created immediately
 	execute_process ( COMMAND ln -sfn ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_SOURCE_DIR}/. )
 
