@@ -40,7 +40,8 @@
 #define LCD_TOTAL_VISIBLE_PAGES 4
 #define LCD_TOTAL_PAGES 9
 #define LCD_PAGE_LEN 128
-
+#define LCD_WIDTH 128
+#define LCD_HEIGHT 32
 
 
 // ----- Macros -----
@@ -67,6 +68,14 @@ void cliFunc_lcdTest ( char* args );
 
 // Default Image - Displays on startup
 const uint8_t STLcdDefaultImage[] = { STLcdDefaultImage_define };
+
+const uint8_t STLcdSmallFont[] = { STLcdSmallFont_define };
+
+const uint8_t STLcdSmallFontWidth = STLcdSmallFontWidth_define;
+const uint8_t STLcdSmallFontHeight = STLcdSmallFontHeight_define;
+const uint8_t STLcdSmallFontSize = STLcdSmallFontSize_define;
+
+
 
 // Full Toggle State
 uint8_t cliFullToggleState = 0;
@@ -338,11 +347,55 @@ inline void LCD_setup()
 	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(4);
 }
 
+// Display buffer
+static uint8_t STLcdBuffer[LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES];
+// Bounding box
+static uint8_t STLcdUpdateXMin = LCD_WIDTH, STLcdUpdateXMax = 0;
+static uint8_t STLcdUpdateYMin = LCD_HEIGHT, STLcdUpdateYMax = 0;
+
+static void STLcd_updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t ymax) {
+    if (xmin < STLcdUpdateXMin) STLcdUpdateXMin = xmin;
+    if (xmax > STLcdUpdateXMax) STLcdUpdateXMax = xmax;
+    if (ymin < STLcdUpdateYMin) STLcdUpdateYMin = ymin;
+    if (ymax > STLcdUpdateYMax) STLcdUpdateYMax = ymax;
+}
+
+void STLcd_clear(void) {
+    memset(STLcdBuffer, 0, LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES);
+    STLcd_updateBoundingBox(0, 0, LCD_WIDTH, LCD_HEIGHT);
+}
+
+void STLcd_display(void) {
+    if(STLcdUpdateYMin > STLcdUpdateYMax)
+	return;
+    for(uint8_t page = STLcdUpdateYMin >> 3; page < STLcdUpdateYMax >> 3; page++) {
+	// check if this page is part of update
+	if ( STLcdUpdateYMin >= ((page + 1) * 8) ) {
+	    continue;   // nope, skip it!
+	}
+	if (STLcdUpdateYMax < page * 8) {
+	    break;
+	}
+	LCD_writeControlReg( 0xB0 | page);
+
+	uint8_t col = STLcdUpdateXMin;
+	LCD_writeControlReg( 0x10 | (col >> 4));
+	LCD_writeControlReg( 0x00 | (col & 0x0f));
+	// LCD_writeControlReg(0xe0);
+	SPI_write( STLcdBuffer + LCD_PAGE_LEN * page + col, STLcdUpdateXMax - col);
+    }
+    STLcdUpdateXMin = LCD_WIDTH - 1;
+    STLcdUpdateXMax = 0;
+    STLcdUpdateYMin = LCD_HEIGHT-1;
+    STLcdUpdateYMax = 0;
+}
+
 
 // LCD State processing loop
 inline uint8_t LCD_scan()
 {
-	return 0;
+    STLcd_display();
+    return 0;
 }
 
 
@@ -409,49 +462,35 @@ void LCD_layerStackExact_capability( uint8_t state, uint8_t stateType, uint8_t *
 	// Only display if there are layers active
 	if ( stack_args->numArgs > 0 )
 	{
-		// Set the color according to the "top-of-stack" layer
-		uint16_t layerIndex = stack_args->layers[0];
-		FTM0_C0V = colors[ layerIndex ][0];
-		FTM0_C1V = colors[ layerIndex ][1];
-		FTM0_C2V = colors[ layerIndex ][2];
-
-		// Iterate through each of the pages
-		// XXX Many of the values here are hard-coded
-		//     Eventually a proper font rendering engine should take care of things like this... -HaaTa
-		for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
+	    // Set the color according to the "top-of-stack" layer
+	    uint16_t layerIndex = stack_args->layers[0];
+	    FTM0_C0V = colors[ layerIndex ][0];
+	    FTM0_C1V = colors[ layerIndex ][1];
+	    FTM0_C2V = colors[ layerIndex ][2];
+	    
+	    // Iterate through each of the pages
+	    // XXX Many of the values here are hard-coded
+	    //     Eventually a proper font rendering engine should take care of things like this... -HaaTa
+	    STLcd_clear();
+	    for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
+	    {
+		uint8_t offset = 0;
+		// Write data
+		for ( uint16_t layer = 0; layer < stack_args->numArgs; layer++ )
 		{
-			// Set the register page
-			LCD_writeControlReg( 0xB0 | ( 0x0F & page ) );
-
-			// Set starting address
-			LCD_writeControlReg( 0x10 );
-			LCD_writeControlReg( 0x00 );
-
-			// Write data
-			for ( uint16_t layer = 0; layer < stack_args->numArgs; layer++ )
-			{
-				layerIndex = stack_args->layers[ layer ];
-
-				// Default to 0, if over 9
-				if ( layerIndex > 9 )
-				{
-					layerIndex = 0;
-				}
-
-				// Write page of number to display
-				SPI_write( (uint8_t*)&numbers[ layerIndex ][ page * 32 ], 32 );
-			}
-
-			// Blank out rest of display
-			uint8_t data = 0;
-			for ( uint8_t c = 0; c < 4 - stack_args->numArgs; c++ )
-			{
-				for ( uint8_t byte = 0; byte < 32; byte++ )
-				{
-					SPI_write( &data, 1 );
-				}
-			}
+		    layerIndex = stack_args->layers[ layer ];
+		    
+		    // Default to 0, if over 9
+		    if ( layerIndex > 9 )
+		    {
+			layerIndex = 0;
+		    }
+		    memcpy(STLcdBuffer + page * LCD_PAGE_LEN + offset,
+			   &numbers[layerIndex][page * 32],
+			   32);
+		    offset += 32;
 		}
+	    }
 	}
 	else
 	{
@@ -461,8 +500,7 @@ void LCD_layerStackExact_capability( uint8_t state, uint8_t stateType, uint8_t *
 		FTM0_C2V = STLcdBacklightBlue_define;
 
 		// Write default image
-		for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
-			LCD_writeDisplayReg( page, (uint8_t *)&STLcdDefaultImage[page * LCD_PAGE_LEN], LCD_PAGE_LEN );
+		memcpy(STLcdBuffer, STLcdDefaultImage, LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES);
 	}
 }
 
@@ -525,6 +563,80 @@ void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 	LCD_layerStackExact_capability( state, stateType, (uint8_t*)&stack_args );
 }
 
+/*// Takes 1 8 bit charactor and 2 8 bit x-y coordinates
+typedef struct LCD_charOut_args {
+    uint8_t charactor;
+    uint8_t x;
+    uint8_t y;
+} LCD_charOut_args;
+void LCD_charOut_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("LCD_charOut_capability(charactor, x, y)");
+		return;
+	}
+
+	// Read arguments
+	LCD_charOut_args *out_args = (LCD_charOut_args*)args;
+
+	#uint16_t layerIndex = stack_args->layers[0];
+	#FTM0_C0V = colors[ layerIndex ][0];
+	#FTM0_C1V = colors[ layerIndex ][1];
+	#FTM0_C2V = colors[ layerIndex ][2];
+
+		// Iterate through each of the pages
+		// XXX Many of the values here are hard-coded
+		//     Eventually a proper font rendering engine should take care of things like this... -HaaTa
+		for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
+		{
+			// Set the register page
+			LCD_writeControlReg( 0xB0 | ( 0x0F & page ) );
+
+			// Set starting address
+			LCD_writeControlReg( 0x10 );
+			LCD_writeControlReg( 0x00 );
+
+			// Write data
+			for ( uint16_t layer = 0; layer < stack_args->numArgs; layer++ )
+			{
+				layerIndex = stack_args->layers[ layer ];
+
+				// Default to 0, if over 9
+				if ( layerIndex > 9 )
+				{
+					layerIndex = 0;
+				}
+
+				// Write page of number to display
+				SPI_write( (uint8_t*)&numbers[ layerIndex ][ page * 32 ], 32 );
+			}
+
+			// Blank out rest of display
+			uint8_t data = 0;
+			for ( uint8_t c = 0; c < 4 - stack_args->numArgs; c++ )
+			{
+				for ( uint8_t byte = 0; byte < 32; byte++ )
+				{
+					SPI_write( &data, 1 );
+				}
+			}
+		}
+	}
+	else
+	{
+		// Set default backlight
+		FTM0_C0V = STLcdBacklightRed_define;
+		FTM0_C1V = STLcdBacklightGreen_define;
+		FTM0_C2V = STLcdBacklightBlue_define;
+
+		// Write default image
+		for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
+			LCD_writeDisplayReg( page, (uint8_t *)&STLcdDefaultImage[page * LCD_PAGE_LEN], LCD_PAGE_LEN );
+	}
+	}*/
+
 
 
 // ----- CLI Command Functions -----
@@ -536,9 +648,9 @@ void cliFunc_lcdInit( char* args )
 
 void cliFunc_lcdTest( char* args )
 {
-	// Write default image
-	for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
-		LCD_writeDisplayReg( page, (uint8_t *)&STLcdDefaultImage[page * LCD_PAGE_LEN], LCD_PAGE_LEN );
+    // Write default image
+    memcpy(STLcdBuffer, STLcdDefaultImage, LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES);
+    STLcd_updateBoundingBox(0, 0, LCD_WIDTH, LCD_HEIGHT);
 }
 
 void cliFunc_lcdCmd( char* args )
@@ -625,13 +737,7 @@ void cliFunc_lcdDisp( char* args )
 	if ( *arg1Ptr == '\0' )
 		return;
 	uint8_t address = numToInt( arg1Ptr );
-
-	// Set the register page
-	LCD_writeControlReg( 0xB0 | ( 0x0F & page ) );
-
-	// Set starting address
-	LCD_writeControlReg( 0x10 | ( ( 0xF0 & address ) >> 4 ) );
-	LCD_writeControlReg( 0x00 | ( 0x0F & address ));
+	uint8_t start = address;
 
 	// Process all args
 	for ( ;; )
@@ -644,9 +750,11 @@ void cliFunc_lcdDisp( char* args )
 			break;
 
 		uint8_t value = numToInt( arg1Ptr );
-
-		// Write buffer to SPI
-		SPI_write( &value, 1 );
+		STLcdBuffer[page * LCD_PAGE_LEN + address] = value;
+		address++;
 	}
+	STLcd_updateBoundingBox(start, page * 8, address, (page + 1) * 8);
 }
+
+
 
