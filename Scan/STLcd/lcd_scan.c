@@ -389,7 +389,7 @@ void STLcd_blockingSync(void) {
     }
 }
 
-// a non-blocking 
+// a non-blocking sync function
 void STLcd_sync(void) {
     for(;;){
 	switch(STLcdSyncStage){
@@ -521,22 +521,27 @@ inline uint8_t LCD_scan()
 	    return 0;
 	STLcdSyncPageMin = STLcdUpdateYMin >> 3;
 	STLcdSyncPageMax = STLcdUpdateYMax >> 3;
+	STLcdSyncPageCurrent = STLcdSyncPageMin;
+
 	STLcdSyncColumnMin = STLcdUpdateXMin;
 	STLcdSyncColumnMax = STLcdUpdateXMax;
+
 	STLcdSyncBufferColumnMin = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMin;
 	STLcdSyncBufferColumnMax = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMax;
+	
 	memcpy(STLcdSyncBuffer + STLcdSyncPageMin * LCD_PAGE_LEN, STLcdBuffer + STLcdSyncPageMin * LCD_PAGE_LEN,
 	       (STLcdSyncPageMax - STLcdSyncPageMin) * LCD_PAGE_LEN);
+
 	STLcdSync = 1;
-	STLcdSyncPageCurrent = STLcdSyncPageMin;
 	STLcdSyncStage = 0;
+	//STLcd_syncBlocking();
 	STLcd_sync();
+
 	STLcdUpdateXMin = LCD_WIDTH - 1;
 	STLcdUpdateXMax = 0;
 	STLcdUpdateYMin = LCD_HEIGHT-1;
 	STLcdUpdateYMax = 0;
     }
-    //STLcd_display();
     return 0;
 }
 
