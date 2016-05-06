@@ -666,7 +666,8 @@ void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 
 	// Ignore if the stack size hasn't changed and the top of the stack is the same
 	if ( macroLayerIndexStackSize == LCD_layerStack_prevSize
-		&& macroLayerIndexStack[macroLayerIndexStackSize - 1] == LCD_layerStack_prevTop )
+	     && (macroLayerIndexStackSize == 0 ||
+		 macroLayerIndexStack[macroLayerIndexStackSize - 1] == LCD_layerStack_prevTop ))
 	{
 		return;
 	}
