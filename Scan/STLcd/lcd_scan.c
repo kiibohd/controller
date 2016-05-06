@@ -33,8 +33,6 @@
 // Local Includes
 #include "lcd_scan.h"
 
-
-
 // ----- Defines -----
 
 #define LCD_TOTAL_VISIBLE_PAGES 4
@@ -347,11 +345,18 @@ inline void LCD_setup()
 	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(4);
 }
 
+static uint32_t STLcdSyncStartMillis;
+static uint32_t STLcdSyncStartTicks;
+
 // Display buffer
-static uint8_t STLcdBuffer[LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES];
-// Bounding box
-static uint8_t STLcdUpdateXMin = LCD_WIDTH, STLcdUpdateXMax = 0;
-static uint8_t STLcdUpdateYMin = LCD_HEIGHT, STLcdUpdateYMax = 0;
+uint8_t STLcdBuffer[LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES];
+uint8_t STLcdSyncBuffer[LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES];
+
+
+// Bounding box.
+static uint8_t STLcdUpdateXMin = LCD_WIDTH, STLcdUpdateXMax = 0, STLcdUpdateYMin = LCD_HEIGHT, STLcdUpdateYMax = 0;
+static uint8_t STLcdSync = 0;
+static uint8_t STLcdSyncPageMin, STLcdSyncPageMax, STLcdSyncColumnMin, STLcdSyncColumnMax;
 
 static void STLcd_updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t ymax) {
     if (xmin < STLcdUpdateXMin) STLcdUpdateXMin = xmin;
@@ -365,36 +370,161 @@ void STLcd_clear(void) {
     STLcd_updateBoundingBox(0, 0, LCD_WIDTH, LCD_HEIGHT);
 }
 
-void STLcd_display(void) {
-    if(STLcdUpdateYMin > STLcdUpdateYMax)
-	return;
-    for(uint8_t page = STLcdUpdateYMin >> 3; page < STLcdUpdateYMax >> 3; page++) {
-	// check if this page is part of update
-	if ( STLcdUpdateYMin >= ((page + 1) * 8) ) {
-	    continue;   // nope, skip it!
-	}
-	if (STLcdUpdateYMax < page * 8) {
+static uint8_t STLcdSyncPageCurrent;
+static uint8_t *STLcdSyncBufferColumnCurrent;
+static uint8_t *STLcdSyncBufferColumnMin, *STLcdSyncBufferColumnMax;
+static uint32_t STLcdSyncStage;
+
+#define STAGE_WRITE_START 15
+#define STAGE_WRITE_END 20
+
+// a non-blocking 
+void STLcd_sync(void) {
+    for(;;){
+	switch(STLcdSyncStage){
+	case 0: // Begin LCD_writeControlReg( 0xB0 | page);
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    GPIOC_PCOR |= (1<<7);
+	    STLcdSyncStage++;
+	case 1: // Begin SPI_write( &byte, 1);
+	    if( !( SPI0_SR & SPI_SR_TFFF) )
+		return;
+	    SPI0_PUSHR = ( 0xB0 | STLcdSyncPageCurrent ) | SPI_PUSHR_PCS(1);
+	    STLcdSyncStage++;
+	case 2:
+	    if( !( SPI0_SR & SPI_SR_TCF ) )
+		return;
+	    SPI0_SR |= SPI_SR_TCF;
+	    STLcdSyncStage++; // End SPI_write
+	case 3:
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    STLcdSyncStage++;
+	    STLcdSyncStartTicks = ticks();
+	    STLcdSyncStartMillis = millis();
+	case 4:
+	    // delayMicroseconds(10);
+	    if(!isTicksPassed(STLcdSyncStartMillis, STLcdSyncStartTicks, F_CPU / 1000000 * 10))
+		return;
+	    GPIOC_PSOR |= (1<<7);
+	    STLcdSyncStage++; // End LCD_writeControlReg( 0xB0 | page);
+	case 5: // Begin LCD_writeControlReg( 0x10 | STLcdSyncColumnCurrent >> 4);
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    GPIOC_PCOR |= (1<<7);
+	    STLcdSyncStage++;
+	case 6: // Begin SPI_write( &byte, 1);
+	    if( !( SPI0_SR & SPI_SR_TFFF) )
+		return;
+	    SPI0_PUSHR = ( 0x10 | STLcdSyncColumnMin >> 4 ) | SPI_PUSHR_PCS(1);
+	    STLcdSyncStage++;
+	case 7:
+	    if( !( SPI0_SR & SPI_SR_TCF ) )
+		return;
+	    SPI0_SR |= SPI_SR_TCF;
+	    STLcdSyncStage++; // End SPI_write
+	case 8:
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    STLcdSyncStage++;
+	    STLcdSyncStartTicks = ticks();
+	    STLcdSyncStartMillis = millis();
+	case 9:
+	    // delayMicroseconds(10);
+	    if(!isTicksPassed(STLcdSyncStartMillis, STLcdSyncStartTicks, F_CPU / 1000000 * 10))
+		return;
+	    GPIOC_PSOR |= (1<<7);
+	    STLcdSyncStage++; // End LCD_writeControlReg( 0x10 | STLcdSyncColumnCurrent >> 4);
+	case 10: // Begin LCD_writeControlReg( 0x00 | STLcdSyncColumnCurrent & 0x0f);
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    GPIOC_PCOR |= (1<<7);
+	    STLcdSyncStage++;
+	case 11: // Begin SPI_write( &byte, 1);
+	    if( !( SPI0_SR & SPI_SR_TFFF) )
+		return;
+	    SPI0_PUSHR = ( 0x00 | (STLcdSyncColumnMin & 0x0f) ) | SPI_PUSHR_PCS(1);
+	    STLcdSyncStage++;
+	case 12:
+	    if( !( SPI0_SR & SPI_SR_TCF ) )
+		return;
+	    SPI0_SR |= SPI_SR_TCF;
+	    STLcdSyncStage++; // End SPI_write
+	case 13:
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    STLcdSyncStage++;
+	    STLcdSyncStartTicks = ticks();
+	    STLcdSyncStartMillis = millis();
+	case 14:
+	    // delayMicroseconds(10);
+	    if(!isTicksPassed(STLcdSyncStartMillis, STLcdSyncStartTicks, F_CPU / 1000000 * 10))
+		return;
+	    GPIOC_PSOR |= (1<<7);
+	    STLcdSyncStage++; // End LCD_writeControlReg( 0x00 | STLcdSyncColumnCurrent & 0x0f);
+	    STLcdSyncBufferColumnCurrent = STLcdSyncBufferColumnMin;
+	case STAGE_WRITE_START: // Begin SPI_write( STLcdSyncBuffer + LCD_PAGE_LEN * STLcdSyncPageCurrent + STLcdSyncColumnMin,
+	    //                  STLcdSyncColumnMax - STLcdSyncColumnMin);
+	    if(STLcdSyncBufferColumnCurrent >= STLcdSyncBufferColumnMax){ // next page
+		STLcdSyncStage = 0;
+		STLcdSyncPageCurrent++;
+		if(STLcdSyncPageCurrent >= STLcdSyncPageMax){ // has finished
+		    STLcdSync = 0;
+		    return;
+		}
+		else{
+		    STLcdSyncBufferColumnMin += LCD_PAGE_LEN;
+		    STLcdSyncBufferColumnMax += LCD_PAGE_LEN;
+		    break;
+		}
+	    }
+	    STLcdSyncStage++;
+	case 16:
+	    if( !( SPI0_SR & SPI_SR_TFFF) )
+		return;
+	    SPI0_PUSHR = ( *STLcdSyncBufferColumnCurrent ) | SPI_PUSHR_PCS(1);
+	    STLcdSyncStage++;
+	case 17:
+	    if( !( SPI0_SR & SPI_SR_TCF ) )
+		return;
+	    SPI0_SR |= SPI_SR_TCF;
+	    STLcdSyncBufferColumnCurrent++;
+	    STLcdSyncStage=STAGE_WRITE_START; // Loop back to STAGE_WRITE_START
 	    break;
 	}
-	LCD_writeControlReg( 0xB0 | page);
-
-	uint8_t col = STLcdUpdateXMin;
-	LCD_writeControlReg( 0x10 | (col >> 4));
-	LCD_writeControlReg( 0x00 | (col & 0x0f));
-	// LCD_writeControlReg(0xe0);
-	SPI_write( STLcdBuffer + LCD_PAGE_LEN * page + col, STLcdUpdateXMax - col);
     }
-    STLcdUpdateXMin = LCD_WIDTH - 1;
-    STLcdUpdateXMax = 0;
-    STLcdUpdateYMin = LCD_HEIGHT-1;
-    STLcdUpdateYMax = 0;
+    
 }
 
 
 // LCD State processing loop
 inline uint8_t LCD_scan()
 {
-    STLcd_display();
+    if(STLcdSync){
+	STLcd_sync();
+    }
+    else{
+	if(STLcdUpdateYMin >= STLcdUpdateYMax)
+	    return 0;
+	STLcdSyncPageMin = STLcdUpdateYMin >> 3;
+	STLcdSyncPageMax = STLcdUpdateYMax >> 3;
+	STLcdSyncColumnMin = STLcdUpdateXMin;
+	STLcdSyncColumnMax = STLcdUpdateXMax;
+	STLcdSyncBufferColumnMin = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMin;
+	STLcdSyncBufferColumnMax = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMax;
+	memcpy(STLcdSyncBuffer + STLcdSyncPageMin * LCD_PAGE_LEN, STLcdBuffer + STLcdSyncPageMin * LCD_PAGE_LEN,
+	       (STLcdSyncPageMax - STLcdSyncPageMin) * LCD_PAGE_LEN);
+	STLcdSync = 1;
+	STLcdSyncPageCurrent = STLcdSyncPageMin;
+	STLcdSyncStage = 0;
+	STLcd_sync();
+	STLcdUpdateXMin = LCD_WIDTH - 1;
+	STLcdUpdateXMax = 0;
+	STLcdUpdateYMin = LCD_HEIGHT-1;
+	STLcdUpdateYMax = 0;
+    }
+    //STLcd_display();
     return 0;
 }
 

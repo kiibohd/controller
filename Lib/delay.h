@@ -56,6 +56,11 @@ static inline uint32_t millis(void)
 	return systick_millis_count; // single aligned 32 bit is atomic;
 }
 
+static inline uint32_t microsToTicks(uint32_t) __attribute__((always_inline, unused));
+static inline uint32_t microsToTicks(uint32_t usec)
+{
+    return usec * (F_CPU / 1000000);
+}
 
 static inline void delayMicroseconds(uint32_t) __attribute__((always_inline, unused));
 static inline void delayMicroseconds(uint32_t usec)
@@ -84,3 +89,6 @@ uint32_t micros(void);
 
 void delay(uint32_t ms);
 
+uint8_t isTicksPassed(uint32_t startmillis, uint32_t startticks, uint32_t ticks);
+
+uint32_t ticks(void);
