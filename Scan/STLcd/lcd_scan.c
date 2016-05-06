@@ -33,14 +33,13 @@
 // Local Includes
 #include "lcd_scan.h"
 
-
-
 // ----- Defines -----
 
 #define LCD_TOTAL_VISIBLE_PAGES 4
 #define LCD_TOTAL_PAGES 9
 #define LCD_PAGE_LEN 128
-
+#define LCD_WIDTH 128
+#define LCD_HEIGHT 32
 
 
 // ----- Macros -----
@@ -67,6 +66,14 @@ void cliFunc_lcdTest ( char* args );
 
 // Default Image - Displays on startup
 const uint8_t STLcdDefaultImage[] = { STLcdDefaultImage_define };
+
+const uint8_t STLcdSmallFont[] = { STLcdSmallFont_define };
+
+const uint8_t STLcdSmallFontWidth = STLcdSmallFontWidth_define;
+const uint8_t STLcdSmallFontHeight = STLcdSmallFontHeight_define;
+const uint8_t STLcdSmallFontSize = STLcdSmallFontSize_define;
+
+
 
 // Full Toggle State
 uint8_t cliFullToggleState = 0;
@@ -338,11 +345,204 @@ inline void LCD_setup()
 	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(4);
 }
 
+static uint32_t STLcdSyncStartMillis;
+static uint32_t STLcdSyncStartTicks;
+
+// Display buffer
+uint8_t STLcdBuffer[LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES];
+uint8_t STLcdSyncBuffer[LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES];
+
+
+// Bounding box.
+static uint8_t STLcdUpdateXMin = LCD_WIDTH, STLcdUpdateXMax = 0, STLcdUpdateYMin = LCD_HEIGHT, STLcdUpdateYMax = 0;
+static uint8_t STLcdSync = 0;
+static uint8_t STLcdSyncPageMin, STLcdSyncPageMax, STLcdSyncColumnMin, STLcdSyncColumnMax;
+
+static void STLcd_updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t ymax) {
+    if (xmin < STLcdUpdateXMin) STLcdUpdateXMin = xmin;
+    if (xmax > STLcdUpdateXMax) STLcdUpdateXMax = xmax;
+    if (ymin < STLcdUpdateYMin) STLcdUpdateYMin = ymin;
+    if (ymax > STLcdUpdateYMax) STLcdUpdateYMax = ymax;
+}
+
+void STLcd_clear(void) {
+    memset(STLcdBuffer, 0, LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES);
+    STLcd_updateBoundingBox(0, 0, LCD_WIDTH, LCD_HEIGHT);
+}
+
+static uint8_t STLcdSyncPageCurrent;
+static uint8_t *STLcdSyncBufferColumnCurrent;
+static uint8_t *STLcdSyncBufferColumnMin, *STLcdSyncBufferColumnMax;
+static uint32_t STLcdSyncStage;
+
+#define STAGE_WRITE_START 15
+#define STAGE_WRITE_END 20
+
+void STLcd_blockingSync(void) {
+    for(;STLcdSyncPageCurrent < STLcdSyncPageMax;
+	STLcdSyncPageCurrent++, STLcdSyncBufferColumnMin += LCD_PAGE_LEN)
+    {
+	LCD_writeControlReg(0xB0 | STLcdSyncPageCurrent);
+	LCD_writeControlReg(0x10 | STLcdSyncColumnMin >> 4);
+	LCD_writeControlReg(0x10 | (STLcdSyncColumnMin & 0x0f));
+	SPI_write(STLcdSyncBufferColumnMin, STLcdSyncColumnMax - STLcdSyncColumnMin);
+    }
+}
+
+// a non-blocking sync function
+void STLcd_sync(void) {
+    for(;;){
+	switch(STLcdSyncStage){
+	case 0: // Begin LCD_writeControlReg( 0xB0 | STLcdSyncPageCurrent);
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    GPIOC_PCOR |= (1<<7);
+	    STLcdSyncStage++;
+	case 1: // Begin SPI_write( &byte, 1);
+	    if( !( SPI0_SR & SPI_SR_TFFF) )
+		return;
+	    SPI0_PUSHR = ( 0xB0 | STLcdSyncPageCurrent ) | SPI_PUSHR_PCS(1);
+	    STLcdSyncStage++;
+	case 2:
+	    if( !( SPI0_SR & SPI_SR_TCF ) )
+		return;
+	    SPI0_SR |= SPI_SR_TCF;
+	    STLcdSyncStage++; // End SPI_write
+	case 3:
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    STLcdSyncStage++;
+	    STLcdSyncStartTicks = ticks();
+	    STLcdSyncStartMillis = millis();
+	case 4:
+	    // delayMicroseconds(10);
+	    if(!isTicksPassed(STLcdSyncStartMillis, STLcdSyncStartTicks, F_CPU / 1000000 * 10))
+		return;
+	    GPIOC_PSOR |= (1<<7);
+	    STLcdSyncStage++; // End LCD_writeControlReg( 0xB0 | page);
+	case 5: // Begin LCD_writeControlReg( 0x10 | STLcdSyncColumnMin >> 4);
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    GPIOC_PCOR |= (1<<7);
+	    STLcdSyncStage++;
+	case 6: // Begin SPI_write( &byte, 1);
+	    if( !( SPI0_SR & SPI_SR_TFFF) )
+		return;
+	    SPI0_PUSHR = ( 0x10 | STLcdSyncColumnMin >> 4 ) | SPI_PUSHR_PCS(1);
+	    STLcdSyncStage++;
+	case 7:
+	    if( !( SPI0_SR & SPI_SR_TCF ) )
+		return;
+	    SPI0_SR |= SPI_SR_TCF;
+	    STLcdSyncStage++; // End SPI_write
+	case 8:
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    STLcdSyncStage++;
+	    STLcdSyncStartTicks = ticks();
+	    STLcdSyncStartMillis = millis();
+	case 9:
+	    // delayMicroseconds(10);
+	    if(!isTicksPassed(STLcdSyncStartMillis, STLcdSyncStartTicks, F_CPU / 1000000 * 10))
+		return;
+	    GPIOC_PSOR |= (1<<7);
+	    STLcdSyncStage++; // End LCD_writeControlReg( 0x10 | STLcdSyncColumnCurrent >> 4);
+	case 10: // Begin LCD_writeControlReg( 0x00 | STLcdSyncColumnCurrent & 0x0f);
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    GPIOC_PCOR |= (1<<7);
+	    STLcdSyncStage++;
+	case 11: // Begin SPI_write( &byte, 1);
+	    if( !( SPI0_SR & SPI_SR_TFFF) )
+		return;
+	    SPI0_PUSHR = ( 0x00 | (STLcdSyncColumnMin & 0x0f) ) | SPI_PUSHR_PCS(1);
+	    STLcdSyncStage++;
+	case 12:
+	    if( !( SPI0_SR & SPI_SR_TCF ) )
+		return;
+	    SPI0_SR |= SPI_SR_TCF;
+	    STLcdSyncStage++; // End SPI_write
+	case 13:
+	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
+		return;
+	    STLcdSyncStage++;
+	    STLcdSyncStartTicks = ticks();
+	    STLcdSyncStartMillis = millis();
+	case 14:
+	    // delayMicroseconds(10);
+	    if(!isTicksPassed(STLcdSyncStartMillis, STLcdSyncStartTicks, F_CPU / 1000000 * 10))
+		return;
+	    GPIOC_PSOR |= (1<<7);
+	    STLcdSyncStage++; // End LCD_writeControlReg( 0x00 | (STLcdSyncColumnCurrent & 0x0f));
+	    STLcdSyncBufferColumnCurrent = STLcdSyncBufferColumnMin;
+	    // Begin SPI_write( STLcdSyncBufferColumnMin,
+	    //                  STLcdSyncColumnMax - STLcdSyncColumnMin);
+	case STAGE_WRITE_START: 
+	    if(STLcdSyncBufferColumnCurrent >= STLcdSyncBufferColumnMax){ // next page
+		STLcdSyncStage = 0;
+		STLcdSyncPageCurrent++;
+		if(STLcdSyncPageCurrent >= STLcdSyncPageMax){ // has finished
+		    STLcdSync = 0;
+		    return;
+		}
+		else{
+		    STLcdSyncBufferColumnMin += LCD_PAGE_LEN;
+		    STLcdSyncBufferColumnMax += LCD_PAGE_LEN;
+		    break;
+		}
+	    }
+	    STLcdSyncStage++;
+	case 16:
+	    if( !( SPI0_SR & SPI_SR_TFFF) )
+		return;
+	    SPI0_PUSHR = ( *STLcdSyncBufferColumnCurrent ) | SPI_PUSHR_PCS(1);
+	    STLcdSyncStage++;
+	case 17:
+	    if( !( SPI0_SR & SPI_SR_TCF ) )
+		return;
+	    SPI0_SR |= SPI_SR_TCF;
+	    STLcdSyncBufferColumnCurrent++;
+	    STLcdSyncStage=STAGE_WRITE_START; // Loop back to STAGE_WRITE_START
+	    break;
+	}
+    }
+    
+}
+
 
 // LCD State processing loop
 inline uint8_t LCD_scan()
 {
-	return 0;
+    if(STLcdSync){
+	STLcd_sync();
+    }
+    else{
+	if(STLcdUpdateYMin >= STLcdUpdateYMax)
+	    return 0;
+	STLcdSyncPageMin = STLcdUpdateYMin >> 3;
+	STLcdSyncPageMax = STLcdUpdateYMax >> 3;
+	STLcdSyncPageCurrent = STLcdSyncPageMin;
+
+	STLcdSyncColumnMin = STLcdUpdateXMin;
+	STLcdSyncColumnMax = STLcdUpdateXMax;
+
+	STLcdSyncBufferColumnMin = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMin;
+	STLcdSyncBufferColumnMax = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMax;
+	
+	memcpy(STLcdSyncBuffer + STLcdSyncPageMin * LCD_PAGE_LEN, STLcdBuffer + STLcdSyncPageMin * LCD_PAGE_LEN,
+	       (STLcdSyncPageMax - STLcdSyncPageMin) * LCD_PAGE_LEN);
+
+	STLcdSync = 1;
+	STLcdSyncStage = 0;
+	//STLcd_syncBlocking();
+	STLcd_sync();
+
+	STLcdUpdateXMin = LCD_WIDTH - 1;
+	STLcdUpdateXMax = 0;
+	STLcdUpdateYMin = LCD_HEIGHT-1;
+	STLcdUpdateYMax = 0;
+    }
+    return 0;
 }
 
 
@@ -409,11 +609,131 @@ void LCD_layerStackExact_capability( uint8_t state, uint8_t stateType, uint8_t *
 	// Only display if there are layers active
 	if ( stack_args->numArgs > 0 )
 	{
-		// Set the color according to the "top-of-stack" layer
-		uint16_t layerIndex = stack_args->layers[0];
-		FTM0_C0V = colors[ layerIndex ][0];
-		FTM0_C1V = colors[ layerIndex ][1];
-		FTM0_C2V = colors[ layerIndex ][2];
+	    // Set the color according to the "top-of-stack" layer
+	    uint16_t layerIndex = stack_args->layers[0];
+	    FTM0_C0V = colors[ layerIndex ][0];
+	    FTM0_C1V = colors[ layerIndex ][1];
+	    FTM0_C2V = colors[ layerIndex ][2];
+	    
+	    // Iterate through each of the pages
+	    // XXX Many of the values here are hard-coded
+	    //     Eventually a proper font rendering engine should take care of things like this... -HaaTa
+	    STLcd_clear();
+	    for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
+	    {
+		uint8_t offset = 0;
+		// Write data
+		for ( uint16_t layer = 0; layer < stack_args->numArgs; layer++ )
+		{
+		    layerIndex = stack_args->layers[ layer ];
+		    
+		    // Default to 0, if over 9
+		    if ( layerIndex > 9 )
+		    {
+			layerIndex = 0;
+		    }
+		    memcpy(STLcdBuffer + page * LCD_PAGE_LEN + offset,
+			   &numbers[layerIndex][page * 32],
+			   32);
+		    offset += 32;
+		}
+	    }
+	}
+	else
+	{
+		// Set default backlight
+		FTM0_C0V = STLcdBacklightRed_define;
+		FTM0_C1V = STLcdBacklightGreen_define;
+		FTM0_C2V = STLcdBacklightBlue_define;
+
+		// Write default image
+		memcpy(STLcdBuffer, STLcdDefaultImage, LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES);
+		STLcd_updateBoundingBox(0, 0, LCD_WIDTH, LCD_HEIGHT);
+	}
+}
+
+// Determines the current layer stack, and sets the LCD output accordingly
+// Will only work on a master node when using the interconnect (use LCD_layerStackExact_capability instead)
+uint16_t LCD_layerStack_prevSize = 0;
+uint16_t LCD_layerStack_prevTop  = 0;
+void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("LCD_layerStack_capability()");
+		return;
+	}
+
+	// Parse the layer stack, top to bottom
+	extern uint16_t macroLayerIndexStack[];
+	extern uint16_t macroLayerIndexStackSize;
+
+	// Ignore if the stack size hasn't changed and the top of the stack is the same
+	if ( macroLayerIndexStackSize == LCD_layerStack_prevSize
+	     && (macroLayerIndexStackSize == 0 ||
+		 macroLayerIndexStack[macroLayerIndexStackSize - 1] == LCD_layerStack_prevTop ))
+	{
+		return;
+	}
+	LCD_layerStack_prevSize = macroLayerIndexStackSize;
+	LCD_layerStack_prevTop  = macroLayerIndexStack[macroLayerIndexStackSize - 1];
+
+	LCD_layerStackExact_args stack_args;
+	memset( stack_args.layers, 0, sizeof( stack_args.layers ) );
+
+	// Use the LCD_layerStackExact_capability to set the LCD using the determined stack
+	// Construct argument set for capability
+	stack_args.numArgs = macroLayerIndexStackSize;
+	for ( uint16_t layer = 1; layer <= macroLayerIndexStackSize; layer++ )
+	{
+		stack_args.layers[ layer - 1 ] = macroLayerIndexStack[ macroLayerIndexStackSize - layer ];
+	}
+
+	// Only deal with the interconnect if it has been compiled in
+#if defined(ConnectEnabled_define)
+	if ( Connect_master )
+	{
+		// generatedKeymap.h
+		extern const Capability CapabilitiesList[];
+
+		// Broadcast layerStackExact remote capability (0xFF is the broadcast id)
+		Connect_send_RemoteCapability(
+			0xFF,
+			LCD_layerStackExact_capability_index,
+			state,
+			stateType,
+			CapabilitiesList[ LCD_layerStackExact_capability_index ].argCount,
+			(uint8_t*)&stack_args
+		);
+	}
+#endif
+	// Call LCD_layerStackExact directly
+	LCD_layerStackExact_capability( state, stateType, (uint8_t*)&stack_args );
+}
+
+/*// Takes 1 8 bit charactor and 2 8 bit x-y coordinates
+typedef struct LCD_charOut_args {
+    uint8_t charactor;
+    uint8_t x;
+    uint8_t y;
+} LCD_charOut_args;
+void LCD_charOut_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("LCD_charOut_capability(charactor, x, y)");
+		return;
+	}
+
+	// Read arguments
+	LCD_charOut_args *out_args = (LCD_charOut_args*)args;
+
+	#uint16_t layerIndex = stack_args->layers[0];
+	#FTM0_C0V = colors[ layerIndex ][0];
+	#FTM0_C1V = colors[ layerIndex ][1];
+	#FTM0_C2V = colors[ layerIndex ][2];
 
 		// Iterate through each of the pages
 		// XXX Many of the values here are hard-coded
@@ -464,66 +784,7 @@ void LCD_layerStackExact_capability( uint8_t state, uint8_t stateType, uint8_t *
 		for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
 			LCD_writeDisplayReg( page, (uint8_t *)&STLcdDefaultImage[page * LCD_PAGE_LEN], LCD_PAGE_LEN );
 	}
-}
-
-// Determines the current layer stack, and sets the LCD output accordingly
-// Will only work on a master node when using the interconnect (use LCD_layerStackExact_capability instead)
-uint16_t LCD_layerStack_prevSize = 0;
-uint16_t LCD_layerStack_prevTop  = 0;
-void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args )
-{
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
-	{
-		print("LCD_layerStack_capability()");
-		return;
-	}
-
-	// Parse the layer stack, top to bottom
-	extern uint16_t macroLayerIndexStack[];
-	extern uint16_t macroLayerIndexStackSize;
-
-	// Ignore if the stack size hasn't changed and the top of the stack is the same
-	if ( macroLayerIndexStackSize == LCD_layerStack_prevSize
-		&& macroLayerIndexStack[macroLayerIndexStackSize - 1] == LCD_layerStack_prevTop )
-	{
-		return;
-	}
-	LCD_layerStack_prevSize = macroLayerIndexStackSize;
-	LCD_layerStack_prevTop  = macroLayerIndexStack[macroLayerIndexStackSize - 1];
-
-	LCD_layerStackExact_args stack_args;
-	memset( stack_args.layers, 0, sizeof( stack_args.layers ) );
-
-	// Use the LCD_layerStackExact_capability to set the LCD using the determined stack
-	// Construct argument set for capability
-	stack_args.numArgs = macroLayerIndexStackSize;
-	for ( uint16_t layer = 1; layer <= macroLayerIndexStackSize; layer++ )
-	{
-		stack_args.layers[ layer - 1 ] = macroLayerIndexStack[ macroLayerIndexStackSize - layer ];
-	}
-
-	// Only deal with the interconnect if it has been compiled in
-#if defined(ConnectEnabled_define)
-	if ( Connect_master )
-	{
-		// generatedKeymap.h
-		extern const Capability CapabilitiesList[];
-
-		// Broadcast layerStackExact remote capability (0xFF is the broadcast id)
-		Connect_send_RemoteCapability(
-			0xFF,
-			LCD_layerStackExact_capability_index,
-			state,
-			stateType,
-			CapabilitiesList[ LCD_layerStackExact_capability_index ].argCount,
-			(uint8_t*)&stack_args
-		);
-	}
-#endif
-	// Call LCD_layerStackExact directly
-	LCD_layerStackExact_capability( state, stateType, (uint8_t*)&stack_args );
-}
+	}*/
 
 
 
@@ -536,9 +797,9 @@ void cliFunc_lcdInit( char* args )
 
 void cliFunc_lcdTest( char* args )
 {
-	// Write default image
-	for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
-		LCD_writeDisplayReg( page, (uint8_t *)&STLcdDefaultImage[page * LCD_PAGE_LEN], LCD_PAGE_LEN );
+    // Write default image
+    memcpy(STLcdBuffer, STLcdDefaultImage, LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES);
+    STLcd_updateBoundingBox(0, 0, LCD_WIDTH, LCD_HEIGHT);
 }
 
 void cliFunc_lcdCmd( char* args )
@@ -625,13 +886,7 @@ void cliFunc_lcdDisp( char* args )
 	if ( *arg1Ptr == '\0' )
 		return;
 	uint8_t address = numToInt( arg1Ptr );
-
-	// Set the register page
-	LCD_writeControlReg( 0xB0 | ( 0x0F & page ) );
-
-	// Set starting address
-	LCD_writeControlReg( 0x10 | ( ( 0xF0 & address ) >> 4 ) );
-	LCD_writeControlReg( 0x00 | ( 0x0F & address ));
+	uint8_t start = address;
 
 	// Process all args
 	for ( ;; )
@@ -644,9 +899,11 @@ void cliFunc_lcdDisp( char* args )
 			break;
 
 		uint8_t value = numToInt( arg1Ptr );
-
-		// Write buffer to SPI
-		SPI_write( &value, 1 );
+		STLcdBuffer[page * LCD_PAGE_LEN + address] = value;
+		address++;
 	}
+	STLcd_updateBoundingBox(start, page * 8, address, (page + 1) * 8);
 }
+
+
 
