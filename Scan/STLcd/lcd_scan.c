@@ -643,6 +643,7 @@ void LCD_layerStackExact_capability( uint8_t state, uint8_t stateType, uint8_t *
 
 		// Write default image
 		memcpy(STLcdBuffer, STLcdDefaultImage, LCD_PAGE_LEN * LCD_TOTAL_VISIBLE_PAGES);
+		STLcd_updateBoundingBox(0, 0, LCD_WIDTH, LCD_HEIGHT);
 	}
 }
 
