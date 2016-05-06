@@ -74,34 +74,3 @@ void delay(uint32_t ms)
 		yield();
 	}
 }
-
-uint8_t isTicksPassed(uint32_t startmillis, uint32_t startticks,
-		      uint32_t ticks)
-{
-    // the milliseconds must be gotten before the ticks.
-    uint32_t currentmillis = systick_millis_count;
-    uint32_t currentticks = SYST_CVR;
-    if (currentmillis > startmillis + 1){
-	return 1;
-    }
-    if (currentmillis == startmillis + 1){
-	currentticks += (F_CPU / 1000);
-    }
-    else if (currentticks < startmillis) {
-	// the microseconds is reset after getting the ticks.
-	currentticks += (F_CPU / 1000);
-    }
-    if( startticks + ticks < currentticks ){
-	return 1;
-    }
-    else{
-	return 0;
-    }
-}
-
-uint32_t ticks(void)
-{
-    return SYST_CVR;
-}
-
-

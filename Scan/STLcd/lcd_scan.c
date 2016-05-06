@@ -378,11 +378,22 @@ static uint32_t STLcdSyncStage;
 #define STAGE_WRITE_START 15
 #define STAGE_WRITE_END 20
 
+void STLcd_blockingSync(void) {
+    for(;STLcdSyncPageCurrent < STLcdSyncPageMax;
+	STLcdSyncPageCurrent++, STLcdSyncBufferColumnMin += LCD_PAGE_LEN)
+    {
+	LCD_writeControlReg(0xB0 | STLcdSyncPageCurrent);
+	LCD_writeControlReg(0x10 | STLcdSyncColumnMin >> 4);
+	LCD_writeControlReg(0x10 | (STLcdSyncColumnMin & 0x0f));
+	SPI_write(STLcdSyncBufferColumnMin, STLcdSyncColumnMax - STLcdSyncColumnMin);
+    }
+}
+
 // a non-blocking 
 void STLcd_sync(void) {
     for(;;){
 	switch(STLcdSyncStage){
-	case 0: // Begin LCD_writeControlReg( 0xB0 | page);
+	case 0: // Begin LCD_writeControlReg( 0xB0 | STLcdSyncPageCurrent);
 	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
 		return;
 	    GPIOC_PCOR |= (1<<7);
@@ -409,7 +420,7 @@ void STLcd_sync(void) {
 		return;
 	    GPIOC_PSOR |= (1<<7);
 	    STLcdSyncStage++; // End LCD_writeControlReg( 0xB0 | page);
-	case 5: // Begin LCD_writeControlReg( 0x10 | STLcdSyncColumnCurrent >> 4);
+	case 5: // Begin LCD_writeControlReg( 0x10 | STLcdSyncColumnMin >> 4);
 	    if(SPI0_TxFIFO_CNT != 0) // while ( SPI0_TxFIFO_CNT != 0 );
 		return;
 	    GPIOC_PCOR |= (1<<7);
@@ -462,10 +473,11 @@ void STLcd_sync(void) {
 	    if(!isTicksPassed(STLcdSyncStartMillis, STLcdSyncStartTicks, F_CPU / 1000000 * 10))
 		return;
 	    GPIOC_PSOR |= (1<<7);
-	    STLcdSyncStage++; // End LCD_writeControlReg( 0x00 | STLcdSyncColumnCurrent & 0x0f);
+	    STLcdSyncStage++; // End LCD_writeControlReg( 0x00 | (STLcdSyncColumnCurrent & 0x0f));
 	    STLcdSyncBufferColumnCurrent = STLcdSyncBufferColumnMin;
-	case STAGE_WRITE_START: // Begin SPI_write( STLcdSyncBuffer + LCD_PAGE_LEN * STLcdSyncPageCurrent + STLcdSyncColumnMin,
+	    // Begin SPI_write( STLcdSyncBufferColumnMin,
 	    //                  STLcdSyncColumnMax - STLcdSyncColumnMin);
+	case STAGE_WRITE_START: 
 	    if(STLcdSyncBufferColumnCurrent >= STLcdSyncBufferColumnMax){ // next page
 		STLcdSyncStage = 0;
 		STLcdSyncPageCurrent++;
