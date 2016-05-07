@@ -37,7 +37,7 @@ class STLcdFont:
         def __init__( self, glyph_width, glyph_height, num_glyphs):
                 self.glyph_height = glyph_height
                 self.glyph_width  = glyph_width
-                self.glyph_size = (glyph_height * glyph_width + 7) // 8
+                self.glyph_size = (glyph_height + 7) // 8 * glyph_width
                 self.num_fixed_sizes = 1
                 self.availible_sizes = [Bitmap_Size(self.glyph_height, self.glyph_width)]
                 self.num_glyphs = num_glyphs
@@ -48,10 +48,10 @@ class STLcdFont:
         def setpixel( self, index, x, y ):
                 newy = self.glyph_height - y - 1
                 # Calculate which byte
-                byte = (x * self.glyph_height + newy) // 8
+                byte = newy // 8 * glyph_width + x
 
                 # Calculate which bit
-                bit = (x * self.glyph_height + newy) % 8
+                bit = newy % 8
 
                 # Set pixel bit
                 self.glyph_data[ index ][ byte ] |= (1 << bit)
