@@ -529,15 +529,6 @@ inline uint8_t LCD_scan()
     else{
 	if(STLcdUpdateYMin >= STLcdUpdateYMax)
 	    return 0;
-	print(NL);
-	print("Syncing X from ");
-	printInt8(STLcdUpdateXMin);
-	print(" to ");
-	printInt8(STLcdUpdateXMax);
-	print(" Y from ");
-	printInt8(STLcdUpdateYMin);
-	print(" to ");
-	printInt8(STLcdUpdateYMax);
 	STLcdSyncPageMin = STLcdUpdateYMin >> 3;
 	STLcdSyncPageMax = (STLcdUpdateYMax + 7) >> 3;
 	STLcdSyncPageCurrent = STLcdSyncPageMin;
@@ -547,11 +538,6 @@ inline uint8_t LCD_scan()
 
 	STLcdSyncBufferColumnMin = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMin;
 	STLcdSyncBufferColumnMax = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMax;
-	print("\tPage from");
-	printInt8(STLcdSyncPageMin);
-	print(" to ");
-	printInt8(STLcdSyncPageMax);
-	print(NL);
 	
 	memcpy(STLcdSyncBuffer + STLcdSyncPageMin * LCD_PAGE_LEN, STLcdBuffer + STLcdSyncPageMin * LCD_PAGE_LEN,
 	       (STLcdSyncPageMax - STLcdSyncPageMin) * LCD_PAGE_LEN);
@@ -827,88 +813,32 @@ void STLcd_drawGlyph(uint8_t index, uint8_t x, uint8_t y)
     const uint8_t *glyph = STLcdSmallFont + index * STLcdSmallFontSize;
     uint8_t *buffer = STLcdBuffer + (y >> 3) * LCD_PAGE_LEN + x;
     uint8_t maxcolumn = (x + STLcdSmallFontWidth <= LCD_WIDTH) ? STLcdSmallFontWidth : (LCD_WIDTH - x);
-    print(NL);
-    print("buffer index: ");
-    printInt16((y >> 3) * LCD_PAGE_LEN + x);
-    print("index: ");
-    printInt8(index);
-    print("\tx: ");
-    printInt8(x);
-    print("\ty: ");
-    printInt8(y);
-    print(NL);
-    print("glyphpages: ");
-    printInt8(glyphpages);
-    print("\tmaxcolumn: ");
-    printInt8(maxcolumn);
-    print(NL);
-    print("glyphdata: ");
-    print(NL);
-    for(uint8_t page = 0; page < glyphpages; page++){
-	for(uint8_t column = 0; column < maxcolumn; column++){
-	    printHex(glyph[page * STLcdSmallFontWidth + column]);
-	    print(",");
-	}
-	print(NL);
-    }
     if(y & 0x07){
 	uint8_t highbits = y&0x07;
 	uint8_t remainheight = (y + STLcdSmallFontHeight <= LCD_HEIGHT) ? STLcdSmallFontHeight : (LCD_HEIGHT - y);
 	
 	uint8_t mask = STLcdDrawMasks[highbits][(remainheight > 7) ? 0 : remainheight];
-	print("highbits: ");
-	printInt8(highbits);
-	print("\tremainheight: ");
-	printInt8(remainheight);
-	print("\tmask: ");
-	printHex(mask);
-	print(NL);
 	for(uint8_t column = 0; column < maxcolumn; column++){
-	    printHex(buffer[column]&mask);
-	    print("|");
-	    printHex(glyph[column] << highbits);
-	    print(",");
 	    buffer[column] = (buffer[column]&mask)
 		| (glyph[column] << highbits);
 	}
-	print(NL);
 	remainheight -= 8 - highbits;
-	print("remainheight: ");
-	printInt8(remainheight);
-	print(NL);
 	for(uint8_t page = 0; remainheight > 7; page++, remainheight-=8){
 	    for(uint8_t column = 0; column < maxcolumn; column++){
-		printHex(glyph[page * STLcdSmallFontWidth + column] >> ( 8 - highbits));
-		print("|");
-		printHex(glyph[(page + 1) * STLcdSmallFontWidth + column] << highbits);
-		print(",");
 		buffer[(page + 1) * LCD_PAGE_LEN + column] =
 		    (glyph[page * STLcdSmallFontWidth + column] >> ( 8 - highbits))
 		    | (glyph[(page + 1) * STLcdSmallFontWidth + column] << highbits);
 	    }
-	    print(NL);
 	}
-	print("remainheight: ");
-	printInt8(remainheight);
 	if(remainheight > 0){
 	    mask = ~STLcdDrawMasks[remainheight][0];
 	    uint8_t page = glyphpages - 1;
-	    print("\tmask: ");
-	    printHex(mask);
-	    print("\tpage: ");
-	    printInt8(page);
-	    print(NL);
 	    for(uint8_t column = 0; column < maxcolumn; column++){
-		printHex(glyph[page * STLcdSmallFontWidth + column] >> ( 8 - highbits));
-		print("|");
-		printHex(buffer[(page + 1) * LCD_PAGE_LEN + column] & mask);
-		print(",");
 		buffer[(page + 1) * LCD_PAGE_LEN + column] =
 		    (glyph[page * STLcdSmallFontWidth + column] >> ( 8 - highbits))
 		    | (buffer[(page + 1) * LCD_PAGE_LEN + column] & mask);
 	    }
 	}
-	print(NL);
     }
     else{
 	if(STLcdSmallFontHeight & 0x07){
@@ -916,43 +846,21 @@ void STLcd_drawGlyph(uint8_t index, uint8_t x, uint8_t y)
 		memcpy(buffer + page * LCD_PAGE_LEN,
 		       glyph + page * STLcdSmallFontWidth,
 		       maxcolumn);
-		for(uint8_t column = 0; column < maxcolumn; column++){
-		    print("src: ");
-		    printHex(*(glyph + page * STLcdSmallFontWidth + column));
-		    print("\tdest: ");
-		    printHex(*(buffer + page * LCD_PAGE_LEN + column));
-		}
-		print(NL);
 	    }
 	    uint8_t remainheight = STLcdSmallFontHeight & 0x07;
 	    uint8_t mask = ~STLcdDrawMasks[remainheight][0];
-	    print("remainheight: ");
-	    printInt8(remainheight);
-	    print(NL);
 	    for(uint8_t column = 0; column < maxcolumn; column++){
 		uint16_t destindex = (glyphpages - 1) * LCD_PAGE_LEN + column;
-		printHex(buffer[destindex] & mask);
-		print("|");
-		printHex(glyph[(glyphpages - 1) * STLcdSmallFontWidth + column]);
-		print(",");
 		buffer[destindex] = (buffer[destindex] & mask)
 		    | (glyph[(glyphpages - 1) * STLcdSmallFontWidth + column]);
 		
 	    }
-	    print(NL);
 	}
 	else{
 	    for(uint8_t page = 0; page < glyphpages; page++){
 		memcpy(buffer + page * LCD_PAGE_LEN,
 		       glyph + page * STLcdSmallFontWidth,
 		       maxcolumn);
-		for(uint8_t column = 0; column < maxcolumn; column++){
-		    print("src: ");
-		    printHex(*(glyph + page * STLcdSmallFontWidth + column));
-		    print("\tdest: ");
-		    printHex(*(buffer + page * LCD_PAGE_LEN + column));
-		}
-		print(NL);
 	    }
 	}
     }
