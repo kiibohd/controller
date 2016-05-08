@@ -59,7 +59,10 @@ void cliFunc_lcdColor( char* args );
 void cliFunc_lcdDisp ( char* args );
 void cliFunc_lcdInit ( char* args );
 void cliFunc_lcdTest ( char* args );
+void cliFunc_lcdTextOut ( char* args);
 void cliFunc_ttyPrint( char* args );
+void cliFunc_ttyScrollUp( char* args );
+
 
 
 
@@ -88,7 +91,9 @@ CLIDict_Entry( lcdColor,    "Set backlight color. 3 16-bit numbers: R G B. i.e. 
 CLIDict_Entry( lcdDisp,     "Write byte(s) to given page starting at given address. i.e. 0x1 0x5 0xFF 0x00" );
 CLIDict_Entry( lcdInit,     "Re-initialize the LCD display." );
 CLIDict_Entry( lcdTest,     "Test out the LCD display." );
+CLIDict_Entry( lcdTextOut,  "Output text to the LCD at the given x-y coordinate.");
 CLIDict_Entry( ttyPrint,    "Output text to the LCD." );
+CLIDict_Entry( ttyScrollUp,   "Scroll up given lines on the LCD." );
 
 CLIDict_Def( lcdCLIDict, "ST LCD Module Commands" ) = {
 	CLIDict_Item( lcdCmd ),
@@ -96,7 +101,9 @@ CLIDict_Def( lcdCLIDict, "ST LCD Module Commands" ) = {
 	CLIDict_Item( lcdDisp ),
 	CLIDict_Item( lcdInit ),
 	CLIDict_Item( lcdTest ),
+	CLIDict_Item( lcdTextOut),
 	CLIDict_Item( ttyPrint ),
+	CLIDict_Item( ttyScrollUp ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -522,8 +529,17 @@ inline uint8_t LCD_scan()
     else{
 	if(STLcdUpdateYMin >= STLcdUpdateYMax)
 	    return 0;
+	print(NL);
+	print("Syncing X from ");
+	printInt8(STLcdUpdateXMin);
+	print(" to ");
+	printInt8(STLcdUpdateXMax);
+	print(" Y from ");
+	printInt8(STLcdUpdateYMin);
+	print(" to ");
+	printInt8(STLcdUpdateYMax);
 	STLcdSyncPageMin = STLcdUpdateYMin >> 3;
-	STLcdSyncPageMax = STLcdUpdateYMax >> 3;
+	STLcdSyncPageMax = (STLcdUpdateYMax + 7) >> 3;
 	STLcdSyncPageCurrent = STLcdSyncPageMin;
 
 	STLcdSyncColumnMin = STLcdUpdateXMin;
@@ -531,6 +547,11 @@ inline uint8_t LCD_scan()
 
 	STLcdSyncBufferColumnMin = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMin;
 	STLcdSyncBufferColumnMax = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMax;
+	print("\tPage from");
+	printInt8(STLcdSyncPageMin);
+	print(" to ");
+	printInt8(STLcdSyncPageMax);
+	print(NL);
 	
 	memcpy(STLcdSyncBuffer + STLcdSyncPageMin * LCD_PAGE_LEN, STLcdBuffer + STLcdSyncPageMin * LCD_PAGE_LEN,
 	       (STLcdSyncPageMax - STLcdSyncPageMin) * LCD_PAGE_LEN);
@@ -790,14 +811,14 @@ void LCD_charOut_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 	}*/
 
 static uint8_t STLcdDrawMasks[8][8] = {
-    {0x00, 0x7f, 0x3f, 0x1f, 0x0f, 0x07, 0x03, 0x01},
-    {0x80, 0xbf, 0x9f, 0x8f, 0x87, 0x83, 0x81, 0x80},
-    {0xc0, 0xdf, 0xcf, 0xc7, 0xc3, 0xc1, 0xc0, 0xc0},
-    {0xe0, 0xef, 0xe7, 0xe3, 0xe1, 0xe0, 0xe0, 0xe0},
-    {0xf0, 0xf7, 0xf3, 0xf1, 0xf0, 0xf0, 0xf0, 0xf0},
-    {0xf8, 0xfb, 0xf9, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8},
-    {0xfc, 0xfd, 0xfc, 0xfc, 0xfc, 0xfc, 0xfc, 0xfc},
-    {0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe, 0xfe}
+    {0x00, 0xfe, 0xfc, 0xf8, 0xf0, 0xe0, 0xc0, 0x80},
+    {0x01, 0xfd, 0xf9, 0xf1, 0xe1, 0xc1, 0x81, 0x01},
+    {0x03, 0xfb, 0xf3, 0xe3, 0xc3, 0x83, 0x03, 0x03},
+    {0x07, 0xf7, 0xe7, 0xc7, 0x87, 0x07, 0x07, 0x07},
+    {0x0f, 0xef, 0xcf, 0x8f, 0x0f, 0x0f, 0x0f, 0x0f},
+    {0x1f, 0xdf, 0x9f, 0x1f, 0x1f, 0x1f, 0x1f, 0x1f},
+    {0x3f, 0xbf, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f, 0x3f},
+    {0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f, 0x7f}
 };
 
 void STLcd_drawGlyph(uint8_t index, uint8_t x, uint8_t y)
@@ -806,32 +827,88 @@ void STLcd_drawGlyph(uint8_t index, uint8_t x, uint8_t y)
     const uint8_t *glyph = STLcdSmallFont + index * STLcdSmallFontSize;
     uint8_t *buffer = STLcdBuffer + (y >> 3) * LCD_PAGE_LEN + x;
     uint8_t maxcolumn = (x + STLcdSmallFontWidth <= LCD_WIDTH) ? STLcdSmallFontWidth : (LCD_WIDTH - x);
+    print(NL);
+    print("buffer index: ");
+    printInt16((y >> 3) * LCD_PAGE_LEN + x);
+    print("index: ");
+    printInt8(index);
+    print("\tx: ");
+    printInt8(x);
+    print("\ty: ");
+    printInt8(y);
+    print(NL);
+    print("glyphpages: ");
+    printInt8(glyphpages);
+    print("\tmaxcolumn: ");
+    printInt8(maxcolumn);
+    print(NL);
+    print("glyphdata: ");
+    print(NL);
+    for(uint8_t page = 0; page < glyphpages; page++){
+	for(uint8_t column = 0; column < maxcolumn; column++){
+	    printHex(glyph[page * STLcdSmallFontWidth + column]);
+	    print(",");
+	}
+	print(NL);
+    }
     if(y & 0x07){
-	uint8_t highbits = 7&0x07;
+	uint8_t highbits = y&0x07;
 	uint8_t remainheight = (y + STLcdSmallFontHeight <= LCD_HEIGHT) ? STLcdSmallFontHeight : (LCD_HEIGHT - y);
 	
 	uint8_t mask = STLcdDrawMasks[highbits][(remainheight > 7) ? 0 : remainheight];
+	print("highbits: ");
+	printInt8(highbits);
+	print("\tremainheight: ");
+	printInt8(remainheight);
+	print("\tmask: ");
+	printHex(mask);
+	print(NL);
 	for(uint8_t column = 0; column < maxcolumn; column++){
+	    printHex(buffer[column]&mask);
+	    print("|");
+	    printHex(glyph[column] << highbits);
+	    print(",");
 	    buffer[column] = (buffer[column]&mask)
-		| (glyph[column]&(~mask));
+		| (glyph[column] << highbits);
 	}
+	print(NL);
 	remainheight -= 8 - highbits;
+	print("remainheight: ");
+	printInt8(remainheight);
+	print(NL);
 	for(uint8_t page = 0; remainheight > 7; page++, remainheight-=8){
 	    for(uint8_t column = 0; column < maxcolumn; column++){
+		printHex(glyph[page * STLcdSmallFontWidth + column] >> ( 8 - highbits));
+		print("|");
+		printHex(glyph[(page + 1) * STLcdSmallFontWidth + column] << highbits);
+		print(",");
 		buffer[(page + 1) * LCD_PAGE_LEN + column] =
-		    (glyph[page * STLcdSmallFontWidth + column] << ( 8 - highbits))
-		    | (glyph[(page + 1) * STLcdSmallFontWidth + column] >> (highbits));
+		    (glyph[page * STLcdSmallFontWidth + column] >> ( 8 - highbits))
+		    | (glyph[(page + 1) * STLcdSmallFontWidth + column] << highbits);
 	    }
+	    print(NL);
 	}
+	print("remainheight: ");
+	printInt8(remainheight);
 	if(remainheight > 0){
-	    mask = STLcdDrawMasks[0][remainheight];
+	    mask = ~STLcdDrawMasks[remainheight][0];
 	    uint8_t page = glyphpages - 1;
+	    print("\tmask: ");
+	    printHex(mask);
+	    print("\tpage: ");
+	    printInt8(page);
+	    print(NL);
 	    for(uint8_t column = 0; column < maxcolumn; column++){
-		buffer[page * LCD_PAGE_LEN + column] =
-		    (glyph[page * STLcdSmallFontWidth + column] << ( 8 - highbits))
-		    | (buffer[page * LCD_PAGE_LEN + column] & mask);
+		printHex(glyph[page * STLcdSmallFontWidth + column] >> ( 8 - highbits));
+		print("|");
+		printHex(buffer[(page + 1) * LCD_PAGE_LEN + column] & mask);
+		print(",");
+		buffer[(page + 1) * LCD_PAGE_LEN + column] =
+		    (glyph[page * STLcdSmallFontWidth + column] >> ( 8 - highbits))
+		    | (buffer[(page + 1) * LCD_PAGE_LEN + column] & mask);
 	    }
 	}
+	print(NL);
     }
     else{
 	if(STLcdSmallFontHeight & 0x07){
@@ -839,20 +916,43 @@ void STLcd_drawGlyph(uint8_t index, uint8_t x, uint8_t y)
 		memcpy(buffer + page * LCD_PAGE_LEN,
 		       glyph + page * STLcdSmallFontWidth,
 		       maxcolumn);
+		for(uint8_t column = 0; column < maxcolumn; column++){
+		    print("src: ");
+		    printHex(*(glyph + page * STLcdSmallFontWidth + column));
+		    print("\tdest: ");
+		    printHex(*(buffer + page * LCD_PAGE_LEN + column));
+		}
+		print(NL);
 	    }
 	    uint8_t remainheight = STLcdSmallFontHeight & 0x07;
+	    uint8_t mask = ~STLcdDrawMasks[remainheight][0];
+	    print("remainheight: ");
+	    printInt8(remainheight);
+	    print(NL);
 	    for(uint8_t column = 0; column < maxcolumn; column++){
 		uint16_t destindex = (glyphpages - 1) * LCD_PAGE_LEN + column;
-		buffer[destindex] = (buffer[destindex] & STLcdDrawMasks[0][remainheight])
+		printHex(buffer[destindex] & mask);
+		print("|");
+		printHex(glyph[(glyphpages - 1) * STLcdSmallFontWidth + column]);
+		print(",");
+		buffer[destindex] = (buffer[destindex] & mask)
 		    | (glyph[(glyphpages - 1) * STLcdSmallFontWidth + column]);
 		
 	    }
+	    print(NL);
 	}
 	else{
 	    for(uint8_t page = 0; page < glyphpages; page++){
 		memcpy(buffer + page * LCD_PAGE_LEN,
 		       glyph + page * STLcdSmallFontWidth,
 		       maxcolumn);
+		for(uint8_t column = 0; column < maxcolumn; column++){
+		    print("src: ");
+		    printHex(*(glyph + page * STLcdSmallFontWidth + column));
+		    print("\tdest: ");
+		    printHex(*(buffer + page * LCD_PAGE_LEN + column));
+		}
+		print(NL);
 	    }
 	}
     }
@@ -866,26 +966,27 @@ static uint8_t TTYColumns = 0;
 static uint8_t TTYCurrentLine = 0;
 static uint8_t TTYCurrentColumn = 0;
 
-void TTY_initialized(void)
+void TTY_initialize(void)
 {
-    LCD_clear();
+    STLcd_clear();
     TTYInitialized = 1;
     TTYLineHeight = STLcdSmallFontHeight;
     TTYLines = LCD_HEIGHT / TTYLineHeight;
     TTYColumns = LCD_WIDTH / STLcdSmallFontWidth;
-    TTYCurrentLine = 0;
+    TTYCurrentLine = TTYLines - 1;
     TTYCurrentColumn = 0;
 }
 
 void TTY_exit(void)
 {
-    LCD_clear();
+    STLcd_clear();
     TTYInitialized = 0;
 }
 
 void TTY_drawGlyph(uint8_t index)
 {
     STLcd_drawGlyph(index, TTYCurrentColumn * STLcdSmallFontWidth, TTYCurrentLine * TTYLineHeight);
+    //STLcd_updateBoundingBox(0, 0, LCD_WIDTH, LCD_HEIGHT);
     STLcd_updateBoundingBox(TTYCurrentColumn * STLcdSmallFontWidth,
 			    TTYCurrentLine * TTYLineHeight,
 			    (TTYCurrentColumn + 1) * STLcdSmallFontWidth,
@@ -909,21 +1010,25 @@ void TTY_scrollUp(uint8_t lines)
 	       scrollpages * LCD_PAGE_LEN);
     }
     else{
-	for(uint8_t destpage = 0, srcpage = scrollpages + 1;
-	    srcpage <  LCD_TOTAL_VISIBLE_PAGES;
-	    destpage++, srcpage++)
-	{
-	    for(uint8_t column = 0; column < LCD_PAGE_LEN; column++){
-		STLcdBuffer[destpage * LCD_PAGE_LEN] =
-		    (STLcdBuffer[destpage * LCD_PAGE_LEN + column] << scrollshiftbits) |
-		    (STLcdBuffer[srcpage * LCD_PAGE_LEN + column] >> (8 - scrollshiftbits));
+	if(scrollpages < LCD_TOTAL_VISIBLE_PAGES - 1){
+	    for(uint8_t destpage = LCD_TOTAL_VISIBLE_PAGES - 1, srcpage = LCD_TOTAL_VISIBLE_PAGES - scrollpages - 1;
+		srcpage > 0;
+		destpage--, srcpage--)
+	    {
+		for(uint8_t column = 0; column < LCD_PAGE_LEN; column++){
+		    STLcdBuffer[destpage * LCD_PAGE_LEN + column] =
+			(STLcdBuffer[srcpage * LCD_PAGE_LEN + column] << scrollshiftbits) |
+			(STLcdBuffer[(srcpage - 1) * LCD_PAGE_LEN + column] >> (8 - scrollshiftbits));
+		}
 	    }
 	}
-	for(uint8_t column = 0; column < LCD_PAGE_LEN; column++){ // last non-empty page
-	    STLcdBuffer[(LCD_TOTAL_VISIBLE_PAGES - scrollpages - 1) * LCD_PAGE_LEN + column] <<= scrollshiftbits;
+	if(scrollpages < LCD_TOTAL_VISIBLE_PAGES){
+	    for(uint8_t column = 0; column < LCD_PAGE_LEN; column++){ // last non-empty page
+		STLcdBuffer[scrollpages * LCD_PAGE_LEN + column] = STLcdBuffer[column] << scrollshiftbits;
+	    }
 	}
 	if(scrollpages > 0) // have empty pages
-	    memset(STLcdBuffer + (LCD_TOTAL_VISIBLE_PAGES - scrollpages) * LCD_PAGE_LEN,
+	    memset(STLcdBuffer,
 		   0,
 		   scrollpages * LCD_PAGE_LEN);
     }
@@ -932,20 +1037,21 @@ void TTY_scrollUp(uint8_t lines)
 
 void TTY_newLine(void)
 {
-    if(TTYCurrentLine < TTYLines - 1){
-	TTYCurrentLine++;
+    if(TTYCurrentLine > 0){
+	TTYCurrentLine--;
 	TTYCurrentColumn = 0;
     }
     else{
 	TTY_scrollUp(1);
 	TTYCurrentColumn = 0;
     }
-	
 }
 
 void TTY_outputChar(uint8_t c)
 {
-    
+    if(!TTYInitialized){
+	TTY_initialize();
+    }
     switch(c)
     {
     case 0x8: // \b
@@ -964,9 +1070,9 @@ void TTY_outputChar(uint8_t c)
 	TTY_newLine();
 	break;
     case 0x0c: // \f
-	LCD_clear();
+	STLcd_clear();
 	TTYCurrentColumn = 0;
-	TTYCurrentLine = 0;
+	TTYCurrentLine = TTYLines - 1;
 	break;
     default:
 	TTY_drawGlyph(c);
@@ -1097,6 +1203,40 @@ void cliFunc_lcdDisp( char* args )
 	STLcd_updateBoundingBox(start, page * 8, address, (page + 1) * 8);
 }
 
+void cliFunc_lcdTextOut( char* args )
+{
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// First process page and starting address
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Stop processing args if no more are found
+	if ( *arg1Ptr == '\0' )
+		return;
+	uint8_t x = numToInt( arg1Ptr );
+
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Stop processing args if no more are found
+	if ( *arg1Ptr == '\0' )
+		return;
+	uint8_t y = numToInt( arg1Ptr );
+
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Stop processing args if no more are found
+	if ( *arg1Ptr == '\0' )
+	    return;
+	uint8_t value = numToInt( arg1Ptr );
+	STLcd_drawGlyph(value, x, y);
+	STLcd_updateBoundingBox(x, y, x+STLcdSmallFontWidth, y+STLcdSmallFontHeight);
+}
+
 void cliFunc_ttyPrint( char* args )
 {
 	char* curArgs;
@@ -1116,5 +1256,22 @@ void cliFunc_ttyPrint( char* args )
 		uint8_t value = numToInt( arg1Ptr );
 		TTY_outputChar(value);
 	}
+}
+
+void cliFunc_ttyScrollUp( char* args )
+{
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Stop processing args if no more are found
+	if ( *arg1Ptr == '\0' )
+	    return;
+
+	uint8_t value = numToInt( arg1Ptr );
+	TTY_scrollUp(value);
 }
 
