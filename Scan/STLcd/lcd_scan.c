@@ -973,7 +973,7 @@ void TTY_outputChar( uint8_t c )
 	if ( !TTYInitialized ){
 		TTY_initialize ( STLcdDefaultFont, STLcdDefaultFontSize, STLcdDefaultFontLength,
 				 STLcdDefaultFontWidth, STLcdDefaultFontHeight,
-				 1, 1 );
+				 1, 0 );
 	}
 	switch ( c )
 	{

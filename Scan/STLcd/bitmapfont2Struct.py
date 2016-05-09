@@ -35,12 +35,12 @@ class STLcdFont:
         # Some constants for the LCD Driver
         array('B')
 
-        def __init__( self, glyph_width, glyph_height, num_glyphs):
+        def __init__( self, glyph_width, glyph_height, num_glyphs ):
                 self.glyph_height = glyph_height
                 self.glyph_width  = glyph_width
                 self.glyph_size = (glyph_height + 7) // 8 * glyph_width
                 self.num_fixed_sizes = 1
-                self.availible_sizes = [Bitmap_Size(self.glyph_height, self.glyph_width)]
+                self.availible_sizes = [ Bitmap_Size( self.glyph_height, self.glyph_width ) ]
                 self.num_glyphs = num_glyphs
                 self.glyph_data = []
                 for index in range( 0, self.num_glyphs ):
@@ -57,7 +57,7 @@ class STLcdFont:
                 # Set pixel bit
                 self.glyph_data[ index ][ byte ] |= (1 << bit)
 
-        def renderglyph( self, index, flags=0):
+        def renderglyph( self, index, flags=0 ):
                 return self.glyph_data[ index ]
 
         def getarray( self ):
@@ -71,11 +71,16 @@ class STLcdFont:
                 return struct
 
 filename = sys.argv[1]
-glyph_width = int(sys.argv[2])
-glyph_height = int(sys.argv[3])
+glyph_width = int( sys.argv[2] )
+glyph_height = int( sys.argv[3] )
+bitmap_spacing = 0
+bitmap_linespacing = 0
+if ( len( sys.argv ) >= 6 ):
+        bitmap_spacing = int( sys.argv[4] )
+        bitmap_linespacing = int( sys.argv[5] )
 num_glyphs = 128 # ASCII
 if filename is None:
-        print( "You must specify a bitmap filename. Try './bitmapfont2Struct.py font.bmp 4 6'" )
+        print( "You must specify a bitmap filename. Try './bitmapfont2Struct.py font.bmp 4 6 0 0'" )
         sys.exit( 1 )
 output_image = STLcdFont( glyph_width, glyph_height, num_glyphs )
 
@@ -88,20 +93,25 @@ except:
         print( "Unable to load image '{0}'".format( filename ) )
 
 input_width, input_height = input_image.size
-columns = input_width // glyph_width
-rows = input_height // glyph_height
+columns = ( input_width - glyph_width ) // ( glyph_width + bitmap_spacing ) + 1
+rows = ( input_width - glyph_height ) // ( glyph_height + bitmap_linespacing ) + 1
 
 # Iterate over all of the pixels
 # Also prepare the debug view of the image (disp_test)
 disp_test = "+" + "-" * input_width + "+\n"
 glyph_index = 0
 for y in range( 0, input_height ):
-        row = y // glyph_height
+        row = y // ( glyph_height + bitmap_linespacing )
         if row >= rows:
                 break
+        if y % ( glyph_height + bitmap_linespacing ) >= glyph_height:
+                # empty
+                continue
         disp_test += "|"
         for x in range( 0, input_width ):
-                column = x // glyph_width
+                column = x // ( glyph_width + bitmap_spacing )
+                if x % ( glyph_width + bitmap_spacing ) >= glyph_width:
+                        continue
                 glyph_index = row * columns + column
                 if column >= columns or glyph_index >= num_glyphs:
                         disp_test += " "
@@ -110,7 +120,9 @@ for y in range( 0, input_height ):
                         try:
                                 if input_image.getpixel( (x, y) ) == 0:
                                         disp_test += "*"
-                                        output_image.setpixel( glyph_index, x % glyph_width, y % glyph_height ) 
+                                        output_image.setpixel( glyph_index,
+                                                               x % ( glyph_width + bitmap_spacing ),
+                                                               y % ( glyph_height + bitmap_linespacing ) ) 
                                 else:
                                         disp_test += " "
                         except IndexError:
