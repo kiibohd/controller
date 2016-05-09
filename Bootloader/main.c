@@ -234,11 +234,11 @@ void main()
 	usb_init( &dfu_device );
 
 #if defined(_mk20dx256vlh7_) // Kiibohd-dfu
-	// PTA13 - USB Swap
+	// PTA4 - USB Swap
 	// Start, disabled
-	GPIOA_PDDR |= (1<<13);
-	PORTA_PCR13 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PCOR |= (1<<13);
+	GPIOA_PDDR |= (1<<4);
+	PORTA_PCR4 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOA_PCOR |= (1<<4);
 
 	#define USBPortSwapDelay_ms 1000
 	#define USBPortSwapIncrement_ms 100
@@ -253,7 +253,7 @@ void main()
 
 		// Only check for swapping after delay
 		uint32_t wait_ms = systick_millis_count - last_ms;
-		if ( wait_ms < USBPortSwapDelay_ms + attempt * USBPortSwapIncrement_ms )
+		if ( wait_ms < USBPortSwapDelay_ms + attempt / 2 * USBPortSwapIncrement_ms )
 		{
 			continue;
 		}
@@ -264,7 +264,7 @@ void main()
 		if ( usb.state != USBD_STATE_ADDRESS )
 		{
 			print("USB not initializing, port swapping (if supported)");
-			GPIOA_PTOR |= (1<<13);
+			GPIOA_PTOR |= (1<<4);
 			attempt++;
 		}
 	}
