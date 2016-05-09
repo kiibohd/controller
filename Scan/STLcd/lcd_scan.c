@@ -405,7 +405,7 @@ void STLcd_sync() {
 		switch(STLcdSyncStage)
 		{
 		// Verify SPI0 TxFIFO is not full, then enable LCD configuration registers (A0 to Low)
-		case 0: 
+		case 0:
 			if ( SPI0_TxFIFO_CNT != 0 ) // while ( SPI0_TxFIFO_CNT != 0 );
 				return;
 			GPIOC_PCOR |= (1<<7);
@@ -523,7 +523,7 @@ void STLcd_sync() {
 
 		// If the current page has been outputed,
 		// then change to next page or finish the sync( if it's the last page).
-		case STAGE_WRITE_START: 
+		case STAGE_WRITE_START:
 			if ( STLcdSyncBufferColumnCurrent >= STLcdSyncBufferColumnMax )
 			{ // next page
 				STLcdSyncStage = 0;
@@ -583,7 +583,7 @@ inline uint8_t LCD_scan()
 
 		STLcdSyncBufferColumnMin = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMin;
 		STLcdSyncBufferColumnMax = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMax;
-	
+
 		memcpy( STLcdSyncBuffer + STLcdSyncPageMin * LCD_PAGE_LEN, STLcdBuffer + STLcdSyncPageMin * LCD_PAGE_LEN,
 			( STLcdSyncPageMax - STLcdSyncPageMin ) * LCD_PAGE_LEN );
 
@@ -669,7 +669,7 @@ void LCD_layerStackExact_capability( uint8_t state, uint8_t stateType, uint8_t *
 		FTM0_C0V = colors[ layerIndex ][0];
 		FTM0_C1V = colors[ layerIndex ][1];
 		FTM0_C2V = colors[ layerIndex ][2];
-		
+
 		// Iterate through each of the pages
 		// XXX Many of the values here are hard-coded
 		//	   Eventually a proper font rendering engine should take care of things like this... -HaaTa
@@ -681,7 +681,7 @@ void LCD_layerStackExact_capability( uint8_t state, uint8_t stateType, uint8_t *
 			for ( uint16_t layer = 0; layer < stack_args->numArgs; layer++ )
 			{
 				layerIndex = stack_args->layers[ layer ];
-				
+
 				// Default to 0, if over 9
 				if ( layerIndex > 9 )
 				{

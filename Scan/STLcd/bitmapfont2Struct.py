@@ -45,7 +45,7 @@ class STLcdFont:
                 self.glyph_data = []
                 for index in range( 0, self.num_glyphs ):
                         self.glyph_data.append( array( 'B', [0] * self.glyph_size ) )
-                        
+
         def setpixel( self, index, x, y ):
                 newy = self.glyph_height - y - 1
                 # Calculate which byte
@@ -122,7 +122,7 @@ for y in range( 0, input_height ):
                                         disp_test += "*"
                                         output_image.setpixel( glyph_index,
                                                                x % ( glyph_width + bitmap_spacing ),
-                                                               y % ( glyph_height + bitmap_linespacing ) ) 
+                                                               y % ( glyph_height + bitmap_linespacing ) )
                                 else:
                                         disp_test += " "
                         except IndexError:
