@@ -71,10 +71,11 @@ void cliFunc_ttyScrollUp ( char* args );
 // Default Image - Displays on startup
 const uint8_t STLcdDefaultImage[] = { STLcdDefaultImage_define };
 
-const uint8_t STLcdSmallFont[] = { STLcdSmallFont_define };
-const uint8_t STLcdSmallFontWidth = STLcdSmallFontWidth_define;
-const uint8_t STLcdSmallFontHeight = STLcdSmallFontHeight_define;
-const uint8_t STLcdSmallFontSize = STLcdSmallFontSize_define;
+const uint8_t STLcdDefaultFont[] = { STLcdDefaultFont_define };
+const uint8_t STLcdDefaultFontWidth = STLcdDefaultFontWidth_define;
+const uint8_t STLcdDefaultFontHeight = STLcdDefaultFontHeight_define;
+const uint8_t STLcdDefaultFontSize = STLcdDefaultFontSize_define;
+const uint8_t STLcdDefaultFontLength = STLcdDefaultFontLength_define;
 
 
 
@@ -584,7 +585,7 @@ inline uint8_t LCD_scan()
 		STLcdSyncBufferColumnMax = STLcdSyncBuffer + STLcdSyncPageCurrent * LCD_PAGE_LEN + STLcdSyncColumnMax;
 	
 		memcpy( STLcdSyncBuffer + STLcdSyncPageMin * LCD_PAGE_LEN, STLcdBuffer + STLcdSyncPageMin * LCD_PAGE_LEN,
-				( STLcdSyncPageMax - STLcdSyncPageMin ) * LCD_PAGE_LEN );
+			( STLcdSyncPageMax - STLcdSyncPageMin ) * LCD_PAGE_LEN );
 
 		STLcdSync = 1;
 		STLcdSyncStage = 0;
@@ -675,22 +676,22 @@ void LCD_layerStackExact_capability( uint8_t state, uint8_t stateType, uint8_t *
 		STLcd_clear();
 		for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
 		{
-		uint8_t offset = 0;
-		// Write data
-		for ( uint16_t layer = 0; layer < stack_args->numArgs; layer++ )
-		{
-			layerIndex = stack_args->layers[ layer ];
-			
-			// Default to 0, if over 9
-			if ( layerIndex > 9 )
+			uint8_t offset = 0;
+			// Write data
+			for ( uint16_t layer = 0; layer < stack_args->numArgs; layer++ )
 			{
-			layerIndex = 0;
+				layerIndex = stack_args->layers[ layer ];
+				
+				// Default to 0, if over 9
+				if ( layerIndex > 9 )
+				{
+					layerIndex = 0;
+				}
+				memcpy(STLcdBuffer + page * LCD_PAGE_LEN + offset,
+				       &numbers[layerIndex][page * 32],
+				       32);
+				offset += 32;
 			}
-			memcpy(STLcdBuffer + page * LCD_PAGE_LEN + offset,
-			   &numbers[layerIndex][page * 32],
-			   32);
-			offset += 32;
-		}
 		}
 	}
 	else
@@ -824,8 +825,8 @@ void STLcd_drawBitmap( const uint8_t *bitmap, uint8_t x, uint8_t y, uint8_t widt
 			for ( uint8_t page = 0; page < srcpages - 1; page++ )
 			{
 				memcpy( buffer + page * LCD_PAGE_LEN,
-						bitmap + page * width,
-						maxcolumn );
+					bitmap + page * width,
+					maxcolumn );
 			}
 			remainheight = remainheight & 0x07;
 			uint8_t mask = ~STLcdDrawMasks[ remainheight ][ 0 ];
@@ -841,27 +842,41 @@ void STLcd_drawBitmap( const uint8_t *bitmap, uint8_t x, uint8_t y, uint8_t widt
 			for ( uint8_t page = 0; page < srcpages; page++ )
 			{
 				memcpy( buffer + page * LCD_PAGE_LEN,
-						bitmap + page * width,
-						maxcolumn );
+					bitmap + page * width,
+					maxcolumn );
 			}
 		}
 	}
 }
 
 static uint8_t TTYInitialized = 0;
+static const uint8_t * TTYFont = 0;
+static uint8_t TTYFontHeight = 0;
+static uint8_t TTYFontWidth = 0;
+static uint8_t TTYFontSize = 0;
+static uint8_t TTYSpacing = 0;
 static uint8_t TTYLineHeight = 0;
+static uint8_t TTYFontLength = 0;
 static uint8_t TTYLines = 0;
 static uint8_t TTYColumns = 0;
 static uint8_t TTYCurrentLine = 0;
 static uint8_t TTYCurrentColumn = 0;
 
-void TTY_initialize()
+void TTY_initialize( const uint8_t *font, uint8_t fontSize, uint8_t fontLength,
+		     uint8_t fontWidth, uint8_t fontHeight,
+		     uint8_t spacing, uint8_t lineHeight )
 {
 	STLcd_clear();
 	TTYInitialized = 1;
-	TTYLineHeight = STLcdSmallFontHeight;
-	TTYLines = LCD_HEIGHT / TTYLineHeight;
-	TTYColumns = LCD_WIDTH / STLcdSmallFontWidth;
+	TTYFont = font;
+	TTYFontSize = fontSize;
+	TTYFontWidth = fontWidth;
+	TTYFontHeight = fontHeight;
+	TTYFontLength = fontLength;
+	TTYSpacing = spacing;
+	TTYLineHeight = lineHeight;
+	TTYLines = ( LCD_HEIGHT - fontHeight) / lineHeight + 1;
+	TTYColumns = ( LCD_WIDTH - fontWidth ) / ( fontWidth + spacing ) + 1;
 	TTYCurrentLine = TTYLines - 1;
 	TTYCurrentColumn = 0;
 }
@@ -874,20 +889,22 @@ void TTY_exit()
 
 void TTY_drawGlyph( uint8_t index )
 {
-	STLcd_drawBitmap( STLcdSmallFont + index * STLcdSmallFontSize,
-					  TTYCurrentColumn * STLcdSmallFontWidth,
-					  TTYCurrentLine * TTYLineHeight,
-					  STLcdSmallFontWidth,
-					  STLcdSmallFontHeight );
-	STLcd_updateBoundingBox( TTYCurrentColumn * STLcdSmallFontWidth,
-							 TTYCurrentLine * TTYLineHeight,
-							 ( TTYCurrentColumn + 1 ) * STLcdSmallFontWidth,
-							 ( TTYCurrentLine + 1 ) * TTYLineHeight );
+	if ( index < TTYFontLength )
+		return;
+	STLcd_drawBitmap( TTYFont + index * TTYFontSize,
+			  TTYCurrentColumn * ( TTYFontWidth + TTYSpacing ),
+			  TTYCurrentLine * TTYLineHeight,
+			  TTYFontWidth,
+			  TTYFontHeight );
+	STLcd_updateBoundingBox( TTYCurrentColumn * ( TTYFontWidth + TTYSpacing ),
+				 TTYCurrentLine * TTYLineHeight,
+				 TTYCurrentColumn * ( TTYFontWidth + TTYSpacing ) + TTYFontWidth,
+				 TTYCurrentLine * TTYLineHeight + TTYFontHeight );
 }
 
 void TTY_scrollUp( uint8_t lines )
 {
-	uint8_t scrollpixels = lines * STLcdSmallFontHeight;
+	uint8_t scrollpixels = lines * TTYLineHeight;
 	uint8_t scrollshiftbits = scrollpixels & 0x07;
 	uint8_t scrollpages = scrollpixels >> 3;
 	if ( scrollshiftbits == 0 )
@@ -897,20 +914,20 @@ void TTY_scrollUp( uint8_t lines )
 			return;
 		}
 		memcpy( STLcdBuffer,
-				STLcdBuffer + scrollpages * LCD_PAGE_LEN,
-				LCD_PAGE_LEN * ( LCD_TOTAL_VISIBLE_PAGES - scrollpages ) );
+			STLcdBuffer + scrollpages * LCD_PAGE_LEN,
+			LCD_PAGE_LEN * ( LCD_TOTAL_VISIBLE_PAGES - scrollpages ) );
 		memset( STLcdBuffer + LCD_PAGE_LEN * ( LCD_TOTAL_VISIBLE_PAGES - scrollpages ),
-				0,
-				scrollpages * LCD_PAGE_LEN );
+			0,
+			scrollpages * LCD_PAGE_LEN );
 	}
 	else
 	{
 		if ( scrollpages < LCD_TOTAL_VISIBLE_PAGES - 1 )
 		{
 			for ( uint8_t destpage = LCD_TOTAL_VISIBLE_PAGES - 1,
-					  srcpage = LCD_TOTAL_VISIBLE_PAGES - scrollpages - 1;
-				  srcpage > 0;
-				  destpage--, srcpage-- )
+				      srcpage = LCD_TOTAL_VISIBLE_PAGES - scrollpages - 1;
+			      srcpage > 0;
+			      destpage--, srcpage-- )
 			{
 				for ( uint8_t column = 0; column < LCD_PAGE_LEN; column++ )
 				{
@@ -930,8 +947,8 @@ void TTY_scrollUp( uint8_t lines )
 		if ( scrollpages > 0 ) // have empty pages
 		{
 			memset( STLcdBuffer,
-					0,
-					scrollpages * LCD_PAGE_LEN );
+				0,
+				scrollpages * LCD_PAGE_LEN );
 		}
 	}
 	STLcd_updateBoundingBox(0, 0, LCD_WIDTH, LCD_HEIGHT);
@@ -954,7 +971,9 @@ void TTY_newLine( void )
 void TTY_outputChar( uint8_t c )
 {
 	if ( !TTYInitialized ){
-		TTY_initialize();
+		TTY_initialize ( STLcdDefaultFont, STLcdDefaultFontSize, STLcdDefaultFontLength,
+				 STLcdDefaultFontWidth, STLcdDefaultFontHeight,
+				 1, 1 );
 	}
 	switch ( c )
 	{
@@ -1140,9 +1159,18 @@ void cliFunc_lcdTextOut( char* args )
 	if ( *arg1Ptr == '\0' )
 		return;
 	uint8_t value = numToInt( arg1Ptr );
-	STLcd_drawBitmap( STLcdSmallFont + value * STLcdSmallFontSize, x, y,
-					  STLcdSmallFontWidth, STLcdSmallFontHeight );
-	STLcd_updateBoundingBox( x, y, x + STLcdSmallFontWidth, y + STLcdSmallFontHeight );
+	if ( value >= STLcdDefaultFontLength )
+	{
+		print( "The charactor: " );
+		printHex( value );
+		print( " is out of the boundary of the font(length ");
+		printHex( STLcdDefaultFontLength );
+		print( ")" );
+		print( NL );
+	}
+	STLcd_drawBitmap( STLcdDefaultFont + value * STLcdDefaultFontSize, x, y,
+			  STLcdDefaultFontWidth, STLcdDefaultFontHeight );
+	STLcd_updateBoundingBox( x, y, x + STLcdDefaultFontWidth, y + STLcdDefaultFontHeight );
 }
 
 void cliFunc_ttyPrint( char* args )
