@@ -60,7 +60,7 @@ static inline uint32_t millis(void)
 static inline uint32_t microsToTicks(uint32_t) __attribute__((always_inline, unused));
 static inline uint32_t microsToTicks(uint32_t usec)
 {
-    return usec * (F_CPU / 1000000);
+	return usec * (F_CPU / 1000000);
 }
 
 static inline void delayMicroseconds(uint32_t) __attribute__((always_inline, unused));
@@ -76,9 +76,9 @@ static inline void delayMicroseconds(uint32_t usec)
 	uint32_t n = usec << 3;
 #endif
 	asm volatile(
-		"L_%=_delayMicroseconds:"               "\n\t"
-		"subs   %0, #1"                         "\n\t"
-		"bne    L_%=_delayMicroseconds"         "\n"
+		"L_%=_delayMicroseconds:"				"\n\t"
+		"subs	%0, #1"							"\n\t"
+		"bne	L_%=_delayMicroseconds"			"\n"
 		: "+r" (n) :
 	);
 }
@@ -91,32 +91,31 @@ uint32_t micros(void);
 void delay(uint32_t ms);
 
 static inline uint8_t isTicksPassed(uint32_t, uint32_t, uint32_t) __attribute__((always_inline, unused));
-static inline uint8_t isTicksPassed(uint32_t startmillis, uint32_t startticks,
-		      uint32_t ticks)
+static inline uint8_t isTicksPassed(uint32_t startmillis, uint32_t startticks, uint32_t ticks)
 {
-    // the milliseconds must be gotten before the ticks.
-    uint32_t currentmillis = systick_millis_count;
-    uint32_t currentticks = SYST_CVR;
-    if (currentmillis > startmillis + 1){
-	return 1;
-    }
-    if (currentmillis == startmillis + 1){
-	currentticks += (F_CPU / 1000);
-    }
-    else if (currentticks < startmillis) {
+	// the milliseconds must be gotten before the ticks.
+	uint32_t currentmillis = systick_millis_count;
+	uint32_t currentticks = SYST_CVR;
+	if (currentmillis > startmillis + 1) {
+		return 1;
+	}
+	if (currentmillis == startmillis + 1) {
+		currentticks += (F_CPU / 1000);
+	}
+	else if (currentticks < startmillis) {
 	// the microseconds is reset after getting the ticks.
-	currentticks += (F_CPU / 1000);
-    }
-    if( startticks + ticks < currentticks ){
-	return 1;
-    }
-    else{
-	return 0;
-    }
+		currentticks += (F_CPU / 1000);
+	}
+	if (startticks + ticks < currentticks) {
+		return 1;
+	}
+	else{
+		return 0;
+	}
 }
 
-static inline uint32_t ticks(void)  __attribute__((always_inline, unused));
+static inline uint32_t ticks(void) __attribute__((always_inline, unused));
 static inline uint32_t ticks(void)
 {
-    return SYST_CVR;
+	return SYST_CVR;
 }
