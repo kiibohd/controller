@@ -668,11 +668,11 @@ void cliFunc_lcdClear( char* args )
 		LCD_writeControlReg( 0x00 );
 
 		// See SPI_write()
-		for ( unsigned int i = 0; i < 128; ++i)
+		for ( uint8_t i = 0; i < 128; ++i)
 		{
 			// Wait for SPI TxFIFO to have 4 or fewer entries
 			while ( !( SPI0_SR & SPI_SR_TFFF ) )
-				delayMicroseconds(10);
+				delayMicroseconds( 10 );
 
 			// Write byte to TxFIFO
 			// CS0, CTAR0
