@@ -427,7 +427,15 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 
 				case KeyState_Invalid:
 				default:
-					erro_print("Matrix scan bug!! Report me!");
+					erro_msg("Matrix scan bug!! Report me! - ");
+					printHex( state->prevState );
+					print(" Col: ");
+					printHex( strobe );
+					print(" Row: ");
+					printHex( sense );
+					print(" Key: ");
+					printHex( key );
+					print( NL );
 					break;
 				}
 

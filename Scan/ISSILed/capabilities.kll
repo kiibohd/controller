@@ -1,6 +1,6 @@
 Name = ISSILedCapabilities;
 Version = 0.2;
-Author = "HaaTa (Jacob Alexander) 2015";
+Author = "HaaTa (Jacob Alexander) 2015-2016";
 KLL = 0.3d;
 
 # Modified Date
@@ -22,11 +22,34 @@ Date = 2015-10-09;
 #  i.e. 23 then 144
 ledControl => LED_control_capability( mode : 1, amount : 1, index : 2 );
 
+
 # Defines available to the ISSILed sub-module
+
+# Driver Chip
+# Selects which driver chip being used
+# Set to 1 to enable
+# Valid Chips
+#  31FL3731 - http://www.issi.com/WW/pdf/31FL3731.pdf (31FL3731C has the same datasheet)
+#  31FL3732 - http://www.issi.com/WW/pdf/31FL3732.pdf
+ISSI_Chip_31FL3731 => ISSI_Chip_31FL3731_define;
+ISSI_Chip_31FL3732 => ISSI_Chip_31FL3732_define;
+ISSI_Chip_31FL3731 = 0;
+ISSI_Chip_31FL3732 = 0;
+
+# Global Brightness
+# 31FL3732 only
+#  0 to 0xFF (255)
+#  See datasheet for current calculation, depends on Rext
+ISSI_Global_Brightness => ISSI_Global_Brightness_define;
+ISSI_Global_Brightness = 0xFF;
 
 # Available ISSI Chips
 ISSI_Chips => ISSI_Chips_define;
 ISSI_Chips = 1; # 1 by default
+
+# I2C Buses
+ISSI_I2C_Buses => ISSI_I2C_Buses_define;
+ISSI_I2C_Buses = 1; # 1 by default
 
 # Default animation speed
 # Can be set from 0 to 63 (A)
@@ -40,9 +63,9 @@ ISSI_Chips = 1; # 1 by default
 # For a 400 kHz I2C, with a single chip, updating all 144 channels, generally 30 fps is the max for continuous animations
 # Each additional chip consumes more bandwidth
 # 20 - 4.5 fps - Slow, but should always work without glitches
-# See (http://www.issi.com/WW/pdf/31FL3731C.pdf) for details
+# See chip datasheet (above) for details
 ISSI_AnimationSpeed => ISSI_AnimationSpeed_define;
-ISSI_AnimationSpeed = 20; # 20 by default
+ISSI_AnimationSpeed = 4; # 20 by default
 
 # LED Default Enable Mask
 #

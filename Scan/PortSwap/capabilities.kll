@@ -10,5 +10,8 @@ Date = 2015-10-23;
 portCross => Port_cross_capability();
 
 # Capability to swap the USB port mapping
-portSwap => Port_swap_capability();
+portSwapUSB => Port_usb_capability();
+
+# Capability to swap the interconnect port mapping
+portSwapInter => Port_uart_capability();
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 by Jacob Alexander
+/* Copyright (C) 2015-2016 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,7 +52,8 @@
 
 // CLI Functions
 void cliFunc_portCross( char* args );
-void cliFunc_portSwap ( char* args );
+void cliFunc_portUART ( char* args );
+void cliFunc_portUSB  ( char* args );
 
 
 
@@ -62,11 +63,13 @@ uint32_t Port_lastcheck_ms;
 
 // Scan Module command dictionary
 CLIDict_Entry( portCross, "Cross interconnect pins." );
-CLIDict_Entry( portSwap,  "Swap USB ports manually, forces usb and interconnect to re-negotiate if necessary." );
+CLIDict_Entry( portUSB,   "Swap USB ports manually, forces usb and interconnect to re-negotiate if necessary." );
+CLIDict_Entry( portUART,  "Swap interconnect ports." );
 
 CLIDict_Def( portCLIDict, "Port Swap Module Commands" ) = {
 	CLIDict_Item( portCross ),
-	CLIDict_Item( portSwap ),
+	CLIDict_Item( portUART ),
+	CLIDict_Item( portUSB ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -74,16 +77,24 @@ CLIDict_Def( portCLIDict, "Port Swap Module Commands" ) = {
 
 // ----- Functions -----
 
-void Port_swap()
+void Port_usb_swap()
 {
 	info_print("USB Port Swap");
 
-	// PTA13 - USB Swap
-	GPIOA_PTOR |= (1<<13);
+	// PTA4 - USB Swap
+	GPIOA_PTOR |= (1<<4);
 
 	// Re-initialize usb
 	// Call usb_configured() to check if usb is ready
 	usb_init();
+}
+
+void Port_uart_swap()
+{
+	info_print("Interconnect Line Swap");
+
+	// PTA13 - UART Swap
+	GPIOA_PTOR |= (1<<13);
 }
 
 void Port_cross()
@@ -103,13 +114,19 @@ inline void Port_setup()
 	// Register Scan CLI dictionary
 	CLI_registerDictionary( portCLIDict, portCLIDictName );
 
+	// PTA4 - USB Swap
+	// Start, disabled
+	GPIOA_PDDR |= (1<<4);
+	PORTA_PCR4 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOA_PCOR |= (1<<4);
+
 	// PTA12 - UART Tx/Rx cross-over
 	// Start, disabled
 	GPIOA_PDDR |= (1<<12);
 	PORTA_PCR12 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOA_PCOR |= (1<<12);
 
-	// PTA13 - USB Swap
+	// PTA13 - UART Swap
 	// Start, disabled
 	GPIOA_PDDR |= (1<<13);
 	PORTA_PCR13 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
@@ -136,7 +153,7 @@ inline uint8_t Port_scan()
 		// USB not initialized, attempt to swap
 		if ( !usb_configured() )
 		{
-			Port_swap();
+			Port_usb_swap();
 		}
 	}
 
@@ -147,12 +164,12 @@ inline uint8_t Port_scan()
 
 // ----- Capabilities -----
 
-void Port_swap_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Port_uart_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
-		print("Port_swap_capability()");
+		print("Port_uart_capability()");
 		return;
 	}
 
@@ -161,7 +178,24 @@ void Port_swap_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 	if ( state != 0x03 )
 		return;
 
-	Port_swap();
+	Port_uart_swap();
+}
+
+void Port_usb_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Port_usb_capability()");
+		return;
+	}
+
+	// Only only release
+	// TODO Analog
+	if ( state != 0x03 )
+		return;
+
+	Port_usb_swap();
 }
 
 void Port_cross_capability( uint8_t state, uint8_t stateType, uint8_t *args )
@@ -185,10 +219,16 @@ void Port_cross_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 
 // ----- CLI Command Functions -----
 
-void cliFunc_portSwap( char* args )
+void cliFunc_portUART( char* args )
 {
 	print( NL );
-	Port_swap();
+	Port_uart_swap();
+}
+
+void cliFunc_portUSB( char* args )
+{
+	print( NL );
+	Port_usb_swap();
 }
 
 void cliFunc_portCross( char* args )
