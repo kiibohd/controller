@@ -528,7 +528,7 @@ void STLcd_sync() {
 			{ // next page
 				STLcdSyncStage = 0;
 				STLcdSyncPageCurrent++;
-				if (STLcdSyncPageCurrent >= STLcdSyncPageMax )
+				if ( STLcdSyncPageCurrent >= STLcdSyncPageMax )
 				{ // has finished
 					STLcdSync = 0;
 					return;
@@ -787,6 +787,7 @@ void STLcd_drawBitmap( const uint8_t *bitmap, uint8_t x, uint8_t y, uint8_t widt
 		( y + height <= LCD_HEIGHT )
 		? height : ( LCD_HEIGHT - y );
 	uint8_t srcpages = ( remainheight + 7 ) / 8;
+	uint8_t page = 0;
 	if ( y & 0x07 )
 	{
 		uint8_t highbits = y & 0x07;
@@ -797,53 +798,57 @@ void STLcd_drawBitmap( const uint8_t *bitmap, uint8_t x, uint8_t y, uint8_t widt
 			buffer[ column ] = ( buffer[ column ] & mask ) | ( bitmap[ column ] << highbits );
 		}
 		remainheight -= 8 - highbits;
-		for ( uint8_t page = 0; remainheight > 7; page++, remainheight -= 8 )
+		page++;
+		for ( ; remainheight > 7; page++, remainheight -= 8 )
 		{
 			for ( uint8_t column = 0; column < maxcolumn; column++ )
 			{
-				buffer[ (page + 1 ) * LCD_PAGE_LEN + column ] =
-					( bitmap[ page * width + column ] >> ( 8 - highbits ) )
-					| ( bitmap[ ( page + 1 ) * width + column ] << highbits );
+				buffer[ page * LCD_PAGE_LEN + column ] =
+					( bitmap[ ( page - 1 ) * width + column ] >> ( 8 - highbits ) )
+					| ( bitmap[ page * width + column ] << highbits );
 			}
 		}
 		if ( remainheight > 0 )
 		{
 			mask = ~STLcdDrawMasks[ remainheight ][ 0 ];
-			uint8_t page = srcpages - 1;
-			for ( uint8_t column = 0; column < maxcolumn; column++ )
+			if ( page == srcpages )
 			{
-				buffer[ ( page + 1 ) * LCD_PAGE_LEN + column ] =
-					( bitmap[ page * width + column ] >> ( 8 - highbits ) )
-					| ( buffer[ ( page + 1 ) * LCD_PAGE_LEN + column ] & mask );
+				for ( uint8_t column = 0; column < maxcolumn; column++ )
+				{
+					buffer[ page * LCD_PAGE_LEN + column ] =
+						( bitmap[ ( page - 1 ) * width + column ] >> ( 8 - highbits ) )
+						| ( buffer[ page * LCD_PAGE_LEN + column ] & mask );
+				}
+			}
+			else
+			{
+				for ( uint8_t column = 0; column < maxcolumn; column++ )
+				{
+					buffer[ page * LCD_PAGE_LEN + column ] =
+						( bitmap[ page * width + column ] << highbits )
+						| ( bitmap[ ( page - 1 ) * width + column ] >> ( 8 - highbits ) )
+						| ( buffer[ page * LCD_PAGE_LEN + column ] & mask );
+				}
 			}
 		}
 	}
 	else
 	{
-		if ( remainheight & 0x07 )
+		uint8_t page = 0;
+		for ( page = 0; remainheight > 7; page++, remainheight -= 8 )
 		{
-			for ( uint8_t page = 0; page < srcpages - 1; page++ )
-			{
-				memcpy( buffer + page * LCD_PAGE_LEN,
-					bitmap + page * width,
-					maxcolumn );
-			}
-			remainheight = remainheight & 0x07;
+			memcpy( buffer + page * LCD_PAGE_LEN,
+				bitmap + page * width,
+				maxcolumn );
+		}
+		if ( remainheight > 0 )
+		{
 			uint8_t mask = ~STLcdDrawMasks[ remainheight ][ 0 ];
 			for ( uint8_t column = 0; column < maxcolumn; column++ )
 			{
-				uint16_t destindex = ( srcpages - 1 ) * LCD_PAGE_LEN + column;
+				uint16_t destindex = page * LCD_PAGE_LEN + column;
 				buffer[ destindex ] = ( buffer[ destindex ] & mask )
-					| ( bitmap[ ( srcpages - 1 ) * width + column ] );
-			}
-		}
-		else
-		{
-			for ( uint8_t page = 0; page < srcpages; page++ )
-			{
-				memcpy( buffer + page * LCD_PAGE_LEN,
-					bitmap + page * width,
-					maxcolumn );
+					| ( bitmap[ page * width + column ] );
 			}
 		}
 	}
