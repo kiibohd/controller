@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,8 +49,8 @@
 //  PTC1..5
 
 // Define Rows (Sense) and Columns (Strobes)
-GPIO_Pin Matrix_cols[] = { gpio(B,2), gpio(B,3), gpio(B,18), gpio(B,19), gpio(C,0), gpio(C,8), gpio(C,9), gpio(C,10), gpio(C,11), gpio(D,0) };
-GPIO_Pin Matrix_rows[] = { gpio(D,1), gpio(D,4), gpio(D,5), gpio(D,6), gpio(D,7), gpio(C,1), gpio(C,2), gpio(C,3), gpio(C,4), gpio(C,5) };
+GPIO_Pin Matrix_cols[] = { gpio(B,2), gpio(B,3), gpio(B,18), gpio(B,19), gpio(C,0), gpio(C,8), gpio(C,9), gpio(D,0), gpio(D,1), gpio(D,4) };
+GPIO_Pin Matrix_rows[] = { gpio(D,5), gpio(D,6), gpio(D,7), gpio(C,1), gpio(C,2), gpio(C,3), gpio(C,4), gpio(C,5), gpio(C,6), gpio(C,7) };
 
 // Define type of scan matrix
 Config Matrix_type = Config_Pulldown;

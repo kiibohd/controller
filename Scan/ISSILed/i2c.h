@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Jan Rychter
- * Modifications (C) 2015 Jacob Alexander
+ * Modifications (C) 2015-2016 Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -58,16 +58,10 @@ typedef struct {
 
 
 
-// ----- Variables -----
-
-extern volatile I2C_Channel i2c_channels[1];
-
-
-
 // ----- Functions -----
 
 /*
- * I2C Module Setup - Channel 0 only
+ * I2C Module Setup
  */
 
 void i2c_setup();
@@ -95,6 +89,7 @@ void i2c_setup();
  */
 
 int32_t i2c_send_sequence(
+	uint8_t ch,
 	uint16_t *sequence,
 	uint32_t sequence_length,
 	uint8_t *received_data,
@@ -105,11 +100,12 @@ int32_t i2c_send_sequence(
 /*
  * Convenience macros
  */
-#define i2c_send(seq, seq_len)      i2c_send_sequence( seq, seq_len, 0, 0, 0 )
-#define i2c_read(seq, seq_len, rec) i2c_send_sequence( seq, seq_len, rec, 0, 0 )
+#define i2c_send(ch, seq, seq_len)      i2c_send_sequence( ch, seq, seq_len, 0, 0, 0 )
+#define i2c_read(ch, seq, seq_len, rec) i2c_send_sequence( ch, seq, seq_len, rec, 0, 0 )
 
 /*
  * Check if busy
  */
-uint8_t i2c_busy();
+uint8_t i2c_busy( uint8_t ch );
+uint8_t i2c_any_busy();
 

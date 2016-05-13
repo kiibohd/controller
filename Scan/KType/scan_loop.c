@@ -82,7 +82,7 @@ inline uint8_t Scan_loop()
 	Port_scan();
 
 	// Scan Matrix
-	Matrix_scan( Scan_scanCount++ );
+	//Matrix_scan( Scan_scanCount++ );
 
 	// Process any interconnect commands
 	Connect_scan();

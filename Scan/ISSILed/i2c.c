@@ -1,6 +1,6 @@
 /*
- * Copyright ( C ) 2014 Jan Rychter
- * Modifications ( C ) 2015 Jacob Alexander
+ * Copyright (C) 2014 Jan Rychter
+ * Modifications (C) 2015-2016 Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files ( the "Software" ), to deal
@@ -28,6 +28,7 @@
 
 // Project Includes
 #include <print.h>
+#include <kll_defs.h>
 
 // Local Includes
 #include "i2c.h"
@@ -36,43 +37,93 @@
 
 // ----- Variables -----
 
-volatile I2C_Channel i2c_channels[1];
+volatile I2C_Channel i2c_channels[ISSI_I2C_Buses_define];
+
+uint32_t i2c_offset[] = {
+	0x0,    // Bus 0
+	0x1000, // Bus 1
+};
 
 
 
 // ----- Functions -----
 
-inline void i2c_setup(  )
+inline void i2c_setup()
 {
-	// Enable I2C internal clock
-	SIM_SCGC4 |= SIM_SCGC4_I2C0; // Bus 0
+	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
+	{
+		volatile uint8_t *I2C_F   = (uint8_t*)(&I2C0_F) + i2c_offset[ch];
+		volatile uint8_t *I2C_FLT = (uint8_t*)(&I2C0_FLT) + i2c_offset[ch];
+		volatile uint8_t *I2C_C1  = (uint8_t*)(&I2C0_C1) + i2c_offset[ch];
+		volatile uint8_t *I2C_C2  = (uint8_t*)(&I2C0_C2) + i2c_offset[ch];
 
-	// External pull-up resistor
-	PORTB_PCR0 = PORT_PCR_ODE | PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(2);
-	PORTB_PCR1 = PORT_PCR_ODE | PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(2);
+		switch ( ch )
+		{
+		case 0:
+			// Enable I2C internal clock
+			SIM_SCGC4 |= SIM_SCGC4_I2C0; // Bus 0
 
-	// SCL Frequency Divider
-	// 1.8 MBaud ( likely higher than spec )
-	// 0x82 -> 36 MHz / (4 * 3) = 2.25 MBaud
-	// 0x80 => mul(4)
-	// 0x05 => ICL(5)
-	I2C0_F = 0x84;
-	I2C0_FLT = 4;
-	I2C0_C1 = I2C_C1_IICEN;
-	I2C0_C2 = I2C_C2_HDRS; // High drive select
+			// External pull-up resistor
+			PORTB_PCR0 = PORT_PCR_ODE | PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(2);
+			PORTB_PCR1 = PORT_PCR_ODE | PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(2);
 
-	// Enable I2C Interrupt
-	NVIC_ENABLE_IRQ(  IRQ_I2C0  );
+			break;
+
+		case 1:
+			// Enable I2C internal clock
+			SIM_SCGC4 |= SIM_SCGC4_I2C1; // Bus 1
+
+			// External pull-up resistor
+			PORTC_PCR10 = PORT_PCR_ODE | PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(2);
+			PORTC_PCR11 = PORT_PCR_ODE | PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(2);
+
+			break;
+		}
+
+		// SCL Frequency Divider
+		// 1.8 MBaud ( likely higher than spec )
+		// 0x82 -> 36 MHz / (4 * 3) = 2.25 MBaud
+		// 0x80 => mul(4)
+		// 0x05 => ICL(5)
+		*I2C_F = 0x84;
+		*I2C_FLT = 4;
+		*I2C_C1 = I2C_C1_IICEN;
+		*I2C_C2 = I2C_C2_HDRS; // High drive select
+
+		switch ( ch )
+		{
+		case 0:
+			// Enable I2C Interrupt
+			NVIC_ENABLE_IRQ( IRQ_I2C0 );
+			break;
+
+		case 1:
+
+			// Enable I2C Interrupt
+			NVIC_ENABLE_IRQ( IRQ_I2C1 );
+			break;
+		}
+	}
 }
 
-uint8_t i2c_busy()
+uint8_t i2c_busy( uint8_t ch )
 {
-	volatile I2C_Channel *channel = &( i2c_channels[0] );
+	volatile I2C_Channel *channel = &( i2c_channels[ch] );
 	if ( channel->status == I2C_BUSY )
 	{
 		return 1;
 	}
 
+	return 0;
+}
+
+uint8_t i2c_any_busy()
+{
+	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
+	{
+		if ( i2c_busy( ch ) )
+			return 1;
+	}
 	return 0;
 }
 
@@ -82,13 +133,19 @@ uint8_t i2c_busy()
 #define I2C_READING 1
 
 int32_t i2c_send_sequence(
+	uint8_t ch,
 	uint16_t *sequence,
 	uint32_t sequence_length,
 	uint8_t *received_data,
 	void ( *callback_fn )( void* ),
 	void *user_data
 ) {
-	volatile I2C_Channel *channel = &( i2c_channels[0] );
+	volatile I2C_Channel *channel = &( i2c_channels[ch] );
+
+	volatile uint8_t *I2C_C1  = (uint8_t*)(&I2C0_C1) + i2c_offset[ch];
+	volatile uint8_t *I2C_S   = (uint8_t*)(&I2C0_S) + i2c_offset[ch];
+	volatile uint8_t *I2C_D   = (uint8_t*)(&I2C0_D) + i2c_offset[ch];
+
 	int32_t result = 0;
 	uint8_t status;
 
@@ -118,13 +175,13 @@ int32_t i2c_send_sequence(
 	// reads_ahead does not need to be initialized
 
 	// Acknowledge the interrupt request, just in case
-	I2C0_S |= I2C_S_IICIF;
-	I2C0_C1 = ( I2C_C1_IICEN | I2C_C1_IICIE );
+	*I2C_S |= I2C_S_IICIF;
+	*I2C_C1 = ( I2C_C1_IICEN | I2C_C1_IICIE );
 
 	// Generate a start condition and prepare for transmitting.
-	I2C0_C1 |= ( I2C_C1_MST | I2C_C1_TX );
+	*I2C_C1 |= ( I2C_C1_MST | I2C_C1_TX );
 
-	status = I2C0_S;
+	status = *I2C_S;
 	if ( status & I2C_S_ARBL )
 	{
 		warn_print("Arbitration lost");
@@ -133,34 +190,42 @@ int32_t i2c_send_sequence(
 	}
 
 	// Write the first (address) byte.
-	I2C0_D = *channel->sequence++;
+	*I2C_D = *channel->sequence++;
 
 	// Everything is OK.
 	return result;
 
 i2c_send_sequence_cleanup:
-	I2C0_C1 &= ~( I2C_C1_IICIE | I2C_C1_MST | I2C_C1_TX );
+	*I2C_C1 &= ~( I2C_C1_IICIE | I2C_C1_MST | I2C_C1_TX );
 	channel->status = I2C_ERROR;
 	return result;
 }
 
 
-void i2c0_isr()
+void i2c_isr( uint8_t ch )
 {
-	volatile I2C_Channel* channel = &i2c_channels[0];
+	volatile I2C_Channel* channel = &i2c_channels[ch];
+
+	volatile uint8_t *I2C_C1  = (uint8_t*)(&I2C0_C1) + i2c_offset[ch];
+	volatile uint8_t *I2C_S   = (uint8_t*)(&I2C0_S) + i2c_offset[ch];
+	volatile uint8_t *I2C_D   = (uint8_t*)(&I2C0_D) + i2c_offset[ch];
+
 	uint8_t element;
 	uint8_t status;
 
-	status = I2C0_S;
+	status = *I2C_S;
 
 	// Acknowledge the interrupt request
-	I2C0_S |= I2C_S_IICIF;
+	*I2C_S |= I2C_S_IICIF;
 
 	// Arbitration problem
 	if ( status & I2C_S_ARBL )
 	{
-		warn_print("Arbitration error");
-		I2C0_S |= I2C_S_ARBL;
+		warn_msg("Arbitration error. Bus: ");
+		printHex( ch );
+		print(NL);
+
+		*I2C_S |= I2C_S_ARBL;
 		goto i2c_isr_error;
 	}
 
@@ -174,17 +239,17 @@ void i2c0_isr()
 		// switch to TX mode, either to generate a repeated start condition, or to avoid triggering another I2C read
 		// when reading the contents of the data register.
 		case 0:
-			I2C0_C1 |= I2C_C1_TX;
+			*I2C_C1 |= I2C_C1_TX;
 
 			// Perform the final data register read now that it's safe to do so.
-			*channel->received_data++ = I2C0_D;
+			*channel->received_data++ = *I2C_D;
 
 			// Do we have a repeated start?
 			if ( ( channel->sequence < channel->sequence_end ) && ( *channel->sequence == I2C_RESTART ) )
 			{
 
 				// Generate a repeated start condition.
-				I2C0_C1 |= I2C_C1_RSTA;
+				*I2C_C1 |= I2C_C1_RSTA;
 
 				// A restart is processed immediately, so we need to get a new element from our sequence. This is safe, because
 				// a sequence cannot end with a RESTART: there has to be something after it. Note that the only thing that can
@@ -192,7 +257,7 @@ void i2c0_isr()
 				channel->txrx = I2C_WRITING;
 				channel->sequence++;
 				element = *channel->sequence;
-				I2C0_D = element;
+				*I2C_D = element;
 			}
 			else
 			{
@@ -202,12 +267,12 @@ void i2c0_isr()
 
 		case 1:
 			// do not ACK the final read
-			I2C0_C1 |= I2C_C1_TXAK;
-			*channel->received_data++ = I2C0_D;
+			*I2C_C1 |= I2C_C1_TXAK;
+			*channel->received_data++ = *I2C_D;
 			break;
 
 		default:
-			*channel->received_data++ = I2C0_D;
+			*channel->received_data++ = *I2C_D;
 			break;
 		}
 
@@ -234,7 +299,7 @@ void i2c0_isr()
 		// Do we have a restart? If so, generate repeated start and make sure TX is on.
 		if ( element == I2C_RESTART )
 		{
-			I2C0_C1 |= I2C_C1_RSTA | I2C_C1_TX;
+			*I2C_C1 |= I2C_C1_RSTA | I2C_C1_TX;
 
 			// A restart is processed immediately, so we need to get a new element from our sequence.
 			// This is safe, because a sequence cannot end with a RESTART: there has to be something after it.
@@ -242,7 +307,7 @@ void i2c0_isr()
 			element = *channel->sequence;
 
 			// Note that the only thing that can come after a restart is a write.
-			I2C0_D = element;
+			*I2C_D = element;
 		}
 		else
 		{
@@ -260,29 +325,29 @@ void i2c0_isr()
 				}
 
 				// Switch to RX mode.
-				I2C0_C1 &= ~I2C_C1_TX;
+				*I2C_C1 &= ~I2C_C1_TX;
 
 				// do not ACK the final read
 				if ( channel->reads_ahead == 1 )
 				{
-					I2C0_C1 |= I2C_C1_TXAK;
+					*I2C_C1 |= I2C_C1_TXAK;
 				}
 				// ACK all but the final read
 				else
 				{
-					I2C0_C1 &= ~( I2C_C1_TXAK );
+					*I2C_C1 &= ~( I2C_C1_TXAK );
 				}
 
 				// Dummy read comes first, note that this is not valid data!
 				// This only triggers a read, actual data will come in the next interrupt call and overwrite this.
 				// This is why we do not increment the received_data pointer.
-				*channel->received_data = I2C0_D;
+				*channel->received_data = *I2C_D;
 				channel->reads_ahead--;
 			}
 			// Not a restart, not a read, must be a write.
 			else
 			{
-				I2C0_D = element;
+				*I2C_D = element;
 			}
 		}
 	}
@@ -292,13 +357,14 @@ void i2c0_isr()
 
 i2c_isr_stop:
 	// Generate STOP ( set MST=0 ), switch to RX mode, and disable further interrupts.
-	I2C0_C1 &= ~( I2C_C1_MST | I2C_C1_IICIE | I2C_C1_TXAK );
+	*I2C_C1 &= ~( I2C_C1_MST | I2C_C1_IICIE | I2C_C1_TXAK );
 	channel->status = I2C_AVAILABLE;
 
 	// Call the user-supplied callback function upon successful completion (if it exists).
 	if ( channel->callback_fn )
 	{
 		// Delay 10 microseconds before starting linked function
+		// TODO, is this chip dependent? -HaaTa
 		delayMicroseconds(10);
 		( *channel->callback_fn )( channel->user_data );
 	}
@@ -306,8 +372,18 @@ i2c_isr_stop:
 
 i2c_isr_error:
 	// Generate STOP and disable further interrupts.
-	I2C0_C1 &= ~( I2C_C1_MST | I2C_C1_IICIE );
+	*I2C_C1 &= ~( I2C_C1_MST | I2C_C1_IICIE );
 	channel->status = I2C_ERROR;
 	return;
+}
+
+void i2c0_isr()
+{
+	i2c_isr( 0 );
+}
+
+void i2c1_isr()
+{
+	i2c_isr( 1 );
 }
 

@@ -111,7 +111,7 @@ PixelBuf Pixel_Buffers[] = {
 
 
 // Pixel Mapping
-#define Pixel_TotalPixels 128 // TODO Generate
+#define Pixel_TotalPixels 127 // TODO Generate
 PixelElement Pixel_Mapping[] = {
 	// Function Row (1-16)
 	Pixel_RGBChannel(0,33,49), // 1
@@ -2593,7 +2593,8 @@ inline void Pixel_process()
 		uint16_t ch;
 
 		// Only update 50 positions at a time
-		for ( ch = Pixel_testPos; ch < Pixel_testPos + 50 && ch < Pixel_TotalChannels; ch++ )
+		for ( ch = Pixel_testPos; ch < Pixel_TotalChannels; ch++ )
+		//for ( ch = Pixel_testPos; ch < Pixel_testPos + 50 && ch < Pixel_TotalChannels; ch++ )
 		{
 			// Toggle channel
 			Pixel_channelToggle( ch );
