@@ -1,10 +1,10 @@
 Name = PartialMapCapabilities;
-Version = 0.2;
-Author = "HaaTa (Jacob Alexander) 2014-2015";
-KLL = 0.3b;
+Version = 0.3;
+Author = "HaaTa (Jacob Alexander) 2014-2016";
+KLL = 0.3d;
 
 # Modified Date
-Date = 2015-09-24;
+Date = 2016-04-08;
 
 
 # Capabilties available to the PartialMap module
@@ -21,4 +21,7 @@ layerRotate => Macro_layerRotate_capability( previous : 1 );
 # Defines available to the PartialMap module
 stateWordSize => StateWordSize_define;
 stateWordSize = 8; # Default for now, increase to 16 or 32 for higher limits
+
+indexWordSize => IndexWordSize_define;
+indexWordSize = 16; # Default for now, increase to 32 for higher limits (8 for less resource usage)
 
