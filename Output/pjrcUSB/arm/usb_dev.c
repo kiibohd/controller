@@ -171,6 +171,8 @@ static uint8_t reply_buffer[8];
 static uint8_t power_neg_delay;
 static uint32_t power_neg_time;
 
+static uint8_t usb_dev_sleep = 0;
+
 
 
 // ----- Functions -----
@@ -977,6 +979,16 @@ void usb_rx_memory( usb_packet_t *packet )
 
 void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 {
+	// If we have been sleeping, try to wake up host
+	if ( usb_dev_sleep )
+	{
+		// Force wake-up for 10 ms
+		// According to the USB Spec a device must hold resume for at least 1 ms but no more than 15 ms
+		USB0_CTL |= USB_CTL_RESUME;
+		delay(10);
+		USB0_CTL &= ~(USB_CTL_RESUME);
+	}
+
 	// Since we are transmitting data, USB will be brought out of sleep/suspend
 	// if it's in that state
 	// Use the currently set descriptor value
@@ -1257,6 +1269,7 @@ restart:
 			USB_INTEN_STALLEN |
 			USB_INTEN_ERROREN |
 			USB_INTEN_USBRSTEN |
+			USB_INTEN_RESUMEEN |
 			USB_INTEN_SLEEPEN;
 
 		// is this necessary?
@@ -1285,9 +1298,19 @@ restart:
 	// The USB Module triggers this interrupt when it detects the bus has been idle for 3 ms
 	if ( (status & USB_ISTAT_SLEEP /* 10 */ ) )
 	{
-		info_print("Host has requested USB sleep/suspend state");
+		//info_print("Host has requested USB sleep/suspend state");
 		Output_update_usb_current( 100 ); // Set to 100 mA
-		USB0_ISTAT = USB_ISTAT_SLEEP;
+		usb_dev_sleep = 1;
+		USB0_ISTAT |= USB_ISTAT_SLEEP;
+	}
+
+	// On USB Resume, unset the usb_dev_sleep so we don't keep sending resume signals
+	if ( (status & USB_ISTAT_RESUME /* 20 */ ) )
+	{
+		//info_print("Host has woken-up/resumed from sleep/suspend state");
+		Output_update_usb_current( *usb_bMaxPower * 2 );
+		usb_dev_sleep = 0;
+		USB0_ISTAT |= USB_ISTAT_RESUME;
 	}
 }
 
@@ -1345,6 +1368,9 @@ uint8_t usb_init()
 
 	// Do not check for power negotiation delay until Get Configuration Descriptor
 	power_neg_delay = 0;
+
+	// During initialization host isn't sleeping
+	usb_dev_sleep = 0;
 
 	return 1;
 }

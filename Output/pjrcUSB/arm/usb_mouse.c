@@ -163,6 +163,12 @@ void usb_mouse_send()
 		{
 			transmit_previous_timeout = 1;
 			warn_print("USB Transmit Timeout...");
+
+                        // Clear status and state
+                        USBMouse_Buttons = 0;
+                        USBMouse_Relative_x = 0;
+                        USBMouse_Relative_y = 0;
+                        USBMouse_Changed = 0;
 			return;
 		}
 		yield();

@@ -734,10 +734,12 @@ void Output_update_usb_current( unsigned int current )
 	// Update USB current
 	Output_USBCurrent_Available = current;
 
+	/* XXX Affects sleep states due to USB messages
 	unsigned int total_current = Output_current_available();
 	info_msg("USB Available Current Changed. Total Available: ");
 	printInt32( total_current );
 	print(" mA" NL);
+	*/
 
 	// Send new total current to the Scan Modules
 	Scan_currentChange( Output_current_available() );

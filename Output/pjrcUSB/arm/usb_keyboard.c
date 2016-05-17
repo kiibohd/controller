@@ -127,6 +127,7 @@ void usb_keyboard_send()
 		{
 			transmit_previous_timeout = 1;
 			warn_print("USB Transmit Timeout...");
+			USBKeys_Changed = USBKeyChangeState_None; // Indicate packet lost
 			return;
 		}
 		yield();
