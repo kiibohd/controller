@@ -80,6 +80,7 @@ KeyGhost Matrix_ghostArray[ Matrix_colsNum * Matrix_rowsNum ];
 
 uint8_t col_use[Matrix_colsNum], row_use[Matrix_rowsNum];  // used count
 uint8_t col_ghost[Matrix_colsNum], row_ghost[Matrix_rowsNum];  // marked as having ghost if 1
+uint8_t col_ghost_old[Matrix_colsNum], row_ghost_old[Matrix_rowsNum];  // old ghost state
 #endif
 
 
@@ -211,12 +212,22 @@ void Matrix_setup()
 	for ( uint8_t pin = 0; pin < Matrix_colsNum; pin++ )
 	{
 		Matrix_pin( Matrix_cols[ pin ], Type_StrobeSetup );
+		#ifdef GHOSTING_MATRIX
+		col_use[pin] = 0;
+		col_ghost[pin] = 0;
+		col_ghost_old[pin] = 0;
+		#endif
 	}
 
 	// Setup Sense Pins
 	for ( uint8_t pin = 0; pin < Matrix_rowsNum; pin++ )
 	{
 		Matrix_pin( Matrix_rows[ pin ], Type_SenseSetup );
+		#ifdef GHOSTING_MATRIX
+		row_use[pin] = 0;
+		row_ghost[pin] = 0;
+		row_ghost_old[pin] = 0;
+		#endif
 	}
 
 	// Clear out Debounce Array
@@ -448,7 +459,6 @@ void Matrix_scan( uint16_t scanNum )
 	// strobe = column, sense = row
 
 	// Count (rows) use for columns
-	//print("C ");
 	for ( uint8_t col = 0; col < Matrix_colsNum; col++ )
 	{
 		uint8_t used = 0;
@@ -459,13 +469,12 @@ void Matrix_scan( uint16_t scanNum )
 			if ( keyOn(state->curState) )
 				used++;
 		}
-		//printInt8(used);
 		col_use[col] = used;
+		col_ghost_old[col] = col_ghost[col];
 		col_ghost[col] = 0;  // clear
 	}
 
 	// Count (columns) use for rows
-	//print("  R ");
 	for ( uint8_t row = 0; row < Matrix_rowsNum; row++ )
 	{
 		uint8_t used = 0;
@@ -476,14 +485,13 @@ void Matrix_scan( uint16_t scanNum )
 			if ( keyOn(state->curState) )
 				used++;
 		}
-		//printInt8(used);
 		row_use[row] = used;
+		row_ghost_old[row] = row_ghost[row];
 		row_ghost[row] = 0;  // clear
 	}
 
 	// Check if matrix has ghost
 	// Happens when key is pressed and some other key is pressed in same row and another in same column
-	//print("  G ");
 	for ( uint8_t col = 0; col < Matrix_colsNum; col++ )
 	{
 		for ( uint8_t row = 0; row < Matrix_rowsNum; row++ )
@@ -495,11 +503,9 @@ void Matrix_scan( uint16_t scanNum )
 				// mark col and row as having ghost
 				col_ghost[col] = 1;
 				row_ghost[row] = 1;
-				//print(" ");  printInt8(col);  print(",");  printInt8(row);
 			}
 		}
 	}
-	//print( NL );
 
 	// Send keys
 	for ( uint8_t col = 0; col < Matrix_colsNum; col++ )
@@ -512,6 +518,8 @@ void Matrix_scan( uint16_t scanNum )
 
 			// col or row is ghosting (crossed)
 			uint8_t ghost = (col_ghost[col] > 0 || row_ghost[row] > 0) ? 1 : 0;
+			uint8_t ghost_old = (col_ghost_old[col] > 0 || row_ghost_old[row] > 0) ? 1 : 0;
+			ghost = ghost || ghost_old ? 1 : 0;
 
 			st->prev = st->cur;  // previous
 			// save state if no ghost or outside ghosted area
