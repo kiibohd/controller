@@ -212,18 +212,22 @@ void Matrix_setup()
 	for ( uint8_t pin = 0; pin < Matrix_colsNum; pin++ )
 	{
 		Matrix_pin( Matrix_cols[ pin ], Type_StrobeSetup );
+		#ifdef GHOSTING_MATRIX
 		col_use[pin] = 0;
 		col_ghost[pin] = 0;
 		col_ghost_old[pin] = 0;
+		#endif
 	}
 
 	// Setup Sense Pins
 	for ( uint8_t pin = 0; pin < Matrix_rowsNum; pin++ )
 	{
 		Matrix_pin( Matrix_rows[ pin ], Type_SenseSetup );
+		#ifdef GHOSTING_MATRIX
 		row_use[pin] = 0;
 		row_ghost[pin] = 0;
 		row_ghost_old[pin] = 0;
+		#endif
 	}
 
 	// Clear out Debounce Array
