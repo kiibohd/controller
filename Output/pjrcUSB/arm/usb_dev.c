@@ -589,10 +589,23 @@ static void usb_setup()
 		USBKeys_Protocol = setup.wValue & 0xFF; // 0 - Boot Mode, 1 - NKRO Mode
 		goto send;
 
+	case 0x03A1: /// HID GET_PROTOCOL
+		#ifdef UART_DEBUG
+		print("GET_PROTOCOL - ");
+		printHex( setup.wValue );
+		print(" - ");
+		printHex( USBKeys_Protocol );
+		print(NL);
+		#endif
+		reply_buffer[0] = USBKeys_Protocol;
+		datalen = 1;
+		goto send;
+
 	// case 0xC940:
 	default:
 		#ifdef UART_DEBUG_UNKNOWN
 		print("UNKNOWN");
+		print(NL);
 		#endif
 		endpoint0_stall();
 		return;
