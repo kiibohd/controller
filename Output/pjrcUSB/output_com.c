@@ -218,6 +218,28 @@ void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_
 }
 
 
+// Toggle Keyboard Protocol
+void Output_toggleKbdProtocol_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Output_toggleKbdProtocol()");
+		return;
+	}
+
+	// Only toggle protocol if release state
+	if ( stateType == 0x00 && state == 0x03 )
+	{
+		// Flush the key buffers
+		Output_flushBuffers();
+
+		// Toggle the keyboard protocol Mode
+		USBKeys_Protocol = !USBKeys_Protocol;
+	}
+}
+
+
 // Sends a Consumer Control code to the USB Output buffer
 void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
