@@ -17,6 +17,7 @@ mouseOut    => Output_usbMouse_capability( mouseCode : 2, relative_x : 2, relati
 # Configuration capabilities
 kbdProtocolBoot => Output_kbdProtocolBoot_capability();
 kbdProtocolNKRO => Output_kbdProtocolNKRO_capability();
+toggleKbdProtocol => Output_toggleKbdProtocol_capability();
 
 # Locale Settings
 keyboardLocale => KeyboardLocale_define;
