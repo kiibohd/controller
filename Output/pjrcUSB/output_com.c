@@ -137,9 +137,11 @@ USBMouseChangeState USBMouse_Changed = 0;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
-uint8_t  USBKeys_Idle_Config = 125;
+// 0 - Disables
+uint8_t  USBKeys_Idle_Config = 0;
 
-// count until idle timeout
+// Count until idle timeout
+uint32_t USBKeys_Idle_Expiry = 0;
 uint8_t  USBKeys_Idle_Count = 0;
 
 // Indicates whether the Output module is fully functional
@@ -645,6 +647,19 @@ inline void Output_send()
 	if ( USBKeys_Protocol == 0 )
 		for ( uint8_t c = USBKeys_Sent; c < USB_BOOT_MAX_KEYS; c++ )
 			USBKeys_Keys[c] = 0;
+
+	// XXX - Behaves oddly on Mac OSX, might help with corrupted packets specific to OSX? -HaaTa
+	/*
+	// Check if idle count has been exceed, this forces usb_keyboard_send and usb_mouse_send to update
+	// TODO Add joystick as well (may be endpoint specific, currently not kept track of)
+	if ( usb_configuration && USBKeys_Idle_Config && (
+		USBKeys_Idle_Expiry < systick_millis_count ||
+		USBKeys_Idle_Expiry + USBKeys_Idle_Config * 4 >= systick_millis_count ) )
+	{
+		USBKeys_Changed = USBKeyChangeState_All;
+		USBMouse_Changed = USBMouseChangeState_All;
+	}
+	*/
 
 	// Process mouse actions
 	while ( USBMouse_Changed )

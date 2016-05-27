@@ -62,6 +62,7 @@ typedef enum USBMouseChangeState {
 	USBMouseChangeState_None     = 0x00,
 	USBMouseChangeState_Buttons  = 0x01,
 	USBMouseChangeState_Relative = 0x02,
+	USBMouseChangeState_All      = 0x03,
 } USBMouseChangeState;
 
 
@@ -84,9 +85,10 @@ extern volatile uint16_t USBMouse_Buttons; // Bitmask for mouse buttons
 extern volatile uint16_t USBMouse_Relative_x;
 extern volatile uint16_t USBMouse_Relative_y;
 
-// Misc variables (XXX Some are only properly utilized using AVR)
+// Keeps track of the idle timeout refresh (used on Mac OSX)
 extern          uint8_t  USBKeys_Idle_Config;
-extern          uint8_t  USBKeys_Idle_Count;
+extern          uint32_t USBKeys_Idle_Expiry;
+extern          uint8_t  USBKeys_Idle_Count; // AVR only
 
 extern USBKeyChangeState   USBKeys_Changed;
 extern USBMouseChangeState USBMouse_Changed;

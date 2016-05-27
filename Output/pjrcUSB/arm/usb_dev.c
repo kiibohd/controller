@@ -193,6 +193,15 @@ static void endpoint0_transmit( const void *data, uint32_t len )
 	ep0_tx_bdt_bank ^= 1;
 }
 
+void usb_reinit()
+{
+	power_neg_delay = 0;
+	usb_configuration = 0; // Clear USB configuration if we have one
+	USB0_CONTROL = 0; // Disable D+ Pullup to simulate disconnect
+	delay(10); // Delay is necessary to simulate disconnect
+	usb_init();
+}
+
 // Used to check any USB state changes that may not have a proper interrupt
 // Called once per scan loop, should take minimal processing time or it may affect other modules
 void usb_device_check()
@@ -212,11 +221,7 @@ void usb_device_check()
 			*usb_bMaxPower = 50;
 
 			// Re-initialize USB
-			power_neg_delay = 0;
-			usb_configuration = 0; // Clear USB configuration if we have one
-			USB0_CONTROL = 0; // Disable D+ Pullup to simulate disconnect
-			delay(10); // Delay is necessary to simulate disconnect
-			usb_init();
+			usb_reinit();
 		}
 	}
 }
@@ -545,7 +550,7 @@ static void usb_setup()
 			break;
 		}
 
-		return;
+		goto send;
 
 	case 0x01A1: // HID GET_REPORT
 		#ifdef UART_DEBUG
@@ -574,11 +579,26 @@ static void usb_setup()
 		#ifdef UART_DEBUG
 		print("SET_IDLE - ");
 		printHex( setup.wValue );
+		print(" - ");
+		printHex( setup.wValue >> 8 );
 		print(NL);
 		#endif
 		USBKeys_Idle_Config = (setup.wValue >> 8);
-		USBKeys_Idle_Count = 0;
+		USBKeys_Idle_Expiry = 0;
 		goto send;
+
+	case 0x02A1: // HID GET_IDLE
+		#ifdef UART_DEBUG
+		print("SET_IDLE - ");
+		printHex( setup.wValue );
+		print(" - ");
+		printHex( USBKeys_Idle_Config );
+		print(NL);
+		#endif
+		reply_buffer[0] = USBKeys_Idle_Config;
+		datalen = 1;
+		goto send;
+
 
 	case 0x0B21: // HID SET_PROTOCOL
 		#ifdef UART_DEBUG
@@ -979,6 +999,9 @@ void usb_rx_memory( usb_packet_t *packet )
 
 void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 {
+	// Update expiry counter
+	USBKeys_Idle_Expiry = systick_millis_count;
+
 	// If we have been sleeping, try to wake up host
 	if ( usb_dev_sleep )
 	{
@@ -987,6 +1010,8 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 		USB0_CTL |= USB_CTL_RESUME;
 		delay(10);
 		USB0_CTL &= ~(USB_CTL_RESUME);
+		delay(50); // Wait for at least 50 ms to make sure the bus is clear
+		usb_dev_sleep = 0; // Make sure we don't call this again, may crash system
 	}
 
 	// Since we are transmitting data, USB will be brought out of sleep/suspend

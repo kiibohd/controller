@@ -126,12 +126,15 @@ void usb_keyboard_send()
 		if ( ++wait_count > TX_TIMEOUT || transmit_previous_timeout )
 		{
 			transmit_previous_timeout = 1;
-			warn_print("USB Transmit Timeout...");
+			warn_print("USB Transmit Timeout...restarting device");
 			USBKeys_Changed = USBKeyChangeState_None; // Indicate packet lost
+			usb_device_software_reset();
 			return;
 		}
 		yield();
 	}
+
+	transmit_previous_timeout = 0;
 
 	// Pointer to USB tx packet buffer
 	uint8_t *tx_buf = tx_packet->buf;
