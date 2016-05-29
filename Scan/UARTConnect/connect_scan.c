@@ -219,6 +219,7 @@ void Connect_addBytes( uint8_t *buffer, uint8_t count, uint8_t uart )
 		printInt8( uart );
 		print( ", waiting..." NL );
 		delay( 1 );
+		// FIXME Buffer will not drain here....
 	}
 
 	// Append data to ring buffer
