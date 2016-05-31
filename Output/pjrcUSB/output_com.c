@@ -71,6 +71,7 @@ void cliFunc_readLEDs   ( char* args );
 void cliFunc_sendKeys   ( char* args );
 void cliFunc_setKeys    ( char* args );
 void cliFunc_setMod     ( char* args );
+void cliFunc_usbInitTime( char* args );
 
 
 
@@ -83,6 +84,7 @@ CLIDict_Entry( readLEDs,    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 Scrl
 CLIDict_Entry( sendKeys,    "Send the prepared list of USB codes and modifier byte." );
 CLIDict_Entry( setKeys,     "Prepare a space separated list of USB codes (decimal). Waits until \033[35msendKeys\033[0m." );
 CLIDict_Entry( setMod,      "Set the modfier byte:" NL "\t\t1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI" );
+CLIDict_Entry( usbInitTime, "Displays the time in ms from usb_init() till the last setup call." );
 
 CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
 	CLIDict_Item( kbdProtocol ),
@@ -91,6 +93,7 @@ CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
 	CLIDict_Item( sendKeys ),
 	CLIDict_Item( setKeys ),
 	CLIDict_Item( setMod ),
+	CLIDict_Item( usbInitTime ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -162,6 +165,11 @@ uint16_t Output_ExtCurrent_Available = 0;
 // Initially 100 mA, but may be negotiated higher (e.g. 500 mA)
 uint16_t Output_USBCurrent_Available = 0;
 
+// USB Init Time (ms) - usb_init()
+volatile uint32_t USBInit_TimeStart;
+volatile uint32_t USBInit_TimeEnd;
+volatile uint16_t USBInit_Ticks;
+
 
 
 // ----- Capabilities -----
@@ -169,6 +177,7 @@ uint16_t Output_USBCurrent_Available = 0;
 // Set Boot Keyboard Protocol
 void Output_kbdProtocolBoot_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -190,12 +199,14 @@ void Output_kbdProtocolBoot_capability( uint8_t state, uint8_t stateType, uint8_
 
 	// Set the keyboard protocol to Boot Mode
 	USBKeys_Protocol = 0;
+#endif
 }
 
 
 // Set NKRO Keyboard Protocol
 void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -217,12 +228,14 @@ void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_
 
 	// Set the keyboard protocol to NKRO Mode
 	USBKeys_Protocol = 1;
+#endif
 }
 
 
 // Toggle Keyboard Protocol
 void Output_toggleKbdProtocol_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -239,12 +252,14 @@ void Output_toggleKbdProtocol_capability( uint8_t state, uint8_t stateType, uint
 		// Toggle the keyboard protocol Mode
 		USBKeys_Protocol = !USBKeys_Protocol;
 	}
+#endif
 }
 
 
 // Sends a Consumer Control code to the USB Output buffer
 void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -273,6 +288,7 @@ void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *
 
 	// Set consumer control code
 	USBKeys_ConsCtrl = *(uint16_t*)(&args[0]);
+#endif
 }
 
 
@@ -294,6 +310,7 @@ void Output_noneSend_capability( uint8_t state, uint8_t stateType, uint8_t *args
 // Sends a System Control code to the USB Output buffer
 void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -322,6 +339,7 @@ void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 	// Set system control code
 	USBKeys_SysCtrl = args[0];
+#endif
 }
 
 
@@ -329,6 +347,7 @@ void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 // Argument #1: USB Code
 void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -529,6 +548,7 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 		break;
 	}
+#endif
 }
 
 void Output_flashMode_capability( uint8_t state, uint8_t stateType, uint8_t *args )
@@ -544,6 +564,7 @@ void Output_flashMode_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 	Output_firmwareReload();
 }
 
+#if enableMouse_define == 1
 // Sends a mouse command over the USB Output buffer
 // XXX This function *will* be changing in the future
 //     If you use it, be prepared that your .kll files will break in the future (post KLL 0.5)
@@ -600,6 +621,7 @@ void Output_usbMouse_capability( uint8_t state, uint8_t stateType, uint8_t *args
 	if ( mouse_x || mouse_y )
 		USBMouse_Changed |= USBMouseChangeState_Relative;
 }
+#endif
 
 
 
@@ -643,11 +665,6 @@ inline void Output_send()
 	// Non-standard USB state manipulation, usually does nothing
 	usb_device_check();
 
-	// Boot Mode Only, unset stale keys
-	if ( USBKeys_Protocol == 0 )
-		for ( uint8_t c = USBKeys_Sent; c < USB_BOOT_MAX_KEYS; c++ )
-			USBKeys_Keys[c] = 0;
-
 	// XXX - Behaves oddly on Mac OSX, might help with corrupted packets specific to OSX? -HaaTa
 	/*
 	// Check if idle count has been exceed, this forces usb_keyboard_send and usb_mouse_send to update
@@ -661,9 +678,17 @@ inline void Output_send()
 	}
 	*/
 
+#if enableMouse_define == 1
 	// Process mouse actions
 	while ( USBMouse_Changed )
 		usb_mouse_send();
+#endif
+
+#if enableKeyboard_define == 1
+	// Boot Mode Only, unset stale keys
+	if ( USBKeys_Protocol == 0 )
+		for ( uint8_t c = USBKeys_Sent; c < USB_BOOT_MAX_KEYS; c++ )
+			USBKeys_Keys[c] = 0;
 
 	// Send keypresses while there are pending changes
 	while ( USBKeys_Changed )
@@ -684,6 +709,7 @@ inline void Output_send()
 		Scan_finishedWithOutput( USBKeys_Sent );
 		break;
 	}
+#endif
 }
 
 
@@ -697,28 +723,41 @@ inline void Output_firmwareReload()
 // USB Input buffer available
 inline unsigned int Output_availablechar()
 {
+#if enableVirtualSerialPort_define == 1
 	return usb_serial_available();
+#else
+	return 0;
+#endif
 }
 
 
 // USB Get Character from input buffer
 inline int Output_getchar()
 {
+#if enableVirtualSerialPort_define == 1
 	// XXX Make sure to check output_availablechar() first! Information is lost with the cast (error codes) (AVR)
 	return (int)usb_serial_getchar();
+#else
+	return 0;
+#endif
 }
 
 
 // USB Send Character to output buffer
 inline int Output_putchar( char c )
 {
+#if enableVirtualSerialPort_define == 1
 	return usb_serial_putchar( c );
+#else
+	return 0;
+#endif
 }
 
 
 // USB Send String to output buffer, null terminated
 inline int Output_putstr( char* str )
 {
+#if enableVirtualSerialPort_define == 1
 #if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	uint16_t count = 0;
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
@@ -729,6 +768,9 @@ inline int Output_putstr( char* str )
 		count++;
 
 	return usb_serial_write( str, count );
+#else
+	return 0;
+#endif
 }
 
 
@@ -736,6 +778,43 @@ inline int Output_putstr( char* str )
 inline void Output_softReset()
 {
 	usb_device_software_reset();
+}
+
+
+// USB RawIO buffer available
+inline unsigned int Output_rawio_availablechar()
+{
+#if enableRawIO_define == 1
+	return usb_rawio_available();
+#else
+	return 0;
+#endif
+}
+
+
+// USB RawIO get buffer
+// XXX Must be a 64 byte buffer
+inline int Output_rawio_getbuffer( char* buffer )
+{
+#if enableRawIO_define == 1
+	// No timeout, fail immediately
+	return usb_rawio_rx( (void*)buffer, 0 );
+#else
+	return 0;
+#endif
+}
+
+
+// USB RawIO send buffer
+// XXX Must be a 64 byte buffer
+inline int Output_rawio_sendbuffer( char* buffer )
+{
+#if enableRawIO_define == 1
+	// No timeout, fail immediately
+	return usb_rawio_tx( (void*)buffer, 0 );
+#else
+	return 0;
+#endif
 }
 
 
@@ -890,5 +969,17 @@ void cliFunc_setMod( char* args )
 	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
 	USBKeys_ModifiersCLI = numToInt( arg1Ptr );
+}
+
+void cliFunc_usbInitTime( char* args )
+{
+	// Calculate overall USB initialization time
+	// XXX A protocol analyzer will be more accurate, however, this is built-in and easier to collect data
+	print(NL);
+	info_msg("USB Init Time: ");
+	printInt32( USBInit_TimeEnd - USBInit_TimeStart );
+	print(" ms - ");
+	printInt16( USBInit_Ticks );
+	print(" ticks");
 }
 

@@ -51,10 +51,6 @@ extern volatile uint8_t usb_configuration;
 
 extern uint16_t usb_rx_byte_count_data[NUM_ENDPOINTS];
 
-extern volatile uint8_t usb_cdc_line_coding[7];
-extern volatile uint8_t usb_cdc_line_rtsdtr;
-extern volatile uint8_t usb_cdc_transmit_flush_timer;
-
 
 
 // ----- Functions -----
@@ -66,6 +62,8 @@ void usb_reinit(); // Force restart USB interface, simulates disconnect
 void usb_isr();
 void usb_tx( uint32_t endpoint, usb_packet_t *packet );
 void usb_tx_isr( uint32_t endpoint, usb_packet_t *packet );
+
+void usb_resume();
 
 uint32_t usb_tx_byte_count( uint32_t endpoint );
 uint32_t usb_tx_packet_count( uint32_t endpoint );

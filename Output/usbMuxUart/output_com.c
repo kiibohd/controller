@@ -51,14 +51,15 @@
 // ----- Macros -----
 
 // Used to build a bitmap lookup table from a byte addressable array
-#define byteLookup( byte ) case (( byte ) * ( 8 )):         bytePosition = byte; byteShift = 0; break; \
-                           case (( byte ) * ( 8 ) + ( 1 )): bytePosition = byte; byteShift = 1; break; \
-                           case (( byte ) * ( 8 ) + ( 2 )): bytePosition = byte; byteShift = 2; break; \
-                           case (( byte ) * ( 8 ) + ( 3 )): bytePosition = byte; byteShift = 3; break; \
-                           case (( byte ) * ( 8 ) + ( 4 )): bytePosition = byte; byteShift = 4; break; \
-                           case (( byte ) * ( 8 ) + ( 5 )): bytePosition = byte; byteShift = 5; break; \
-                           case (( byte ) * ( 8 ) + ( 6 )): bytePosition = byte; byteShift = 6; break; \
-                           case (( byte ) * ( 8 ) + ( 7 )): bytePosition = byte; byteShift = 7; break
+#define byteLookup( byte ) \
+	case (( byte ) * ( 8 )):         bytePosition = byte; byteShift = 0; break; \
+	case (( byte ) * ( 8 ) + ( 1 )): bytePosition = byte; byteShift = 1; break; \
+	case (( byte ) * ( 8 ) + ( 2 )): bytePosition = byte; byteShift = 2; break; \
+	case (( byte ) * ( 8 ) + ( 3 )): bytePosition = byte; byteShift = 3; break; \
+	case (( byte ) * ( 8 ) + ( 4 )): bytePosition = byte; byteShift = 4; break; \
+	case (( byte ) * ( 8 ) + ( 5 )): bytePosition = byte; byteShift = 5; break; \
+	case (( byte ) * ( 8 ) + ( 6 )): bytePosition = byte; byteShift = 6; break; \
+	case (( byte ) * ( 8 ) + ( 7 )): bytePosition = byte; byteShift = 7; break
 
 
 
@@ -72,6 +73,7 @@ void cliFunc_sendKeys   ( char* args );
 void cliFunc_sendUART   ( char* args );
 void cliFunc_setKeys    ( char* args );
 void cliFunc_setMod     ( char* args );
+void cliFunc_usbInitTime( char* args );
 
 
 
@@ -86,6 +88,7 @@ CLIDict_Entry( sendKeys,    "Send the prepared list of USB codes and modifier by
 CLIDict_Entry( sendUART,    "Send characters over UART0." );
 CLIDict_Entry( setKeys,     "Prepare a space separated list of USB codes (decimal). Waits until \033[35msendKeys\033[0m." );
 CLIDict_Entry( setMod,      "Set the modfier byte:" NL "\t\t1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI" );
+CLIDict_Entry( usbInitTime, "Displays the time in ms from usb_init() till the last setup call." );
 
 CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
 	CLIDict_Item( kbdProtocol ),
@@ -96,6 +99,7 @@ CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
 	CLIDict_Item( sendUART ),
 	CLIDict_Item( setKeys ),
 	CLIDict_Item( setMod ),
+	CLIDict_Item( usbInitTime ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -167,6 +171,11 @@ uint16_t Output_ExtCurrent_Available = 0;
 // Initially 100 mA, but may be negotiated higher (e.g. 500 mA)
 uint16_t Output_USBCurrent_Available = 0;
 
+// USB Init Time (ms)
+volatile uint32_t USBInit_TimeStart;
+volatile uint32_t USBInit_TimeEnd;
+volatile uint16_t USBInit_Ticks;
+
 
 
 // ----- Capabilities -----
@@ -174,6 +183,7 @@ uint16_t Output_USBCurrent_Available = 0;
 // Set Boot Keyboard Protocol
 void Output_kbdProtocolBoot_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -195,12 +205,14 @@ void Output_kbdProtocolBoot_capability( uint8_t state, uint8_t stateType, uint8_
 
 	// Set the keyboard protocol to Boot Mode
 	USBKeys_Protocol = 0;
+#endif
 }
 
 
 // Set NKRO Keyboard Protocol
 void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -222,12 +234,14 @@ void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_
 
 	// Set the keyboard protocol to NKRO Mode
 	USBKeys_Protocol = 1;
+#endif
 }
 
 
 // Toggle Keyboard Protocol
 void Output_toggleKbdProtocol_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -244,12 +258,14 @@ void Output_toggleKbdProtocol_capability( uint8_t state, uint8_t stateType, uint
 		// Toggle the keyboard protocol Mode
 		USBKeys_Protocol = !USBKeys_Protocol;
 	}
+#endif
 }
 
 
 // Sends a Consumer Control code to the USB Output buffer
 void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -278,6 +294,7 @@ void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *
 
 	// Set consumer control code
 	USBKeys_ConsCtrl = *(uint16_t*)(&args[0]);
+#endif
 }
 
 
@@ -299,6 +316,7 @@ void Output_noneSend_capability( uint8_t state, uint8_t stateType, uint8_t *args
 // Sends a System Control code to the USB Output buffer
 void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -327,6 +345,7 @@ void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 	// Set system control code
 	USBKeys_SysCtrl = args[0];
+#endif
 }
 
 
@@ -334,6 +353,7 @@ void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 // Argument #1: USB Code
 void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableKeyboard_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -534,6 +554,7 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 		break;
 	}
+#endif
 }
 
 void Output_flashMode_capability( uint8_t state, uint8_t stateType, uint8_t *args )
@@ -557,6 +578,7 @@ void Output_flashMode_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 // Argument #3: USB Y Axis (16 bit) relative
 void Output_usbMouse_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
+#if enableMouse_define == 1
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -604,6 +626,7 @@ void Output_usbMouse_capability( uint8_t state, uint8_t stateType, uint8_t *args
 
 	if ( mouse_x || mouse_y )
 		USBMouse_Changed |= USBMouseChangeState_Relative;
+#endif
 }
 
 
@@ -652,10 +675,6 @@ inline void Output_send()
 	usb_device_check();
 
 	// Boot Mode Only, unset stale keys
-	if ( USBKeys_Protocol == 0 )
-		for ( uint8_t c = USBKeys_Sent; c < USB_BOOT_MAX_KEYS; c++ )
-			USBKeys_Keys[c] = 0;
-
 	// XXX - Behaves oddly on Mac OSX, might help with corrupted packets specific to OSX? -HaaTa
 	/*
 	// Check if idle count has been exceed, this forces usb_keyboard_send and usb_mouse_send to update
@@ -669,9 +688,16 @@ inline void Output_send()
 	}
 	*/
 
+#if enableMouse_define == 1
 	// Process mouse actions
 	while ( USBMouse_Changed )
 		usb_mouse_send();
+#endif
+
+#if enableKeyboard_define == 1
+	if ( USBKeys_Protocol == 0 )
+		for ( uint8_t c = USBKeys_Sent; c < USB_BOOT_MAX_KEYS; c++ )
+			USBKeys_Keys[c] = 0;
 
 	// Send keypresses while there are pending changes
 	while ( USBKeys_Changed )
@@ -692,6 +718,7 @@ inline void Output_send()
 		Scan_finishedWithOutput( USBKeys_Sent );
 		break;
 	}
+#endif
 }
 
 
@@ -705,18 +732,24 @@ void Output_firmwareReload()
 // USB Input buffer available
 inline unsigned int Output_availablechar()
 {
+#if enableVirtualSerialPort_define == 1
 	return usb_serial_available() + uart_serial_available();
+#else
+	return uart_serial_available();
+#endif
 }
 
 
 // USB Get Character from input buffer
 inline int Output_getchar()
 {
+#if enableVirtualSerialPort_define == 1
 	// XXX Make sure to check output_availablechar() first! Information is lost with the cast (error codes) (AVR)
 	if ( usb_serial_available() > 0 )
 	{
 		return (int)usb_serial_getchar();
 	}
+#endif
 
 	if ( uart_serial_available() > 0 )
 	{
@@ -730,11 +763,15 @@ inline int Output_getchar()
 // USB Send Character to output buffer
 inline int Output_putchar( char c )
 {
+#if enableVirtualSerialPort_define == 1
 	// First send to UART
 	uart_serial_putchar( c );
 
 	// Then send to USB
 	return usb_serial_putchar( c );
+#else
+	return uart_serial_putchar( c );
+#endif
 }
 
 
@@ -750,11 +787,15 @@ inline int Output_putstr( char* str )
 	while ( str[count] != '\0' )
 		count++;
 
+#if enableVirtualSerialPort_define == 1
 	// First send to UART
 	uart_serial_write( str, count );
 
 	// Then send to USB
 	return usb_serial_write( str, count );
+#else
+	return uart_serial_write( str, count );
+#endif
 }
 
 
@@ -936,5 +977,17 @@ void cliFunc_setMod( char* args )
 	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
 	USBKeys_ModifiersCLI = numToInt( arg1Ptr );
+}
+
+void cliFunc_usbInitTime( char* args )
+{
+	// Calculate overall USB initialization time
+	// XXX A protocol analyzer will be more accurate, however, this is built-in and easier to collect data
+	print(NL);
+	info_msg("USB Init Time: ");
+	printInt32( USBInit_TimeEnd - USBInit_TimeStart );
+	print(" ms - ");
+	printInt16( USBInit_Ticks );
+	print(" ticks");
 }
 

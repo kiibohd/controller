@@ -29,6 +29,9 @@
  * SOFTWARE.
  */
 
+#include <kll_defs.h>
+#if enableMouse_define == 1
+
 // ----- Includes -----
 
 // Compiler Includes
@@ -299,4 +302,6 @@ void usb_mouse_screen_size(uint16_t width, uint16_t height, uint8_t mac)
 		usb_mouse_scale_y = (1825361101ul + (height >> 1)) / height;
 	}
 }
+
+#endif
 

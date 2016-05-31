@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander (2013-2015)
+ * Modifications by Jacob Alexander (2013-2016)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -50,9 +50,36 @@
 
 
 
+// ----- Structs -----
+
+// See: Universal Serial Bus Class Definitions for Communication Devices 1.11 Table 50
+// dwDTERate   - Baud Rate : 4 bytes
+// bCharFormat - Stop Bits : 1 byte
+//   0: 1   stop bit
+//   1: 1.5 stop bits
+//   2: 2   stop bits
+// bParityType - Parity    : 1 byte
+//   0: None
+//   1: Odd
+//   2: Even
+//   3: Mark
+//   4: Space
+// bDataBits   - Data Bits : 1 byte
+//  (5,6,7,8 or 16)
+//
+// Struct is 7 bytes wide
+typedef struct USBCDCLineCoding {
+	uint32_t dwDTERate;   // Baud Rate
+	uint8_t  bCharFormat; // Stop Bits
+	uint8_t  bParityType; // Parity
+	uint8_t  bDataBits;   // Data Bits
+} USBCDCLineCoding;
+
+
+
 // ----- Variables -----
 
-extern volatile uint8_t usb_cdc_line_coding[7];
+extern volatile USBCDCLineCoding usb_cdc_line_coding;
 
 extern volatile uint8_t usb_cdc_line_rtsdtr;
 extern volatile uint8_t usb_cdc_transmit_flush_timer;

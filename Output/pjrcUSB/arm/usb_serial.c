@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander 2013-2015
+ * Modified by Jacob Alexander 2013-2016
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -28,6 +28,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+#include <kll_defs.h>
+#if enableVirtualSerialPort_define == 1
 
 // ----- Includes -----
 
@@ -69,9 +72,15 @@
 
 // ----- Variables -----
 
-// serial port settings (baud rate, control signals, etc) set
-// by the PC.  These are ignored, but kept in RAM.
-volatile uint8_t usb_cdc_line_coding[7] = { 0x00, 0xE1, 0x00, 0x00, 0x00, 0x00, 0x08 };
+// Serial port settings (baud rate, control signals, etc) set by the host
+// These are *ignored*, except to return back to the host if requested
+volatile USBCDCLineCoding usb_cdc_line_coding = {
+	115200,
+	0,
+	0,
+	8,
+};
+
 volatile uint8_t usb_cdc_line_rtsdtr = 0;
 volatile uint8_t usb_cdc_transmit_flush_timer = 0;
 
@@ -314,4 +323,6 @@ void usb_serial_flush_callback()
 		}
 	}
 }
+
+#endif
 

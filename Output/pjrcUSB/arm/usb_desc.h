@@ -54,9 +54,18 @@
 #define DEVICE_SUBCLASS         0x00
 #define DEVICE_PROTOCOL         0x00
 #define EP0_SIZE                64
-#define NUM_ENDPOINTS           8
+#define NUM_ENDPOINTS           10 // XXX Can save some space if this can be calculated using KLL
 #define NUM_USB_BUFFERS         30
-#define NUM_INTERFACE           7
+
+// XXX Remember to update total interface count, if it isn't correct some OSs will not initialize USB
+//     Linux warns in dmesg
+//     Mac OSX login screen will not initialize
+#define KEYBOARD_INTERFACES     3 // Boot, NKRO, SysCtrl
+#define CDC_INTERFACES          2
+#define MOUSE_INTERFACES        1
+#define JOYSTICK_INTERFACES     1
+#define RAWIO_INTERFACES        1
+
 
 #define KEYBOARD_INTERFACE      0 // Keyboard
 #define KEYBOARD_ENDPOINT       1
@@ -70,52 +79,97 @@
 #define NKRO_KEYBOARD_INTERVAL  1
 #define NKRO_KEYBOARD_NAME      L"NKRO Keyboard"
 
+#define SYS_CTRL_INTERFACE      2 // Media Keys
+#define SYS_CTRL_ENDPOINT       3
+#define SYS_CTRL_SIZE           8
+#define SYS_CTRL_INTERVAL       1
+#define SYS_CTRL_NAME           L"Media Keys"
+
 #define CDC_IAD_DESCRIPTOR      1
-#define CDC_STATUS_INTERFACE    2
-#define CDC_DATA_INTERFACE      3 // Serial
-#define CDC_ACM_ENDPOINT        3
-#define CDC_RX_ENDPOINT         4
-#define CDC_TX_ENDPOINT         5
+#define CDC_STATUS_INTERFACE    3
+#define CDC_DATA_INTERFACE      4 // Serial
+#define CDC_ACM_ENDPOINT        4
+#define CDC_RX_ENDPOINT         5
+#define CDC_TX_ENDPOINT         6
 #define CDC_ACM_SIZE            16
 #define CDC_RX_SIZE             64
 #define CDC_TX_SIZE             64
 #define CDC_STATUS_NAME         L"Virtual Serial Port - Status"
 #define CDC_DATA_NAME           L"Virtual Serial Port - Data"
 
-#define MOUSE_INTERFACE         4 // Mouse
-#define MOUSE_ENDPOINT          6
+#define RAWIO_INTERFACE         5 // RawIO
+#define RAWIO_TX_ENDPOINT       7
+#define RAWIO_TX_SIZE           64
+#define RAWIO_TX_INTERVAL       1
+#define RAWIO_RX_ENDPOINT       8
+#define RAWIO_RX_SIZE           64
+#define RAWIO_RX_INTERVAL       1
+#define RAWIO_NAME              L"API Interface"
+
+#define MOUSE_INTERFACE         6 // Mouse
+#define MOUSE_ENDPOINT          9
 #define MOUSE_SIZE              8
 #define MOUSE_INTERVAL          1
 #define MOUSE_NAME              L"Mouse"
 
-#define JOYSTICK_INTERFACE      5 // Joystick
-#define JOYSTICK_ENDPOINT       7
+#define JOYSTICK_INTERFACE      7 // Joystick
+#define JOYSTICK_ENDPOINT       10
 #define JOYSTICK_SIZE           16
 #define JOYSTICK_INTERVAL       1
 #define JOYSTICK_NAME           L"Joystick"
 
-#define SYS_CTRL_INTERFACE      6 // Media Keys
-#define SYS_CTRL_ENDPOINT       8
-#define SYS_CTRL_SIZE           8
-#define SYS_CTRL_INTERVAL       1
-#define SYS_CTRL_NAME           L"Media Keys"
 
-#define KEYBOARD_DESC_OFFSET      (9 + 9)
-#define NKRO_KEYBOARD_DESC_OFFSET (9 + 9+9+7 + 9)
-#define SERIAL_CDC_DESC_OFFSET    (9 + 9+9+7 + 9+9+7 + 8)
-#define MOUSE_DESC_OFFSET         (9 + 9+9+7 + 9+9+7 + 8+9+5+5+4+5+7+9+7+7 + 9)
-#define JOYSTICK_DESC_OFFSET      (9 + 9+9+7 + 9+9+7 + 8+9+5+5+4+5+7+9+7+7 + 9+9+7 + 9)
-#define SYS_CTRL_DESC_OFFSET      (9 + 9+9+7 + 9+9+7 + 8+9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7 + 9)
-#define CONFIG_DESC_SIZE          (9 + 9+9+7 + 9+9+7 + 8+9+5+5+4+5+7+9+7+7 + 9+9+7 + 9+9+7 + 9+9+7)
+// Descriptor sizes
+#define BASE_DESC_SIZE            (9)
+#define KEYBOARD_DESC_SIZE        (9+9+7)
+#define NKRO_KEYBOARD_DESC_SIZE   (9+9+7)
+#define SYS_CTRL_DESC_SIZE        (9+9+7)
+#define SERIAL_CDC_DESC_SIZE      (8+9+5+5+4+5+7+9+7+7)
+#define RAWIO_DESC_SIZE           (9+7+7)
+#define MOUSE_DESC_SIZE           (9+9+7)
+#define JOYSTICK_DESC_SIZE        (9+9+7)
+
+// Descriptor offsets
+#define KEYBOARD_DESC_BASE_OFFSET ( \
+	BASE_DESC_SIZE + \
+	9 \
+)
+#define SERIAL_CDC_DESC_BASE_OFFSET ( \
+	BASE_DESC_SIZE + \
+	KEYBOARD_DESC_TOTAL_OFFSET + \
+	8 \
+)
+#define RAWIO_DESC_BASE_OFFSET ( \
+	BASE_DESC_SIZE + \
+	KEYBOARD_DESC_TOTAL_OFFSET + \
+	SERIAL_CDC_DESC_TOTAL_OFFSET + \
+	9 \
+)
+#define MOUSE_DESC_BASE_OFFSET ( \
+	BASE_DESC_SIZE + \
+	KEYBOARD_DESC_TOTAL_OFFSET + \
+	SERIAL_CDC_DESC_TOTAL_OFFSET + \
+	9 \
+)
+#define JOYSTICK_DESC_BASE_OFFSET ( \
+	BASE_DESC_SIZE + \
+	KEYBOARD_DESC_TOTAL_OFFSET + \
+	SERIAL_CDC_DESC_TOTAL_OFFSET + \
+	MOUSE_DESC_TOTAL_OFFSET + \
+	9 \
+)
+
 
 #define ENDPOINT1_CONFIG        ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT2_CONFIG        ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT3_CONFIG        ENDPOINT_TRANSIMIT_ONLY
-#define ENDPOINT4_CONFIG        ENDPOINT_RECEIVE_ONLY
-#define ENDPOINT5_CONFIG        ENDPOINT_TRANSIMIT_ONLY
+#define ENDPOINT4_CONFIG        ENDPOINT_TRANSIMIT_ONLY
+#define ENDPOINT5_CONFIG        ENDPOINT_RECEIVE_ONLY
 #define ENDPOINT6_CONFIG        ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT7_CONFIG        ENDPOINT_TRANSIMIT_ONLY
-#define ENDPOINT8_CONFIG        ENDPOINT_TRANSIMIT_ONLY
+#define ENDPOINT8_CONFIG        ENDPOINT_RECEIVE_ONLY
+#define ENDPOINT9_CONFIG        ENDPOINT_TRANSIMIT_ONLY
+#define ENDPOINT10_CONFIG       ENDPOINT_TRANSIMIT_ONLY
 
 
 
@@ -138,4 +192,9 @@ extern const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS];
 extern const usb_descriptor_list_t usb_descriptor_list[];
 
 extern uint8_t *usb_bMaxPower;
+
+
+// ----- Functions -----
+
+void usb_set_config_descriptor_size();
 

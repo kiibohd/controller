@@ -99,6 +99,10 @@ extern          uint8_t  Output_DebugMode; // 0 - Debug disabled, 1 - Debug enab
 
 extern          uint16_t Output_ExtCurrent_Available; // mA - Set by outside module if not using USB (i.e. Interconnect)
 
+extern volatile uint32_t USBInit_TimeStart; // Timetamp when usb_init was triggered
+extern volatile uint32_t USBInit_TimeEnd;   // Timetamp since last call to the Configuration endpoint
+extern volatile uint16_t USBInit_Ticks;     // Number of times the end time has been updated
+
 
 
 // ----- Functions -----

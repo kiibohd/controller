@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2014 by Jacob Alexander
+/* Copyright (C) 2011-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -127,7 +127,7 @@ void printHex32_op( uint32_t in, uint8_t op )
 	// With an op of 1, the max number of characters is 6 + 1 for null
 	// e.g. "0xFFFF\0"
 	// op 2 and 4 require fewer characters (2+1 and 4+1 respectively)
-	char tmpStr[7];
+	char tmpStr[11];
 
 	// Convert number
 	hex32ToStr_op( in, tmpStr, op );
@@ -259,6 +259,7 @@ void hex32ToStr_op( uint32_t in, char* out, uint8_t op )
 		break;
 	case 2: //  8-bit padding
 	case 4: // 16-bit padding
+	case 8: // 32-bit padding
 		while ( pos < op )
 			out[pos++] = '0';
 		break;
