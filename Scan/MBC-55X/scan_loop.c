@@ -1,4 +1,4 @@
-/* Copyright (C) 2013,2014 by Jacob Alexander
+/* Copyright (C) 2013,2014,2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 #include <Lib/ScanLib.h>
 
 // Project Includes
+#include <kll_defs.h>
 #include <led.h>
 #include <macro.h>
 #include <print.h>
@@ -38,6 +39,18 @@
 
 
 // ----- Macros -----
+
+
+// ----- Enums -----
+
+// Keypress States
+typedef enum KeyPosition {
+	KeyState_Off     = 0,
+	KeyState_Press   = 1,
+	KeyState_Hold    = 2,
+	KeyState_Release = 3,
+	KeyState_Invalid,
+} KeyPosition;
 
 
 
@@ -212,7 +225,7 @@ void processKeyValue( uint8_t keyValue )
 	case 0x09: // ^I
 	case 0x0D: // ^M
 	case 0x1B: // ^[
-		Macro_bufferAdd( keyValue );
+		Macro_keyState( keyValue, KeyState_Press );
 		break;
 	// 0x40 Offset Keys
 	// Add Ctrl key and offset to the lower alphabet
@@ -221,8 +234,8 @@ void processKeyValue( uint8_t keyValue )
 	case 0x1D: // ^]
 	case 0x1E: // ^^
 	case 0x1F: // ^_
-		Macro_bufferAdd( 0xF6 );
-		Macro_bufferAdd( keyValue + 0x40 );
+		Macro_keyState( 0xF6, KeyState_Press );
+		Macro_keyState( keyValue + 0x40, KeyState_Press );
 		break;
 
 	// - Add Shift key and offset to non-shifted key -
@@ -231,73 +244,73 @@ void processKeyValue( uint8_t keyValue )
 	case 0x23: // #
 	case 0x24: // $
 	case 0x25: // %
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue + 0x10 );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue + 0x10, KeyState_Press );
 		break;
 	// 0x11 Offset Keys
 	case 0x26: // &
 	case 0x28: // (
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue + 0x11 );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue + 0x11, KeyState_Press );
 		break;
 	// 0x07 Offset Keys
 	case 0x29: // )
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue + 0x07 );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue + 0x07, KeyState_Press );
 		break;
 	// -0x0E Offset Keys
 	case 0x40: // @
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue - 0x0E );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue - 0x0E, KeyState_Press );
 		break;
 	// 0x0E Offset Keys
 	case 0x2A: // *
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue + 0x0E );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue + 0x0E, KeyState_Press );
 		break;
 	// 0x12 Offset Keys
 	case 0x2B: // +
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue + 0x12 );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue + 0x12, KeyState_Press );
 		break;
 	// 0x05 Offset Keys
 	case 0x22: // "
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue + 0x05 );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue + 0x05, KeyState_Press );
 		break;
 	// 0x01 Offset Keys
 	case 0x3A: // :
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue + 0x01 );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue + 0x01, KeyState_Press );
 		break;
 	// -0x10 Offset Keys
 	case 0x3C: // <
 	case 0x3E: // >
 	case 0x3F: // ?
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue - 0x10 );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue - 0x10, KeyState_Press );
 		break;
 	// -0x28 Offset Keys
 	case 0x5E: // ^
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue - 0x28 );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue - 0x28, KeyState_Press );
 		break;
 	// -0x32 Offset Keys
 	case 0x5F: // _
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue - 0x32 );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue - 0x32, KeyState_Press );
 		break;
 	// -0x20 Offset Keys
 	case 0x7B: // {
 	case 0x7C: // |
 	case 0x7D: // }
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue - 0x20 );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue - 0x20, KeyState_Press );
 		break;
 	// -0x1E Offset Keys
 	case 0x7E: // ~
-		Macro_bufferAdd( 0xF5 );
-		Macro_bufferAdd( keyValue - 0x1E );
+		Macro_keyState( 0xF5, KeyState_Press );
+		Macro_keyState( keyValue - 0x1E, KeyState_Press );
 		break;
 	// All other keys
 	default:
@@ -312,8 +325,8 @@ void processKeyValue( uint8_t keyValue )
 		// Add Ctrl key and offset to the lower alphabet
 		if ( keyValue >= 0x00 && keyValue <= 0x1F )
 		{
-			Macro_bufferAdd( 0xF6 );
-			Macro_bufferAdd( keyValue + 0x60 );
+			Macro_keyState( 0xF6, KeyState_Press );
+			Macro_keyState( keyValue + 0x60, KeyState_Press );
 		}
 
 		// Shift Characters are from 0x41 to 0x59
@@ -321,14 +334,14 @@ void processKeyValue( uint8_t keyValue )
 		// Add Shift key and offset to the lower alphabet
 		else if ( keyValue >= 0x41 && keyValue <= 0x5A )
 		{
-			Macro_bufferAdd( 0xF5 );
-			Macro_bufferAdd( keyValue + 0x20 );
+			Macro_keyState( 0xF5, KeyState_Press );
+			Macro_keyState( keyValue + 0x20, KeyState_Press );
 		}
 
 		// Everything else
 		else
 		{
-			Macro_bufferAdd( keyValue );
+			Macro_keyState( keyValue, KeyState_Press );
 		}
 		break;
 	}
@@ -353,12 +366,12 @@ uint8_t Scan_sendData( uint8_t dataPayload )
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-void Scan_finishedWithBuffer( uint8_t sentKeys )
+void Scan_finishedWithMacro( uint8_t sentKeys )
 {
 }
 
 // Signal that the keys have been properly sent over USB
-void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
+void Scan_finishedWithOutput( uint8_t sentKeys )
 {
 	cli(); // Disable Interrupts
 
@@ -376,6 +389,11 @@ void Scan_lockKeyboard( void )
 
 // NOTE: Does nothing with the MBC-55x
 void Scan_unlockKeyboard( void )
+{
+}
+
+// NOTE: Does nothing with the MBC-55x
+void Scan_currentChange( unsigned int current )
 {
 }
 
