@@ -1,4 +1,4 @@
-/* Copyright (C) 2012,2014 by Jacob Alexander
+/* Copyright (C) 2012,2014,2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,7 +25,10 @@
 #include <Lib/ScanLib.h>
 
 // Project Includes
+#include <kll.h>
+#include <kll_defs.h>
 #include <led.h>
+#include <macro.h>
 #include <print.h>
 
 // Local Includes
@@ -42,6 +45,19 @@
 
 
 // ----- Macros -----
+
+
+
+// ----- Enums -----
+
+// Keypress States
+typedef enum KeyPosition {
+	KeyState_Off     = 0,
+	KeyState_Press   = 1,
+	KeyState_Hold    = 2,
+	KeyState_Release = 3,
+	KeyState_Invalid,
+} KeyPosition;
 
 
 
@@ -68,18 +84,31 @@ void  removeKeyValue( uint8_t keyValue );
 // ----- Interrupt Functions -----
 
 // USART Receive Buffer Full Interrupt
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 ISR(USART1_RX_vect)
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+void uart0_status_isr()
+#endif
 {
 	cli(); // Disable Interrupts
 
 	uint8_t keyValue = 0x00;
 	uint8_t keyState = 0x00;
 
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	// Read the scancode packet from the USART (1st to 8th bits)
 	keyValue = UDR1;
 
 	// Read the release/press bit (9th bit) XXX Unnecessary, and wrong it seems, parity bit? or something else?
 	keyState = UCSR1B & 0x02;
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+	// UART0_S1 must be read for the interrupt to be cleared
+	if ( UART0_S1 & UART_S1_RDRF )
+	{
+		// Only doing single byte FIFO here
+		keyValue = UART0_D;
+	}
+#endif
 
 	// High bit of keyValue, also represents press/release
 	keyState = keyValue & 0x80 ? 0x00 : 0x02;
@@ -93,18 +122,20 @@ ISR(USART1_RX_vect)
 	{
 	case 0x00: // Released
 		dPrintStrs( tmpStr, "R  " ); // Debug
-
-		// Remove key from press buffer
-		removeKeyValue( keyValue & 0x7F );
 		break;
 
 	case 0x02: // Pressed
 		dPrintStrs( tmpStr, "P " ); // Debug
-
-		// New key to process
-		processKeyValue( keyValue & 0x7F );
 		break;
 	}
+
+	// Add key event to macro key buffer
+	TriggerGuide guide = {
+		.type     = 0x00,
+		.state    = keyState == 0x02 ? 0x01 : 0x03,
+		.scanCode = keyValue & 0x7F,
+	};
+	Macro_pressReleaseAdd( &guide );
 
 	sei(); // Re-enable Interrupts
 }
@@ -114,11 +145,12 @@ ISR(USART1_RX_vect)
 // ----- Functions -----
 
 // Setup
-inline void scan_setup()
+inline void Scan_setup()
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 {
 	// Setup the the USART interface for keyboard data input
 	// NOTE: The input data signal needs to be inverted for the Teensy USART to properly work
-	
+
 	// Setup baud rate
 	// 16 MHz / ( 16 * Baud ) = UBRR
 	// Baud <- 0.823284 ms per bit, thus 1000 / 0.823284 = 1214.65004 -> 823.2824
@@ -148,122 +180,133 @@ inline void scan_setup()
 	// Reset the keyboard before scanning, we might be in a wierd state
 	scan_resetKeyboard();
 }
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+{
+	// Setup the the UART interface for keyboard data input
+	SIM_SCGC4 |= SIM_SCGC4_UART0; // Disable clock gating
+
+	// Pin Setup for UART0
+	PORTB_PCR16 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(3); // RX Pin
+	PORTB_PCR17 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
+
+	// Setup baud rate - 1205 Baud
+	// 48 MHz / ( 16 * Baud ) = BDH/L
+	// Baud: 1215 -> 48 MHz / ( 16 * 1215 ) = 2469.1358
+	// Thus baud setting = 2469
+	// NOTE: If finer baud adjustment is needed see UARTx_C4 -> BRFA in the datasheet
+	uint16_t baud = 2469; // Max setting of 8191
+	UART0_BDH = (uint8_t)(baud >> 8);
+	UART0_BDL = (uint8_t)baud;
+
+	// 8 bit, Even Parity, Idle Character bit after stop
+	// NOTE: For 8 bit with Parity you must enable 9 bit transmission (pg. 1065)
+	//       You only need to use UART0_D for 8 bit reading/writing though
+	// UART_C1_M UART_C1_PE UART_C1_PT UART_C1_ILT
+	UART0_C1 = UART_C1_M | UART_C1_PE | UART_C1_ILT;
+
+	// Number of bytes in FIFO before TX Interrupt
+	UART0_TWFIFO = 1;
+
+	// Number of bytes in FIFO before RX Interrupt
+	UART0_RWFIFO = 1;
+
+	// TX FIFO Disabled, TX FIFO Size 1 (Max 8 datawords), RX FIFO Enabled, RX FIFO Size 1 (Max 8 datawords)
+	// TX/RX FIFO Size:
+	//  0x0 - 1 dataword
+	//  0x1 - 4 dataword
+	//  0x2 - 8 dataword
+	//UART0_PFIFO = UART_PFIFO_TXFE | /*TXFIFOSIZE*/ (0x0 << 4) | UART_PFIFO_RXFE | /*RXFIFOSIZE*/ (0x0);
+
+	// Reciever Inversion Disabled, LSBF
+	// UART_S2_RXINV UART_S2_MSBF
+	UART0_S2 |= 0x00;
+
+	// Transmit Inversion Disabled
+	// UART_C3_TXINV
+	UART0_C3 |= 0x00;
+
+	// TX Disabled, RX Enabled, RX Interrupt Enabled
+	// UART_C2_TE UART_C2_RE UART_C2_RIE
+	UART0_C2 = UART_C2_RE | UART_C2_RIE | UART_C2_TE;
+
+	// Add interrupt to the vector table
+	NVIC_ENABLE_IRQ( IRQ_UART0_STATUS );
+
+	// Reset the keyboard before scanning, we might be in a wierd state
+	Scan_resetKeyboard();
+}
+#endif
 
 
 // Main Detection Loop
 // Not needed for the BETKB, this is just a busy loop
-inline uint8_t scan_loop()
+inline uint8_t Scan_loop()
 {
 	return 0;
-}
-
-void processKeyValue( uint8_t keyValue )
-{
-	// Interpret scan code
-	switch ( keyValue )
-	{
-	case 0x00: // Break code from input?
-		break;
-	default:
-		// Make sure the key isn't already in the buffer
-		for ( uint8_t c = 0; c < KeyIndex_BufferUsed + 1; c++ )
-		{
-			// Key isn't in the buffer yet
-			if ( c == KeyIndex_BufferUsed )
-			{
-				Macro_bufferAdd( keyValue );
-
-				// Only send data if enabled
-				if ( KeyIndex_Add_InputSignal )
-					scan_sendData( KeyIndex_Add_InputSignal );
-				break;
-			}
-
-			// Key already in the buffer
-			if ( KeyIndex_Buffer[c] == keyValue )
-				break;
-		}
-		break;
-	}
-}
-
-void removeKeyValue( uint8_t keyValue )
-{
-	// Check for the released key, and shift the other keys lower on the buffer
-	uint8_t c;
-	for ( c = 0; c < KeyIndex_BufferUsed; c++ )
-	{
-		// Key to release found
-		if ( KeyIndex_Buffer[c] == keyValue )
-		{
-			// Shift keys from c position
-			for ( uint8_t k = c; k < KeyIndex_BufferUsed - 1; k++ )
-				KeyIndex_Buffer[k] = KeyIndex_Buffer[k + 1];
-
-			// Decrement Buffer
-			KeyIndex_BufferUsed--;
-
-			break;
-		}
-	}
-
-	// Error case (no key to release)
-	if ( c == KeyIndex_BufferUsed + 1 )
-	{
-		errorLED( 1 );
-		char tmpStr[6];
-		hexToStr( keyValue, tmpStr );
-		erro_dPrint( "Could not find key to release: ", tmpStr );
-	}
 }
 
 // Send data
 uint8_t scan_sendData( uint8_t dataPayload )
 {
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	// Enable the USART Transmitter
 	UCSR1B |=  (1 << 3);
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+#endif
 
 	// Debug
 	char tmpStr[6];
 	hexToStr( dataPayload, tmpStr );
 	info_dPrint( "Sending - ", tmpStr );
 
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	UDR1 = dataPayload;
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+	UART0_D = dataPayload;
+#endif
 
 	// Wait for the payload
 	_delay_us( 800 );
 
+#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 	// Disable the USART Transmitter
 	UCSR1B &= ~(1 << 3);
+#elif defined(_mk20dx128_) || defined(_mk20dx256_) // ARM
+#endif
 
 	return 0;
 }
 
 // Signal KeyIndex_Buffer that it has been properly read
-void Scan_finishedWithBuffer( uint8_t sentKeys )
+void Scan_finishedWithMacro( uint8_t sentKeys )
 {
 }
 
 // Signal that the keys have been properly sent over USB
-void Scan_finishedWithUSBBuffer( uint8_t sentKeys )
+void Scan_finishedWithOutput( uint8_t sentKeys )
 {
 }
 
 // Reset/Hold keyboard
 // NOTE: Does nothing with the BETKB
-void scan_lockKeyboard( void )
+void Scan_lockKeyboard()
 {
 }
 
 // NOTE: Does nothing with the BETKB
-void scan_unlockKeyboard( void )
+void Scan_unlockKeyboard()
 {
 }
 
 // Reset Keyboard
-void scan_resetKeyboard( void )
+void Scan_resetKeyboard()
 {
 	// Not a calculated valued...
 	_delay_ms( 50 );
+}
+
+// NOTE: Does nothing with the BETKB
+void Scan_currentChange( unsigned int current )
+{
 }
 

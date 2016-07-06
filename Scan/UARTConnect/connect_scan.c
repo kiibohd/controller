@@ -688,7 +688,7 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 			}
 
 			// Send ScanCode to macro module
-			Macro_interconnectAdd( &Connect_receive_ScanCodeBuffer );
+			Macro_pressReleaseAdd( &Connect_receive_ScanCodeBuffer );
 		}
 
 		break;

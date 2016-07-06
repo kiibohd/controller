@@ -57,10 +57,15 @@ set ( pathname "${PROJECT_SOURCE_DIR}/${ScanModulePath}" )
 
 string ( REPLACE " " ";" MAP_LIST ${BaseMap} ) # Change spaces to semicolons
 foreach ( MAP ${MAP_LIST} )
-	# Only check the Scan Module for BaseMap .kll files, default to defaultMap.kll
+	# Only check the Scan Module for BaseMap .kll files, default to scancode_map.kll or defaultMap.kll
 	if ( NOT EXISTS ${pathname}/${MAP}.kll )
-		set ( BaseMap_Args ${BaseMap_Args} ${pathname}/defaultMap.kll )
-		set ( KLL_DEPENDS ${KLL_DEPENDS} ${pathname}/defaultMap.kll )
+		if ( EXISTS ${pathname}/scancode_map.kll )
+			set ( BaseMap_Args ${BaseMap_Args} ${pathname}/scancode_map.kll )
+			set ( KLL_DEPENDS ${KLL_DEPENDS} ${pathname}/scancode_map.kll )
+		else ()
+			set ( BaseMap_Args ${BaseMap_Args} ${pathname}/defaultMap.kll )
+			set ( KLL_DEPENDS ${KLL_DEPENDS} ${pathname}/defaultMap.kll )
+		endif ()
 	elseif ( EXISTS "${pathname}/${MAP}.kll" )
 		set ( BaseMap_Args ${BaseMap_Args} ${pathname}/${MAP}.kll )
 		set ( KLL_DEPENDS ${KLL_DEPENDS} ${pathname}/${MAP}.kll )

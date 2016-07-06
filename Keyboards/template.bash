@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is a build script template
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015
+# Jacob Alexander 2015-2016
 
 
 
@@ -16,7 +16,7 @@ BuildPath="template"
 ## KLL Configuration ##
 
 # Generally shouldn't be changed, this will affect every layer
-BaseMap="defaultMap"
+BaseMap="scancode_map"
 
 # This is the default layer of the keyboard
 # NOTE: To combine kll files into a single layout, separate them by spaces
