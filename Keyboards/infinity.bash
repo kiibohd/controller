@@ -42,7 +42,7 @@ PartialMaps[1]="hhkbpro2"
 # NOTE: Changing any of these variables will require a force build to compile correctly
 
 # Keyboard Module Configuration
-ScanModule="MD1"
+ScanModule="Infinity_60%"
 MacroModule="PartialMap"
 OutputModule="pjrcUSB"
 DebugModule="full"

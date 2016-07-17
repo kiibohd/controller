@@ -45,7 +45,7 @@ PartialMaps[2]="iced_numpad"
 # NOTE: Changing any of these variables will require a force build to compile correctly
 
 # Keyboard Module Configuration
-ScanModule="MDErgo1"
+ScanModule="Infinity_Ergodox"
 MacroModule="PartialMap"
 OutputModule="pjrcUSB"
 DebugModule="full"
