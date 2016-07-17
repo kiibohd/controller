@@ -7,14 +7,18 @@ The [KLL](https://github.com/kiibohd/kll) git repo is automatically cloned durin
 
 Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](http://kiibohd.com) for details on the KLL (Keyboard Layout Language) Spec.
 
+![](https://travis-ci.org/kiibohd/controller.svg?branch=master)
+
 
 
 Official Keyboards
 ------------------
 
-* MD1      (Infinity Keyboard/IC60 2014/10/15)
-* MDErgo1  (Infinity Ergodox /ICED 2015/03/31)
-* WhiteFox (Soon to be released?)
+* Infinity 60%
+* Infinity 60% LED
+* Infinity Ergodox
+* WhiteFox
+* K-Type (coming soon)
 
 
 The Kiibohd firmware supports a lot of other keyboards, but these are more obscure/custom/lesser known.
