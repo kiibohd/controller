@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -110,24 +110,21 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 // Indicates whether the Output module is fully functional
 // 0 - Not fully functional, 1 - Fully functional
 // 0 is often used to show that a USB cable is not plugged in (but has power)
-	uint8_t  Output_Available = 0;
+volatile uint8_t  Output_Available = 0;
 
 
 
 // ----- Capabilities -----
 
-// Adds a single USB Code to the USB Output buffer
-// Argument #1: USB Code
-void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
-{
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
-	{
-		print("Output_usbCodeSend(usbCode)");
-		print("Not used in uartOut...");
-		return;
-	}
-}
+// Ignored capabilities
+void Output_kbdProtocolBoot_capability( uint8_t state, uint8_t stateType, uint8_t *args ) {}
+void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_t *args ) {}
+void Output_toggleKbdProtocol_capability( uint8_t state, uint8_t stateType, uint8_t *args ) {}
+void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args ) {}
+void Output_noneSend_capability( uint8_t state, uint8_t stateType, uint8_t *args ) {}
+void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args ) {}
+void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args ) {}
+void Output_usbMouse_capability( uint8_t state, uint8_t stateType, uint8_t *args ) {}
 
 void Output_flashMode_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {

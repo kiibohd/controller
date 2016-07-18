@@ -11,7 +11,7 @@ BuildPath=${BuildPath}.${Compiler}
 
 # Make sure all of the relevant variables have been set
 # NOTE: PartialMaps and DefaultMap do not have to be set
-VariablesList=(BuildPath BaseMap ScanModule MacroModule OutputModule DebugModule Chip Compiler)
+VariablesList=(BuildPath Chip Compiler)
 ExitEarly=false
 for var in ${VariablesList[@]}; do
 	if [ -z ${!var+x} ]; then
@@ -36,7 +36,7 @@ done
 
 
 # Internal Variables
-CMakeListsPath=${CMakeListsPath:-"../.."}
+CMakeListsPath="../.."
 PROG_NAME=$(basename $0)
 
 
@@ -87,7 +87,7 @@ done
 ## TODO Check for windows and do windows specific things ##
 mkdir -p "${BuildPath}"
 cd "${BuildPath}"
-cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DScanModule="${ScanModule}" -DMacroModule="${MacroModule}" -DOutputModule="${OutputModule}" -DDebugModule="${DebugModule}" -DBaseMap="${BaseMap}" -DDefaultMap="${DefaultMap}" -DPartialMaps="${PartialMapsExpanded}" "${CMakeListsPath}"
+cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" "${CMakeListsPath}"
 return_code=$?
 if [ $return_code != 0 ] ; then
   echo "Error in cmake. Exiting..."
