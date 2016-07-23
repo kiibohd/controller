@@ -173,7 +173,7 @@
 
 
 
-// ----- Enumerations -----
+// ----- Structs -----
 
 typedef struct {
 	uint16_t        wValue;
@@ -181,6 +181,13 @@ typedef struct {
 	const uint8_t   *addr;
 	uint16_t        length;
 } usb_descriptor_list_t;
+
+
+struct usb_string_descriptor_struct {
+	uint8_t bLength;
+	uint8_t bDescriptorType;
+	uint16_t wString[];
+};
 
 
 
@@ -192,6 +199,7 @@ extern const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS];
 extern const usb_descriptor_list_t usb_descriptor_list[];
 
 extern uint8_t *usb_bMaxPower;
+
 
 
 // ----- Functions -----

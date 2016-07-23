@@ -60,7 +60,7 @@ static uint8_t device_descriptor[] = {
 	EP0_SIZE,                               // bMaxPacketSize0
 	LSB(VENDOR_ID), MSB(VENDOR_ID),         // idVendor
 	LSB(PRODUCT_ID), MSB(PRODUCT_ID),       // idProduct
-	0x00, 0x01,                             // bcdDevice
+	LSB(BCD_VERSION), MSB(BCD_VERSION),     // bcdDevice
 	1,                                      // iManufacturer
 	2,                                      // iProduct
 	3,                                      // iSerialNumber
@@ -824,12 +824,6 @@ uint8_t *usb_bMaxPower = &config_descriptor[8];
 // The descriptors above can provide human readable strings,
 // referenced by index numbers.  These descriptors are the
 // actual string data
-
-struct usb_string_descriptor_struct {
-	uint8_t bLength;
-	uint8_t bDescriptorType;
-	uint16_t wString[];
-};
 
 extern struct usb_string_descriptor_struct usb_string_manufacturer_name
 	__attribute__ ((weak, alias("usb_string_manufacturer_name_default")));

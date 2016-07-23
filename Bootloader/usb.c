@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2016 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 
 #include "usb.h"
 #include "usb-internal.h"
+#include "dfu.desc.h"
 
 
 
@@ -300,7 +301,7 @@ static int usb_tx_config_desc(int idx, int reqlen)
 
 static int usb_tx_string_desc(int idx, int reqlen)
 {
-	const struct usb_desc_string_t * const *d;
+	struct usb_desc_string_t * const *d;
 
 	for (d = usb.identity->string_descs; idx != 0 && *d != NULL; ++d)
 		--idx;
@@ -582,8 +583,28 @@ void usb_attach_function(const struct usbd_function *function, struct usbd_funct
 	prev->next = ctx;
 }
 
+// XXX
+// Int32 to Hex16 UTF16LE
+// This function takes advantage of a few things to save on flash space
+// 1) Does not set anything if zero
+// 2) No padding
+void int32ToHex16( uint32_t num, uint16_t* str )
+{
+	for ( ; num; num /= 16 )
+	{
+		uint32_t cur = num % 16;
+		*--str = (uint16_t)( cur + (( cur < 10 ) ? '0' : 'A' - 10) );
+	}
+}
+
 void usb_init(const struct usbd_device *identity)
 {
+	// Set the device serial number to the reserved iSerial string memory
+	int32ToHex16( SIM_UIDH, &(dfu_device_str_desc[3]->bString[8]) );
+	int32ToHex16( SIM_UIDMH, &(dfu_device_str_desc[3]->bString[16]) );
+	int32ToHex16( SIM_UIDML, &(dfu_device_str_desc[3]->bString[24]) );
+	int32ToHex16( SIM_UIDL, &(dfu_device_str_desc[3]->bString[32]) );
+
 	usb.identity = identity;
 	usb_enable();
 }

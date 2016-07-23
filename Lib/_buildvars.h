@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2015 by Jacob Alexander
+/* Copyright (C) 2013-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,7 @@
 // You can change these to give your code its own name.
 #define STR_MANUFACTURER        L"@MANUFACTURER@"
 #define STR_PRODUCT             L"Keyboard - @ScanModule@ @MacroModule@ @OutputModule@ @DebugModule@"
-#define STR_SERIAL              L"@GitLastCommitDate@"
+#define STR_SERIAL              L"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX - @CHIP@"
 
 
 // Strings used in the CLI module
@@ -56,4 +56,5 @@
 // match the INF file.
 #define VENDOR_ID               @VENDOR_ID@
 #define PRODUCT_ID              @PRODUCT_ID@
+#define BCD_VERSION             @Git_Commit_Number@
 

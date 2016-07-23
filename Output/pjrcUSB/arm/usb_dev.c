@@ -1502,6 +1502,19 @@ uint8_t usb_init()
 	//     Simplifies defines considerably
 	usb_set_config_descriptor_size();
 
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+	// Write the unique id to the USB Descriptor memory location
+	// It's split up into 4 32 bit registers
+	// 1) Read out register
+	// 2) Convert to UTF-16-LE
+	// 3) Write to USB Descriptor Memory (space is pre-allocated)
+	extern struct usb_string_descriptor_struct usb_string_serial_number_default;
+	hex32ToStr16( SIM_UIDH,  &(usb_string_serial_number_default.wString[0]), 8 );
+	hex32ToStr16( SIM_UIDMH, &(usb_string_serial_number_default.wString[8]), 8 );
+	hex32ToStr16( SIM_UIDML, &(usb_string_serial_number_default.wString[16]), 8 );
+	hex32ToStr16( SIM_UIDL,  &(usb_string_serial_number_default.wString[24]), 8 );
+#endif
+
 	// Clear out endpoints table
 	for ( int i = 0; i <= NUM_ENDPOINTS * 4; i++ )
 	{

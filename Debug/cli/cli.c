@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -558,10 +558,10 @@ void cliFunc_version( char* args )
 	print( " \033[1mModules:\033[0m       " CLI_Modules        NL );
 #if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 	print( " \033[1mUnique Id:\033[0m     " );
-	printHex32_op( SIM_UIDH, 4 );
-	printHex32_op( SIM_UIDMH, 4 );
-	printHex32_op( SIM_UIDML, 4 );
-	printHex32_op( SIM_UIDL, 4 );
+	printHex32_op( SIM_UIDH, 8 );
+	printHex32_op( SIM_UIDMH, 8 );
+	printHex32_op( SIM_UIDML, 8 );
+	printHex32_op( SIM_UIDL, 8 );
 #elif defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
 #else
 #error "No unique id defined."
