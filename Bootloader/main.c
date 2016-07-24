@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2015 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2016 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -141,8 +141,14 @@ static enum dfu_status setup_write( size_t off, size_t len, void **buf )
 static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 {
 	void *target;
+
+	// If nothing left to flash, this is still ok
 	if ( len == 0 )
 		return (DFU_STATUS_OK);
+
+	// If the binary is larger than the internal flash, error
+	if ( off + (uintptr_t)&_app_rom + len > (uintptr_t)&_app_rom_end )
+		return (DFU_STATUS_errADDRESS);
 
 	target = flash_get_staging_area( off + (uintptr_t)&_app_rom, USB_DFU_TRANSFER_SIZE );
 	if ( !target )
