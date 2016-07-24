@@ -88,19 +88,12 @@ int sector_print( void* buf, size_t sector, size_t chunks )
 static enum dfu_status setup_read( size_t off, size_t *len, void **buf )
 {
 	// Calculate starting address from offset
-	*buf = (void*)&_app_rom + (USB_DFU_TRANSFER_SIZE / 4) * off;
+	*buf = (void*)&_app_rom + off;
 
 	// Calculate length of transfer
-	/*
-	*len = *buf > (void*)(&_app_rom_end) - USB_DFU_TRANSFER_SIZE
-		? 0 : USB_DFU_TRANSFER_SIZE;
-	*/
-
-	// Check for error
-	/*
-	if ( *buf > (void*)&_app_rom_end )
-		return (DFU_STATUS_errADDRESS);
-	*/
+	*len = *buf + USB_DFU_TRANSFER_SIZE > (void*)(&_app_rom_end)
+		? (void*)(&_app_rom_end) - *buf + 1
+		: USB_DFU_TRANSFER_SIZE;
 
 	return (DFU_STATUS_OK);
 }
