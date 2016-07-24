@@ -185,10 +185,18 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		 * and reset the system to put the new firmware into
 		 * effect.
 		 */
-		usb_ep0_tx_cp(&st, sizeof(st), req->wLength, NULL, NULL);
-		if (ctx->state == DFU_STATE_dfuMANIFEST) {
+		usb_ep0_tx_cp( &st, sizeof(st), req->wLength, NULL, NULL );
+		switch ( ctx->state )
+		{
+		case DFU_STATE_dfuMANIFEST:
+			ctx->state = DFU_STATE_dfuMANIFEST_WAIT_RESET;
+			break;
+		case DFU_STATE_dfuMANIFEST_WAIT_RESET:
+			ctx->state = DFU_STATE_dfuIDLE;
 			usb_handle_control_status_cb(dfu_reset_system);
 			goto out_no_status;
+		default:
+			break;
 		}
 		break;
 	}
@@ -198,11 +206,12 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		break;
 	case USB_CTRL_REQ_DFU_GETSTATE: {
 		uint8_t st = ctx->state;
-		usb_ep0_tx_cp(&st, sizeof(st), req->wLength, NULL, NULL);
+		usb_ep0_tx_cp( &st, sizeof(st), req->wLength, NULL, NULL );
 		break;
 	}
 	case USB_CTRL_REQ_DFU_ABORT:
-		switch (ctx->state) {
+		switch ( ctx->state )
+		{
 		case DFU_STATE_dfuIDLE:
 		case DFU_STATE_dfuDNLOAD_IDLE:
 		case DFU_STATE_dfuUPLOAD_IDLE:
