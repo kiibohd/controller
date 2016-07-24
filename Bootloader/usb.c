@@ -465,6 +465,13 @@ static void usb_handle_control(void *data, ssize_t len, void *cbdata)
 		default:
 			fail = -1;
 			break;
+
+		// Cleanup lsusb errors, just return 0 instead of stalling
+		case USB_DESC_DEVQUAL:
+		case USB_DESC_DEBUG:
+			usb_ep0_tx_cp(&zero16, sizeof(zero16), req->wLength, NULL, NULL);
+			fail = 0;
+			break;
 		}
 		/* we set fail already, so we can go directly to `err' */
 		goto err;

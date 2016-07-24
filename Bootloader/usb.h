@@ -79,7 +79,9 @@ enum usb_desc_type {
 	USB_DESC_EP = 5,
 	USB_DESC_DEVQUAL = 6,
 	USB_DESC_OTHERSPEED = 7,
-	USB_DESC_POWER = 8
+	USB_DESC_POWER = 8,
+	USB_DESC_OTG = 9,
+	USB_DESC_DEBUG = 10,
 };
 
 struct usb_desc_type_t {
