@@ -267,13 +267,6 @@ void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *
 		return;
 	}
 
-	// Not implemented in Boot Mode
-	if ( USBKeys_Protocol == 0 )
-	{
-		warn_print("Consumer Control is not implemented for Boot Mode");
-		return;
-	}
-
 	// TODO Analog inputs
 	// Only indicate USB has changed if either a press or release has occured
 	if ( state == 0x01 || state == 0x03 )
@@ -315,13 +308,6 @@ void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 	if ( stateType == 0xFF && state == 0xFF )
 	{
 		print("Output_sysCtrlSend(sysCode)");
-		return;
-	}
-
-	// Not implemented in Boot Mode
-	if ( USBKeys_Protocol == 0 )
-	{
-		warn_print("System Control is not implemented for Boot Mode");
 		return;
 	}
 
@@ -891,8 +877,30 @@ unsigned int Output_current_available()
 void cliFunc_kbdProtocol( char* args )
 {
 	print( NL );
-	info_msg("Keyboard Protocol: ");
-	printInt8( USBKeys_Protocol );
+
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	if ( arg1Ptr[0] != '\0' )
+	{
+		uint8_t mode = (uint8_t)numToInt( arg1Ptr );
+
+		// Do nothing if the argument was wrong
+		if ( mode == 0 || mode == 1 )
+		{
+			USBKeys_Protocol = mode;
+			info_msg("Setting Keyboard Protocol to: ");
+			printInt8( USBKeys_Protocol );
+		}
+	}
+	else
+	{
+		info_msg("Keyboard Protocol: ");
+		printInt8( USBKeys_Protocol );
+	}
 }
 
 
