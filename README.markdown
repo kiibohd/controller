@@ -9,6 +9,8 @@ Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](
 
 [![](https://travis-ci.org/kiibohd/controller.svg?branch=master)](https://travis-ci.org/kiibohd/controller)
 
+[![Visit our IRC channel](https://kiwiirc.com/buttons/irc.freenode.net/input.club.png)](https://kiwiirc.com/client/irc.freenode.net/#input.club)
+
 
 
 Official Keyboards
@@ -86,9 +88,3 @@ Contact
 -------
 
 If you really need to get a hold of HaaTa, email is best: `haata@kiibohd.com`
-
-IRC is likely faster though.
-`#input.club@irc.freenode.net`
-`#geekhack@irc.freenode.net`
-`#deskthority@irc.freenode.net`
-
