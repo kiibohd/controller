@@ -103,13 +103,27 @@ include_directories (
 #
 
 #| Project
-project ( kiibohd_bootloader )
+project ( kiibohd_bootloader C )
 
 #| Target Name (output name)
 set ( TARGET kiibohd_bootloader )
 
 #| General Settings
 cmake_minimum_required ( VERSION 2.8 )
+
+
+
+###
+# Minimum Compiler Version Checks
+#
+
+# Due to optimization requirements, we have to impose a minimum GCC version on the bootloader
+set ( BOOTLOADER_MIN_GCC_VERSION "4.9" )
+if ( "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" )
+	if ( CMAKE_C_COMPILER_VERSION VERSION_LESS "${BOOTLOADER_MIN_GCC_VERSION}" )
+		message( FATAL_ERROR "arm-none-eabi-gcc ${BOOTLOADER_MIN_GCC_VERSION} or higher is required for bootloader" )
+	endif ()
+endif ()
 
 
 

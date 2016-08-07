@@ -38,8 +38,8 @@ set( CHIP
 #| clang does work though
 #| Currently only arm is supported with clang
 set( COMPILER
-	"gcc"   # arm-none-eabi-gcc / avr-gcc - Default
-#       "clang" # arm-none-eabi
+	"gcc"   # arm-none-eabi-gcc / avr-gcc / host-gcc - Default
+#       "clang" # arm-none-eabi / host
 	CACHE STRING "Compiler Type"
 )
 
@@ -48,7 +48,7 @@ set( COMPILER
 ###
 # Compiler Intialization
 #
-set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/Lib/CMake )
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/Lib/CMake )
 include( initialize )
 
 
@@ -139,7 +139,7 @@ set( MAIN_SRCS
 #
 
 #| Project
-project( kiibohd_controller )
+project( kiibohd_controller C )
 
 #| Target Name (output name)
 set( TARGET kiibohd )

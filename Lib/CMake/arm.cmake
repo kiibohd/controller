@@ -10,22 +10,53 @@
 ###
 
 
+###
+# Compiler Check
+#
 
-#| Set the Compilers (must be set first)
-include( CMakeForceCompiler )
-message( STATUS "Compiler Selected:" )
-if ( "${COMPILER}" MATCHES "gcc" )
-	cmake_force_c_compiler  ( arm-none-eabi-gcc ARMCCompiler )
-	cmake_force_cxx_compiler( arm-none-eabi-g++ ARMCxxCompiler )
-	set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
-	message( "gcc" )
-elseif ( "${COMPILER}" MATCHES "clang" )
-	cmake_force_c_compiler  ( clang   ARMCCompiler )
-	cmake_force_cxx_compiler( clang++ ARMCxxCompiler )
-	set( _CMAKE_TOOLCHAIN_PREFIX llvm- )
-	message( "clang" )
+#|
+#| In CMake 3.6 a new feature to configure try_compile to work with cross-compilers
+#| https://cmake.org/cmake/help/v3.6/variable/CMAKE_TRY_COMPILE_TARGET_TYPE.html#variable:CMAKE_TRY_COMPILE_TARGET_TYPE
+#| If we detect CMake 3.6 or higher, use the new method
+#|
+if ( NOT CMAKE_VERSION VERSION_LESS "3.6" )
+	# Prepare for cross-compilation
+	set( CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY" )
+	set( CMAKE_SYSTEM_NAME "Generic" )
+
+	message( STATUS "Compiler Selected:" )
+	if ( "${COMPILER}" MATCHES "gcc" )
+		set( CMAKE_C_COMPILER   arm-none-eabi-gcc )
+		set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
+		message( "gcc" )
+	elseif ( "${COMPILER}" MATCHES "clang" )
+		set( CMAKE_C_COMPILER    clang )
+		set( CMAKE_C_COMPILER_ID ARMCCompiler )
+		set( _CMAKE_TOOLCHAIN_PREFIX llvm- )
+		message( "clang" )
+	else ()
+		message( AUTHOR_WARNING "COMPILER: ${COMPILER} - Unknown compiler selection" )
+	endif ()
+
+#|
+#| Before CMake 3.6 the cmake_force_c_compiler command was necessary to select cross-compilers
+#| and other problemmatic compilers.
+#|
 else ()
-	message( AUTHOR_WARNING "COMPILER: ${COMPILER} - Unknown compiler selection" )
+	# Set the Compilers (must be set first)
+	include( CMakeForceCompiler )
+	message( STATUS "Compiler Selected:" )
+	if ( "${COMPILER}" MATCHES "gcc" )
+		cmake_force_c_compiler( arm-none-eabi-gcc ARMCCompiler )
+		set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
+		message( "gcc" )
+	elseif ( "${COMPILER}" MATCHES "clang" )
+		cmake_force_c_compiler( clang ARMCCompiler )
+		set( _CMAKE_TOOLCHAIN_PREFIX llvm- )
+		message( "clang" )
+	else ()
+		message( AUTHOR_WARNING "COMPILER: ${COMPILER} - Unknown compiler selection" )
+	endif ()
 endif ()
 
 
