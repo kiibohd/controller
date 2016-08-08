@@ -57,6 +57,7 @@ static inline uint32_t millis(void)
 }
 
 
+#ifndef _host_
 static inline void delayMicroseconds(uint32_t) __attribute__((always_inline, unused));
 static inline void delayMicroseconds(uint32_t usec)
 {
@@ -76,6 +77,7 @@ static inline void delayMicroseconds(uint32_t usec)
 		: "+r" (n) :
 	);
 }
+#endif
 
 
 void yield(void) __attribute__ ((weak));

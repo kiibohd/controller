@@ -596,6 +596,7 @@ void cliFunc_version( char* args )
 	printHex32_op( SIM_UIDML, 8 );
 	printHex32_op( SIM_UIDL, 8 );
 #elif defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+#elif defined(_host_)
 #else
 #error "No unique id defined."
 #endif
