@@ -46,6 +46,10 @@
 nat_ptr_t Matrix_divCounter = 0;
 #endif
 
+#if StrobeDelay_define > 0 && !defined( STROBE_DELAY )
+#define STROBE_DELAY StrobeDelay_define
+#endif
+
 
 
 // ----- Function Declarations -----
