@@ -131,6 +131,10 @@ TriggerGuide macroInterconnectCache[ MaxScanCode ];
 uint8_t macroInterconnectCacheSize = 0;
 #endif
 
+// Key blocking buffer
+uint8_t macroHidBlockList[ Macro_maxBlockCount_define ];
+uint8_t macroHidBlockListSize;
+
 
 
 // ----- Capabilities -----
@@ -367,6 +371,39 @@ void Macro_layerRotate_capability( uint8_t state, uint8_t stateType, uint8_t *ar
 
 	// Toggle the computed layer rotation
 	Macro_layerState( state, stateType, Macro_rotationLayer, 0x04 );
+}
+
+
+// Block USB Key
+// During the next processing cycle, queue up a key to be ignored
+// e.g. If Shift is assigned to both Shift and Layer 1
+//      Then if the 1 key on Layer 1 is assigned 2
+//      Block the Shift key so a USB 2 can be sent via the Output channel
+// This works by having a queue of keys to "unset" if they are triggered during the next processing loop
+void Macro_blockUSBKey_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Macro_blockUSBKey(usbCode)");
+		return;
+	}
+
+	// Get usb key from arguments
+	// Access argument directly as it's already uint8_t
+	uint8_t usbCode = args[0];
+
+	// Add to the hid block list
+	if ( macroHidBlockListSize < Macro_maxBlockCount_define )
+	{
+		macroHidBlockList[ macroHidBlockListSize++ ] = usbCode;
+	}
+	else
+	{
+		warn_print("USB Key Block buffer is full!: ");
+		printHex( usbCode );
+		print( NL );
+	}
 }
 
 
@@ -681,6 +718,26 @@ void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 }
 
 
+// Block any of the keys that may be in the buffer
+// These keys may not be pressed during the processing loop, but block them anyways
+// See Macro_blockUSBKey_capability for more details on usage
+inline void Macro_processKeyBlocking()
+{
+	// Iterate over list of USB keys
+	for ( uint8_t key = 0; key < Macro_maxBlockCount_define; key++ )
+	{
+		// This capability will always unset (doesn't toggle)
+
+		// First we need to generate the argument
+		uint8_t args[] = { macroHidBlockList[ key ] };
+
+		// XXX Only handles normal keys (no analog, yet)
+		// 0x03 is release, which always unsets a key from the USB buffer, even if it's not there
+		Output_usbCodeSend_capability( 0x03, 0x00, args );
+	}
+}
+
+
 // Macro Procesing Loop
 // Called once per USB buffer send
 inline void Macro_process()
@@ -757,6 +814,9 @@ inline void Macro_process()
 
 	// Process result macros
 	Result_process();
+
+	// Process Key Blocking
+	Macro_processKeyBlocking();
 
 	// Signal buffer that we've used it
 	Scan_finishedWithMacro( macroTriggerListBufferSize );
