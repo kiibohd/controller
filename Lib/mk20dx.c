@@ -93,6 +93,12 @@ extern volatile uint32_t systick_millis_count;
 void systick_default_isr()
 {
 	systick_millis_count++;
+
+	// Reset cycle count register
+	ARM_DEMCR |= ARM_DEMCR_TRCENA;
+	ARM_DWT_CTRL &= ~ARM_DWT_CTRL_CYCCNTENA;
+	ARM_DWT_CYCCNT = 0;
+	ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA;
 }
 
 
