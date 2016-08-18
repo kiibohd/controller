@@ -11,6 +11,7 @@ Date = 2016-04-08;
 layerState  => Macro_layerState_capability( layer : 2, state : 1 );
 layerLatch  => Macro_layerLatch_capability( layer : 2 );
 layerLock   => Macro_layerLock_capability( layer : 2 );
+layerDelayedLock => Macro_layerDelayedLock_capability( layer : 2 );
 layerShift  => Macro_layerShift_capability( layer : 2 );
 # By default, rotate to the next layer
 # The current rotating layer is stored separately to the layer stack
