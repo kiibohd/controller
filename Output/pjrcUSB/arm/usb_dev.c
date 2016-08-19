@@ -653,6 +653,12 @@ static void usb_setup()
 		print(NL);
 		#endif
 		USBKeys_Protocol = setup.wValue & 0xFF; // 0 - Boot Mode, 1 - NKRO Mode
+
+		// Force Boot Mode if defined by KLL
+		if ( USBProtocol_define == 0 )
+		{
+			USBKeys_Protocol = USBProtocol_define;
+		}
 		goto send;
 
 	case 0x03A1: /// HID GET_PROTOCOL
