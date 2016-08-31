@@ -14,6 +14,11 @@
 if ( "${MacroModule}" STREQUAL "PartialMap" )
 
 
+###
+# Python 3 is required for kll
+#
+find_package ( PythonInterp 3 REQUIRED )
+
 
 ###
 # KLL Installation (Make sure repo has been cloned)
