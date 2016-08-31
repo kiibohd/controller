@@ -118,8 +118,6 @@ volatile uint8_t I2C_RxBufferPtr[ I2C_TxBufferLength ];
 volatile I2C_Buffer I2C_TxBuffer = { 0, 0, 0, I2C_TxBufferLength, (uint8_t*)I2C_TxBufferPtr };
 volatile I2C_Buffer I2C_RxBuffer = { 0, 0, 0, I2C_RxBufferLength, (uint8_t*)I2C_RxBufferPtr };
 
-LED_Buffer LED_pageBuffer;
-
 // A bit mask determining which LEDs are enabled in the ISSI chip
 const uint8_t LED_ledEnableMask1[] = {
 	0xE8, // I2C address
@@ -132,6 +130,11 @@ const uint8_t LED_defaultBrightness1[] = {
 	0xE8, // I2C address
 	0x24, // Starting register address
 	ISSILedBrightness1_define
+};
+
+// use default brightness as initial buffer values
+LED_Buffer LED_pageBuffer = {
+	.buffer = {ISSILedBrightness1_define}
 };
 
 
