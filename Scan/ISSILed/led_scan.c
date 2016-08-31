@@ -705,18 +705,31 @@ void LED_control( LedControl *control )
 		return;
 	*/
 
+	// result from overflow checking
+	uint8_t result;
+
 	// Configure based upon the given mode
 	// TODO Perhaps do gamma adjustment?
 	switch ( control->mode )
 	{
 	case LedControlMode_brightness_decrease:
 		// Don't worry about rolling over, the cycle is quick
-		LED_pageBuffer.buffer[ control->index ] -= control->amount;
+		if (__builtin_sub_overflow(LED_pageBuffer.buffer[ control->index ], control->amount, &result))
+		{
+			LED_pageBuffer.buffer[ control->index ] = 0;
+		} else {
+			LED_pageBuffer.buffer[ control->index ] = result;
+		}
 		break;
 
 	case LedControlMode_brightness_increase:
 		// Don't worry about rolling over, the cycle is quick
-		LED_pageBuffer.buffer[ control->index ] += control->amount;
+		if (__builtin_add_overflow(LED_pageBuffer.buffer[ control->index ], control->amount, &result))
+		{
+			LED_pageBuffer.buffer[ control->index ] = 0xFF;
+		} else {
+			LED_pageBuffer.buffer[ control->index ] = result;
+		}
 		break;
 
 	case LedControlMode_brightness_set:
@@ -726,8 +739,12 @@ void LED_control( LedControl *control )
 	case LedControlMode_brightness_decrease_all:
 		for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
 		{
-			// Don't worry about rolling over, the cycle is quick
-			LED_pageBuffer.buffer[ channel ] -= control->amount;
+			if (__builtin_sub_overflow(LED_pageBuffer.buffer[ channel ], control->amount, &result))
+			{
+				LED_pageBuffer.buffer[ channel ] = 0;
+			} else {
+				LED_pageBuffer.buffer[ channel ] = result;
+			}
 		}
 		break;
 
@@ -735,7 +752,12 @@ void LED_control( LedControl *control )
 		for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
 		{
 			// Don't worry about rolling over, the cycle is quick
-			LED_pageBuffer.buffer[ channel ] += control->amount;
+			if (__builtin_add_overflow(LED_pageBuffer.buffer[ channel ], control->amount, &result))
+			{
+				LED_pageBuffer.buffer[ channel ] = 0xFF;
+			} else {
+				LED_pageBuffer.buffer[ channel ] = result;
+			}
 		}
 		break;
 
