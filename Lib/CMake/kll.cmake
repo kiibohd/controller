@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller KLL Configurator |###
 #
-# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2016 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -17,6 +17,7 @@ if ( "${MacroModule}" STREQUAL "PartialMap" )
 ###
 # Python 3 is required for kll
 #
+set ( PYTHON_EXECUTABLE python3 ) # Required on systems where python is 2, not 3
 find_package ( PythonInterp 3 REQUIRED )
 
 

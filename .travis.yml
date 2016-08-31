@@ -8,6 +8,7 @@ language:
 
 os:
   - linux
+  - osx
 
 compiler:
   - clang
@@ -53,6 +54,34 @@ matrix:
       env: DIR=Bootloader/Builds SCRIPT=mk20dx128vlf5.bash
     - compiler: clang
       env: DIR=Bootloader/Builds SCRIPT=mk20dx256vlh7.bash
+    # xcode *and* brew don't support clang ARMCCompiler for arm-none-eabi, sigh useless Apple
+    # Disabling Linux clang builds until Travis has less crappy repos available
+    - compiler: clang
+      env: DIR=Keyboards SCRIPT=infinity.bash
+    - compiler: clang
+      env: DIR=Keyboards SCRIPT=infinity_led.bash
+    - compiler: clang
+      env: DIR=Keyboards SCRIPT=ergodox.bash
+    - compiler: clang
+      env: DIR=Keyboards SCRIPT=whitefox.bash
+    - compiler: clang
+      env: DIR=Keyboards/Testing SCRIPT=uartout.bash
+    - compiler: clang
+      env: DIR=Keyboards/Testing SCRIPT=usbmuxuart.bash
+    - compiler: clang
+      env: DIR=Bootloader/Builds SCRIPT=mk20dx128vlf5.bash
+    - compiler: clang
+      env: DIR=Bootloader/Builds SCRIPT=mk20dx256vlh7.bash
+
+# Package Setup
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install git python3 ctags dfu-util tree; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]];   then brew tap Caskroom/cask; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]];   then brew install Caskroom/cask/gcc-arm-embedded; fi
+  # This may work, but we'd have to compile llvm...
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "clang" ]]; then brew tap homebrew/versions; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "clang" ]]; then brew install homebrew/versions/llvm38 --with-all-targets --with-asan --with-lld --HEAD; fi
 
 # System setup
 install:
@@ -64,6 +93,16 @@ install:
 
   # Directory tree to validate kll.git
   - tree
+
+  # Compiler Version
+  - ${CC} --version
+
+  # Python Version
+  - python --version
+  - python3 --version
+
+  # CMake Version
+  - cmake --version
 
 # Run test script(s)
 script:
