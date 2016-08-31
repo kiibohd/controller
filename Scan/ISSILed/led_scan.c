@@ -267,6 +267,32 @@ void i2c0_isr()
 
 // ----- Functions -----
 
+char sub_overflow_test(uint8_t a, uint8_t b, uint8_t * result) {
+	#if __GNUC__ >= 5
+		return __builtin_sub_overflow(a, b, result);
+	#else
+		if (b > a) {
+		  return 1;
+		} else {
+			*result = a - b;
+			return 0;
+		}
+	#endif
+}
+
+char add_overflow_test(uint8_t a, uint8_t b, uint8_t * result) {
+	#if __GNUC__ >= 5
+		return __builtin_add_overflow(a, b, result);
+	#else
+		*result = a + b;
+		if (*result >= a && *result >= b) {
+		  return 0;
+		} else {
+			return 1;
+		}
+	#endif
+}
+
 inline void I2C_setup()
 {
 	// Enable I2C internal clock
@@ -706,7 +732,7 @@ void LED_control( LedControl *control )
 	*/
 
 	// result from overflow checking
-	uint8_t result;
+	uint8_t result = 0;
 
 	// Configure based upon the given mode
 	// TODO Perhaps do gamma adjustment?
@@ -714,7 +740,7 @@ void LED_control( LedControl *control )
 	{
 	case LedControlMode_brightness_decrease:
 		// Don't worry about rolling over, the cycle is quick
-		if (__builtin_sub_overflow(LED_pageBuffer.buffer[ control->index ], control->amount, &result))
+		if (sub_overflow_test(LED_pageBuffer.buffer[ control->index ], control->amount, &result))
 		{
 			LED_pageBuffer.buffer[ control->index ] = 0;
 		} else {
@@ -724,7 +750,7 @@ void LED_control( LedControl *control )
 
 	case LedControlMode_brightness_increase:
 		// Don't worry about rolling over, the cycle is quick
-		if (__builtin_add_overflow(LED_pageBuffer.buffer[ control->index ], control->amount, &result))
+		if (add_overflow_test(LED_pageBuffer.buffer[ control->index ], control->amount, &result))
 		{
 			LED_pageBuffer.buffer[ control->index ] = 0xFF;
 		} else {
@@ -739,7 +765,7 @@ void LED_control( LedControl *control )
 	case LedControlMode_brightness_decrease_all:
 		for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
 		{
-			if (__builtin_sub_overflow(LED_pageBuffer.buffer[ channel ], control->amount, &result))
+			if (sub_overflow_test(LED_pageBuffer.buffer[ channel ], control->amount, &result))
 			{
 				LED_pageBuffer.buffer[ channel ] = 0;
 			} else {
@@ -752,7 +778,7 @@ void LED_control( LedControl *control )
 		for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
 		{
 			// Don't worry about rolling over, the cycle is quick
-			if (__builtin_add_overflow(LED_pageBuffer.buffer[ channel ], control->amount, &result))
+			if (add_overflow_test(LED_pageBuffer.buffer[ channel ], control->amount, &result))
 			{
 				LED_pageBuffer.buffer[ channel ] = 0xFF;
 			} else {
