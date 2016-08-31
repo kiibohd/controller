@@ -7,7 +7,8 @@ The [KLL](https://github.com/kiibohd/kll) git repo is automatically cloned durin
 
 Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](http://kiibohd.com) for details on the KLL (Keyboard Layout Language) Spec.
 
-[![](https://travis-ci.org/kiibohd/controller.svg?branch=master)](https://travis-ci.org/kiibohd/controller)
+[![Travis Status](https://travis-ci.org/kiibohd/controller.svg?branch=master)](https://travis-ci.org/kiibohd/controller) [![Appveyor Status](https://ci.appveyor.com/api/projects/status/erfnnhlm3w5sinr3/branch/master?svg=true)](https://ci.appveyor.com/project/haata/controller/branch/master)
+
 
 [![Visit our IRC channel](https://kiwiirc.com/buttons/irc.freenode.net/input.club.png)](https://kiwiirc.com/client/irc.freenode.net/#input.club)
 

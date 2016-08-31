@@ -93,6 +93,7 @@ if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
 		echo "Error wincmake_path environment variable has not been set, see -> https://github.com/kiibohd/controller/wiki/Windows-Setup"
 		exit 1
 	fi
+	echo "Cygwin Build"
 	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DScanModule="${ScanModule}" -DMacroModule="${MacroModule}" -DOutputModule="${OutputModule}" -DDebugModule="${DebugModule}" -DBaseMap="${BaseMap}" -DDefaultMap="${DefaultMap}" -DPartialMaps="${PartialMapsExpanded}" "${CMakeListsPath}" -G 'Unix Makefiles'
 	return_code=$?
 
@@ -104,15 +105,15 @@ else
 fi
 
 if [ $return_code != 0 ] ; then
-  echo "Error in cmake. Exiting..."
-  exit $return_code
+	echo "Error in cmake. Exiting..."
+	exit $return_code
 fi
 
 make
 return_code=$?
 if [ $return_code != 0 ] ; then
-  echo "Error in make. Exiting..."
-  exit $return_code
+	echo "Error in make. Exiting..."
+	exit $return_code
 fi
 
 echo "Firmware has been compiled into: '${BuildPath}'"
