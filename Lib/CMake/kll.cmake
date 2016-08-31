@@ -17,6 +17,7 @@ if ( "${MacroModule}" STREQUAL "PartialMap" OR "${MacroModule}" STREQUAL "PixelM
 ###
 # Python 3 is required for kll
 #
+set ( PYTHON_EXECUTABLE python3 ) # Required on systems where python is 2, not 3
 find_package ( PythonInterp 3 REQUIRED )
 
 
