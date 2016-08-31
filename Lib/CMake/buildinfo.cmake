@@ -80,7 +80,27 @@ execute_process ( COMMAND ${GIT_EXECUTABLE} rev-list --count HEAD
 	OUTPUT_VARIABLE Git_Commit_Number
 	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
+	RESULT_VARIABLE res_var
 )
+
+#| Older versions of git (e.g. 1.7.1) dont' like rev-list --count
+#| If there's an error, try again with a less efficient version
+if ( NOT "${res_var}" STREQUAL "0" )
+	execute_process ( COMMAND ${GIT_EXECUTABLE} log --pretty=oneline
+		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+		OUTPUT_VARIABLE Git_Log_Lines
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		RESULT_VARIABLE res_var
+	)
+
+	# Now we do some CMake wizardry to split lines in the variable so we have a list called contents
+	string ( REGEX REPLACE ";" "\\\\;" contents "${Git_Log_Lines}" )
+	string ( REGEX REPLACE "\n" ";" contents "${contents}" )
+
+	# Now we just have to measure the length of the list
+	list ( LENGTH contents Git_Commit_Number )
+endif ()
+
 
 #| Origin URL
 execute_process ( COMMAND ${GIT_EXECUTABLE} config --get remote.origin.url
