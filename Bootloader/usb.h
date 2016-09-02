@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2015 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2016 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,12 +45,11 @@
 
 
 // ----- Macros -----
-
 #define USB_DESC_STRING(s)                                      \
-	(const void *)&(const struct {                          \
+	(void *)&(struct {                                      \
 			struct usb_desc_string_t dsc;           \
 			char16_t str[sizeof(s) / 2 - 1];        \
-	}) {{                                           \
+	}) {{                                                   \
 			.bLength = sizeof(struct usb_desc_string_t) +   \
 				sizeof(s) - 2,                  \
 			.bDescriptorType = USB_DESC_STRING,     \
@@ -59,92 +58,6 @@
 	}
 #define USB_DESC_STRING_LANG_ENUS USB_DESC_STRING(u"\x0409")
 #define USB_DESC_STRING_SERIALNO ((const void *)1)
-
-#define USB_FUNCTION_IFACE(iface, iface_off, tx_ep_off, rx_ep_off)      \
-	((iface_off) + (iface))
-#define USB_FUNCTION_TX_EP(ep, iface_off, tx_ep_off, rx_ep_off) \
-	((tx_ep_off) + (ep))
-#define USB_FUNCTION_RX_EP(ep, iface_off, tx_ep_off, rx_ep_off) \
-	((rx_ep_off) + (ep))
-
-
-#define USB__INCREMENT(i, _0) (i + 1)
-#define USB__COUNT_IFACE_EP(i, e)                       \
-	__DEFER(USB__COUNT_IFACE_EP_)(__EXPAND i, e)
-#define USB__COUNT_IFACE_EP_(iface, tx_ep, rx_ep, func)   \
-	(iface + USB_FUNCTION_ ## func ## _IFACE_COUNT,   \
-	 tx_ep + USB_FUNCTION_ ## func ## _TX_EP_COUNT,   \
-	 rx_ep + USB_FUNCTION_ ## func ## _RX_EP_COUNT)
-#define USB__GET_FUNCTION_IFACE_COUNT(iter, func)       \
-	USB_FUNCTION_ ## func ## _IFACE_COUNT +
-
-#define USB__DEFINE_FUNCTION_DESC(iter, func)                           \
-	USB_FUNCTION_DESC_ ## func ## _DECL __CAT(__usb_func_desc, __COUNTER__);
-#define USB__INIT_FUNCTION_DESC(iter, func)     \
-	USB_FUNCTION_DESC_ ## func iter,
-
-#define USB__DEFINE_CONFIG_DESC(confignum, name, ...)                   \
-	&((const struct name {                                          \
-		struct usb_desc_config_t config;                        \
-		__REPEAT_INNER(, __EAT, USB__DEFINE_FUNCTION_DESC, __VA_ARGS__) \
-	}){                                                             \
-		.config = {                                             \
-			.bLength = sizeof(struct usb_desc_config_t),    \
-			.bDescriptorType = USB_DESC_CONFIG,             \
-			.wTotalLength = sizeof(struct name),            \
-			.bNumInterfaces = __REPEAT_INNER(, __EAT, USB__GET_FUNCTION_IFACE_COUNT, __VA_ARGS__) 0, \
-			.bConfigurationValue = confignum,               \
-			.iConfiguration = 0,                            \
-			.one = 1,                                       \
-			.bMaxPower = 50                                 \
-		},                                                      \
-		__REPEAT_INNER((0, 0, 0), USB__COUNT_IFACE_EP, USB__INIT_FUNCTION_DESC, __VA_ARGS__) \
-	}).config
-
-
-#define USB__DEFINE_CONFIG(iter, args)                          \
-	__DEFER(USB__DEFINE_CONFIG_)(iter, __EXPAND args)
-
-#define USB__DEFINE_CONFIG_(confignum, initfun, ...)                    \
-	&(const struct usbd_config){                                    \
-		.init = initfun,                                        \
-		.desc = USB__DEFINE_CONFIG_DESC(                        \
-			confignum,                                      \
-			__CAT(__usb_desc, __COUNTER__),                 \
-			__VA_ARGS__)                                    \
-	},
-
-#define USB_INIT_DEVICE(vid, pid, manuf, product, ...)                  \
-	{                                                               \
-		.dev_desc = &(const struct usb_desc_dev_t){             \
-			.bLength = sizeof(struct usb_desc_dev_t),       \
-			.bDescriptorType = USB_DESC_DEV,                \
-			.bcdUSB = { .maj = 2 },                         \
-			.bDeviceClass = USB_DEV_CLASS_SEE_IFACE,        \
-			.bDeviceSubClass = USB_DEV_SUBCLASS_SEE_IFACE,  \
-			.bDeviceProtocol = USB_DEV_PROTO_SEE_IFACE,     \
-			.bMaxPacketSize0 = EP0_BUFSIZE,                 \
-			.idVendor = vid,                                \
-			.idProduct = pid,                               \
-			.bcdDevice = { .raw = 0 },                      \
-			.iManufacturer = 1,                             \
-			.iProduct = 2,                                  \
-			.iSerialNumber = 3,                             \
-			.bNumConfigurations = __PP_NARG(__VA_ARGS__),   \
-		},                                                      \
-		.string_descs = (const struct usb_desc_string_t * const []){ \
-			USB_DESC_STRING_LANG_ENUS,                      \
-			USB_DESC_STRING(manuf),                         \
-			USB_DESC_STRING(product),                       \
-			USB_DESC_STRING_SERIALNO,                       \
-			NULL                                            \
-		},                                                      \
-		.configs = {                                            \
-			__REPEAT(1, USB__INCREMENT, USB__DEFINE_CONFIG, __VA_ARGS__) \
-			NULL                                            \
-		}                                                       \
-	}
-
 
 
 // ----- Structs & Enumerations -----
@@ -166,7 +79,9 @@ enum usb_desc_type {
 	USB_DESC_EP = 5,
 	USB_DESC_DEVQUAL = 6,
 	USB_DESC_OTHERSPEED = 7,
-	USB_DESC_POWER = 8
+	USB_DESC_POWER = 8,
+	USB_DESC_OTG = 9,
+	USB_DESC_DEBUG = 10,
 };
 
 struct usb_desc_type_t {
@@ -201,9 +116,8 @@ enum usb_dev_proto {
 struct usb_bcd_t {
 	UNION_STRUCT_START(16);
 	struct {
-		uint8_t sub : 4;
-		uint8_t min : 4;
-		uint16_t maj : 8;
+		uint8_t min : 8;
+		uint8_t maj : 8;
 	};
 	UNION_STRUCT_END;
 };
@@ -306,7 +220,7 @@ CTASSERT_SIZE_BYTE(struct usb_desc_config_t, 9);
 struct usb_desc_string_t {
 	uint8_t bLength;
 	enum usb_desc_type bDescriptorType : 8; /* = USB_DESC_STRING */
-	const char16_t bString[];
+	char16_t bString[];
 };
 CTASSERT_SIZE_BYTE(struct usb_desc_string_t, 2);
 
@@ -453,7 +367,7 @@ struct usbd_config {
  */
 struct usbd_device {
 	const struct usb_desc_dev_t *dev_desc;
-	const struct usb_desc_string_t * const *string_descs;
+	struct usb_desc_string_t * const *string_descs;
 	const struct usbd_config *configs[];
 };
 

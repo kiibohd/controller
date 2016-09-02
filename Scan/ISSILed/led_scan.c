@@ -367,6 +367,16 @@ void LED_reset()
 		}
 	}
 
+	// Do not disable software shutdown of ISSI chip unless current is high enough
+	// Require at least 150 mA
+	// May be enabled/disabled at a later time
+	// TODO
+	if ( Output_current_available() >= 150 )
+	{
+		// Disable Software shutdown of ISSI chip
+		LED_writeReg( 0x0A, 0x01, 0x0B );
+	}
+
 	// Setup ISSI auto frame play, but do not start yet
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
@@ -509,6 +519,7 @@ void LED_linkedSend()
 
 // LED State processing loop
 uint32_t LED_timePrev = 0;
+unsigned int LED_currentEvent = 0;
 inline void LED_scan()
 {
 	// Check to see if frame buffers are ready to replenish
@@ -577,11 +588,38 @@ inline void LED_scan()
 			delay(1);
 	}
 
+	// Check for current change event
+	if ( LED_currentEvent )
+	{
+		// TODO dim LEDs in low power mode instead of shutting off
+		if ( LED_currentEvent < 150 )
+		{
+			// Enable Software shutdown of ISSI chip
+			LED_writeReg( 0x0A, 0x00, 0x0B );
+		}
+		else
+		{
+			// Disable Software shutdown of ISSI chip
+			LED_writeReg( 0x0A, 0x01, 0x0B );
+		}
+
+		LED_currentEvent = 0;
+	}
+
 	// Send current set of buffers
 	// Uses interrupts to send to all the ISSI chips
 	// Pixel_FrameState will be updated when complete
 	LED_chipSend = 0; // Start with chip 0
 	LED_linkedSend();
+}
+
+
+// Called by parent Scan Module whenver the available current has changed
+// current - mA
+void LED_currentChange( unsigned int current )
+{
+	// Delay action till next LED scan loop (as this callback sometimes occurs during interrupt requests)
+	LED_currentEvent = current;
 }
 
 

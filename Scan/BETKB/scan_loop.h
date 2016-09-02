@@ -1,4 +1,4 @@
-/* Copyright (C) 2012,2014-2015 by Jacob Alexander
+/* Copyright (C) 2012,2014-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,16 +48,17 @@ extern volatile     uint8_t KeyIndex_Add_InputSignal;
 // ----- Functions -----
 
 // Functions used by main.c
-void Scan_setup( void );
-uint8_t Scan_loop( void );
+void Scan_setup();
+uint8_t Scan_loop();
 
 
 // Functions available to macro.c
 uint8_t Scan_sendData( uint8_t dataPayload );
 
-void Scan_finishedWithBuffer( uint8_t sentKeys );
-void Scan_finishedWithUSBBuffer( uint8_t sentKeys );
-void Scan_lockKeyboard( void );
-void Scan_unlockKeyboard( void );
-void Scan_resetKeyboard( void );
+void Scan_finishedWithMacro( uint8_t sentKeys );
+void Scan_finishedWithOutput( uint8_t sentKeys );
+void Scan_lockKeyboard();
+void Scan_unlockKeyboard();
+void Scan_resetKeyboard();
+void Scan_currentChange( unsigned int current );
 

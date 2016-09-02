@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander (2013-2015)
+ * Modifications by Jacob Alexander (2013-2016)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -39,6 +39,10 @@
 // Local Includes
 #include "usb_dev.h"
 #include "usb_mem.h"
+
+#if enableVirtualSerialPort_define == 1
+#include "usb_serial.h"
+#endif
 
 
 
@@ -168,6 +172,11 @@ volatile uint8_t usb_reboot_timer = 0;
 
 static uint8_t reply_buffer[8];
 
+static uint8_t power_neg_delay;
+static uint32_t power_neg_time;
+
+static uint8_t usb_dev_sleep = 0;
+
 
 
 // ----- Functions -----
@@ -175,7 +184,10 @@ static uint8_t reply_buffer[8];
 static void endpoint0_stall()
 {
 	#ifdef UART_DEBUG_UNKNOWN
-	print("STALL" NL );
+	print("STALL : ");
+	printInt32( systick_millis_count - USBInit_TimeStart );
+	print(" ms");
+	print(NL);
 	#endif
 	USB0_ENDPT0 = USB_ENDPT_EPSTALL | USB_ENDPT_EPRXEN | USB_ENDPT_EPTXEN | USB_ENDPT_EPHSHK;
 }
@@ -188,6 +200,53 @@ static void endpoint0_transmit( const void *data, uint32_t len )
 	ep0_tx_bdt_bank ^= 1;
 }
 
+void usb_reinit()
+{
+	usb_configuration = 0; // Clear USB configuration if we have one
+	USB0_CONTROL = 0; // Disable D+ Pullup to simulate disconnect
+	delay(10); // Delay is necessary to simulate disconnect
+	usb_init();
+}
+
+// Used to check any USB state changes that may not have a proper interrupt
+// Called once per scan loop, should take minimal processing time or it may affect other modules
+void usb_device_check()
+{
+	// Check to see if we're still waiting for the next USB request after Get Configuration Descriptor
+	// If still waiting, restart the USB initialization with a lower power requirement
+	if ( power_neg_delay )
+	{
+		// Check if 100 ms has elapsed
+		if ( systick_millis_count - power_neg_time > 100 )
+		{
+			power_neg_delay = 0;
+
+			// USB Low Power Negotiation
+#if enableUSBLowPowerNegotiation_define == 1
+			// Check to see if bMaxPower has already be lowered
+			// This generally points to a USB bug (host or device?)
+			if ( *usb_bMaxPower == 50 )
+			{
+				warn_msg("Power negotiation delay detected again, likely a system/device USB bug");
+				return;
+			}
+
+			// Update bMaxPower
+			// The value set is in increments of 2 mA
+			// So 50 * 2 mA = 100 mA
+			// XXX Currently only transitions to 100 mA
+			//     It may be possible to transition down again to 20 mA
+			*usb_bMaxPower = 50;
+
+			// Re-initialize USB
+			usb_reinit();
+#else
+			warn_msg("USB Low Power Negotation Disabled, condition detected.");
+#endif
+		}
+	}
+}
+
 static void usb_setup()
 {
 	const uint8_t *data = NULL;
@@ -198,6 +257,17 @@ static void usb_setup()
 	uint8_t epconf;
 	const uint8_t *cfg;
 	int i;
+
+	// Reset USB Init timer
+	USBInit_TimeEnd = systick_millis_count;
+	USBInit_Ticks++;
+
+	// If another request is made, disable the power negotiation check
+	// See GET_DESCRIPTOR - Configuration
+	if ( power_neg_delay )
+	{
+		power_neg_delay = 0;
+	}
 
 	switch ( setup.wRequestAndType )
 	{
@@ -212,6 +282,10 @@ static void usb_setup()
 		Output_Available = usb_configuration;
 		reg = &USB0_ENDPT1;
 		cfg = usb_endpoint_config_table;
+
+		// Now configured so we can utilize bMaxPower now
+		Output_update_usb_current( *usb_bMaxPower * 2 );
+
 		// clear all BDT entries, free any allocated memory...
 		for ( i = 4; i < ( NUM_ENDPOINTS + 1) * 4; i++ )
 		{
@@ -324,9 +398,27 @@ static void usb_setup()
 		goto send;
 
 	case 0x0100: // CLEAR_FEATURE (device)
+		switch ( setup.wValue )
+		{
+		// CLEAR_FEATURE(DEVICE_REMOTE_WAKEUP)
+		// See SET_FEATURE(DEVICE_REMOTE_WAKEUP) for details
+		case 0x1:
+			goto send;
+		}
+
+		warn_msg("SET_FEATURE - Device wValue(");
+		printHex( setup.wValue );
+		print( ")" NL );
+		endpoint0_stall();
+		return;
+
 	case 0x0101: // CLEAR_FEATURE (interface)
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
-		warn_print("CLEAR_FEATURE - Device/Interface");
+		warn_msg("CLEAR_FEATURE - Interface wValue(");
+		printHex( setup.wValue );
+		print(") wIndex(");
+		printHex( setup.wIndex );
+		print( ")" NL );
 		endpoint0_stall();
 		return;
 
@@ -342,9 +434,30 @@ static void usb_setup()
 		goto send;
 
 	case 0x0300: // SET_FEATURE (device)
+		switch ( setup.wValue )
+		{
+		// SET_FEATURE(DEVICE_REMOTE_WAKEUP)
+		// XXX: Only used to confirm Remote Wake
+		//      Used on Mac OSX and Windows not on Linux
+		// Good post on the behaviour:
+		// http://community.silabs.com/t5/8-bit-MCU/Remote-wakeup-HID/m-p/74957#M30802
+		case 0x1:
+			goto send;
+		}
+
+		warn_msg("SET_FEATURE - Device wValue(");
+		printHex( setup.wValue );
+		print( ")" NL );
+		endpoint0_stall();
+		return;
+
 	case 0x0301: // SET_FEATURE (interface)
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
-		warn_print("SET_FEATURE - Device/Interface");
+		warn_msg("SET_FEATURE - Interface wValue(");
+		printHex( setup.wValue );
+		print(") wIndex(");
+		printHex( setup.wIndex );
+		print( ")" NL );
 		endpoint0_stall();
 		return;
 
@@ -385,6 +498,27 @@ static void usb_setup()
 				{
 					datalen = list->length;
 				}
+
+				// XXX Power negotiation hack -HaaTa
+				// Some devices such as the Apple Ipad do not support bMaxPower greater than 100 mA
+				// However, there is no provision in the basic USB 2.0 stack for power negotiation
+				// To get around this:
+				//  * Attempt to set bMaxPower to 500 mA first
+				//  * If more than 100 ms passes since retrieving a Get Configuration Descriptor
+				//    (Descriptor with bMaxPower in it)
+				//  * Change usb_bMaxPower to 50 (100 mA)
+				//  * Restart the USB init process
+				// According to notes online, it says that some Apple devices can only do 20 mA
+				// However, in my testing this hasn't been the case
+				// (you can also draw as much current as you want if you just lie in the descriptor :P)
+				// If this becomes an issue we can use this hack a second time to negotiate down to 20 mA
+				// (which should be fine for just the mcu)
+				if ( setup.wValue == 0x0200 && setup.wIndex == 0x0 )
+				{
+					power_neg_delay = 1;
+					power_neg_time = systick_millis_count;
+				}
+
 				#if UART_DEBUG
 				print("Desc found, ");
 				printHex32( (uint32_t)data );
@@ -408,22 +542,40 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
+#if enableVirtualSerialPort_define == 1
 	case 0x2221: // CDC_SET_CONTROL_LINE_STATE
 		usb_cdc_line_rtsdtr = setup.wValue;
-		//serial_print("set control line state\n");
+		//info_print("set control line state");
 		goto send;
 
 	case 0x21A1: // CDC_GET_LINE_CODING
-		data = (uint8_t*)usb_cdc_line_coding;
+		data = (uint8_t*)&usb_cdc_line_coding;
 		datalen = sizeof( usb_cdc_line_coding );
 		goto send;
 
 	case 0x2021: // CDC_SET_LINE_CODING
-		// XXX Needed?
-		//serial_print("set coding, waiting...\n");
-		return;
+		// ZLP Reply
+		// Settings are applied in PID=OUT
+		goto send;
+#endif
 
 	case 0x0921: // HID SET_REPORT
+		// ZLP Reply
+		// Settings are applied in PID=OUT
+
+		#ifdef UART_DEBUG
+		print("report_type(");
+		printHex( setup.wValue >> 8 );
+		print(")report_id(");
+		printHex( setup.wValue & 0xFF );
+		print(")interface(");
+		printHex( setup.wIndex );
+		print(")len(");
+		printHex( setup.wLength );
+		print(")");
+		print( NL );
+		#endif
+
 		// Interface
 		switch ( setup.wIndex & 0xFF )
 		{
@@ -438,10 +590,10 @@ static void usb_setup()
 			printHex( setup.wIndex );
 			print( NL );
 			endpoint0_stall();
-			break;
+			return;
 		}
 
-		return;
+		goto send;
 
 	case 0x01A1: // HID GET_REPORT
 		#ifdef UART_DEBUG
@@ -462,19 +614,35 @@ static void usb_setup()
 				datalen = list->length;
 				goto send;
 			}
-                }
-                endpoint0_stall();
-                return;
+		}
+		endpoint0_stall();
+		return;
 
 	case 0x0A21: // HID SET_IDLE
 		#ifdef UART_DEBUG
 		print("SET_IDLE - ");
 		printHex( setup.wValue );
+		print(" - ");
+		printHex( setup.wValue >> 8 );
 		print(NL);
 		#endif
 		USBKeys_Idle_Config = (setup.wValue >> 8);
-		USBKeys_Idle_Count = 0;
+		USBKeys_Idle_Expiry = 0;
 		goto send;
+
+	case 0x02A1: // HID GET_IDLE
+		#ifdef UART_DEBUG
+		print("SET_IDLE - ");
+		printHex( setup.wValue );
+		print(" - ");
+		printHex( USBKeys_Idle_Config );
+		print(NL);
+		#endif
+		reply_buffer[0] = USBKeys_Idle_Config;
+		data = reply_buffer;
+		datalen = 1;
+		goto send;
+
 
 	case 0x0B21: // HID SET_PROTOCOL
 		#ifdef UART_DEBUG
@@ -485,12 +653,34 @@ static void usb_setup()
 		print(NL);
 		#endif
 		USBKeys_Protocol = setup.wValue & 0xFF; // 0 - Boot Mode, 1 - NKRO Mode
+
+		// Force Boot Mode if defined by KLL
+		if ( USBProtocol_define == 0 )
+		{
+			USBKeys_Protocol = USBProtocol_define;
+		}
+		goto send;
+
+	case 0x03A1: /// HID GET_PROTOCOL
+		#ifdef UART_DEBUG
+		print("GET_PROTOCOL - ");
+		printHex( setup.wValue );
+		print(" - ");
+		printHex( USBKeys_Protocol );
+		print(NL);
+		#endif
+		reply_buffer[0] = USBKeys_Protocol;
+		data = reply_buffer;
+		datalen = 1;
 		goto send;
 
 	// case 0xC940:
 	default:
 		#ifdef UART_DEBUG_UNKNOWN
-		print("UNKNOWN");
+		print("UNKNOWN: ");
+		printInt32(  systick_millis_count - USBInit_TimeStart );
+		print(" ms");
+		print(NL);
 		#endif
 		endpoint0_stall();
 		return;
@@ -518,7 +708,7 @@ send:
 	if ( size > EP0_SIZE )
 		size = EP0_SIZE;
 
-	endpoint0_transmit(data, size);
+	endpoint0_transmit( data, size );
 	data += size;
 	datalen -= size;
 
@@ -529,7 +719,7 @@ send:
 	size = datalen;
 	if ( size > EP0_SIZE )
 		size = EP0_SIZE;
-	endpoint0_transmit(data, size);
+	endpoint0_transmit( data, size );
 	data += size;
 	datalen -= size;
 
@@ -552,9 +742,9 @@ send:
 //to be set to their default values. This includes setting the data toggle of
 //any endpoint using data toggles to the value DATA0.
 
-//For endpoints using data toggle, regardless of whether an endpoint has the
-//Halt feature set, a ClearFeature(ENDPOINT_HALT) request always results in the
-//data toggle being reinitialized to DATA0.
+// For endpoints using data toggle, regardless of whether an endpoint has the
+// Halt feature set, a ClearFeature(ENDPOINT_HALT) request always results in the
+// data toggle being reinitialized to DATA0.
 
 static void usb_control( uint32_t stat )
 {
@@ -577,11 +767,9 @@ static void usb_control( uint32_t stat )
 	print(" - ");
 	#endif
 
-	switch (pid)
+	switch ( pid )
 	{
 	case 0x0D: // Setup received from host
-		//serial_print("PID=Setup\n");
-		//if (count != 8) ; // panic?
 		// grab the 8 byte setup info
 		setup.word1 = *(uint32_t *)(buf);
 		setup.word2 = *(uint32_t *)(buf + 4);
@@ -604,36 +792,13 @@ static void usb_control( uint32_t stat )
 		//}
 		table[index(0, TX, EVEN)].desc = 0;
 		table[index(0, TX, ODD)].desc = 0;
+
 		// first IN after Setup is always DATA1
 		ep0_tx_data_toggle = 1;
 
 		#ifdef UART_DEBUG_UNKNOWN
-		print("bmRequestType:");
-		printHex(setup.bmRequestType);
-		print(", bRequest:");
-		printHex(setup.bRequest);
-		print(", wValue:");
-		printHex(setup.wValue);
-		print(", wIndex:");
-		printHex(setup.wIndex);
-		print(", len:");
-		printHex(setup.wLength);
-		print(" -- ");
-		printHex32(setup.word1);
-		print(" ");
-		printHex32(setup.word2);
-		print(NL);
-		#endif
-		// actually "do" the setup request
-		usb_setup();
-		// unfreeze the USB, now that we're ready
-		USB0_CTL = USB_CTL_USBENSOFEN; // clear TXSUSPENDTOKENBUSY bit
-		break;
-
-	case 0x01:  // OUT transaction received from host
-	case 0x02:
-		#ifdef UART_DEBUG_UNKNOWN
-		print("PID=OUT wRequestAndType:");
+		printHex( stat );
+		print(" PID=SETUP wRequestAndType:");
 		printHex(setup.wRequestAndType);
 		print(", wValue:");
 		printHex(setup.wValue);
@@ -645,43 +810,105 @@ static void usb_control( uint32_t stat )
 		printHex32(setup.word1);
 		print(" ");
 		printHex32(setup.word2);
+		print(": ");
+		printInt32( systick_millis_count - USBInit_TimeStart );
+		print(" ms");
+		print(NL);
+		#endif
+
+		// actually "do" the setup request
+		usb_setup();
+		// unfreeze the USB, now that we're ready
+		USB0_CTL = USB_CTL_USBENSOFEN; // clear TXSUSPENDTOKENBUSY bit
+		break;
+
+	case 0x01:  // OUT transaction received from host
+	case 0x02:
+		#ifdef UART_DEBUG_UNKNOWN
+		printHex( stat );
+		print(" PID=OUT   wRequestAndType:");
+		printHex(setup.wRequestAndType);
+		print(", wValue:");
+		printHex(setup.wValue);
+		print(", wIndex:");
+		printHex(setup.wIndex);
+		print(", len:");
+		printHex(setup.wLength);
+		print(" -- ");
+		printHex32(setup.word1);
+		print(" ");
+		printHex32(setup.word2);
+		print(": ");
+		printInt32( systick_millis_count - USBInit_TimeStart );
+		print(" ms");
 		print(NL);
 		#endif
 
 		// CDC Interface
-		if ( setup.wRequestAndType == 0x2021 /*CDC_SET_LINE_CODING*/ )
+		#if enableVirtualSerialPort_define == 1
+		// CDC_SET_LINE_CODING - PID=OUT
+		// XXX - Getting lots of NAKs in Linux
+		if ( setup.wRequestAndType == 0x2021 )
 		{
-			int i;
-			uint8_t *dst = (uint8_t *)usb_cdc_line_coding;
-			//serial_print("set line coding ");
-			for ( i = 0; i < 7; i++ )
-			{
-				//serial_phex(*buf);
-				*dst++ = *buf++;
-			}
-			//serial_phex32(usb_cdc_line_coding[0]);
-			//serial_print("\n");
-			if ( usb_cdc_line_coding[0] == 134 )
-				usb_reboot_timer = 15;
-			endpoint0_transmit( NULL, 0 );
-		}
+			// Copy over new line coding
+			memcpy( (void*)&usb_cdc_line_coding, buf, 7 );
 
-		// Keyboard SET_REPORT
-		if ( setup.wRequestAndType == 0x921 && setup.wValue & 0x200 )
+			#ifdef UART_DEBUG
+			// - Unused, but for the readers info -
+			print("dwDTERate(");
+			printInt32( usb_cdc_line_coding.dwDTERate );
+			print(")bCharFormat(");
+			printHex( usb_cdc_line_coding.bCharFormat );
+			print(")bParityType(");
+			printHex( usb_cdc_line_coding.bParityType );
+			print(")bDataBits(");
+			printHex( usb_cdc_line_coding.bDataBits );
+			print(")");
+			print( NL );
+			#endif
+
+			// XXX ZLP causes timeout/delay, why? -HaaTa
+			//endpoint0_transmit( NULL, 0 );
+		}
+		#endif
+
+		// Keyboard HID SET_REPORT - PID=OUT
+		#if enableKeyboard_define == 1
+		// XXX - Getting lots of NAKs in Linux
+		if ( setup.wRequestAndType == 0x0921 && setup.wValue & 0x200 )
 		{
+			#ifdef UART_DEBUG
+			print("report_type(");
+			printHex( setup.wValue >> 8 );
+			print(")report_id(");
+			printHex( setup.wValue & 0xFF );
+			print(")interface(");
+			printHex( setup.wIndex );
+			print(")len(");
+			printHex( setup.wLength );
+			print(")[");
+
+			for ( size_t len = 0; len < setup.wLength; len++ )
+			{
+				printHex( buf[ len ] );
+				print(" ");
+			}
+			print("]");
+			print( NL );
+			#endif
+
 			// Interface
 			switch ( setup.wIndex & 0xFF )
 			{
 			// Keyboard Interface
 			case KEYBOARD_INTERFACE:
 				USBKeys_LEDs = buf[0];
-				endpoint0_transmit( NULL, 0 );
 				break;
 			// NKRO Keyboard Interface
 			case NKRO_KEYBOARD_INTERFACE:
+				// Already set with the control sequence
 				// Only use 2nd byte, first byte is the report id
 				USBKeys_LEDs = buf[1];
-				endpoint0_transmit( NULL, 0 );
 				break;
 			default:
 				warn_msg("Unknown interface - ");
@@ -690,34 +917,48 @@ static void usb_control( uint32_t stat )
 				break;
 			}
 
-			#ifdef UART_DEBUG
-			for ( size_t len = 0; len < setup.wLength; len++ )
-			{
-				printHex( buf[ len ] );
-				print(" ");
-			}
-			print( NL );
-			#endif
+			// XXX ZLP causes timeout/delay, why? -HaaTa
+			//endpoint0_transmit( NULL, 0 );
 		}
+		#endif
 
 		// give the buffer back
 		b->desc = BDT_DESC( EP0_SIZE, DATA1 );
 		break;
 
 	case 0x09: // IN transaction completed to host
-		#ifdef UART_DEBUG
-		print("PID=IN:");
-		printHex(stat);
+		data = ep0_tx_ptr;
+
+		#ifdef UART_DEBUG_UNKNOWN
+		printHex( stat );
+		print(" PID=IN    wRequestAndType:");
+		printHex(setup.wRequestAndType);
+		print(", wValue:");
+		printHex(setup.wValue);
+		print(", wIndex:");
+		printHex(setup.wIndex);
+		print(", len:");
+		printHex(setup.wLength);
+		print(" -- ");
+		printHex32(setup.word1);
+		print(" ");
+		printHex32(setup.word2);
+		print(": ");
+		printInt32( systick_millis_count - USBInit_TimeStart );
+		print(" ms");
+		if ( data ) print(" DATA ");
 		print(NL);
 		#endif
 
 		// send remaining data, if any...
-		data = ep0_tx_ptr;
 		if ( data )
 		{
 			size = ep0_tx_len;
-			if (size > EP0_SIZE) size = EP0_SIZE;
-			endpoint0_transmit(data, size);
+			if (size > EP0_SIZE)
+			{
+				size = EP0_SIZE;
+			}
+			endpoint0_transmit( data, size );
 			data += size;
 			ep0_tx_len -= size;
 			ep0_tx_ptr = (ep0_tx_len > 0 || size == EP0_SIZE) ? data : NULL;
@@ -734,12 +975,34 @@ static void usb_control( uint32_t stat )
 			USB0_ADDR = setup.wValue;
 		}
 
+		// CDC_SET_LINE_CODING - PID=IN
+		#if enableVirtualSerialPort_define == 1
+		if ( setup.wRequestAndType == 0x2021 )
+		{
+			// XXX ZLP causes timeout/delay, why? -HaaTa
+			//endpoint0_transmit( NULL, 0 );
+		}
+		#endif
+
+		// Keyboard HID SET_REPORT - PID=IN
+		#if enableKeyboard_define == 1
+		// XXX - Getting lots of NAKs in Linux
+		if ( setup.wRequestAndType == 0x0921 && setup.wValue & 0x200 )
+		{
+			// XXX ZLP causes timeout/delay, why? -HaaTa
+			//endpoint0_transmit( NULL, 0 );
+		}
+		#endif
+
 		break;
 
 	default:
-		#ifdef UART_DEBUG
-		print("PID=unknown:");
+		#ifdef UART_DEBUG_UNKNOWN
+		print("PID=unknown: ");
 		printHex(pid);
+		print(": ");
+		printInt32( systick_millis_count - USBInit_TimeStart );
+		print(" ms");
 		print(NL);
 		#endif
 		break;
@@ -752,14 +1015,25 @@ usb_packet_t *usb_rx( uint32_t endpoint )
 	//print("USB RX");
 	usb_packet_t *ret;
 	endpoint--;
+
+	// Make sure this is a valid endpoint
 	if ( endpoint >= NUM_ENDPOINTS )
+	{
 		return NULL;
+	}
+
 	__disable_irq();
+
+	// Receive packet, check pointer
 	ret = rx_first[endpoint];
 	if ( ret )
+	{
 		rx_first[ endpoint ] = ret->next;
-	usb_rx_byte_count_data[ endpoint ] -= ret->len;
+		usb_rx_byte_count_data[ endpoint ] -= ret->len;
+	}
+
 	__enable_irq();
+
 	//serial_print("rx, epidx=");
 	//serial_phex(endpoint);
 	//serial_print(", packet=");
@@ -857,11 +1131,40 @@ void usb_rx_memory( usb_packet_t *packet )
 	return;
 }
 
-//#define index(endpoint, tx, odd) (((endpoint) << 2) | ((tx) << 1) | (odd))
-//#define stat2bufferdescriptor(stat) (table + ((stat) >> 2))
+// Call whenever there's an action that may wake the host device
+void usb_resume()
+{
+	// If we have been sleeping, try to wake up host
+	if ( usb_dev_sleep && usb_configured() )
+	{
+		#if enableUSBResume_define == 1
+		#if enableVirtualSerialPort_define != 1
+		info_print("Attempting to resume the host");
+		#endif
+		// Force wake-up for 10 ms
+		// According to the USB Spec a device must hold resume for at least 1 ms but no more than 15 ms
+		USB0_CTL |= USB_CTL_RESUME;
+		delay(10);
+		USB0_CTL &= ~(USB_CTL_RESUME);
+		delay(50); // Wait for at least 50 ms to make sure the bus is clear
+		usb_dev_sleep = 0; // Make sure we don't call this again, may crash system
+		#else
+		warn_print("Host Resume Disabled");
+		#endif
+	}
+
+}
 
 void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 {
+	// Update expiry counter
+	USBKeys_Idle_Expiry = systick_millis_count;
+
+	// Since we are transmitting data, USB will be brought out of sleep/suspend
+	// if it's in that state
+	// Use the currently set descriptor value
+	Output_update_usb_current( *usb_bMaxPower * 2 );
+
 	bdt_t *b = &table[ index( endpoint, TX, EVEN ) ];
 	uint8_t next;
 
@@ -930,16 +1233,12 @@ void usb_isr()
 {
 	uint8_t status, stat, t;
 
-	//serial_print("isr");
-	//status = USB0_ISTAT;
-	//serial_phex(status);
-	//serial_print("\n");
 restart:
 	status = USB0_ISTAT;
 	/*
-	print("USB ISR STATUS: ");
+	print(" ISR(");
 	printHex( status );
-	print( NL );
+	print(") ");
 	*/
 
 	if ( (status & USB_INTEN_SOFTOKEN /* 04 */ ) )
@@ -955,6 +1254,7 @@ restart:
 			}
 
 			// CDC Interface
+			#if enableVirtualSerialPort_define == 1
 			t = usb_cdc_transmit_flush_timer;
 			if ( t )
 			{
@@ -962,6 +1262,7 @@ restart:
 				if ( t == 0 )
 					usb_serial_flush_callback();
 			}
+			#endif
 
 		}
 		USB0_ISTAT = USB_INTEN_SOFTOKEN;
@@ -1137,6 +1438,7 @@ restart:
 			USB_INTEN_STALLEN |
 			USB_INTEN_ERROREN |
 			USB_INTEN_USBRSTEN |
+			USB_INTEN_RESUMEEN |
 			USB_INTEN_SLEEPEN;
 
 		// is this necessary?
@@ -1161,10 +1463,33 @@ restart:
 		USB0_ISTAT = USB_ISTAT_ERROR;
 	}
 
+	// USB Host signalling device to enter 'sleep' state
+	// The USB Module triggers this interrupt when it detects the bus has been idle for 3 ms
 	if ( (status & USB_ISTAT_SLEEP /* 10 */ ) )
 	{
-		//serial_print("sleep\n");
-		USB0_ISTAT = USB_ISTAT_SLEEP;
+#if enableUSBSuspend_define == 1
+		// Can cause issues with the virtual serial port
+		#if enableVirtualSerialPort_define != 1
+		info_print("Host has requested USB sleep/suspend state");
+		#endif
+		Output_update_usb_current( 100 ); // Set to 100 mA
+		usb_dev_sleep = 1;
+#else
+		info_print("USB Suspend Detected - Firmware USB Suspend Disabled");
+#endif
+		USB0_ISTAT |= USB_ISTAT_SLEEP;
+	}
+
+	// On USB Resume, unset the usb_dev_sleep so we don't keep sending resume signals
+	if ( (status & USB_ISTAT_RESUME /* 20 */ ) )
+	{
+		// Can cause issues with the virtual serial port
+		#if enableVirtualSerialPort_define != 1
+		info_print("Host has woken-up/resumed from sleep/suspend state");
+		#endif
+		Output_update_usb_current( *usb_bMaxPower * 2 );
+		usb_dev_sleep = 0;
+		USB0_ISTAT |= USB_ISTAT_RESUME;
 	}
 }
 
@@ -1176,8 +1501,25 @@ uint8_t usb_init()
 	print("USB INIT"NL);
 	#endif
 
-	// Unset usb configuration
-	usb_configuration = 0;
+	USBInit_TimeStart = systick_millis_count;
+	USBInit_Ticks = 0;
+
+	// XXX Set wTotalLength here instead of using defines
+	//     Simplifies defines considerably
+	usb_set_config_descriptor_size();
+
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+	// Write the unique id to the USB Descriptor memory location
+	// It's split up into 4 32 bit registers
+	// 1) Read out register
+	// 2) Convert to UTF-16-LE
+	// 3) Write to USB Descriptor Memory (space is pre-allocated)
+	extern struct usb_string_descriptor_struct usb_string_serial_number_default;
+	hex32ToStr16( SIM_UIDH,  &(usb_string_serial_number_default.wString[0]), 8 );
+	hex32ToStr16( SIM_UIDMH, &(usb_string_serial_number_default.wString[8]), 8 );
+	hex32ToStr16( SIM_UIDML, &(usb_string_serial_number_default.wString[16]), 8 );
+	hex32ToStr16( SIM_UIDL,  &(usb_string_serial_number_default.wString[24]), 8 );
+#endif
 
 	// Clear out endpoints table
 	for ( int i = 0; i <= NUM_ENDPOINTS * 4; i++ )
@@ -1222,6 +1564,12 @@ uint8_t usb_init()
 
 	// enable d+ pullup
 	USB0_CONTROL = USB_CONTROL_DPPULLUPNONOTG;
+
+	// Do not check for power negotiation delay until Get Configuration Descriptor
+	power_neg_delay = 0;
+
+	// During initialization host isn't sleeping
+	usb_dev_sleep = 0;
 
 	return 1;
 }

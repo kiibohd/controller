@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2013-2015
+ * Modifications by Jacob Alexander 2013-2016
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -28,6 +28,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+#include <kll_defs.h>
+#if enableKeyboard_define == 1
 
 // ----- Includes -----
 
@@ -123,14 +126,29 @@ void usb_keyboard_send()
 			}
 		}
 
+		// USB Timeout, drop the packet, and potentially try something more drastic to re-enable the bus
 		if ( ++wait_count > TX_TIMEOUT || transmit_previous_timeout )
 		{
 			transmit_previous_timeout = 1;
-			warn_print("USB Transmit Timeout...");
+			USBKeys_Changed = USBKeyChangeState_None; // Indicate packet lost
+			#if enableDeviceRestartOnUSBTimeout == 1
+			warn_print("USB Transmit Timeout...restarting device");
+			usb_device_software_reset();
+			#else
+			warn_print("USB Transmit Timeout...auto-restart disabled");
+			#endif
+			// Try to wakeup
 			return;
 		}
+
+		// Try to wake up the device if we can't allocate a packet for some reason
+		// XXX This is a bit aggressive, but seems to work well. Unfortunately, not as quick as I'd like it -HaaTa
+		usb_resume();
+
 		yield();
 	}
+
+	transmit_previous_timeout = 0;
 
 	// Pointer to USB tx packet buffer
 	uint8_t *tx_buf = tx_packet->buf;
@@ -272,4 +290,6 @@ void usb_keyboard_send()
 
 	return;
 }
+
+#endif
 

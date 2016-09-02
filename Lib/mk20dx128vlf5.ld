@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2014 for use with McHCK
+ * Modifications by Jacob Alexander 2014,2016 for use with McHCK
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -31,9 +31,13 @@
 
 MEMORY
 {
-	FLASH (rx) : ORIGIN = 4K, LENGTH = 128K-4K
+	FLASH (rx) : ORIGIN = 4K,                   LENGTH = 128K - 4K
 	RAM  (rwx) : ORIGIN = 0x20000000 - 16K / 2, LENGTH = 16K
 }
+
+/* Starting Address of the application ROM */
+_app_rom     = ORIGIN( FLASH );
+_app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
 
 /* Section Definitions */
 SECTIONS

@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2014
+# Jacob Alexander 2011-2016
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -10,22 +10,53 @@
 ###
 
 
+###
+# Compiler Check
+#
 
-#| Set the Compilers (must be set first)
-include( CMakeForceCompiler )
-message( STATUS "Compiler Selected:" )
-if ( "${COMPILER}" MATCHES "gcc" )
-	cmake_force_c_compiler  ( arm-none-eabi-gcc ARMCCompiler )
-	cmake_force_cxx_compiler( arm-none-eabi-g++ ARMCxxCompiler )
-	set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
-	message( "gcc" )
-elseif ( "${COMPILER}" MATCHES "clang" )
-	cmake_force_c_compiler  ( clang   ARMCCompiler )
-	cmake_force_cxx_compiler( clang++ ARMCxxCompiler )
-	set( _CMAKE_TOOLCHAIN_PREFIX llvm- )
-	message( "clang" )
+#|
+#| In CMake 3.6 a new feature to configure try_compile to work with cross-compilers
+#| https://cmake.org/cmake/help/v3.6/variable/CMAKE_TRY_COMPILE_TARGET_TYPE.html#variable:CMAKE_TRY_COMPILE_TARGET_TYPE
+#| If we detect CMake 3.6 or higher, use the new method
+#|
+if ( NOT CMAKE_VERSION VERSION_LESS "3.6" )
+	# Prepare for cross-compilation
+	set( CMAKE_TRY_COMPILE_TARGET_TYPE "STATIC_LIBRARY" )
+	set( CMAKE_SYSTEM_NAME "Generic" )
+
+	message( STATUS "Compiler Selected:" )
+	if ( "${COMPILER}" MATCHES "gcc" )
+		set( CMAKE_C_COMPILER   arm-none-eabi-gcc )
+		set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
+		message( "gcc" )
+	elseif ( "${COMPILER}" MATCHES "clang" )
+		set( CMAKE_C_COMPILER    clang )
+		set( CMAKE_C_COMPILER_ID ARMCCompiler )
+		set( _CMAKE_TOOLCHAIN_PREFIX llvm- )
+		message( "clang" )
+	else ()
+		message( AUTHOR_WARNING "COMPILER: ${COMPILER} - Unknown compiler selection" )
+	endif ()
+
+#|
+#| Before CMake 3.6 the cmake_force_c_compiler command was necessary to select cross-compilers
+#| and other problemmatic compilers.
+#|
 else ()
-	message( AUTHOR_WARNING "COMPILER: ${COMPILER} - Unknown compiler selection" )
+	# Set the Compilers (must be set first)
+	include( CMakeForceCompiler )
+	message( STATUS "Compiler Selected:" )
+	if ( "${COMPILER}" MATCHES "gcc" )
+		cmake_force_c_compiler( arm-none-eabi-gcc ARMCCompiler )
+		set( _CMAKE_TOOLCHAIN_PREFIX arm-none-eabi- )
+		message( "gcc" )
+	elseif ( "${COMPILER}" MATCHES "clang" )
+		cmake_force_c_compiler( clang ARMCCompiler )
+		set( _CMAKE_TOOLCHAIN_PREFIX llvm- )
+		message( "clang" )
+	else ()
+		message( AUTHOR_WARNING "COMPILER: ${COMPILER} - Unknown compiler selection" )
+	endif ()
 endif ()
 
 
@@ -111,6 +142,13 @@ set( COMPILER_SRCS
 	Lib/delay.c
 )
 
+#| Clang needs a few more functions for linking
+if ( "${COMPILER}" MATCHES "clang" )
+	set( COMPILER_SRCS ${COMPILER_SRCS}
+		Lib/clang.c
+	)
+endif ()
+
 message( STATUS "Compiler Source Files:" )
 message( "${COMPILER_SRCS}" )
 
@@ -152,13 +190,31 @@ set( WARN "-Wall -ggdb3" )
 #| Tuning Options
 #|  -f...:        tuning, see GCC manual
 #| NOTE: -fshort-wchar is specified to allow USB strings be passed conveniently
+#| Bootloader Compiler Flags
 if( BOOTLOADER )
-	set( TUNING "-D_bootloader_ -Wno-main -msoft-float -mthumb -fplan9-extensions -ffunction-sections -fdata-sections -fno-builtin -fstrict-volatile-bitfields -flto -fno-use-linker-plugin -nostdlib" )
-	#set( TUNING "-mthumb -fdata-sections -ffunction-sections -fno-builtin -msoft-float -fstrict-volatile-bitfields -flto -fno-use-linker-plugin -fwhole-program -Wno-main -nostartfiles -fplan9-extensions -D_bootloader_" )
-elseif ( "${COMPILER}" MATCHES "clang" )
-	set( TUNING "-target arm-none-eabi -mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
-else()
-	set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
+
+	## Clang Compiler
+	if ( "${COMPILER}" MATCHES "clang" )
+		# TODO Not currently working, clang doesn't support all the neccessary extensions
+		message ( AUTHOR_WARNING "clang doesn't support all the needed extensions, code may need rework to use clang" )
+		set ( TUNING "-D_bootloader_ -Wno-main -msoft-float -target arm-none-eabi -mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -fplan9-extensions -fstrict-volatile-bitfields -flto -fno-use-linker-plugin" )
+
+	## GCC Compiler
+	else ()
+		set ( TUNING "-D_bootloader_ -Wno-main -msoft-float -mthumb -fplan9-extensions -ffunction-sections -fdata-sections -fno-builtin -fstrict-volatile-bitfields -flto -fno-use-linker-plugin -nostdlib" )
+		#set( TUNING "-mthumb -fdata-sections -ffunction-sections -fno-builtin -msoft-float -fstrict-volatile-bitfields -flto -fno-use-linker-plugin -fwhole-program -Wno-main -nostartfiles -fplan9-extensions -D_bootloader_" )
+	endif ()
+
+#| Firmware Compiler Flags
+else ()
+	## Clang Compiler
+	if ( "${COMPILER}" MATCHES "clang" )
+		set ( TUNING "-target arm-none-eabi -mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
+
+	## GCC Compiler
+	else()
+		set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
+	endif ()
 endif()
 
 

@@ -28,7 +28,7 @@
 void Macro_analogState( uint8_t scanCode, uint8_t state );
 void Macro_keyState( uint8_t scanCode, uint8_t state );
 void Macro_ledState( uint8_t ledCode, uint8_t state );
-void Macro_interconnectAdd( void *trigger ); // triggers is of type TriggerGuide, void* for circular dependencies
+void Macro_pressReleaseAdd( void *trigger ); // triggers is of type TriggerGuide, void* for circular dependencies
 void Macro_process();
 void Macro_setup();
 

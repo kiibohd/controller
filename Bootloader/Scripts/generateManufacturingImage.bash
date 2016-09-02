@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Combines a given bootloader image and firmware image into a single firmware binary
 # Manufacturing deliverable
 

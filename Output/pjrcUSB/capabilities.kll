@@ -1,10 +1,10 @@
 Name = pjrcUSBCapabilities;
-Version = 0.6;
-Author = "HaaTa (Jacob Alexander) 2014-2015";
-KLL = 0.3c;
+Version = 0.8;
+Author = "HaaTa (Jacob Alexander) 2014-2016";
+KLL = 0.3d;
 
 # Modified Date
-Date = 2015-08-21;
+Date = 2016-05-31;
 
 
 # Output capabilities
@@ -12,14 +12,22 @@ consCtrlOut => Output_consCtrlSend_capability( consCode : 2 );
 noneOut     => Output_noneSend_capability();
 sysCtrlOut  => Output_sysCtrlSend_capability( sysCode : 1 );
 usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
+mouseOut    => Output_usbMouse_capability( mouseCode : 2, relative_x : 2, relative_y : 2 );
 
 # Configuration capabilities
 kbdProtocolBoot => Output_kbdProtocolBoot_capability();
 kbdProtocolNKRO => Output_kbdProtocolNKRO_capability();
+toggleKbdProtocol => Output_toggleKbdProtocol_capability();
 
 # Locale Settings
 keyboardLocale => KeyboardLocale_define;
 keyboardLocale = 0;
+
+# Default KRO Mode
+# Set to 0 for Boot Mode (6KRO)
+# Set to 1 for NKRO Mode (default)
+usbProtocol => USBProtocol_define;
+usbProtocol = 1;
 
 # Bootloader Mode capability
 # XXX
@@ -29,4 +37,65 @@ flashModeEnabled => flashModeEnabled_define;
 flashModeEnabled = 0;
 
 flashMode => Output_flashMode_capability();
+
+
+## USB Compatibility Flags ##
+# Some OSs and USB Chipsets have issues with USB features
+# These flags are available to provide ways to debug them
+
+# Enable USB Suspend/Low Power mode
+# After a period of inactivity, the USB host may request that the device go into low power mode
+# This is different than system sleep, though it may occur around the same time
+enableUSBSuspend => enableUSBSuspend_define;
+enableUSBSuspend = 1;
+
+# Enable Low-power Negotiation
+# In order to support low-powered USB hosts, such as an Apple IPad, a low power auto-negotiation scheme has been implemented
+# Unfortunately, badly behaved USB Chipsets and OSs may not work correctly with this support enabled
+# Typical symptoms:
+# * USB constantly re-initializing when first plugging in
+enableUSBLowPowerNegotiation => enableUSBLowPowerNegotiation_define;
+enableUSBLowPowerNegotiation = 0;
+
+# Enable Device Restart on USB Timeout
+# *USE AS LAST RETORT*
+# To work around some USB OS, Chipset and Firwmare bugs, an auto-restart mechanism has been implemented
+# Depending on the situation, this can be rather aggressive.
+# This behaves differently than the Low-power negotiation restart and have very different triggering schemes.
+enableDeviceRestartOnUSBTimeout => enableDeviceRestartOnUSBTimeout_define;
+enableDeviceRestartOnUSBTimeout = 0;
+
+# Enable Host-Resume (wake-from-sleep)
+# On specific actions (such as USB key actions), will trigger the host device to wake if USB is suspended
+enableUSBResume => enableUSBResume_define;
+enableUSBResume = 1;
+
+## USB Endpoint Configuration ##
+# 1 - Enable endpoint
+# 0 - Disable endpoint
+# Any/all endpoints can be disabled
+# But you'll lose functionality for that feature
+# Disabling endpoints will save RAM and Flash on the target MCU
+
+# Joystick Endpoint
+# *Currently Unused*
+enableJoystick => enableJoystick_define;
+enableJoystick = 0;
+
+# Mouse Endpoint
+enableMouse => enableMouse_define;
+enableMouse = 1;
+
+# Keyboard Endpoint
+enableKeyboard => enableKeyboard_define;
+enableKeyboard = 1;
+
+# CDC / Serial Port Endpoint
+enableVirtualSerialPort => enableVirtualSerialPort_define;
+enableVirtualSerialPort = 1;
+
+# Raw I/O Endpoint
+# *Currently Unused*
+enableRawIO => enableRawIO_define;
+enableRawIO = 0;
 

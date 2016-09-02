@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2015 by Jacob Alexander
+/* Copyright (C) 2011-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -114,4 +114,6 @@ void revsStr      ( char*  in );
 uint16_t lenStr   ( char*  in );
 int16_t eqStr     ( char*  str1, char* str2 ); // Returns -1 if identical, last character of str1 comparison (0 if str1 is like str2)
 int numToInt      ( char* in ); // Returns the int representation of a string
+
+void hex32ToStr16 ( uint32_t in, uint16_t* out, uint8_t op ); // Used for USB Descriptors
 

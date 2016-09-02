@@ -27,11 +27,11 @@ Example
 Projects
 --------
 
-* infinity.bash (Infinity Keyboard 2014/10/15)
-* icpad.bash    (Soon?)
-* ergodox.bash  (Infinity Ergodox 2015/08/15)
-* template.bash (Example template for new keyboards)
-* whitefox.bash (Soon?)
+* infinity.bash     (Infinity Keyboard 2014/10/15)
+* infinity_led.bash (Infinity Keyboard with LED backlight support)
+* ergodox.bash      (Infinity Ergodox 2015/08/15)
+* template.bash     (Example template for new keyboards)
+* whitefox.bash     (WhiteFox Keyboard)
 
 
 **Extra files**

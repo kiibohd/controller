@@ -39,3 +39,10 @@ DebounceThrottleDiv = 0; # Default
 MinDebounceTime => MinDebounceTime_define;
 MinDebounceTime = 5; # 5 ms
 
+# This option delays each strobe by the given number of microseconds
+# By default this should *NOT* be set unless your keyboard is having issues
+# Delaying more than 10 usecs may cause significant slow-downs with other keyboard functions
+StrobeDelay => StrobeDelay_define;
+StrobeDelay = 0; # Disabled
+#StrobeDelay = 10; # 10 us
+

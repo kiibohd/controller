@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2015)
+ * Modified by Jacob Alexander (2015-2016)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -28,6 +28,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+#if enableJoystick_define == 1
 
 // ----- Includes -----
 
@@ -111,4 +113,6 @@ int usb_joystick_send()
 	//serial_print("ok\n");
         return 0;
 }
+
+#endif
 

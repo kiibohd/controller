@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ###| Builder Script |###
 #
 # Builds all permutations of modules
@@ -31,7 +31,8 @@ main() {
 	# Create permutation directories
 	# Then run cmake, and run each build permutation
 	# Keeping track of how many builds failed/passed
-	for module in $scanModules; do
+	for mod in $scanModules; do
+		module=$(tr -dc "[:print:]" <<< "$mod")
 		# Create directory, but do not error if it exists already
 		mkdir -p build/$module
 		cd build/$module

@@ -139,6 +139,18 @@ typedef struct KeyState {
 	uint8_t         prevDecisionTime;
 } __attribute__((packed)) KeyState;
 
+// Ghost Element, after ghost detection/cancelation
+typedef struct KeyGhost {
+	KeyPosition     prev;
+	KeyPosition     cur;
+	KeyPosition     saved;  // state before ghosting
+} __attribute__((packed)) KeyGhost;
+
+// utility
+inline uint8_t keyOn(/*KeyPosition*/uint8_t st)
+{
+	return (st == KeyState_Press || st == KeyState_Hold) ? 1 : 0;
+}
 
 
 // ----- Functions -----
@@ -147,4 +159,6 @@ void Matrix_setup();
 void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count );
 
 uint8_t Matrix_totalColumns();
+
+void Matrix_currentChange( unsigned int current );
 

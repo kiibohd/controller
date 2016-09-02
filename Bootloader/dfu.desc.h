@@ -1,5 +1,5 @@
 // Originally Generated from MCHCK Toolkit
-/* Copyright (c) Jacob Alexander 2014-2015 <haata@kiibohd.com>
+/* Copyright (c) Jacob Alexander 2014-2016 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,8 @@
 
 // ----- Variables -----
 
-const struct usbd_device dfu_device;
+extern const struct usbd_device dfu_device;
+extern struct usb_desc_string_t * const dfu_device_str_desc[];
 
 usbd_init_fun_t init_usb_bootloader;
 

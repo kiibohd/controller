@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2014-2015
+ * Modifications by Jacob Alexander 2014-2016
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -51,20 +51,19 @@ extern volatile uint8_t usb_configuration;
 
 extern uint16_t usb_rx_byte_count_data[NUM_ENDPOINTS];
 
-extern volatile uint8_t usb_cdc_line_coding[7];
-extern volatile uint8_t usb_cdc_line_rtsdtr;
-extern volatile uint8_t usb_cdc_transmit_flush_timer;
-
 
 
 // ----- Functions -----
 
 uint8_t usb_configured(); // is the USB port configured
 uint8_t usb_init(); // Returns 1 on success, 0 if no cable is attached
+void usb_reinit(); // Force restart USB interface, simulates disconnect
 
 void usb_isr();
 void usb_tx( uint32_t endpoint, usb_packet_t *packet );
 void usb_tx_isr( uint32_t endpoint, usb_packet_t *packet );
+
+void usb_resume();
 
 uint32_t usb_tx_byte_count( uint32_t endpoint );
 uint32_t usb_tx_packet_count( uint32_t endpoint );
@@ -81,6 +80,7 @@ static inline uint32_t usb_rx_byte_count(uint32_t endpoint)
 }
 
 void usb_device_reload();
+void usb_device_check();
 
 extern void usb_serial_flush_callback();
 

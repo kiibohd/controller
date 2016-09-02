@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Bootloader |###
 #
-# Jacob Alexander 2011-2014
+# Jacob Alexander 2011-2016
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -19,7 +19,7 @@
 #| You _MUST_ set this to match the microcontroller you are trying to compile for
 #| You _MUST_ clean the build directory if you change this value
 #|
-set( CHIP
+set ( CHIP
 	"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
 #	"mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
 	CACHE STRING "Chip"
@@ -34,7 +34,7 @@ set( CHIP
 #| *** EXPERIMENTAL ***
 #| Stick with gcc unless you know what you're doing
 #| Currently only arm is supported with clang
-set( COMPILER
+set ( COMPILER
 	"gcc"   # arm-none-eabi-gcc / avr-gcc - Default
 #       "clang" # arm-none-eabi
 	CACHE STRING "Compiler Type"
@@ -53,14 +53,14 @@ set ( BOOTLOADER 1 )
 # Compiler Intialization
 #
 set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/../Lib/CMake )
-include( initialize )
+include ( initialize )
 
 
 
 ##
 # Source Defines
 #
-set( SRCS
+set ( SRCS
 	main.c
 	dfu.c
 	dfu.desc.c
@@ -70,20 +70,20 @@ set( SRCS
 )
 
 # Only compile in if necessary
-if( CHIP STREQUAL "mk20dx256vlh7" )
+if ( CHIP STREQUAL "mk20dx256vlh7" )
 	set( SRCS ${SRCS}
 		debug.c
 	)
-endif()
+endif ()
 
 
-message( STATUS "Bootloader Source Files:" )
-message( "${SRCS}" )
+message ( STATUS "Bootloader Source Files:" )
+message ( "${SRCS}" )
 
 #| Add Lib sources to main list
-foreach( SRC_FILE ${COMPILER_SRCS} )
-	set( SRCS ${SRCS} ${CMAKE_SOURCE_DIR}/../${SRC_FILE} )
-endforeach()
+foreach ( SRC_FILE ${COMPILER_SRCS} )
+	set ( SRCS ${SRCS} ${CMAKE_SOURCE_DIR}/../${SRC_FILE} )
+endforeach ()
 
 
 
@@ -103,41 +103,59 @@ include_directories (
 #
 
 #| Project
-project( kiibohd_bootloader )
+project ( kiibohd_bootloader C )
 
 #| Target Name (output name)
-set( TARGET kiibohd_bootloader )
+set ( TARGET kiibohd_bootloader )
 
 #| General Settings
-cmake_minimum_required( VERSION 2.8 )
+cmake_minimum_required ( VERSION 2.8 )
+
+
+
+###
+# Minimum Compiler Version Checks
+#
+
+# Due to optimization requirements, we have to impose a minimum GCC version on the bootloader
+set ( BOOTLOADER_MIN_GCC_VERSION "4.9" )
+if ( "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU" )
+	if ( CMAKE_C_COMPILER_VERSION VERSION_LESS "${BOOTLOADER_MIN_GCC_VERSION}" )
+		message( FATAL_ERROR "arm-none-eabi-gcc ${BOOTLOADER_MIN_GCC_VERSION} or higher is required for bootloader" )
+	endif ()
+endif ()
+
+
+
+###
+# CMake Build Env
+#
+
+include ( buildinfo )
 
 
 
 ###
 # Generate Header Files
 #
-configure_file( _buildvars.h buildvars.h )
-include_directories( ${CMAKE_BINARY_DIR} )
 
-
-
-###
-# CMake Module Checking
-#
-find_package( Git REQUIRED )
-find_package( Ctags ) # Optional
+configure_file ( _buildvars.h buildvars.h )
+include_directories ( ${CMAKE_BINARY_DIR} )
 
 
 
 ###
 # ctag Generation
 #
-if( CTAGS_EXECUTABLE )
+
+find_package ( Ctags ) # Optional
+
+if ( CTAGS_EXECUTABLE )
 	# Generate the ctags
 	execute_process( COMMAND ctags ${SRCS}
 		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
 	)
-endif()
+endif ()
 
 
 
@@ -159,43 +177,43 @@ endif ()
 #
 
 #| Create the .ELF file
-set( TARGET_ELF ${TARGET}.elf )
-add_executable( ${TARGET_ELF} ${SRCS} )
+set ( TARGET_ELF ${TARGET}.elf )
+add_executable ( ${TARGET_ELF} ${SRCS} )
 
 
 #| .ELF Properties
-set_target_properties( ${TARGET_ELF} PROPERTIES
+set_target_properties ( ${TARGET_ELF} PROPERTIES
 	LINK_FLAGS ${LINKER_FLAGS}
 	SUFFIX ""                               # XXX Force Windows to keep the .exe off
 )
 
 
 #| Convert the .ELF into a .bin to load onto the McHCK
-set( TARGET_BIN ${TARGET}.bin )
-add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+set ( TARGET_BIN ${TARGET}.bin )
+add_custom_command ( TARGET ${TARGET_ELF} POST_BUILD
 	COMMAND ${CMAKE_OBJCOPY} ${BIN_FLAGS} ${TARGET_ELF} ${TARGET_BIN}
 	COMMENT "Creating binary file to load:  ${TARGET_BIN}"
 )
 
 
 #| Generate the Extended .LSS
-set( TARGET_LSS ${TARGET}.lss )
-add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+set ( TARGET_LSS ${TARGET}.lss )
+add_custom_command ( TARGET ${TARGET_ELF} POST_BUILD
 	COMMAND ${CMAKE_OBJDUMP} ${LSS_FLAGS} ${TARGET_ELF} > ${TARGET_LSS}
 	COMMENT "Creating Extended Listing:     ${TARGET_LSS}"
 )
 
 
 #| Generate the Symbol Table .SYM
-set( TARGET_SYM ${TARGET}.sym )
-add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+set ( TARGET_SYM ${TARGET}.sym )
+add_custom_command ( TARGET ${TARGET_ELF} POST_BUILD
 	COMMAND ${CMAKE_NM} -n ${TARGET_ELF} > ${TARGET_SYM}
 	COMMENT "Creating Symbol Table:         ${TARGET_SYM}"
 )
 
 
 #| Compiler Selection Record
-add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
+add_custom_command ( TARGET ${TARGET_ELF} POST_BUILD
 	COMMAND ${CMAKE_SOURCE_DIR}/../Lib/CMake/writer compiler ${COMPILER_FAMILY}
 )
 
@@ -206,7 +224,7 @@ add_custom_command( TARGET ${TARGET_ELF} POST_BUILD
 #
 
 #| After Changes Size Information
-add_custom_target( SizeAfter ALL
+add_custom_target ( SizeAfter ALL
 	COMMAND ${CMAKE_SOURCE_DIR}/../Lib/CMake/sizeCalculator ${CMAKE_SIZE} ram   ${TARGET_ELF} ${SIZE_RAM}   " SRAM"
 	COMMAND ${CMAKE_SOURCE_DIR}/../Lib/CMake/sizeCalculator ${CMAKE_SIZE} flash ${TARGET_ELF} ${SIZE_FLASH} "Flash"
 	DEPENDS ${TARGET_ELF}
