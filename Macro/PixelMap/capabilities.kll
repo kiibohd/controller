@@ -1,9 +1,10 @@
 Name = PartialMapCapabilities;
-Version = 0.1;
-Author = "HaaTa (Jacob Alexander) 2015";
+Version = 0.2;
+Author = "HaaTa (Jacob Alexander) 2015-2016";
 KLL = 0.5;
 
 # Modified Date
-Date = 2015-12-19;
+Date = 2016-07-30;
 
+rainbowToggle => Rainbow_Toggle_capability();
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 by Jacob Alexander
+/* Copyright (C) 2015-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -48,6 +48,8 @@
 // Number of scans since the last USB send
 uint16_t Scan_scanCount = 0;
 
+uint8_t Scan_strobe_position;
+
 
 
 // ----- Functions -----
@@ -72,6 +74,9 @@ inline void Scan_setup()
 
 	// Reset scan count
 	Scan_scanCount = 0;
+
+	// Reset starting strobe position
+	Scan_strobe_position = 0;
 }
 
 
@@ -82,7 +87,7 @@ inline uint8_t Scan_loop()
 	Port_scan();
 
 	// Scan Matrix
-	Matrix_scan( Scan_scanCount++ );
+	Matrix_scan( Scan_scanCount, &Scan_strobe_position, 4 );
 
 	// Process any interconnect commands
 	Connect_scan();
@@ -93,7 +98,15 @@ inline uint8_t Scan_loop()
 	// Process any LED events
 	LED_scan();
 
-	return 0;
+	// Check if we are ready to leave the scan loop
+	if ( Scan_strobe_position >= Matrix_totalColumns() - 1 )
+	{
+		Scan_strobe_position = 0;
+		Scan_scanCount++;
+		return 0;
+	}
+
+	return 1;
 }
 
 

@@ -60,7 +60,7 @@ CLIDict_Entry( aniAdd,       "Add the given animation id to the stack" );
 CLIDict_Entry( aniDel,       "Remove the given stack index animation" );
 CLIDict_Entry( chanTest,     "Channel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
 CLIDict_Entry( pixelList,    "Prints out pixel:channel mappings." );
-CLIDict_Entry( pixelTest,    "Pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
+CLIDict_Entry( pixelTest,    "Pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop, t - test" );
 
 CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
 	CLIDict_Item( aniAdd ),
@@ -82,6 +82,46 @@ FrameState Pixel_FrameState;
 // Animation Stack
 AnimationStack Pixel_AnimationStack;
 
+
+
+// ----- Capabilities -----
+
+void Rainbow_Toggle_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Rainbow_Toggle_capability()");
+		return;
+	}
+
+	// Only use capability on press
+	// TODO Analog
+	if ( state != 0x01 )
+		return;
+
+	Pixel_testMode = Pixel_testMode != PixelTest_Off
+		? PixelTest_Pixel_Test
+		: PixelTest_Off;
+
+	if ( Pixel_testMode != PixelTest_Off )
+	{
+		print("OFF");
+		print(NL);
+		Pixel_testMode = PixelTest_Off;
+
+		Pixel_testPos = 0;
+		// TODO use better function
+		extern void cliFunc_ledReset( char* args );
+		cliFunc_ledReset( 0 );
+	}
+	else
+	{
+		print("ON");
+		print(NL);
+		Pixel_testMode = PixelTest_Pixel_Test;
+	}
+}
 
 
 
@@ -255,7 +295,8 @@ const uint8_t testani_frame2[] = {
 #define RGB_HalfViolet   64,0,127
 
 #define RGB_White        255,255,255
-#define RGB_Black        0,0,0
+//#define RGB_Black        0,0,0 // TODO
+#define RGB_Black        RGB_White
 
 // Rainbow Animation - Hardcoded
 const uint8_t rainbow_frame0[] = {
@@ -2612,28 +2653,25 @@ inline void Pixel_process()
 		return;
 	}
 	case PixelTest_Pixel_Test:
-	// Start from the top of the Animation Stack
-	// TODO
-	dbug_print("YSSS");
-	// XXX Temp - Play rainbow
-	Pixel_pixelProcess( rainbow_frames[rainbow_pos], rainbow_framesizes[rainbow_pos] );
-	rainbow_pos++;
-	Pixel_testMode = PixelTest_Off;
+		// Start from the top of the Animation Stack
+		// XXX Temp - Play rainbow
+		Pixel_pixelProcess( rainbow_frames[rainbow_pos], rainbow_framesizes[rainbow_pos] );
+		rainbow_pos++;
 
-	if ( rainbow_pos >= sizeof( rainbow_frames ) / 2 )
-	{
-		rainbow_pos = 0;
-		goto pixel_process_done;
-	}
+		if ( rainbow_pos >= sizeof( rainbow_framesizes ) / 2 )
+		{
+			rainbow_pos = 0;
+			goto pixel_process_done;
+		}
 
 	default:
 		break;
 	}
 
+	/*
 	// Start from the top of the Animation Stack
 	// TODO
 
-	/*
 	// XXX Temp - Play rainbow
 	Pixel_pixelProcess( rainbow_frames[rainbow_pos], rainbow_framesizes[rainbow_pos] );
 	rainbow_pos++;
@@ -2661,7 +2699,8 @@ inline void Pixel_setup()
 	Pixel_FrameState = FrameState_Update;
 
 	// Disable test modes by default, start at position 0
-	Pixel_testMode = PixelTest_Off;
+	Pixel_testMode = PixelTest_Pixel_Test;
+	//Pixel_testMode = PixelTest_Off;
 
 	// Clear animation stack
 	Pixel_AnimationStack.size = 0;

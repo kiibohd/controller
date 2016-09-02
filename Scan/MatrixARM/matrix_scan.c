@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -242,9 +242,15 @@ void Matrix_keyPositionDebug( KeyPosition pos )
 }
 
 
+inline uint8_t Matrix_totalColumns()
+{
+	return Matrix_colsNum;
+}
+
+
 // Scan the matrix for keypresses
 // NOTE: scanNum should be reset to 0 after a USB send (to reset all the counters)
-void Matrix_scan( uint16_t scanNum )
+void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 {
 #if ( DebounceThrottleDiv_define > 0 )
 	// Scan-rate throttling
@@ -271,7 +277,8 @@ void Matrix_scan( uint16_t scanNum )
 	uint8_t currentTime = (uint8_t)systick_millis_count;
 
 	// For each strobe, scan each of the sense pins
-	for ( uint8_t strobe = 0; strobe < Matrix_colsNum; strobe++ )
+	uint8_t strobe_section = *position + count;
+	for ( uint8_t strobe = *position; strobe < Matrix_colsNum && strobe < strobe_section; strobe++ )
 	{
 		// Strobe Pin
 		Matrix_pin( Matrix_cols[ strobe ], Type_StrobeOn );
@@ -401,7 +408,11 @@ void Matrix_scan( uint16_t scanNum )
 
 		// Unstrobe Pin
 		Matrix_pin( Matrix_cols[ strobe ], Type_StrobeOff );
+
+		// Update position
+		*position = strobe;
 	}
+	(*position)++;
 
 	// State Table Output Debug
 	if ( matrixDebugStateCounter > 0 )
