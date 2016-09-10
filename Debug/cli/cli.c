@@ -40,6 +40,7 @@ CLIDict_Entry( led,      "Enables/Disables indicator LED. Try a couple times jus
 CLIDict_Entry( reload,   "Signals microcontroller to reflash/reload." );
 CLIDict_Entry( reset,    "Resets the terminal back to initial settings." );
 CLIDict_Entry( restart,  "Sends a software restart, should be similar to powering on the device." );
+CLIDict_Entry( tick,     "Displays the fundamental tick size, and current ticks since last systick." );
 CLIDict_Entry( version,  "Version information about this firmware." );
 
 CLIDict_Def( basicCLIDict, "General Commands" ) = {
@@ -50,6 +51,7 @@ CLIDict_Def( basicCLIDict, "General Commands" ) = {
 	CLIDict_Item( reload ),
 	CLIDict_Item( reset ),
 	CLIDict_Item( restart ),
+	CLIDict_Item( tick ),
 	CLIDict_Item( version ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
@@ -58,7 +60,7 @@ CLIDict_Def( basicCLIDict, "General Commands" ) = {
 
 // ----- Functions -----
 
-inline void prompt()
+void prompt()
 {
 	print("\033[2K\r"); // Erases the current line and resets cursor to beginning of line
 	print("\033[1;34m:\033[0m "); // Blue bold prompt
@@ -540,6 +542,37 @@ void cliFunc_restart( char* args )
 	Output_softReset();
 }
 
+void cliFunc_tick( char* args )
+{
+	print( NL );
+
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+	extern volatile uint32_t systick_millis_count;
+	uint32_t ms_count = systick_millis_count;
+#else
+	// TODO
+	uint32_t ms_count = 0;
+#endif
+
+	// Display <systick>:<cycleticks since systick>
+	info_msg("ns per cycletick: ");
+#if F_CPU == 72000000
+	print("13.889 ns");
+#elif F_CPU == 48000000
+	print("20.833 ns");
+#else
+	print("<UNSET>");
+#endif
+	print( NL );
+	info_print("<systick ms>:<cycleticks since systick>");
+	printInt32( ms_count );
+	print(":");
+#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+	printInt32( ARM_DWT_CYCCNT );
+#endif
+	print( NL );
+}
+
 void cliFunc_version( char* args )
 {
 	print( NL );
@@ -563,6 +596,7 @@ void cliFunc_version( char* args )
 	printHex32_op( SIM_UIDML, 8 );
 	printHex32_op( SIM_UIDL, 8 );
 #elif defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+#elif defined(_host_)
 #else
 #error "No unique id defined."
 #endif

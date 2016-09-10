@@ -25,6 +25,7 @@ set( CHIP
 	"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
 #       "mk20dx256"        # Teensy   3.1,3.2 (arm)
 #       "mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
+#       "host"             # System compiler test environment
 	CACHE STRING "Microcontroller Chip"
 )
 
@@ -146,6 +147,10 @@ set( TARGET kiibohd )
 
 #| General Settings
 cmake_minimum_required( VERSION 2.8 )
+
+#| Compiler Version (only available after project() command)
+message( STATUS "Full Compiler:" )
+message( "${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_VERSION}" )
 
 
 

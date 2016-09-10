@@ -60,7 +60,7 @@ index_uint_t macroResultMacroPendingListSize = 0;
 // ----- Functions -----
 
 // Evaluate/Update ResultMacro
-inline ResultMacroEval Macro_evalResultMacro( var_uint_t resultMacroIndex )
+ResultMacroEval Macro_evalResultMacro( var_uint_t resultMacroIndex )
 {
 	// Lookup ResultMacro
 	const ResultMacro *macro = &ResultMacroList[ resultMacroIndex ];

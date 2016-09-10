@@ -1,4 +1,4 @@
-###| CMake Kiibohd Controller Debug Module |###
+###| CMake Kiibohd Controller USB Module |###
 #
 # Written by Jacob Alexander in 2011-2016 for the Kiibohd Controller
 #
@@ -12,16 +12,15 @@
 #
 
 set ( Module_SRCS
-	led.c
+	output_com.c
 )
+
 
 
 ###
 # Compiler Family Compatibility
 #
-set ( ModuleCompatibility
-	arm
-	avr
+set( ModuleCompatibility
 	host
 )
 

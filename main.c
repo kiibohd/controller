@@ -71,3 +71,74 @@ int main()
 	}
 }
 
+// ----- Host-only Functions -----
+#if defined(_host_)
+
+int Host_init()
+{
+	// Enable CLI
+	CLI_init();
+
+	// Setup Modules
+	Output_setup();
+	Macro_setup();
+	Scan_setup();
+
+	return 1;
+}
+
+int Host_cli_process()
+{
+	// Process CLI
+	CLI_process();
+
+	return 1;
+}
+
+int Host_process()
+{
+	// Acquire Key Indices
+	// Loop continuously until scan_loop returns 0
+	while ( Scan_loop() );
+
+	// Run Macros over Key Indices and convert to USB Keys
+	Macro_process();
+
+	// Sends USB data only if changed
+	Output_send();
+
+	return 1;
+}
+
+int Host_register_callback( void* func )
+{
+	Output_Host_Callback = func;
+	return 1;
+}
+
+// Change the value of systick (milliseconds)
+volatile uint32_t systick_millis_count;
+int Host_set_systick()
+{
+	// TODO
+	return 1;
+}
+
+// Change the fundamental tick (nanoseconds?)
+int Host_set_fundamentaltick()
+{
+	// TODO
+	return 1;
+}
+
+int Host_callback_test()
+{
+	//printHex32( systick_millis_count );
+	print("YAY!");
+	print("BOO!");
+	print("MEH!");
+	return 9;
+}
+
+#endif
+

@@ -473,8 +473,10 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 
 // Add an interconnect ScanCode
 // These are handled differently (less information is sent, hold/off states must be assumed)
+// Returns 1 if added, 0 if the ScanCode is already in the buffer
+// Returns 2 if there's an error
 #if defined(ConnectEnabled_define) || defined(PressReleaseCache_define)
-void Macro_pressReleaseAdd( void *trigger_ptr )
+uint8_t Macro_pressReleaseAdd( void *trigger_ptr )
 {
 	TriggerGuide *trigger = (TriggerGuide*)trigger_ptr;
 
@@ -520,7 +522,7 @@ void Macro_pressReleaseAdd( void *trigger_ptr )
 		print(" ");
 		printHex( trigger->scanCode );
 		print( NL );
-		return;
+		return 2;
 	}
 
 	// Add trigger to the Interconnect Cache
@@ -532,12 +534,14 @@ void Macro_pressReleaseAdd( void *trigger_ptr )
 		{
 			// Update the state
 			macroInterconnectCache[ c ].state = trigger->state;
-			return;
+			return 0;
 		}
 	}
 
 	// If not in the list, add it
 	macroInterconnectCache[ macroInterconnectCacheSize++ ] = *trigger;
+
+	return 1;
 }
 #endif
 

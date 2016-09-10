@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2016 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,8 @@
 void Macro_analogState( uint8_t scanCode, uint8_t state );
 void Macro_keyState( uint8_t scanCode, uint8_t state );
 void Macro_ledState( uint8_t ledCode, uint8_t state );
-void Macro_pressReleaseAdd( void *trigger ); // triggers is of type TriggerGuide, void* for circular dependencies
 void Macro_process();
 void Macro_setup();
+
+uint8_t Macro_pressReleaseAdd( void *trigger ); // triggers is of type TriggerGuide, void* for circular dependencies
 

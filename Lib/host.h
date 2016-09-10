@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2016 by Jacob Alexander
+/* Copyright (C) 2016 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,41 +19,27 @@
  * THE SOFTWARE.
  */
 
-
-// This include file decides which set of compiler family include files to use on typical Macro modules.
-// Additional includes should only be added to this file if they should be added to *all* Macro modules.
-
 #pragma once
+
+// ----- Defines -----
+
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
+
+
 
 // ----- Includes -----
 
-#include <Lib/Interrupts.h>
+// System Includes
+#include <stdint.h>
 
 
 
-// ARM
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+// ----- Variables -----
 
-#include <Lib/mk20dx.h>
-#include <Lib/delay.h>
+// ----- Function Declarations -----
 
-#endif
+// ----- Functions -----
 
-
-
-// AVR
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-
-#include <util/delay.h>
-
-#endif
-
-
-
-// Host
-#if defined(_host_)
-
-#include <Lib/host.h>
-
-#endif
 
