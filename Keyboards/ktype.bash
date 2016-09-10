@@ -1,7 +1,7 @@
 #!/bin/bash
 # This is a build script template
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015
+# Jacob Alexander 2016
 
 
 
@@ -11,7 +11,7 @@
 
 # Feel free to change the variables in this section to configure your keyboard
 
-BuildPath="KType"
+BuildPath="K-Type"
 
 ## KLL Configuration ##
 
@@ -42,7 +42,7 @@ PartialMaps[1]=""
 # NOTE: Changing any of these variables will require a force build to compile correctly
 
 # Keyboard Module Configuration
-ScanModule="KType"
+ScanModule="K-Type"
 MacroModule="PixelMap"
 OutputModule="pjrcUSB"
 DebugModule="full"

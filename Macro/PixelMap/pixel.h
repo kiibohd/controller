@@ -85,8 +85,8 @@ typedef struct PixelElement {
 	uint16_t indices[Pixel_MaxChannelPerPixel];
 } PixelElement;
 #define Pixel_RGBChannel(r,g,b) { 8, 3, { r, g, b } }
-// TODO generate macro based on max channels
-//#define Pixel_8bitChannel(c)  {  8, 1, { c } }
+#define Pixel_8bitChannel(c)  {  8, 1, { c } }
+#define Pixel_Blank() { 0, 0, {} }
 
 
 typedef struct PixelMod {

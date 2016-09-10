@@ -151,8 +151,8 @@ PixelBuf Pixel_Buffers[] = {
 
 
 // Pixel Mapping
-#define Pixel_TotalPixels 127 // TODO Generate
-PixelElement Pixel_Mapping[] = {
+#define Pixel_TotalPixels 128 // TODO Generate
+const PixelElement Pixel_Mapping[] = {
 	// Function Row (1-16)
 	Pixel_RGBChannel(0,33,49), // 1
 	Pixel_RGBChannel(1,17,50), // 2
@@ -171,7 +171,7 @@ PixelElement Pixel_Mapping[] = {
 	Pixel_RGBChannel(134,118,85), // 15
 	Pixel_RGBChannel(135,102,86), // 16
 
-	// Number Row (17-35)
+	// Number Row (17-33)
 	Pixel_RGBChannel(8,41,57), // 17
 	Pixel_RGBChannel(9,25,58), // 18
 	Pixel_RGBChannel(10,26,42), // 19
@@ -189,10 +189,10 @@ PixelElement Pixel_Mapping[] = {
 	Pixel_RGBChannel(142,126,93), // 31
 	Pixel_RGBChannel(143,110,94), // 32
 	Pixel_RGBChannel(144,177,193), // 33
+
+	// Top Alpha Row (34-50)
 	Pixel_RGBChannel(145,161,194), // 34
 	Pixel_RGBChannel(146,162,178), // 35
-
-	// Top Alpha Row (36-53)
 	Pixel_RGBChannel(147,163,179), // 36
 	Pixel_RGBChannel(148,164,180), // 37
 	Pixel_RGBChannel(149,165,181), // 38
@@ -208,11 +208,11 @@ PixelElement Pixel_Mapping[] = {
 	Pixel_RGBChannel(279,246,230), // 48
 	Pixel_RGBChannel(152,185,201), // 49
 	Pixel_RGBChannel(153,169,202), // 50
+
+	// Mid Alpha Row (51-63)
 	Pixel_RGBChannel(154,170,186), // 51
 	Pixel_RGBChannel(155,171,187), // 52
 	Pixel_RGBChannel(156,172,188), // 53
-
-	// Mid Alpha Row (54-67)
 	Pixel_RGBChannel(157,173,189), // 54
 	Pixel_RGBChannel(158,174,190), // 55
 	Pixel_RGBChannel(159,175,191), // 56
@@ -223,12 +223,12 @@ PixelElement Pixel_Mapping[] = {
 	Pixel_RGBChannel(284,268,252), // 61
 	Pixel_RGBChannel(285,269,253), // 62
 	Pixel_RGBChannel(286,270,237), // 63
+
+	// Low Alpha Row (64-76)
 	Pixel_RGBChannel(287,254,238), // 64
 	Pixel_RGBChannel(288,321,337), // 65
 	Pixel_RGBChannel(289,305,338), // 66
 	Pixel_RGBChannel(290,306,322), // 67
-
-	// Low Alpha Row (68-84)
 	Pixel_RGBChannel(291,307,323), // 68
 	Pixel_RGBChannel(292,308,324), // 69
 	Pixel_RGBChannel(293,309,325), // 70
@@ -238,6 +238,8 @@ PixelElement Pixel_Mapping[] = {
 	Pixel_RGBChannel(417,401,385), // 74
 	Pixel_RGBChannel(418,402,386), // 75
 	Pixel_RGBChannel(419,403,387), // 76
+
+	// Mod Row (77-87)
 	Pixel_RGBChannel(420,404,388), // 77
 	Pixel_RGBChannel(421,405,389), // 78
 	Pixel_RGBChannel(422,406,373), // 79
@@ -246,11 +248,22 @@ PixelElement Pixel_Mapping[] = {
 	Pixel_RGBChannel(297,313,346), // 82
 	Pixel_RGBChannel(298,314,330), // 83
 	Pixel_RGBChannel(299,315,331), // 84
-
-	// Mod Row (85-95)
 	Pixel_RGBChannel(300,316,332), // 85
 	Pixel_RGBChannel(301,317,333), // 86
 	Pixel_RGBChannel(302,318,334), // 87
+
+	// Unused Pixels
+	Pixel_Blank(), // 88
+	Pixel_Blank(), // 89
+	Pixel_Blank(), // 90
+	Pixel_Blank(), // 91
+	Pixel_Blank(), // 92
+	Pixel_Blank(), // 93
+	Pixel_Blank(), // 94
+	Pixel_Blank(), // 95
+	Pixel_Blank(), // 96
+
+	/* Prototype 1 - K-Type
 	Pixel_RGBChannel(303,319,335), // 88
 	Pixel_RGBChannel(424,408,392), // 89
 	Pixel_RGBChannel(425,409,393), // 90
@@ -259,9 +272,9 @@ PixelElement Pixel_Mapping[] = {
 	Pixel_RGBChannel(428,412,396), // 93
 	Pixel_RGBChannel(429,413,397), // 94
 	Pixel_RGBChannel(430,414,381), // 95
+	*/
 
 	// Underlighting
-	// TODO Deal with missing channel 96 here
 	Pixel_RGBChannel(432,465,481), // 97
 	Pixel_RGBChannel(433,449,482), // 98
 	Pixel_RGBChannel(434,450,466), // 99
@@ -294,6 +307,23 @@ PixelElement Pixel_Mapping[] = {
 	Pixel_RGBChannel(573,557,541), // 126
 	Pixel_RGBChannel(574,558,525), // 127
 	Pixel_RGBChannel(575,542,526), // 128
+};
+
+// Pixel Display Mapping
+// TODO This table should be generated based off the physical x,y,z positions of each of the pixels
+// TODO type should be determined by Pixel_TotalPixels
+// Notes:
+// - Single rows, we ignore the space between the F row and the Number row
+// - 0.5 key spacing between the columns, in the case where multiple leds should be in the column, one is shifted to the right
+#define Pixel_DisplayMapping_Cols 38
+#define Pixel_DisplayMapping_Rows 6
+const uint8_t Pixel_DisplayMapping[] = {
+ 97,  1,  0, 98,  0,  2, 99,  3,  0,  4,100,  5,  0,101,  6,102,  7,  0,  8,103,  9,104,  0, 10,105, 11,  0, 12,106, 13,  0,107, 14,108, 15,  0, 16,109,
+128, 17,  0, 18,  0, 19,  0, 20,  0, 21,  0, 22,  0, 23,  0, 24,  0, 25,  0, 26,  0, 27,  0, 28,  0, 29,  0,  0, 30,  0,  0,  0, 31,  0, 32,  0, 33,110,
+127, 34,  0,  0, 35,  0, 36,  0, 37,  0, 38,  0, 39,  0, 40,  0, 41,  0, 42,  0, 43,  0, 44,  0, 45,  0, 46,  0,  0, 47,  0,  0, 48,  0, 49,  0, 50,111,
+  0,  0, 51,  0,  0, 52,  0, 53,  0, 54,  0, 55,  0, 56,  0, 57,  0, 58,  0, 59,  0, 60,  0, 61,  0, 62,  0,  0, 63,  0,  0,  0,  0,  0,  0,  0,  0,  0,
+126,  0, 64,  0,  0,  0, 65,  0, 66,  0, 67,  0, 68,  0, 69,  0, 70,  0, 71,  0, 72,  0, 73,  0, 74,  0,  0,  0, 75,  0,  0,  0,  0,  0, 76,  0,  0,112,
+125, 77,  0,124, 78,  0, 79,123,  0,122,  0,  0,  0,121, 80,  0,120,  0,  0,119,  0, 81,118,  0, 82,117, 83,  0,116, 84,  0,115, 85,114, 86,  0, 87,113,
 };
 
 // Frame of led changes
@@ -331,6 +361,15 @@ const uint8_t testani_frame2[] = {
 #define RGB_White        255,255,255
 //#define RGB_Black        0,0,0 // TODO
 #define RGB_Black        RGB_White
+
+
+const uint8_t rainbow_inter_frame0[] = {
+	Pixel_ModRGB(0, Set, RGB_Green),
+	Pixel_ModRGB(5, Set, RGB_Yellow),
+	Pixel_ModRGB(10, Set, RGB_Red),
+	Pixel_ModRGB(15, Set, RGB_Violet),
+	Pixel_ModRGB(20, Set, RGB_Blue),
+};
 
 // Rainbow Animation - Hardcoded
 const uint8_t rainbow_frame0[] = {
@@ -2412,6 +2451,12 @@ const uint8_t *testani_frames[] = {
 };
 
 
+// Rainbox (interpolation) frame index
+const uint8_t *rainbow_inter_frames[] = {
+	rainbow_inter_frame0,
+};
+
+
 // Rainbow frame index
 const uint8_t *rainbow_frames[] = {
 	rainbow_frame0,
@@ -2543,6 +2588,10 @@ void Pixel_channelToggle( uint16_t channel )
 		print( NL );
 		// Falls through on purpose
 
+	// 0bit width - ignore/blank
+	case 0:
+		break;
+
 	// 8bit width
 	case 8:
 		PixelBuf8( pixbuf, channel ) ^= 128;
@@ -2574,7 +2623,7 @@ void Pixel_pixelProcess( const uint8_t *frame, uint16_t size )
 	{
 		// Map pixel
 		PixelMod *mod = (PixelMod*)&frame[pos];
-		PixelElement *elem = &Pixel_Mapping[mod->pixel];
+		PixelElement *elem = (PixelElement*)&Pixel_Mapping[mod->pixel];
 		PixelBuf *pixbuf;
 
 		// Lookup number of channels in pixel
@@ -2591,6 +2640,8 @@ void Pixel_pixelProcess( const uint8_t *frame, uint16_t size )
 			case PixelChange_Set: // =
 				// Determine which buffer we are in
 				pixbuf = Pixel_bufferMap( ch_pos );
+
+				// TODO Dynamically? determine which PixelBuf function to use
 				PixelBuf16( pixbuf, ch_pos ) = mod->data[ch];
 				break;
 
@@ -2604,6 +2655,72 @@ void Pixel_pixelProcess( const uint8_t *frame, uint16_t size )
 		// TODO account for non-8bit widths
 		pos += channels;
 	}
+}
+
+// TODO Support non-8bit channels
+inline uint8_t Pixel_8bitInterpolation( uint8_t start, uint8_t end, uint8_t dist )
+{
+	return (start * (256 - dist) + end * dist) >> 8;
+}
+
+void Pixel_pixelInterpolate( PixelElement *elem, uint8_t position, uint8_t intensity )
+{
+	// Toggle each of the channels of the pixel
+
+	for ( uint8_t ch = 0; ch < elem->channels; ch++ )
+	{
+		uint16_t ch_pos = elem->indices[ch];
+		PixelBuf *pixbuf = Pixel_bufferMap( ch_pos );
+		PixelBuf16( pixbuf, ch_pos ) = Pixel_8bitInterpolation( 0, intensity, position * (ch + 1) );
+	}
+}
+
+void Pixel_columnFill()
+{
+}
+
+
+// TODO Direction, starting position, value or function
+uint8_t fill_counter = 0;
+void Pixel_fill( uint16_t position )
+{
+	// Column fill
+	fill_counter += position;
+	for ( uint8_t row = 0; row < Pixel_DisplayMapping_Rows; row++ )
+	{
+		// Lookup Pixel
+		uint8_t px = Pixel_DisplayMapping[ row * Pixel_DisplayMapping_Cols + position ];
+
+		// Skip if 0, then subtract one to get the actual index
+		if ( px-- == 0 )
+		{
+			continue;
+		}
+
+		// Toggle pixel
+		//Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ px ] );
+
+		// Interpolate Pixel
+		Pixel_pixelInterpolate( (PixelElement*)&Pixel_Mapping[ px ], fill_counter, (row + 1) * 50 );
+	}
+
+	// Row fill
+	/*
+	for ( uint8_t col = 0; col < Pixel_DisplayMapping_Cols; col++ )
+	{
+		// Lookup Pixel
+		uint8_t px = Pixel_DisplayMapping[ position * Pixel_DisplayMapping_Cols + col ];
+
+		// Skip if 0, then subtract one to get the actual index
+		if ( px-- == 0 )
+		{
+			continue;
+		}
+
+		// Toggle pixel
+		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ px ] );
+	}
+	*/
 }
 
 // Pixel Procesing Loop
@@ -2655,10 +2772,10 @@ inline void Pixel_process()
 
 	// Toggle current position, then increment
 	case PixelTest_Pixel_Roll:
-		// Toggle channel
-		Pixel_pixelToggle( &Pixel_Mapping[ Pixel_testPos ] );
+		// Toggle pixel
+		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ Pixel_testPos ] );
 
-		// Increment channel
+		// Increment pixel
 		Pixel_testPos++;
 		if ( Pixel_testPos >= Pixel_TotalPixels )
 			Pixel_testPos = 0;
@@ -2673,8 +2790,8 @@ inline void Pixel_process()
 		// Only update 10 positions at a time
 		for ( px = Pixel_testPos; px < Pixel_testPos + 50 && px < Pixel_TotalPixels; px++ )
 		{
-			// Toggle channel
-			Pixel_pixelToggle( &Pixel_Mapping[ px ] );
+			// Toggle pixel
+			Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ px ] );
 		}
 
 		Pixel_testPos = px;
@@ -2689,6 +2806,19 @@ inline void Pixel_process()
 		return;
 	}
 	case PixelTest_Pixel_Test:
+	{
+		/* Fill demo */
+		/*
+		Pixel_fill( Pixel_testPos );
+
+		// Increment pixel
+		Pixel_testPos++;
+		if ( Pixel_testPos >= Pixel_DisplayMapping_Cols )
+		//if ( Pixel_testPos >= Pixel_DisplayMapping_Rows )
+			Pixel_testPos = 0;
+		*/
+
+		/* CES Rainbow demo
 		// Start from the top of the Animation Stack
 		// XXX Temp - Play rainbow
 		Pixel_pixelProcess( rainbow_frames[rainbow_pos], rainbow_framesizes[rainbow_pos] );
@@ -2699,25 +2829,12 @@ inline void Pixel_process()
 			rainbow_pos = 0;
 			goto pixel_process_done;
 		}
+		*/
+	}
 
 	default:
 		break;
 	}
-
-	/*
-	// Start from the top of the Animation Stack
-	// TODO
-
-	// XXX Temp - Play rainbow
-	Pixel_pixelProcess( rainbow_frames[rainbow_pos], rainbow_framesizes[rainbow_pos] );
-	rainbow_pos++;
-	Pixel_testMode = PixelTest_Off;
-
-	if ( rainbow_pos >= sizeof( rainbow_framesizes ) / 2 )
-	{
-		rainbow_pos = 0;
-	}
-	*/
 
 
 pixel_process_done:
@@ -2736,7 +2853,7 @@ inline void Pixel_setup()
 
 	// Disable test modes by default, start at position 0
 	Pixel_testMode = PixelTest_Pixel_Test;
-	//Pixel_testMode = PixelTest_Off;
+	//Pixel_testMode = PixelTest_Pixel_Roll;
 
 	// Clear animation stack
 	Pixel_AnimationStack.size = 0;
@@ -2866,7 +2983,7 @@ void cliFunc_pixelTest( char* args )
 	}
 
 	// Toggle channel
-	Pixel_pixelToggle( &Pixel_Mapping[ Pixel_testPos ] );
+	Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ Pixel_testPos ] );
 
 	// Increment channel
 	Pixel_testPos++;

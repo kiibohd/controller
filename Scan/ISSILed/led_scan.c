@@ -429,7 +429,8 @@ void LED_reset()
 	if ( Output_current_available() >= 150 )
 	{
 		// Disable Software shutdown of ISSI chip
-		LED_writeReg( 0x0A, 0x01, 0x0B );
+		// TODO
+		//LED_writeReg( 0x0A, 0x01, 0x0B );
 	}
 
 	// Set global brightness control
@@ -559,26 +560,24 @@ void LED_linkedSend()
 	uint8_t bus = LED_ChannelMapping[ LED_chipSend ].bus;
 
 	// Debug
-	/*
 	dbug_msg("Linked Send: chip(");
 	printHex( LED_chipSend );
 	print(") frame(");
 	printHex( LED_FrameBufferPage );
 	print(") addr(");
-	printHex( LED_pageBuffer[0].i2c_addr );
+	printHex( LED_pageBuffer[ LED_chipSend ].i2c_addr );
 	print(") reg(");
-	printHex( LED_pageBuffer[0].reg_addr );
+	printHex( LED_pageBuffer[ LED_chipSend ].reg_addr );
 	print(") len(");
 	printHex( sizeof( LED_Buffer ) / 2 );
-	print(") data[]" NL "(");
+	print(") data[]" "(");
 	for ( uint8_t c = 0; c < 9; c++ )
 	//for ( uint8_t c = 0; c < sizeof( LED_Buffer ) / 2 - 2; c++ )
 	{
-		printHex( LED_pageBuffer[0].buffer[c] );
+		printHex( LED_pageBuffer[ LED_chipSend ].buffer[c] );
 		print(" ");
 	}
 	print(")" NL);
-	*/
 
 	// Send, and recursively call this function when finished
 	while ( i2c_send_sequence(
@@ -703,12 +702,14 @@ inline void LED_scan()
 		if ( LED_currentEvent < 150 )
 		{
 			// Enable Software shutdown of ISSI chip
-			LED_writeReg( 0x0A, 0x00, 0x0B );
+			// TODO
+			//LED_writeReg( 0x0A, 0x00, 0x0B );
 		}
 		else
 		{
 			// Disable Software shutdown of ISSI chip
-			LED_writeReg( 0x0A, 0x01, 0x0B );
+			// TODO
+			//LED_writeReg( 0x0A, 0x01, 0x0B );
 		}
 
 		LED_currentEvent = 0;

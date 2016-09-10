@@ -128,7 +128,7 @@ ISSI_Chips = 4; # 2 by default
 ISSI_I2C_Buses = 2; # 1 by default
 
 # Default animation speed
-ISSI_AnimationSpeed = 6; # 20 by default
+ISSI_AnimationSpeed = 2; # 20 by default
 
 # LED Default Enable Mask
 #
