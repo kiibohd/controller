@@ -24,6 +24,10 @@ if( CTAGS_EXECUTABLE )
 	if( ctags_version MATCHES "^Exuberant Ctags [0-9]" )
 		string( REPLACE "Exuberant Ctags " "" CTAGS_VERSION_STRING "${ctags_version}" )
 		string( REGEX REPLACE ",.*$" "" CTAGS_VERSION_STRING ${CTAGS_VERSION_STRING} )
+	else ()
+		# The xcode version of ctags is broken and useless
+		message( "Invalid version of ctags found. Ignoring...")
+		unset( CTAGS_EXECUTABLE )
 	endif()
 
 	unset( ctags_version )

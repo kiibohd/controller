@@ -22,5 +22,5 @@ SUBSYSTEMS=="usb", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="b007", MODE:="066
 
 # Kiibohd Force Gauge
 SUBSYSTEM=="tty", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="f05c", MODE:="0666", SYMLINK+="force"
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="f05c", MODE:="0666"
+SUBSYSTEM=="usb", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="f05c", MODE:="0666"
 

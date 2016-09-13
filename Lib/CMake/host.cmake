@@ -27,6 +27,13 @@ endif ()
 
 
 ###
+# OS Specific Configuration
+#
+set( CMAKE_MACOSX_RPATH 1 )
+
+
+
+###
 # System Compiler Defines and Linker Options
 #
 

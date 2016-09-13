@@ -44,7 +44,8 @@ PartialMaps[2]="colemak"
 
 # Keyboard Module Configuration
 ScanModule="TestIn"
-MacroModule="PartialMap"
+#MacroModule="PartialMap"
+MacroModule="PixelMap"
 OutputModule="TestOut"
 DebugModule="full"
 

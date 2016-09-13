@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller KLL Configurator |###
 #
-# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2016 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -48,7 +48,7 @@ endif () # kll/kll.py exists
 
 #| Add each of the detected capabilities.kll
 foreach ( filename ${ScanModule_KLL} ${MacroModule_KLL} ${OutputModule_KLL} ${DebugModule_KLL} )
-	set ( BaseMap_Args ${BaseMap_Args} ${filename} )
+	set ( Config_Args ${Config_Args} ${filename} )
 	set ( KLL_DEPENDS ${KLL_DEPENDS} ${filename} )
 endforeach ()
 
@@ -76,8 +76,6 @@ endforeach ()
 
 #| Configure DefaultMap if specified
 if ( NOT "${DefaultMap}" STREQUAL "" )
-	set ( DefaultMap_Args -d )
-
 	string ( REPLACE " " ";" MAP_LIST ${DefaultMap} ) # Change spaces to semicolons
 	foreach ( MAP ${MAP_LIST} )
 		# Check if kll file is in build directory, otherwise default to layout directory
@@ -97,7 +95,7 @@ endif ()
 if ( NOT "${PartialMaps}" STREQUAL "" )
 	# For each partial layer
 	foreach ( MAP ${PartialMaps} )
-		set ( PartialMap_Args ${PartialMap_Args} -p )
+		set ( PartialMap_Args ${PartialMap_Args} --partial )
 
 		# Combine each layer
 		string ( REPLACE " " ";" MAP_LIST ${MAP} ) # Change spaces to semicolons
@@ -130,14 +128,56 @@ endforeach ()
 #
 
 #| KLL Options
-set ( kll_backend   --backend kiibohd )
-set ( kll_template  --templates ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdKeymap.h ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdDefs.h )
-set ( kll_outputname generatedKeymap.h kll_defs.h )
-set ( kll_output    --outputs ${kll_outputname} )
+set ( kll_emitter    kiibohd )
+set ( kll_keymap     generatedKeymap.h )
+set ( kll_defs       kll_defs.h )
+set ( kll_pixelmap   generatedPixelmap.c )
+set ( kll_outputname ${kll_keymap} ${kll_defs} ${kll_pixelmap} )
+
+#| KLL Old Version
+set ( kll_old_version_cmd
+	${PROJECT_SOURCE_DIR}/kll/kll.py
+	--version
+)
+
+#| KLL Version
+set ( kll_version_cmd
+	${PROJECT_SOURCE_DIR}/kll/kll
+	--version
+)
+
+#| KLL Old Cmd
+set ( kll_old_cmd
+	${PROJECT_SOURCE_DIR}/kll/kll.py
+	${Config_Args} ${BaseMap_Args}
+	--default ${DefaultMap_Args}
+	${PartialMap_Args}
+	--backend ${kll_emitter}
+	--templates ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdKeymap.h ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdDefs.h
+	--outputs ${kll_keymap} ${kll_defs}
+)
 
 #| KLL Cmd
-set ( kll_cmd ${PROJECT_SOURCE_DIR}/kll/kll.py ${BaseMap_Args} ${DefaultMap_Args} ${PartialMap_Args} ${kll_backend} ${kll_template} ${kll_output} )
-add_custom_command ( OUTPUT ${kll_outputname}
+set ( kll_cmd
+	${PROJECT_SOURCE_DIR}/kll/kll
+	--config ${Config_Args}
+	--base ${BaseMap_Args}
+	--default ${DefaultMap_Args}
+	${PartialMap_Args}
+	--emitter ${kll_emitter}
+	--def-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdDefs.h
+	--map-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdKeymap.h
+	--pixel-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdPixelmap.c
+	--def-output ${kll_defs}.new.h
+	--map-output ${kll_keymap}.new.h
+	--pixel-output ${kll_pixelmap}
+	#--data-finalization-display
+)
+
+add_custom_command ( OUTPUT ${kll_outputname} ${kll_defs}.new.h ${kll_keymap}.new.h
+	COMMAND ${kll_old_version_cmd}
+	COMMAND ${kll_old_cmd}
+	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd}
 	DEPENDS ${KLL_DEPENDS}
 	COMMENT "Generating KLL Layout"
@@ -145,6 +185,9 @@ add_custom_command ( OUTPUT ${kll_outputname}
 
 #| KLL Regen Convenience Target
 add_custom_target ( kll_regen
+	COMMAND ${kll_old_version_cmd}
+	COMMAND ${kll_old_cmd}
+	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd}
 	COMMENT "Re-generating KLL Layout"
 )

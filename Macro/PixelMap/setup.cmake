@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Macro Module |###
 #
-# Written by Jacob Alexander in 2015 for the Kiibohd Controller
+# Written by Jacob Alexander in 2016 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -19,6 +19,7 @@ AddModule ( Macro PartialMap )
 #
 set ( Module_SRCS
 	pixel.c
+	${CMAKE_BINARY_DIR}/generatedPixelmap.c
 )
 
 
@@ -27,5 +28,6 @@ set ( Module_SRCS
 #
 set ( ModuleCompatibility
 	arm
+	host
 )
 
