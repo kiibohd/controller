@@ -23,6 +23,16 @@
 
 
 
+// ----- Defines -----
+
+// TODO - Generate as part of kll_defs.h
+#define Pixel_BuffersLen 4
+#define Pixel_TotalChannels 576
+#define Pixel_TotalPixels 128
+#define Pixel_DisplayMapping_Cols 38
+#define Pixel_DisplayMapping_Rows 6
+
+
 // ----- Enums -----
 
 typedef enum FrameState {
@@ -117,6 +127,11 @@ typedef struct AnimationStack {
 // ----- Variables -----
 
 extern FrameState Pixel_FrameState;
+
+extern       PixelBuf     Pixel_Buffers[];
+extern const PixelElement Pixel_Mapping[];
+extern const uint8_t      Pixel_DisplayMapping[];
+extern       uint16_t     rainbow_pos; // TODO REMOVEME
 
 
 
