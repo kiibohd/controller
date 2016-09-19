@@ -133,10 +133,12 @@ int Host_set_fundamentaltick()
 
 int Host_callback_test()
 {
-	//printHex32( systick_millis_count );
-	print("YAY!");
-	print("BOO!");
-	print("MEH!");
+	print("Test 1 ");
+	print("Test 2 ");
+	print( NL );
+	print("Systick Millisecond: ");
+	printHex32( systick_millis_count );
+	print( NL );
 	return 9;
 }
 

@@ -710,7 +710,7 @@ inline unsigned int Output_availablechar()
 inline int Output_getchar()
 {
 #if enableVirtualSerialPort_define == 1
-	return Output_callback( "serial_getchar", "" );
+	return Output_callback( "serial_read", "" );
 #else
 	return 0;
 #endif
@@ -722,7 +722,7 @@ inline int Output_putchar( char c )
 {
 #if enableVirtualSerialPort_define == 1
 	char out[2] = { c, '\0' };
-	return Output_callback( "serial_putchar", out );
+	return Output_callback( "serial_write", out );
 #else
 	return 0;
 #endif

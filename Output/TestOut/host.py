@@ -20,7 +20,6 @@ Host-Side Python Commands for TestOut Output Module
 
 ### Imports ###
 
-import argparse
 import os
 import sys
 
@@ -34,6 +33,14 @@ ERROR = '\033[5;1;31mERROR\033[0m:'
 WARNING = '\033[5;1;33mWARNING\033[0m:'
 
 
+
+### Variables ###
+
+debug = False
+control = None
+
+
+
 ### Classes ###
 
 class Commands:
@@ -41,91 +48,88 @@ class Commands:
 	Container class of commands available to controll the host-side KLL implementation
 	'''
 
-	def mapping( self ):
-		'''
-		Returns a dictionary of the function:command mappings
-		'''
-		pass
-
 
 class Callbacks:
 	'''
 	Container class of commands required byt the host-side KLL implementation
 	'''
 
-	def mapping( self ):
-		'''
-		Returns a dictionary of the function:command mappings
-		'''
-		pass
-
-	def device_reload( self ):
+	def device_reload( self, args ):
 		'''
 		TODO
 		'''
 		pass
 
-	def keyboard_send( self ):
+	def keyboard_send( self, args ):
 		'''
 		TODO
 		'''
 		pass
 
-	def mouse_send( self ):
+	def mouse_send( self, args ):
 		'''
 		TODO
 		'''
 		pass
 
-	def rawio_available( self ):
+	def rawio_available( self, args ):
 		'''
 		TODO
 		'''
 		pass
 
-	def rawio_rx( self ):
+	def rawio_rx( self, args ):
 		'''
 		TODO
 		'''
 		pass
 
-	def rawio_tx( self ):
+	def rawio_tx( self, args ):
 		'''
 		TODO
 		'''
 		pass
 
-	def reset( self ):
+	def reset( self, args ):
 		'''
 		TODO
 		'''
 		pass
 
-	def serial_available( self ):
+	def serial_available( self, args ):
 		'''
-		TODO
+		Return number of characters available to read from the serial buffer
 		'''
-		pass
+		total = len( control.serial_buf )
+		if debug:
+			print("serial_available:", total )
+		return total
 
-	def serial_putchar( self ):
-		'''
-		TODO
-		'''
-		pass
-
-	def serial_read( self ):
+	def serial_read( self, args ):
 		'''
 		Query virtual serial interface for characters
+
+		Only returns a single character.
+		Yes, this isn't efficient, however it's necessary to copy the microcontroller behaviour
+		(memory and buffer size constraints)
 		'''
-		# TODO
-		pass
+		character = control.serial_buf[0].encode("ascii", "ignore")
+		control.serial_buf = control.serial_buf[1:]
+		conv_char = ord( character )
+		if debug:
+			print("serial_read:", character, conv_char )
+		return conv_char
 
 	def serial_write( self, output ):
 		'''
 		Output to screen and to virtual serial interface if it exists
 		'''
-		# TODO virtual serial interface
-		print( output.decode('utf-8') )
+		print( output, end='' )
+
+		# If serial is enabled, duplicate output to stdout and serial interface
+		# Must re-encode back to bytes from utf-8
+		if control.serial is not None and len( output ) > 0:
+			os.write( control.serial, output.encode("ascii", "ignore") )
 
 
 

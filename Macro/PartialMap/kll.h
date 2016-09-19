@@ -73,7 +73,7 @@ typedef uint32_t nat_ptr_t;
 #elif defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
 typedef uint16_t nat_ptr_t;
 #else
-typedef unsigned int nat_ptr_t;
+typedef uintptr_t nat_ptr_t;
 #endif
 
 

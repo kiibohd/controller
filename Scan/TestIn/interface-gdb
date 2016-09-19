@@ -1,0 +1,6 @@
+#!/bin/bash
+# Convenience setup for gdb
+# Jacob Alexander 2016
+
+gdb -ex r --args python3 interface ${@}
+

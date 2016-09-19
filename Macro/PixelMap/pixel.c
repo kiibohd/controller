@@ -112,8 +112,11 @@ void Rainbow_Toggle_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 
 		Pixel_testPos = 0;
 		// TODO use better function
+		// TODO FIXME
+		/*
 		extern void cliFunc_ledReset( char* args );
 		cliFunc_ledReset( 0 );
+		*/
 	}
 	else
 	{
@@ -230,7 +233,7 @@ void Pixel_pixelProcess( const uint8_t *frame, uint16_t size )
 }
 
 // TODO Support non-8bit channels
-inline uint8_t Pixel_8bitInterpolation( uint8_t start, uint8_t end, uint8_t dist )
+uint8_t Pixel_8bitInterpolation( uint8_t start, uint8_t end, uint8_t dist )
 {
 	return (start * (256 - dist) + end * dist) >> 8;
 }

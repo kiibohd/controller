@@ -56,6 +56,13 @@ CLIDict_Def( scanCLIDict, "Scan Module Commands" ) = {
 // Number of scans since the last USB send
 uint16_t Scan_scanCount = 0;
 
+// TODO Better name, dynamically size
+typedef struct LED_Buffer {
+	uint16_t i2c_addr;
+	uint16_t reg_addr;
+	uint16_t buffer[144];
+} LED_Buffer;
+volatile LED_Buffer LED_pageBuffer[4];
 
 
 // ----- Functions -----

@@ -20,8 +20,6 @@ Host-Side Python Commands for TestIn Scan Module
 
 ### Imports ###
 
-import argparse
-import os
 import sys
 
 
@@ -34,19 +32,20 @@ ERROR = '\033[5;1;31mERROR\033[0m:'
 WARNING = '\033[5;1;33mWARNING\033[0m:'
 
 
+
+### Variables ###
+
+debug = False
+control = None
+
+
+
 ### Classes ###
 
 class Commands:
 	'''
 	Container class of commands available to controll the host-side KLL implementation
 	'''
-
-	def mapping( self ):
-		'''
-		Returns a dictionary of the function:command mappings
-		'''
-		pass
-
 
 	def addScanCode( self, scan_code ):
 		'''
@@ -65,12 +64,6 @@ class Callbacks:
 	'''
 	Container class of commands required byt the host-side KLL implementation
 	'''
-
-	def mapping( self ):
-		'''
-		Returns a dictionary of the function:command mappings
-		'''
-		pass
 
 
 
