@@ -32,6 +32,12 @@ set ( ModuleCompatibility
 ###
 # Configure host side Python scripts
 #
-configure_file ( Scan/TestIn/interface.py  interface     NEWLINE_STYLE UNIX )
-configure_file ( Scan/TestIn/interface-gdb interface-gdb NEWLINE_STYLE UNIX @ONLY )
+configure_file ( Scan/TestIn/interface.py interface.py NEWLINE_STYLE UNIX )
+configure_file ( Scan/TestIn/gdb          gdb          COPYONLY )
+
+
+###
+# Test cases
+#
+configure_file ( Scan/TestIn/test.py test.py COPYONLY )
 

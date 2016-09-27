@@ -77,12 +77,12 @@ set( WARN "-Wall -ggdb3" )
 #| Clang Compiler
 if ( "${COMPILER}" MATCHES "clang" )
 	# TODO
-	set ( TUNING "-nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
+	set ( TUNING "-nostdlib -fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
 
 #| GCC Compiler
 else()
 	# TODO
-	set( TUNING "-nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
+	set( TUNING "-nostdlib -fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
 endif()
 
 

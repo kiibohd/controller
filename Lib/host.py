@@ -31,8 +31,6 @@ import termios
 
 from ctypes import CFUNCTYPE, c_int, c_char_p
 
-import serial
-
 
 
 ### Decorators ###
@@ -63,6 +61,21 @@ callback_ptrs = []
 
 
 ### Classes ###
+
+class Data:
+	'''
+	Generic class used to hold data retrieved from libkiibohd callbacks
+	'''
+	def __init__( self ):
+		self.usb_keyboard_data = None
+
+	def usb_keyboard( self ):
+		'''
+		Returns a tuple of USB Keyboard output
+		'''
+		if self.usb_keyboard_data is not None:
+			return self.usb_keyboard_data.protocol, self.usb_keyboard_data.codes(), self.usb_keyboard_data.consumer_ctrl, self.usb_keyboard_data.system_ctrl
+		return None
 
 class Control:
 	'''
@@ -100,6 +113,12 @@ class Control:
 		output = importlib.util.module_from_spec( spec )
 		spec.loader.exec_module( output )
 
+		# Container for any libkiibohd callback data storage
+		global data
+		self.data = Data()
+		scan.data = self.data
+		output.data = self.data
+
 		# Build command and callback dictionaries
 		self.build_command_list()
 		self.build_callback_list()
@@ -116,6 +135,7 @@ class Control:
 			print( "{0} Could not open -> {1}".format( ERROR, libkiibohd_path ) )
 			print( err )
 			sys.exit( 1 )
+		self.kiibohd = kiibohd
 
 		# Register Callback
 		self.callback_setup()
@@ -146,7 +166,7 @@ class Control:
 		'''
 		self.CTYPE_callback = CFUNCTYPE( c_int, c_char_p, c_char_p )
 		try:
-			self.CTYPE_callback_ref = kiibohd.Host_register_callback( self.CTYPE_callback( callback ) )
+			refresh_callback()
 		except Exception as err:
 			print( "{0} Could not register libkiibohd callback function".format( ERROR ) )
 			print( err )
@@ -199,7 +219,7 @@ class Control:
 		# Run test if requested, then exit
 		if args.test:
 			print("libkiibohd.so - Callback Test")
-			val = kiibohd.Host_callback_test()
+			val = self.kiibohd.Host_callback_test()
 			print("Return Value:", val )
 			sys.exit( 0 )
 
@@ -210,8 +230,54 @@ class Control:
 		Run main commands
 		'''
 		# Initialize kiibohd
-		kiibohd.Host_init()
+		print(">Host_init")
+		self.kiibohd.Host_init()
+		print("")
 
+		# Run cli if enabled
+		self.virtual_serialport_process()
+
+	def loop( self, number_of_loops=1 ):
+		'''
+		Run Host-side KLL main processing loop N number of times
+
+		@param number_of_loops: Number of times to run main loop
+		'''
+		loop = 0
+		while loop < number_of_loops:
+			# Refresh callback interface
+			refresh_callback()
+
+			print( ">Host_process ({0})".format( loop ) )
+			self.kiibohd.Host_process()
+			loop += 1
+
+	def cmd( self, command_name ):
+		'''
+		Run given command from Host-side KLL
+
+		Does a lookup of both Scan and Output module commands
+
+		@param command_name: String of command
+		@return: Function
+		'''
+		# Refresh callback interface
+		refresh_callback()
+
+		return self.command_dict[ command_name ]
+
+	def cli( self ):
+		'''
+		Setup and process cli commands
+		Convenience function for test cases
+		'''
+		self.virtual_serialport_setup()
+		self.virtual_serialport_process()
+
+	def virtual_serialport_process( self ):
+		'''
+		Process virtual serial port commands
+		'''
 		# Run cli loop if available
 		while self.serial is not None:
 			value = os.read( self.serial_master, 1 ).decode('utf-8')
@@ -223,7 +289,14 @@ class Control:
 				sys.stdout.flush()
 
 			# Check if any cli commands need to be processed
-			kiibohd.Host_cli_process()
+			ret = self.kiibohd.Host_cli_process()
+
+			# If non-zero return, break out of processing loop
+			if ret != 0:
+				# Cleanup virtual serialport
+				os.close( self.serial_master )
+				os.close( self.serial_slave )
+				break
 
 	def virtual_serialport_setup( self ):
 		'''
@@ -256,6 +329,17 @@ def get_method_dict( obj ):
 	return output
 
 
+def refresh_callback():
+	'''
+	XXX
+	Refresh callback pointer
+	For some reason, either garbage collection, or something else, the pointer becomes stale in certain situations
+	Usually when calling different library functions
+	This just refreshes the pointer (shouldn't be necessary, but it works...) -Jacob
+	'''
+	control.CTYPE_callback_ref = kiibohd.Host_register_callback( control.CTYPE_callback( callback ) )
+
+
 def callback( command, args ):
 	'''
 	libkiibohd callback function
@@ -268,12 +352,8 @@ def callback( command, args ):
 	# Must convert byte string to utf-8 first
 	ret = control.callback_dict[ command.decode('utf-8') ]( args.decode('utf-8') )
 
-	# XXX
-	# Refresh callback pointer
-	# For some reason, either garbage collection, or something else, the pointer becomes stale in certain situations
-	# Usually when calling different library functions
-	# This just refreshes the pointer (shouldn't be necessary, but it works...) -Jacob
-	control.CTYPE_callback_ref = kiibohd.Host_register_callback( control.CTYPE_callback( callback ) )
+	# Refresh callback interface
+	refresh_callback()
 
 	# If returning None (default), change out to 1, C default
 	return ret is None and 1 or ret

@@ -90,9 +90,7 @@ int Host_init()
 int Host_cli_process()
 {
 	// Process CLI
-	CLI_process();
-
-	return 1;
+	return CLI_process();
 }
 
 int Host_process()
@@ -110,6 +108,7 @@ int Host_process()
 	return 1;
 }
 
+// Register callback for system calls
 int Host_register_callback( void* func )
 {
 	Output_Host_Callback = func;
@@ -118,19 +117,21 @@ int Host_register_callback( void* func )
 
 // Change the value of systick (milliseconds)
 volatile uint32_t systick_millis_count;
-int Host_set_systick()
+int Host_set_systick( uint32_t systick_ms )
 {
-	// TODO
+	systick_millis_count = systick_ms;
 	return 1;
 }
 
-// Change the fundamental tick (nanoseconds?)
-int Host_set_fundamentaltick()
+// Change the nanosecs since last systick
+volatile uint32_t ns_since_systick_count;
+int Host_set_nanosecs_since_systick( uint32_t systick_ns )
 {
-	// TODO
+	ns_since_systick_count = systick_ns;
 	return 1;
 }
 
+// Test function to validate library
 int Host_callback_test()
 {
 	print("Test 1 ");

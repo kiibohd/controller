@@ -107,6 +107,7 @@ uint8_t  USBKeys_ModifiersCLI = 0; // Separate CLI send buffer
 // Currently pressed keys, max is defined by USB_MAX_KEY_SEND
 uint8_t  USBKeys_Keys   [USB_NKRO_BITFIELD_SIZE_KEYS];
 uint8_t  USBKeys_KeysCLI[USB_NKRO_BITFIELD_SIZE_KEYS]; // Separate CLI send buffer
+uint8_t  USBKeys_BitfieldSize = USB_NKRO_BITFIELD_SIZE_KEYS;
 
 // System Control and Consumer Control 1KRO containers
 uint8_t  USBKeys_SysCtrl;
@@ -133,10 +134,10 @@ volatile uint8_t  USBKeys_Protocol = USBProtocol_define;
 
 // Indicate if USB should send update
 // OS only needs update if there has been a change in state
-USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
+volatile USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 
 // Indicate if USB should send update
-USBMouseChangeState USBMouse_Changed = 0;
+volatile USBMouseChangeState USBMouse_Changed = USBMouseChangeState_None;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
@@ -743,7 +744,7 @@ inline int Output_putstr( char* str )
 // Soft Chip Reset
 inline void Output_softReset()
 {
-	Output_callback( "reset", "" );
+	Output_callback( "restart", "" );
 }
 
 

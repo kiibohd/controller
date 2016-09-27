@@ -73,6 +73,7 @@ typedef enum USBMouseChangeState {
 // XXX Even if the output module is not USB, this is internally understood keymapping scheme
 extern          uint8_t  USBKeys_Modifiers;
 extern          uint8_t  USBKeys_Keys[USB_NKRO_BITFIELD_SIZE_KEYS];
+extern          uint8_t  USBKeys_BitfieldSize;
 extern          uint8_t  USBKeys_Sent;
 extern volatile uint8_t  USBKeys_LEDs;
 
@@ -90,8 +91,8 @@ extern          uint8_t  USBKeys_Idle_Config;
 extern          uint32_t USBKeys_Idle_Expiry;
 extern          uint8_t  USBKeys_Idle_Count; // AVR only
 
-extern USBKeyChangeState   USBKeys_Changed;
-extern USBMouseChangeState USBMouse_Changed;
+extern volatile USBKeyChangeState   USBKeys_Changed;
+extern volatile USBMouseChangeState USBMouse_Changed;
 
 extern volatile uint8_t  Output_Available; // 0 - Output module not fully functional, 1 - Output module working
 

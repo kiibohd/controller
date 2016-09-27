@@ -35,6 +35,7 @@ WARNING = '\033[5;1;33mWARNING\033[0m:'
 
 ### Variables ###
 
+data = None
 debug = False
 control = None
 
@@ -50,14 +51,23 @@ class Commands:
 	def addScanCode( self, scan_code ):
 		'''
 		Adds a Scan Code to the internal KLL buffer
+
+		Returns 1 if added, 0 if the ScanCode is already in the buffer
+		Returns 2 if there's an error
+		Generally 1 will be the return
 		'''
-		pass
+		return control.kiibohd.Scan_addScanCode( int( scan_code ) )
 
 	def removeScanCode( self, scan_code ):
 		'''
 		Removes a Scan Code from the internal KLL buffer
 		Ignored if the Scan Code was not in the buffer
+
+		Returns 1 if added, 0 if the ScanCode is already in the buffer
+		Returns 2 if there's an error
+		Generally 0 will be the return
 		'''
+		return control.kiibohd.Scan_removeScanCode( int( scan_code ) )
 
 
 class Callbacks:

@@ -107,7 +107,7 @@ uint8_t CLIHexDebugMode;
 // ----- Functions and Corresponding Function Aliases -----
 
 void CLI_init();
-void CLI_process();
+int CLI_process();
 void CLI_registerDictionary( const CLIDictItem *cmdDict, const char* dictName );
 void CLI_argumentIsolation( char* string, char** first, char** second );
 
@@ -118,11 +118,9 @@ void CLI_saveHistory( char *buff );
 void CLI_retreiveHistory( int index );
 
 // CLI Command Functions
-void cliFunc_arch    ( char* args );
-void cliFunc_chip    ( char* args );
 void cliFunc_clear   ( char* args );
 void cliFunc_cliDebug( char* args );
-void cliFunc_device  ( char* args );
+void cliFunc_exit    ( char* args );
 void cliFunc_help    ( char* args );
 void cliFunc_led     ( char* args );
 void cliFunc_reload  ( char* args );

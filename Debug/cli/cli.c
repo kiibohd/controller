@@ -33,8 +33,11 @@
 // ----- Variables -----
 
 // Basic command dictionary
-CLIDict_Entry( clear, "Clear the screen.");
+CLIDict_Entry( clear,    "Clear the screen.");
 CLIDict_Entry( cliDebug, "Enables/Disables hex output of the most recent cli input." );
+#if defined(_host_)
+CLIDict_Entry( exit,     "Host KLL Only - Exits cli." );
+#endif
 CLIDict_Entry( help,     "You're looking at it :P" );
 CLIDict_Entry( led,      "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules..." );
 CLIDict_Entry( reload,   "Signals microcontroller to reflash/reload." );
@@ -46,6 +49,9 @@ CLIDict_Entry( version,  "Version information about this firmware." );
 CLIDict_Def( basicCLIDict, "General Commands" ) = {
 	CLIDict_Item( clear ),
 	CLIDict_Item( cliDebug ),
+#if defined(_host_)
+	CLIDict_Item( exit ),
+#endif
 	CLIDict_Item( help ),
 	CLIDict_Item( led ),
 	CLIDict_Item( reload ),
@@ -55,6 +61,10 @@ CLIDict_Def( basicCLIDict, "General Commands" ) = {
 	CLIDict_Item( version ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
+
+#if defined(_host_)
+int CLI_exit = 0; // When 1, cli signals library to exit (Host-side KLL only)
+#endif
 
 
 
@@ -90,10 +100,15 @@ inline void CLI_init()
 
 	// Hex debug mode is off by default
 	CLIHexDebugMode = 0;
+
+#if defined(_host_)
+	// Make sure we're not exiting right away in Host-side KLL mode
+	CLI_exit = 0;
+#endif
 }
 
 // Query the serial input buffer for any new characters
-void CLI_process()
+int CLI_process()
 {
 	// Current buffer position
 	uint8_t prev_buf_pos = CLILineBufferCurrent;
@@ -120,7 +135,7 @@ void CLI_process()
 			// Reset the prompt
 			prompt();
 
-			return;
+			return 0;
 		}
 
 		// Place into line buffer
@@ -189,9 +204,18 @@ void CLI_process()
 			print( NL );
 			prompt();
 
+			// Check if we need to exit right away
+#if defined(_host_)
+			if ( CLI_exit )
+			{
+				CLI_exit = 0;
+				return 1;
+			}
+#endif
+
 			// XXX There is a potential bug here when resetting the buffer (losing valid keypresses)
 			//     Doesn't look like it will happen *that* often, so not handling it for now -HaaTa
-			return;
+			return 0;
 
 		case 0x09: // Tab
 			// Tab completion for the current command
@@ -201,7 +225,7 @@ void CLI_process()
 
 			// XXX There is a potential bug here when resetting the buffer (losing valid keypresses)
 			//     Doesn't look like it will happen *that* often, so not handling it for now -HaaTa
-			return;
+			return 0;
 
 		case 0x1B: // Esc / Escape codes
 			// Check for other escape sequence
@@ -235,7 +259,7 @@ void CLI_process()
 					CLI_retreiveHistory( CLIHistoryCurrent );
 				}
 			}
-			return;
+			return 0;
 
 		case 0x08:
 		case 0x7F: // Backspace
@@ -267,6 +291,8 @@ void CLI_process()
 			break;
 		}
 	}
+
+	return 0;
 }
 
 // Takes a string, returns two pointers
@@ -484,6 +510,13 @@ void cliFunc_cliDebug( char* args )
 	}
 }
 
+#if defined(_host_)
+void cliFunc_exit( char* args )
+{
+	CLI_exit = 1;
+}
+#endif
+
 void cliFunc_help( char* args )
 {
 	// Scan array of dictionaries and print every description
@@ -549,6 +582,9 @@ void cliFunc_tick( char* args )
 #if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 	extern volatile uint32_t systick_millis_count;
 	uint32_t ms_count = systick_millis_count;
+#elif defined(_host_)
+	extern volatile uint32_t systick_millis_count;
+	uint32_t ms_count = systick_millis_count;
 #else
 	// TODO
 	uint32_t ms_count = 0;
@@ -560,6 +596,8 @@ void cliFunc_tick( char* args )
 	print("13.889 ns");
 #elif F_CPU == 48000000
 	print("20.833 ns");
+#elif defined(_host_)
+	print("<USERDEFINED>");
 #else
 	print("<UNSET>");
 #endif
@@ -569,6 +607,9 @@ void cliFunc_tick( char* args )
 	print(":");
 #if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 	printInt32( ARM_DWT_CYCCNT );
+#elif defined(_host_)
+	extern volatile uint32_t ns_since_systick_count;
+	printInt32( ns_since_systick_count );
 #endif
 	print( NL );
 }
