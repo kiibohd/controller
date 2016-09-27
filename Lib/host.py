@@ -22,7 +22,6 @@ Host-Side Setup Routines for KLL
 
 import argparse
 import ctypes
-import importlib
 import inspect
 import os
 import pty
@@ -81,7 +80,7 @@ class Control:
 	'''
 	Handles general control of the libkiibohd host setup
 	'''
-	def __init__( self, scan_module, output_module, libkiibohd_path ):
+	def __init__( self, scan_module, output_module, libkiibohd_path, CustomLoader ):
 		'''
 		Initializes control object
 
@@ -105,13 +104,8 @@ class Control:
 		# Import Scan and Output modules
 		global scan
 		global output
-		spec = importlib.util.spec_from_file_location( "Scan", self.scan_module )
-		scan = importlib.util.module_from_spec( spec )
-		spec.loader.exec_module( scan )
-
-		spec = importlib.util.spec_from_file_location( "Output", self.output_module )
-		output = importlib.util.module_from_spec( spec )
-		spec.loader.exec_module( output )
+		scan = CustomLoader( "Scan", scan_module ).load_module("Scan")
+		output = CustomLoader( "Output", output_module ).load_module("Output")
 
 		# Container for any libkiibohd callback data storage
 		global data
@@ -144,21 +138,17 @@ class Control:
 		'''
 		Builds dictionary of commands that can be called
 		'''
-		# Merges both dictionaries together (Python 3.5+)
-		self.command_dict = {
-			**get_method_dict( scan.Commands() ),
-			**get_method_dict( output.Commands() ),
-		}
+		# Compatible dictionary merge
+		self.command_dict = get_method_dict( scan.Commands() ).copy()
+		self.command_dict.update( get_method_dict( output.Commands() ) )
 
 	def build_callback_list( self ):
 		'''
 		Builds dictionary of callbacks that libkiibohd.so may call
 		'''
-		# Merges both dictionaries together (Python 3.5+)
-		self.callback_dict = {
-			**get_method_dict( scan.Callbacks() ),
-			**get_method_dict( output.Callbacks() ),
-		}
+		# Compatible dictionary merge
+		self.callback_dict = get_method_dict( scan.Callbacks() ).copy()
+		self.callback_dict.update( get_method_dict( output.Callbacks() ) )
 
 	def callback_setup( self ):
 		'''

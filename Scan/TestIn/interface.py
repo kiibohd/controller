@@ -20,7 +20,10 @@ Host-Side Setup Routines for KLL
 
 ### Imports ###
 
-import importlib.util
+import ast
+import io
+
+from importlib.abc import SourceLoader
 
 
 
@@ -29,6 +32,40 @@ import importlib.util
 ## Print Decorator Variables
 ERROR = '\033[5;1;31mERROR\033[0m:'
 WARNING = '\033[5;1;33mWARNING\033[0m:'
+
+
+
+### Loader ###
+
+# Maintains compatibility to Python 3.2
+class FileLoader:
+	'''
+	Modified version of FileLoader from Python 3.3
+	'''
+	def __init__( self, fullname, path ):
+		self.name = fullname
+		self.path = path
+
+	def load_module( self, fullname ):
+		return super( FileLoader, self ).load_module( fullname )
+
+	def get_filename( self, fullname ):
+		return self.path
+
+	def get_data( self, path ):
+		with io.FileIO( path, 'r' ) as file:
+			return file.read()
+
+class CustomLoader( FileLoader, SourceLoader ):
+	'''
+	Compatibility Class
+	Used to work around importlib.util.module_from_spec() not being available.
+	'''
+	def get_code( self, fullname ):
+		source = self.get_source( fullname )
+		path = self.get_filename( fullname )
+		parsed = ast.parse( source )
+		return compile( parsed, path, 'exec', dont_inherit=True, optimize=0 )
 
 
 
@@ -43,12 +80,10 @@ LibModule = "@CMAKE_SOURCE_DIR@/Lib/host.py"
 libkiibohd_path = '@CMAKE_BINARY_DIR@/@CMAKE_SHARED_LIBRARY_PREFIX@kiibohd@CMAKE_SHARED_LIBRARY_SUFFIX@'
 
 # Setup Library Module
-spec = importlib.util.spec_from_file_location( "Lib", LibModule )
-lib = importlib.util.module_from_spec( spec )
-spec.loader.exec_module( lib )
+lib = CustomLoader( "Lib", LibModule ).load_module("Lib")
 
 # Initialize libkiibohd
-control = lib.Control( ScanModule, OutputModule, libkiibohd_path )
+control = lib.Control( ScanModule, OutputModule, libkiibohd_path, CustomLoader )
 control.process_args()
 control.process()
 

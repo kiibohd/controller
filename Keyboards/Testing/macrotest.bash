@@ -75,3 +75,9 @@ CMakeListsPath="../../.."
 # Load the library
 source "../cmake.bash"
 
+# Run tests
+cd "${BuildPath}"
+python3 test.py
+
+exit $?
+

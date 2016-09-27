@@ -63,7 +63,7 @@ message( "${COMPILER_SRCS}" )
 #|     c99   = ISO C99 standard (not yet fully implemented)
 #|     gnu99 = c99 plus GCC extensions
 #|     gnu11 = c11 plus GCC extensions
-set( CSTANDARD "-std=gnu11" )
+set( CSTANDARD "-std=gnu99" ) # Staying
 
 
 #| Warning Options

@@ -37,6 +37,7 @@ env:
   # Debug Build Tests
   - DIR=Keyboards/Testing SCRIPT=uartout.bash
   - DIR=Keyboards/Testing SCRIPT=usbmuxuart.bash
+  - DIR=Keyboards/Testing SCRIPT=macrotest.bash
 
   # Bootloader Build Tests
   - DIR=Bootloader/Builds SCRIPT=mk20dx128vlf5.bash
@@ -90,6 +91,7 @@ install:
 
   # Pre-clone kll.git to speed-up build
   - git clone https://github.com/kiibohd/kll.git
+  - (cd kll && git checkout dev)
 
   # Directory tree to validate kll.git
   - tree
