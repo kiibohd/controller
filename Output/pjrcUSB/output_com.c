@@ -43,6 +43,8 @@
 // KLL
 #include <kll_defs.h>
 
+#include <kll.h>
+
 // Local Includes
 #include "output_com.h"
 
@@ -103,6 +105,7 @@ CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
 // 16=right ctrl, 32=right shift, 64=right alt, 128=right gui
 uint8_t  USBKeys_Modifiers    = 0;
 uint8_t  USBKeys_ModifiersCLI = 0; // Separate CLI send buffer
+uint8_t  USBKeys_ModifiersManual= 0;
 
 // Currently pressed keys, max is defined by USB_MAX_KEY_SEND
 uint8_t  USBKeys_Keys   [USB_NKRO_BITFIELD_SIZE_KEYS];
@@ -334,6 +337,8 @@ void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
+	uint8_t is_ghost_key = stateType & KEY_TYPE_GHOST;
+	stateType &= ~0xC0;
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
@@ -415,7 +420,7 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 		// Set the modifier bit if this key is a modifier
 		if ( (key & 0xE0) == 0xE0 ) // AND with 0xE0 (Left Ctrl, first modifier)
 		{
-			if ( keyPress )
+			if ( keyPress)
 			{
 				USBKeys_Modifiers |= 1 << (key ^ 0xE0); // Left shift 1 by key XOR 0xE0
 			}
@@ -423,8 +428,24 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 			{
 				USBKeys_Modifiers &= ~(1 << (key ^ 0xE0)); // Left shift 1 by key XOR 0xE0
 			}
+			if(! is_ghost_key ){
+				USBKeys_Changed |= USBKeyChangeState_Modifiers;
+				USBKeys_ModifiersManual = USBKeys_Modifiers; 
+			}else{
+				if( Output_DebugMode ){
+					dbug_msg("ghost modifier key ");
+					printHex(key);
+					print(" state=");
+					printHex(state);
+					print(NL);
+				}
+				if ( (USBKeys_ModifiersManual & USBKeys_Modifiers) == USBKeys_ModifiersManual){
+					USBKeys_Changed |= USBKeyChangeState_Modifiers;
+				}else{
+					USBKeys_Modifiers = USBKeys_ModifiersManual;
+				}
+			}
 
-			USBKeys_Changed |= USBKeyChangeState_Modifiers;
 			break;
 		}
 		// First 6 bytes

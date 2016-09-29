@@ -109,6 +109,11 @@ typedef struct ResultGuide {
 	uint8_t args; // This is used as an array pointer (but for packing purposes, must be 8 bit)
 } ResultGuide;
 
+#define KEY_TYPE_GHOST 0xC0
+
+#define KEY_TYPE_NORMAL 0x00
+#define KEY_TYPE_LED	0x01
+#define KEY_TYPE_ANALOG 0x02
 
 
 // -- Trigger Macro
@@ -119,6 +124,10 @@ typedef struct ResultGuide {
 //   * 0x01 LED State (On/Off)
 //   * 0x02 Analog (Threshold)
 //   * 0x03-0xFE Reserved
+//   * 0xCX Ghost Key 
+//   * -- 0xC0 Normal
+//   * -- 0xC1 LED State 
+//   * -- 0xC2 Analog 
 //   * 0xFF Debug State
 //
 // Key State:

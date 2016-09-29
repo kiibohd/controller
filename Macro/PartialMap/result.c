@@ -88,7 +88,7 @@ inline ResultMacroEval Macro_evalResultMacro( var_uint_t resultMacroIndex )
 		void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
 
 		// Call capability
-		capability( record->state, record->stateType, &guide->args );
+		capability( record->state, record->stateType | (comboLength > 1?KEY_TYPE_GHOST:0x00), &guide->args );
 
 		// Increment counters
 		funcCount++;
