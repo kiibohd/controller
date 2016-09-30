@@ -417,6 +417,17 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 		break;
 
 	case 1: // NKRO Mode
+		if ( keyPress && ! is_ghost_key && USBKeys_Modifiers ^ USBKeys_ModifiersManual){
+			if( Output_DebugMode){
+				dbug_msg("plain key pressed, modifiers=");
+				printHex(USBKeys_Modifiers);
+				print(" ,modifiers_manual=");
+				printHex(USBKeys_ModifiersManual);
+				print(NL);
+			}
+			USBKeys_Modifiers = USBKeys_ModifiersManual;
+			USBKeys_Changed |= USBKeyChangeState_Modifiers;
+		}
 		// Set the modifier bit if this key is a modifier
 		if ( (key & 0xE0) == 0xE0 ) // AND with 0xE0 (Left Ctrl, first modifier)
 		{
@@ -437,9 +448,12 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 					printHex(key);
 					print(" state=");
 					printHex(state);
+					printHex(USBKeys_Modifiers);
+					print("/");
+					printHex(USBKeys_ModifiersManual);
 					print(NL);
 				}
-				if ( (USBKeys_ModifiersManual & USBKeys_Modifiers) == USBKeys_ModifiersManual){
+				if ( USBKeys_Modifiers >= USBKeys_ModifiersManual){
 					USBKeys_Changed |= USBKeyChangeState_Modifiers;
 				}else{
 					USBKeys_Modifiers = USBKeys_ModifiersManual;
