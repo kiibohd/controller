@@ -111,6 +111,10 @@ set ( TARGET kiibohd_bootloader )
 #| General Settings
 cmake_minimum_required ( VERSION 2.8 )
 
+#| Compiler Version (only available after project() command)
+message( STATUS "Full Compiler:" )
+message( "${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_VERSION}" )
+
 
 
 ###
