@@ -228,6 +228,18 @@ else ()
 endif()
 
 
+#| Enable color output with Ninja
+if( CMAKE_GENERATOR STREQUAL "Ninja" )
+	## Clang Compiler
+	if ( "${COMPILER}" MATCHES "clang" )
+		set( TUNING "${TUNING} -fcolor-diagnostics" )
+	## GCC Compiler
+	else ()
+		set( TUNING "${TUNING} -fdiagnostics-color=always" )
+	endif ()
+endif ()
+
+
 #| Optimization level, can be [0, 1, 2, 3, s].
 #|     0 = turn off optimization. s = optimize for size.
 #|     (Note: 3 is not always the best optimization level.)

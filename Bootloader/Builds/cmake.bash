@@ -107,6 +107,39 @@ case "$OSTYPE" in
 esac
 
 
+# Determine which CMake Makefile Generator to use
+# If found, default to Ninja, otherwise use Make
+if [ -z "${CMAKE_GENERATOR}" ]; then
+	# First look for ninja (default), always runs a parallel build
+	if type ninja &> /dev/null; then
+		CMAKE_GENERATOR="Ninja"
+	# Then look for make
+	elif type make &> /dev/null; then
+		CMAKE_GENERATOR="Unix Makefiles"
+	# Error
+		echo "ERROR: Could not find a makefile generator"
+		echo "Supported: ninja, make"
+		exit 1
+	fi
+fi
+
+case "${CMAKE_GENERATOR}" in
+"Ninja")
+	MAKE="ninja"
+	;;
+"Unix Makefiles")
+	MAKE="make"
+	;;
+*)
+	echo "Invalid CMAKE_GENERATOR. See cmake --help"
+	exit 1
+esac
+
+# Append generator name (to support building both types on the same system)
+BuildPath="${BuildPath}.${MAKE}"
+echo "Selected Generator: ${CMAKE_GENERATOR}"
+
+
 # Prepend OSType (so not to clobber builds if using the same storage medium, i.e. dropbox)
 BuildPath="${OSTYPE}.${BuildPath}"
 echo "${BuildPath}"
@@ -123,11 +156,11 @@ if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
 		exit 1
 	fi
 	echo "Cygwin Build"
-	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" "${CMakeListsPath}" -G 'Unix Makefiles'
+	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 
 # Linux / Mac (and everything else)
 else
-	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" "${CMakeListsPath}"
+	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 	return_code=$?
 
 fi
@@ -137,7 +170,7 @@ if [ $return_code != 0 ] ; then
 	exit $return_code
 fi
 
-make
+${MAKE}
 return_code=$?
 if [ $return_code != 0 ] ; then
 	echo "Error in make. Exiting..."

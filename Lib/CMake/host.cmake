@@ -86,6 +86,18 @@ else()
 endif()
 
 
+#| Enable color output with Ninja
+if( CMAKE_GENERATOR STREQUAL "Ninja" )
+	## Clang Compiler
+	if ( "${COMPILER}" MATCHES "clang" )
+		set( TUNING "${TUNING} -fcolor-diagnostics" )
+	## GCC Compiler
+	else ()
+		set( TUNING "${TUNING} -fdiagnostics-color=always" )
+	endif ()
+endif ()
+
+
 #| Dependency Files
 #| Compiler flags to generate dependency files.
 set( GENDEPFLAGS "-MMD" )
