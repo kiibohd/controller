@@ -83,6 +83,35 @@ while (( "$#" >= "1" )); do
 done
 
 
+# Detect which OS
+case "$OSTYPE" in
+# Linux
+"linux-gnu")
+	echo "${OSTYPE}/Linux is supported."
+	echo "If you are having issues, make sure you are using a very recent version of gcc. i.e. Ubuntu might not have a recent enough version in their repos."
+	;;
+# macOS
+"darwin"*)
+	echo "${OSTYPE}/macOS is unsupported for bootloader."
+	echo "Might work, usually requires a very recent version of gcc in order to hit the space optimization requirements."
+	;;
+# Cygwin
+"cygwin")
+	echo "${OSTYPE} is unsupported for bootloader."
+	echo "Might work, usually requires a very recent version of gcc in order to hit the space optimization requirements."
+	;;
+# Others
+*)
+	echo "${OSTYPE} is unsupported for bootloader."
+	;;
+esac
+
+
+# Prepend OSType (so not to clobber builds if using the same storage medium, i.e. dropbox)
+BuildPath="${OSTYPE}.${BuildPath}"
+echo "${BuildPath}"
+
+
 # Run CMake commands
 mkdir -p "${BuildPath}"
 cd "${BuildPath}"

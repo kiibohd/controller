@@ -178,8 +178,10 @@ void init_usb_bootloader( int config )
 {
 	dfu_init( setup_read, setup_write, finish_write, &dfu_ctx );
 
+#if defined(_mk20dx256vlh7_) // Kiibohd-dfu
 	// Make sure SysTick counter is disabled
 	SYST_CSR = 0;
+#endif
 }
 
 void main()
@@ -243,13 +245,14 @@ void main()
 	// For keyboards with dual usb ports, doesn't do anything on keyboards without them
 	// If a USB connection is not detected in 2 seconds, switch to the other port to see if it's plugged in there
 	uint32_t last_ms = systick_millis_count;
+	uint8_t attempt = 0;
 	for (;;)
 	{
 		usb_poll();
 
 		// Only check for swapping after delay
 		uint32_t wait_ms = systick_millis_count - last_ms;
-		if ( wait_ms < USBPortSwapDelay_ms + attempt / 2 * USBPortSwapIncrement_ms )
+		if ( wait_ms < USBPortSwapDelay_ms + attempt / 2 * USBPortSwapDelay_ms )
 		{
 			continue;
 		}

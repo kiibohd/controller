@@ -89,11 +89,21 @@ if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
 	set( SIZE_FLASH 126976 )
 	set( F_CPU "48000000" )
 
+	# Bootloader has a lower flash restriction to fit inside protected area
+	if ( BOOTLOADER )
+		set( SIZE_FLASH 4096 )
+	endif ()
+
 #| Kiibohd-dfu
 elseif ( "${CHIP}" MATCHES "mk20dx256vlh7" )
 	set( SIZE_RAM    65536 )
 	set( SIZE_FLASH 253952 )
 	set( F_CPU "72000000" )
+
+	# Bootloader has a lower flash restriction to fit inside protected area
+	if ( BOOTLOADER )
+		set( SIZE_FLASH 8192 )
+	endif ()
 
 #| Teensy 3.0
 elseif ( "${CHIP}" MATCHES "mk20dx128" )

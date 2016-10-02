@@ -83,6 +83,44 @@ while (( "$#" >= "1" )); do
 done
 
 
+# Detect which OS
+case "$OSTYPE" in
+# Linux
+"linux-gnu")
+	echo "${OSTYPE}/Linux is supported."
+	;;
+# macOS
+"darwin"*)
+	echo "${OSTYPE}/macOS is supported."
+	;;
+# Cygwin
+"cygwin")
+	echo "${OSTYPE} is supported."
+	;;
+# MSYS (not tested)
+"msys")
+	echo "${OSTYPE} is untested..."
+	;;
+# Is this even possible?
+"win32")
+	echo "${OSTYPE} is untested..."
+	;;
+# FreeBSDs (not tested, but should mostly work)
+"freebsd"*)
+	echo "${OSTYPE} is untested..."
+	;;
+# Unknown OSTYPE
+*)
+	echo "${OSTYPE} is untested..."
+	;;
+esac
+
+
+# Prepend OSType (so not to clobber builds if using the same storage medium, i.e. dropbox)
+BuildPath="${OSTYPE}.${BuildPath}"
+echo "${BuildPath}"
+
+
 # Run CMake commands
 mkdir -p "${BuildPath}"
 cd "${BuildPath}"
