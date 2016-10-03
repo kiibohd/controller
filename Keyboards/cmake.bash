@@ -126,6 +126,7 @@ if [ -z "${CMAKE_GENERATOR}" ]; then
 	elif type make &> /dev/null; then
 		CMAKE_GENERATOR="Unix Makefiles"
 	# Error
+	else
 		echo "ERROR: Could not find a makefile generator"
 		echo "Supported: ninja, make"
 		exit 1
