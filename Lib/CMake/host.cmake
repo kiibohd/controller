@@ -63,7 +63,7 @@ message( "${COMPILER_SRCS}" )
 #|     c99   = ISO C99 standard (not yet fully implemented)
 #|     gnu99 = c99 plus GCC extensions
 #|     gnu11 = c11 plus GCC extensions
-set( CSTANDARD "-std=gnu99" ) # Staying
+set( CSTANDARD "-std=gnu99" ) # Staying with gnu99 for compatibility with older compilers
 
 
 #| Warning Options
@@ -100,7 +100,7 @@ endif ()
 
 #| Dependency Files
 #| Compiler flags to generate dependency files.
-set( GENDEPFLAGS "-MMD" )
+set( GENDEPFLAGS "-MD" )
 
 
 #| Compiler Flags
@@ -113,7 +113,7 @@ set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections" )
 
 #| Lss Flags
 if ( "${COMPILER}" MATCHES "clang" )
-	set( LSS_FLAGS -section-headers -triple=arm-none-eabi )
+	set( LSS_FLAGS -section-headers )
 else ()
 	set( LSS_FLAGS -h -S -z )
 endif ()

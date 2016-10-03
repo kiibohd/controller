@@ -228,18 +228,6 @@ else ()
 endif()
 
 
-#| Enable color output with Ninja
-if( CMAKE_GENERATOR STREQUAL "Ninja" )
-	## Clang Compiler
-	if ( "${COMPILER}" MATCHES "clang" )
-		set( TUNING "${TUNING} -fcolor-diagnostics" )
-	## GCC Compiler
-	else ()
-		set( TUNING "${TUNING} -fdiagnostics-color=always" )
-	endif ()
-endif ()
-
-
 #| Optimization level, can be [0, 1, 2, 3, s].
 #|     0 = turn off optimization. s = optimize for size.
 #|     (Note: 3 is not always the best optimization level.)
@@ -248,7 +236,7 @@ set( OPT "s" )
 
 #| Dependency Files
 #| Compiler flags to generate dependency files.
-set( GENDEPFLAGS "-MMD" )
+set( GENDEPFLAGS "-MD" )
 
 
 #| Compiler Flags
@@ -263,6 +251,21 @@ else()
 	# Normal linker flags
 	set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
 endif()
+
+
+#| Enable color output with Ninja
+if( CMAKE_GENERATOR STREQUAL "Ninja" )
+	## Clang Compiler
+	if ( "${COMPILER}" MATCHES "clang" )
+		add_definitions( "-fcolor-diagnostics" )
+	## GCC Compiler
+	else ()
+		add_definitions( "-fdiagnostics-color=always" )
+	endif ()
+
+	# We always use the gcc linker for arm-none-eabi
+	set( LINKER_FLAGS "${LINKER_FLAGS} -fdiagnostics-color=always" )
+endif ()
 
 
 #| Hex Flags (XXX, CMake seems to have issues if you quote the arguments for the custom commands...)
