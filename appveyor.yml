@@ -33,6 +33,8 @@ environment:
       SCRIPT: ergodox.bash
     - SCRIPT_DIR: Keyboards
       SCRIPT: whitefox.bash
+    - SCRIPT_DIR: Keyboards
+      SCRIPT: k-type.bash
 
     # Debug Build Tests
     - SCRIPT_DIR: Keyboards/Testing

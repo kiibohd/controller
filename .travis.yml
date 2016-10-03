@@ -33,6 +33,7 @@ env:
   - DIR=Keyboards SCRIPT=infinity_led.bash
   - DIR=Keyboards SCRIPT=ergodox.bash
   - DIR=Keyboards SCRIPT=whitefox.bash
+  - DIR=Keyboards SCRIPT=k-type.bash
 
   # Debug Build Tests
   - DIR=Keyboards/Testing SCRIPT=uartout.bash
@@ -65,6 +66,8 @@ matrix:
       env: DIR=Keyboards SCRIPT=ergodox.bash
     - compiler: clang
       env: DIR=Keyboards SCRIPT=whitefox.bash
+    - compiler: clang
+      env: DIR=Keyboards SCRIPT=k-type.bash
     - compiler: clang
       env: DIR=Keyboards/Testing SCRIPT=uartout.bash
     - compiler: clang
