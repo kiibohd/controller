@@ -1,10 +1,15 @@
-Name = PartialMapCapabilities;
-Version = 0.2;
+Name = PixelMapCapabilities;
+Version = 0.3;
 Author = "HaaTa (Jacob Alexander) 2015-2016";
 KLL = 0.5;
 
 # Modified Date
-Date = 2016-07-30;
+Date = 2016-10-02;
 
 rainbowToggle => Rainbow_Toggle_capability();
+
+# Pixel Buffer Defines
+Pixel_Buffer_Size   => Pixel_Buffer_Size_define;
+Pixel_Buffer_Width  => Pixel_Buffer_Width_define;
+Pixel_Buffer_Buffer => Pixel_Buffer_Buffer_define;
 
