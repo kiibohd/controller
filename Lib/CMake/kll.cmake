@@ -19,7 +19,7 @@ if ( "${MacroModule}" STREQUAL "PartialMap" )
 # Check disabled for Win32 as it can't detect version correctly (we don't use Python directly through CMake anyways)
 #
 
-if ( NOT WIN32 )
+if ( NOT CMAKE_HOST_WIN32 )
 	# Required on systems where python is 2, not 3
 	set ( PYTHON_EXECUTABLE
 		python3
