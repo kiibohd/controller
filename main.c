@@ -45,8 +45,10 @@ int main()
 	CLKPR = 0x00;
 #endif
 
+#if defined(DEBUG)
 	// Enable CLI
 	CLI_init();
+#endif
 
 	// Setup Modules
 	Output_setup();
@@ -56,8 +58,10 @@ int main()
 	// Main Detection Loop
 	while ( 1 )
 	{
+#if defined(DEBUG)
 		// Process CLI
 		CLI_process();
+#endif
 
 		// Acquire Key Indices
 		// Loop continuously until scan_loop returns 0
