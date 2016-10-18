@@ -242,6 +242,13 @@ class Control:
 			self.kiibohd.Host_process()
 			loop += 1
 
+	def refresh_callback( self ):
+		'''
+		Convenience function for refreshing callback
+		Useful when Scan or Output functions need to call directly
+		'''
+		return refresh_callback()
+
 	def cmd( self, command_name ):
 		'''
 		Run given command from Host-side KLL

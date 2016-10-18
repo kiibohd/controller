@@ -75,9 +75,16 @@ CMakeListsPath="../../.."
 # Load the library
 source "../cmake.bash"
 
+# Load common functions
+source "../common.bash"
+
 # Run tests
 cd "${BuildPath}"
-python3 test.py
 
+cmd python3 Tests/test.py
+cmd python3 Tests/animation.py
+
+# Tally results
+result
 exit $?
 

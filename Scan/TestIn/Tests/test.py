@@ -20,52 +20,13 @@ Example test case for Host-side KLL
 
 ### Imports ###
 
-import sys
-
 import interface as i
 
-
-
-### Decorators ###
-
-## Print Decorator Variables
-ERROR = '\033[5;1;31mERROR\033[0m:'
-WARNING = '\033[5;1;33mWARNING\033[0m:'
+from common import (ERROR, WARNING, check, result)
 
 
 
-### Functions ###
-
-test_pass = 0
-test_fail = 0
-
-def check( condition ):
-	if condition:
-		global test_pass
-		test_pass += 1
-	else:
-		global test_fail
-		test_fail += 1
-
-
-def result():
-	print("----Results----")
-	print("{0}/{1}".format(
-		test_pass,
-		test_pass + test_fail,
-	) )
-
-	if test_fail == 0:
-		sys.exit( 0 )
-	else:
-		sys.exit( 1 )
-
-
-
-### Setup ###
-
-
-
+### Test ###
 
 # Reference to callback datastructure
 data = i.control.data

@@ -30,6 +30,7 @@
 #include <print.h>
 #include <macro.h>
 #include <kll.h>
+#include <pixel.h>
 
 // Local Includes
 #include "scan_loop.h"
@@ -73,6 +74,9 @@ inline void Scan_setup()
 	// Register Scan CLI dictionary
 	CLI_registerDictionary( scanCLIDict, scanCLIDictName );
 
+	// Setup Pixel Map
+	Pixel_setup();
+
 	// Reset scan count
 	Scan_scanCount = 0;
 }
@@ -81,7 +85,9 @@ inline void Scan_setup()
 // Main Detection Loop
 inline uint8_t Scan_loop()
 {
-	// TODO
+	// Prepare any LED events
+	Pixel_process();
+
 	return 0;
 }
 

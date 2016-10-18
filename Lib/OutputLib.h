@@ -30,8 +30,8 @@
 // ARM
 #if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 
-#include <Lib/mk20dx.h>
-#include <Lib/delay.h>
+#include "mk20dx.h"
+#include "delay.h"
 
 #endif
 
@@ -49,7 +49,7 @@
 // Host
 #if defined(_host_)
 
-#include <Lib/host.h>
+#include "host.h"
 
 #endif
 
