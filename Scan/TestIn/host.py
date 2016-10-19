@@ -228,6 +228,12 @@ class Commands:
 
 		return tuple( output_ch ), tuple( read_value )
 
+	def rectDisp( self ):
+		'''
+		Show current MCU pixel buffer
+		'''
+		control.kiibohd.Pixel_dispBuffer()
+
 
 class Callbacks:
 	'''

@@ -118,14 +118,15 @@ void CLI_saveHistory( char *buff );
 void CLI_retreiveHistory( int index );
 
 // CLI Command Functions
-void cliFunc_clear   ( char* args );
-void cliFunc_cliDebug( char* args );
-void cliFunc_exit    ( char* args );
-void cliFunc_help    ( char* args );
-void cliFunc_led     ( char* args );
-void cliFunc_reload  ( char* args );
-void cliFunc_reset   ( char* args );
-void cliFunc_restart ( char* args );
-void cliFunc_tick    ( char* args );
-void cliFunc_version ( char* args );
+void cliFunc_clear    ( char* args );
+void cliFunc_cliDebug ( char* args );
+void cliFunc_colorTest( char* args );
+void cliFunc_exit     ( char* args );
+void cliFunc_help     ( char* args );
+void cliFunc_led      ( char* args );
+void cliFunc_reload   ( char* args );
+void cliFunc_reset    ( char* args );
+void cliFunc_restart  ( char* args );
+void cliFunc_tick     ( char* args );
+void cliFunc_version  ( char* args );
 

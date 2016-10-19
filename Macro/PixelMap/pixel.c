@@ -37,6 +37,7 @@ void cliFunc_aniDel    ( char* args );
 void cliFunc_chanTest  ( char* args );
 void cliFunc_pixelList ( char* args );
 void cliFunc_pixelTest ( char* args );
+void cliFunc_rectDisp  ( char* args );
 
 
 
@@ -60,6 +61,7 @@ CLIDict_Entry( aniDel,       "Remove the given stack index animation" );
 CLIDict_Entry( chanTest,     "Channel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
 CLIDict_Entry( pixelList,    "Prints out pixel:channel mappings." );
 CLIDict_Entry( pixelTest,    "Pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
+CLIDict_Entry( rectDisp,     "Show the current output of the MCU pixel buffer." );
 
 CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
 	CLIDict_Item( aniAdd ),
@@ -67,6 +69,7 @@ CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
 	CLIDict_Item( chanTest ),
 	CLIDict_Item( pixelList ),
 	CLIDict_Item( pixelTest ),
+	CLIDict_Item( rectDisp ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -1039,5 +1042,62 @@ void cliFunc_aniDel( char* args )
 
 	// TODO
 	Pixel_AnimationStack.size--;
+}
+
+void Pixel_dispBuffer()
+{
+	uint8_t row = 0;
+	uint8_t col = 0;
+	for ( uint16_t px = 0; px < Pixel_DisplayMapping_Cols * Pixel_DisplayMapping_Rows; px++ )
+	{
+		// Display a + if it's a blank pixel
+		if ( Pixel_DisplayMapping[px] == 0 )
+		{
+			print("+");
+		}
+		// Lookup pixel
+		else
+		{
+			// Determine number of channels
+			// TODO Adjust output if single channel
+
+			PixelElement *elem = (PixelElement*)&Pixel_Mapping[ Pixel_DisplayMapping[px] - 1 ];
+
+			// Lookup channel data
+			// TODO account for different channel size mappings
+			print("\033[48;2");
+			for ( uint8_t ch = 0; ch < elem->channels; ch++ )
+			{
+				print(";");
+				uint16_t ch_pos = elem->indices[ch];
+				PixelBuf *pixbuf = Pixel_bufferMap( ch_pos );
+				printInt8( PixelBuf16( pixbuf, ch_pos ) );
+			}
+			print("m");
+			print(" ");
+			print("\033[0m");
+		}
+
+		// Determine what to increment next
+		if ( col >= Pixel_DisplayMapping_Cols - 1 )
+		{
+			col = 0;
+			row++;
+			print(" ");
+			print(NL);
+		}
+		else
+		{
+			col++;
+		}
+	}
+}
+
+void cliFunc_rectDisp( char* args )
+{
+	print( NL ); // No \r\n by default after the command is entered
+
+	// TODO move to own function, use this func to control startup/args
+	Pixel_dispBuffer();
 }
 

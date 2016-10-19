@@ -33,22 +33,24 @@
 // ----- Variables -----
 
 // Basic command dictionary
-CLIDict_Entry( clear,    "Clear the screen.");
-CLIDict_Entry( cliDebug, "Enables/Disables hex output of the most recent cli input." );
+CLIDict_Entry( clear,     "Clear the screen.");
+CLIDict_Entry( cliDebug,  "Enables/Disables hex output of the most recent cli input." );
+CLIDict_Entry( colorTest, "Displays a True Color ANSI test sequence to test terminal. If it displays in color, you're good." );
 #if defined(_host_)
-CLIDict_Entry( exit,     "Host KLL Only - Exits cli." );
+CLIDict_Entry( exit,      "Host KLL Only - Exits cli." );
 #endif
-CLIDict_Entry( help,     "You're looking at it :P" );
-CLIDict_Entry( led,      "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules..." );
-CLIDict_Entry( reload,   "Signals microcontroller to reflash/reload." );
-CLIDict_Entry( reset,    "Resets the terminal back to initial settings." );
-CLIDict_Entry( restart,  "Sends a software restart, should be similar to powering on the device." );
-CLIDict_Entry( tick,     "Displays the fundamental tick size, and current ticks since last systick." );
-CLIDict_Entry( version,  "Version information about this firmware." );
+CLIDict_Entry( help,      "You're looking at it :P" );
+CLIDict_Entry( led,       "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules..." );
+CLIDict_Entry( reload,    "Signals microcontroller to reflash/reload." );
+CLIDict_Entry( reset,     "Resets the terminal back to initial settings." );
+CLIDict_Entry( restart,   "Sends a software restart, should be similar to powering on the device." );
+CLIDict_Entry( tick,      "Displays the fundamental tick size, and current ticks since last systick." );
+CLIDict_Entry( version,   "Version information about this firmware." );
 
 CLIDict_Def( basicCLIDict, "General Commands" ) = {
 	CLIDict_Item( clear ),
 	CLIDict_Item( cliDebug ),
+	CLIDict_Item( colorTest ),
 #if defined(_host_)
 	CLIDict_Item( exit ),
 #endif
@@ -508,6 +510,12 @@ void cliFunc_cliDebug( char* args )
 		info_print("Hex debug mode enabled...");
 		CLIHexDebugMode = 1;
 	}
+}
+
+void cliFunc_colorTest( char* args )
+{
+	print( NL );
+	print("\x1b[38;2;255;100;0mTRUECOLOR\x1b[0m");
 }
 
 #if defined(_host_)
