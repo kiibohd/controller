@@ -102,6 +102,8 @@ uint8_t  Pixel_AnimationStackElement_HostSize = sizeof( AnimationStackElement );
 
 uint8_t Pixel_animationProcess( AnimationStackElement *elem );
 
+PixelBuf *Pixel_bufferMap( uint16_t channel );
+
 
 
 // ----- Capabilities -----
@@ -141,6 +143,28 @@ void Pixel_Pixel_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 
 
 // ----- Functions -----
+
+// -- Utility Functions --
+
+// TODO Support non-8bit channels
+uint8_t Pixel_8bitInterpolation( uint8_t start, uint8_t end, uint8_t dist )
+{
+	return (start * (256 - dist) + end * dist) >> 8;
+}
+
+void Pixel_pixelInterpolate( PixelElement *elem, uint8_t position, uint8_t intensity )
+{
+	// Toggle each of the channels of the pixel
+
+	for ( uint8_t ch = 0; ch < elem->channels; ch++ )
+	{
+		uint16_t ch_pos = elem->indices[ch];
+		PixelBuf *pixbuf = Pixel_bufferMap( ch_pos );
+		PixelBuf16( pixbuf, ch_pos ) = Pixel_8bitInterpolation( 0, intensity, position * (ch + 1) );
+	}
+}
+
+
 
 // -- Animation Stack --
 
@@ -468,18 +492,97 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 // - Once the function returns 0, all pixels have been processed
 uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_t prev )
 {
+	// Used to determine next pixel in column or row (fill)
+	uint8_t cur = prev;
+	uint8_t index = 0;
 
 	// Lookup fill algorith
 	switch ( mod->type )
 	{
 	case PixelAddressType_Index:
+		// Lookup pixel by absolute index
 		*elem = (PixelElement*)&Pixel_Mapping[mod->index];
-		break;
+		return 0;
 
 	case PixelAddressType_Rect:
+		// Make sure row,column exists
+		if ( mod->rect.col >= Pixel_DisplayMapping_Cols
+			&& mod->rect.row >= Pixel_DisplayMapping_Rows )
+		{
+			erro_msg("Invalid row,column index: ");
+			printInt16( mod->rect.row );
+			print(",");
+			printInt16( mod->rect.col );
+			print( NL );
+			return 0;
+		}
+
+		// Lookup pixel in rectangle display organization
+		*elem = (PixelElement*)&Pixel_Mapping[
+			Pixel_DisplayMapping[
+				mod->rect.row * Pixel_DisplayMapping_Cols + mod->rect.col
+			]
+		];
+		return 0;
+
 	case PixelAddressType_ColumnFill:
+		// Make sure column exists
+		if ( mod->rect.col >= Pixel_DisplayMapping_Cols )
+		{
+			erro_msg("Invalid column index: ");
+			printInt16( mod->rect.col );
+			print( NL );
+			return 0;
+		}
+
+		// Lookup pixel until either, non-0 index or we reached the last row
+		do {
+			// Pixel index
+			index = Pixel_DisplayMapping[ cur * Pixel_DisplayMapping_Cols + mod->rect.col ];
+
+			// Check if we've processed all rows
+			if ( cur >= Pixel_DisplayMapping_Rows )
+			{
+				return 0;
+			}
+			cur++;
+		} while ( index == 0 );
+
+		// Lookup pixel, pixels are 1 indexed, hence the -1
+		*elem = (PixelElement*)&Pixel_Mapping[ index - 1 ];
+		return cur;
+
 	case PixelAddressType_RowFill:
+		// Make sure row,column exists
+		if ( mod->rect.row >= Pixel_DisplayMapping_Rows )
+		{
+			erro_msg("Invalid row index: ");
+			printInt16( mod->rect.row );
+			print( NL );
+			return 0;
+		}
+
+		// Lookup pixel until either, non-0 index or we reached the last column
+		do {
+			// Pixel index
+			index = Pixel_DisplayMapping[ mod->rect.row * Pixel_DisplayMapping_Cols + cur ];
+
+			// Check if we've processed all rows
+			if ( cur >= Pixel_DisplayMapping_Cols )
+			{
+				return 0;
+			}
+			cur++;
+		} while ( index == 0 );
+
+		// Lookup pixel, pixels are 1 indexed, hence the -1
+		*elem = (PixelElement*)&Pixel_Mapping[ index - 1 ];
+		return cur;
+
 	case PixelAddressType_ScanCode:
+		// TODO
+		break;
+
 	case PixelAddressType_RelativeIndex:
 	case PixelAddressType_RelativeRect:
 	case PixelAddressType_RelativeColumnFill:
@@ -504,12 +607,11 @@ void Pixel_pixelTweenStandard( const uint8_t *frame, AnimationStackElement *stac
 {
 	// Iterate over all of the Pixel Modifier elements of the Animation Frame
 	uint16_t pos = 0;
-	//PixelModElement *prev = 0;
 	PixelModElement *mod = (PixelModElement*)&frame[pos];
 	while ( mod->type != PixelAddressType_End )
 	{
 		// Lookup type of pixel, choose fill algorith and query all sub-pixels
-		uint8_t next = 1;
+		uint8_t next = 0;
 		PixelElement *elem = 0;
 		do {
 			// Lookup pixel, and check if there are any more pixels left
@@ -523,7 +625,107 @@ void Pixel_pixelTweenStandard( const uint8_t *frame, AnimationStackElement *stac
 		pos += (elem->width / 8) * elem->channels + sizeof( PixelModElement );
 
 		// Lookup next mod element
-		//prev = mod;
+		mod = (PixelModElement*)&frame[pos];
+	}
+}
+
+// Basic interpolation Pixel Pixel Function
+// TODO - Only works with Colummn and Row fill currently
+void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement *stack_elem )
+{
+	// Iterate over all of the Pixel Modifier elements of the Animation Frame
+	uint16_t pos = 0;
+	PixelModElement *prev = 0;
+	PixelModElement *mod = (PixelModElement*)&frame[pos];
+	while ( mod->type != PixelAddressType_End )
+	{
+		// By default, no interpolation
+		uint32_t start = mod->index;
+		uint32_t end = mod->index;
+
+		// Calculate interpolation position
+		// TODO Depends on addressing type
+		// TODO Work with dis-similar PixelModElement address types
+		switch ( mod->type )
+		{
+		case PixelAddressType_ColumnFill:
+			// If this is the first pixel, just set start at the same spot
+			start = prev != 0 ? prev->rect.col : mod->rect.col;
+			end = mod->rect.col;
+			break;
+		case PixelAddressType_RowFill:
+			// If this is the first pixel, just set start at the same spot
+			start = prev != 0 ? prev->rect.row : mod->rect.row;
+			end = mod->rect.row;
+			break;
+		default:
+			break;
+		}
+
+		// Lookup prev and mod PixelElements
+		PixelElement *prev_elem = 0;
+		if ( prev != 0 )
+		{
+			Pixel_fillPixelLookup( prev, &prev_elem, 0 );
+		}
+		PixelElement *mod_elem = 0;
+		Pixel_fillPixelLookup( mod, &mod_elem, 0 );
+
+		PixelElement *elem = 0;
+
+		// Prepare tweened PixelModElement
+		// TODO allow for larger than 24-bit pixels (auto-generate?)
+		uint8_t interp_data[ sizeof( PixelModElement ) + 8 * 3 ];
+		PixelModElement *interp_mod = (PixelModElement*)&interp_data;
+		memcpy( interp_mod, mod, sizeof( interp_data ) );
+
+		// Calculate slice mulitplier size
+		// TODO Non-8bit
+		// XXX Division...
+		uint16_t slice = prev != 0 ? 256 / (end - start) : 0;
+
+		// Iterate over tween-pixels
+		for ( uint32_t cur = 0; cur < end - start + 1; cur++ )
+		{
+			// Determine where the tween pixel is
+			switch ( mod->type )
+			{
+			case PixelAddressType_ColumnFill:
+				interp_mod->rect.col = start + cur;
+				break;
+
+			case PixelAddressType_RowFill:
+				interp_mod->rect.row = start + cur;
+				break;
+
+			default:
+				break;
+			}
+
+			// Calculate interpolation pixel value
+			// Uses prev to current PixelMods as the base
+			// TODO Non-8bit
+			if ( prev != 0 ) for ( uint8_t ch = 0; ch < mod_elem->channels; ch++ )
+			{
+				interp_mod->data[ch] = Pixel_8bitInterpolation( prev->data[ch], mod->data[ch], slice * cur );
+			}
+
+			// Lookup type of pixel, choose fill algorith and query all sub-pixels
+			uint8_t next = 0;
+			do {
+				// Lookup pixel, and check if there are any more pixels left
+				next = Pixel_fillPixelLookup( interp_mod, &elem, next );
+
+				// Apply operation to pixel
+				Pixel_pixelEvaluation( interp_mod, elem );
+			} while ( next );
+		}
+
+		// Calculate next position (this is dynamic, cannot be pre-calculated)
+		pos += (elem->width / 8) * elem->channels + sizeof( PixelModElement );
+
+		// Lookup next mod element
+		prev = mod;
 		mod = (PixelModElement*)&frame[pos];
 	}
 }
@@ -545,7 +747,7 @@ void Pixel_frameTweenStandard( uint16_t frame, uint8_t subframe, const uint8_t *
 	switch ( elem->pfunc )
 	{
 	case PixelPixelFunction_PointInterpolation:
-		// TODO
+		Pixel_pixelTweenInterpolation( data, elem );
 		break;
 
 	// Generic, no addition processing necessary
@@ -662,67 +864,6 @@ void Pixel_pixelToggle( PixelElement *elem )
 	{
 		Pixel_channelToggle( elem->indices[ch] );
 	}
-}
-
-// TODO Support non-8bit channels
-uint8_t Pixel_8bitInterpolation( uint8_t start, uint8_t end, uint8_t dist )
-{
-	return (start * (256 - dist) + end * dist) >> 8;
-}
-
-void Pixel_pixelInterpolate( PixelElement *elem, uint8_t position, uint8_t intensity )
-{
-	// Toggle each of the channels of the pixel
-
-	for ( uint8_t ch = 0; ch < elem->channels; ch++ )
-	{
-		uint16_t ch_pos = elem->indices[ch];
-		PixelBuf *pixbuf = Pixel_bufferMap( ch_pos );
-		PixelBuf16( pixbuf, ch_pos ) = Pixel_8bitInterpolation( 0, intensity, position * (ch + 1) );
-	}
-}
-
-// TODO Direction, starting position, value or function
-uint8_t fill_counter = 0;
-void Pixel_fill( uint16_t position )
-{
-	// Column fill
-	fill_counter += position;
-	for ( uint8_t row = 0; row < Pixel_DisplayMapping_Rows; row++ )
-	{
-		// Lookup Pixel
-		uint8_t px = Pixel_DisplayMapping[ row * Pixel_DisplayMapping_Cols + position ];
-
-		// Skip if 0, then subtract one to get the actual index
-		if ( px-- == 0 )
-		{
-			continue;
-		}
-
-		// Toggle pixel
-		//Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ px ] );
-
-		// Interpolate Pixel
-		Pixel_pixelInterpolate( (PixelElement*)&Pixel_Mapping[ px ], fill_counter, (row + 1) * 50 );
-	}
-
-	// Row fill
-	/*
-	for ( uint8_t col = 0; col < Pixel_DisplayMapping_Cols; col++ )
-	{
-		// Lookup Pixel
-		uint8_t px = Pixel_DisplayMapping[ position * Pixel_DisplayMapping_Cols + col ];
-
-		// Skip if 0, then subtract one to get the actual index
-		if ( px-- == 0 )
-		{
-			continue;
-		}
-
-		// Toggle pixel
-		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ px ] );
-	}
-	*/
 }
 
 // Pixel Procesing Loop

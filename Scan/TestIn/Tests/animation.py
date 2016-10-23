@@ -92,7 +92,7 @@ check( i.control.cmd('animationStackInfo')().size == 0 )
 
 print("-Rainbow Test-")
 # Add Animation, index 0, to Stack
-i.control.cmd('addAnimation')(index=1, pfunc=0)
+i.control.cmd('addAnimation')(index=1, pfunc=1)
 
 # Read animation stack info
 print( "Expecting Stack Size: 1 Got:", i.control.cmd('animationStackInfo')().size )

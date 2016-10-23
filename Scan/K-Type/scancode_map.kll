@@ -475,5 +475,5 @@ P[128] <= y:-22.23;
 ### Animations ###
 # TODO MOVE
 A[RainbowFillInterp] <= start, interp:on;
-A[RainbowFillInterp, 1] <= P[c:0%](0,255,0), P[c:20%](255,255,0), P[c:40%](255,0,0), P[c:60%](127,0,255), P[c:80%](0,0,255);
+A[RainbowFillInterp, 1] <= P[c:0%](0,255,0), P[c:25%](255,255,0), P[c:50%](255,0,0), P[c:75%](127,0,255), P[c:100%](0,0,255);
 
