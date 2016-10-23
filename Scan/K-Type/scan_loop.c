@@ -133,5 +133,15 @@ void Scan_currentChange( unsigned int current )
 	Connect_currentChange( current );
 	Matrix_currentChange( current );
 	LED_currentChange( current );
+
+	if ( current == 500 )
+	{
+		// TODO REMOVEME once default animations can be set
+		AnimationStackElement element;
+		element.index = 1;
+		element.loops = 1;
+		element.pfunc = 1;
+		Pixel_addAnimation( &element );
+	}
 }
 

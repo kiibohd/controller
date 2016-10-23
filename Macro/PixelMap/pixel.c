@@ -856,7 +856,7 @@ void Pixel_channelToggle( uint16_t channel )
 	}
 }
 
-// Toggle given pixel elementt
+// Toggle given pixel element
 void Pixel_pixelToggle( PixelElement *elem )
 {
 	// Toggle each of the channels of the pixel
