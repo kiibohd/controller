@@ -56,6 +56,7 @@ void cliFunc_macroList ( char* args );
 void cliFunc_macroProc ( char* args );
 void cliFunc_macroShow ( char* args );
 void cliFunc_macroStep ( char* args );
+void cliFunc_posList   ( char* args );
 
 
 
@@ -75,6 +76,7 @@ CLIDict_Entry( macroList,   "List the defined trigger and result macros." );
 CLIDict_Entry( macroProc,   "Pause/Resume macro processing." );
 CLIDict_Entry( macroShow,   "Show the macro corresponding to the given index." NL "\t\t\033[35mT16\033[0m Indexed Trigger Macro 0x10, \033[35mR12\033[0m Indexed Result Macro 0x0C" );
 CLIDict_Entry( macroStep,   "Do N macro processing steps. Defaults to 1." );
+CLIDict_Entry( posList,     "List physical key positions by ScanCode." );
 
 CLIDict_Def( macroCLIDict, "Macro Module Commands" ) = {
 	CLIDict_Item( capList ),
@@ -90,6 +92,7 @@ CLIDict_Def( macroCLIDict, "Macro Module Commands" ) = {
 	CLIDict_Item( macroProc ),
 	CLIDict_Item( macroShow ),
 	CLIDict_Item( macroStep ),
+	CLIDict_Item( posList ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -1359,5 +1362,36 @@ void cliFunc_macroStep( char* args )
 
 	// Set the macro step counter, negative int's are cast to uint
 	macroStepCounter = count;
+}
+
+// Convenience Macro
+#define Key_PositionPrint( key, name ) \
+	printInt16( Key_Position[ key ].name.i ); \
+	print("."); \
+	printInt16( Key_Position[ key ].name.f )
+
+void cliFunc_posList( char* args )
+{
+	print( NL );
+
+	// List out physical key positions by scan code
+	for ( uint8_t key = 0; key < MaxScanCode; key++ )
+	{
+		printInt8( key + 1 );
+		print(": [");
+		Key_PositionPrint( key, x );
+		print(", ");
+		Key_PositionPrint( key, y );
+		print(", ");
+		Key_PositionPrint( key, z );
+		print("] r[");
+		Key_PositionPrint( key, rx );
+		print(", ");
+		Key_PositionPrint( key, ry );
+		print(", ");
+		Key_PositionPrint( key, rz );
+		print("]");
+		print( NL );
+	}
 }
 
