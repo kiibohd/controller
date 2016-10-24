@@ -439,9 +439,18 @@ void LED_reset()
 	{
 		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+
 		// See, 31FL3732 datasheet for details on calculation
 		// Depends on Rext
-		LED_writeReg( bus, addr, 0x04, ISSI_Global_Brightness_define, 0x0B );
+		// TODO Array set per chip
+		if ( ch == 3 )
+		{
+			LED_writeReg( bus, addr, 0x04, 50, 0x0B );
+		}
+		else
+		{
+			LED_writeReg( bus, addr, 0x04, ISSI_Global_Brightness_define, 0x0B );
+		}
 	}
 #endif
 

@@ -109,11 +109,15 @@ S0x56 : U"Down";
 S0x57 : U"Right";
 
 
+### TODO REMOVEME
+flashModeEnabled = 1;
+
+
 # Driver Chip
 ISSI_Chip_31FL3732 = 1;
 
 # Global Brightness
-ISSI_Global_Brightness = 0xFF; # 0xFF by default (max)
+ISSI_Global_Brightness = 150; # 0xFF by default (max)
 
 # Available ISSI Chips
 ISSI_Chips = 4; # 2 by default
