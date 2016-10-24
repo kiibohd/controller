@@ -185,6 +185,7 @@ extern       PixelBuf     Pixel_Buffers[];
 extern const PixelElement Pixel_Mapping[];
 extern const uint8_t      Pixel_DisplayMapping[];
 extern const uint8_t    **Pixel_Animations[];
+extern const uint8_t      Pixel_ScanCodeToPixel[];
 
 
 

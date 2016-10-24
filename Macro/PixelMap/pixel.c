@@ -580,7 +580,19 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 		return cur;
 
 	case PixelAddressType_ScanCode:
-		// TODO
+		// Make sure ScanCode exists
+		//if ( mod->index >= MaxScanCode ) // TODO Add MaxScanCode to kll_defs.h
+		if ( mod->index >= 0xFF )
+		{
+			erro_msg("Invalid ScanCode: ");
+			printInt16( mod->index );
+			print( NL );
+			return 0;
+		}
+
+		// Lookup ScanCode - Indices are 1-indexed in both arrays (hence the -1)
+		uint8_t pixel = Pixel_ScanCodeToPixel[ mod->index - 1 ];
+		*elem = (PixelElement*)&Pixel_Mapping[ pixel - 1 ];
 		break;
 
 	case PixelAddressType_RelativeIndex:

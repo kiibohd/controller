@@ -91,8 +91,35 @@ check( i.control.cmd('animationStackInfo')().size == 0 )
 
 
 print("-Rainbow Test-")
-# Add Animation, index 0, to Stack
+# Add Animation, index 1, to Stack
 i.control.cmd('addAnimation')(index=1, pfunc=1)
+
+# Read animation stack info
+print( "Expecting Stack Size: 1 Got:", i.control.cmd('animationStackInfo')().size )
+check( i.control.cmd('animationStackInfo')().size == 1 )
+
+# Loop once
+i.control.cmd('setFrameState')(2)
+i.control.loop(1)
+
+# Show output
+i.control.cmd('rectDisp')()
+
+# Update FrameState and Loop again to clear the stack
+i.control.cmd('setFrameState')(2)
+i.control.loop(1)
+
+# Read animation stack info
+print( "Expecting Stack Size: 0 Got:", i.control.cmd('animationStackInfo')().size )
+check( i.control.cmd('animationStackInfo')().size == 0 )
+
+
+##### Next Test #####
+
+
+print("-Clear ScanCode Test-");
+# Add Animation, index 1, to Stack
+i.control.cmd('addAnimation')(index=2)
 
 # Read animation stack info
 print( "Expecting Stack Size: 1 Got:", i.control.cmd('animationStackInfo')().size )
