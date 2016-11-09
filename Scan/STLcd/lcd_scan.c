@@ -338,11 +338,37 @@ inline void LCD_setup()
 	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(4);
 }
 
+uint16_t hold_color[3];
+uint8_t was_capslock = 0;
 
 // LCD State processing loop
 inline uint8_t LCD_scan()
 {
-	return 0;
+  uint16_t is_capslock = USBKeys_LEDs & 2;
+
+  if (is_capslock && !was_capslock) {
+    // entering capslock state
+    was_capslock = 1;
+
+    hold_color[0] = FTM0_C0V;
+    hold_color[1] = FTM0_C1V;
+    hold_color[2] = FTM0_C2V;
+  }
+  else if (!is_capslock && was_capslock) {
+    was_capslock = 0;
+
+    FTM0_C0V = hold_color[0];
+    FTM0_C1V = hold_color[1];
+    FTM0_C2V = hold_color[2];
+  }
+
+  if (is_capslock) {
+    FTM0_C0V = 0x8303;
+    FTM0_C1V = 0x1394;
+    FTM0_C2V = 0xb9f9;
+  }
+
+  return 0;
 }
 
 
