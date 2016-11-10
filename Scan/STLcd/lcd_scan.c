@@ -340,7 +340,7 @@ inline void LCD_setup()
 
 
 // LCD State processing loop
-inline void check_caps_lock()
+static inline void check_caps_lock()
 {
 	static uint16_t hold_color[3];
 	static uint8_t was_capslock = 0;
