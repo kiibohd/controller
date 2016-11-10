@@ -338,12 +338,13 @@ inline void LCD_setup()
 	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(4);
 }
 
-uint16_t hold_color[3];
-uint8_t was_capslock = 0;
 
 // LCD State processing loop
 inline uint8_t LCD_scan()
 {
+  static uint16_t hold_color[3];
+  static uint8_t was_capslock = 0;
+
   uint16_t is_capslock = USBKeys_LEDs & 2;
 
   if (is_capslock && !was_capslock) {
