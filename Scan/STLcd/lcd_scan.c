@@ -340,11 +340,44 @@ inline void LCD_setup()
 
 
 // LCD State processing loop
-inline uint8_t LCD_scan()
+static inline void check_caps_lock()
 {
-	return 0;
+	static uint16_t hold_color[3];
+	static uint8_t was_capslock = 0;
+
+	uint16_t is_capslock = USBKeys_LEDs & 2;
+
+	if ( is_capslock && !was_capslock )
+	{
+		// entering capslock state
+		was_capslock = 1;
+
+		hold_color[0] = FTM0_C0V;
+		hold_color[1] = FTM0_C1V;
+		hold_color[2] = FTM0_C2V;
+	}
+	else if ( !is_capslock && was_capslock )
+	{
+		was_capslock = 0;
+
+		FTM0_C0V = hold_color[0];
+		FTM0_C1V = hold_color[1];
+		FTM0_C2V = hold_color[2];
+	}
+
+	if ( is_capslock )
+	{
+		FTM0_C0V = 0x8303;
+		FTM0_C1V = 0x1394;
+		FTM0_C2V = 0xb9f9;
+	}
 }
 
+inline uint8_t LCD_scan()
+{
+	check_caps_lock();
+	return 0;
+}
 
 // Signal from parent Scan Module that available current has changed
 // current - mA
