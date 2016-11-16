@@ -1,6 +1,24 @@
 FROM ubuntu:xenial
 
-RUN apt-get update
-RUN apt-get install -y git cmake ctags tmux
-RUN apt-get install -y libusb-1.0-0-dev binutils-arm-none-eabi gcc-arm-none-eabi libnewlib-arm-none-eabi dfu-util
-RUN apt-get install -y python3 python3-pil
+RUN apt-get update && \
+    apt-get install -qy git cmake ctags tmux libusb-1.0-0-dev binutils-arm-none-eabi \
+    gcc-arm-none-eabi libnewlib-arm-none-eabi dfu-util python3 python3-pil git && \
+    rm -rf /var/lib/apt/lists/*
+
+VOLUME /controller
+WORKDIR /controller/Keyboards
+CMD /bin/bash
+
+# 1. Build the image after the initial cloning of this repo
+# docker build -t controller . # notice the dot at the end
+
+# 2. Run the image from within the repository root
+# docker run -it --rm -v "$(pwd):/conroller" controller
+
+# 3. Build the firmware
+# ./ergodox.bash
+ 
+# 4. Exit the container and load the firmware
+#   a. exit
+#   b. cd ./Keyboards/ICED-L.gcc/
+#   c. ./load
