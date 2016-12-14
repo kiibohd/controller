@@ -8,6 +8,12 @@
 
 
 ###
+# Path to this module
+#
+set ( MatrixARM_Path ${CMAKE_CURRENT_LIST_DIR} )
+
+
+###
 # Required Submodules
 #
 
