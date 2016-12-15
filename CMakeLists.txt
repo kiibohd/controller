@@ -144,6 +144,11 @@ project( kiibohd_controller C )
 #| Target Name (output name)
 set( TARGET kiibohd )
 
+#| Manufacturer name
+#| - This can be overridden by a Scan Module setup.cmake -
+#| USB Descriptor iManufacturer string
+set( MANUFACTURER "Kiibohd" )
+
 #| General Settings
 cmake_minimum_required( VERSION 2.8 )
 
