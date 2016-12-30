@@ -13,7 +13,7 @@ CMD /bin/bash
 # docker build -t controller . # notice the dot at the end
 
 # 2. Run the image from within the repository root
-# docker run -it --rm -v "$(pwd):/conroller" controller
+# docker run -it --rm -v "$(pwd):/controller" controller
 
 # 3. Build the firmware
 # ./ergodox.bash
