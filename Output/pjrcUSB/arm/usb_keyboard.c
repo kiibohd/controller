@@ -96,6 +96,9 @@ void usb_keyboard_send()
 			return;
 		}
 
+		// Try to wake up the host if it's asleep
+		usb_resume();
+
 		if ( USBKeys_Protocol == 0 ) // Boot Mode
 		{
 			if ( usb_tx_packet_count( KEYBOARD_ENDPOINT ) < TX_PACKET_LIMIT )
@@ -140,10 +143,6 @@ void usb_keyboard_send()
 			// Try to wakeup
 			return;
 		}
-
-		// Try to wake up the device if we can't allocate a packet for some reason
-		// XXX This is a bit aggressive, but seems to work well. Unfortunately, not as quick as I'd like it -HaaTa
-		usb_resume();
 
 		yield();
 	}
