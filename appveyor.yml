@@ -59,7 +59,8 @@ init:
 # Setup Build Instance
 install:
   - 'appveyor DownloadFile http://cygwin.com/setup-%CYG_ARCH%.exe -FileName setup.exe'
-  - 'setup.exe -qnNdO -R "%CYG_ROOT%" -s "%CYG_MIRROR%" -l "%CYG_CACHE%" -P git -P make -P python3 -P ctags -P tree -P p7zip -P gcc-core'
+  # XXX There are issues if you try to install python3 here, just used the default one pre-installed on appveyor
+  - 'setup.exe -qnNdO -R "%CYG_ROOT%" -s "%CYG_MIRROR%" -l "%CYG_CACHE%" -P ctags -P tree -P p7zip'
   - '%CYG_ROOT%/bin/bash -lc "cygcheck -dc cygwin"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\"/%SCRIPT_DIR% && export wincmake_path=\"%WIN_CMAKE%\" && which cmake"'
   - '%CYG_ROOT%/bin/bash -lc "ls -l /cygdrive/c"'
@@ -88,6 +89,7 @@ build_script:
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && cmake --version"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\"/%SCRIPT_DIR% && export wincmake_path=\"%WIN_CMAKE%\" && export PATH=\"${wincmake_path}\":$PATH && which cmake"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\"/%SCRIPT_DIR% && export wincmake_path=\"%WIN_CMAKE%\" && export PATH=\"${wincmake_path}\":$PATH && cmake --version"'
+  - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && tree /usr/bin"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && git --version"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && python3 --version"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && arm-none-eabi-gcc --version"'

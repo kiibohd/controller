@@ -1,7 +1,8 @@
 # travis-ci integration for the kiibohd controller firmware
+# XXX Using Ubuntu 14.04 Trusty as 12.04 is too ancient and doesn't support Debian repo properly
 
-sudo:
-  - false
+sudo: required
+dist: trusty
 
 language:
   - c
