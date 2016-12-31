@@ -22,6 +22,15 @@ set ( Module_SRCS
 
 
 ###
+# Header file dependency tracking
+#
+set_property (
+	SOURCE ${CMAKE_CURRENT_LIST_DIR}/matrix_scan.c
+	APPEND PROPERTY OBJECT_DEPENDS ${MatrixARM_Path}/matrix.h
+)
+
+
+###
 # Compiler Family Compatibility
 #
 set ( ModuleCompatibility

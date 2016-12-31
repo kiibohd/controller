@@ -13,10 +13,6 @@ find_package ( Git REQUIRED )
 # Generate Build Defines
 #
 
-#| Manufacturer name
-set ( MANUFACTURER "Kiibohd" )
-
-
 #| Modified
 #| Takes a bit of work to extract the "M " using CMake, and not using it if there are no modifications
 execute_process ( COMMAND ${GIT_EXECUTABLE} status -s -uno --porcelain

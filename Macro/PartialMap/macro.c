@@ -317,6 +317,14 @@ void Macro_layerShift_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
+	// Only set the layer if it is disabled
+	if ( LayerState[ layer ] != 0x00 && state == 0x01 )
+		return;
+
+	// Only unset the layer if it is enabled
+	if ( LayerState[ layer ] == 0x00 && state == 0x03 )
+		return;
+
 	Macro_layerState( state, stateType, layer, 0x01 );
 }
 

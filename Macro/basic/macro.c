@@ -173,7 +173,7 @@ inline void keyPressDetection( uint8_t *keys, uint8_t numberOfKeys, uint8_t *mod
 
 inline void process_macros(void)
 {
-	// Online process macros once (if some were found), until the next USB send
+	// Only process macros once (if some were found), until the next USB send
 	if ( USBKeys_Sent != 0 )
 		return;
 

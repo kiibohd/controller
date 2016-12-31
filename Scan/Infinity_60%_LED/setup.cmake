@@ -8,6 +8,18 @@
 
 
 ###
+# Overrides
+#
+set ( MANUFACTURER "Input Club" PARENT_SCOPE )
+
+
+###
+# Path to this module
+#
+set ( MatrixARM_Path ${CMAKE_CURRENT_LIST_DIR} )
+
+
+###
 # Required Submodules
 #
 
