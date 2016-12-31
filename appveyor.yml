@@ -22,7 +22,7 @@ environment:
     CYG_ARCH: x86
     CYG_ROOT: C:/cygwin
     WIN_CMAKE: "/cygdrive/c/Program Files (x86)/CMake/bin"
-    ARM_COMPILER_URL: https://launchpad.net/gcc-arm-embedded/5.0/5-2016-q2-update/+download/gcc-arm-none-eabi-5_4-2016q2-20160622-win32.zip
+    ARM_COMPILER_URL: http://launchpad.net/gcc-arm-embedded/5.0/5-2016-q2-update/+download/gcc-arm-none-eabi-5_4-2016q2-20160622-win32.zip
   matrix:
     # Input Club Keyboard Tests
     - SCRIPT_DIR: Keyboards
