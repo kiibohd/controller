@@ -94,6 +94,5 @@ build_script:
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && python3 --version"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && arm-none-eabi-gcc --version"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && git clone https://github.com/kiibohd/kll.git"'
-  - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\"/kll && git checkout dev"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\"/%SCRIPT_DIR% && export wincmake_path=\"%WIN_CMAKE%\" && COMPILER=gcc ./%SCRIPT%"'
 

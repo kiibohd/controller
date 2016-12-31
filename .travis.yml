@@ -95,7 +95,6 @@ install:
 
   # Pre-clone kll.git to speed-up build
   - git clone https://github.com/kiibohd/kll.git
-  - (cd kll && git checkout dev)
 
   # Directory tree to validate kll.git
   - tree
