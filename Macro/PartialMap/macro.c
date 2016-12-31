@@ -1374,6 +1374,7 @@ void cliFunc_posList( char* args )
 {
 	print( NL );
 
+	/* TODO Add printFloat function
 	// List out physical key positions by scan code
 	for ( uint8_t key = 0; key < MaxScanCode; key++ )
 	{
@@ -1393,5 +1394,6 @@ void cliFunc_posList( char* args )
 		print("]");
 		print( NL );
 	}
+	*/
 }
 

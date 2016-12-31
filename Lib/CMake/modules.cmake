@@ -69,7 +69,7 @@ macro ( PathPrepend Output SourcesPath )
 	foreach ( item ${ARGN} )
 		# If the leading character is a / treat as an absolute path
 		string ( SUBSTRING "${item}" 0 1 character )
-		if ( "${character}" STREQUAL "/" )
+		if ( character STREQUAL "/" )
 			set ( tmpSource ${tmpSource} "${item}" )
 
 		# Otherwise just set the path

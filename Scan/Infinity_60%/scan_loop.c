@@ -56,6 +56,8 @@ CLIDict_Def( scanCLIDict, "Scan Module Commands" ) = {
 // Number of scans since the last USB send
 uint16_t Scan_scanCount = 0;
 
+uint8_t Scan_strobe_position;
+
 
 
 // ----- Functions -----
@@ -71,15 +73,27 @@ inline void Scan_setup()
 
 	// Reset scan count
 	Scan_scanCount = 0;
+
+	// Reset starting strobe position
+	Scan_strobe_position = 0;
 }
 
 
 // Main Detection Loop
 inline uint8_t Scan_loop()
 {
-	Matrix_scan( Scan_scanCount++ );
+	// Scan Matrix
+	Matrix_scan( Scan_scanCount, &Scan_strobe_position, 4 );
 
-	return 0;
+	// Check if we are ready to leave the scan loop
+	if ( Scan_strobe_position >= Matrix_totalColumns() - 1 )
+	{
+		Scan_strobe_position = 0;
+		Scan_scanCount++;
+		return 0;
+	}
+
+	return 1;
 }
 
 

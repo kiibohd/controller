@@ -39,17 +39,17 @@ print( data.usb_keyboard() )
 
 
 # Press key 0x00
-i.control.cmd('addScanCode')( 0x00 )
+i.control.cmd('addScanCode')( 0x02 )
 
 # Run processing loop twice, needs to run twice in order to reach the Hold state
 i.control.loop(2)
 
 print( data.usb_keyboard() )
 print( data.usb_keyboard_data )
-check( set( data.usb_keyboard()[1] ) >= set([ 41 ]) ) # Check if [41] is a subset of the usb keyboard data
+check( set( data.usb_keyboard()[1] ) >= set([ 58 ]) ) # Check if [58] is a subset of the usb keyboard data
 
 # Release key 0x00
-i.control.cmd('removeScanCode')( 0x00 )
+i.control.cmd('removeScanCode')( 0x02 )
 
 # Run processing loop once, only needs to transition from hold to release
 i.control.loop(1)

@@ -186,8 +186,9 @@ ISSILedMask4 = "
 ### Pixel Buffer Setup ###
 # Defines channel mappings, changing the order will affect Pixel definitions
 
-Pixel_Buffer_Size[]    =  0 144 288 432; # Starting channel for each buffer
-Pixel_Buffer_Width[]   = 16  16  16  16; # Width of each channel buffer (may be different than effective channel size)
+Pixel_Buffer_Size[]    =   0 144 288 432; # Starting channel for each buffer
+Pixel_Buffer_Width[]   =  16  16  16  16; # Width of each channel buffer (may be different than effective channel size)
+Pixel_Buffer_Length[]  = 144 144 144 144; # Length of each buffer (count, not bytes)
 Pixel_Buffer_Buffer[0] = "LED_pageBuffer[0].buffer"; # Pointer to the start of the buffer
 Pixel_Buffer_Buffer[1] = "LED_pageBuffer[1].buffer";
 Pixel_Buffer_Buffer[2] = "LED_pageBuffer[2].buffer";

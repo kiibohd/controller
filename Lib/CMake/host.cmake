@@ -98,21 +98,20 @@ if( CMAKE_GENERATOR STREQUAL "Ninja" )
 endif ()
 
 
-#| Dependency Files
-#| Compiler flags to generate dependency files.
-set( GENDEPFLAGS "-MD" )
-
-
 #| Compiler Flags
-add_definitions( -D_host_=1 ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS} )
+add_definitions( -D_host_=1 ${TUNING} ${WARN} ${CSTANDARD} )
 
 
 #| Linker Flags
-set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections" )
+if ( APPLE )
+	set( LINKER_FLAGS "${TUNING}" )
+else ()
+	set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections" )
+endif ()
 
 
 #| Lss Flags
-if ( "${COMPILER}" MATCHES "clang" )
+if ( "${COMPILER}" MATCHES "clang" OR APPLE )
 	set( LSS_FLAGS -section-headers )
 else ()
 	set( LSS_FLAGS -h -S -z )

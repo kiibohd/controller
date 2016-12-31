@@ -80,6 +80,34 @@ typedef uintptr_t nat_ptr_t;
 
 // ----- Structs -----
 
+// -- Scheduling
+
+typedef enum ScheduleState {
+	ScheduleType_P,   // Press
+	ScheduleType_H,   // Hold
+	ScheduleType_R,   // Release
+	ScheduleType_O,   // Off
+	ScheduleType_UP,  // Unique Press
+	ScheduleType_UR,  // Unique Release
+
+	ScheduleType_A,   // Activate
+	ScheduleType_D,   // Deactivate
+	ScheduleType_On,  // On
+	ScheduleType_Off, // Off
+} ScheduleState;
+
+// TODO - Do we need 64-bits for time here? It's the easiest to implement -HaaTa
+typedef struct Schedule {
+	uint32_t systick;   // ms systick
+	uint32_t cycletick; // Usually in the ns range, e.g. 13.889 ns per tick
+	union {
+		ScheduleState state;
+		uint8_t analog;
+	};
+} Schedule;
+
+
+
 // -- Result Macro
 // Defines the sequence of combinations to as the Result of Trigger Macro
 // For RAM optimization reasons, ResultMacro has been split into ResultMacro and ResultMacroRecord structures
@@ -158,12 +186,20 @@ typedef struct TriggerMacroRecord {
 } TriggerMacroRecord;
 
 // Guide, key element
+// Used for storing Trigger elements
 #define TriggerGuideSize sizeof( TriggerGuide )
 typedef struct TriggerGuide {
 	uint8_t type;
 	uint8_t state;
 	uint8_t scanCode;
 } TriggerGuide;
+
+// Same as a TriggerGuide, but is used for incoming events rather than event comparisons
+typedef struct TriggerBuffer {
+	uint8_t type;
+	uint8_t state;
+	uint8_t scanCode;
+} TriggerBuffer;
 
 
 
@@ -275,21 +311,16 @@ typedef struct Layer {
 
 // ----- Key Positions -----
 
-typedef struct PositionValue {
-	uint16_t i; // Integer part
-	uint16_t f; // Fraction part
-} PositionValue;
-
 // Each positions has 6 dimensions
 // Units are in mm
-#define PositionEntry( xi,xf, yi, yf, zi,zf, rxi,rxf, ryi,ryf, rzi,rzf ) \
-	{ {xi,xf}, {yi,yf}, {zi,zf}, {rxi,rxf}, {ryi,ryf}, {rzi,rzf} }
+#define PositionEntry( x, y, z, rx, ry, rz ) \
+	{ x, y, z, rx, ry, rz }
 typedef struct Position {
-	PositionValue x;
-	PositionValue y;
-	PositionValue z;
-	PositionValue rx;
-	PositionValue ry;
-	PositionValue rz;
+	float x;
+	float y;
+	float z;
+	float rx;
+	float ry;
+	float rz;
 } Position;
 

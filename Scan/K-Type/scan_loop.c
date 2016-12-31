@@ -138,7 +138,7 @@ void Scan_currentChange( unsigned int current )
 	{
 		// TODO REMOVEME once default animations can be set
 		AnimationStackElement element;
-		element.index = 1;
+		element.index = 3;
 		element.loops = 1;
 		element.pfunc = 1;
 		Pixel_addAnimation( &element );

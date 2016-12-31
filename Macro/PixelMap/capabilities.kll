@@ -24,4 +24,5 @@ Pixel_Test_Mode => Pixel_Test_Mode_define;
 Pixel_Buffer_Size   => Pixel_Buffer_Size_define;
 Pixel_Buffer_Width  => Pixel_Buffer_Width_define;
 Pixel_Buffer_Buffer => Pixel_Buffer_Buffer_define;
+Pixel_Buffer_Length => Pixel_Buffer_Length_define;
 

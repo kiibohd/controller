@@ -21,7 +21,7 @@ BaseMap="scancode_map"
 # This is the default layer of the keyboard
 # NOTE: To combine kll files into a single layout, separate them by spaces
 # e.g.  DefaultMap="mylayout mylayoutmod"
-DefaultMap="md1Overlay stdFuncMap"
+DefaultMap="stdFuncMap"
 
 # This is where you set the additional layers
 # NOTE: Indexing starts at 1

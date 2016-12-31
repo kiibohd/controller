@@ -148,27 +148,10 @@ set ( kll_defs       kll_defs.h )
 set ( kll_pixelmap   generatedPixelmap.c )
 set ( kll_outputname ${kll_keymap} ${kll_defs} ${kll_pixelmap} )
 
-#| KLL Old Version
-set ( kll_old_version_cmd
-	${PROJECT_SOURCE_DIR}/kll/kll.py
-	--version
-)
-
 #| KLL Version
 set ( kll_version_cmd
 	${PROJECT_SOURCE_DIR}/kll/kll
 	--version
-)
-
-#| KLL Old Cmd
-set ( kll_old_cmd
-	${PROJECT_SOURCE_DIR}/kll/kll.py
-	${Config_Args} ${BaseMap_Args}
-	--default ${DefaultMap_Args}
-	${PartialMap_Args}
-	--backend ${kll_emitter}
-	--templates ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdKeymap.h ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdDefs.h
-	--outputs ${kll_keymap} ${kll_defs}
 )
 
 #| KLL Cmd
@@ -182,15 +165,17 @@ set ( kll_cmd
 	--def-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdDefs.h
 	--map-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdKeymap.h
 	--pixel-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdPixelmap.c
-	--def-output ${kll_defs}.new.h
-	--map-output ${kll_keymap}.new.h
+	--def-output ${kll_defs}
+	--map-output ${kll_keymap}
 	--pixel-output ${kll_pixelmap}
+	#--operation-organization-display
+	#--data-organization-display
+	#--data-finalization-debug
 	#--data-finalization-display
+	#--data-analysis-debug
 )
 
-add_custom_command ( OUTPUT ${kll_outputname} ${kll_defs}.new.h ${kll_keymap}.new.h
-	COMMAND ${kll_old_version_cmd}
-	COMMAND ${kll_old_cmd}
+add_custom_command ( OUTPUT ${kll_outputname}
 	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd}
 	DEPENDS ${KLL_DEPENDS}
@@ -199,8 +184,6 @@ add_custom_command ( OUTPUT ${kll_outputname} ${kll_defs}.new.h ${kll_keymap}.ne
 
 #| KLL Regen Convenience Target
 add_custom_target ( kll_regen
-	COMMAND ${kll_old_version_cmd}
-	COMMAND ${kll_old_cmd}
 	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd}
 	COMMENT "Re-generating KLL Layout"

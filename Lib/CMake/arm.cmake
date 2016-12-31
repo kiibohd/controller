@@ -234,13 +234,8 @@ endif()
 set( OPT "s" )
 
 
-#| Dependency Files
-#| Compiler flags to generate dependency files.
-set( GENDEPFLAGS "-MD" )
-
-
 #| Compiler Flags
-add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS}" )
+add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD}" )
 
 
 #| Linker Flags
