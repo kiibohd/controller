@@ -60,8 +60,6 @@ install:
   - '%CYG_ROOT%/bin/bash -lc "cygcheck -dc cygwin"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\"/%SCRIPT_DIR% && export wincmake_path=\"%WIN_CMAKE%\" && which cmake"'
   - '%CYG_ROOT%/bin/bash -lc "ls -l /cygdrive/c"'
-  # Compiler URL can be iffy and not do SSL correctly at times :/
-  - [Net.ServicePointManager]::SecurityProtocol = 'Ssl3, Tls, Tls11, Tls12'
   # Only download if cache is missing
   - if not exist c:/gcc-arm-none-eabi.zip appveyor DownloadFile %ARM_COMPILER_URL% -FileName c:/gcc-arm-none-eabi.zip
   # Always try to strip out the unnecessary binaries
