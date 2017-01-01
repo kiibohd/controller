@@ -6,5 +6,15 @@
 #  ./gdb test.py --debug
 #
 
-gdb -ex r --args python3 ${@}
+# Determine path to gdb
+if type gdb &> /dev/null; then
+	GDB=gdb
+elif type ggdb &> /dev/null; then
+	GDB=ggdb
+elif [ ! -z ${GDB+x} ]; then
+	echo "Please set GDB environment variable to gdb path."
+	exit 1
+fi
+
+${GDB} -ex r --args python3 ${@}
 

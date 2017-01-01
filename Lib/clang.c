@@ -28,6 +28,8 @@
 // Compiler Includes
 #include <string.h>
 
+// Not necessary when doing host compilation on macOS
+#if !defined(_APPLE_)
 
 void __aeabi_memcpy( void *dest, const void *src, size_t n )
 {
@@ -58,4 +60,6 @@ void __aeabi_memset( void *s, size_t n, int c )
 {
 	(void)memset(s, c, n);
 }
+
+#endif
 

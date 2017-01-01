@@ -22,6 +22,9 @@
 
 // ----- Includes -----
 
+// Compiler Includes
+#include <stddef.h>
+
 // Debug Includes
 #include <print.h>
 

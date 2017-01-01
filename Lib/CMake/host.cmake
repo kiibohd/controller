@@ -76,13 +76,25 @@ set( WARN "-Wall -ggdb3" )
 #| NOTE: -fshort-wchar is specified to allow USB strings be passed conveniently
 #| Clang Compiler
 if ( "${COMPILER}" MATCHES "clang" )
-	# TODO
-	set ( TUNING "-nostdlib -fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
+	if ( APPLE )
+		set( TUNING "-fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
+	else ()
+		set( TUNING "-nostdlib -fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
+	endif ()
+
+	# Set compiler utilities for clang on macOS
+	if ( APPLE )
+		set ( CMAKE_OBJDUMP objdump )
+		set ( CMAKE_NM nm )
+	endif ()
 
 #| GCC Compiler
 else()
-	# TODO
-	set( TUNING "-nostdlib -fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
+	if ( APPLE )
+		set( TUNING "-fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
+	else ()
+		set( TUNING "-nostdlib -fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
+	endif ()
 endif()
 
 
@@ -98,13 +110,19 @@ if( CMAKE_GENERATOR STREQUAL "Ninja" )
 endif ()
 
 
+#| OS Specific defines
+if ( APPLE )
+	set( OS_TUNING -D_APPLE_=1 -fno-stack-protector )
+endif ()
+
+
 #| Compiler Flags
-add_definitions( -D_host_=1 ${TUNING} ${WARN} ${CSTANDARD} )
+add_definitions( -D_host_=1 ${OS_TUNING} ${TUNING} ${WARN} ${CSTANDARD} )
 
 
 #| Linker Flags
 if ( APPLE )
-	set( LINKER_FLAGS "${TUNING}" )
+	set( LINKER_FLAGS "${TUNING} -lcrt1.o" )
 else ()
 	set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections" )
 endif ()
