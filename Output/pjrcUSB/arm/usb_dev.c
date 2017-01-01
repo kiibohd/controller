@@ -1268,6 +1268,14 @@ restart:
 			#endif
 
 		}
+
+		// SOF tokens are used for keepalive, consider the system awake when we're receiving them
+		if ( usb_dev_sleep )
+		{
+			Output_update_usb_current( *usb_bMaxPower * 2 );
+			usb_dev_sleep = 0;
+		}
+
 		USB0_ISTAT = USB_INTEN_SOFTOKEN;
 	}
 
