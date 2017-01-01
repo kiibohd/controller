@@ -97,7 +97,12 @@ void usb_keyboard_send()
 		}
 
 		// Try to wake up the host if it's asleep
-		usb_resume();
+		if ( usb_resume() )
+		{
+			// Drop packet
+			USBKeys_Changed = USBKeyChangeState_None;
+			return;
+		}
 
 		if ( USBKeys_Protocol == 0 ) // Boot Mode
 		{
