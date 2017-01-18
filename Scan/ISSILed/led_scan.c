@@ -632,6 +632,9 @@ inline void LED_scan()
 				uint8_t bus = LED_ChannelMapping[ ch ].bus;
 				LED_writeReg( bus, addr, 0x0A, 0x01, 0x0B );
 			}
+
+			// Trigger power-up animation
+			// TODO
 		}
 
 		LED_currentEvent = 0;

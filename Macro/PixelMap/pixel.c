@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2016 by Jacob Alexander
+/* Copyright (C) 2015-2017 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -90,7 +90,7 @@ AnimationStackElement Pixel_AnimationElement_Stor[Pixel_AnimationStackSize];
 
 #if defined(_host_)
 uint16_t Pixel_AnimationStack_HostSize = Pixel_AnimationStackSize;
-uint8_t  Pixel_Buffers_HostLen = Pixel_BuffersLen;
+uint8_t  Pixel_Buffers_HostLen = Pixel_BuffersLen_KLL;
 uint8_t  Pixel_MaxChannelPerPixel_Host = Pixel_MaxChannelPerPixel;
 uint16_t Pixel_Mapping_HostLen = 128; // TODO Define
 uint8_t  Pixel_AnimationStackElement_HostSize = sizeof( AnimationStackElement );
@@ -295,22 +295,16 @@ PixelBuf *Pixel_bufferMap( uint16_t channel )
 	return &Pixel_Buffers[0];
 }
 
-#define PixelChange_Expansion(pixbuf, ch_pos, mod, ch, op) \
+#define PixelChange_Expansion(pixbuf, ch_pos, mod_value, op) \
 	/* Lookup buffer to data width mapping */ \
-	switch ( elem->width + pixbuf->width ) \
+	switch ( pixbuf->width ) \
 	{ \
-	case 8+8:   /*  8:8  bit mapping */ \
-		PixelBuf8( pixbuf, ch_pos ) op PixelData8( mod, ch ); break; \
-	case 16+8:  /* 16:8  bit mapping */ \
-		PixelBuf16( pixbuf, ch_pos ) op PixelData8( mod, ch ); break; \
-	case 32+8:  /* 32:8  bit mapping */ \
-		PixelBuf32( pixbuf, ch_pos ) op PixelData8( mod, ch ); break; \
-	case 16+16: /* 16:16 bit mapping */ \
-		PixelBuf16( pixbuf, ch_pos ) op PixelData16( mod, ch ); break; \
-	case 32+16: /* 32:16 bit mapping */ \
-		PixelBuf32( pixbuf, ch_pos ) op PixelData16( mod, ch ); break; \
-	case 32+32: /* 32:32 bit mapping */ \
-		PixelBuf32( pixbuf, ch_pos ) op PixelData32( mod, ch ); break; \
+	case 8:  /*  8 bit mapping */ \
+		PixelBuf8( pixbuf, ch_pos ) op (uint8_t)mod_value; break; \
+	case 16: /* 16 bit mapping */ \
+		PixelBuf16( pixbuf, ch_pos ) op (uint16_t)mod_value; break; \
+	case 32: /* 32 bit mapping */ \
+		PixelBuf32( pixbuf, ch_pos ) op (uint32_t)mod_value; break; \
 	default: \
 		warn_print("Invalid width mapping for "#op ); \
 		break; \
@@ -323,6 +317,9 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 	// Lookup number of channels in pixel
 	uint8_t channels = elem->channels;
 
+	// Data position iterator
+	uint8_t position_iter = 0;
+
 	// Apply operation to each channel of the pixel
 	for ( uint8_t ch = 0; ch < channels; ch++ )
 	{
@@ -332,77 +329,85 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 		// Determine which buffer we are in
 		PixelBuf *pixbuf = Pixel_bufferMap( ch_pos );
 
+		// Change Type (first 8 bits of each channel of data, see pixel.h for layout)
+		PixelChange change = (PixelChange)mod->data[ position_iter++ ];
+
+		// Modification Value
+		uint32_t mod_value = 0;
+
+		// Lookup modification value
+		switch ( elem->width )
+		{
+		case 8:
+			mod_value = mod->data[ position_iter++ ];
+			break;
+
+		case 16:
+			mod_value = mod->data[ position_iter + 1 ] |
+				( mod->data[ position_iter + 2 ] << 8 );
+			position_iter += 2;
+			break;
+
+		case 32:
+			mod_value = mod->data[ position_iter + 1 ] |
+				( mod->data[ position_iter + 2 ] << 8 ) |
+				( mod->data[ position_iter + 3 ] << 16 ) |
+				( mod->data[ position_iter + 4 ] << 24 );
+			position_iter += 4;
+			break;
+
+		default:
+			warn_print("Invalid PixelElement width mapping");
+			break;
+		}
+
 		// Operation
-		switch ( mod->change )
+		switch ( change )
 		{
 		case PixelChange_Set:             // =
-			PixelChange_Expansion( pixbuf, ch_pos, mod, ch, = );
+			PixelChange_Expansion( pixbuf, ch_pos, mod_value, = );
 			break;
 
 		case PixelChange_Add:             // +
-			PixelChange_Expansion( pixbuf, ch_pos, mod, ch, += );
+			PixelChange_Expansion( pixbuf, ch_pos, mod_value, += );
 			break;
 
 		case PixelChange_Subtract:        // -
-			PixelChange_Expansion( pixbuf, ch_pos, mod, ch, -= );
+			PixelChange_Expansion( pixbuf, ch_pos, mod_value, -= );
 			break;
 
 		case PixelChange_LeftShift:       // <<
-			PixelChange_Expansion( pixbuf, ch_pos, mod, ch, <<= );
+			PixelChange_Expansion( pixbuf, ch_pos, mod_value, <<= );
 			break;
 
 		case PixelChange_RightShift:      // >>
-			PixelChange_Expansion( pixbuf, ch_pos, mod, ch, >>= );
+			PixelChange_Expansion( pixbuf, ch_pos, mod_value, >>= );
 			break;
 
 		case PixelChange_NoRoll_Add:      // +:
 			// Lookup buffer to data width mapping
-			switch ( elem->width + pixbuf->width )
+			switch ( pixbuf->width )
 			{
-			case 8+8:   //  8:8  bit mapping
+			case 8:  //  8  bit mapping
 			{
 				uint8_t prev = PixelBuf8( pixbuf, ch_pos );
-				PixelBuf8( pixbuf, ch_pos ) += PixelData8( mod, ch );
+				PixelBuf8( pixbuf, ch_pos ) += (uint8_t)mod_value;
 				if ( prev > PixelBuf8( pixbuf, ch_pos ) )
 					PixelBuf8( pixbuf, ch_pos ) = 0xFF;
 				break;
 			}
-			case 16+8:  // 16:8  bit mapping
+			case 16: // 16  bit mapping
 			{
 				uint16_t prev = PixelBuf16( pixbuf, ch_pos );
-				PixelBuf16( pixbuf, ch_pos ) += PixelData8( mod, ch );
+				PixelBuf16( pixbuf, ch_pos ) += (uint16_t)mod_value;
 				if ( prev > PixelBuf16( pixbuf, ch_pos ) )
 					PixelBuf16( pixbuf, ch_pos ) = 0xFFFF;
 				break;
 			}
-			case 32+8:  // 32:8  bit mapping
+			case 32: // 32  bit mapping
 			{
 				uint32_t prev = PixelBuf32( pixbuf, ch_pos );
-				PixelBuf32( pixbuf, ch_pos ) += PixelData8( mod, ch );
-				if ( prev > PixelBuf32( pixbuf, ch_pos ) )
-					PixelBuf32( pixbuf, ch_pos ) = 0xFFFFFFFF;
-				break;
-			}
-			case 16+16: // 16:16 bit mapping
-			{
-				uint16_t prev = PixelBuf16( pixbuf, ch_pos );
-				PixelBuf16( pixbuf, ch_pos ) += PixelData16( mod, ch );
-				if ( prev > PixelBuf16( pixbuf, ch_pos ) )
-					PixelBuf16( pixbuf, ch_pos ) = 0xFFFF;
-				break;
-			}
-			case 32+16: // 32:16 bit mapping
-			{
-				uint32_t prev = PixelBuf32( pixbuf, ch_pos );
-				PixelBuf32( pixbuf, ch_pos ) += PixelData16( mod, ch );
-				if ( prev > PixelBuf32( pixbuf, ch_pos ) )
-					PixelBuf32( pixbuf, ch_pos ) = 0xFFFFFFFF;
-				break;
-			}
-			case 32+32: // 32:32 bit mapping
-			{
-				uint32_t prev = PixelBuf32( pixbuf, ch_pos );
-				PixelBuf32( pixbuf, ch_pos ) += PixelData32( mod, ch );
+				PixelBuf32( pixbuf, ch_pos ) += (uint32_t)mod_value;
 				if ( prev > PixelBuf32( pixbuf, ch_pos ) )
 					PixelBuf32( pixbuf, ch_pos ) = 0xFFFFFFFF;
 				break;
@@ -416,52 +421,28 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 
 		case PixelChange_NoRoll_Subtract: // -:
 			// Lookup buffer to data width mapping
-			switch ( elem->width + pixbuf->width )
+			switch ( pixbuf->width )
 			{
-			case 8+8:   //  8:8  bit mapping
+			case 8:  //  8  bit mapping
 			{
 				uint8_t prev = PixelBuf8( pixbuf, ch_pos );
-				PixelBuf8( pixbuf, ch_pos ) -= PixelData8( mod, ch );
+				PixelBuf8( pixbuf, ch_pos ) -= (uint8_t)mod_value;
 				if ( prev < PixelBuf8( pixbuf, ch_pos ) )
 					PixelBuf8( pixbuf, ch_pos ) = 0;
 				break;
 			}
-			case 16+8:  // 16:8  bit mapping
+			case 16: // 16  bit mapping
 			{
 				uint16_t prev = PixelBuf16( pixbuf, ch_pos );
-				PixelBuf16( pixbuf, ch_pos ) += PixelData8( mod, ch );
+				PixelBuf16( pixbuf, ch_pos ) += (uint16_t)mod_value;
 				if ( prev < PixelBuf16( pixbuf, ch_pos ) )
 					PixelBuf16( pixbuf, ch_pos ) = 0;
 				break;
 			}
-			case 32+8:  // 32:8  bit mapping
+			case 32: // 32  bit mapping
 			{
 				uint32_t prev = PixelBuf32( pixbuf, ch_pos );
-				PixelBuf32( pixbuf, ch_pos ) += PixelData8( mod, ch );
-				if ( prev < PixelBuf32( pixbuf, ch_pos ) )
-					PixelBuf32( pixbuf, ch_pos ) = 0;
-				break;
-			}
-			case 16+16: // 16:16 bit mapping
-			{
-				uint16_t prev = PixelBuf16( pixbuf, ch_pos );
-				PixelBuf16( pixbuf, ch_pos ) += PixelData16( mod, ch );
-				if ( prev < PixelBuf16( pixbuf, ch_pos ) )
-					PixelBuf16( pixbuf, ch_pos ) = 0;
-				break;
-			}
-			case 32+16: // 32:16 bit mapping
-			{
-				uint32_t prev = PixelBuf32( pixbuf, ch_pos );
-				PixelBuf32( pixbuf, ch_pos ) += PixelData16( mod, ch );
-				if ( prev < PixelBuf32( pixbuf, ch_pos ) )
-					PixelBuf32( pixbuf, ch_pos ) = 0;
-				break;
-			}
-			case 32+32: // 32:32 bit mapping
-			{
-				uint32_t prev = PixelBuf32( pixbuf, ch_pos );
-				PixelBuf32( pixbuf, ch_pos ) += PixelData32( mod, ch );
+				PixelBuf32( pixbuf, ch_pos ) += (uint32_t)mod_value;
 				if ( prev < PixelBuf32( pixbuf, ch_pos ) )
 					PixelBuf32( pixbuf, ch_pos ) = 0;
 				break;
@@ -506,8 +487,8 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 
 	case PixelAddressType_Rect:
 		// Make sure row,column exists
-		if ( mod->rect.col >= Pixel_DisplayMapping_Cols
-			&& mod->rect.row >= Pixel_DisplayMapping_Rows )
+		if ( mod->rect.col >= Pixel_DisplayMapping_Cols_KLL
+			&& mod->rect.row >= Pixel_DisplayMapping_Rows_KLL )
 		{
 			erro_msg("Invalid row,column index: ");
 			printInt16( mod->rect.row );
@@ -520,14 +501,14 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 		// Lookup pixel in rectangle display organization
 		*elem = (PixelElement*)&Pixel_Mapping[
 			Pixel_DisplayMapping[
-				mod->rect.row * Pixel_DisplayMapping_Cols + mod->rect.col
+				mod->rect.row * Pixel_DisplayMapping_Cols_KLL + mod->rect.col
 			]
 		];
 		return 0;
 
 	case PixelAddressType_ColumnFill:
 		// Make sure column exists
-		if ( mod->rect.col >= Pixel_DisplayMapping_Cols )
+		if ( mod->rect.col >= Pixel_DisplayMapping_Cols_KLL )
 		{
 			erro_msg("Invalid column index: ");
 			printInt16( mod->rect.col );
@@ -538,10 +519,10 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 		// Lookup pixel until either, non-0 index or we reached the last row
 		do {
 			// Pixel index
-			index = Pixel_DisplayMapping[ cur * Pixel_DisplayMapping_Cols + mod->rect.col ];
+			index = Pixel_DisplayMapping[ cur * Pixel_DisplayMapping_Cols_KLL + mod->rect.col ];
 
 			// Check if we've processed all rows
-			if ( cur >= Pixel_DisplayMapping_Rows )
+			if ( cur >= Pixel_DisplayMapping_Rows_KLL )
 			{
 				return 0;
 			}
@@ -554,7 +535,7 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 
 	case PixelAddressType_RowFill:
 		// Make sure row,column exists
-		if ( mod->rect.row >= Pixel_DisplayMapping_Rows )
+		if ( mod->rect.row >= Pixel_DisplayMapping_Rows_KLL )
 		{
 			erro_msg("Invalid row index: ");
 			printInt16( mod->rect.row );
@@ -565,10 +546,10 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 		// Lookup pixel until either, non-0 index or we reached the last column
 		do {
 			// Pixel index
-			index = Pixel_DisplayMapping[ mod->rect.row * Pixel_DisplayMapping_Cols + cur ];
+			index = Pixel_DisplayMapping[ mod->rect.row * Pixel_DisplayMapping_Cols_KLL + cur ];
 
 			// Check if we've processed all rows
-			if ( cur >= Pixel_DisplayMapping_Cols )
+			if ( cur >= Pixel_DisplayMapping_Cols_KLL )
 			{
 				return 0;
 			}
@@ -634,7 +615,7 @@ void Pixel_pixelTweenStandard( const uint8_t *frame, AnimationStackElement *stac
 		} while ( next );
 
 		// Calculate next position (this is dynamic, cannot be pre-calculated)
-		pos += (elem->width / 8) * elem->channels + sizeof( PixelModElement );
+		pos += ( ( elem->width / 8 + sizeof( PixelChange ) ) * elem->channels ) + sizeof( PixelModElement );
 
 		// Lookup next mod element
 		mod = (PixelModElement*)&frame[pos];
@@ -687,7 +668,7 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 
 		// Prepare tweened PixelModElement
 		// TODO allow for larger than 24-bit pixels (auto-generate?)
-		uint8_t interp_data[ sizeof( PixelModElement ) + 8 * 3 ];
+		uint8_t interp_data[ sizeof( PixelModElement ) + sizeof( PixelModDataElement ) * 3 + 4 * 3 ];
 		PixelModElement *interp_mod = (PixelModElement*)&interp_data;
 		memcpy( interp_mod, mod, sizeof( interp_data ) );
 
@@ -719,7 +700,8 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 			// TODO Non-8bit
 			if ( prev != 0 ) for ( uint8_t ch = 0; ch < mod_elem->channels; ch++ )
 			{
-				interp_mod->data[ch] = Pixel_8bitInterpolation( prev->data[ch], mod->data[ch], slice * cur );
+				uint8_t pos = ch * 2 + 1; // TODO Only works with 8 bit channels
+				interp_mod->data[pos] = Pixel_8bitInterpolation( prev->data[pos], mod->data[pos], slice * cur );
 			}
 
 			// Lookup type of pixel, choose fill algorith and query all sub-pixels
@@ -734,7 +716,7 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 		}
 
 		// Calculate next position (this is dynamic, cannot be pre-calculated)
-		pos += (elem->width / 8) * elem->channels + sizeof( PixelModElement );
+		pos += ( ( elem->width / 8 + sizeof( PixelChange ) ) * elem->channels ) + sizeof( PixelModElement );
 
 		// Lookup next mod element
 		prev = mod;
@@ -795,6 +777,7 @@ uint8_t Pixel_animationProcess( AnimationStackElement *elem )
 	uint16_t frame = elem->pos >> elem->divshift;
 
 	// Lookup animation frame to make sure we have something to do
+	// TODO Make sure animation index exists -HaaTa
 	const uint8_t *data = Pixel_Animations[elem->index][frame];
 
 	// If there is no frame data, that means we either stop, or restart
@@ -895,7 +878,7 @@ inline void Pixel_process()
 
 		// Increment channel
 		Pixel_testPos++;
-		if ( Pixel_testPos >= Pixel_TotalChannels )
+		if ( Pixel_testPos >= Pixel_TotalChannels_KLL )
 			Pixel_testPos = 0;
 
 		goto pixel_process_done;
@@ -906,7 +889,7 @@ inline void Pixel_process()
 		uint16_t ch;
 
 		// Only update 50 positions at a time
-		for ( ch = Pixel_testPos; ch < Pixel_TotalChannels; ch++ )
+		for ( ch = Pixel_testPos; ch < Pixel_TotalChannels_KLL; ch++ )
 		//for ( ch = Pixel_testPos; ch < Pixel_testPos + 50 && ch < Pixel_TotalChannels; ch++ )
 		{
 			// Toggle channel
@@ -916,7 +899,7 @@ inline void Pixel_process()
 		Pixel_testPos = ch;
 
 		// Only signal frame update after all pixels complete
-		if ( Pixel_testPos >= Pixel_TotalChannels )
+		if ( Pixel_testPos >= Pixel_TotalChannels_KLL )
 		{
 			Pixel_testPos = 0;
 			goto pixel_process_done;
@@ -932,7 +915,7 @@ inline void Pixel_process()
 
 		// Increment pixel
 		Pixel_testPos++;
-		if ( Pixel_testPos >= Pixel_TotalPixels )
+		if ( Pixel_testPos >= Pixel_TotalPixels_KLL )
 			Pixel_testPos = 0;
 
 		goto pixel_process_done;
@@ -943,7 +926,7 @@ inline void Pixel_process()
 		uint16_t px;
 
 		// Only update 10 positions at a time
-		for ( px = Pixel_testPos; px < Pixel_testPos + 50 && px < Pixel_TotalPixels; px++ )
+		for ( px = Pixel_testPos; px < Pixel_testPos + 50 && px < Pixel_TotalPixels_KLL; px++ )
 		{
 			// Toggle pixel
 			Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ px ] );
@@ -952,7 +935,7 @@ inline void Pixel_process()
 		Pixel_testPos = px;
 
 		// Only signal frame update after all pixels complete
-		if ( Pixel_testPos >= Pixel_TotalPixels )
+		if ( Pixel_testPos >= Pixel_TotalPixels_KLL )
 		{
 			Pixel_testPos = 0;
 			goto pixel_process_done;
@@ -1014,7 +997,7 @@ void cliFunc_pixelList( char* args )
 		info_msg("Buffer List");
 
 		// List all buffers
-		for ( uint8_t buf = 0; buf < Pixel_BuffersLen; buf++ )
+		for ( uint8_t buf = 0; buf < Pixel_BuffersLen_KLL; buf++ )
 		{
 			print( NL "\t" );
 			printInt8( buf );
@@ -1032,7 +1015,7 @@ void cliFunc_pixelList( char* args )
 		info_msg("Pixel List - <num>[<ch1>,...]<width>:...");
 
 		// List all pixels
-		for ( uint16_t pixel = 0; pixel < Pixel_TotalPixels; pixel++ )
+		for ( uint16_t pixel = 0; pixel < Pixel_TotalPixels_KLL; pixel++ )
 		{
 			// NL occaisionally
 			if ( pixel % 5 == 0 )
@@ -1113,7 +1096,7 @@ void cliFunc_pixelTest( char* args )
 
 	// Increment channel
 	Pixel_testPos++;
-	if ( Pixel_testPos >= Pixel_TotalPixels )
+	if ( Pixel_testPos >= Pixel_TotalPixels_KLL )
 		Pixel_testPos = 0;
 }
 
@@ -1169,7 +1152,7 @@ void cliFunc_chanTest( char* args )
 
 	// Increment channel
 	Pixel_testPos++;
-	if ( Pixel_testPos >= Pixel_TotalChannels )
+	if ( Pixel_testPos >= Pixel_TotalChannels_KLL )
 		Pixel_testPos = 0;
 }
 
@@ -1201,7 +1184,7 @@ void Pixel_dispBuffer()
 {
 	uint8_t row = 0;
 	uint8_t col = 0;
-	for ( uint16_t px = 0; px < Pixel_DisplayMapping_Cols * Pixel_DisplayMapping_Rows; px++ )
+	for ( uint16_t px = 0; px < Pixel_DisplayMapping_Cols_KLL * Pixel_DisplayMapping_Rows_KLL; px++ )
 	{
 		// Display a + if it's a blank pixel
 		if ( Pixel_DisplayMapping[px] == 0 )
@@ -1232,7 +1215,7 @@ void Pixel_dispBuffer()
 		}
 
 		// Determine what to increment next
-		if ( col >= Pixel_DisplayMapping_Cols - 1 )
+		if ( col >= Pixel_DisplayMapping_Cols_KLL - 1 )
 		{
 			col = 0;
 			row++;

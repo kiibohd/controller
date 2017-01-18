@@ -339,6 +339,7 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 		{
 			// Key position
 			uint8_t key = Matrix_colsNum * sense + strobe;
+			uint8_t key_disp = key + 1; // 1-indexed for reporting purposes
 			KeyState *state = &Matrix_scanArray[ key ];
 
 			// If first scan, reset state
@@ -434,7 +435,7 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 					print(" Row: ");
 					printHex( sense );
 					print(" Key: ");
-					printHex( key );
+					printHex( key_disp );
 					print( NL );
 					break;
 				}
@@ -444,7 +445,7 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 
 				// Send keystate to macro module
 				#ifndef GHOSTING_MATRIX
-				Macro_keyState( key, state->curState );
+				Macro_keyState( key_disp, state->curState );
 				#endif
 
 				// Matrix Debug, only if there is a state change
@@ -453,13 +454,13 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 					// Basic debug output
 					if ( matrixDebugMode == 1 && state->curState == KeyState_Press )
 					{
-						printHex( key );
+						printHex( key_disp );
 						print(" ");
 					}
 					// State transition debug output
 					else if ( matrixDebugMode == 2 )
 					{
-						printHex( key );
+						printHex( key_disp );
 						Matrix_keyPositionDebug( state->curState );
 						print(" ");
 					}
@@ -536,6 +537,7 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 		for ( uint8_t row = 0; row < Matrix_rowsNum; row++ )
 		{
 			uint8_t key = Matrix_colsNum * row + col;
+			uint8_t key_disp = key + 1;
 			KeyState *state = &Matrix_scanArray[ key ];
 			KeyGhost *st = &Matrix_ghostArray[ key ];
 
@@ -556,7 +558,7 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 			KeyPosition k = !st->cur
 				? (!st->prev ? KeyState_Off : KeyState_Release)
 				: ( st->prev ? KeyState_Hold : KeyState_Press);
-			Macro_keyState( key, k );
+			Macro_keyState( key_disp, k );
 		}
 	}
 #endif
@@ -592,7 +594,7 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 				print( NL );
 
 			print("\033[1m0x");
-			printHex_op( key, 2 );
+			printHex_op( key + 1, 2 );
 			print("\033[0m");
 			print(":");
 			Matrix_keyPositionDebug( Matrix_scanArray[ key ].prevState );

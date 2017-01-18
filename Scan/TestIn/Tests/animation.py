@@ -38,9 +38,10 @@ print("-Pixel Test-")
 
 # Read status of animation display buffers
 #print( i.control.cmd('animationDisplayBuffers')() )
+i.control.cmd('rectDisp')()
 
-# Add Animation, index 0, to Stack
-i.control.cmd('addAnimation')()
+# Add Animation, index 3, to Stack (testanimation)
+i.control.cmd('addAnimation')(index=3)
 
 # Read animation stack info
 print( "Expecting Stack Size: 1 Got:", i.control.cmd('animationStackInfo')().size )
@@ -49,30 +50,30 @@ check( i.control.cmd('animationStackInfo')().size == 1 )
 # Loop once
 i.control.loop(1)
 
-# Check Pixel 0
-expecting = ((0, 33, 49), (30, 70, 120))
-print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(0) )
-check( i.control.cmd('readPixel')(0) == expecting )
+# Check Pixel 1
+expecting = ((1, 17, 50), (30, 70, 120))
+print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(1) )
+check( i.control.cmd('readPixel')(1) == expecting )
 i.control.cmd('rectDisp')()
 
 # Update FrameState and Loop again
 i.control.cmd('setFrameState')(2)
 i.control.loop(1)
 
-# Check Pixel 0
-expecting = ((0, 33, 49), (0, 0, 0))
-print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(0) )
-check( i.control.cmd('readPixel')(0) == expecting )
+# Check Pixel 1
+expecting = ((1, 17, 50), (0, 0, 0))
+print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(1) )
+check( i.control.cmd('readPixel')(1) == expecting )
 i.control.cmd('rectDisp')()
 
 # Update FrameState and Loop again
 i.control.cmd('setFrameState')(2)
 i.control.loop(1)
 
-# Check Pixel 0
-expecting = ((0, 33, 49), (60, 90, 140))
-print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(0) )
-check( i.control.cmd('readPixel')(0) == expecting )
+# Check Pixel 1
+expecting = ((1, 17, 50), (60, 90, 140))
+print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(1) )
+check( i.control.cmd('readPixel')(1) == expecting )
 i.control.cmd('rectDisp')()
 
 # Update FrameState and Loop again to clear the stack
@@ -91,8 +92,8 @@ check( i.control.cmd('animationStackInfo')().size == 0 )
 
 
 print("-Rainbow Test-")
-# Add Animation, index 1, to Stack
-i.control.cmd('addAnimation')(index=1, pfunc=1)
+# Add Animation, index 2, to Stack (rainbow_static_fill_interp)
+i.control.cmd('addAnimation')(index=2, pfunc=1)
 
 # Read animation stack info
 print( "Expecting Stack Size: 1 Got:", i.control.cmd('animationStackInfo')().size )
@@ -118,8 +119,8 @@ check( i.control.cmd('animationStackInfo')().size == 0 )
 
 
 print("-Clear ScanCode Test-");
-# Add Animation, index 1, to Stack
-i.control.cmd('addAnimation')(index=2)
+# Add Animation, index 1, to Stack (clear_pixels)
+i.control.cmd('addAnimation')(index=1)
 
 # Read animation stack info
 print( "Expecting Stack Size: 1 Got:", i.control.cmd('animationStackInfo')().size )
@@ -131,6 +132,8 @@ i.control.loop(1)
 
 # Show output
 i.control.cmd('rectDisp')()
+
+# TODO Check that pixels were cleared
 
 # Update FrameState and Loop again to clear the stack
 i.control.cmd('setFrameState')(2)
@@ -145,8 +148,8 @@ check( i.control.cmd('animationStackInfo')().size == 0 )
 
 
 print("-Color Fill Test-");
-# Add Animation, index 1, to Stack
-i.control.cmd('addAnimation')(index=3, pfunc=1)
+# Add Animation, index 0, to Stack (blue_fill_interp)
+i.control.cmd('addAnimation')(index=0, pfunc=1)
 
 # Read animation stack info
 print( "Expecting Stack Size: 1 Got:", i.control.cmd('animationStackInfo')().size )

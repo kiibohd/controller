@@ -1,10 +1,10 @@
 Name = ISSILedCapabilities;
-Version = 0.2;
-Author = "HaaTa (Jacob Alexander) 2015-2016";
-KLL = 0.3d;
+Version = 0.3;
+Author = "HaaTa (Jacob Alexander) 2015-2017";
+KLL = 0.5;
 
 # Modified Date
-Date = 2015-10-09;
+Date = 2017-01-16;
 
 # Basic ISSI Capabilities
 # Modes
@@ -66,6 +66,16 @@ ISSI_I2C_Buses = 1; # 1 by default
 # See chip datasheet (above) for details
 ISSI_AnimationSpeed => ISSI_AnimationSpeed_define;
 ISSI_AnimationSpeed = 4; # 20 by default
+
+# I2C LED Struct Definition
+LED_BufferStruct = "
+typedef struct LED_Buffer {
+	uint16_t i2c_addr;
+	uint16_t reg_addr;
+	uint16_t buffer[144];
+} LED_Buffer;
+extern LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
+";
 
 # LED Default Enable Mask
 #

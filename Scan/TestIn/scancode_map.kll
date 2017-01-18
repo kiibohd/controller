@@ -1,11 +1,11 @@
 # TestIn Base Configuration
 Name = TestIn;
-Version = 0.1;
-Author = "HaaTa (Jacob Alexander) 2016";
+Version = 0.2;
+Author = "HaaTa (Jacob Alexander) 2016-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2016-10-29;
+Date = 2017-01-16;
 
 # Options
 
@@ -119,14 +119,22 @@ S0x57 : U"Right";
 
 Pixel_Buffer_Size[]    =  0 144 288 432; # Starting channel for each buffer
 Pixel_Buffer_Width[]   = 16  16  16  16; # Width of each channel buffer (may be different than effective channel size)
-Pixel_Buffer_Length[0] = LED_BufferLength; # Length of buffer
-Pixel_Buffer_Length[1] = LED_BufferLength;
-Pixel_Buffer_Length[2] = LED_BufferLength;
-Pixel_Buffer_Length[3] = LED_BufferLength;
+Pixel_Buffer_Length[]  = 144 144 144 144; # Length of each buffer (count, not bytes)
 Pixel_Buffer_Buffer[0] = "LED_pageBuffer[0].buffer"; # Pointer to the start of the buffer
 Pixel_Buffer_Buffer[1] = "LED_pageBuffer[1].buffer";
 Pixel_Buffer_Buffer[2] = "LED_pageBuffer[2].buffer";
 Pixel_Buffer_Buffer[3] = "LED_pageBuffer[3].buffer";
+
+
+# I2C LED Struct Definition
+LED_BufferStruct = "
+typedef struct LED_Buffer {
+	uint16_t i2c_addr;
+	uint16_t reg_addr;
+	uint16_t buffer[144];
+} LED_Buffer;
+extern LED_Buffer LED_pageBuffer[4];
+";
 
 
 
@@ -235,47 +243,44 @@ P[ 87](302:8, 318:8, 334:8) : S87;
 # Unused Pixels 88-96
 
 # Underlighting
-P[ 97](432:8, 465:8, 481:8) : S97;
-P[ 98](433:8, 449:8, 482:8) : S98;
-P[ 99](434:8, 450:8, 466:8) : S99;
-P[100](435:8, 451:8, 467:8) : S100;
-P[101](436:8, 452:8, 468:8) : S101;
-P[102](437:8, 453:8, 469:8) : S102;
-P[103](438:8, 454:8, 470:8) : S103;
-P[104](439:8, 455:8, 471:8) : S104;
-P[105](560:8, 544:8, 528:8) : S105;
-P[106](561:8, 545:8, 529:8) : S106;
-P[107](562:8, 546:8, 530:8) : S107;
-P[108](563:8, 547:8, 531:8) : S108;
-P[109](564:8, 548:8, 532:8) : S109;
-P[110](565:8, 549:8, 533:8) : S110;
-P[111](566:8, 550:8, 517:8) : S111;
-P[112](567:8, 534:8, 518:8) : S112;
-P[113](440:8, 473:8, 489:8) : S113;
-P[114](441:8, 457:8, 490:8) : S114;
-P[115](442:8, 458:8, 474:8) : S115;
-P[116](443:8, 459:8, 475:8) : S116;
-P[117](444:8, 460:8, 476:8) : S117;
-P[118](445:8, 461:8, 477:8) : S118;
-P[119](446:8, 462:8, 478:8) : S119;
-P[120](447:8, 463:8, 479:8) : S120;
-P[121](568:8, 552:8, 536:8) : S121;
-P[122](569:8, 553:8, 537:8) : S122;
-P[123](570:8, 554:8, 538:8) : S123;
-P[124](571:8, 555:8, 539:8) : S124;
-P[125](572:8, 556:8, 540:8) : S125;
-P[126](573:8, 557:8, 541:8) : S126;
-P[127](574:8, 558:8, 525:8) : S127;
-P[128](575:8, 542:8, 526:8) : S128;
+P[ 97](432:8, 465:8, 481:8) : None;
+P[ 98](433:8, 449:8, 482:8) : None;
+P[ 99](434:8, 450:8, 466:8) : None;
+P[100](435:8, 451:8, 467:8) : None;
+P[101](436:8, 452:8, 468:8) : None;
+P[102](437:8, 453:8, 469:8) : None;
+P[103](438:8, 454:8, 470:8) : None;
+P[104](439:8, 455:8, 471:8) : None;
+P[105](560:8, 544:8, 528:8) : None;
+P[106](561:8, 545:8, 529:8) : None;
+P[107](562:8, 546:8, 530:8) : None;
+P[108](563:8, 547:8, 531:8) : None;
+P[109](564:8, 548:8, 532:8) : None;
+P[110](565:8, 549:8, 533:8) : None;
+P[111](566:8, 550:8, 517:8) : None;
+P[112](567:8, 534:8, 518:8) : None;
+P[113](440:8, 473:8, 489:8) : None;
+P[114](441:8, 457:8, 490:8) : None;
+P[115](442:8, 458:8, 474:8) : None;
+P[116](443:8, 459:8, 475:8) : None;
+P[117](444:8, 460:8, 476:8) : None;
+P[118](445:8, 461:8, 477:8) : None;
+P[119](446:8, 462:8, 478:8) : None;
+P[120](447:8, 463:8, 479:8) : None;
+P[121](568:8, 552:8, 536:8) : None;
+P[122](569:8, 553:8, 537:8) : None;
+P[123](570:8, 554:8, 538:8) : None;
+P[124](571:8, 555:8, 539:8) : None;
+P[125](572:8, 556:8, 540:8) : None;
+P[126](573:8, 557:8, 541:8) : None;
+P[127](574:8, 558:8, 525:8) : None;
+P[128](575:8, 542:8, 526:8) : None;
 
 
 
 ### Physical Positions ###
 # Rows
 
-S1 <= x:0, y:-3.2;      # Esc, Tilde
-S[1] <= x:0;      # Esc, Tilde
-S[ 1,17] <= x:0;      # Esc, Tilde
 S[1-16]  <= y:0;
 S[17-33] <= y:-19.05;
 S[34-50] <= y:-38.1;
@@ -362,10 +367,10 @@ S[16,33,50,87]    <= x:333.375; # Pause break, Page up, Page down, Right Arrow.
 #
 
 # Corners
-P[97]  <= x:-7.81,  y:-7.87;  # Top Left
-P[109] <= x:341.19, y:-7.87;  # Top Right
-P[113] <= x:341.19, y:112.52; # Bottom Right
-P[125] <= x:-7.81,  y:112.52; # Bottom Left
+P[97]  <= x:-7.81,  y:7.87;  # Top Left
+P[109] <= x:341.19, y:7.87;  # Top Right
+P[113] <= x:341.19, y:-112.52; # Bottom Right
+P[125] <= x:-7.81,  y:-112.52; # Bottom Left
 
 # Top
 P[98-108]  <= y:10.54;
@@ -408,11 +413,4 @@ P[124] <= x:21.21;
 P[126] <= y:-82.42;
 P[127] <= y:-52.32;
 P[128] <= y:-22.23;
-
-
-
-### Animations ###
-# TODO MOVE
-A[RainbowFillInterp] <= start, interp:on;
-A[RainbowFillInterp, 1] <= P[c:0%](0,255,0), P[c:25%](255,255,0), P[c:50%](255,0,0), P[c:75%](127,0,255), P[c:100%](0,0,255);
 

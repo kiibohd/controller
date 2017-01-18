@@ -134,6 +134,7 @@ int Host_set_nanosecs_since_systick( uint32_t systick_ns )
 // Test function to validate library
 int Host_callback_test()
 {
+	// Print twice to validate callback
 	print("Test 1 ");
 	print("Test 2 ");
 	print( NL );

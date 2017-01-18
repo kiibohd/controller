@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2016 by Jacob Alexander
+/* Copyright (C) 2015-2017 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,12 +25,6 @@
 
 // ----- Defines -----
 
-// TODO - Generate as part of kll_defs.h
-#define Pixel_BuffersLen 4
-#define Pixel_TotalChannels 576
-#define Pixel_TotalPixels 128
-#define Pixel_DisplayMapping_Cols 38
-#define Pixel_DisplayMapping_Rows 6
 
 
 // ----- Enums -----
@@ -116,10 +110,6 @@ typedef struct PixelBuf {
 #define PixelBuf16(pixbuf, ch) ( ((uint16_t*)(pixbuf->data))[ ch - pixbuf->offset ] )
 #define PixelBuf32(pixbuf, ch) ( ((uint32_t*)(pixbuf->data))[ ch - pixbuf->offset ] )
 
-#define PixelData8(mod, ch)  *(uint8_t*) &mod->data[ch]
-#define PixelData16(mod, ch) *(uint16_t*)&mod->data[ch]
-#define PixelData32(mod, ch) *(uint32_t*)&mod->data[ch]
-
 
 // Individual Pixel element
 #define Pixel_MaxChannelPerPixel 3 // TODO Generate
@@ -129,8 +119,6 @@ typedef struct PixelElement {
 	                     // Hardware indices for each channel
 	uint16_t indices[Pixel_MaxChannelPerPixel];
 } PixelElement;
-#define Pixel_RGBChannel(r,g,b) { 8, 3, { r, g, b } }
-#define Pixel_8bitChannel(c)  {  8, 1, { c } }
 #define Pixel_Blank() { 0, 0, {} }
 
 // Rectangle lookup for column, row and row vs. col
@@ -147,9 +135,16 @@ typedef struct PixelModElement {
 		PixelRect rect;       // Rectangle lookup for column, row and row vs. col
 		uint32_t  index;      // Index lookup for direct and scancode lookups
 	};
-	PixelChange change;           // Change to apply to pixel
 	uint8_t     data[0];          // Data size depends on PixelElement definition
+	                              // TODO ( PixelElement.width / 8 + sizeof(PixelChange) ) * PixelElement.channels
 } __attribute((packed)) PixelModElement;
+
+// Pixel Mod Data Element
+// - Each element of uint8_t data[0]
+typedef struct PixelModDataElement {
+	PixelChange change;
+	uint8_t     data[0];
+} __attribute((packed)) PixelModDataElement;
 
 // Animation stack element
 typedef struct AnimationStackElement {

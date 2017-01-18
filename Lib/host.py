@@ -334,7 +334,11 @@ def refresh_callback():
 	Usually when calling different library functions
 	This just refreshes the pointer (shouldn't be necessary, but it works...) -Jacob
 	'''
-	control.CTYPE_callback_ref = kiibohd.Host_register_callback( control.CTYPE_callback( callback ) )
+	# Prevent garbage collection
+	global callback_func
+	callback_func = control.CTYPE_callback( callback )
+
+	control.CTYPE_callback_ref = kiibohd.Host_register_callback( callback_func )
 
 
 def callback( command, args ):

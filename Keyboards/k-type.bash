@@ -1,7 +1,7 @@
 #!/bin/bash
 # This is a build script template
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2016
+# Jacob Alexander 2016-2017
 
 
 
@@ -21,7 +21,7 @@ BaseMap="defaultMap"
 # This is the default layer of the keyboard
 # NOTE: To combine kll files into a single layout, separate them by spaces
 # e.g.  DefaultMap="mylayout mylayoutmod"
-DefaultMap="stdFuncMap"
+DefaultMap="animation_test stdFuncMap"
 
 # This is where you set the additional layers
 # NOTE: Indexing starts at 1
