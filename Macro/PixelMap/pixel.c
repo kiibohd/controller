@@ -137,7 +137,6 @@ void Pixel_Pixel_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 	// TODO Analog
 	if ( state != 0x01 )
 		return;
-
 }
 
 

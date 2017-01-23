@@ -42,7 +42,8 @@ PartialMaps[1]="hhkbpro2"
 # NOTE: Changing any of these variables will require a force build to compile correctly
 
 # Keyboard Module Configuration
-ScanModule="Infinity_60%"
+ScanModule="MD1"
+#ScanModule="Infinity_60%" # XXX Ninja build generator has issues with %'s in filenames...
 MacroModule="PartialMap"
 OutputModule="pjrcUSB"
 DebugModule="full"
