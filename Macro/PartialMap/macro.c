@@ -669,6 +669,7 @@ void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 	}
 
 	// No duplicates found, add to pending list
+	// TODO (HaaTa) Add TriggerMacro pointer to this list so we can pass it along to the capability
 	macroResultMacroPendingList[ macroResultMacroPendingListSize++ ] = resultMacroIndex;
 
 	// Lookup scanCode of the last key in the last combo

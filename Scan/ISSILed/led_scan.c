@@ -145,6 +145,7 @@ void cliFunc_i2cSend  ( char* args );
 void cliFunc_ledCtrl  ( char* args );
 void cliFunc_ledReset ( char* args );
 void cliFunc_ledSpeed ( char* args );
+void cliFunc_ledTest  ( char* args );
 
 
 
@@ -155,12 +156,14 @@ CLIDict_Entry( i2cSend,     "Send I2C sequence of bytes. Use |'s to split sequen
 CLIDict_Entry( ledCtrl,     "Basic LED control. Args: <mode> <amount> [<index>]" );
 CLIDict_Entry( ledReset,    "Reset ISSI chips." );
 CLIDict_Entry( ledSpeed,    "ISSI frame rate 0-63, 1 is fastest. f - display fps" );
+CLIDict_Entry( ledTest,     "Test command" );
 
 CLIDict_Def( ledCLIDict, "ISSI LED Module Commands" ) = {
 	CLIDict_Item( i2cSend ),
 	CLIDict_Item( ledCtrl ),
 	CLIDict_Item( ledReset ),
 	CLIDict_Item( ledSpeed ),
+	CLIDict_Item( ledTest ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -443,11 +446,13 @@ void LED_reset()
 		// See, 31FL3732 datasheet for details on calculation
 		// Depends on Rext
 		// TODO Array set per chip
+		/*
 		if ( ch == 3 )
 		{
 			LED_writeReg( bus, addr, 0x04, 50, 0x0B );
 		}
 		else
+		*/
 		{
 			LED_writeReg( bus, addr, 0x04, ISSI_Global_Brightness_define, 0x0B );
 		}
@@ -467,8 +472,23 @@ void LED_reset()
 		// A is 1 to 64 (where 0 is 64)
 		LED_writeReg( bus, addr, 0x03, ISSI_AnimationSpeed_define, 0x0B );
 
+#if ISSI_Chip_31FL3732_define == 1
+		// Enable master sync for the first chip
+		if ( ch == 0 )
+		{
+			// Set MODE to Auto Frame Play
+			LED_writeReg( bus, addr, 0x00, 0x48, 0x0B );
+		}
+		// Slave sync for the rest
+		else
+		{
+			// Set MODE to Auto Frame Play
+			LED_writeReg( bus, addr, 0x00, 0x88, 0x0B );
+		}
+#else
 		// Set MODE to Auto Frame Play
 		LED_writeReg( bus, addr, 0x00, 0x08, 0x0B );
+#endif
 	}
 
 	// Disable Software shutdown of ISSI chip
@@ -569,6 +589,7 @@ void LED_linkedSend()
 	uint8_t bus = LED_ChannelMapping[ LED_chipSend ].bus;
 
 	// Debug
+	/*
 	dbug_msg("Linked Send: chip(");
 	printHex( LED_chipSend );
 	print(") frame(");
@@ -587,6 +608,10 @@ void LED_linkedSend()
 		print(" ");
 	}
 	print(")" NL);
+	*/
+	// Artificial delay to assist i2c bus
+	const uint32_t delay_tm = 50;
+	delayMicroseconds( delay_tm );
 
 	// Send, and recursively call this function when finished
 	while ( i2c_send_sequence(
@@ -597,7 +622,7 @@ void LED_linkedSend()
 		LED_linkedSend,
 		0
 	) == -1 )
-		delay(1);
+		delayMicroseconds( delay_tm );
 
 	// Increment chip position
 	LED_chipSend++;
@@ -1155,46 +1180,126 @@ void cliFunc_ledCtrl( char* args )
 	LED_control( &control );
 }
 
-void cliFunc_ledNFrame( char* args )
+uint8_t toggles = 0;
+void cliFunc_ledTest( char* args )
 {
-	// TODO REMOVEME
-	LED_FrameBufferStart = 1;
-	return;
+	// Clear buffers
+	for ( uint8_t buf = 0; buf < ISSI_Chips_define; buf++ )
+	{
+		memset( (void*)LED_pageBuffer[ buf ].buffer, 0, LED_BufferLength * 2 );
+	}
+
 	/*
-		LED_FrameBufferReset = 0;
-		LED_FrameBuffersReady = LED_FrameBuffersMax;
-		LED_FrameBufferStart = 1;
-	*/
-	//LED_FrameBuffersReady++;
-	//LED_FrameBufferStart = 1;
-	//uint8_t addr = LED_pageBuffer[ 0 ].i2c_addr;
-	//LED_writeReg( addr, 0x00, 0x08, 0x0B );
-
-	//LED_FrameBuffersReady--;
-
-	// Iterate over available buffers
-	// Each pass can only send one buffer (per chip)
+	if ( toggles == 0 )
+	{
+		print("yaaaa");
+		toggles = 1;
+	// Setup ISSI auto frame play, but do not start yet
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
-		// XXX It is more efficient to only send positions that are used
-		// However, this may actually have more addressing overhead
-		// For simplicity, just sending the full 144 positions per ISSI chip
 		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-		LED_sendPage(
-			bus,
-			addr,
-			(uint16_t*)&LED_pageBuffer[ ch ],
-			sizeof( LED_Buffer ) / 2,
-			LED_FrameBufferPage
-		);
+
+		// Set MODE to Picture mode
+		LED_writeReg( bus, addr, 0x00, 0x00, 0x0B );
+	}
+	}
+	else
+	{
+		print("onnnn");
+		toggles = 0;
+	// Setup ISSI auto frame play, but do not start yet
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t addr = LED_ChannelMapping[ ch ].addr;
+		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+		// CNS 1 loop, FNS 4 frames - 0x14
+		LED_writeReg( bus, addr, 0x02, 0x14, 0x0B );
+
+		// Default refresh speed - TxA
+		// T is typically 11ms
+		// A is 1 to 64 (where 0 is 64)
+		LED_writeReg( bus, addr, 0x03, ISSI_AnimationSpeed_define, 0x0B );
+
+#if ISSI_Chip_31FL3732_define == 1
+		// Enable master sync for the first chip
+		if ( ch == 0 )
+		{
+			// Set MODE to Auto Frame Play
+			LED_writeReg( bus, addr, 0x00, 0x48, 0x0B );
+		}
+		// Slave sync for the rest
+		else
+		{
+			// Set MODE to Auto Frame Play
+			LED_writeReg( bus, addr, 0x00, 0x88, 0x0B );
+		}
+#else
+		// Set MODE to Auto Frame Play
+		LED_writeReg( bus, addr, 0x00, 0x08, 0x0B );
+#endif
+	}
+	}
+	*/
+	/* XXX Didn't work
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t addr = LED_ChannelMapping[ ch ].addr;
+		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+
+		// See, 31FL3732 datasheet for details on calculation
+		// Depends on Rext
+		// TODO Array set per chip
+		{
+			LED_writeReg( bus, addr, 0x04, ISSI_Global_Brightness_define, 0x0B );
+		}
+	}
+	*/
+	/* XXX Didn't work
+	// Setup ISSI auto frame play, but do not start yet
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t addr = LED_ChannelMapping[ ch ].addr;
+		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+		// CNS 1 loop, FNS 4 frames - 0x14
+		LED_writeReg( bus, addr, 0x02, 0x14, 0x0B );
+
+		// Default refresh speed - TxA
+		// T is typically 11ms
+		// A is 1 to 64 (where 0 is 64)
+		LED_writeReg( bus, addr, 0x03, ISSI_AnimationSpeed_define, 0x0B );
+
+		// Set MODE to Auto Frame Play
+		LED_writeReg( bus, addr, 0x00, 0x08, 0x0B );
+	}
+	*/
+
+	/* XXX Didn't work
+	// Enable Software shutdown of ISSI chip
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		// Disable Software shutdown of ISSI chip
+		for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+		{
+			uint8_t addr = LED_ChannelMapping[ ch ].addr;
+			uint8_t bus = LED_ChannelMapping[ ch ].bus;
+			LED_writeReg( bus, addr, 0x0A, 0x00, 0x0B );
+			//LED_writeReg( bus, addr, 0x0A, 0x11, 0x0B );
+		}
 	}
 
-	// Increment the buffer page
-	// And reset if necessary
-	if ( ++LED_FrameBufferPage >= LED_FrameBuffersMax * 2 )
+
+	// Disable Software shutdown of ISSI chip
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
-		LED_FrameBufferPage = 0;
+		// Disable Software shutdown of ISSI chip
+		for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+		{
+			uint8_t addr = LED_ChannelMapping[ ch ].addr;
+			uint8_t bus = LED_ChannelMapping[ ch ].bus;
+			LED_writeReg( bus, addr, 0x0A, 0x01, 0x0B );
+		}
 	}
+	*/
 }
 

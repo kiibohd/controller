@@ -52,6 +52,7 @@ extern ResultMacroRecord ResultMacroRecordList[];
 
 // Pending Result Macro Index List
 //  * Any result macro that needs processing from a previous macro processing loop
+// TODO (HaaTa) Change to list of structs for adding TriggerMacro pointers
 index_uint_t macroResultMacroPendingList[ ResultMacroNum ] = { 0 };
 index_uint_t macroResultMacroPendingListSize = 0;
 
@@ -86,6 +87,9 @@ ResultMacroEval Macro_evalResultMacro( var_uint_t resultMacroIndex )
 
 		// Do lookup on capability function
 		void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
+		// TODO
+		//void (*capability)(TriggerMacro*, uint8_t, uint8_t, uint8_t*) = \
+			(void(*)(TriggerMacro*, uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
 
 		// Call capability
 		capability( record->state, record->stateType, &guide->args );

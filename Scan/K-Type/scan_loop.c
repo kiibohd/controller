@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2016 by Jacob Alexander
+/* Copyright (C) 2015-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -138,10 +138,26 @@ void Scan_currentChange( unsigned int current )
 	{
 		// TODO REMOVEME once default animations can be set
 		AnimationStackElement element;
+		//element.index = 5;
 		element.index = 2;
+		//element.index = 4;
+		element.loops = 0;
+		//element.loops = 1;
+		element.pfunc = 1;
+		//element.divmask = 0x0F;
+		//element.divshift = 4;
+		Pixel_addAnimation( &element );
+	}
+	else
+	{
+		// TODO REMOVEME once default animations can be set
+		AnimationStackElement element;
+		element.index = 7;
 		element.loops = 1;
 		element.pfunc = 1;
-		//Pixel_addAnimation( &element );
+		//element.divmask = 0x0F;
+		//element.divshift = 4;
+		Pixel_addAnimation( &element );
 	}
 }
 

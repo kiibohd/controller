@@ -32,12 +32,14 @@
 
 // ----- Function Declarations -----
 
-void cliFunc_aniAdd    ( char* args );
-void cliFunc_aniDel    ( char* args );
-void cliFunc_chanTest  ( char* args );
-void cliFunc_pixelList ( char* args );
-void cliFunc_pixelTest ( char* args );
-void cliFunc_rectDisp  ( char* args );
+void cliFunc_aniAdd     ( char* args );
+void cliFunc_aniDel     ( char* args );
+void cliFunc_chanTest   ( char* args );
+void cliFunc_pixelList  ( char* args );
+void cliFunc_pixelSCTest( char* args );
+void cliFunc_pixelTest  ( char* args );
+void cliFunc_pixelXYTest( char* args );
+void cliFunc_rectDisp   ( char* args );
 
 
 
@@ -49,6 +51,10 @@ typedef enum PixelTest {
 	PixelTest_Chan_Roll,  // Iterate over all positions
 	PixelTest_Pixel_All,  // Enable all positions
 	PixelTest_Pixel_Roll, // Iterate over all positions
+	PixelTest_Scan_All,
+	PixelTest_Scan_Roll,
+	PixelTest_XY_All,
+	PixelTest_XY_Roll,
 } PixelTest;
 
 
@@ -60,7 +66,9 @@ CLIDict_Entry( aniAdd,       "Add the given animation id to the stack" );
 CLIDict_Entry( aniDel,       "Remove the given stack index animation" );
 CLIDict_Entry( chanTest,     "Channel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
 CLIDict_Entry( pixelList,    "Prints out pixel:channel mappings." );
+CLIDict_Entry( pixelSCTest,  "Scancode pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
 CLIDict_Entry( pixelTest,    "Pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
+CLIDict_Entry( pixelXYTest,  "XY pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
 CLIDict_Entry( rectDisp,     "Show the current output of the MCU pixel buffer." );
 
 CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
@@ -68,7 +76,9 @@ CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
 	CLIDict_Item( aniDel ),
 	CLIDict_Item( chanTest ),
 	CLIDict_Item( pixelList ),
+	CLIDict_Item( pixelSCTest ),
 	CLIDict_Item( pixelTest ),
+	CLIDict_Item( pixelXYTest ),
 	CLIDict_Item( rectDisp ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
@@ -101,6 +111,7 @@ uint8_t  Pixel_AnimationStackElement_HostSize = sizeof( AnimationStackElement );
 // ----- Function Declarations -----
 
 uint8_t Pixel_animationProcess( AnimationStackElement *elem );
+uint8_t Pixel_addAnimation( AnimationStackElement *element );
 
 PixelBuf *Pixel_bufferMap( uint16_t channel );
 
@@ -122,6 +133,13 @@ void Pixel_Animation_capability( uint8_t state, uint8_t stateType, uint8_t *args
 	if ( state != 0x01 )
 		return;
 
+	AnimationStackElement element;
+	element.index = 6;
+	element.loops = 1;
+	element.pfunc = 1;
+	//element.divmask = 0x0F;
+	//element.divshift = 4;
+	Pixel_addAnimation( &element );
 }
 
 void Pixel_Pixel_capability( uint8_t state, uint8_t stateType, uint8_t *args )
@@ -501,7 +519,7 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 		*elem = (PixelElement*)&Pixel_Mapping[
 			Pixel_DisplayMapping[
 				mod->rect.row * Pixel_DisplayMapping_Cols_KLL + mod->rect.col
-			]
+			] - 1
 		];
 		return 0;
 
@@ -571,7 +589,7 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 		}
 
 		// Lookup ScanCode - Indices are 1-indexed in both arrays (hence the -1)
-		uint8_t pixel = Pixel_ScanCodeToPixel[ mod->index - 1 ];
+		uint16_t pixel = Pixel_ScanCodeToPixel[ mod->index - 1 ];
 		*elem = (PixelElement*)&Pixel_Mapping[ pixel - 1 ];
 		break;
 
@@ -645,11 +663,35 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 			start = prev != 0 ? prev->rect.col : mod->rect.col;
 			end = mod->rect.col;
 			break;
+
 		case PixelAddressType_RowFill:
 			// If this is the first pixel, just set start at the same spot
 			start = prev != 0 ? prev->rect.row : mod->rect.row;
 			end = mod->rect.row;
 			break;
+
+		case PixelAddressType_Rect:
+			// TODO - This is not correct (just a quick and dirty hack)
+			if ( prev != 0 )
+			{
+				// TODO - Diagonal interpolation?
+				if ( prev->rect.col != mod->rect.col )
+				{
+					start = prev->rect.col;
+				}
+				if ( prev->rect.row != mod->rect.row )
+				{
+					start = prev->rect.row;
+				}
+			}
+			else
+			{
+				start = mod->rect.col;
+			}
+			//end = ( mod->rect.col + mod->rect.row ) / 2;
+			end = mod->rect.col;
+			break;
+
 		default:
 			break;
 		}
@@ -663,6 +705,13 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 		PixelElement *mod_elem = 0;
 		Pixel_fillPixelLookup( mod, &mod_elem, 0 );
 
+		// Make sure mod_elem is pointing to something, if not, this could be a blank
+		// In which case continue to the next definition
+		if ( mod_elem == 0 )
+		{
+			goto next;
+		}
+
 		PixelElement *elem = 0;
 
 		// Prepare tweened PixelModElement
@@ -674,10 +723,11 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 		// Calculate slice mulitplier size
 		// TODO Non-8bit
 		// XXX Division...
-		uint16_t slice = prev != 0 ? 256 / (end - start) : 0;
+		uint16_t slice = prev != 0 ? 256 / (end - start + 1) : 0;
 
 		// Iterate over tween-pixels
 		for ( uint32_t cur = 0; cur < end - start + 1; cur++ )
+		//for ( uint32_t cur = 0; cur < end - start + 1; cur++ )
 		{
 			// Determine where the tween pixel is
 			switch ( mod->type )
@@ -688,6 +738,18 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 
 			case PixelAddressType_RowFill:
 				interp_mod->rect.row = start + cur;
+				break;
+
+			case PixelAddressType_Rect:
+				// TODO - This is not correct (just a quick and dirty hack)
+				interp_mod->rect.col = 0;
+				interp_mod->rect.row = 0;
+				if ( prev != 0 )
+				{
+					interp_mod->rect.col = prev->rect.col + cur;
+					interp_mod->rect.row = 0;
+					//interp_mod->rect.row = prev->rect.row + cur;
+				}
 				break;
 
 			default:
@@ -714,11 +776,12 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 			} while ( next );
 		}
 
+		prev = mod;
+next:
 		// Calculate next position (this is dynamic, cannot be pre-calculated)
 		pos += ( ( elem->width / 8 + sizeof( PixelChange ) ) * elem->channels ) + sizeof( PixelModElement );
 
 		// Lookup next mod element
-		prev = mod;
 		mod = (PixelModElement*)&frame[pos];
 	}
 }
@@ -752,6 +815,13 @@ void Pixel_frameTweenStandard( uint16_t frame, uint8_t subframe, const uint8_t *
 
 	// Increment frame position
 	elem->pos++;
+}
+
+// Pixel Frame Interpolation Tweening
+// Do averaging between key frames
+void Pixel_frameTweenInterpolation( uint16_t frame, uint8_t subframe, const uint8_t *data, AnimationStackElement *elem )
+{
+	// TODO
 }
 
 
@@ -799,7 +869,7 @@ uint8_t Pixel_animationProcess( AnimationStackElement *elem )
 	switch ( elem->ffunc )
 	{
 	case PixelFrameFunction_Interpolation:
-		// TODO
+		Pixel_frameTweenInterpolation( frame, subframe, data, elem );
 		break;
 
 	// Generic, no additonal processing necessary
@@ -884,28 +954,14 @@ inline void Pixel_process()
 
 	// Blink all channels
 	case PixelTest_Chan_All:
-	{
-		uint16_t ch;
-
-		// Only update 50 positions at a time
-		for ( ch = Pixel_testPos; ch < Pixel_TotalChannels_KLL; ch++ )
-		//for ( ch = Pixel_testPos; ch < Pixel_testPos + 50 && ch < Pixel_TotalChannels; ch++ )
+		// Update all positions
+		for ( uint16_t ch = Pixel_testPos; ch < Pixel_TotalChannels_KLL; ch++ )
 		{
 			// Toggle channel
 			Pixel_channelToggle( ch );
 		}
 
-		Pixel_testPos = ch;
-
-		// Only signal frame update after all pixels complete
-		if ( Pixel_testPos >= Pixel_TotalChannels_KLL )
-		{
-			Pixel_testPos = 0;
-			goto pixel_process_done;
-		}
-
-		return;
-	}
+		goto pixel_process_done;
 
 	// Toggle current position, then increment
 	case PixelTest_Pixel_Roll:
@@ -919,29 +975,98 @@ inline void Pixel_process()
 
 		goto pixel_process_done;
 
-
+	// Toggle all positions
 	case PixelTest_Pixel_All:
-	{
-		uint16_t px;
-
-		// Only update 10 positions at a time
-		for ( px = Pixel_testPos; px < Pixel_testPos + 50 && px < Pixel_TotalPixels_KLL; px++ )
+		// Update all positions
+		for ( uint16_t px = Pixel_testPos; px < Pixel_TotalPixels_KLL; px++ )
 		{
 			// Toggle pixel
 			Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ px ] );
 		}
 
-		Pixel_testPos = px;
+		goto pixel_process_done;
 
-		// Only signal frame update after all pixels complete
-		if ( Pixel_testPos >= Pixel_TotalPixels_KLL )
-		{
+	// Toggle current position, then increment
+	case PixelTest_Scan_Roll:
+	{
+		// Lookup pixel
+		uint16_t pixel = Pixel_ScanCodeToPixel[ Pixel_testPos ];
+
+		// Increment pixel
+		Pixel_testPos++;
+		if ( Pixel_testPos >= MaxScanCode_KLL )
 			Pixel_testPos = 0;
-			goto pixel_process_done;
+
+		// Ignore if pixel set to 0
+		if ( pixel == 0 )
+		{
+			return;
 		}
 
-		return;
+		// Toggle channel
+		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+
+		goto pixel_process_done;
 	}
+	// Toggle all positions
+	case PixelTest_Scan_All:
+		for ( uint16_t px = Pixel_testPos; px < MaxScanCode_KLL; px++ )
+		{
+			// Lookup pixel
+			uint16_t pixel = Pixel_ScanCodeToPixel[ px ];
+
+			// Ignore if pixel set to 0
+			if ( pixel == 0 )
+			{
+				continue;
+			}
+
+			// Toggle pixel
+			Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+		}
+
+		goto pixel_process_done;
+
+	// Toggle current position, then increment
+	case PixelTest_XY_Roll:
+	{
+		// Lookup pixel
+		uint16_t pixel = Pixel_DisplayMapping[ Pixel_testPos ];
+
+		// Increment pixel
+		Pixel_testPos++;
+		if ( Pixel_testPos >= Pixel_DisplayMapping_Cols_KLL * Pixel_DisplayMapping_Rows_KLL )
+			Pixel_testPos = 0;
+
+		// Ignore if pixel set to 0
+		if ( pixel == 0 )
+		{
+			return;
+		}
+
+		// Toggle channel
+		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+
+		goto pixel_process_done;
+	}
+	// Toggle all positions
+	case PixelTest_XY_All:
+		for ( uint16_t px = Pixel_testPos; px < Pixel_DisplayMapping_Cols_KLL * Pixel_DisplayMapping_Rows_KLL; px++ )
+		{
+			// Lookup pixel
+			uint16_t pixel = Pixel_DisplayMapping[ px ];
+
+			// Ignore if pixel set to 0
+			if ( pixel == 0 )
+			{
+				continue;
+			}
+
+			// Toggle pixel
+			Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+		}
+
+		goto pixel_process_done;
 
 	// Otherwise ignore
 	default:
@@ -984,7 +1109,7 @@ void cliFunc_pixelList( char* args )
 	char* arg1Ptr;
 	char* arg2Ptr = args;
 
-	// Process speed argument if given
+	// Process argument if given
 	curArgs = arg2Ptr;
 	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
 
@@ -1051,7 +1176,7 @@ void cliFunc_pixelTest( char* args )
 	char* arg1Ptr;
 	char* arg2Ptr = args;
 
-	// Process speed argument if given
+	// Process argument if given
 	curArgs = arg2Ptr;
 	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
 
@@ -1087,7 +1212,7 @@ void cliFunc_pixelTest( char* args )
 	else
 	{
 		info_msg("Pixel: ");
-		printInt16( Pixel_testPos );
+		printInt16( Pixel_testPos + 1 );
 	}
 
 	// Toggle channel
@@ -1107,7 +1232,7 @@ void cliFunc_chanTest( char* args )
 	char* arg1Ptr;
 	char* arg2Ptr = args;
 
-	// Process speed argument if given
+	// Process argument if given
 	curArgs = arg2Ptr;
 	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
 
@@ -1146,15 +1271,208 @@ void cliFunc_chanTest( char* args )
 		printInt16( Pixel_testPos );
 	}
 
-	// Toggle channel
+	// Toggle pixel
 	Pixel_channelToggle( Pixel_testPos );
 
-	// Increment channel
+	// Increment pixel
 	Pixel_testPos++;
 	if ( Pixel_testPos >= Pixel_TotalChannels_KLL )
 		Pixel_testPos = 0;
 }
 
+void cliFunc_pixelSCTest( char* args )
+{
+	print( NL ); // No \r\n by default after the command is entered
+
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// Process argument if given
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Check for special args
+	switch ( *arg1Ptr )
+	{
+	case 'a':
+	case 'A':
+		info_msg("All scancode pixel test");
+		Pixel_testPos = 0;
+		Pixel_testMode = PixelTest_Scan_All;
+		return;
+
+	case 'r':
+	case 'R':
+		info_msg("Scancode pixel roll test");
+		Pixel_testPos = 0;
+		Pixel_testMode = PixelTest_Scan_Roll;
+		return;
+
+	case 's':
+	case 'S':
+		info_msg("Stopping scancode pixel test");
+		Pixel_testMode = PixelTest_Off;
+		return;
+	}
+
+	// Check for specific position
+	if ( *arg1Ptr != '\0' )
+	{
+		Pixel_testPos = numToInt( arg1Ptr );
+	}
+	else
+	{
+		info_msg("Scancode: ");
+		printInt16( Pixel_testPos + 1 );
+		print(" Pixel: ");
+		printInt16( Pixel_ScanCodeToPixel[ Pixel_testPos ] );
+	}
+
+	// Lookup pixel
+	uint16_t pixel = Pixel_ScanCodeToPixel[ Pixel_testPos ];
+
+	// Increment pixel
+	Pixel_testPos++;
+	if ( Pixel_testPos >= MaxScanCode_KLL )
+		Pixel_testPos = 0;
+
+	// Ignore if pixel set to 0
+	if ( pixel == 0 )
+	{
+		return;
+	}
+
+	// Toggle pixel
+	Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+}
+
+void cliFunc_pixelXYTest( char* args )
+{
+	print( NL ); // No \r\n by default after the command is entered
+
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// Process argument if given
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Check for special args
+	switch ( *arg1Ptr )
+	{
+	case 'a':
+	case 'A':
+		info_msg("All x,y pixel test");
+		Pixel_testPos = 0;
+		Pixel_testMode = PixelTest_XY_All;
+		return;
+
+	case 'r':
+	case 'R':
+		info_msg("x,y pixel roll test");
+		Pixel_testPos = 0;
+		Pixel_testMode = PixelTest_XY_Roll;
+		return;
+
+	case 's':
+	case 'S':
+		info_msg("Stopping x,y pixel test");
+		Pixel_testMode = PixelTest_Off;
+		return;
+
+	case 'h':
+	case 'H':
+		// Make sure we aren't too far already
+		if ( Pixel_testPos >= Pixel_DisplayMapping_Rows_KLL )
+		{
+			Pixel_testPos = 0;
+		}
+
+		info_msg("Horizontal: ");
+		printInt16( Pixel_testPos );
+
+		// Iterate over the row
+		for ( uint16_t pos = Pixel_DisplayMapping_Cols_KLL * Pixel_testPos;
+			pos < Pixel_DisplayMapping_Cols_KLL * ( Pixel_testPos + 1);
+			pos++
+		)
+		{
+			uint16_t pixel = Pixel_DisplayMapping[ pos ];
+			print(" ");
+			printInt16( pixel );
+
+			// Toggle pixel
+			Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+		}
+		Pixel_testPos++;
+
+		return;
+
+	case 'v':
+	case 'V':
+		// Make sure we aren't too far already
+		if ( Pixel_testPos >= Pixel_DisplayMapping_Cols_KLL )
+		{
+			Pixel_testPos = 0;
+		}
+
+		info_msg("Vertical: ");
+		printInt16( Pixel_testPos );
+
+		// Iterate over the column
+		for ( uint16_t pos = 0; pos < Pixel_DisplayMapping_Rows_KLL; pos++ )
+		{
+			uint16_t pos_calc = pos * Pixel_DisplayMapping_Cols_KLL + Pixel_testPos;
+			print(" ");
+			printInt16( pos_calc );
+			uint16_t pixel = Pixel_DisplayMapping[ pos_calc ];
+			print(":");
+			printInt16( pixel );
+
+			// Toggle pixel
+			Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+		}
+		Pixel_testPos++;
+
+		return;
+	}
+
+	// Check for specific position
+	if ( *arg1Ptr != '\0' )
+	{
+		Pixel_testPos = numToInt( arg1Ptr );
+	}
+	else
+	{
+		info_msg("Position (x,y): ");
+		printInt16( Pixel_testPos % Pixel_DisplayMapping_Cols_KLL );
+		print(",");
+		printInt16( Pixel_testPos / Pixel_DisplayMapping_Cols_KLL );
+		print(":");
+		printInt16( Pixel_testPos );
+		print(" Pixel: ");
+		printInt16( Pixel_DisplayMapping[ Pixel_testPos ] );
+	}
+
+	// Lookup pixel
+	uint16_t pixel = Pixel_DisplayMapping[ Pixel_testPos ];
+
+	// Increment pixel
+	Pixel_testPos++;
+	if ( Pixel_testPos >= Pixel_DisplayMapping_Cols_KLL * Pixel_DisplayMapping_Rows_KLL )
+		Pixel_testPos = 0;
+
+	// Ignore if pixel set to 0
+	if ( pixel == 0 )
+	{
+		return;
+	}
+
+	// Toggle pixel
+	Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+}
 void cliFunc_aniAdd( char* args )
 {
 	print( NL ); // No \r\n by default after the command is entered

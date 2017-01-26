@@ -39,8 +39,9 @@ configure_file ( Scan/TestIn/gdb          Tests/gdb          COPYONLY )
 ###
 # Test cases
 #
-configure_file ( Scan/TestIn/Tests/common.py    Tests/common.py    COPYONLY )
+configure_file ( Scan/TestIn/Tests/common.py     Tests/common.py     COPYONLY )
 
-configure_file ( Scan/TestIn/Tests/test.py      Tests/test.py      COPYONLY )
-configure_file ( Scan/TestIn/Tests/animation.py Tests/animation.py COPYONLY )
+configure_file ( Scan/TestIn/Tests/test.py       Tests/test.py       COPYONLY )
+configure_file ( Scan/TestIn/Tests/animation.py  Tests/animation.py  COPYONLY )
+configure_file ( Scan/TestIn/Tests/animation2.py Tests/animation2.py COPYONLY )
 
