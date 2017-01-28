@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is bash lib file for the convenience build scripts
 # Don't call this script directly
-# Jacob Alexander 2015-2016
+# Jacob Alexander 2015-2017
 
 # Check if compiler has been overridden by the environment
 Compiler=${COMPILER:-${Compiler}}
@@ -181,7 +181,8 @@ if [ $return_code != 0 ] ; then
 	exit $return_code
 fi
 
-${MAKE}
+# Automatically determines the build system and initiates it
+cmake --build .
 return_code=$?
 if [ $return_code != 0 ] ; then
 	echo "Error in make. Exiting..."
