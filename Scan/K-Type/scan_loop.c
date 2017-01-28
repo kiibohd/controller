@@ -138,8 +138,8 @@ void Scan_currentChange( unsigned int current )
 	{
 		// TODO REMOVEME once default animations can be set
 		AnimationStackElement element;
-		//element.index = 5;
-		element.index = 2;
+		element.index = 5;
+		//element.index = 2;
 		//element.index = 4;
 		element.loops = 0;
 		//element.loops = 1;
