@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2016 by Jacob Alexander
+/* Copyright (C) 2015-2017 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,9 @@
 #if defined(ConnectEnabled_define)
 #include <connect_scan.h>
 #endif
+
+// KLL Include
+#include <kll.h>
 
 // Local Includes
 #include "lcd_scan.h"
@@ -399,7 +402,7 @@ typedef struct LCD_layerStackExact_args {
 	uint8_t numArgs;
 	uint16_t layers[4];
 } LCD_layerStackExact_args;
-void LCD_layerStackExact_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void LCD_layerStackExact_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
@@ -503,7 +506,7 @@ void LCD_layerStackExact_capability( uint8_t state, uint8_t stateType, uint8_t *
 // Will only work on a master node when using the interconnect (use LCD_layerStackExact_capability instead)
 uint16_t LCD_layerStack_prevSize = 0;
 uint16_t LCD_layerStack_prevTop  = 0;
-void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void LCD_layerStack_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
@@ -555,7 +558,7 @@ void LCD_layerStack_capability( uint8_t state, uint8_t stateType, uint8_t *args 
 	}
 #endif
 	// Call LCD_layerStackExact directly
-	LCD_layerStackExact_capability( state, stateType, (uint8_t*)&stack_args );
+	LCD_layerStackExact_capability( trigger, state, stateType, (uint8_t*)&stack_args );
 }
 
 

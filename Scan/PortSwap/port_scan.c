@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2016 by Jacob Alexander
+/* Copyright (C) 2015-2017 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -164,7 +164,7 @@ inline uint8_t Port_scan()
 
 // ----- Capabilities -----
 
-void Port_uart_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Port_uart_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
@@ -181,7 +181,7 @@ void Port_uart_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 	Port_uart_swap();
 }
 
-void Port_usb_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Port_usb_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
@@ -198,7 +198,7 @@ void Port_usb_capability( uint8_t state, uint8_t stateType, uint8_t *args )
 	Port_usb_swap();
 }
 
-void Port_cross_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Port_cross_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )

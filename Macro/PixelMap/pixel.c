@@ -25,6 +25,9 @@
 #include <led.h>
 #include <print.h>
 
+// KLL Include
+#include <kll.h>
+
 // Local Includes
 #include "pixel.h"
 
@@ -119,7 +122,7 @@ PixelBuf *Pixel_bufferMap( uint16_t channel );
 
 // ----- Capabilities -----
 
-void Pixel_Animation_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
@@ -142,7 +145,7 @@ void Pixel_Animation_capability( uint8_t state, uint8_t stateType, uint8_t *args
 	Pixel_addAnimation( &element );
 }
 
-void Pixel_Pixel_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Pixel_Pixel_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
