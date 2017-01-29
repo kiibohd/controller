@@ -36,6 +36,9 @@
 #include "arm/uart_serial.h"
 #endif
 
+// KLL Include
+#include <kll.h>
+
 // Local Includes
 #include "output_com.h"
 

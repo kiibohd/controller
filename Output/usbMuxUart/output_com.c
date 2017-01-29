@@ -42,6 +42,7 @@
 
 // KLL
 #include <kll_defs.h>
+#include <kll.h>
 
 // Local Includes
 #include "output_com.h"
