@@ -40,11 +40,3 @@ void Scan_finishedWithOutput( uint8_t sentKeys ); // Called by Output Module
 
 void Scan_currentChange( unsigned int current ); // Called by Output Module
 
-
-// ----- Capabilities -----
-
-// Example capabilities
-void CustomAction_action1_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-void CustomAction_blockHold_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-void CustomAction_blockKey_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-

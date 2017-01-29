@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2017 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,19 +52,18 @@ extern ResultMacroRecord ResultMacroRecordList[];
 
 // Pending Result Macro Index List
 //  * Any result macro that needs processing from a previous macro processing loop
-index_uint_t macroResultMacroPendingList[ ResultMacroNum ] = { 0 };
-index_uint_t macroResultMacroPendingListSize = 0;
+ResultsPending macroResultMacroPendingList;
 
 
 
 // ----- Functions -----
 
 // Evaluate/Update ResultMacro
-inline ResultMacroEval Macro_evalResultMacro( var_uint_t resultMacroIndex )
+ResultMacroEval Macro_evalResultMacro( ResultPendingElem resultElem )
 {
 	// Lookup ResultMacro
-	const ResultMacro *macro = &ResultMacroList[ resultMacroIndex ];
-	ResultMacroRecord *record = &ResultMacroRecordList[ resultMacroIndex ];
+	const ResultMacro *macro = &ResultMacroList[ resultElem.index ];
+	ResultMacroRecord *record = &ResultMacroRecordList[ resultElem.index ];
 
 	// Current Macro position
 	var_uint_t pos = record->pos;
@@ -85,10 +84,11 @@ inline ResultMacroEval Macro_evalResultMacro( var_uint_t resultMacroIndex )
 		ResultGuide *guide = (ResultGuide*)(&macro->guide[ comboItem ]);
 
 		// Do lookup on capability function
-		void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
+		void (*capability)(TriggerMacro*, uint8_t, uint8_t, uint8_t*) = \
+			(void(*)(TriggerMacro*, uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
 
 		// Call capability
-		capability( record->state, record->stateType, &guide->args );
+		capability( resultElem.trigger, record->state, record->stateType, &guide->args );
 
 		// Increment counters
 		funcCount++;
@@ -117,6 +117,9 @@ void Result_add( uint32_t index )
 
 void Result_setup()
 {
+	// Initialize macroResultMacroPendingList
+	macroResultMacroPendingList.size = 0;
+
 	// Initialize ResultMacro states
 	for ( var_uint_t macro = 0; macro < ResultMacroNum; macro++ )
 	{
@@ -131,17 +134,17 @@ void Result_process()
 {
 	// Tail pointer for macroResultMacroPendingList
 	// Macros must be explicitly re-added
-	var_uint_t macroResultMacroPendingListTail = 0;
+	index_uint_t macroResultMacroPendingListTail = 0;
 
 	// Iterate through the pending ResultMacros, processing each of them
-	for ( var_uint_t macro = 0; macro < macroResultMacroPendingListSize; macro++ )
+	for ( index_uint_t macro = 0; macro < macroResultMacroPendingList.size; macro++ )
 	{
-		switch ( Macro_evalResultMacro( macroResultMacroPendingList[ macro ] ) )
+		switch ( Macro_evalResultMacro( macroResultMacroPendingList.data[ 0 ] ) )
 		{
 		// Re-add macros to pending list
 		case ResultMacroEval_DoNothing:
 		default:
-			macroResultMacroPendingList[ macroResultMacroPendingListTail++ ] = macroResultMacroPendingList[ macro ];
+			macroResultMacroPendingList.data[ macroResultMacroPendingListTail++ ] = macroResultMacroPendingList.data[ macro ];
 			break;
 
 		// Remove Macro from Pending List, nothing to do, removing by default
@@ -151,6 +154,6 @@ void Result_process()
 	}
 
 	// Update the macroResultMacroPendingListSize with the tail pointer
-	macroResultMacroPendingListSize = macroResultMacroPendingListTail;
+	macroResultMacroPendingList.size = macroResultMacroPendingListTail;
 }
 

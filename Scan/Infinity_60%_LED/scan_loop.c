@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,9 @@
 #include <matrix_scan.h>
 #include <macro.h>
 #include <output_com.h>
+
+// KLL Include
+#include <kll.h>
 
 // Local Includes
 #include "scan_loop.h"
@@ -105,7 +108,7 @@ void Scan_currentChange( unsigned int current )
 
 // Custom capability examples
 // Refer to kll.h in Macros/PartialMap for state and stateType information
-void CustomAction_action1_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void CustomAction_action1_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	// XXX This is required for debug cli to give you a list of capabilities
@@ -120,7 +123,7 @@ void CustomAction_action1_capability( uint8_t state, uint8_t stateType, uint8_t 
 }
 
 uint8_t CustomAction_blockHold_storage = 0;
-void CustomAction_blockHold_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void CustomAction_blockHold_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
@@ -156,7 +159,7 @@ void CustomAction_blockHold_capability( uint8_t state, uint8_t stateType, uint8_
 	}
 }
 
-void CustomAction_blockKey_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void CustomAction_blockKey_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
@@ -171,8 +174,8 @@ void CustomAction_blockKey_capability( uint8_t state, uint8_t stateType, uint8_t
 	// If key is not blocked, process
 	if ( key != CustomAction_blockHold_storage )
 	{
-		extern void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args );
-		Output_usbCodeSend_capability( state, stateType, &key );
+		extern void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args );
+		Output_usbCodeSend_capability( trigger, state, stateType, &key );
 	}
 }
 

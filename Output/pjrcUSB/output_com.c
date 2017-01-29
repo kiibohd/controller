@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2016 by Jacob Alexander
+/* Copyright (C) 2011-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -42,6 +42,7 @@
 
 // KLL
 #include <kll_defs.h>
+#include <kll.h>
 
 // Local Includes
 #include "output_com.h"
@@ -175,7 +176,7 @@ volatile uint16_t USBInit_Ticks;
 // ----- Capabilities -----
 
 // Set Boot Keyboard Protocol
-void Output_kbdProtocolBoot_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Output_kbdProtocolBoot_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
 	// Display capability name
@@ -204,7 +205,7 @@ void Output_kbdProtocolBoot_capability( uint8_t state, uint8_t stateType, uint8_
 
 
 // Set NKRO Keyboard Protocol
-void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Output_kbdProtocolNKRO_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
 	// Display capability name
@@ -233,7 +234,7 @@ void Output_kbdProtocolNKRO_capability( uint8_t state, uint8_t stateType, uint8_
 
 
 // Toggle Keyboard Protocol
-void Output_toggleKbdProtocol_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Output_toggleKbdProtocol_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
 	// Display capability name
@@ -257,7 +258,7 @@ void Output_toggleKbdProtocol_capability( uint8_t state, uint8_t stateType, uint
 
 
 // Sends a Consumer Control code to the USB Output buffer
-void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Output_consCtrlSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
 	// Display capability name
@@ -287,7 +288,7 @@ void Output_consCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *
 
 // Ignores the given key status update
 // Used to prevent fall-through, this is the None keyword in KLL
-void Output_noneSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Output_noneSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
@@ -301,7 +302,7 @@ void Output_noneSend_capability( uint8_t state, uint8_t stateType, uint8_t *args
 
 
 // Sends a System Control code to the USB Output buffer
-void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Output_sysCtrlSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
 	// Display capability name
@@ -331,7 +332,7 @@ void Output_sysCtrlSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 
 // Adds a single USB Code to the USB Output buffer
 // Argument #1: USB Code
-void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
 	// Display capability name
@@ -537,7 +538,7 @@ void Output_usbCodeSend_capability( uint8_t state, uint8_t stateType, uint8_t *a
 #endif
 }
 
-void Output_flashMode_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Output_flashMode_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
@@ -557,7 +558,7 @@ void Output_flashMode_capability( uint8_t state, uint8_t stateType, uint8_t *arg
 // Argument #1: USB Mouse Button (16 bit)
 // Argument #2: USB X Axis (16 bit) relative
 // Argument #3: USB Y Axis (16 bit) relative
-void Output_usbMouse_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void Output_usbMouse_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )

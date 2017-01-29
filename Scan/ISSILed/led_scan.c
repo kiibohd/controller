@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2017 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,9 @@
 #if defined(ConnectEnabled_define)
 #include <connect_scan.h>
 #endif
+
+// KLL Include
+#include <kll.h>
 
 // Local Includes
 #include "led_scan.h"
@@ -752,7 +755,7 @@ void LED_control( LedControl *control )
 }
 
 uint8_t LED_control_timer = 0;
-void LED_control_capability( uint8_t state, uint8_t stateType, uint8_t *args )
+void LED_control_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
