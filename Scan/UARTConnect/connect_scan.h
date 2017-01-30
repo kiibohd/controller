@@ -161,7 +161,7 @@ extern uint8_t Connect_master; // Set if master
 
 // ----- Functions -----
 
-void Connect_setup( uint8_t master );
+void Connect_setup( uint8_t master, uint8_t first );
 void Connect_scan();
 void Connect_reset();
 

@@ -125,7 +125,7 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
-		print("Pixel_Animation_capability()");
+		print("Pixel_Animation_capability(index,loops,pfunc,divmask,divshift)");
 		return;
 	}
 
@@ -136,17 +136,12 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 
 	AnimationStackElement element;
 	element.trigger = trigger;
-	element.index = 8;
-	element.loops = 1;
-	element.pfunc = 0;
-	//element.divmask = 0x0F;
-	//element.divshift = 4;
+	element.index = *(uint16_t*)(&args[0]);
+	element.loops = *(uint8_t*)(&args[2]);
+	element.pfunc = *(uint8_t*)(&args[3]);
+	element.divmask = *(uint8_t*)(&args[4]);
+	element.divshift = *(uint8_t*)(&args[5]);
 	Pixel_addAnimation( &element );
-	/*
-	info_msg("Key: ");
-	printHex( Pixel_determineLastTriggerScanCode( trigger ) );
-	print(NL);
-	*/
 }
 
 void Pixel_Pixel_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
@@ -906,6 +901,9 @@ next:
 // Standard Pixel Frame Function (no additional processing)
 void Pixel_frameTweenStandard( uint16_t frame, uint8_t subframe, const uint8_t *data, AnimationStackElement *elem )
 {
+	// Increment frame position
+	elem->pos++;
+
 	// Do nothing during sub-frames, skip
 	if ( subframe != 0 )
 	{
@@ -925,9 +923,6 @@ void Pixel_frameTweenStandard( uint16_t frame, uint8_t subframe, const uint8_t *
 		Pixel_pixelTweenStandard( data, elem );
 		break;
 	}
-
-	// Increment frame position
-	elem->pos++;
 }
 
 // Pixel Frame Interpolation Tweening

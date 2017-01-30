@@ -165,8 +165,8 @@ CLIDict_Def( ledCLIDict, "ISSI LED Module Commands" ) = {
 	CLIDict_Item( i2cSend ),
 	CLIDict_Item( ledCtrl ),
 	CLIDict_Item( ledReset ),
-	CLIDict_Item( ledSpeed ),
-	CLIDict_Item( ledTest ),
+	//CLIDict_Item( ledSpeed ), // TODO REMOVME
+	//CLIDict_Item( ledTest ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 

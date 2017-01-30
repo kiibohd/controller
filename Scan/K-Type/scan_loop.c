@@ -61,7 +61,7 @@ inline void Scan_setup()
 	Port_setup();
 
 	// Setup UART Connect, if Output_Available, this is the master node
-	Connect_setup( Output_Available );
+	Connect_setup( Output_Available, 1 );
 
 	// Setup GPIO pins for matrix scanning
 	Matrix_setup();
@@ -138,13 +138,11 @@ void Scan_currentChange( unsigned int current )
 	{
 		// TODO REMOVEME once default animations can be set
 		AnimationStackElement element;
-		//element.index = 5;
 		element.index = 4;
-		//element.loops = 0;
 		element.loops = 1;
 		element.pfunc = 1;
-		//element.divmask = 0x0F;
-		//element.divshift = 4;
+		element.divmask = 0x01; // Half speed
+		element.divshift = 1;
 		Pixel_addAnimation( &element );
 	}
 	else
@@ -154,8 +152,8 @@ void Scan_currentChange( unsigned int current )
 		element.index = 7;
 		element.loops = 1;
 		element.pfunc = 1;
-		//element.divmask = 0x0F;
-		//element.divshift = 4;
+		element.divmask = 0x01;
+		element.divshift = 1;
 		Pixel_addAnimation( &element );
 	}
 }

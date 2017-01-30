@@ -880,13 +880,14 @@ void Connect_reset()
 // - Only supports a single slave and master
 // - If USB has been initiallized at this point, this side is the master
 // - If both sides assert master, flash error leds
-void Connect_setup( uint8_t master )
+void Connect_setup( uint8_t master, uint8_t first )
 {
 	// Indication that UARTs are not ready
 	uarts_configured = 0;
 
 	// Register Connect CLI dictionary
-	CLI_registerDictionary( uartConnectCLIDict, uartConnectCLIDictName );
+	if ( first )
+		CLI_registerDictionary( uartConnectCLIDict, uartConnectCLIDictName );
 
 	// Check if master
 	Connect_master = master;
@@ -1158,7 +1159,7 @@ void Connect_scan()
 	// Then reconfigure as a master
 	if ( !Connect_master && Output_Available && !Connect_override )
 	{
-		Connect_setup( Output_Available );
+		Connect_setup( Output_Available, 0 );
 	}
 
 	// Limit how often we do cable checks

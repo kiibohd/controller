@@ -7,7 +7,7 @@ KLL = 0.5;
 Date = 2016-10-02;
 
 # Capabilities
-animation => Pixel_Animation_capability();
+animation => Pixel_Animation_capability( index : 2, loops : 1, pfunc : 1, divmask : 1, divshift : 1 );
 pixel => Pixel_Pixel_capability();
 
 # Default Animation Mode
