@@ -25,9 +25,6 @@
 #include <led.h>
 #include <print.h>
 
-// KLL Include
-#include <kll.h>
-
 // Local Includes
 #include "pixel.h"
 
@@ -115,6 +112,7 @@ uint8_t  Pixel_AnimationStackElement_HostSize = sizeof( AnimationStackElement );
 
 uint8_t Pixel_animationProcess( AnimationStackElement *elem );
 uint8_t Pixel_addAnimation( AnimationStackElement *element );
+uint8_t Pixel_determineLastTriggerScanCode( TriggerMacro *trigger );
 
 PixelBuf *Pixel_bufferMap( uint16_t channel );
 
@@ -137,12 +135,18 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 		return;
 
 	AnimationStackElement element;
-	element.index = 6;
+	element.trigger = trigger;
+	element.index = 8;
 	element.loops = 1;
-	element.pfunc = 1;
+	element.pfunc = 0;
 	//element.divmask = 0x0F;
 	//element.divshift = 4;
 	Pixel_addAnimation( &element );
+	/*
+	info_msg("Key: ");
+	printHex( Pixel_determineLastTriggerScanCode( trigger ) );
+	print(NL);
+	*/
 }
 
 void Pixel_Pixel_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
@@ -491,11 +495,11 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 // - If type:index has more than one pixel, non-0 is returned
 // - The return value signifies the next value to set the prev argument
 // - Once the function returns 0, all pixels have been processed
-uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_t prev )
+uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint16_t prev, AnimationStackElement *stack_elem )
 {
 	// Used to determine next pixel in column or row (fill)
-	uint8_t cur = prev;
-	uint8_t index = 0;
+	uint16_t cur = prev;
+	uint16_t index = 0;
 
 	// Lookup fill algorith
 	switch ( mod->type )
@@ -503,7 +507,7 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 	case PixelAddressType_Index:
 		// Lookup pixel by absolute index
 		*elem = (PixelElement*)&Pixel_Mapping[mod->index];
-		return 0;
+		break;
 
 	case PixelAddressType_Rect:
 		// Make sure row,column exists
@@ -515,7 +519,7 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 			print(",");
 			printInt16( mod->rect.col );
 			print( NL );
-			return 0;
+			break;
 		}
 
 		// Lookup pixel in rectangle display organization
@@ -524,7 +528,7 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 				mod->rect.row * Pixel_DisplayMapping_Cols_KLL + mod->rect.col
 			] - 1
 		];
-		return 0;
+		break;
 
 	case PixelAddressType_ColumnFill:
 		// Make sure column exists
@@ -533,7 +537,7 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 			erro_msg("Invalid column index: ");
 			printInt16( mod->rect.col );
 			print( NL );
-			return 0;
+			break;
 		}
 
 		// Lookup pixel until either, non-0 index or we reached the last row
@@ -560,7 +564,7 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 			erro_msg("Invalid row index: ");
 			printInt16( mod->rect.row );
 			print( NL );
-			return 0;
+			break;
 		}
 
 		// Lookup pixel until either, non-0 index or we reached the last column
@@ -588,7 +592,7 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 			erro_msg("Invalid ScanCode: ");
 			printInt16( mod->index );
 			print( NL );
-			return 0;
+			break;
 		}
 
 		// Lookup ScanCode - Indices are 1-indexed in both arrays (hence the -1)
@@ -597,12 +601,118 @@ uint8_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint8_
 		break;
 
 	case PixelAddressType_RelativeIndex:
-	case PixelAddressType_RelativeRect:
-	case PixelAddressType_RelativeColumnFill:
-	case PixelAddressType_RelativeRowFill:
 		// TODO
 		break;
 
+	case PixelAddressType_RelativeRect:
+	{
+		// Determine scancode to be relative from
+		uint8_t scan_code = Pixel_determineLastTriggerScanCode( stack_elem->trigger );
+
+		// Lookup display position of scancode
+		uint16_t position = Pixel_ScanCodeToDisplay[ scan_code - 1 ];
+
+		// Calculate rectangle offset
+		position += (int16_t)mod->rect.row * Pixel_DisplayMapping_Cols_KLL + (int16_t)mod->rect.col;
+
+		// Make sure column exists
+		if ( position >= Pixel_DisplayMapping_Cols_KLL * Pixel_DisplayMapping_Rows_KLL )
+		{
+			erro_msg("Invalid position index (relrect): ");
+			printInt16( position );
+			print( NL );
+			break;
+		}
+
+		// Lookup pixel, pixels are 1 indexed, hence the -1
+		index = Pixel_DisplayMapping[ position ] - 1;
+		*elem = (PixelElement*)&Pixel_Mapping[ index ];
+		break;
+	}
+	case PixelAddressType_RelativeColumnFill:
+	{
+		// Determine scancode to be relative from
+		uint8_t scan_code = Pixel_determineLastTriggerScanCode( stack_elem->trigger );
+
+		// Lookup display position of scancode
+		uint16_t position = Pixel_ScanCodeToDisplay[ scan_code - 1 ];
+
+		// Calculate rectangle offset
+		position += (int16_t)mod->rect.col;
+
+		// Make sure column exists
+		if ( position >= Pixel_DisplayMapping_Cols_KLL * Pixel_DisplayMapping_Rows_KLL )
+		{
+			erro_msg("Invalid position index (relcol): ");
+			printInt16( position );
+			print( NL );
+			break;
+		}
+
+		// Determine first row in column
+		position %= Pixel_DisplayMapping_Cols_KLL;
+
+		// Lookup pixel until either, non-0 index or we reached the last row
+		do {
+			// Current position
+			uint16_t curpos = cur++ * Pixel_DisplayMapping_Cols_KLL + position;
+
+			// Check if we've gone too far (and finished all rows)
+			if ( curpos >= Pixel_DisplayMapping_Cols_KLL * Pixel_DisplayMapping_Rows_KLL )
+			{
+				return 0;
+			}
+
+			// Pixel index
+			index = Pixel_DisplayMapping[ curpos ];
+		} while ( index == 0 );
+
+		// Lookup pixel, pixels are 1 indexed, hence the -1
+		*elem = (PixelElement*)&Pixel_Mapping[ index -1 ];
+		return cur;
+	}
+	case PixelAddressType_RelativeRowFill:
+	{
+		// Determine scancode to be relative from
+		uint8_t scan_code = Pixel_determineLastTriggerScanCode( stack_elem->trigger );
+
+		// Lookup display position of scancode
+		uint16_t position = Pixel_ScanCodeToDisplay[ scan_code - 1 ];
+
+		// Calculate rectangle offset
+		position += (int16_t)mod->rect.row * Pixel_DisplayMapping_Rows_KLL;
+
+		// Make sure column exists
+		if ( position >= Pixel_DisplayMapping_Cols_KLL * Pixel_DisplayMapping_Rows_KLL )
+		{
+			erro_msg("Invalid position index (relrow): ");
+			printInt16( position );
+			print( NL );
+			break;
+		}
+
+		// Determine which row we are in
+		position /= Pixel_DisplayMapping_Cols_KLL;
+
+		// Lookup pixel until either, non-0 index or we reached the last row
+		do {
+			// Current position
+			uint16_t curpos = cur++ + Pixel_DisplayMapping_Cols_KLL * position;
+
+			// Check if we've gone too far (and finished all rows)
+			if ( cur >= Pixel_DisplayMapping_Cols_KLL )
+			{
+				return 0;
+			}
+
+			// Pixel index
+			index = Pixel_DisplayMapping[ curpos ];
+		} while ( index == 0 );
+
+		// Lookup pixel, pixels are 1 indexed, hence the -1
+		*elem = (PixelElement*)&Pixel_Mapping[ index -1 ];
+		return cur;
+	}
 	// Skip
 	default:
 		break;
@@ -624,11 +734,11 @@ void Pixel_pixelTweenStandard( const uint8_t *frame, AnimationStackElement *stac
 	while ( mod->type != PixelAddressType_End )
 	{
 		// Lookup type of pixel, choose fill algorith and query all sub-pixels
-		uint8_t next = 0;
+		uint16_t next = 0;
 		PixelElement *elem = 0;
 		do {
 			// Lookup pixel, and check if there are any more pixels left
-			next = Pixel_fillPixelLookup( mod, &elem, next );
+			next = Pixel_fillPixelLookup( mod, &elem, next, stack_elem );
 
 			// Apply operation to pixel
 			Pixel_pixelEvaluation( mod, elem );
@@ -703,10 +813,10 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 		PixelElement *prev_elem = 0;
 		if ( prev != 0 )
 		{
-			Pixel_fillPixelLookup( prev, &prev_elem, 0 );
+			Pixel_fillPixelLookup( prev, &prev_elem, 0, stack_elem );
 		}
 		PixelElement *mod_elem = 0;
-		Pixel_fillPixelLookup( mod, &mod_elem, 0 );
+		Pixel_fillPixelLookup( mod, &mod_elem, 0, stack_elem );
 
 		// Make sure mod_elem is pointing to something, if not, this could be a blank
 		// In which case continue to the next definition
@@ -769,10 +879,10 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 			}
 
 			// Lookup type of pixel, choose fill algorith and query all sub-pixels
-			uint8_t next = 0;
+			uint16_t next = 0;
 			do {
 				// Lookup pixel, and check if there are any more pixels left
-				next = Pixel_fillPixelLookup( interp_mod, &elem, next );
+				next = Pixel_fillPixelLookup( interp_mod, &elem, next, stack_elem );
 
 				// Apply operation to pixel
 				Pixel_pixelEvaluation( interp_mod, elem );
@@ -864,6 +974,8 @@ uint8_t Pixel_animationProcess( AnimationStackElement *elem )
 		// Stop animation
 		else
 		{
+			// Indicate animation slot is free
+			elem->index = 0xFFFF;
 			return 0;
 		}
 	}
@@ -930,6 +1042,38 @@ void Pixel_pixelToggle( PixelElement *elem )
 	for ( uint8_t ch = 0; ch < elem->channels; ch++ )
 	{
 		Pixel_channelToggle( elem->indices[ch] );
+	}
+}
+
+
+
+// -- General --
+
+// Looks up the final scancode in a trigger macro
+uint8_t Pixel_determineLastTriggerScanCode( TriggerMacro *trigger )
+{
+	// Ignore (set to zero) if unset
+	if ( trigger == 0 )
+	{
+		return 0;
+	}
+
+	// Iterate over each TriggerGuide element
+	uint8_t curScanCode = 0;
+	for ( var_uint_t pos = 0; ; pos += trigger->guide[ pos ] * TriggerGuideSize + 1 )
+	{
+		// Length of this combo
+		uint8_t comboLength = trigger->guide[ pos ] * TriggerGuideSize;
+
+		// Determine scancode, use first TriggerGuide scanCode
+		TriggerGuide *guide = (TriggerGuide*)&trigger->guide[ pos + 1 ];
+		curScanCode = guide->scanCode;
+
+		// If this combo has zero length, we are at the end
+		if ( trigger->guide[ pos + comboLength + 1 ] == 0 )
+		{
+			return curScanCode;
+		}
 	}
 }
 

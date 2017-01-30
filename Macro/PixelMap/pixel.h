@@ -21,6 +21,9 @@
 // Compiler Includes
 #include <stdint.h>
 
+// KLL Include
+#include <kll.h>
+
 
 
 // ----- Defines -----
@@ -136,7 +139,7 @@ typedef struct PixelModElement {
 		uint32_t  index;      // Index lookup for direct and scancode lookups
 	};
 	uint8_t     data[0];          // Data size depends on PixelElement definition
-	                              // TODO ( PixelElement.width / 8 + sizeof(PixelChange) ) * PixelElement.channels
+	                              // ( PixelElement.width / 8 + sizeof(PixelChange) ) * PixelElement.channels
 } __attribute((packed)) PixelModElement;
 
 // Pixel Mod Data Element
@@ -148,18 +151,19 @@ typedef struct PixelModDataElement {
 
 // Animation stack element
 typedef struct AnimationStackElement {
-	uint16_t           index;    // Animation id
-	uint16_t           pos;      // Current fundamental frame (XXX Make 32bit?)
-	uint8_t            loops;    // # of loops to run animation, 0 indicates infinite
-	uint8_t            divmask;  // # of process loops used for frame transition/hold (2,4,8,16,etc.)
-	                             //  Must be a contiguous mask
-	                             //  e.g.  0x00, 0x01, 0x03, 0x0F, etc.
-	                             //  *NOT* 0x02, 0x08, 0x24, etc.
-	uint8_t            divshift; // Matches divmask
-	                             //  Number of bits to shift until LSFB (least significant frame bit)
-	                             //  e.g.  0x03 => 2; 0x0F => 4
-	PixelFrameFunction ffunc;    // Frame tweening function
-	PixelPixelFunction pfunc;    // Pixel tweening function
+	TriggerMacro       *trigger;  // TriggerMacro that added element, set to 0 if unused
+	uint16_t            index;    // Animation id
+	uint16_t            pos;      // Current fundamental frame (XXX Make 32bit?)
+	uint8_t             loops;    // # of loops to run animation, 0 indicates infinite
+	uint8_t             divmask;  // # of process loops used for frame transition/hold (2,4,8,16,etc.)
+	                              //  Must be a contiguous mask
+	                              //  e.g.  0x00, 0x01, 0x03, 0x0F, etc.
+	                              //  *NOT* 0x02, 0x08, 0x24, etc.
+	uint8_t             divshift; // Matches divmask
+	                              //  Number of bits to shift until LSFB (least significant frame bit)
+	                              //  e.g.  0x03 => 2; 0x0F => 4
+	PixelFrameFunction  ffunc;    // Frame tweening function
+	PixelPixelFunction  pfunc;    // Pixel tweening function
 	// TODO ffunc and pfunc args
 } AnimationStackElement;
 
@@ -180,6 +184,7 @@ extern       PixelBuf     Pixel_Buffers[];
 extern const PixelElement Pixel_Mapping[];
 extern const uint16_t     Pixel_DisplayMapping[];
 extern const uint8_t    **Pixel_Animations[];
+extern const uint16_t     Pixel_ScanCodeToDisplay[];
 extern const uint16_t     Pixel_ScanCodeToPixel[];
 
 
