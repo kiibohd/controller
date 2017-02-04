@@ -139,12 +139,15 @@ void Result_process()
 	// Iterate through the pending ResultMacros, processing each of them
 	for ( index_uint_t macro = 0; macro < macroResultMacroPendingList.size; macro++ )
 	{
-		switch ( Macro_evalResultMacro( macroResultMacroPendingList.data[ 0 ] ) )
+		switch ( Macro_evalResultMacro( macroResultMacroPendingList.data[ macro ] ) )
 		{
 		// Re-add macros to pending list
 		case ResultMacroEval_DoNothing:
 		default:
-			macroResultMacroPendingList.data[ macroResultMacroPendingListTail++ ] = macroResultMacroPendingList.data[ macro ];
+			memcpy( &macroResultMacroPendingList.data[ macroResultMacroPendingListTail++ ],
+				&macroResultMacroPendingList.data[ macro ],
+				sizeof( ResultPendingElem )
+			);
 			break;
 
 		// Remove Macro from Pending List, nothing to do, removing by default
