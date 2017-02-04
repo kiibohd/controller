@@ -28,6 +28,8 @@ from common import (ERROR, WARNING, check, result)
 
 ### Test ###
 
+print("-- 1 key test --")
+
 # Reference to callback datastructure
 data = i.control.data
 
@@ -54,6 +56,48 @@ i.control.cmd('removeScanCode')( 0x02 )
 # Run processing loop once, only needs to transition from hold to release
 i.control.loop(1)
 
+print( data.usb_keyboard() )
+
+
+### Test 3 keys at same time ###
+
+print("-- 3 key test --")
+
+# Press keys
+i.control.cmd('addScanCode')( 0x02 )
+i.control.cmd('addScanCode')( 0x06 )
+i.control.cmd('addScanCode')( 0x04 )
+
+# Run processing loop
+print("Press State")
+i.control.loop(1)
+print( data.usb_keyboard() )
+print( " Triggers", data.trigger_list_buffer() )
+print( " TPending", data.pending_trigger_list() )
+check( len( data.pending_trigger_list() ) == 3 )
+#print( " RPending", data.pending_result_list() )
+
+
+
+# Run processing loop
+print("Hold State")
+i.control.loop(1)
+print( data.usb_keyboard() )
+print( " Triggers", data.trigger_list_buffer() )
+print( " TPending", data.pending_trigger_list() )
+check( len( data.pending_trigger_list() ) == 0 )
+
+
+
+# Release keys
+i.control.cmd('removeScanCode')( 0x02 )
+i.control.cmd('removeScanCode')( 0x06 )
+i.control.cmd('removeScanCode')( 0x04 )
+i.control.cmd('removeScanCode')( 0x05 ) # Extra key (purposefully not pressed earlier to simulate bug)
+
+# Run processing loop
+print("Release State")
+i.control.loop(1)
 print( data.usb_keyboard() )
 
 result()

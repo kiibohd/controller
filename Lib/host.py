@@ -28,7 +28,7 @@ import pty
 import sys
 import termios
 
-from ctypes import CFUNCTYPE, c_int, c_char_p
+from ctypes import CFUNCTYPE, POINTER, cast, c_int, c_char_p, c_uint8, c_uint16, c_uint32, Structure
 
 
 
@@ -59,6 +59,55 @@ callback_ptrs = []
 
 
 
+### Structs ###
+
+class TriggerGuide( Structure ):
+	'''
+	TriggerGuide struct
+	See kll.h in Macro/PartialMap
+	'''
+	_fields_ = [
+		( 'type',     c_uint8 ),
+		( 'state',    c_uint8 ),
+		( 'scanCode', c_uint8 ),
+	]
+
+class TriggerMacro( Structure ):
+	'''
+	TriggerMacro struct
+	See Macro/PartialMap/kll.h
+	'''
+	# TODO result is a var_uint_t, needs to be dynamic
+	_fields_ = [
+		( 'guide',  POINTER( c_uint8 ) ),
+		( 'result', c_uint8 ),
+	]
+
+
+class ResultsPendingElem( Structure ):
+	'''
+	ResultsPendingElem struct
+	See Macro/PartialMap/kll.h
+	'''
+	# TODO index is a index_uint_t, needs to be dynamic
+	_fields_ = [
+		( 'trigger', POINTER( TriggerMacro ) ),
+		( 'index',   c_uint16 ),
+	]
+
+class ResultsPending( Structure ):
+	'''
+	ResultsPending struct
+	See Macro/PartialMap/kll.h
+	'''
+	# TODO size is a index_uint_t, needs to be dynamic
+	_fields_ = [
+		( 'data', POINTER( ResultsPendingElem ) ),
+		( 'size', c_uint16 ),
+	]
+
+
+
 ### Classes ###
 
 class Data:
@@ -75,6 +124,47 @@ class Data:
 		if self.usb_keyboard_data is not None:
 			return self.usb_keyboard_data.protocol, self.usb_keyboard_data.codes(), self.usb_keyboard_data.consumer_ctrl, self.usb_keyboard_data.system_ctrl
 		return None
+
+	def trigger_list_buffer( self ):
+		'''
+		Returns trigger list buffer
+		'''
+		# TODO Dynamically select var_uint_t size
+		triggers_len = cast( control.kiibohd.macroTriggerListBufferSize, POINTER( c_uint8 ) )[0]
+		triggers = cast( control.kiibohd.macroTriggerListBuffer, POINTER( TriggerGuide * triggers_len ) )[0]
+		output = []
+		for index in range( 0, triggers_len ):
+			output.append( triggers[ index ] )
+		return output
+
+	def pending_trigger_list( self ):
+		'''
+		Returns list of pending triggers
+		'''
+		# TODO Dynamically select index_uint_t size
+		size_width = c_uint16
+		triggers_len = cast( control.kiibohd.macroTriggerMacroPendingListSize, POINTER( size_width ) )[0]
+		triggers = cast( control.kiibohd.macroTriggerMacroPendingList, POINTER( size_width * triggers_len ) )[0]
+		output = []
+		for index in range( 0, triggers_len ):
+			output.append( triggers[ index ] )
+		return output
+
+	def pending_result_list( self ):
+		'''
+		Returns list of pending results
+		'''
+		# XXX TODO - Working? Seems to be a bug with the .size
+		# TODO - Add some sort of TriggerMacro guide interpretation
+		results_pending = cast( control.kiibohd.macroResultMacroPendingList, POINTER( ResultsPending ) )[0]
+		results_pending_list = []
+		for index in range( 0, results_pending.size ):
+			results_pending_list.append( [
+				results_pending.data[ index ].index,
+				results_pending.data[ index ].trigger[0].result,
+			] )
+		return results_pending_list
+
 
 class Control:
 	'''

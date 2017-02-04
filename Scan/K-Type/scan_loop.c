@@ -98,15 +98,14 @@ inline uint8_t Scan_loop()
 	// Process any LED events
 	LED_scan();
 
-	// Check if we are ready to leave the scan loop
+	// Check if we are ready roll ovr the strobe position
 	if ( Scan_strobe_position >= Matrix_totalColumns() - 1 )
 	{
 		Scan_strobe_position = 0;
 		Scan_scanCount++;
-		return 0;
 	}
 
-	return 1;
+	return 0;
 }
 
 
