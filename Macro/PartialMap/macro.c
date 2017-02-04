@@ -712,10 +712,6 @@ inline void Macro_process()
 	}
 #endif
 
-	// Only do one round of macro processing between Output Module timer sends
-	if ( USBKeys_Sent != 0 )
-		return;
-
 #if defined(ConnectEnabled_define) || defined(PressReleaseCache_define)
 #if defined(ConnectEnabled_define)
 	// Check if there are any ScanCodes in the interconnect cache to process

@@ -114,8 +114,8 @@ uint8_t  USBKeys_SysCtrl;
 uint16_t USBKeys_ConsCtrl;
 
 // The number of keys sent to the usb in the array
-uint8_t  USBKeys_Sent    = 0;
-uint8_t  USBKeys_SentCLI = 0;
+uint8_t  USBKeys_Sent;
+uint8_t  USBKeys_SentCLI;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t  USBKeys_LEDs = 0;
@@ -343,29 +343,15 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 	}
 
 	// Depending on which mode the keyboard is in the USB needs Press/Hold/Release events
-	uint8_t keyPress = 0; // Default to key release, only used for NKRO
-	switch ( USBKeys_Protocol )
-	{
-	case 0: // Boot Mode
-		// TODO Analog inputs
-		// Only indicate USB has changed if either a press or release has occured
-		if ( state == 0x01 || state == 0x03 )
-			USBKeys_Changed = USBKeyChangeState_MainKeys;
+	uint8_t keyPress = 0; // Default to key release
 
-		// Only send keypresses if press or hold state
-		if ( stateType == 0x00 && state == 0x03 ) // Release state
-			return;
-		break;
-	case 1: // NKRO Mode
-		// Only send press and release events
-		if ( stateType == 0x00 && state == 0x02 ) // Hold state
-			return;
+	// Only send press and release events
+	if ( stateType == 0x00 && state == 0x02 ) // Hold state
+		return;
 
-		// Determine if setting or unsetting the bitfield (press == set)
-		if ( stateType == 0x00 && state == 0x01 ) // Press state
-			keyPress = 1;
-		break;
-	}
+	// If press, send bit (NKRO) or byte (6KRO)
+	if ( stateType == 0x00 && state == 0x01 ) // Press state
+		keyPress = 1;
 
 	// Get the keycode from arguments
 	uint8_t key = args[0];
@@ -379,35 +365,65 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 	//  Bits 214 - 216                 unused
 	uint8_t bytePosition = 0;
 	uint8_t byteShift = 0;
+
 	switch ( USBKeys_Protocol )
 	{
 	case 0: // Boot Mode
 		// Set the modifier bit if this key is a modifier
 		if ( (key & 0xE0) == 0xE0 ) // AND with 0xE0 (Left Ctrl, first modifier)
 		{
-			USBKeys_Modifiers |= 1 << (key ^ 0xE0); // Left shift 1 by key XOR 0xE0
+			if ( keyPress )
+			{
+				USBKeys_Modifiers |= 1 << (key ^ 0xE0); // Left shift 1 by key XOR 0xE0
+			}
+			else // Release
+			{
+				USBKeys_Modifiers &= ~(1 << (key ^ 0xE0)); // Left shift 1 by key XOR 0xE0
+			}
+
+			USBKeys_Changed |= USBKeyChangeState_Modifiers;
 		}
 		// Normal USB Code
 		else
 		{
+			// Determine if key was set
+			uint8_t keyFound = 0;
+			uint8_t old_sent = USBKeys_Sent;
+
+			for ( uint8_t curkey = 0, newkey = 0; curkey < old_sent; curkey++, newkey++ )
+			{
+				// On press, key already present, don't re-add
+				if ( keyPress && USBKeys_Keys[newkey] == key )
+				{
+					keyFound = 1;
+					break;
+				}
+
+				// On release, remove if found
+				if ( !keyPress && USBKeys_Keys[newkey] == key )
+				{
+					// Shift next key onto this one
+					// (Doesn't matter if it overflows, buffer is large enough, and size is used)
+					USBKeys_Keys[newkey--] = USBKeys_Keys[++curkey];
+					USBKeys_Sent--;
+					keyFound = 1;
+					USBKeys_Changed = USBKeyChangeState_MainKeys;
+					break;
+				}
+			}
+
 			// USB Key limit reached
 			if ( USBKeys_Sent >= USB_BOOT_MAX_KEYS )
 			{
 				warn_print("USB Key limit reached");
-				return;
+				break;
 			}
 
-			// Make sure key is within the USB HID range
-			if ( key <= 104 )
+			// Add key if not already found in the buffer
+			if ( keyPress && !keyFound )
 			{
 				USBKeys_Keys[USBKeys_Sent++] = key;
-			}
-			// Invalid key
-			else
-			{
-				warn_msg("USB Code above 104/0x68 in Boot Mode: ");
-				printHex( key );
-				print( NL );
+				USBKeys_Changed = USBKeyChangeState_MainKeys;
 			}
 		}
 		break;
@@ -525,7 +541,7 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 		if ( keyPress )
 		{
 			USBKeys_Keys[bytePosition] |= (1 << byteShift);
-			USBKeys_Sent++;
+			USBKeys_Sent--;
 		}
 		else // Release
 		{
@@ -625,6 +641,10 @@ void Output_flushBuffers()
 	USBKeys_ConsCtrl = 0;
 	USBKeys_Modifiers = 0;
 	USBKeys_SysCtrl = 0;
+
+	// Reset USBKeys_Keys size
+	USBKeys_Sent = 0;
+	USBKeys_SentCLI = 0;
 }
 
 
@@ -674,22 +694,21 @@ inline void Output_send()
 #if enableKeyboard_define == 1
 	// Boot Mode Only, unset stale keys
 	if ( USBKeys_Protocol == 0 )
+	{
 		for ( uint8_t c = USBKeys_Sent; c < USB_BOOT_MAX_KEYS; c++ )
+		{
 			USBKeys_Keys[c] = 0;
+		}
+	}
 
 	// Send keypresses while there are pending changes
 	while ( USBKeys_Changed )
 		usb_keyboard_send();
 
-	// Clear keys sent
-	USBKeys_Sent = 0;
-
 	// Signal Scan Module we are finished
 	switch ( USBKeys_Protocol )
 	{
 	case 0: // Boot Mode
-		// Clear modifiers only in boot mode
-		USBKeys_Modifiers = 0;
 		Scan_finishedWithOutput( USBKeys_Sent <= USB_BOOT_MAX_KEYS ? USBKeys_Sent : USB_BOOT_MAX_KEYS );
 		break;
 	case 1: // NKRO Mode
