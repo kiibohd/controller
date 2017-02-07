@@ -24,7 +24,7 @@
 
 // Compiler Includes
 #include <stdint.h>
-#include <pin_util.h>
+#include "PS2Keyboard.h"
 
 
 
@@ -33,6 +33,8 @@
 // Functions to be called by main.c
 void Scan_setup();
 uint8_t Scan_loop();
+
+uint8_t ps2data_read();
 
 // Call-backs
 void Scan_finishedWithMacro( uint8_t sentKeys );  // Called by Macro Module

@@ -39,10 +39,13 @@
 
 // ----- Functions -----
 
+uint8_t ps2data_read(){
+  return GPIOB_PDIR != 0; // Probably needs a mask instead of the entire port.
+}
+
 void portb_isr(){
-  PORTB_ISFR = 0xffffffff;
-  ps2_interrupt();
-  // print("a");
+  PORTB_ISFR = 0xffffffff; // reset the interrupt flags.
+  ps2interrupt(); // call the PS2 interrupt function.
 }
 
 // Setup
@@ -58,7 +61,7 @@ inline void Scan_setup() {
 
   // Register pin 16 to trigger interrupt on port B:
   // falling mask is 0x0A
-  mask = (0x0A << 16) | 0x01000000; // 16 is location in register, not pin
+  uint32_t mask = (0x0A << 16) | 0x01000000; // 16 is location in register, not pin
     __disable_irq();
   PORTB_PCR16 |= mask;
   __enable_irq();
@@ -67,7 +70,12 @@ inline void Scan_setup() {
 
 // Main Detection Loop
 inline uint8_t Scan_loop() {
+        uint8_t c =get_scan_code();
+        if (c != 0){
+          printHex(c);
+        }
 	return 0;
+
 }
 
 
