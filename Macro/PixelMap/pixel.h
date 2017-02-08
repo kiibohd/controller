@@ -168,7 +168,7 @@ typedef struct AnimationStackElement {
 } AnimationStackElement;
 
 // Animation stack
-#define Pixel_AnimationStackSize 16
+#define Pixel_AnimationStackSize 20
 typedef struct AnimationStack {
 	uint16_t size;
 	AnimationStackElement *stack[Pixel_AnimationStackSize];

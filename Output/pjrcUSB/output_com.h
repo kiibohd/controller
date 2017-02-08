@@ -75,6 +75,7 @@ extern          uint8_t  USBKeys_Modifiers;
 extern          uint8_t  USBKeys_Keys[USB_NKRO_BITFIELD_SIZE_KEYS];
 extern          uint8_t  USBKeys_Sent;
 extern volatile uint8_t  USBKeys_LEDs;
+extern volatile uint8_t  USBKeys_LEDs_Changed;
 
 extern          uint8_t  USBKeys_SysCtrl;  // 1KRO container for System Control HID table
 extern          uint16_t USBKeys_ConsCtrl; // 1KRO container for Consumer Control HID table

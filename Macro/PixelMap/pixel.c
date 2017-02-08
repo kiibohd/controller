@@ -24,6 +24,7 @@
 #include <kll_defs.h>
 #include <led.h>
 #include <print.h>
+#include <output_com.h>
 
 // Local Includes
 #include "pixel.h"
@@ -34,6 +35,7 @@
 
 void cliFunc_aniAdd     ( char* args );
 void cliFunc_aniDel     ( char* args );
+void cliFunc_aniStack   ( char* args );
 void cliFunc_chanTest   ( char* args );
 void cliFunc_pixelList  ( char* args );
 void cliFunc_pixelSCTest( char* args );
@@ -64,6 +66,7 @@ typedef enum PixelTest {
 // Macro Module command dictionary
 CLIDict_Entry( aniAdd,       "Add the given animation id to the stack" );
 CLIDict_Entry( aniDel,       "Remove the given stack index animation" );
+CLIDict_Entry( aniStack,     "Displays the animation stack contents" );
 CLIDict_Entry( chanTest,     "Channel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
 CLIDict_Entry( pixelList,    "Prints out pixel:channel mappings." );
 CLIDict_Entry( pixelSCTest,  "Scancode pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
@@ -74,6 +77,7 @@ CLIDict_Entry( rectDisp,     "Show the current output of the MCU pixel buffer." 
 CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
 	CLIDict_Item( aniAdd ),
 	CLIDict_Item( aniDel ),
+	CLIDict_Item( aniStack ),
 	CLIDict_Item( chanTest ),
 	CLIDict_Item( pixelList ),
 	CLIDict_Item( pixelSCTest ),
@@ -116,6 +120,8 @@ uint8_t Pixel_determineLastTriggerScanCode( TriggerMacro *trigger );
 
 PixelBuf *Pixel_bufferMap( uint16_t channel );
 
+AnimationStackElement *Pixel_lookupAnimation( uint16_t index, uint16_t prev );
+
 
 
 // ----- Capabilities -----
@@ -125,7 +131,7 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
-		print("Pixel_Animation_capability(index,loops,pfunc,divmask,divshift)");
+		print("Pixel_Animation_capability(index,loops,pfunc,divmask,divshift,replace)");
 		return;
 	}
 
@@ -136,11 +142,33 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 
 	AnimationStackElement element;
 	element.trigger = trigger;
+	element.pos = 0; // TODO (HaaTa) Start at specific frame
 	element.index = *(uint16_t*)(&args[0]);
 	element.loops = *(uint8_t*)(&args[2]);
 	element.pfunc = *(uint8_t*)(&args[3]);
 	element.divmask = *(uint8_t*)(&args[4]);
 	element.divshift = *(uint8_t*)(&args[5]);
+
+	// Replace animation rather than add
+	uint8_t replace = *(uint8_t*)(&args[6]);
+	if ( replace )
+	{
+		AnimationStackElement *found = Pixel_lookupAnimation( element.index, 0 );
+
+		// If found, modify stack element
+		if ( found != NULL )
+		{
+			found->pos = 0;
+			found->loops = element.loops;
+
+			// TODO (jacob) These cause hard fault FIXME
+			//found->pfunc = element.pfunc;
+			//found->divmask = element.divmask;
+			//found->divshift = element.divshift;
+			return;
+		}
+	}
+
 	Pixel_addAnimation( &element );
 }
 
@@ -229,6 +257,33 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element )
 	return 1;
 }
 
+// Removes the first index of an animation
+// Will be popped from the stack on the next animation processing loop
+uint8_t Pixel_delAnimation( uint16_t index, uint8_t finish )
+{
+	// Find animation by index, look for the *first* one
+	uint16_t pos = 0;
+	for ( ; pos < Pixel_AnimationStackSize; pos++ )
+	{
+		// Check if memory is unused
+		if ( Pixel_AnimationElement_Stor[pos].index == index )
+		{
+			// Let animation finish it's last frame
+			if ( finish )
+			{
+				Pixel_AnimationElement_Stor[pos].loops = 1;
+			}
+			else
+			{
+				Pixel_AnimationElement_Stor[pos].index = 0xFFFF;
+			}
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 // Cleans/resets animation stack. Removes all running animations.
 // NOTE: Does not clear the output buffer
 void Pixel_clearAnimations()
@@ -284,6 +339,12 @@ void Pixel_stackProcess()
 		// Lookup animation stack element
 		AnimationStackElement *elem = Pixel_AnimationStack.stack[pos];
 
+		// Ignore animation if index is 0xFFFF (max)
+		if ( elem->index == 0xFFFF )
+		{
+			continue;
+		}
+
 		// Process animation element
 		if ( Pixel_animationProcess( elem ) )
 		{
@@ -333,6 +394,12 @@ PixelBuf *Pixel_bufferMap( uint16_t channel )
 // - Iterates over each of the Pixel channels and applies modifications
 void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 {
+	// Ignore if no element
+	if ( elem == 0 )
+	{
+		return;
+	}
+
 	// Lookup number of channels in pixel
 	uint8_t channels = elem->channels;
 
@@ -417,10 +484,15 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 			}
 			case 16: // 16  bit mapping
 			{
-				uint16_t prev = PixelBuf16( pixbuf, ch_pos );
+				// TODO Fix for 16 on 8 bit (i.e. early K-Type)
+				//uint16_t prev = PixelBuf16( pixbuf, ch_pos );
 				PixelBuf16( pixbuf, ch_pos ) += (uint16_t)mod_value;
+				/*
 				if ( prev > PixelBuf16( pixbuf, ch_pos ) )
 					PixelBuf16( pixbuf, ch_pos ) = 0xFFFF;
+				*/
+				if ( 0xFF < PixelBuf16( pixbuf, ch_pos ) )
+					PixelBuf16( pixbuf, ch_pos ) = 0xFF;
 				break;
 			}
 			case 32: // 32  bit mapping
@@ -453,7 +525,7 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 			case 16: // 16  bit mapping
 			{
 				uint16_t prev = PixelBuf16( pixbuf, ch_pos );
-				PixelBuf16( pixbuf, ch_pos ) += (uint16_t)mod_value;
+				PixelBuf16( pixbuf, ch_pos ) -= (uint16_t)mod_value;
 				if ( prev < PixelBuf16( pixbuf, ch_pos ) )
 					PixelBuf16( pixbuf, ch_pos ) = 0;
 				break;
@@ -461,7 +533,7 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 			case 32: // 32  bit mapping
 			{
 				uint32_t prev = PixelBuf32( pixbuf, ch_pos );
-				PixelBuf32( pixbuf, ch_pos ) += (uint32_t)mod_value;
+				PixelBuf32( pixbuf, ch_pos ) -= (uint32_t)mod_value;
 				if ( prev < PixelBuf32( pixbuf, ch_pos ) )
 					PixelBuf32( pixbuf, ch_pos ) = 0;
 				break;
@@ -495,6 +567,9 @@ uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint1
 	// Used to determine next pixel in column or row (fill)
 	uint16_t cur = prev;
 	uint16_t index = 0;
+
+	// Default to nothing found
+	*elem = 0;
 
 	// Lookup fill algorith
 	switch ( mod->type )
@@ -610,18 +685,18 @@ uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint1
 		// Calculate rectangle offset
 		position += (int16_t)mod->rect.row * Pixel_DisplayMapping_Cols_KLL + (int16_t)mod->rect.col;
 
-		// Make sure column exists
+		// Make sure position exists
 		if ( position >= Pixel_DisplayMapping_Cols_KLL * Pixel_DisplayMapping_Rows_KLL )
 		{
-			erro_msg("Invalid position index (relrect): ");
-			printInt16( position );
-			print( NL );
 			break;
 		}
 
 		// Lookup pixel, pixels are 1 indexed, hence the -1
-		index = Pixel_DisplayMapping[ position ] - 1;
-		*elem = (PixelElement*)&Pixel_Mapping[ index ];
+		index = Pixel_DisplayMapping[ position ];
+		if ( index != 0 )
+		{
+			*elem = (PixelElement*)&Pixel_Mapping[ index - 1 ];
+		}
 		break;
 	}
 	case PixelAddressType_RelativeColumnFill:
@@ -720,6 +795,25 @@ uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint1
 
 // -- Pixel Tweening --
 
+uint16_t Pixel_pixelTweenNextPos( PixelElement *elem )
+{
+	// No elem found
+	// XXX (HaaTa) This is actually a hard problem for relative animations
+	//             We may not find any element initially, so we don't know anothing to increment the position
+	//             The best solution may be to just find a relatively nearby pixel and use that info...
+	//             Or waste enough more flash...
+	if ( elem == 0 )
+	{
+		// TODO - This is BAD, will break in the future
+		return ( ( 8 / 8 + sizeof( PixelChange ) ) * 3 ) + sizeof( PixelModElement );
+	}
+	else
+	{
+		// Calculate next position (this is dynamic, cannot be pre-calculated)
+		return ( ( elem->width / 8 + sizeof( PixelChange ) ) * elem->channels ) + sizeof( PixelModElement );
+	}
+}
+
 // Standard Pixel Pixel Function (standard lookup, no additonal processing)
 void Pixel_pixelTweenStandard( const uint8_t *frame, AnimationStackElement *stack_elem )
 {
@@ -739,8 +833,8 @@ void Pixel_pixelTweenStandard( const uint8_t *frame, AnimationStackElement *stac
 			Pixel_pixelEvaluation( mod, elem );
 		} while ( next );
 
-		// Calculate next position (this is dynamic, cannot be pre-calculated)
-		pos += ( ( elem->width / 8 + sizeof( PixelChange ) ) * elem->channels ) + sizeof( PixelModElement );
+		// Determine next position
+		pos += Pixel_pixelTweenNextPos( elem );
 
 		// Lookup next mod element
 		mod = (PixelModElement*)&frame[pos];
@@ -886,8 +980,8 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 
 		prev = mod;
 next:
-		// Calculate next position (this is dynamic, cannot be pre-calculated)
-		pos += ( ( elem->width / 8 + sizeof( PixelChange ) ) * elem->channels ) + sizeof( PixelModElement );
+		// Determine next position
+		pos += Pixel_pixelTweenNextPos( elem );
 
 		// Lookup next mod element
 		mod = (PixelModElement*)&frame[pos];
@@ -1072,9 +1166,79 @@ uint8_t Pixel_determineLastTriggerScanCode( TriggerMacro *trigger )
 	}
 }
 
+// Updates animations for USB Lock LEDs
+// TODO - Should be generated by KLL
+void Pixel_updateUSBLEDs()
+{
+#if !defined(_host_)
+	if ( !USBKeys_LEDs_Changed )
+		return;
+
+	AnimationStackElement element;
+	element.trigger = 0;
+	element.pos = 0;
+	element.loops = 0;
+	element.pfunc = 0;
+	element.ffunc = 0;
+	element.divmask = 1;
+	element.divshift = 1;
+
+	// NumLock
+	if ( USBKeys_LEDs & 0x01 )
+	{
+		print("NumLock On");
+		// TODO
+	}
+
+	// CapsLock
+	// TODO Set index properly for animation
+	const uint16_t caps_index = 9;
+	if ( USBKeys_LEDs & 0x02 )
+	{
+		AnimationStackElement *found = Pixel_lookupAnimation( caps_index, 0 );
+
+		// If not found, add
+		if ( found == NULL )
+		{
+			print("YAY!");
+			element.index = caps_index;
+			Pixel_addAnimation( &element );
+		}
+	}
+	else
+	{
+		Pixel_delAnimation( caps_index, 1 );
+	}
+
+	// ScrollLock
+	// TODO Set index properly for animation
+	const uint16_t scroll_index = 12;
+	if ( USBKeys_LEDs & 0x04 )
+	{
+		AnimationStackElement *found = Pixel_lookupAnimation( scroll_index, 0 );
+
+		// If not found, add
+		if ( found == NULL )
+		{
+			element.index = scroll_index;
+			Pixel_addAnimation( &element );
+		}
+	}
+	else
+	{
+		Pixel_delAnimation( scroll_index, 1 );
+	}
+
+	USBKeys_LEDs_Changed = 0;
+#endif
+}
+
 // Pixel Procesing Loop
 inline void Pixel_process()
 {
+	// Update USB LED Status
+	Pixel_updateUSBLEDs();
+
 	// Only update frame when ready
 	if ( Pixel_FrameState != FrameState_Update )
 		return;
@@ -1637,6 +1801,33 @@ void cliFunc_aniDel( char* args )
 
 	// TODO
 	Pixel_AnimationStack.size--;
+}
+
+void cliFunc_aniStack( char* args )
+{
+	print(NL);
+	info_msg("Stack Size: ");
+	printInt16( Pixel_AnimationStack.size );
+	for ( uint8_t pos = 0; pos < Pixel_AnimationStack.size; pos++ )
+	{
+		print(NL);
+		AnimationStackElement *elem = Pixel_AnimationStack.stack[pos];
+		print(" index(");
+		printInt16( elem->index );
+		print(") pos(");
+		printInt16( elem->pos );
+		print(") loops(");
+		printInt8( elem->loops );
+		print(") divmask(");
+		printInt8( elem->divmask );
+		print(") divshift(");
+		printInt8( elem->divshift );
+		print(") ffunc(");
+		printInt8( elem->ffunc );
+		print(") pfunc(");
+		printInt8( elem->pfunc );
+		print(")");
+	}
 }
 
 void Pixel_dispBuffer()

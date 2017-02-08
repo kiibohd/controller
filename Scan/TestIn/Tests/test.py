@@ -63,7 +63,7 @@ print( data.usb_keyboard() )
 
 print("-- 3 key test --")
 
-# Press keys
+# press keys
 i.control.cmd('addScanCode')( 0x02 )
 i.control.cmd('addScanCode')( 0x06 )
 i.control.cmd('addScanCode')( 0x04 )
@@ -99,6 +99,15 @@ i.control.cmd('removeScanCode')( 0x05 ) # Extra key (purposefully not pressed ea
 print("Release State")
 i.control.loop(1)
 print( data.usb_keyboard() )
+
+
+### Combo Test ###
+
+print("-- 2 key combo test --")
+# TODO
+# - Combo
+# - Delayed combo
+# - Sequence
 
 result()
 

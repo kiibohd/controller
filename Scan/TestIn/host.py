@@ -3,7 +3,7 @@
 Host-Side Python Commands for TestIn Scan Module
 '''
 
-# Copyright (C) 2016 by Jacob Alexander
+# Copyright (C) 2016-2017 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -44,12 +44,25 @@ control = None
 
 ### Structures ###
 
+class TriggerMacro( Structure ):
+	'''
+	C-Struct for TriggerMacro
+	See Macro/PartialMap/kll.h
+	'''
+	# TODO result is var_uint_t (dynamically sized)
+	_fields_ = [
+		( "guide",  POINTER( c_uint8 ) ),
+		( "result", c_uint8 ),
+	]
+
+
 class AnimationStackElement( Structure ):
 	'''
 	C-Struct for AnimationStackElement
 	See Macro/PixelMap/pixel.h
 	'''
 	_fields_ = [
+		( "trigger",  POINTER( TriggerMacro ) ),
 		( "index",    c_uint16 ),
 		( "pos",      c_uint16 ),
 		( "loops",    c_uint8 ),
