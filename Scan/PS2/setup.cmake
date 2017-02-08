@@ -11,7 +11,7 @@
 #
 set ( Module_SRCS
 	scan_loop.c
-	pin_util.c
+	PS2Keyboard.c
 )
 
 add_definitions(
