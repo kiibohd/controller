@@ -26,7 +26,20 @@
 #include <stdint.h>
 #include "PS2Keyboard.h"
 
+// ----- Defines -----
 
+#define PS2_PORT_PDDR GPIOB_PDDR
+#define PS2_PORT_PDIR GPIOB_PDIR
+#define PS2_PORT_ISFR PORTB_ISFR
+#define PS2_CLOCK_PIN 16
+#define PS2_CLOCK_PCR PORTB_PCR16
+#define PS2_DATA_PIN 17
+#define PS2_DATA_PCR PORTB_PCR17
+
+
+
+// ----- Functions to used by PS2Keyboard -----
+uint8_t ps2data_read();
 
 // ----- Functions -----
 
@@ -34,7 +47,6 @@
 void Scan_setup();
 uint8_t Scan_loop();
 
-uint8_t ps2data_read();
 
 // Call-backs
 void Scan_finishedWithMacro( uint8_t sentKeys );  // Called by Macro Module
