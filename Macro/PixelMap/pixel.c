@@ -202,22 +202,21 @@ void Pixel_pixelInterpolate( PixelElement *elem, uint8_t position, uint8_t inten
 // Allocates animaton memory slot
 // Initiates animation to process on the next cycle
 // Returns 1 on success, 0 on failure to allocate
-uint8_t Pixel_addAnimation( AnimationStackElement *element, uint8_t replace )
+uint8_t Pixel_addAnimation( AnimationStackElement *element, AnimationReplaceType replace )
 {
 	if ( replace )
 	{
 		AnimationStackElement *found = Pixel_lookupAnimation( element->index, 0 );
 
 		// If found, modify stack element
-		if ( found != NULL && found->trigger == element->trigger )
+		if ( found != NULL && ( found->trigger == element->trigger || replace == AnimationReplaceType_All ) )
 		{
+			print("yay");
 			found->pos = 0;
 			found->loops = element->loops;
-
-			// TODO (jacob) These cause hard fault FIXME
-			//found->pfunc = element.pfunc;
-			//found->divmask = element.divmask;
-			//found->divshift = element.divshift;
+			found->pfunc = element->pfunc;
+			found->divmask = element->divmask;
+			found->divshift = element->divshift;
 			return 0;
 		}
 	}
@@ -1247,7 +1246,7 @@ void Pixel_updateUSBLEDs()
 	if ( USBKeys_LEDs & 0x02 )
 	{
 		element.index = caps_index;
-		Pixel_addAnimation( &element, 1 );
+		Pixel_addAnimation( &element, AnimationReplaceType_Basic );
 	}
 	else
 	{
@@ -1260,7 +1259,7 @@ void Pixel_updateUSBLEDs()
 	if ( USBKeys_LEDs & 0x04 )
 	{
 		element.index = scroll_index;
-		Pixel_addAnimation( &element, 1 );
+		Pixel_addAnimation( &element, AnimationReplaceType_Basic );
 	}
 	else
 	{
