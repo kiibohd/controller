@@ -39,6 +39,9 @@
 #include "result.h"
 #include "macro.h"
 
+// TODO REMOVEME
+#include <pixel.h>
+
 
 
 // ----- Function Declarations -----
@@ -138,11 +141,22 @@ uint8_t macroInterconnectCacheSize = 0;
 // ----- Capabilities -----
 
 // Sets the given layer with the specified layerState
-void Macro_layerState( uint8_t state, uint8_t stateType, uint16_t layer, uint8_t layerState )
+void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint16_t layer, uint8_t layerState )
 {
 	// Ignore if layer does not exist or trying to manipulate layer 0/Default layer
 	if ( layer >= LayerNum || layer == 0 )
 		return;
+
+	// TODO (HaaTa) Add as an event
+	// XXX Add definition so <pixel.h> is not required
+	AnimationStackElement element;
+	element.trigger = trigger;
+	element.index = 13;
+	element.loops = 1;
+	element.pfunc = 0;
+	element.divmask = 0x01;
+	element.divshift = 1;
+	Pixel_addAnimation( &element, 1 );
 
 	// Is layer in the LayerIndexStack?
 	uint8_t inLayerIndexStack = 0;
@@ -243,7 +257,7 @@ void Macro_layerState_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	// Get layer toggle byte
 	uint8_t layerState = args[ sizeof(uint16_t) ];
 
-	Macro_layerState( state, stateType, layer, layerState );
+	Macro_layerState( trigger, state, stateType, layer, layerState );
 }
 
 
@@ -267,7 +281,7 @@ void Macro_layerLatch_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
-	Macro_layerState( state, stateType, layer, 0x02 );
+	Macro_layerState( trigger, state, stateType, layer, 0x02 );
 }
 
 
@@ -292,7 +306,7 @@ void Macro_layerLock_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
-	Macro_layerState( state, stateType, layer, 0x04 );
+	Macro_layerState( trigger, state, stateType, layer, 0x04 );
 }
 
 
@@ -324,7 +338,7 @@ void Macro_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	if ( LayerState[ layer ] == 0x00 && state == 0x03 )
 		return;
 
-	Macro_layerState( state, stateType, layer, 0x01 );
+	Macro_layerState( trigger, state, stateType, layer, 0x01 );
 }
 
 
@@ -350,7 +364,7 @@ void Macro_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 	// Unset previous rotation layer if not 0
 	if ( Macro_rotationLayer != 0 )
 	{
-		Macro_layerState( state, stateType, Macro_rotationLayer, 0x04 );
+		Macro_layerState( trigger, state, stateType, Macro_rotationLayer, 0x04 );
 	}
 
 	// Get direction of rotation, 0, next, non-zero previous
@@ -376,7 +390,7 @@ void Macro_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 	}
 
 	// Toggle the computed layer rotation
-	Macro_layerState( state, stateType, Macro_rotationLayer, 0x04 );
+	Macro_layerState( trigger, state, stateType, Macro_rotationLayer, 0x04 );
 }
 
 
@@ -407,7 +421,7 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 		uint8_t latch = LayerState[ cachedLayer ] & 0x02;
 		if ( latch && latch_expire )
 		{
-			Macro_layerState( 0, 0, cachedLayer, 0x02 );
+			Macro_layerState( 0, 0, 0, cachedLayer, 0x02 );
 #if defined(ConnectEnabled_define) && defined(LCDEnabled_define)
 			// Evaluate the layerStack capability if available (LCD + Interconnect)
 			extern void LCD_layerStack_capability(
@@ -434,7 +448,7 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 		uint8_t latch = LayerState[ macroLayerIndexStack[ layerIndex ] ] & 0x02;
 		if ( latch && latch_expire )
 		{
-			Macro_layerState( 0, 0, macroLayerIndexStack[ layerIndex ], 0x02 );
+			Macro_layerState( 0, 0, 0, macroLayerIndexStack[ layerIndex ], 0x02 );
 		}
 
 		// Only use layer, if state is valid

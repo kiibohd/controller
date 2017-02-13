@@ -48,6 +48,7 @@ def check( condition ):
 	else:
 		global test_fail
 		test_fail += 1
+		print( "{0} Test failed!".format( ERROR ) )
 
 
 def result():

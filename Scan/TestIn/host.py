@@ -220,7 +220,7 @@ class Commands:
 
 		# Lookup pixel
 		pixels = cast( control.kiibohd.Pixel_Mapping, POINTER( PixelElement * mapping_len ) )[0]
-		pixel = pixels[index]
+		pixel = pixels[index - 1] # 0 indexed list
 
 		# Lookup channels
 		output_ch = []

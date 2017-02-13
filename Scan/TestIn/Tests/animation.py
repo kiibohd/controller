@@ -51,7 +51,7 @@ check( i.control.cmd('animationStackInfo')().size == 1 )
 i.control.loop(1)
 
 # Check Pixel 1
-expecting = ((1, 17, 50), (30, 70, 120))
+expecting = ((0, 33, 49), (30, 70, 120))
 print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(1) )
 check( i.control.cmd('readPixel')(1) == expecting )
 i.control.cmd('rectDisp')()
@@ -61,7 +61,7 @@ i.control.cmd('setFrameState')(2)
 i.control.loop(1)
 
 # Check Pixel 1
-expecting = ((1, 17, 50), (0, 0, 0))
+expecting = ((0, 33, 49), (0, 0, 0))
 print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(1) )
 check( i.control.cmd('readPixel')(1) == expecting )
 i.control.cmd('rectDisp')()
@@ -71,7 +71,7 @@ i.control.cmd('setFrameState')(2)
 i.control.loop(1)
 
 # Check Pixel 1
-expecting = ((1, 17, 50), (60, 90, 140))
+expecting = ((0, 33, 49), (60, 90, 140))
 print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(1) )
 check( i.control.cmd('readPixel')(1) == expecting )
 i.control.cmd('rectDisp')()
@@ -179,7 +179,7 @@ print("-Fade In Test-");
 i.control.cmd('addAnimation')(index=4, pfunc=1) # TODO
 
 # Loop 16 times, displaying each time
-for index in range( 16 ):
+for index in range( 27 ):
 	# Read animation stack info
 	print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
 	check( i.control.cmd('animationStackInfo')().size == 1 )

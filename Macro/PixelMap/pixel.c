@@ -53,6 +53,8 @@ typedef enum PixelTest {
 	PixelTest_Chan_Roll,  // Iterate over all positions
 	PixelTest_Pixel_All,  // Enable all positions
 	PixelTest_Pixel_Roll, // Iterate over all positions
+	PixelTest_Pixel_Full, // Turn on all pixels
+	PixelTest_Pixel_Off,  // Turn off all pixels
 	PixelTest_Scan_All,
 	PixelTest_Scan_Roll,
 	PixelTest_XY_All,
@@ -70,7 +72,7 @@ CLIDict_Entry( aniStack,     "Displays the animation stack contents" );
 CLIDict_Entry( chanTest,     "Channel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
 CLIDict_Entry( pixelList,    "Prints out pixel:channel mappings." );
 CLIDict_Entry( pixelSCTest,  "Scancode pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
-CLIDict_Entry( pixelTest,    "Pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
+CLIDict_Entry( pixelTest,    "Pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop, f - full" );
 CLIDict_Entry( pixelXYTest,  "XY pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
 CLIDict_Entry( rectDisp,     "Show the current output of the MCU pixel buffer." );
 
@@ -115,7 +117,7 @@ uint8_t  Pixel_AnimationStackElement_HostSize = sizeof( AnimationStackElement );
 // ----- Function Declarations -----
 
 uint8_t Pixel_animationProcess( AnimationStackElement *elem );
-uint8_t Pixel_addAnimation( AnimationStackElement *element );
+uint8_t Pixel_addAnimation( AnimationStackElement *element, uint8_t replace );
 uint8_t Pixel_determineLastTriggerScanCode( TriggerMacro *trigger );
 
 PixelBuf *Pixel_bufferMap( uint16_t channel );
@@ -151,25 +153,7 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 
 	// Replace animation rather than add
 	uint8_t replace = *(uint8_t*)(&args[6]);
-	if ( replace )
-	{
-		AnimationStackElement *found = Pixel_lookupAnimation( element.index, 0 );
-
-		// If found, modify stack element
-		if ( found != NULL )
-		{
-			found->pos = 0;
-			found->loops = element.loops;
-
-			// TODO (jacob) These cause hard fault FIXME
-			//found->pfunc = element.pfunc;
-			//found->divmask = element.divmask;
-			//found->divshift = element.divshift;
-			return;
-		}
-	}
-
-	Pixel_addAnimation( &element );
+	Pixel_addAnimation( &element, replace );
 }
 
 void Pixel_Pixel_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
@@ -218,8 +202,26 @@ void Pixel_pixelInterpolate( PixelElement *elem, uint8_t position, uint8_t inten
 // Allocates animaton memory slot
 // Initiates animation to process on the next cycle
 // Returns 1 on success, 0 on failure to allocate
-uint8_t Pixel_addAnimation( AnimationStackElement *element )
+uint8_t Pixel_addAnimation( AnimationStackElement *element, uint8_t replace )
 {
+	if ( replace )
+	{
+		AnimationStackElement *found = Pixel_lookupAnimation( element->index, 0 );
+
+		// If found, modify stack element
+		if ( found != NULL && found->trigger == element->trigger )
+		{
+			found->pos = 0;
+			found->loops = element->loops;
+
+			// TODO (jacob) These cause hard fault FIXME
+			//found->pfunc = element.pfunc;
+			//found->divmask = element.divmask;
+			//found->divshift = element.divshift;
+			return 0;
+		}
+	}
+
 	// Make sure there is room left on the stack
 	if ( Pixel_AnimationStack.size >= Pixel_AnimationStackSize )
 	{
@@ -576,7 +578,7 @@ uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint1
 	{
 	case PixelAddressType_Index:
 		// Lookup pixel by absolute index
-		*elem = (PixelElement*)&Pixel_Mapping[mod->index];
+		*elem = (PixelElement*)&Pixel_Mapping[mod->index] - 1;
 		break;
 
 	case PixelAddressType_Rect:
@@ -802,16 +804,19 @@ uint16_t Pixel_pixelTweenNextPos( PixelElement *elem )
 	//             We may not find any element initially, so we don't know anothing to increment the position
 	//             The best solution may be to just find a relatively nearby pixel and use that info...
 	//             Or waste enough more flash...
+	uint16_t ret = 0;
 	if ( elem == 0 )
 	{
 		// TODO - This is BAD, will break in the future
-		return ( ( 8 / 8 + sizeof( PixelChange ) ) * 3 ) + sizeof( PixelModElement );
+		ret = ( ( 8 / 8 + sizeof( PixelChange ) ) * 3 ) + sizeof( PixelModElement );
 	}
 	else
 	{
 		// Calculate next position (this is dynamic, cannot be pre-calculated)
-		return ( ( elem->width / 8 + sizeof( PixelChange ) ) * elem->channels ) + sizeof( PixelModElement );
+		ret = ( ( elem->width / 8 + sizeof( PixelChange ) ) * elem->channels ) + sizeof( PixelModElement );
 	}
+
+	return ret;
 }
 
 // Standard Pixel Pixel Function (standard lookup, no additonal processing)
@@ -1090,7 +1095,42 @@ uint8_t Pixel_animationProcess( AnimationStackElement *elem )
 
 // -- Pixel Control --
 
+// Debug function, used by cli only XXX
+void Pixel_channelSet( uint16_t channel, uint32_t value )
+{
+	// Determine which buffer we are in
+	PixelBuf *pixbuf = Pixel_bufferMap( channel );
+
+	// Toggle channel accordingly
+	switch ( pixbuf->width )
+	{
+	// Invalid width, default to 8
+	default:
+		warn_msg("Unknown width, using 8: ");
+		printInt8( pixbuf->width );
+		print(" Ch: ");
+		printHex( channel );
+		print( NL );
+		// Falls through on purpose
+
+	// 0bit width - ignore/blank
+	case 0:
+		break;
+
+	// 8bit width
+	case 8:
+		PixelBuf8( pixbuf, channel ) = (uint8_t)value;
+		break;
+
+	// 16bit width
+	case 16:
+		PixelBuf16( pixbuf, channel ) = (uint16_t)value;
+		break;
+	}
+}
+
 // Toggle the given channel
+// Debug function, used by cli only XXX
 void Pixel_channelToggle( uint16_t channel )
 {
 	// Determine which buffer we are in
@@ -1124,7 +1164,18 @@ void Pixel_channelToggle( uint16_t channel )
 	}
 }
 
+// Debug function, used by cli only XXX
+void Pixel_pixelSet( PixelElement *elem, uint32_t value )
+{
+	// Toggle each of the channels of the pixel
+	for ( uint8_t ch = 0; ch < elem->channels; ch++ )
+	{
+		Pixel_channelSet( elem->indices[ch], value );
+	}
+}
+
 // Toggle given pixel element
+// Debug function, used by cli only XXX
 void Pixel_pixelToggle( PixelElement *elem )
 {
 	// Toggle each of the channels of the pixel
@@ -1195,15 +1246,8 @@ void Pixel_updateUSBLEDs()
 	const uint16_t caps_index = 9;
 	if ( USBKeys_LEDs & 0x02 )
 	{
-		AnimationStackElement *found = Pixel_lookupAnimation( caps_index, 0 );
-
-		// If not found, add
-		if ( found == NULL )
-		{
-			print("YAY!");
-			element.index = caps_index;
-			Pixel_addAnimation( &element );
-		}
+		element.index = caps_index;
+		Pixel_addAnimation( &element, 1 );
 	}
 	else
 	{
@@ -1215,14 +1259,8 @@ void Pixel_updateUSBLEDs()
 	const uint16_t scroll_index = 12;
 	if ( USBKeys_LEDs & 0x04 )
 	{
-		AnimationStackElement *found = Pixel_lookupAnimation( scroll_index, 0 );
-
-		// If not found, add
-		if ( found == NULL )
-		{
-			element.index = scroll_index;
-			Pixel_addAnimation( &element );
-		}
+		element.index = scroll_index;
+		Pixel_addAnimation( &element, 1 );
 	}
 	else
 	{
@@ -1288,6 +1326,31 @@ inline void Pixel_process()
 		{
 			// Toggle pixel
 			Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ px ] );
+		}
+
+		goto pixel_process_done;
+
+	// Enable all positions
+	case PixelTest_Pixel_Full:
+		// Update all positions
+		for ( uint16_t px = 0; px < Pixel_TotalPixels_KLL; px++ )
+		{
+			// Toggle pixel
+			// XXX (only works for 8 bit atm)
+			Pixel_pixelSet( (PixelElement*)&Pixel_Mapping[ px ], 255 );
+			Pixel_testMode = PixelTest_Off;
+		}
+
+		goto pixel_process_done;
+
+	// Disable all positions
+	case PixelTest_Pixel_Off:
+		// Update all positions
+		for ( uint16_t px = 0; px < Pixel_TotalPixels_KLL; px++ )
+		{
+			// Unset pixel
+			Pixel_pixelSet( (PixelElement*)&Pixel_Mapping[ px ], 0 );
+			Pixel_testMode = PixelTest_Off;
 		}
 
 		goto pixel_process_done;
@@ -1494,20 +1557,34 @@ void cliFunc_pixelTest( char* args )
 		info_msg("All pixel test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Pixel_All;
-		return;
+		break;
 
 	case 'r':
 	case 'R':
 		info_msg("Pixel roll test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Pixel_Roll;
-		return;
+		break;
 
 	case 's':
 	case 'S':
 		info_msg("Stopping pixel test");
 		Pixel_testMode = PixelTest_Off;
-		return;
+		break;
+
+	case 'f':
+	case 'F':
+		info_msg("Enable all pixels");
+		Pixel_testPos = 0;
+		Pixel_testMode = PixelTest_Pixel_Full;
+		break;
+
+	case 'o':
+	case 'O':
+		info_msg("Disable all pixels");
+		Pixel_testPos = 0;
+		Pixel_testMode = PixelTest_Pixel_Off;
+		break;
 	}
 
 	// Check for specific position
@@ -1550,20 +1627,20 @@ void cliFunc_chanTest( char* args )
 		info_msg("All channel test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Chan_All;
-		return;
+		break;
 
 	case 'r':
 	case 'R':
 		info_msg("Channel roll test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Chan_Roll;
-		return;
+		break;
 
 	case 's':
 	case 'S':
 		info_msg("Stopping channel test");
 		Pixel_testMode = PixelTest_Off;
-		return;
+		break;
 	}
 
 	// Check for specific position
@@ -1606,20 +1683,20 @@ void cliFunc_pixelSCTest( char* args )
 		info_msg("All scancode pixel test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Scan_All;
-		return;
+		break;
 
 	case 'r':
 	case 'R':
 		info_msg("Scancode pixel roll test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Scan_Roll;
-		return;
+		break;
 
 	case 's':
 	case 'S':
 		info_msg("Stopping scancode pixel test");
 		Pixel_testMode = PixelTest_Off;
-		return;
+		break;
 	}
 
 	// Check for specific position

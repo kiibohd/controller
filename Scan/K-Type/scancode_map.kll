@@ -175,7 +175,7 @@ flashModeEnabled = 1;
 ISSI_Chip_31FL3732 = 1;
 
 # Global Brightness
-ISSI_Global_Brightness = 130; # 0xFF by default (max)
+ISSI_Global_Brightness = 100; # 0xFF by default (max)
 
 # Available ISSI Chips
 ISSI_Chips = 4; # 2 by default

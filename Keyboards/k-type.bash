@@ -29,7 +29,8 @@ DefaultMap="animation_test stdFuncMap"
 # e.g.  PartialMaps[1]="layer1 layer1mod"
 #       PartialMaps[2]="layer2"
 #       PartialMaps[3]="layer3"
-PartialMaps[1]=""
+PartialMaps[1]="k-type/unset_v1 k-type/rainbow_wipe"
+PartialMaps[2]="k-type/unset_v1 k-type/color_painter"
 
 
 

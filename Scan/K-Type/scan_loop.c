@@ -142,15 +142,7 @@ void Scan_currentChange( unsigned int current )
 		element.pfunc = 1;
 		element.divmask = 0x01; // Half speed
 		element.divshift = 1;
-		Pixel_addAnimation( &element );
-
-		// Fade
-		element.index = 10;
-		element.loops = 100;
-		element.pfunc = 1;
-		element.divmask = 0;
-		element.divshift = 0;
-		//Pixel_addAnimation( &element );
+		Pixel_addAnimation( &element, 0 );
 	}
 	else
 	{
@@ -161,7 +153,7 @@ void Scan_currentChange( unsigned int current )
 		element.pfunc = 1;
 		element.divmask = 0x01;
 		element.divshift = 1;
-		Pixel_addAnimation( &element );
+		Pixel_addAnimation( &element, 0 );
 	}
 }
 
