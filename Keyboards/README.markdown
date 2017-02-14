@@ -27,8 +27,8 @@ Example
 Projects
 --------
 
-* infinity.bash     (Infinity Keyboard 2014/10/15)
-* infinity_led.bash (Infinity Keyboard with LED backlight support)
+* infinity.bash     (Infinity Keyboard 2014/10/15 (MD1))
+* infinity_led.bash (Infinity Keyboard with LED backlight support (MD1.1))
 * ergodox.bash      (Infinity Ergodox 2015/08/15)
 * template.bash     (Example template for new keyboards)
 * whitefox.bash     (WhiteFox Keyboard)

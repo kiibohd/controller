@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
-# This is a build script template
+#
+# Keyboard: Infinity 60% with LED backlight support (MD1.1)
+#
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
 # Jacob Alexander 2016
 
