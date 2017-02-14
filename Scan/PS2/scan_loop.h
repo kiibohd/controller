@@ -24,6 +24,8 @@
 
 // Compiler Includes
 #include <stdint.h>
+#include <cli.h>
+#include <print.h>
 #include "PS2Keyboard.h"
 
 // ----- Defines -----

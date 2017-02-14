@@ -34,9 +34,18 @@
 
 // ----- Function Declarations -----
 
+// CLI Functions
+void cliFunc_ps2Verbose( char* args );
+
 // ----- Variables -----
+CLIDict_Entry( ps2Verbose,        "Output the PS/2 Scancodes received." );
 
+CLIDict_Def( scanCLIDict, "Scan Module Commands" ) = {
+	CLIDict_Item( ps2Verbose ),
+	{ 0, 0, 0 } // Null entry for dictionary end
+};
 
+static uint8_t verbose_state = 0;
 // ----- Functions -----
 
 uint8_t ps2data_read(){
@@ -50,13 +59,16 @@ void portb_isr(){
 
 
 
-void ScancodeDispatch(){
+void ScancodeDispatch() {
   static uint8_t state = 0x01; // pressed
   static uint8_t is_extended = 0;
   while(1){
     uint8_t c = get_scan_code();
     if (c){
-      // printHex(c);
+      if (verbose_state) {
+        printHex(c);
+        print(" ");
+      }
       switch (c){
         case 0xF0: // F0, is release for next scancode.
           state = 0x03; // release
@@ -87,6 +99,10 @@ void ScancodeDispatch(){
 
 // Setup
 inline void Scan_setup() {
+  // Register Scan CLI dictionary
+  CLI_registerDictionary( scanCLIDict, scanCLIDictName );
+
+
   // Enable interrupts for port B.
   NVIC_ENABLE_IRQ(IRQ_PORTB);
 
@@ -134,5 +150,11 @@ inline void Scan_finishedWithOutput( uint8_t sentKeys ) {
 void Scan_currentChange( unsigned int current )
 {
     // Indicate to all submodules current change
+}
+
+
+void cliFunc_ps2Verbose( char* args )
+{
+  verbose_state = !verbose_state;
 }
 
