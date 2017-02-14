@@ -51,8 +51,8 @@ uint8_t Scan_loop();
 
 
 // Call-backs
-void Scan_finishedWithMacro( uint8_t sentKeys );  // Called by Macro Module
-void Scan_finishedWithOutput( uint8_t sentKeys ); // Called by Output Module
+void Scan_finishedWithMacro(uint8_t sentKeys);  // Called by Macro Module
+void Scan_finishedWithOutput(uint8_t sentKeys);  // Called by Output Module
 
-void Scan_currentChange( unsigned int current ); // Called by Output Module
+void Scan_currentChange(unsigned int current);  // Called by Output Module
 

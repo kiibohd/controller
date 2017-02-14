@@ -12,3 +12,7 @@ The code expects the PS/2 clock pin on port B, pin 16 (Teensy pin 0). The data p
 Limitations
 -----------
 No keyboard-led support. No pause or printscreen keys as they caused problems with the statemachine.
+
+License
+-------
+PS2Keyboard.c is LGPL, the other files MIT. Copyright (c) 2017 Ivor Wanders
