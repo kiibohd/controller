@@ -785,10 +785,15 @@ uint8_t Connect_receive_RemoteCapability( uint8_t byte, uint16_t *pending_bytes,
 				|| Connect_receive_RemoteCapabilityBuffer.id == Connect_id )
 			{
 				extern const Capability CapabilitiesList[]; // See generatedKeymap.h
-				void (*capability)(uint8_t, uint8_t, uint8_t*) = (void(*)(uint8_t, uint8_t, uint8_t*))(
-					CapabilitiesList[ Connect_receive_RemoteCapabilityBuffer.capabilityIndex ].func
+				void (*capability)(TriggerMacro*, uint8_t, uint8_t, uint8_t*) = \
+					(void(*)(TriggerMacro*, uint8_t, uint8_t, uint8_t*))(
+						CapabilitiesList[
+							Connect_receive_RemoteCapabilityBuffer.capabilityIndex
+						].func
 				);
+				// TODO (HaaTa) - Send some sort of TriggerMacro information as a hint for the capability
 				capability(
+					0,
 					Connect_receive_RemoteCapabilityBuffer.state,
 					Connect_receive_RemoteCapabilityBuffer.stateType,
 					&Connect_receive_RemoteCapabilityArgs[2]
