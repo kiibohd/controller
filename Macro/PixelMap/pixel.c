@@ -211,7 +211,6 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, AnimationReplaceType
 		// If found, modify stack element
 		if ( found != NULL && ( found->trigger == element->trigger || replace == AnimationReplaceType_All ) )
 		{
-			print("yay");
 			found->pos = 0;
 			found->loops = element->loops;
 			found->pfunc = element->pfunc;
@@ -373,7 +372,7 @@ PixelBuf *Pixel_bufferMap( uint16_t channel )
 	erro_msg("Invalid channel: ");
 	printHex( channel );
 	print( NL );
-	return &Pixel_Buffers[0];
+	return 0;
 }
 
 #define PixelChange_Expansion(pixbuf, ch_pos, mod_value, op) \
@@ -415,6 +414,12 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 
 		// Determine which buffer we are in
 		PixelBuf *pixbuf = Pixel_bufferMap( ch_pos );
+
+		// Invalid channel, stop
+		if ( pixbuf == 0 )
+		{
+			break;
+		}
 
 		// Change Type (first 8 bits of each channel of data, see pixel.h for layout)
 		PixelChange change = (PixelChange)mod->data[ position_iter++ ];
@@ -563,11 +568,20 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 // - If type:index has more than one pixel, non-0 is returned
 // - The return value signifies the next value to set the prev argument
 // - Once the function returns 0, all pixels have been processed
-uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint16_t prev, AnimationStackElement *stack_elem )
+uint16_t Pixel_fillPixelLookup(
+	PixelModElement *mod,
+	PixelElement **elem,
+	uint16_t prev,
+	AnimationStackElement *stack_elem,
+	uint16_t *valid
+)
 {
 	// Used to determine next pixel in column or row (fill)
 	uint16_t cur = prev;
 	uint16_t index = 0;
+
+	// Assume invalid (i.e. do not evaluate pixel unless we are sure it's valid)
+	*valid = 0;
 
 	// Default to nothing found
 	*elem = 0;
@@ -599,18 +613,10 @@ uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint1
 				mod->rect.row * Pixel_DisplayMapping_Cols_KLL + mod->rect.col
 			] - 1
 		];
+		*valid = 1;
 		break;
 
 	case PixelAddressType_ColumnFill:
-		// Make sure column exists
-		if ( mod->rect.col >= Pixel_DisplayMapping_Cols_KLL )
-		{
-			erro_msg("Invalid column index: ");
-			printInt16( mod->rect.col );
-			print( NL );
-			break;
-		}
-
 		// Lookup pixel until either, non-0 index or we reached the last row
 		do {
 			// Pixel index
@@ -624,20 +630,17 @@ uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint1
 			cur++;
 		} while ( index == 0 );
 
+		// Validate index is actually a valid evaluation
+		if ( index < Pixel_TotalPixels_KLL )
+		{
+			*valid = 1;
+		}
+
 		// Lookup pixel, pixels are 1 indexed, hence the -1
 		*elem = (PixelElement*)&Pixel_Mapping[ index - 1 ];
 		return cur;
 
 	case PixelAddressType_RowFill:
-		// Make sure row,column exists
-		if ( mod->rect.row >= Pixel_DisplayMapping_Rows_KLL )
-		{
-			erro_msg("Invalid row index: ");
-			printInt16( mod->rect.row );
-			print( NL );
-			break;
-		}
-
 		// Lookup pixel until either, non-0 index or we reached the last column
 		do {
 			// Pixel index
@@ -651,20 +654,26 @@ uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint1
 			cur++;
 		} while ( index == 0 );
 
+		// Validate index is actually a valid evaluation
+		if ( index < Pixel_TotalPixels_KLL )
+		{
+			*valid = 1;
+		}
+
 		// Lookup pixel, pixels are 1 indexed, hence the -1
 		*elem = (PixelElement*)&Pixel_Mapping[ index - 1 ];
 		return cur;
 
 	case PixelAddressType_ScanCode:
 		// Make sure ScanCode exists
-		//if ( mod->index >= MaxScanCode ) // TODO Add MaxScanCode to kll_defs.h
-		if ( mod->index >= 0xFF )
+		if ( mod->index >= MaxScanCode_KLL )
 		{
 			erro_msg("Invalid ScanCode: ");
 			printInt16( mod->index );
 			print( NL );
 			break;
 		}
+		*valid = 1;
 
 		// Lookup ScanCode - Indices are 1-indexed in both arrays (hence the -1)
 		uint16_t pixel = Pixel_ScanCodeToPixel[ mod->index - 1 ];
@@ -694,8 +703,11 @@ uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint1
 
 		// Lookup pixel, pixels are 1 indexed, hence the -1
 		index = Pixel_DisplayMapping[ position ];
-		if ( index != 0 )
+
+		// Validate index is actually a valid evaluation
+		if ( index < Pixel_TotalPixels_KLL && index != 0 )
 		{
+			*valid = 1;
 			*elem = (PixelElement*)&Pixel_Mapping[ index - 1 ];
 		}
 		break;
@@ -737,6 +749,12 @@ uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint1
 			// Pixel index
 			index = Pixel_DisplayMapping[ curpos ];
 		} while ( index == 0 );
+
+		// Validate index is actually a valid evaluation
+		if ( index < Pixel_TotalPixels_KLL )
+		{
+			*valid = 1;
+		}
 
 		// Lookup pixel, pixels are 1 indexed, hence the -1
 		*elem = (PixelElement*)&Pixel_Mapping[ index -1 ];
@@ -780,6 +798,12 @@ uint16_t Pixel_fillPixelLookup( PixelModElement *mod, PixelElement **elem, uint1
 			index = Pixel_DisplayMapping[ curpos ];
 		} while ( index == 0 );
 
+		// Validate index is actually a valid evaluation
+		if ( index < Pixel_TotalPixels_KLL )
+		{
+			*valid = 1;
+		}
+
 		// Lookup pixel, pixels are 1 indexed, hence the -1
 		*elem = (PixelElement*)&Pixel_Mapping[ index -1 ];
 		return cur;
@@ -804,16 +828,18 @@ uint16_t Pixel_pixelTweenNextPos( PixelElement *elem )
 	//             The best solution may be to just find a relatively nearby pixel and use that info...
 	//             Or waste enough more flash...
 	uint16_t ret = 0;
-	if ( elem == 0 )
+	//if ( elem == 0 )
 	{
 		// TODO - This is BAD, will break in the future
 		ret = ( ( 8 / 8 + sizeof( PixelChange ) ) * 3 ) + sizeof( PixelModElement );
 	}
+	/* XXX (HaaTa) - There's another bug somewhere with this... (negative and overmax percentages column-fill)
 	else
 	{
 		// Calculate next position (this is dynamic, cannot be pre-calculated)
 		ret = ( ( elem->width / 8 + sizeof( PixelChange ) ) * elem->channels ) + sizeof( PixelModElement );
 	}
+	*/
 
 	return ret;
 }
@@ -828,10 +854,11 @@ void Pixel_pixelTweenStandard( const uint8_t *frame, AnimationStackElement *stac
 	{
 		// Lookup type of pixel, choose fill algorith and query all sub-pixels
 		uint16_t next = 0;
+		uint16_t valid = 0;
 		PixelElement *elem = 0;
 		do {
 			// Lookup pixel, and check if there are any more pixels left
-			next = Pixel_fillPixelLookup( mod, &elem, next, stack_elem );
+			next = Pixel_fillPixelLookup( mod, &elem, next, stack_elem, &valid );
 
 			// Apply operation to pixel
 			Pixel_pixelEvaluation( mod, elem );
@@ -856,8 +883,8 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 	while ( mod->type != PixelAddressType_End )
 	{
 		// By default, no interpolation
-		uint32_t start = mod->index;
-		uint32_t end = mod->index;
+		int32_t start = mod->index;
+		int32_t end = mod->index;
 
 		// Calculate interpolation position
 		// TODO Depends on addressing type
@@ -904,12 +931,13 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 
 		// Lookup prev and mod PixelElements
 		PixelElement *prev_elem = 0;
+		uint16_t valid = 0;
 		if ( prev != 0 )
 		{
-			Pixel_fillPixelLookup( prev, &prev_elem, 0, stack_elem );
+			Pixel_fillPixelLookup( prev, &prev_elem, 0, stack_elem, &valid );
 		}
 		PixelElement *mod_elem = 0;
-		Pixel_fillPixelLookup( mod, &mod_elem, 0, stack_elem );
+		Pixel_fillPixelLookup( mod, &mod_elem, 0, stack_elem, &valid );
 
 		// Make sure mod_elem is pointing to something, if not, this could be a blank
 		// In which case continue to the next definition
@@ -932,18 +960,27 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 		uint16_t slice = prev != 0 ? 256 / (end - start + 1) : 0;
 
 		// Iterate over tween-pixels
-		for ( uint32_t cur = 0; cur < end - start + 1; cur++ )
-		//for ( uint32_t cur = 0; cur < end - start + 1; cur++ )
+		for ( int32_t cur = 0; cur < end - start + 1; cur++ )
 		{
 			// Determine where the tween pixel is
 			switch ( mod->type )
 			{
 			case PixelAddressType_ColumnFill:
 				interp_mod->rect.col = start + cur;
+				// Ignore invalid columns
+				if ( interp_mod->rect.col >= Pixel_DisplayMapping_Cols_KLL || interp_mod->rect.col < 0 )
+				{
+					continue;
+				}
 				break;
 
 			case PixelAddressType_RowFill:
 				interp_mod->rect.row = start + cur;
+				// Ignore invalid rows
+				if ( interp_mod->rect.row >= Pixel_DisplayMapping_Rows_KLL || interp_mod->rect.row < 0 )
+				{
+					continue;
+				}
 				break;
 
 			case PixelAddressType_Rect:
@@ -965,25 +1002,40 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 			// Calculate interpolation pixel value
 			// Uses prev to current PixelMods as the base
 			// TODO Non-8bit
-			if ( prev != 0 ) for ( uint8_t ch = 0; ch < mod_elem->channels; ch++ )
+			if ( prev != 0 )
 			{
-				uint8_t pos = ch * 2 + 1; // TODO Only works with 8 bit channels
-				interp_mod->data[pos] = Pixel_8bitInterpolation( prev->data[pos], mod->data[pos], slice * cur );
+				int32_t distance = slice * cur;
+				for ( uint8_t ch = 0; ch < mod_elem->channels; ch++ )
+				{
+					uint8_t pos = ch * 2 + 1; // TODO Only works with 8 bit channels
+					interp_mod->data[pos] = Pixel_8bitInterpolation(
+						prev->data[pos],
+						mod->data[pos],
+						distance
+					);
+				}
 			}
 
 			// Lookup type of pixel, choose fill algorith and query all sub-pixels
 			uint16_t next = 0;
+			uint16_t valid = 0;
 			do {
 				// Lookup pixel, and check if there are any more pixels left
-				next = Pixel_fillPixelLookup( interp_mod, &elem, next, stack_elem );
+				next = Pixel_fillPixelLookup( interp_mod, &elem, next, stack_elem, &valid );
 
-				// Apply operation to pixel
-				Pixel_pixelEvaluation( interp_mod, elem );
+				// Apply operation to pixel if at a valid location
+				if ( valid )
+				{
+					Pixel_pixelEvaluation( interp_mod, elem );
+				}
 			} while ( next );
 		}
 
-		prev = mod;
 next:
+		// This may have been a valid frame in an invalid position
+		// Store it so we can still use it for interpolation purposes
+		prev = mod;
+
 		// Determine next position
 		pos += Pixel_pixelTweenNextPos( elem );
 

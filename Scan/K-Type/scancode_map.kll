@@ -183,9 +183,6 @@ ISSI_Chips = 4; # 2 by default
 # I2C Buses
 ISSI_I2C_Buses = 2; # 1 by default
 
-# Default animation speed
-ISSI_AnimationSpeed = 1; # 20 by default
-
 ### LED Default Enable Mask ###
 # By default, all LEDs are enabled
 # However, this may cause issuse with some led matrices, so it is recommended to disable unused positions

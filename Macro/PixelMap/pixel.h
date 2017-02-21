@@ -133,8 +133,8 @@ typedef struct PixelElement {
 
 // Rectangle lookup for column, row and row vs. col
 typedef struct PixelRect {
-	uint16_t col;
-	uint16_t row;
+	int16_t col;
+	int16_t row;
 } PixelRect;
 
 // Pixel Mod Element
@@ -143,7 +143,7 @@ typedef struct PixelModElement {
 	PixelAddressType type;        // Address type
 	union {
 		PixelRect rect;       // Rectangle lookup for column, row and row vs. col
-		uint32_t  index;      // Index lookup for direct and scancode lookups
+		int32_t  index;       // Index lookup for direct and scancode lookups
 	};
 	uint8_t     data[0];          // Data size depends on PixelElement definition
 	                              // ( PixelElement.width / 8 + sizeof(PixelChange) ) * PixelElement.channels

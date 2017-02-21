@@ -137,11 +137,11 @@ void Scan_currentChange( unsigned int current )
 	{
 		// TODO REMOVEME once default animations can be set
 		AnimationStackElement element;
-		element.index = 4;
-		element.loops = 1;
+		element.index = 15;
+		element.loops = 0;
 		element.pfunc = 1;
 		element.divmask = 0x01; // Half speed
-		element.divshift = 1;
+		element.divshift = 3;
 		Pixel_addAnimation( &element, 0 );
 	}
 	else
