@@ -141,7 +141,7 @@ void Scan_currentChange( unsigned int current )
 		element.loops = 0;
 		element.pfunc = 1;
 		element.divmask = 0x01; // Half speed
-		element.divshift = 3;
+		element.divshift = 2;
 		Pixel_addAnimation( &element, 0 );
 	}
 	else
