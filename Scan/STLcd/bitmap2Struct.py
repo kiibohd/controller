@@ -61,21 +61,23 @@ class STLcdGraphic:
 		self.page_data[ page ][ byte ] |= (1 << bit)
 
 	def getpage( self, page ):
-		return self.page_data[ page ]
+            return self.page_data[ page ]
 
-	def getarray( self ):
-		struct = "{\n"
+	def getarray( self , string=False):
+            if string is not False:
+                struct = "{\n"
+                import pdb;pdb.set_trace()
 
-		for page in range( 0, self.page_count ):
-			for elem in self.page_data[ page ]:
-				struct += "0x{0:02x}, ".format( elem )
+                for page in range( 0, self.page_count ):
+                        for elem in self.page_data[ page ]:
+                                struct += "0x{0:02x}, ".format( elem )
 
-			if page != self.page_count - 1:
-				struct += "\n"
+                        if page != self.page_count - 1:
+                                struct += "\n"
 
-		struct += "\n}"
-
-		return struct
+                struct += "\n}"
+                return struct
+            return self.page_data
 
 	# Prints out what the image will look like on the display
 	def preview( self ):
@@ -206,8 +208,8 @@ class ImageToStruct(object):
     def preview(self):
         print(self.disp_test)
 
-    def getarray(self):
-        return self.output_image.getarray()
+    def getarray(self, string=False):
+        return self.output_image.getarray(string=string)
 
 
 if __name__ == "__main__":
@@ -221,4 +223,4 @@ if __name__ == "__main__":
     prep = ImageToStruct(filename)
     prep.preview()
     prep.output_image_fn()
-    print("uint8_t array[] = {}".format(prep.getarray()))
+    print("uint8_t array[] = {}".format(prep.getarray(string=True)))
