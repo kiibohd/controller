@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is a build script template
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2016
+# Jacob Alexander 2016-2017
 
 
 
@@ -44,7 +44,7 @@ PartialMaps[1]="hhkbpro2"
 # Keyboard Module Configuration
 ScanModule="MD1.1"
 #ScanModule="Infinity_60%_LED" # XXX Ninja build generator has issues with %'s in filenames...
-MacroModule="PartialMap"
+MacroModule="PixelMap"
 OutputModule="pjrcUSB"
 DebugModule="full"
 

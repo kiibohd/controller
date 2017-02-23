@@ -32,6 +32,7 @@
 #include <matrix_scan.h>
 #include <macro.h>
 #include <output_com.h>
+#include <pixel.h>
 
 // KLL Include
 #include <kll.h>
@@ -48,6 +49,8 @@
 // Number of scans since the last USB send
 uint16_t Scan_scanCount = 0;
 
+uint8_t Scan_strobe_position;
+
 
 
 // ----- Functions -----
@@ -61,18 +64,35 @@ inline void Scan_setup()
 	// Setup ISSI chip to control the leds
 	LED_setup();
 
+	// Setup Pixel Map
+	Pixel_setup();
+
 	// Reset scan count
 	Scan_scanCount = 0;
+
+	// Reset starting strobe position
+	Scan_strobe_position = 0;
 }
 
 
 // Main Detection Loop
 inline uint8_t Scan_loop()
 {
-	Matrix_scan( Scan_scanCount++ );
+	// Scan Matrix
+	Matrix_scan( Scan_scanCount, &Scan_strobe_position, 4 );
+
+	// Prepare any LED events
+	Pixel_process();
 
 	// Process any LED events
 	LED_scan();
+
+	// Check if we are ready roll ovr the strobe position
+	if ( Scan_strobe_position >= Matrix_totalColumns() - 1 )
+	{
+		Scan_strobe_position = 0;
+		Scan_scanCount++;
+	}
 
 	return 0;
 }
@@ -100,82 +120,5 @@ void Scan_currentChange( unsigned int current )
 	// Indicate to all submodules current change
 	Matrix_currentChange( current );
 	LED_currentChange( current );
-}
-
-
-
-// ----- Capabilities -----
-
-// Custom capability examples
-// Refer to kll.h in Macros/PartialMap for state and stateType information
-void CustomAction_action1_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
-{
-	// Display capability name
-	// XXX This is required for debug cli to give you a list of capabilities
-	if ( stateType == 0xFF && state == 0xFF )
-	{
-		print("CustomAction_action1_capability()");
-		return;
-	}
-
-	// Prints Action1 info message to the debug cli
-	info_print("Action1");
-}
-
-uint8_t CustomAction_blockHold_storage = 0;
-void CustomAction_blockHold_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
-{
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
-	{
-		print("CustomAction_blockHold_capability(usbCode)");
-		return;
-	}
-
-	// Retrieve 8-bit argument
-	uint8_t key = args[0];
-
-	// We only care about normal keys
-	if ( stateType == 0x00 )
-	{
-		// Block given key if we're in the "Press" or "Hold" state
-		if ( ( state == 0x01 || state == 0x02 )
-			&& CustomAction_blockHold_storage == 0 )
-		{
-			CustomAction_blockHold_storage = key;
-			info_msg("Blocking Key: ");
-			printHex( key );
-			print( NL );
-		}
-		// Release if in the "Off" or "Release" state and we're blocking
-		else if ( ( state == 0x00 || state == 0x03 )
-			&& key == CustomAction_blockHold_storage )
-		{
-			info_msg("Unblocking Key: ");
-			printHex( CustomAction_blockHold_storage );
-			print( NL );
-			CustomAction_blockHold_storage = 0;
-		}
-	}
-}
-
-void CustomAction_blockKey_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
-{
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
-	{
-		print("CustomAction_blockKey_capability(usbCode)");
-		return;
-	}
-
-	// Retrieve 8-bit argument
-	uint8_t key = args[0];
-
-	// If key is not blocked, process
-	if ( key != CustomAction_blockHold_storage )
-	{
-		extern void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args );
-		Output_usbCodeSend_capability( trigger, state, stateType, &key );
-	}
 }
 

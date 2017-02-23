@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is a build script template
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015-2016
+# Jacob Alexander 2015-2017
 
 
 
@@ -43,7 +43,7 @@ PartialMaps[1]="whitefox"
 
 # Keyboard Module Configuration
 ScanModule="WhiteFox"
-MacroModule="PartialMap"
+MacroModule="PixelMap"
 OutputModule="pjrcUSB"
 DebugModule="full"
 
