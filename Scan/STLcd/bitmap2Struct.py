@@ -66,7 +66,6 @@ class STLcdGraphic:
 	def getarray( self , string=False):
             if string is not False:
                 struct = "{\n"
-                import pdb;pdb.set_trace()
 
                 for page in range( 0, self.page_count ):
                         for elem in self.page_data[ page ]:
