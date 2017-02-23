@@ -169,6 +169,26 @@ void LCD_writeControlReg( uint8_t byte )
 	GPIOC_PSOR |= (1<<7);
 }
 
+// Write to a data register with a0 bit high
+void LCD_writeDataReg( uint8_t byte )
+{
+	// Wait for TxFIFO to be empt
+	while ( SPI0_TxFIFO_CNT != 0 );
+        
+        // Set A0 high to enter display register mode
+        GPIOC_PSOR |= (1<<7);
+
+	// Write byte to SPI FIFO
+	SPI_write( &byte, 1 );
+
+	// Wait for TxFIFO to be empty
+	while ( SPI0_TxFIFO_CNT != 0 );
+
+	// Make sure data has transferred
+	delayMicroseconds(10); // XXX Adjust if SPI speed changes
+
+}
+
 // Write to display register
 // Pages 0-7 normal display
 // Page  8   icon buffer
@@ -589,25 +609,31 @@ void cliFunc_lcdCmd( char* args )
 	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
 
 	// No args
-	if ( *arg1Ptr == '\0' )
+	if ( *arg1Ptr == '\0' ) {
+                print("No args provided.");
+                print( NL );
 		return;
-
+        }
 	// SPI Command
 	uint8_t cmd = (uint8_t)numToInt( arg1Ptr );
 
-	curArgs = arg2Ptr; // Use the previous 2nd arg pointer to separate the next arg from the list
-	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
-
 	// Single Arg
-	if ( *arg1Ptr == '\0' )
-		goto cmd;
+        if ( *arg2Ptr == '\0' ) {
+            info_msg("Sending- ");
+            printHex( cmd );
+            print( NL );
+            LCD_writeControlReg( cmd );
+            return;
+        }
 
-	// TODO Deal with a0
-cmd:
-	info_msg("Sending - ");
-	printHex( cmd );
-	print( NL );
-	LCD_writeControlReg( cmd );
+	if ( *arg2Ptr != '\0' ) {
+            info_msg("Sending WITH A0 FLAG SET- ");
+            printHex( cmd );
+            print(NL);
+            LCD_writeDataReg(cmd);
+            return;
+        }
+
 }
 
 void cliFunc_lcdColor( char* args )
@@ -679,8 +705,7 @@ void cliFunc_lcdDisp( char* args )
 		if ( *arg1Ptr == '\0' )
 			break;
 
-		uint8_t value = numToInt( arg1Ptr );
-
+		uint8_t value = numToInt( arg1Ptr ); 
 		// Write buffer to SPI
 		SPI_write( &value, 1 );
 	}
