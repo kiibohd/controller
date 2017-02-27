@@ -11,7 +11,7 @@ BuildPath=${BuildPath}.${Compiler}
 
 # Make sure all of the relevant variables have been set
 # NOTE: PartialMaps and DefaultMap do not have to be set
-VariablesList=(BuildPath Chip Compiler)
+VariablesList=(BuildPath Chip Compiler MANUFACTURER BOOT_PRODUCT_STR)
 ExitEarly=false
 for var in ${VariablesList[@]}; do
 	if [ -z ${!var+x} ]; then
@@ -146,6 +146,11 @@ BuildPath="${OSTYPE}.${BuildPath}"
 echo "${BuildPath}"
 
 
+# Info
+echo "Manufacturer: ${MANUFACTURER}"
+echo "Boot Product Str: ${BOOT_PRODUCT_STR}"
+
+
 # Run CMake commands
 mkdir -p "${BuildPath}"
 cd "${BuildPath}"
@@ -157,11 +162,11 @@ if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
 		exit 1
 	fi
 	echo "Cygwin Build"
-	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
+	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 
 # Linux / Mac (and everything else)
 else
-	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
+	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 	return_code=$?
 
 fi

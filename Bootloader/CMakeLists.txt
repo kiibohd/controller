@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Bootloader |###
 #
-# Jacob Alexander 2011-2016
+# Jacob Alexander 2011-2017
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -38,6 +38,16 @@ set ( COMPILER
 	"gcc"   # arm-none-eabi-gcc / avr-gcc - Default
 #       "clang" # arm-none-eabi
 	CACHE STRING "Compiler Type"
+)
+
+
+
+###
+# Product String
+#
+set ( BOOT_PRODUCT_STR
+	"Kiibohd DFU Bootloader"
+	CACHE STRING "Product String"
 )
 
 

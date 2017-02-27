@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Jan Rychter
- * Modifications (C) 2015-2016 Jacob Alexander
+ * Modifications (C) 2015-2017 Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files ( the "Software" ), to deal
@@ -69,6 +69,7 @@ inline void i2c_setup()
 
 			break;
 
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		case 1:
 			// Enable I2C internal clock
 			SIM_SCGC4 |= SIM_SCGC4_I2C1; // Bus 1
@@ -78,6 +79,7 @@ inline void i2c_setup()
 			PORTC_PCR11 = PORT_PCR_ODE | PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(2);
 
 			break;
+#endif
 		}
 
 		// SCL Frequency Divider
@@ -115,11 +117,13 @@ inline void i2c_setup()
 			NVIC_ENABLE_IRQ( IRQ_I2C0 );
 			break;
 
+#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 		case 1:
 
 			// Enable I2C Interrupt
 			NVIC_ENABLE_IRQ( IRQ_I2C1 );
 			break;
+#endif
 		}
 	}
 }

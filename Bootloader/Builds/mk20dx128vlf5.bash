@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is a build script template
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015-2016
+# Jacob Alexander 2015-2017
 
 
 
@@ -9,7 +9,16 @@
 # Configuration #
 #################
 
-BuildPath="mk20dx128vlf5"
+# Should be empty if not set
+SubBuild=${BOOT_PRODUCT_STR}
+BOOT_PRODUCT_STR=${BOOT_PRODUCT_STR:-Kiibohd DFU Bootloader}
+MANUFACTURER=${MANUFACTURER:-Kiibohd}
+
+if [[ ! -z ${SubBuild} ]]; then
+	SubBuild=".${SubBuild// /_}"
+fi
+
+BuildPath="mk20dx128vlf5${SubBuild}"
 
 
 
