@@ -610,31 +610,32 @@ void cliFunc_lcdCmd( char* args )
 
 	// No args
 	if ( *arg1Ptr == '\0' )
-        {
-            print("No args provided.");
-            print( NL );
-	    return;
-        }
+    {
+		print("No args provided.");
+		print( NL );
+		return;
+    }
 	// SPI Command
 	uint8_t cmd = (uint8_t)numToInt( arg1Ptr );
 
 	// Single Arg
-        if ( *arg2Ptr == '\0' )
-        {
-            info_msg("Sending- ");
-            printHex( cmd );
-            print( NL );
-            LCD_writeControlReg( cmd );
-            return;
-        }
+	if ( *arg2Ptr == '\0' )
+	{
+        info_msg("Sending- ");
+		printHex( cmd );
+		print( NL );
+		LCD_writeControlReg( cmd );
+		return;
+	}
 
-	if ( *arg2Ptr != '\0' ) {
-            info_msg("Sending WITH A0 FLAG SET- ");
-            printHex( cmd );
-            print( NL );
-            LCD_writeDataReg( cmd );
-            return;
-        }
+	if ( *arg2Ptr != '\0' ) 
+	{
+		info_msg("Sending WITH A0 FLAG SET- ");
+		printHex( cmd );
+		print( NL );
+		LCD_writeDataReg( cmd );
+		return;
+    }
 
 }
 
