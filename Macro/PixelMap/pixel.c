@@ -631,7 +631,7 @@ uint16_t Pixel_fillPixelLookup(
 		} while ( index == 0 );
 
 		// Validate index is actually a valid evaluation
-		if ( index < Pixel_TotalPixels_KLL )
+		if ( index <= Pixel_TotalPixels_KLL )
 		{
 			*valid = 1;
 		}
@@ -655,7 +655,7 @@ uint16_t Pixel_fillPixelLookup(
 		} while ( index == 0 );
 
 		// Validate index is actually a valid evaluation
-		if ( index < Pixel_TotalPixels_KLL )
+		if ( index <= Pixel_TotalPixels_KLL )
 		{
 			*valid = 1;
 		}
@@ -705,7 +705,7 @@ uint16_t Pixel_fillPixelLookup(
 		index = Pixel_DisplayMapping[ position ];
 
 		// Validate index is actually a valid evaluation
-		if ( index < Pixel_TotalPixels_KLL && index != 0 )
+		if ( index <= Pixel_TotalPixels_KLL && index != 0 )
 		{
 			*valid = 1;
 			*elem = (PixelElement*)&Pixel_Mapping[ index - 1 ];
@@ -751,13 +751,13 @@ uint16_t Pixel_fillPixelLookup(
 		} while ( index == 0 );
 
 		// Validate index is actually a valid evaluation
-		if ( index < Pixel_TotalPixels_KLL )
+		if ( index <= Pixel_TotalPixels_KLL )
 		{
 			*valid = 1;
 		}
 
 		// Lookup pixel, pixels are 1 indexed, hence the -1
-		*elem = (PixelElement*)&Pixel_Mapping[ index -1 ];
+		*elem = (PixelElement*)&Pixel_Mapping[ index - 1 ];
 		return cur;
 	}
 	case PixelAddressType_RelativeRowFill:
@@ -799,13 +799,13 @@ uint16_t Pixel_fillPixelLookup(
 		} while ( index == 0 );
 
 		// Validate index is actually a valid evaluation
-		if ( index < Pixel_TotalPixels_KLL )
+		if ( index <= Pixel_TotalPixels_KLL )
 		{
 			*valid = 1;
 		}
 
 		// Lookup pixel, pixels are 1 indexed, hence the -1
-		*elem = (PixelElement*)&Pixel_Mapping[ index -1 ];
+		*elem = (PixelElement*)&Pixel_Mapping[ index - 1 ];
 		return cur;
 	}
 	// Skip
