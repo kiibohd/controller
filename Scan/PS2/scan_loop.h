@@ -30,13 +30,21 @@
 
 // ----- Defines -----
 
+// Specify which GPIO pins to use.
+
+// Use port B:
+// Set the PDDR, PDIR and ISFR defines to their respective port B ones.
 #define PS2_PORT_PDDR GPIOB_PDDR
 #define PS2_PORT_PDIR GPIOB_PDIR
 #define PS2_PORT_ISFR PORTB_ISFR
-#define PS2_CLOCK_PIN 16
-#define PS2_CLOCK_PCR PORTB_PCR16
-#define PS2_DATA_PIN 17
-#define PS2_DATA_PCR PORTB_PCR17
+
+// Clock is on Port B, pin 17.
+#define PS2_CLOCK_PIN 17
+#define PS2_CLOCK_PCR PORTB_PCR17
+
+// Data is on port B, pin 16.
+#define PS2_DATA_PIN 16
+#define PS2_DATA_PCR PORTB_PCR16
 
 
 

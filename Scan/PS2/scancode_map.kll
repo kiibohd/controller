@@ -112,7 +112,7 @@ S0x7C:U"P*"; # KP *   F0,7C
 S0x7D:U"P9"; # KP 9   F0,7D
 S0x7E:U"ScrollLock"; # SCROLL   F0,7E
 
-# Place the extended scancodes at 0x80 + second byte
+# Place the extended scancodes at 0x80 + second byte.
 
 # S0xE0,11:U"RAlt"; # R ALT	E0,F0,11
 S0x91:U"RAlt"; # R ALT	E0,F0,11

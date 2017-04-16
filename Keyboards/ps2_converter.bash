@@ -47,7 +47,7 @@ OutputModule="pjrcUSB"
 DebugModule="full"
 
 # Microcontroller
-Chip="mk20dx128"
+Chip="mk20dx256"
 
 # Compiler Selection
 Compiler="gcc"

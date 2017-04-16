@@ -1,17 +1,21 @@
-PS2
-===
+PS/2
+====
 
-This is a Scan module for the PS/2 keyboard protocol. It is based on the (PS/2 Keyboard)[https://github.com/PaulStoffregen/PS2Keyboard] Library for Arduino/Teensy.
+This is a Scan module for the PS/2 keyboard protocol. It is based on the [PS/2 Keyboard](https://github.com/PaulStoffregen/PS2Keyboard) Library for Arduino/Teensy.
 
-Both standard one byte scancodes are supported as are most of the extended scancodes.
+Use-case / disclaimer
+---------------------
+I tried several PS2-USB converters to connect my beloved PS/2 Keyboard via USB but they all introduced noticable lag. As a last-ditch effort I tried to make one myself by combining the Kiibohd stack with Paul Stoffregen's PS2Keyboard library. The end result is a PS/2 to USB converter that introduces virtually no lag.
+
+One disclaimer: on a few very rare (and non-reproducible) occassions I've experienced a key stuck in the 'depressed' state. Please check if this works well enough for your taste with your own keyboard before doing critical work.
 
 Hardware
 --------
-The code expects the PS/2 clock pin on port B, pin 16 (Teensy pin 0). The data pin should be on port B, pin 17 (Teensy pin 1). You should be able t change these easily in the header file, but remember that if you change the port, you also have to rename the ISR function in the `scan_loop.c` file.
+The PS/2 clock pin is expected to be on port B, pin 16 (Teensy 3.x, pin 0). The data pin should be on port B, pin 17 (Teensy 3.x, pin 1). You should be able to change these easily in the header file, but remember that if you change the port, you also have to rename the ISR function in the `scan_loop.c` file.
 
 Limitations
 -----------
-No keyboard-led support. No pause or printscreen keys as they caused problems with the statemachine.
+No support for the keyboard's leds; this requires writing to the keyboard which is not implemented at the moment. The pause and printscreen keys are not handled as they caused problems with the statemachine.
 
 License
 -------
