@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 by Jacob Alexander
+/* Copyright (C) 2016-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -62,7 +62,7 @@ uint32_t usb_rawio_available()
 int32_t usb_rawio_rx( void *buf, uint32_t timeout )
 {
 	usb_packet_t *rx_packet;
-	uint32_t begin = millis();
+	Time start = Time_now();
 
 	// Read
 	while ( 1 )
@@ -77,7 +77,7 @@ int32_t usb_rawio_rx( void *buf, uint32_t timeout )
 			break;
 
 		// Check for timeout
-		if ( millis() - begin > timeout || !timeout )
+		if ( Time_duration_ms( start ) > timeout || !timeout )
 		{
 			warn_msg("RAWIO Rx - Timeout, dropping packet.");
 			return 0;
@@ -100,7 +100,7 @@ int32_t usb_rawio_rx( void *buf, uint32_t timeout )
 int32_t usb_rawio_tx( const void *buf, uint32_t timeout )
 {
 	usb_packet_t *tx_packet;
-	uint32_t begin = millis();
+	Time start = Time_now();
 
 	while ( 1 )
 	{
@@ -118,7 +118,7 @@ int32_t usb_rawio_tx( const void *buf, uint32_t timeout )
 		}
 
 		// Check for timeout
-		if ( millis() - begin > timeout )
+		if ( Time_duration_ms( start ) > timeout || !timeout )
 		{
 			warn_msg("RAWIO Tx - Timeout, dropping packet.");
 			return 0;

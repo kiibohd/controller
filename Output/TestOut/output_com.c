@@ -26,19 +26,10 @@
 
 // Project Includes
 #include <cli.h>
+#include <hidio_com.h>
 #include <led.h>
 #include <print.h>
 #include <scan_loop.h>
-
-// USB Includes
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-#include "avr/usb_keyboard_serial.h"
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
-#include "arm/usb_dev.h"
-#include "arm/usb_keyboard.h"
-#include "arm/usb_serial.h"
-#include "arm/usb_mouse.h"
-#endif
 
 // KLL
 #include <kll_defs.h>
@@ -649,12 +640,22 @@ inline void Output_setup()
 
 	// Flush key buffers
 	Output_flushBuffers();
+
+#if enableRawIO_define == 1
+	// Setup HID-IO
+	HIDIO_setup();
+#endif
 }
 
 
 // USB Data Send
 inline void Output_send()
 {
+#if enableRawIO_define == 1
+	// HID-IO Process
+	HIDIO_process();
+#endif
+
 #if enableMouse_define == 1
 	// Process mouse actions
 	while ( USBMouse_Changed )

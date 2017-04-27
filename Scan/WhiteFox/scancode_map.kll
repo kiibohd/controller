@@ -1,85 +1,96 @@
 # Whitefox
 
 Name = WhiteFox;
-Version = 0.3;
+Version = 0.4;
 Author = "HaaTa (Jacob Alexander) 2015-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-02-14;
+Date = 2017-04-02;
 
 
-S0x00 : U"Esc";
-S0x01 : U"1";
-S0x02 : U"2";
-S0x03 : U"3";
-S0x04 : U"4";
-S0x05 : U"5";
-S0x06 : U"6";
-S0x07 : U"7";
-S0x08 : U"8";
-S0x09 : U"9";
-S0x0A : U"0";
-S0x0B : U"Minus";
-S0x0C : U"Equal";
-S0x0D : U"Hash";
-S0x0E : U"Backspace";
-S0x0F : U"BackTick";
-S0x10 : U"Tab";
-S0x11 : U"Q";
-S0x12 : U"W";
-S0x13 : U"E";
-S0x14 : U"R";
-S0x15 : U"T";
-S0x16 : U"Y";
-S0x17 : U"U";
-S0x18 : U"I";
-S0x19 : U"O";
-S0x1A : U"P";
-S0x1B : U"LBrace";
-S0x1C : U"RBrace";
-S0x1D : U"Backslash";
-S0x1E : U"Delete";
-S0x1F : U"CapsLock";
-S0x20 : U"A";
-S0x21 : U"S";
-S0x22 : U"D";
-S0x23 : U"F";
-S0x24 : U"G";
-S0x25 : U"H";
-S0x26 : U"J";
-S0x27 : U"K";
-S0x28 : U"L";
-S0x29 : U"Semicolon";
-S0x2A : U"Quote";
-S0x2B : U"App";
-S0x2C : U"Enter";
-S0x2D : U"PageUp";
-S0x2E : U"LShift";
-S0x2F : U"ISO/";
-S0x30 : U"Z";
-S0x31 : U"X";
-S0x32 : U"C";
-S0x33 : U"V";
-S0x34 : U"B";
-S0x35 : U"N";
-S0x36 : U"M";
-S0x37 : U"Comma";
-S0x38 : U"Period";
-S0x39 : U"Slash";
-S0x3A : U"RShift";
-S0x3B : U"Up";
-S0x3C : U"PageDown";
-S0x3D : U"Ctrl";
-S0x3E : U"Function1";
-S0x3F : U"LAlt";
-S0x40 : U"Space";
-S0x41 : U"RAlt";
-S0x42 : U"Gui";
-S0x43 : U"Menu";
-S0x44 : U"Left";
-S0x45 : U"Down";
-S0x46 : U"Right";
+S0x01 : U"Esc";
+S0x02 : U"1";
+S0x03 : U"2";
+S0x04 : U"3";
+S0x05 : U"4";
+S0x06 : U"5";
+S0x07 : U"6";
+S0x08 : U"7";
+S0x09 : U"8";
+S0x0A : U"9";
+S0x0B : U"0";
+S0x0C : U"Minus";
+S0x0D : U"Equal";
+S0x0E : U"Hash";
+S0x0F : U"Backspace";
+S0x10 : U"BackTick";
+S0x11 : U"Tab";
+S0x12 : U"Q";
+S0x13 : U"W";
+S0x14 : U"E";
+S0x15 : U"R";
+S0x16 : U"T";
+S0x17 : U"Y";
+S0x18 : U"U";
+S0x19 : U"I";
+S0x1A : U"O";
+S0x1B : U"P";
+S0x1C : U"LBrace";
+S0x1D : U"RBrace";
+S0x1E : U"Backslash";
+S0x1F : U"Delete";
+S0x20 : U"CapsLock";
+S0x21 : U"A";
+S0x22 : U"S";
+S0x23 : U"D";
+S0x24 : U"F";
+S0x25 : U"G";
+S0x26 : U"H";
+S0x27 : U"J";
+S0x28 : U"K";
+S0x29 : U"L";
+S0x2A : U"Semicolon";
+S0x2B : U"Quote";
+S0x2C : U"App";
+S0x2D : U"Enter";
+S0x2E : U"PageUp";
+S0x2F : U"LShift";
+S0x30 : U"ISO/";
+S0x31 : U"Z";
+S0x32 : U"X";
+S0x33 : U"C";
+S0x34 : U"V";
+S0x35 : U"B";
+S0x36 : U"N";
+S0x37 : U"M";
+S0x38 : U"Comma";
+S0x39 : U"Period";
+S0x3A : U"Slash";
+S0x3B : U"RShift";
+S0x3C : U"Up";
+S0x3D : U"PageDown";
+S0x3E : U"Ctrl";
+S0x3F : U"Function1";
+S0x40 : U"LAlt";
+S0x41 : U"Space";
+S0x42 : U"RAlt";
+S0x43 : U"Gui";
+S0x44 : U"Menu";
+S0x45 : U"Left";
+S0x46 : U"Down";
+S0x47 : U"Right";
+
+
+### TODO REMOVEME
+flashModeEnabled = 1;
+Pixel_Test_Mode = "PixelTest_Pixel_Roll";
+S0x01 : ledControl( 0, 25 );
+S0x02 : ledControl( 1, 25 );
+S0x03 : ledControl( 2, 100 );
+S0x04 : ledControl( 3, 0 );
+S0x05 : ledControl( 4, 0 );
+S0x06 : ledControl( 5, 0 );
 
 
 
@@ -129,15 +140,99 @@ Pixel_Buffer_Buffer[0] = "LED_pageBuffer[0].buffer"; # Pointer to the start of t
 ### Pixel Mapping ###
 # Organizes each of the channels into pixels (may, or may not be multi-channel)
 
-# Number Row (?)
-# Top Alpha Row (?)
-# Mid Alpha Row (?)
-# Low Alpha Row (?)
-# Mod Row (?)
-# TODO
+# Number Row (1-16)
+P[  1](  0:8) : S1;
+P[  2](  1:8) : S2;
+P[  3](  2:8) : S3;
+P[  4](  3:8) : S4;
+P[  5](  4:8) : S5;
+P[  6](  5:8) : S6;
+P[  7](  6:8) : S7;
+P[  8](  7:8) : S8;
+P[  9]( 16:8) : S9;
+P[ 10]( 17:8) : S10;
+P[ 11]( 18:8) : S11;
+P[ 12]( 19:8) : S12;
+P[ 13]( 20:8) : S13;
+P[ 14]( 21:8) : S14;
+P[ 15]( 22:8) : S15;
+P[ 16]( 23:8) : S16;
+
+# Top Alpha Row (17-31)
+P[ 17]( 32:8) : S17;
+P[ 18]( 33:8) : S18;
+P[ 19]( 34:8) : S19;
+P[ 20]( 35:8) : S20;
+P[ 21]( 36:8) : S21;
+P[ 22]( 37:8) : S22;
+P[ 23]( 38:8) : S23;
+P[ 24]( 39:8) : S24;
+P[ 25]( 48:8) : S25;
+P[ 26]( 49:8) : S26;
+P[ 27]( 50:8) : S27;
+P[ 28]( 51:8) : S28;
+P[ 29]( 52:8) : S29;
+P[ 30]( 53:8) : S30;
+P[ 31]( 54:8) : S31;
+
+# Mid Alpha Row (32-46)
+P[ 32]( 55:8) : S32;
+P[ 33]( 64:8) : S33;
+P[ 34]( 65:8) : S34;
+P[ 35]( 66:8) : S35;
+P[ 36]( 67:8) : S36;
+P[ 37]( 68:8) : S37;
+P[ 38]( 69:8) : S38;
+P[ 39]( 70:8) : S39;
+P[ 40]( 71:8) : S40;
+P[ 41]( 80:8) : S41;
+P[ 42]( 81:8) : S42;
+P[ 43]( 82:8) : S43;
+P[ 44]( 83:8) : S44;
+P[ 45]( 84:8) : S45;
+P[ 46]( 85:8) : S46;
+
+# Low Alpha Row (47-61)
+P[ 47]( 86:8) : S47;
+P[ 48]( 87:8) : S48;
+P[ 49]( 96:8) : S49;
+P[ 50]( 97:8) : S50;
+P[ 51]( 98:8) : S51;
+P[ 52]( 99:8) : S52;
+P[ 53](100:8) : S53;
+P[ 54](101:8) : S54;
+P[ 55](102:8) : S55;
+P[ 56](103:8) : S56;
+P[ 57](112:8) : S57;
+P[ 58](113:8) : S58;
+P[ 59](114:8) : S59;
+P[ 60](115:8) : S60;
+P[ 61](116:8) : S61;
+
+# Mod Row (62-71)
+P[ 62](117:8) : S62;
+P[ 63](118:8) : S63;
+P[ 64](119:8) : S64;
+P[ 65](128:8) : S65;
+P[ 66](129:8) : S66;
+P[ 67](130:8) : S67;
+P[ 68](131:8) : S68;
+P[ 69](132:8) : S69;
+P[ 70](133:8) : S70;
+P[ 71](134:8) : S71;
+
+
 
 ### Physical Positions ###
+# XXX (HaaTa) - This part is adjusted depending on which layout of the WhiteFox
+
 # Rows
+#S[1-16]  <= y:0;
+#S[17-31] <= y:-19.05;
+#S[32-46] <= y:-38.10;
+#S[47-61] <= y:-57.15;
+#S[62-71] <= y:-76.20;
+
 # Columns
 # TODO
 

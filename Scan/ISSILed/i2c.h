@@ -109,3 +109,8 @@ int32_t i2c_send_sequence(
 uint8_t i2c_busy( uint8_t ch );
 uint8_t i2c_any_busy();
 
+/*
+ * Reset i2c buses after an error
+ */
+void i2c_reset();
+

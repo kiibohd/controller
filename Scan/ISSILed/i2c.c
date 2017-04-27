@@ -48,7 +48,7 @@ uint32_t i2c_offset[] = {
 
 // ----- Functions -----
 
-inline void i2c_setup()
+void i2c_setup()
 {
 	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
 	{
@@ -83,6 +83,13 @@ inline void i2c_setup()
 		}
 
 		// SCL Frequency Divider
+#if ISSI_Chip_31FL3731_define == 1
+		// 0x40 -> 36 MHz / (4 * 28) = 321.428 kBaud
+		// 0x80 => mul(4)
+		// 0x00 => ICL(28)
+		*I2C_F = 0x84;
+		*I2C_FLT = 0x03;
+#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define
 		/*
 		// Works
 		// 0x40 -> 36 MHz / (4 * 28) = 321.428 kBaud
@@ -97,6 +104,7 @@ inline void i2c_setup()
 		// 0x0C => ICL(44)
 		*I2C_F = 0x0C;
 		*I2C_FLT = 0x02; // Glitch protection, reduce if you see bus errors
+		*/
 
 		// Also works, 86 fps, no errors, using frame delay of 50 us
 		// 0x40 -> 36 MHz / (2 * 20) = 900 kBaud
@@ -104,9 +112,7 @@ inline void i2c_setup()
 		// 0x00 => ICL(20)
 		*I2C_F = 0x40;
 		*I2C_FLT = 0x02;
-		*/
-		*I2C_F = 0x40;
-		*I2C_FLT = 0x02;
+#endif
 		*I2C_C1 = I2C_C1_IICEN;
 		*I2C_C2 = I2C_C2_HDRS; // High drive select
 
@@ -126,6 +132,18 @@ inline void i2c_setup()
 #endif
 		}
 	}
+}
+
+void i2c_reset()
+{
+	// Cleanup after an I2C error
+	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
+	{
+		volatile I2C_Channel *channel = &( i2c_channels[ch] );
+		channel->status = I2C_AVAILABLE;
+	}
+
+	i2c_setup();
 }
 
 uint8_t i2c_busy( uint8_t ch )

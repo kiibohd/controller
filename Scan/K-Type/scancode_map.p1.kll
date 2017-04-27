@@ -1,0 +1,550 @@
+# K-Type Base Configuration - Prototype #1
+
+Name = K-Type;
+Version = 0.4;
+Author = "HaaTa (Jacob Alexander) 2015-2017";
+KLL = 0.5;
+
+# Modified Date
+Date = 2017-01-16;
+
+
+# Function Row
+S0x01 : U"Esc";
+S0x02 : U"F1";
+S0x03 : U"F2";
+S0x04 : U"F3";
+S0x05 : U"F4";
+S0x06 : U"F5";
+S0x07 : U"F6";
+S0x08 : U"F7";
+S0x09 : U"F8";
+S0x0A : U"F9";
+S0x0B : U"F10";
+S0x0C : U"F11";
+S0x0D : U"F12";
+S0x0E : U"PrintScreen";
+S0x0F : U"ScrollLock";
+S0x10 : U"Pause";
+
+# Number Row
+S0x11 : U"Backtick";
+S0x12 : U"1";
+S0x13 : U"2";
+S0x14 : U"3";
+S0x15 : U"4";
+S0x16 : U"5";
+S0x17 : U"6";
+S0x18 : U"7";
+S0x19 : U"8";
+S0x1A : U"9";
+S0x1B : U"0";
+S0x1C : U"Minus";
+S0x1D : U"Equals";
+S0x1E : U"Backspace";
+S0x1F : U"Insert";
+S0x20 : U"Home";
+S0x21 : U"PageUp";
+
+# Top Alphabet Row
+S0x22 : U"Tab";
+S0x23 : U"Q";
+S0x24 : U"W";
+S0x25 : U"E";
+S0x26 : U"R";
+S0x27 : U"T";
+S0x28 : U"Y";
+S0x29 : U"U";
+S0x2A : U"I";
+S0x2B : U"O";
+S0x2C : U"P";
+S0x2D : U"LBrace";
+S0x2E : U"RBrace";
+S0x2F : U"Backslash";
+S0x30 : U"Delete";
+S0x31 : U"End";
+S0x32 : U"PageDown";
+
+# Middle Alphabet Row
+S0x33 : U"CapsLock";
+S0x34 : U"A";
+S0x35 : U"S";
+S0x36 : U"D";
+S0x37 : U"F";
+S0x38 : U"G";
+S0x39 : U"H";
+S0x3A : U"J";
+S0x3B : U"K";
+S0x3C : U"L";
+S0x3D : U"Semicolon";
+S0x3E : U"Quote";
+S0x3F : U"Enter";
+
+# Bottom Alphabet Row
+S0x40 : U"LShift";
+S0x41 : U"Z";
+S0x42 : U"X";
+S0x43 : U"C";
+S0x44 : U"V";
+S0x45 : U"B";
+S0x46 : U"N";
+S0x47 : U"M";
+S0x48 : U"Comma";
+S0x49 : U"Period";
+S0x4A : U"Slash";
+S0x4B : U"RShift";
+S0x4C : U"Up";
+
+# Modifier Row
+S0x4D : U"LCtrl";
+S0x4E : U"LGui";
+S0x4F : U"LAlt";
+S0x50 : U"Space";
+S0x51 : U"RAlt";
+S0x52 : U"RGui";
+S0x53 : U"Menu";
+S0x54 : U"RCtrl";
+S0x55 : U"Left";
+S0x56 : U"Down";
+S0x57 : U"Right";
+
+
+### TODO REMOVEME
+flashModeEnabled = 1;
+
+
+# Driver Chip
+ISSI_Chip_31FL3731 = 1;
+
+# Global Brightness
+ISSI_Global_Brightness = 100; # 0xFF by default (max)
+
+# Available ISSI Chips
+ISSI_Chips = 4; # 2 by default
+
+# I2C Buses
+ISSI_I2C_Buses = 1; # 1 by default
+
+# Chip:Bus Mapping
+LED_MapCh1_Bus  = 0x0;
+LED_MapCh1_Addr = ISSI_Ch1;
+LED_MapCh2_Bus  = 0x0;
+LED_MapCh2_Addr = ISSI_Ch2;
+LED_MapCh3_Bus  = 0x0;
+LED_MapCh3_Addr = ISSI_Ch3;
+LED_MapCh4_Bus  = 0x0;
+LED_MapCh4_Addr = ISSI_Ch4;
+
+
+# FPS Target
+# Each ISSI chip setup has a different optimal framerate.
+# This setting specifies a target frame rate. This is sort've like "V-Sync" on monitors.
+# So the framerate will not go above this amount.
+# If the framerate goes below, ledFPS cli will issue warnings when enabled.
+ISSI_FrameRate_ms => ISSI_FrameRate_ms_define;
+ISSI_FrameRate_ms = 10; # 1000 / <ISSI_FrameRate_ms> = 100 fps
+
+
+### LED Default Enable Mask ###
+# By default, all LEDs are enabled
+# However, this may cause issuse with some led matrices, so it is recommended to disable unused positions
+# Each LED is represented by a single bit
+# See (http://www.issi.com/WW/pdf/31FL3731C.pdf) for details
+# TODO - Validate
+ISSILedMask1 = "
+	0xFF, 0xFF, /* C1-1 -> C1-16 */
+	0xFE, 0xFE, /* C2-1 -> C2-16 */
+	0xFE, 0xFE, /* C3-1 -> C3-16 */
+	0x06, 0x06, /* C4-1 -> C4-16 */
+	0x00, 0x00, /* C5-1 -> C5-16 */
+	0x60, 0x60, /* C6-1 -> C6-16 */
+	0x7F, 0x7F, /* C7-1 -> C7-16 */
+	0x7F, 0x7F, /* C8-1 -> C8-16 */
+	0xFF, 0xFF, /* C9-1 -> C9-16 */
+";
+
+ISSILedMask2 = "
+	0xFF, 0xFF, /* C1-1 -> C1-16 */
+	0xFE, 0xFE, /* C2-1 -> C2-16 */
+	0xFE, 0xFE, /* C3-1 -> C3-16 */
+	0x06, 0x06, /* C4-1 -> C4-16 */
+	0x00, 0x00, /* C5-1 -> C5-16 */
+	0x60, 0x60, /* C6-1 -> C6-16 */
+	0x7F, 0x7F, /* C7-1 -> C7-16 */
+	0x7F, 0x7F, /* C8-1 -> C8-16 */
+	0xFF, 0xFF, /* C9-1 -> C9-16 */
+";
+
+ISSILedMask3 = "
+	0xFF, 0xFF, /* C1-1 -> C1-16 */
+	0xFE, 0xFE, /* C2-1 -> C2-16 */
+	0xFE, 0xFE, /* C3-1 -> C3-16 */
+	0x06, 0x06, /* C4-1 -> C4-16 */
+	0x00, 0x00, /* C5-1 -> C5-16 */
+	0x60, 0x60, /* C6-1 -> C6-16 */
+	0x7F, 0x7F, /* C7-1 -> C7-16 */
+	0x7F, 0x7F, /* C8-1 -> C8-16 */
+	0xFF, 0xFF, /* C9-1 -> C9-16 */
+";
+
+ISSILedMask4 = "
+	0xFF, 0xFF, /* C1-1 -> C1-16 */
+	0xFE, 0xFE, /* C2-1 -> C2-16 */
+	0xFE, 0xFE, /* C3-1 -> C3-16 */
+	0x06, 0x06, /* C4-1 -> C4-16 */
+	0x00, 0x00, /* C5-1 -> C5-16 */
+	0x60, 0x60, /* C6-1 -> C6-16 */
+	0x7F, 0x7F, /* C7-1 -> C7-16 */
+	0x7F, 0x7F, /* C8-1 -> C8-16 */
+	0xFF, 0xFF, /* C9-1 -> C9-16 */
+";
+
+
+
+### Pixel Buffer Setup ###
+# Defines channel mappings, changing the order will affect Pixel definitions
+
+Pixel_Buffer_Size[]    =   0 144 288 432; # Starting channel for each buffer
+Pixel_Buffer_Width[]   =  16  16  16  16; # Width of each channel buffer (may be different than effective channel size)
+Pixel_Buffer_Length[]  = 144 144 144 144; # Length of each buffer (count, not bytes)
+Pixel_Buffer_Buffer[0] = "LED_pageBuffer[0].buffer"; # Pointer to the start of the buffer
+Pixel_Buffer_Buffer[1] = "LED_pageBuffer[1].buffer";
+Pixel_Buffer_Buffer[2] = "LED_pageBuffer[2].buffer";
+Pixel_Buffer_Buffer[3] = "LED_pageBuffer[3].buffer";
+
+
+
+### Pixel Mapping ###
+# Organizes each of the channels into pixels (may, or may not be multi-channel)
+
+# Function Row (1-16)
+P[  1](  0:8,  33:8,  49:8) : S1;
+P[  2](  1:8,  17:8,  50:8) : S2;
+P[  3](  2:8,  18:8,  34:8) : S3;
+P[  4](  3:8,  19:8,  35:8) : S4;
+P[  5](  4:8,  20:8,  36:8) : S5;
+P[  6](  5:8,  21:8,  37:8) : S6;
+P[  7](  6:8,  22:8,  38:8) : S7;
+P[  8](  7:8,  23:8,  39:8) : S8;
+P[  9](128:8, 112:8,  96:8) : S9;
+P[ 10](129:8, 113:8,  97:8) : S10;
+P[ 11](130:8, 114:8,  98:8) : S11;
+P[ 12](131:8, 115:8,  99:8) : S12;
+P[ 13](132:8, 116:8, 100:8) : S13;
+P[ 14](133:8, 117:8, 101:8) : S14;
+P[ 15](134:8, 118:8,  85:8) : S15;
+P[ 16](135:8, 102:8,  86:8) : S16;
+
+# Number Row (17-33)
+P[ 17](  8:8,  41:8,  57:8) : S17;
+P[ 18](  9:8,  25:8,  58:8) : S18;
+P[ 19]( 10:8,  26:8,  42:8) : S19;
+P[ 20]( 11:8,  27:8,  43:8) : S20;
+P[ 21]( 12:8,  28:8,  44:8) : S21;
+P[ 22]( 13:8,  29:8,  45:8) : S22;
+P[ 23]( 14:8,  30:8,  46:8) : S23;
+P[ 24]( 15:8,  31:8,  47:8) : S24;
+P[ 25](136:8, 120:8, 104:8) : S25;
+P[ 26](137:8, 121:8, 105:8) : S26;
+P[ 27](138:8, 122:8, 106:8) : S27;
+P[ 28](139:8, 123:8, 107:8) : S28;
+P[ 29](140:8, 124:8, 108:8) : S29;
+P[ 30](141:8, 125:8, 109:8) : S30;
+P[ 31](142:8, 126:8,  93:8) : S31;
+P[ 32](143:8, 110:8,  94:8) : S32;
+P[ 33](144:8, 177:8, 193:8) : S33;
+
+# Top Alpha Row (34-50)
+P[ 34](145:8, 161:8, 194:8) : S34;
+P[ 35](146:8, 162:8, 178:8) : S35;
+P[ 36](147:8, 163:8, 179:8) : S36;
+P[ 37](148:8, 164:8, 180:8) : S37;
+P[ 38](149:8, 165:8, 181:8) : S38;
+P[ 39](150:8, 166:8, 182:8) : S39;
+P[ 40](151:8, 167:8, 183:8) : S40;
+P[ 41](272:8, 256:8, 240:8) : S41;
+P[ 42](273:8, 257:8, 241:8) : S42;
+P[ 43](274:8, 258:8, 242:8) : S43;
+P[ 44](275:8, 259:8, 243:8) : S44;
+P[ 45](276:8, 260:8, 244:8) : S45;
+P[ 46](277:8, 261:8, 245:8) : S46;
+P[ 47](278:8, 262:8, 229:8) : S47;
+P[ 48](279:8, 246:8, 230:8) : S48;
+P[ 49](152:8, 185:8, 201:8) : S49;
+P[ 50](153:8, 169:8, 202:8) : S50;
+
+# Mid Alpha Row (51-63)
+P[ 51](154:8, 170:8, 186:8) : S51;
+P[ 52](155:8, 171:8, 187:8) : S52;
+P[ 53](156:8, 172:8, 188:8) : S53;
+P[ 54](157:8, 173:8, 189:8) : S54;
+P[ 55](158:8, 174:8, 190:8) : S55;
+P[ 56](159:8, 175:8, 191:8) : S56;
+P[ 57](280:8, 264:8, 248:8) : S57;
+P[ 58](281:8, 265:8, 249:8) : S58;
+P[ 59](282:8, 266:8, 250:8) : S59;
+P[ 60](283:8, 267:8, 251:8) : S60;
+P[ 61](284:8, 268:8, 252:8) : S61;
+P[ 62](285:8, 269:8, 253:8) : S62;
+P[ 63](286:8, 270:8, 237:8) : S63;
+
+# Low Alpha Row (64-76)
+P[ 64](287:8, 254:8, 238:8) : S64;
+P[ 65](288:8, 321:8, 337:8) : S65;
+P[ 66](289:8, 305:8, 338:8) : S66;
+P[ 67](290:8, 306:8, 322:8) : S67;
+P[ 68](291:8, 307:8, 323:8) : S68;
+P[ 69](292:8, 308:8, 324:8) : S69;
+P[ 70](293:8, 309:8, 325:8) : S70;
+P[ 71](294:8, 310:8, 326:8) : S71;
+P[ 72](295:8, 311:8, 327:8) : S72;
+P[ 73](416:8, 400:8, 384:8) : S73;
+P[ 74](417:8, 401:8, 385:8) : S74;
+P[ 75](418:8, 402:8, 386:8) : S75;
+P[ 76](419:8, 403:8, 387:8) : S76;
+
+# Mod Row (77-87)
+P[ 77](420:8, 404:8, 388:8) : S77;
+P[ 78](421:8, 405:8, 389:8) : S78;
+P[ 79](422:8, 406:8, 373:8) : S79;
+P[ 80](423:8, 390:8, 374:8) : S80;
+P[ 81](296:8, 329:8, 345:8) : S81;
+P[ 82](297:8, 313:8, 346:8) : S82;
+P[ 83](298:8, 314:8, 330:8) : S83;
+P[ 84](299:8, 315:8, 331:8) : S84;
+P[ 85](300:8, 316:8, 332:8) : S85;
+P[ 86](301:8, 317:8, 333:8) : S86;
+P[ 87](302:8, 318:8, 334:8) : S87;
+
+# Unused Pixels 88-96
+
+# Underlighting
+P[ 97](432:8, 465:8, 481:8) : None;
+P[ 98](433:8, 449:8, 482:8) : None;
+P[ 99](434:8, 450:8, 466:8) : None;
+P[100](435:8, 451:8, 467:8) : None;
+P[101](436:8, 452:8, 468:8) : None;
+P[102](437:8, 453:8, 469:8) : None;
+P[103](438:8, 454:8, 470:8) : None;
+P[104](439:8, 455:8, 471:8) : None;
+P[105](560:8, 544:8, 528:8) : None;
+P[106](561:8, 545:8, 529:8) : None;
+P[107](562:8, 546:8, 530:8) : None;
+P[108](563:8, 547:8, 531:8) : None;
+P[109](564:8, 548:8, 532:8) : None;
+P[110](565:8, 549:8, 533:8) : None;
+P[111](566:8, 550:8, 517:8) : None;
+P[112](567:8, 534:8, 518:8) : None;
+P[113](440:8, 473:8, 489:8) : None;
+P[114](441:8, 457:8, 490:8) : None;
+P[115](442:8, 458:8, 474:8) : None;
+P[116](443:8, 459:8, 475:8) : None;
+P[117](444:8, 460:8, 476:8) : None;
+P[118](445:8, 461:8, 477:8) : None;
+P[119](446:8, 462:8, 478:8) : None;
+P[120](447:8, 463:8, 479:8) : None;
+P[121](568:8, 552:8, 536:8) : None;
+P[122](569:8, 553:8, 537:8) : None;
+P[123](570:8, 554:8, 538:8) : None;
+P[124](571:8, 555:8, 539:8) : None;
+P[125](572:8, 556:8, 540:8) : None;
+P[126](573:8, 557:8, 541:8) : None;
+P[127](574:8, 558:8, 525:8) : None;
+P[128](575:8, 542:8, 526:8) : None;
+
+
+
+### Physical Positions ###
+# TODO - Validate
+# Rows
+
+S[1-16]  <= y:0;
+#S[17-33] <= y:-19.05;
+S[17-29,31,33-35] <= y:-19.05;
+#S[34-50] <= y:-38.1;
+S[36-49,51-53] <= y:-38.1;
+#S[51-63] <= y:-57.15;
+S[54-65,67] <= y:-57.15;
+#S[64-76] <= y:-76.2;
+S[69-80,82,84] <= y:-76.2;
+#S[77-87] <= y:-95.25;
+S[85-95] <= y:-95.25;
+
+# Columns
+
+S[ 1,17] <= x:0;      # Esc, Tilde
+#S[77]    <= x:2.38;   # Left Ctrl
+S[87]    <= x:2.38;   # Left Ctrl
+#S[34]    <= x:4.76;   # Tab
+S[36]    <= x:4.76;   # Tab
+#S[51]    <= x:7.14;   # Caps Lock
+S[54]    <= x:7.14;   # Caps Lock
+#S[64]    <= x:11.9;   # Left Shift
+S[69]    <= x:11.9;   # Left Shift
+S[18]    <= x:19.05;  # Number 1
+#S[78]    <= x:26.19;  # Left Win
+S[86]    <= x:26.19;  # Left Win
+#S[35]    <= x:28.58;  # Q
+S[37]    <= x:28.58;  # Q
+#S[52]    <= x:33.33;  # A
+S[55]    <= x:33.33;  # A
+S[ 2,19] <= x:38.1;   # F1, Number 2
+#S[65]    <= x:42.85;  # Z
+S[71]    <= x:42.85;  # Z
+#S[36]    <= x:47.63;  # W
+S[38]    <= x:47.63;  # W
+#S[79]    <= x:50.00;  # Left Alt
+S[87]    <= x:50.00;  # Left Alt
+#S[53]    <= x:52.39;  # S
+S[56]    <= x:52.39;  # S
+S[20, 3] <= x:57.15;  # F2, Number 3
+#S[66]    <= x:61.91;  # X
+S[72]    <= x:61.91;  # X
+#S[37]    <= x:66.68;  # E
+S[39]    <= x:66.68;  # E
+#S[54]    <= x:71.44;  # D
+S[57]    <= x:71.44;  # D
+S[21, 4] <= x:76.2;   # F3, Number 4
+#S[67]    <= x:80.96;  # C
+S[73]    <= x:80.96;  # C
+#S[38]    <= x:85.73;  # R
+S[40]    <= x:85.73;  # R
+#S[55]    <= x:90.49;  # F
+S[58]    <= x:90.49;  # F
+S[22, 5] <= x:95.25;  # F4, Number 5
+#S[68]    <= x:100.00; # V
+S[74]    <= x:100.00; # V
+#S[39]    <= x:104.77; # T
+S[41]    <= x:104.77; # T
+#S[56]    <= x:109.54; # G
+S[59]    <= x:109.54; # G
+S[23]    <= x:114.3;  # Number 6
+#S[69]    <= x:119.04; # B
+S[75]    <= x:119.04; # B
+#S[80]    <= x:121.44; # Spacebar
+S[88]    <= x:121.44; # Spacebar
+#S[40, 6] <= x:123.83; # Y, F5
+S[42, 6] <= x:123.83; # Y, F5
+#S[57]    <= x:128.60; # H
+S[60]    <= x:128.60; # H
+S[24]    <= x:133.35; # Number 7
+#S[70]    <= x:138.10; # N
+S[76]    <= x:138.10; # N
+#S[41, 7] <= x:142.88; # F6, U
+S[43, 7] <= x:142.88; # F6, U
+#S[58]    <= x:147.64; # J
+S[61]    <= x:147.64; # J
+S[25]    <= x:142.4;  # Number 8
+#S[71]    <= x:157.16; # M
+S[77]    <= x:157.16; # M
+#S[ 8,42] <= x:161.93; # I
+S[ 8,44] <= x:161.93; # I
+#S[59]    <= x:166.69; # K
+S[62]    <= x:166.69; # K
+S[26]    <= x:171.45; # Number 9
+#S[72]    <= x:176.21; # , <
+S[78]    <= x:176.21; # , <
+#S[43, 9] <= x:180.98; # O, F8
+S[45, 9] <= x:180.98; # O, F8
+#S[60]    <= x:185.74; # L
+S[63]    <= x:185.74; # L
+S[27]    <= x:190.5;  # Number 0
+#S[81]    <= x:192.88; # Right alt
+S[89]    <= x:192.88; # Right alt
+#S[73]    <= x:195.26; # . >
+S[79]    <= x:195.26; # . >
+#S[44]    <= x:200.02; # P
+S[46]    <= x:200.02; # P
+#S[61]    <= x:204.79; # ;
+S[64]    <= x:204.79; # ;
+S[28,10] <= x:209.55; # -_, F9
+#S[74]    <= x:214.31; # /?
+S[80]    <= x:214.31; # /?
+#S[82]    <= x:216.69; # Right Win
+S[90]    <= x:216.69; # Right Win
+#S[45]    <= x:219.07; # [ {
+S[47]    <= x:219.07; # [ {
+#S[62]    <= x:223.84; # ' "
+S[65]    <= x:223.84; # ' "
+S[11,29] <= x:228.6;  # F10, =+
+#S[46]    <= x:238.13; # ]}
+S[48]    <= x:238.13; # ]}
+#S[83]    <= x:240.50; # Menu/Fn
+S[91]    <= x:240.50; # Menu/Fn
+S[12]    <= x:247.65; # F11
+#S[75]    <= x:250.03; # Right Shift
+S[82]    <= x:250.03; # Right Shift
+#S[63]    <= x:254.06; # Enter
+S[67]    <= x:254.06; # Enter
+#S[30]    <= x:257.17; # Backspace
+S[31]    <= x:257.17; # Backspace
+#S[47]    <= x:261.94; # \|
+S[49]    <= x:261.94; # \|
+#S[84]    <= x:264.32; # Right CTRL
+S[92]    <= x:264.32; # Right CTRL
+S[13]    <= x:266.7;  # F12
+
+#S[14,31,48,85]    <= x:295.275; # Print screen, Insert, Delete, Left arrow
+S[14,33,51,93]    <= x:295.275; # Print screen, Insert, Delete, Left arrow
+#S[15,32,49,76,86] <= x:314.33;  # Scroll lock, Home, End, Up arrow, Down arrow.
+S[15,34,52,84,94] <= x:314.33;  # Scroll lock, Home, End, Up arrow, Down arrow.
+#S[16,33,50,87]    <= x:333.375; # Pause break, Page up, Page down, Right Arrow.
+S[16,35,53,95]    <= x:333.375; # Pause break, Page up, Page down, Right Arrow.
+
+
+
+#
+# Stand-alone LEDs
+# See section 8.5 for more details
+# Also use the pcb numbers, syntax is almost the same
+# P is for Pixel
+#
+
+# Corners
+P[97]  <= x:-7.81,  y:7.87;  # Top Left
+P[109] <= x:341.19, y:7.87;  # Top Right
+P[113] <= x:341.19, y:-112.52; # Bottom Right
+P[125] <= x:-7.81,  y:-112.52; # Bottom Left
+
+# Top
+P[98-108]  <= y:10.54;
+
+# Right
+P[110-112] <= x:343.79;
+
+# Bottom
+P[114-124] <= y:-115.19;
+
+# Left
+P[126-128] <= x:-10.41;
+
+# Starting top left, working around the LED's all the way around in a circle
+P[98]  <= x:21.20;
+P[99]  <= x:50.29;
+P[100] <= x:79.38;
+P[101] <= x:108.45;
+P[102] <= x:137.54;
+P[103] <= x:166.62;
+P[104] <= x:195.70;
+P[105] <= x:224.79;
+P[106] <= x:253.87;
+P[107] <= x:282.95;
+P[108] <= x:312.03;
+P[110] <= y:-22.23;
+P[111] <= y:-52.32;
+P[112] <= y:-82.42;
+P[114] <= x:312.04;
+P[115] <= x:282.96;
+P[116] <= x:253.87;
+P[117] <= x:224.79;
+P[118] <= x:195.71;
+P[119] <= x:166.62;
+P[120] <= x:137.54;
+P[121] <= x:108.46;
+P[122] <= x:79.38;
+P[123] <= x:50.29;
+P[124] <= x:21.21;
+P[126] <= y:-82.42;
+P[127] <= y:-52.32;
+P[128] <= y:-22.23;
+

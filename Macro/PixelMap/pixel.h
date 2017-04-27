@@ -36,6 +36,7 @@ typedef enum FrameState {
 	FrameState_Ready,   // Buffers have been updated and are ready to send
 	FrameState_Sending, // Buffers are currently being sent, do not change
 	FrameState_Update,  // Buffers need to be updated to latest frame
+	FrameState_Pause,   // Pause frame state
 } FrameState;
 
 // Pixel Change Storage

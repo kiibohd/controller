@@ -26,6 +26,7 @@
 
 // Project Includes
 #include <cli.h>
+#include <hidio_com.h>
 #include <led.h>
 #include <print.h>
 #include <scan_loop.h>
@@ -36,8 +37,9 @@
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 #include "arm/usb_dev.h"
 #include "arm/usb_keyboard.h"
-#include "arm/usb_serial.h"
 #include "arm/usb_mouse.h"
+#include "arm/usb_rawio.h"
+#include "arm/usb_serial.h"
 #endif
 
 // KLL
@@ -666,6 +668,11 @@ inline void Output_setup()
 
 	// Flush key buffers
 	Output_flushBuffers();
+
+#if enableRawIO_define == 1
+	// Setup HID-IO
+	HIDIO_setup();
+#endif
 }
 
 
@@ -688,6 +695,11 @@ inline void Output_send()
 		USBMouse_Changed = USBMouseChangeState_All;
 	}
 	*/
+
+#if enableRawIO_define == 1
+	// HID-IO Process
+	HIDIO_process();
+#endif
 
 #if enableMouse_define == 1
 	// Process mouse actions

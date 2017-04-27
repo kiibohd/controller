@@ -44,6 +44,7 @@ set( HOST 1 )
 #| Mostly for convenience functions like interrupt handlers
 set( COMPILER_SRCS
 	Lib/host.c
+	Lib/time.c
 )
 
 #| Clang needs a few more functions for linking

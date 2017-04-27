@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2016 by Jacob Alexander
+/* Copyright (C) 2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,41 +19,61 @@
  * THE SOFTWARE.
  */
 
-
-// This include file decides which set of compiler family include files to use on typical Scan modules.
-// Additional includes should only be added to this file if they should be added to *all* Scan modules.
-
 #pragma once
+
+// ----- Defines -----
 
 // ----- Includes -----
 
-#include <Lib/Interrupts.h>
+// System Includes
+#include <stdint.h>
 
 
 
-// ARM
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+// ----- Structs -----
 
-#include <Lib/mk20dx.h>
-#include <Lib/time.h>
-
-#endif
-
-
-
-// AVR
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-
-#include <avr/io.h>
-
-#endif
+typedef struct Time {
+	uint32_t ms;
+	uint32_t ticks;
+} Time;
 
 
 
-// Host
-#if defined(_host_)
+// ----- Variables -----
 
-#include <Lib/host.h>
+extern const uint32_t Time_maxTicks;
+extern const uint32_t Time_maxTicks_ms;
+extern const char* Time_ticksPer_ns_str;
 
-#endif
+
+
+// ----- Functions -----
+
+// Get current time
+Time Time_now();
+Time Time_init();
+
+
+// Conversions
+uint32_t Time_days( Time time );
+uint32_t Time_hours( Time time );
+uint32_t Time_minutes( Time time );
+uint32_t Time_seconds( Time time );
+uint32_t Time_ms( Time time );
+uint32_t Time_us( Time time );
+uint32_t Time_ns( Time time );
+uint32_t Time_ticks( Time time );
+
+
+// Durations
+Time Time_duration( Time since );
+
+uint32_t Time_duration_ticks( Time since );
+uint32_t Time_duration_days( Time since );
+uint32_t Time_duration_hours( Time since );
+uint32_t Time_duration_minutes( Time since );
+uint32_t Time_duration_seconds( Time since );
+uint32_t Time_duration_ms( Time since );
+uint32_t Time_duration_us( Time since );
+uint32_t Time_duration_ns( Time since );
 

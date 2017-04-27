@@ -1,3 +1,5 @@
+# pjrcUSB
+
 Name = pjrcUSBCapabilities;
 Version = 0.8;
 Author = "HaaTa (Jacob Alexander) 2014-2016";
@@ -95,7 +97,6 @@ enableVirtualSerialPort => enableVirtualSerialPort_define;
 enableVirtualSerialPort = 1;
 
 # Raw I/O Endpoint
-# *Currently Unused*
 enableRawIO => enableRawIO_define;
-enableRawIO = 0;
+enableRawIO = 1;
 

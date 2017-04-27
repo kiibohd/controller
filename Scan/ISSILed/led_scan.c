@@ -42,20 +42,21 @@
 
 // ----- Defines -----
 
-// TODO Make this a kll define
-//      I2C transfers are more efficient if all 144 don't have to be updated
-//      (and most implementations don't use all the channels)
-//      Ergodox  tested @ 83fps /w 38
-//      Whitefox tested @ 45fps /w 71
-#define LED_BufferLength       144
-
-#define LED_EnableBufferLength 18
-#define LED_FrameBuffersMax     4
-#define LED_TotalChannels     (LED_BufferLength * ISSI_Chips_define)
-
 // ISSI Addresses
 // IS31FL3731 (max 4 channels per bus)
 #if ISSI_Chip_31FL3731_define == 1
+#define LED_BufferLength       144
+#define LED_EnableBufferLength  18
+
+#define ISSI_ConfigPage        0x0B
+#define ISSI_ConfigPageLength  0x0C
+#define ISSI_LEDControlPage    0x00
+#define ISSI_LEDPwmPage        0x00
+#define ISSI_LEDPwmRegStart    0x24
+#define ISSI_PageLength        0xB4
+#define ISSI_SendDelay          50
+#define ISSI_LEDPages            8
+
 #define ISSI_Ch1 0xE8
 #define ISSI_Ch2 0xEA
 #define ISSI_Ch3 0xEC
@@ -63,6 +64,49 @@
 
 // IS31FL3732 (max 16 channels per bus)
 #elif ISSI_Chip_31FL3732_define == 1
+#define LED_BufferLength       144
+#define LED_EnableBufferLength  18
+
+#define ISSI_ConfigPage        0x0B
+#define ISSI_ConfigPageLength  0x0C
+#define ISSI_LEDControlPage    0x00
+#define ISSI_LEDPwmPage        0x00
+#define ISSI_LEDPwmRegStart    0x24
+#define ISSI_PageLength        0xB4
+#define ISSI_SendDelay          50
+#define ISSI_LEDPages            8
+
+#define ISSI_Ch1  0xA0
+#define ISSI_Ch2  0xA2
+#define ISSI_Ch3  0xA4
+#define ISSI_Ch4  0xA6
+#define ISSI_Ch5  0xA8
+#define ISSI_Ch6  0xAA
+#define ISSI_Ch7  0xAC
+#define ISSI_Ch8  0xAE
+#define ISSI_Ch9  0xB0
+#define ISSI_Ch10 0xB2
+#define ISSI_Ch11 0xB4
+#define ISSI_Ch12 0xB6
+#define ISSI_Ch13 0xB8
+#define ISSI_Ch14 0xBA
+#define ISSI_Ch15 0xBC
+#define ISSI_Ch16 0xBE
+
+// IS31FL3733 (max 16 channels per bus)
+#elif ISSI_Chip_31FL3733_define == 1
+#define LED_BufferLength       192
+#define LED_EnableBufferLength  24
+
+#define ISSI_ConfigPage        0x03
+#define ISSI_ConfigPageLength  0x10
+#define ISSI_LEDControlPage    0x00
+#define ISSI_LEDPwmPage        0x01
+#define ISSI_LEDPwmRegStart    0x00
+#define ISSI_PageLength        0xBF
+#define ISSI_SendDelay          70
+#define ISSI_LEDPages            3
+
 #define ISSI_Ch1  0xA0
 #define ISSI_Ch2  0xA2
 #define ISSI_Ch3  0xA4
@@ -81,18 +125,10 @@
 #define ISSI_Ch16 0xBE
 
 #else
-#error "ISSI Driver Chip not defined in Scan defaultMap.kll..."
+#error "ISSI Driver Chip not defined in Scan scancode_map.kll..."
 #endif
 
-// TODO Generate in KLL
-#define LED_MapCh1_Bus_define  0x0
-#define LED_MapCh1_Addr_define ISSI_Ch1
-#define LED_MapCh2_Bus_define  0x0
-#define LED_MapCh2_Addr_define ISSI_Ch2
-#define LED_MapCh3_Bus_define  0x1
-#define LED_MapCh3_Addr_define ISSI_Ch1
-#define LED_MapCh4_Bus_define  0x1
-#define LED_MapCh4_Addr_define ISSI_Ch2
+#define LED_TotalChannels     (LED_BufferLength * ISSI_Chips_define)
 
 
 
@@ -109,13 +145,6 @@
 		LED_MapCh##ch##_Addr_define, /* I2C address */ \
 		0x00, /* Starting register address */ \
 		{ ISSILedMask##ch##_define }, \
-	}
-
-#define LED_BrightnessDefine(ch) \
-	{ \
-		LED_MapCh##ch##_Addr_define, /* I2C address */ \
-		0x24, /* Starting register address */ \
-		{ ISSILedBrightness##ch##_define }, \
 	}
 
 
@@ -144,43 +173,45 @@ typedef struct LED_ChannelMap {
 // ----- Function Declarations -----
 
 // CLI Functions
-void cliFunc_i2cSend  ( char* args );
-void cliFunc_ledCtrl  ( char* args );
+void cliFunc_ledFPS   ( char* args );
 void cliFunc_ledReset ( char* args );
-void cliFunc_ledSpeed ( char* args );
-void cliFunc_ledTest  ( char* args );
+void cliFunc_ledSet   ( char* args );
+void cliFunc_ledToggle( char* args );
 
 
 
 // ----- Variables -----
 
 // Scan Module command dictionary
-CLIDict_Entry( i2cSend,     "Send I2C sequence of bytes. Use |'s to split sequences with a stop." );
-CLIDict_Entry( ledCtrl,     "Basic LED control. Args: <mode> <amount> [<index>]" );
+CLIDict_Entry( ledFPS,      "Show/set FPS of LED driver, r - Reset framerate" );
 CLIDict_Entry( ledReset,    "Reset ISSI chips." );
-CLIDict_Entry( ledSpeed,    "ISSI frame rate 0-63, 1 is fastest. f - display fps" );
-CLIDict_Entry( ledTest,     "Test command" );
+CLIDict_Entry( ledSet,      "Set ISSI overall brightness." );
+CLIDict_Entry( ledToggle,   "Toggle ISSI hardware shutdown." );
 
 CLIDict_Def( ledCLIDict, "ISSI LED Module Commands" ) = {
-	CLIDict_Item( i2cSend ),
-	CLIDict_Item( ledCtrl ),
+	CLIDict_Item( ledFPS ),
 	CLIDict_Item( ledReset ),
-	//CLIDict_Item( ledSpeed ), // TODO REMOVME
-	//CLIDict_Item( ledTest ),
+	CLIDict_Item( ledSet ),
+	CLIDict_Item( ledToggle ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
 
+#if ISSI_Chip_31FL3731_define == 1
+// Emulated brightness buffer
+volatile LED_Buffer LED_pageBuffer_brightness[ISSI_Chips_define];
+#endif
 volatile LED_Buffer LED_pageBuffer[ISSI_Chips_define];
 
-         uint8_t LED_FrameBuffersReady; // Starts at maximum, reset on interrupt from ISSI
-volatile uint8_t LED_FrameBufferReset;  // INTB interrupt received, reset available buffer count when ready
-         uint8_t LED_FrameBufferPage;   // Current page of the buffer
-         uint8_t LED_FrameBufferStart;  // Whether or not a start signal can be sent
+uint8_t LED_displayFPS; // Display fps to cli
+uint8_t LED_enable;     // Enable/disable ISSI chips
+uint8_t LED_brightness; // Global brightness for LEDs
 
-         uint8_t LED_displayFPS;        // Display fps to cli
+uint32_t LED_framerate; // Configured led framerate, given in ms per frame
 
-// TODO - Autogenerate for each keyboard
+Time LED_timePrev; // Last frame processed
+
+
 // ISSI Driver Channel to Bus:Address mapping
 const LED_ChannelMap LED_ChannelMapping[ISSI_Chips_define] = {
 	LED_ChannelMapDefine( 1 ),
@@ -209,20 +240,6 @@ const LED_EnableBuffer LED_ledEnableMask[ISSI_Chips_define] = {
 #endif
 };
 
-// Default LED brightness
-const LED_Buffer LED_defaultBrightness[ISSI_Chips_define] = {
-	LED_BrightnessDefine( 1 ),
-#if ISSI_Chips_define >= 2
-	LED_BrightnessDefine( 2 ),
-#endif
-#if ISSI_Chips_define >= 3
-	LED_BrightnessDefine( 3 ),
-#endif
-#if ISSI_Chips_define >= 4
-	LED_BrightnessDefine( 4 ),
-#endif
-};
-
 
 #if ISSI_Chips_define >= 5
 #error "Invalid number of ISSI Chips"
@@ -230,30 +247,35 @@ const LED_Buffer LED_defaultBrightness[ISSI_Chips_define] = {
 
 
 
-// ----- Interrupt Functions -----
-
-void portb_isr()
-{
-	// Check for ISSI INTB IRQ
-	if ( PORTB_ISFR & (1 << 17) )
-	{
-		// Set frame buffer replenish condition
-		LED_FrameBufferReset = 1;
-
-		// Clear IRQ
-		PORTB_ISFR |= (1 << 17);
-	}
-}
-
-
-
 // ----- Functions -----
 
+// Enables given page
+// IS31FL3733 requires unlocking the 0xFD register
+void LED_setupPage( uint8_t bus, uint8_t addr, uint8_t page )
+{
+#if ISSI_Chip_31FL3733_define == 1
+	// See http://www.issi.com/WW/pdf/31FL3733.pdf Table 3 Page 12
+	uint16_t pageEnable[] = { addr, 0xFE, 0xC5 };
+	while ( i2c_send( bus, pageEnable, sizeof( pageEnable ) / 2 ) == -1 )
+		delayMicroseconds( ISSI_SendDelay );
+#endif
+
+	// Setup page
+	uint16_t pageSetup[] = { addr, 0xFD, page };
+	while ( i2c_send( bus, pageSetup, sizeof( pageSetup ) / 2 ) == -1 )
+		delayMicroseconds( ISSI_SendDelay );
+
+	// Delay until written
+	while ( i2c_busy( bus ) )
+		delayMicroseconds( ISSI_SendDelay );
+}
+
+// Zero out given ISSI page
 void LED_zeroPages( uint8_t bus, uint8_t addr, uint8_t startPage, uint8_t numPages, uint8_t startReg, uint8_t endReg )
 {
 	// Clear Page
 	// Max length of a page + chip id + reg start
-	uint16_t clearPage[2 + 0xB4] = { 0 };
+	uint16_t clearPage[2 + ISSI_PageLength] = { 0 };
 	clearPage[0] = addr;
 	clearPage[1] = startReg;
 
@@ -261,60 +283,70 @@ void LED_zeroPages( uint8_t bus, uint8_t addr, uint8_t startPage, uint8_t numPag
 	for ( uint8_t page = startPage; page < startPage + numPages; page++ )
 	{
 		// Page Setup
-		uint16_t pageSetup[] = { addr, 0xFD, page };
-
-		// Setup page
-		while ( i2c_send( bus, pageSetup, sizeof( pageSetup ) / 2 ) == -1 )
-			delay(1);
+		LED_setupPage( bus, addr, page );
 
 		// Zero out page
 		while ( i2c_send( bus, clearPage, 2 + endReg - startReg ) == -1 )
-			delay(1);
+			delayMicroseconds( ISSI_SendDelay );
 	}
 
 	// Wait until finished zero'ing
 	while ( i2c_busy( bus ) )
-		delay(1);
+		delayMicroseconds( ISSI_SendDelay );
 }
 
+// Zero control ISSI pages
+void LED_zeroControlPages()
+{
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t addr = LED_ChannelMapping[ ch ].addr;
+		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+		LED_zeroPages( bus, addr, ISSI_ConfigPage, 1, 0x00, ISSI_ConfigPageLength ); // Control Registers
+	}
+}
+
+// Write ISSI page
 void LED_sendPage( uint8_t bus, uint8_t addr, uint16_t *buffer, uint32_t len, uint8_t page )
 {
 	/*
-	info_msg("I2C Send Page Addr: ");
+	info_msg("I2C Send Page: bus(");
+	printHex( bus );
+	print(")addr(");
 	printHex( addr );
-	print(" Len: ");
+	print(")len(");
 	printHex( len );
-	print(" Page: ");
+	print(")page(");
 	printHex( page );
-	print( NL );
+	print(")data[](");
+	for ( uint8_t c = 0; c < 9; c++ )
+	{
+		printHex( buffer[c] );
+		print(" ");
+	}
+	print("..)" NL);
 	*/
 
 	// Page Setup
-	uint16_t pageSetup[] = { addr, 0xFD, page };
-
-	// Setup page
-	while ( i2c_send( bus, pageSetup, sizeof( pageSetup ) / 2 ) == -1 )
-		delay(1);
+	LED_setupPage( bus, addr, page );
 
 	// Write page to I2C Tx Buffer
 	while ( i2c_send( bus, buffer, len ) == -1 )
-		delay(1);
+		delayMicroseconds( ISSI_SendDelay );
 }
 
 // Write register on all ISSI chips
 // Prepare pages first, then attempt write register with a minimal delay between chips
 void LED_syncReg( uint8_t reg, uint8_t val, uint8_t page )
 {
-	uint16_t pageSetup[] = { 0, 0xFD, page };
-
 	// Setup each of the pages
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
-		pageSetup[0] = LED_ChannelMapping[ ch ].addr;
-		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-
-		while ( i2c_send( bus, pageSetup, sizeof( pageSetup ) / 2 ) == -1 )
-			delay(1);
+		LED_setupPage(
+			LED_ChannelMapping[ ch ].bus,
+			LED_ChannelMapping[ ch ].addr,
+			page
+		);
 	}
 
 	// Reg Write Setup
@@ -333,51 +365,73 @@ void LED_syncReg( uint8_t reg, uint8_t val, uint8_t page )
 
 	// Delay until written
 	while ( i2c_any_busy() )
-		delay(1);
+		delayMicroseconds( ISSI_SendDelay );
 }
 
 // Write address
 void LED_writeReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t val, uint8_t page )
 {
-	// Page Setup
-	uint16_t pageSetup[] = { addr, 0xFD, page };
+	/*
+	info_msg("I2C Write bus(");
+	printHex( bus );
+	print(")addr(");
+	printHex( addr );
+	print(")reg(");
+	printHex( reg );
+	print(")val(");
+	printHex( val );
+	print(")page(");
+	printHex( page );
+	print(")" NL);
+	*/
 
 	// Reg Write Setup
 	uint16_t writeData[] = { addr, reg, val };
 
 	// Setup page
-	while ( i2c_send( bus, pageSetup, sizeof( pageSetup ) / 2 ) == -1 )
-		delay(1);
+	LED_setupPage( bus, addr, page );
 
 	// Write register
 	while ( i2c_send( bus, writeData, sizeof( writeData ) / 2 ) == -1 )
-		delay(1);
+		delayMicroseconds( ISSI_SendDelay );
 
 	// Delay until written
 	while ( i2c_busy( bus ) )
-		delay(1);
+		delayMicroseconds( ISSI_SendDelay );
 }
 
 // Read address
 // TODO Not working?
 uint8_t LED_readReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t page )
 {
-	// Software shutdown must be enabled to read registers
-	LED_writeReg( bus, addr, 0x0A, 0x00, 0x0B );
+	/*
+	info_msg("I2C Read Bus: ");
+	printHex( bus );
+	print(" Addr: ");
+	printHex( addr );
+	print(" Reg: ");
+	printHex( reg );
+	print(" Val: ");
+	printHex( val );
+	print(" Page: ");
+	printHex( page );
+	print( NL );
+	*/
 
-	// Page Setup
-	uint16_t pageSetup[] = { addr, 0xFD, page };
+#if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
+	// Software shutdown must be enabled to read registers
+	LED_writeReg( bus, addr, 0x0A, 0x00, ISSI_ConfigPage );
+#endif
 
 	// Setup page
-	while ( i2c_send( bus, pageSetup, sizeof( pageSetup ) / 2 ) == -1 )
-		delay(1);
+	LED_setupPage( bus, addr, page );
 
 	// Register Setup
 	uint16_t regSetup[] = { addr, reg };
 
 	// Configure register
 	while ( i2c_send( bus, regSetup, sizeof( regSetup ) / 2 ) == -1 )
-		delay(1);
+		delayMicroseconds( ISSI_SendDelay );
 
 	// Register Read Command
 	uint16_t regReadCmd[] = { addr | 0x1, I2C_READ };
@@ -385,27 +439,114 @@ uint8_t LED_readReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t page )
 
 	// Request single register byte
 	while ( i2c_read( bus, regReadCmd, sizeof( regReadCmd ) / 2, &recv_data ) == -1 )
-		delay(1);
+		delayMicroseconds( ISSI_SendDelay );
 
+#if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
 	// Disable software shutdown
-	LED_writeReg( bus, addr, 0x0A, 0x01, 0x0B );
+	LED_writeReg( bus, addr, 0x0A, 0x01, ISSI_ConfigPage );
+#endif
 
 	return recv_data;
 }
 
+// Read ISSI page
+void LED_readPage( uint8_t bus, uint8_t addr, uint8_t *buffer, uint32_t len, uint8_t page )
+{
+	info_msg("I2C Read Page Bus: ");
+	printHex( bus );
+	print(" Addr: ");
+	printHex( addr );
+	print(" Len: ");
+	printHex( len );
+	print(" Page: ");
+	printHex( page );
+	print( NL );
+
+#if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
+	// Software shutdown must be enabled to read registers
+	LED_writeReg( bus, addr, 0x0A, 0x00, ISSI_ConfigPage );
+#endif
+
+	// Page Setup
+	LED_setupPage( bus, addr, page );
+
+	// Register Setup
+	uint16_t regSetup[] = { addr, 0x00 };
+
+	// Configure register
+	while ( i2c_send( bus, regSetup, sizeof( regSetup ) / 2 ) == -1 )
+		delayMicroseconds( ISSI_SendDelay );
+
+	// Read registers
+	for ( uint32_t reg = 0; reg < len; reg++ )
+	{
+		// Register Read Command
+		uint16_t regReadCmd[] = { addr | 0x1, I2C_READ };
+
+		// Request single register byte
+		while ( i2c_read( bus, regReadCmd, sizeof( regReadCmd ) / 2, &buffer[ reg ] ) == -1 )
+			delayMicroseconds( ISSI_SendDelay );
+	}
+
+#if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
+	// Disable software shutdown
+	LED_writeReg( bus, addr, 0x0A, 0x01, ISSI_ConfigPage );
+#endif
+}
+
+// Detect short or open circuit in Matrix
+// Only works with IS31FL3733
+void LED_shortOpenDetect()
+{
+#if ISSI_Chip_31FL3733_define == 1
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t addr = LED_ChannelMapping[ ch ].addr;
+		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+
+		// Enable master sync for the first chip and disable software shutdown
+		// Also enable OSD (Open/Short Detect)
+		if ( ch == 0 )
+		{
+			LED_writeReg( bus, addr, 0x00, 0x45, ISSI_ConfigPage );
+		}
+		// Slave sync for the rest and disable software shutdown
+		// Also enable OSD (Open/Short Detect)
+		else
+		{
+			LED_writeReg( bus, addr, 0x00, 0x85, ISSI_ConfigPage );
+		}
+
+		// Read LED Control page
+		// TODO fix addr
+		uint8_t buffer[LED_EnableBufferLength * 3];
+		LED_readPage( bus, addr, buffer, sizeof( buffer ), ISSI_LEDControlPage );
+
+		// Validate short detection
+		// Use LED mask
+		// TODO
+
+		// Validate open detection
+		// Use LED mask
+		// TODO
+	}
+#endif
+}
+
 void LED_reset()
 {
-	// Reset frame buffer used count
-	LED_FrameBuffersReady = LED_FrameBuffersMax;
-
-	// Starting page for the buffers
-	LED_FrameBufferPage = 0;
-
-	// Initially do not allow autoplay to restart
-	LED_FrameBufferStart = 0;
+	// Force PixelMap to stop during reset
+	Pixel_FrameState = FrameState_Sending;
 
 	// Disable FPS by default
 	LED_displayFPS = 0;
+
+#if ISSI_Chip_31FL3733_define == 1
+	// Reset I2C bus
+	GPIOC_PSOR |= (1<<5);
+	delayMicroseconds(200);
+	GPIOC_PCOR |= (1<<5);
+#endif
 
 	// Clear LED Pages
 	// Enable LEDs based upon mask
@@ -413,117 +554,86 @@ void LED_reset()
 	{
 		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-		LED_zeroPages( bus, addr, 0x00, 8, 0x00, 0xB4 ); // LED Registers
 
-		// For each page
-		for ( uint8_t pg = 0; pg < LED_FrameBuffersMax * 2; pg++ )
-		{
-			LED_sendPage(
-				bus,
-				addr,
-				(uint16_t*)&LED_ledEnableMask[ ch ],
-				sizeof( LED_EnableBuffer ) / 2,
-				pg
-			);
-		}
+		// Clear LED control pages
+		LED_zeroPages( bus, addr, 0x00, ISSI_LEDPages, 0x00, ISSI_PageLength ); // LED Registers
+
+		// Set the enable mask
+		LED_sendPage(
+			bus,
+			addr,
+			(uint16_t*)&LED_ledEnableMask[ ch ],
+			sizeof( LED_EnableBuffer ) / 2,
+			0
+		);
 	}
 
-	// Do not disable software shutdown of ISSI chip unless current is high enough
-	// Require at least 150 mA
-	// May be enabled/disabled at a later time
-	// TODO
-	if ( Output_current_available() >= 150 )
-	{
-		// Disable Software shutdown of ISSI chip
-		// TODO
-		//LED_writeReg( 0x0A, 0x01, 0x0B );
-	}
-
+#if ISSI_Chip_31FL3733_define == 1
+	// Enable pull-up and pull-down anti-ghosting resistors
 	// Set global brightness control
-#if ISSI_Chip_31FL3732_define == 1
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
 		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
 
-		// See, 31FL3732 datasheet for details on calculation
-		// Depends on Rext
-		// TODO Array set per chip
-		/*
-		if ( ch == 3 )
-		{
-			LED_writeReg( bus, addr, 0x04, 50, 0x0B );
-		}
-		else
-		*/
-		{
-			LED_writeReg( bus, addr, 0x04, ISSI_Global_Brightness_define, 0x0B );
-		}
+		LED_writeReg( bus, addr, 0x01, LED_brightness, ISSI_ConfigPage );
+		LED_writeReg( bus, addr, 0x0F, 0x07, ISSI_ConfigPage ); // Pull-up
+		LED_writeReg( bus, addr, 0x10, 0x07, ISSI_ConfigPage ); // Pull-down
+	}
+#elif ISSI_Chip_31FL3732_define == 1
+	// Set global brightness control
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t addr = LED_ChannelMapping[ ch ].addr;
+		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+
+		LED_writeReg( bus, addr, 0x04, LED_brightness, ISSI_ConfigPage );
 	}
 #endif
 
-	// Setup ISSI auto frame play, but do not start yet
+	// Setup ISSI frame and sync modes; then disable software shutdown
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
 		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-		// CNS 1 loop, FNS 4 frames - 0x14
-		//LED_writeReg( bus, addr, 0x02, 0x14, 0x0B );
-		// Picture Mode Frame
-		LED_writeReg( bus, addr, 0x01, 0x00, 0x0B );
 
-		// Default refresh speed - TxA
-		// T is typically 11ms
-		// A is 1 to 64 (where 0 is 64)
-		LED_writeReg( bus, addr, 0x03, ISSI_AnimationSpeed_define, 0x0B );
+#if ISSI_Chip_31FL3733_define == 1
+		// Enable master sync for the first chip and disable software shutdown
+		if ( ch == 0 )
+		{
+			LED_writeReg( bus, addr, 0x00, 0x41, ISSI_ConfigPage );
+		}
+		// Slave sync for the rest and disable software shutdown
+		else
+		{
+			LED_writeReg( bus, addr, 0x00, 0x81, ISSI_ConfigPage );
+		}
 
-		/*
-#if ISSI_Chip_31FL3732_define == 1
+#elif ISSI_Chip_31FL3732_define == 1
 		// Enable master sync for the first chip
 		if ( ch == 0 )
 		{
-			// Set MODE to Auto Frame Play
-			LED_writeReg( bus, addr, 0x00, 0x48, 0x0B );
+			LED_writeReg( bus, addr, 0x00, 0x40, ISSI_ConfigPage );
 		}
 		// Slave sync for the rest
 		else
 		{
-			// Set MODE to Auto Frame Play
-			LED_writeReg( bus, addr, 0x00, 0x88, 0x0B );
+			LED_writeReg( bus, addr, 0x00, 0x80, ISSI_ConfigPage );
 		}
-#else
-		// Set MODE to Auto Frame Play
-		LED_writeReg( bus, addr, 0x00, 0x08, 0x0B );
-#endif
-		*/
-#if ISSI_Chip_31FL3732_define == 1
-		// Enable master sync for the first chip
-		if ( ch == 0 )
-		{
-			LED_writeReg( bus, addr, 0x00, 0x40, 0x0B );
-		}
-		// Slave sync for the rest
-		else
-		{
-			LED_writeReg( bus, addr, 0x00, 0x80, 0x0B );
-		}
+
+		// Disable Software shutdown of ISSI chip
+		LED_writeReg( bus, addr, 0x0A, 0x01, ISSI_ConfigPage );
 #else
 		// Set MODE to Picture Frame
-		LED_writeReg( bus, addr, 0x00, 0x00, 0x0B );
+		LED_writeReg( bus, addr, 0x00, 0x00, ISSI_ConfigPage );
+
+		// Disable Software shutdown of ISSI chip
+		LED_writeReg( bus, addr, 0x0A, 0x01, ISSI_ConfigPage );
 #endif
 	}
 
-	// Disable Software shutdown of ISSI chip
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		// Disable Software shutdown of ISSI chip
-		for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-		{
-			uint8_t addr = LED_ChannelMapping[ ch ].addr;
-			uint8_t bus = LED_ChannelMapping[ ch ].bus;
-			LED_writeReg( bus, addr, 0x0A, 0x01, 0x0B );
-		}
-	}
+	// Force PixelMap to be ready for the next frame
+	Pixel_FrameState = FrameState_Update;
 }
 
 // Setup
@@ -532,51 +642,80 @@ inline void LED_setup()
 	// Register Scan CLI dictionary
 	CLI_registerDictionary( ledCLIDict, ledCLIDictName );
 
+	// Zero out FPS time
+	LED_timePrev = Time_now();
+
+	// Initialize framerate
+	LED_framerate = ISSI_FrameRate_ms_define;
+
+	// Global brightness setting
+	LED_brightness = ISSI_Global_Brightness_define;
+
 	// Initialize I2C
 	i2c_setup();
 
 	// Setup LED_pageBuffer addresses and brightness section
 	LED_pageBuffer[0].i2c_addr = LED_MapCh1_Addr_define;
-	LED_pageBuffer[0].reg_addr = 0x24;
+	LED_pageBuffer[0].reg_addr = ISSI_LEDPwmRegStart;
 #if ISSI_Chips_define >= 2
 	LED_pageBuffer[1].i2c_addr = LED_MapCh2_Addr_define;
-	LED_pageBuffer[1].reg_addr = 0x24;
+	LED_pageBuffer[1].reg_addr = ISSI_LEDPwmRegStart;
 #endif
 #if ISSI_Chips_define >= 3
 	LED_pageBuffer[2].i2c_addr = LED_MapCh3_Addr_define;
-	LED_pageBuffer[2].reg_addr = 0x24;
+	LED_pageBuffer[2].reg_addr = ISSI_LEDPwmRegStart;
 #endif
 #if ISSI_Chips_define >= 4
 	LED_pageBuffer[3].i2c_addr = LED_MapCh4_Addr_define;
-	LED_pageBuffer[3].reg_addr = 0x24;
+	LED_pageBuffer[3].reg_addr = ISSI_LEDPwmRegStart;
 #endif
+
+	// Brightness emulation
+#if ISSI_Chip_31FL3731_define
+	// Setup LED_pageBuffer addresses and brightness section
+	LED_pageBuffer_brightness[0].i2c_addr = LED_MapCh1_Addr_define;
+	LED_pageBuffer_brightness[0].reg_addr = ISSI_LEDPwmRegStart;
+#if ISSI_Chips_define >= 2
+	LED_pageBuffer_brightness[1].i2c_addr = LED_MapCh2_Addr_define;
+	LED_pageBuffer_brightness[1].reg_addr = ISSI_LEDPwmRegStart;
+#endif
+#if ISSI_Chips_define >= 3
+	LED_pageBuffer_brightness[2].i2c_addr = LED_MapCh3_Addr_define;
+	LED_pageBuffer_brightness[2].reg_addr = ISSI_LEDPwmRegStart;
+#endif
+#if ISSI_Chips_define >= 4
+	LED_pageBuffer_brightness[3].i2c_addr = LED_MapCh4_Addr_define;
+	LED_pageBuffer_brightness[3].reg_addr = ISSI_LEDPwmRegStart;
+#endif
+#endif
+
+	// LED default setting
+	LED_enable = ISSI_Enable_define;
 
 	// Enable Hardware shutdown (pull low)
 	GPIOB_PDDR |= (1<<16);
 	PORTB_PCR16 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOB_PCOR |= (1<<16);
 
+#if ISSI_Chip_31FL3733_define == 1
+	// Reset I2C bus (pull high, then low)
+	// NOTE: This GPIO may be shared with the debug LED
+	GPIOA_PDDR |= (1<<5);
+	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOC_PSOR |= (1<<5);
+	delayMicroseconds(50);
+	GPIOC_PCOR |= (1<<5);
+#endif
+
 	// Zero out Frame Registers
 	// This needs to be done before disabling the hardware shutdown (or the leds will do undefined things)
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	LED_zeroControlPages();
+
+	// Disable Hardware shutdown of ISSI chips (pull high)
+	if ( LED_enable )
 	{
-		uint8_t addr = LED_ChannelMapping[ ch ].addr;
-		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-		LED_zeroPages( bus, addr, 0x0B, 1, 0x00, 0x0C ); // Control Registers
+		GPIOB_PSOR |= (1<<16);
 	}
-
-	// Disable Hardware shutdown of ISSI chip (pull high)
-	GPIOB_PSOR |= (1<<16);
-
-	// Prepare pin to read INTB interrupt of ISSI chip (Active Low)
-	// Enable interrupt to detect falling edge
-	// Uses external pullup resistor
-	GPIOB_PDDR |= ~(1<<17);
-	PORTB_PCR17 = PORT_PCR_IRQC(0xA) | PORT_PCR_PFE | PORT_PCR_MUX(1);
-	LED_FrameBufferReset = 0; // Clear frame buffer reset condition for ISSI
-
-	// Enable PORTB interrupt
-	NVIC_ENABLE_IRQ( IRQ_PORTB );
 
 	// Reset LED sequencing
 	LED_reset();
@@ -592,17 +731,10 @@ void LED_linkedSend()
 	// Check if we've updated all the ISSI chips for this frame
 	if ( LED_chipSend >= ISSI_Chips_define )
 	{
-		/*
-		// Increment the buffer page
-		// And reset if necessary
-		if ( ++LED_FrameBufferPage >= LED_FrameBuffersMax * 2 )
-		{
-			LED_FrameBufferPage = 0;
-		}
-		*/
-
 		// Now ready to update the frame buffer
 		Pixel_FrameState = FrameState_Update;
+
+		// Finished sending the buffer, exit linked send
 		return;
 	}
 
@@ -612,36 +744,39 @@ void LED_linkedSend()
 	// Lookup bus number
 	uint8_t bus = LED_ChannelMapping[ LED_chipSend ].bus;
 
-	// Debug
 	/*
+	// Debug
 	dbug_msg("Linked Send: chip(");
 	printHex( LED_chipSend );
-	print(") frame(");
-	printHex( LED_FrameBufferPage );
-	print(") addr(");
+	print(")addr(");
 	printHex( LED_pageBuffer[ LED_chipSend ].i2c_addr );
-	print(") reg(");
+	print(")reg(");
 	printHex( LED_pageBuffer[ LED_chipSend ].reg_addr );
-	print(") len(");
+	print(")len(");
 	printHex( sizeof( LED_Buffer ) / 2 );
-	print(") data[]" "(");
-	for ( uint8_t c = 0; c < 9; c++ )
-	//for ( uint8_t c = 0; c < sizeof( LED_Buffer ) / 2 - 2; c++ )
+	print(")data[](");
+	//for ( uint8_t c = 0; c < 9; c++ )
+	for ( uint8_t c = 0; c < sizeof( LED_Buffer ) / 2 - 2; c++ )
 	{
 		printHex( LED_pageBuffer[ LED_chipSend ].buffer[c] );
 		print(" ");
 	}
-	print(")" NL);
+	print("..)" NL);
 	*/
 
 	// Artificial delay to assist i2c bus
-	const uint32_t delay_tm = 50;
+	const uint32_t delay_tm = ISSI_SendDelay;
 	//delayMicroseconds( delay_tm );
 
 	// Send, and recursively call this function when finished
 	while ( i2c_send_sequence(
 		bus,
+#if ISSI_Chip_31FL3731_define == 1
+		/* Brightness emulation */
+		(uint16_t*)&LED_pageBuffer_brightness[ LED_chipSend ],
+#else
 		(uint16_t*)&LED_pageBuffer[ LED_chipSend ],
+#endif
 		sizeof( LED_Buffer ) / 2,
 		0,
 		LED_linkedSend,
@@ -655,39 +790,39 @@ void LED_linkedSend()
 
 
 // LED State processing loop
-uint32_t LED_timePrev = 0;
 unsigned int LED_currentEvent = 0;
 inline void LED_scan()
 {
 	// Check for current change event
 	if ( LED_currentEvent )
 	{
-		// TODO dim LEDs in low power mode instead of shutting off
+		// Turn LEDs off in low power mode
 		if ( LED_currentEvent < 150 )
 		{
-			// Enable Software shutdown of ISSI chip
-			for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-			{
-				uint8_t addr = LED_ChannelMapping[ ch ].addr;
-				uint8_t bus = LED_ChannelMapping[ ch ].bus;
-				LED_writeReg( bus, addr, 0x0A, 0x00, 0x0B );
-			}
+			LED_enable = 0;
 		}
 		else
 		{
-			// Disable Software shutdown of ISSI chip
-			for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-			{
-				uint8_t addr = LED_ChannelMapping[ ch ].addr;
-				uint8_t bus = LED_ChannelMapping[ ch ].bus;
-				LED_writeReg( bus, addr, 0x0A, 0x01, 0x0B );
-			}
-
+			LED_enable = 1;
 			// Trigger power-up animation
 			// TODO
 		}
 
 		LED_currentEvent = 0;
+	}
+
+	// Check enable state
+	if ( LED_enable )
+	{
+		// Disable Hardware shutdown of ISSI chips (pull high)
+		GPIOB_PSOR |= (1<<16);
+	}
+	// Only write pages to I2C if chip is enabled (i.e. Hardware shutdown is disabled)
+	else
+	{
+		// Enable hardware shutdown
+		GPIOB_PCOR |= (1<<16);
+		return;
 	}
 
 	// Only start if we haven't already
@@ -699,181 +834,77 @@ inline void LED_scan()
 	if ( Pixel_FrameState != FrameState_Ready )
 		return;
 
+	// Adjust frame rate (i.e. delay and do something else for a bit)
+	Time duration = Time_duration( LED_timePrev );
+	if ( duration.ms < LED_framerate )
+		return;
+
 	// FPS Display
 	if ( LED_displayFPS )
 	{
+		// Show frame calculation
 		dbug_msg("1frame/");
-		printInt32( systick_millis_count - LED_timePrev );
-		LED_timePrev = systick_millis_count;
-		print( "ms" NL );
+		printInt32( Time_ms( duration ) );
+		print("ms + ");
+		printInt32( duration.ticks );
+		print(" ticks");
+
+		// Check if we're not meeting frame rate
+		if ( duration.ms > LED_framerate )
+		{
+			print(" - Could not meet framerate: ");
+			printInt32( LED_framerate );
+		}
+
+		print( NL );
 	}
+
+	// Emulated brightness control
+	// Lower brightness by LED_brightness
+#if ISSI_Chip_31FL3731_define == 1
+	uint8_t inverse_brightness = 0xFF - LED_brightness;
+	for ( uint8_t chip = 0; chip < ISSI_Chips_define; chip++ )
+	{
+		for ( uint8_t ch = 0; ch < LED_BufferLength; ch++ )
+		{
+			// Don't modify is 0
+			if ( LED_pageBuffer[ chip ].buffer[ ch ] == 0 )
+			{
+				LED_pageBuffer_brightness[ chip ].buffer[ ch ] = 0;
+				continue;
+			}
+
+			LED_pageBuffer_brightness[ chip ].buffer[ ch ] =
+				LED_pageBuffer[ chip ].buffer[ ch ] - inverse_brightness < 0
+				? 0x0
+				: LED_pageBuffer[ chip ].buffer[ ch ] - inverse_brightness;
+		}
+	}
+#endif
+
+	// Update frame start time
+	LED_timePrev = Time_now();
 
 	// Set the page of all the ISSI chips
 	// This way we can easily link the buffers to send the brightnesses in the background
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
-		// Page Setup
-		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-		uint16_t pageSetup[] = { addr, 0xFD, LED_FrameBufferPage };
+		// Page Setup
+		LED_setupPage(
+			bus,
+			LED_ChannelMapping[ ch ].addr,
+			ISSI_LEDPwmPage
+		);
 
-		// Send each update
-		while ( i2c_send( bus, pageSetup, sizeof( pageSetup ) / 2 ) == -1 )
-			delayMicroseconds(50);
-
+#if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
 		// Reset LED enable mask
 		// XXX At high speeds, the IS31FL3732 seems to have random bit flips
 		//     To get around this, just re-set the enable mask before each send
 		// XXX Might be sufficient to do this every N frames though
 		while ( i2c_send( bus, (uint16_t*)&LED_ledEnableMask[ ch ], sizeof( LED_EnableBuffer ) / 2 ) == -1 )
-			delayMicroseconds(50);
-	}
-
-	// Check for current change event
-	if ( LED_currentEvent )
-	{
-		// TODO dim LEDs in low power mode instead of shutting off
-		if ( LED_currentEvent < 150 )
-		{
-			// Enable Software shutdown of ISSI chip
-			// TODO
-			//LED_writeReg( 0x0A, 0x00, 0x0B );
-		}
-		else
-		{
-			// Disable Software shutdown of ISSI chip
-			// TODO
-			//LED_writeReg( 0x0A, 0x01, 0x0B );
-		}
-
-		LED_currentEvent = 0;
-	}
-
-	// Send current set of buffers
-	// Uses interrupts to send to all the ISSI chips
-	// Pixel_FrameState will be updated when complete
-	LED_chipSend = 0; // Start with chip 0
-	LED_linkedSend();
-}
-
-inline void LED_scan_OLD()
-{
-	// Check for current change event
-	if ( LED_currentEvent )
-	{
-		// TODO dim LEDs in low power mode instead of shutting off
-		if ( LED_currentEvent < 150 )
-		{
-			// Enable Software shutdown of ISSI chip
-			for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-			{
-				uint8_t addr = LED_ChannelMapping[ ch ].addr;
-				uint8_t bus = LED_ChannelMapping[ ch ].bus;
-				LED_writeReg( bus, addr, 0x0A, 0x00, 0x0B );
-			}
-		}
-		else
-		{
-			// Disable Software shutdown of ISSI chip
-			for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-			{
-				uint8_t addr = LED_ChannelMapping[ ch ].addr;
-				uint8_t bus = LED_ChannelMapping[ ch ].bus;
-				LED_writeReg( bus, addr, 0x0A, 0x01, 0x0B );
-			}
-
-			// Trigger power-up animation
-			// TODO
-		}
-
-		LED_currentEvent = 0;
-	}
-
-	// Check to see if frame buffers are ready to replenish
-	if ( LED_FrameBufferReset )
-	{
-		LED_FrameBufferReset = 0;
-		// Delay, in order to synchronize chips
-		LED_FrameBufferStart = 1;
-
-		// FPS Display
-		if ( LED_displayFPS )
-		{
-			dbug_msg("4frames/");
-			printInt32( systick_millis_count - LED_timePrev );
-			LED_timePrev = systick_millis_count;
-			print( "ms" NL );
-		}
-	}
-
-	// Make sure there are buffers available
-	if ( LED_FrameBuffersReady == 0 )
-	{
-		// Only start if we haven't already
-		// And if we've finished updating the buffers
-		if ( !LED_FrameBufferStart || Pixel_FrameState == FrameState_Sending )
-			return;
-
-		// Start Auto Frame Play on either frame 1 or 5
-		uint8_t frame = LED_FrameBufferPage == 0 ? 4 : 0;
-		LED_syncReg( 0x00, 0x08 | frame, 0x0B );
-
-		LED_FrameBufferStart = 0;
-		LED_FrameBuffersReady = LED_FrameBuffersMax;
-
-		return;
-	}
-	/*
-	else
-	{
-		dbug_msg(":/ - Start(");
-		printHex( LED_FrameBufferStart );
-		print(") BuffersReady(");
-		printHex( LED_FrameBuffersReady );
-		print(") State(");
-		printHex( Pixel_FrameState );
-		print(")"NL);
-	}
-	*/
-
-	// Only send frame to ISSI chip if buffers are ready
-	if ( Pixel_FrameState != FrameState_Ready )
-		return;
-
-	LED_FrameBuffersReady--;
-
-	// Set the page of all the ISSI chips
-	// This way we can easily link the buffers to send the brightnesses in the background
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		// Page Setup
-		uint8_t addr = LED_ChannelMapping[ ch ].addr;
-		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-		uint16_t pageSetup[] = { addr, 0xFD, LED_FrameBufferPage };
-
-		// Send each update
-		while ( i2c_send( bus, pageSetup, sizeof( pageSetup ) / 2 ) == -1 )
-			delay(1);
-	}
-
-	// Check for current change event
-	if ( LED_currentEvent )
-	{
-		// TODO dim LEDs in low power mode instead of shutting off
-		if ( LED_currentEvent < 150 )
-		{
-			// Enable Software shutdown of ISSI chip
-			// TODO
-			//LED_writeReg( 0x0A, 0x00, 0x0B );
-		}
-		else
-		{
-			// Disable Software shutdown of ISSI chip
-			// TODO
-			//LED_writeReg( 0x0A, 0x01, 0x0B );
-		}
-
-		LED_currentEvent = 0;
+			delayMicroseconds( ISSI_SendDelay );
+#endif
 	}
 
 	// Send current set of buffers
@@ -897,305 +928,136 @@ void LED_currentChange( unsigned int current )
 // ----- Capabilities -----
 
 // Basic LED Control Capability
-typedef enum LedControlMode {
-	// Single LED Modes
-	LedControlMode_brightness_decrease,
-	LedControlMode_brightness_increase,
-	LedControlMode_brightness_set,
-	// Set all LEDs (index argument not required)
-	LedControlMode_brightness_decrease_all,
-	LedControlMode_brightness_increase_all,
-	LedControlMode_brightness_set_all,
-} LedControlMode;
-
-typedef struct LedControl {
-	LedControlMode mode;   // XXX Make sure to adjust the .kll capability if this variable is larger than 8 bits
-	uint8_t        amount;
-	uint16_t       index;
+typedef enum LedControl {
+	// Set all LEDs - with argument
+	LedControl_brightness_decrease_all,
+	LedControl_brightness_increase_all,
+	LedControl_brightness_set_all,
+	// Set all LEDs - no argument
+	LedControl_off,
+	LedControl_on,
+	LedControl_toggle,
 } LedControl;
 
-void LED_control( LedControl *control )
+void LED_control( LedControl control, uint8_t arg )
 {
-	// Configure based upon the given mode
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	switch ( control )
 	{
-		// TODO Perhaps do gamma adjustment?
-		switch ( control->mode )
-		{
-		case LedControlMode_brightness_decrease:
-			// Don't worry about rolling over, the cycle is quick
-			LED_pageBuffer[ ch ].buffer[ control->index ] -= control->amount;
-			break;
+	case LedControl_brightness_decrease_all:
+		LED_enable = 1;
+		// Only decrease to zero
+		if ( LED_brightness - arg < 0 )
+			LED_brightness = 0;
+		else
+			LED_brightness -= arg;
+		break;
 
-		case LedControlMode_brightness_increase:
-			// Don't worry about rolling over, the cycle is quick
-			LED_pageBuffer[ ch ].buffer[ control->index ] += control->amount;
-			break;
+	case LedControl_brightness_increase_all:
+		LED_enable = 1;
+		// Only increase to max
+		if ( LED_brightness + arg > 0xFF )
+			LED_brightness = 0xFF;
+		else
+			LED_brightness += arg;
+		break;
 
-		case LedControlMode_brightness_set:
-			LED_pageBuffer[ ch ].buffer[ control->index ] = control->amount;
-			break;
+	case LedControl_brightness_set_all:
+		LED_enable = 1;
+#if ISSI_Chip_31FL3731_define == 1
+		LED_brightness = ISSI_Global_Brightness_define;
+#else
+		LED_brightness = arg;
+#endif
+		break;
 
-		case LedControlMode_brightness_decrease_all:
-			for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
-			{
-				// Don't worry about rolling over, the cycle is quick
-				LED_pageBuffer[ ch ].buffer[ channel ] -= control->amount;
-			}
-			break;
+	case LedControl_off:
+		LED_enable = 0;
+		return;
 
-		case LedControlMode_brightness_increase_all:
-			for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
-			{
-				// Don't worry about rolling over, the cycle is quick
-				LED_pageBuffer[ ch ].buffer[ channel ] += control->amount;
-			}
-			break;
+	case LedControl_on:
+		LED_enable = 1;
+		return;
 
-		case LedControlMode_brightness_set_all:
-			for ( uint8_t channel = 0; channel < LED_TotalChannels; channel++ )
-			{
-				LED_pageBuffer[ ch ].buffer[ channel ] = control->amount;
-			}
-			break;
-		}
+	case LedControl_toggle:
+		LED_enable = !LED_enable;
+		return;
 	}
 
-	// Sync LED buffer with ISSI chip buffer
-	// TODO Support multiple frames
+	// Update brightness
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
-		LED_sendPage(
-			LED_ChannelMapping[ ch ].bus,
-			LED_ChannelMapping[ ch ].addr,
-			(uint16_t*)&LED_pageBuffer[ ch ],
-			sizeof( LED_Buffer ) / 2, 0
-		);
+		uint8_t addr = LED_ChannelMapping[ ch ].addr;
+		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+
+#if ISSI_Chip_31FL3733_define == 1
+		LED_writeReg( bus, addr, 0x01, LED_brightness, ISSI_ConfigPage );
+#elif ISSI_Chip_31FL3732_define == 1
+		LED_writeReg( bus, addr, 0x04, LED_brightness, ISSI_ConfigPage );
+#elif ISSI_Chip_31FL3731_define == 1
+		// XXX (HaaTa) - This is emulated, see LED_scan for implementation
+#endif
 	}
 }
 
-uint8_t LED_control_timer = 0;
 void LED_control_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
-		print("LED_control_capability(mode,amount,index)");
+		print("LED_control_capability(mode,amount)");
 		return;
 	}
 
-	// Only use capability on press
+	// Only use capability on press only
 	// TODO Analog
-	if ( stateType == 0x00 && state == 0x03 ) // Not on release
+	if ( state != 0x01 )
 		return;
-
-	// XXX
-	// ISSI Chip locks up if we spam updates too quickly (might be an I2C bug on this side too -HaaTa)
-	// Make sure we only send an update every 30 milliseconds at most
-	// It may be possible to optimize speed even further, but will likely require serious time with a logic analyzer
-
-	uint8_t currentTime = (uint8_t)systick_millis_count;
-	int8_t compare = (int8_t)(currentTime - LED_control_timer) & 0x7F;
-	if ( compare < 30 )
-	{
-		return;
-	}
-	LED_control_timer = currentTime;
 
 	// Set the input structure
-	LedControl *control = (LedControl*)args;
+	LedControl control = (LedControl)args[0];
+	uint8_t arg = (uint8_t)args[1];
 
 	// Interconnect broadcasting
 #if defined(ConnectEnabled_define)
-	uint8_t send_packet = 0;
-	uint8_t ignore_node = 0;
-
 	// By default send to the *next* node, which will determine where to go next
 	extern uint8_t Connect_id; // connect_scan.c
 	uint8_t addr = Connect_id + 1;
 
-	switch ( control->mode )
-	{
-	// Calculate the led address to send
-	// If greater than the Total hannels
-	// Set address - Total channels
-	// Otherwise, ignore
-	case LedControlMode_brightness_decrease:
-	case LedControlMode_brightness_increase:
-	case LedControlMode_brightness_set:
-		// Ignore if led is on this node
-		if ( control->index < LED_TotalChannels )
-			break;
+	// Send interconnect remote capability packet
+	// generatedKeymap.h
+	extern const Capability CapabilitiesList[];
 
-		// Calculate new led index
-		control->index -= LED_TotalChannels;
-
-		ignore_node = 1;
-		send_packet = 1;
-		break;
-
-	// Broadcast to all nodes
-	// XXX Do not set broadcasting address
-	//     Will send command twice
-	case LedControlMode_brightness_decrease_all:
-	case LedControlMode_brightness_increase_all:
-	case LedControlMode_brightness_set_all:
-		send_packet = 1;
-		break;
-	}
-
-	// Only send interconnect remote capability packet if necessary
-	if ( send_packet )
-	{
-		// generatedKeymap.h
-		extern const Capability CapabilitiesList[];
-
-		// Broadcast layerStackExact remote capability (0xFF is the broadcast id)
-		Connect_send_RemoteCapability(
-			addr,
-			LED_control_capability_index,
-			state,
-			stateType,
-			CapabilitiesList[ LED_control_capability_index ].argCount,
-			args
-		);
-	}
-
-	// If there is nothing to do on this node, ignore
-	if ( ignore_node )
-		return;
+	// Broadcast layerStackExact remote capability (0xFF is the broadcast id)
+	Connect_send_RemoteCapability(
+		addr,
+		LED_control_capability_index,
+		state,
+		stateType,
+		CapabilitiesList[ LED_control_capability_index ].argCount,
+		args
+	);
 #endif
 
 	// Modify led state of this node
-	LED_control( control );
+	LED_control( control, arg );
 }
 
 
 
 // ----- CLI Command Functions -----
 
-// TODO Currently not working correctly
-void cliFunc_i2cSend( char* args )
-{
-	/*
-	char* curArgs;
-	char* arg1Ptr;
-	char* arg2Ptr = args;
-
-	// Buffer used after interpretting the args, will be sent to I2C functions
-	// NOTE: Limited to 8 bytes currently (can be increased if necessary
-	#define i2cSend_BuffLenMax 8
-	uint16_t buffer[ i2cSend_BuffLenMax ];
-	uint8_t  bufferLen = 0;
-
-	// No \r\n by default after the command is entered
-	print( NL );
-	info_msg("Sending: ");
-
-	// Parse args until a \0 is found
-	while ( bufferLen < i2cSend_BuffLenMax )
-	{
-		curArgs = arg2Ptr; // Use the previous 2nd arg pointer to separate the next arg from the list
-		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
-
-		// Stop processing args if no more are found
-		if ( *arg1Ptr == '\0' )
-			break;
-
-		// If | is found, end sequence and start new one
-		if ( *arg1Ptr == '|' )
-		{
-			print("| ");
-			i2c_send( buffer, bufferLen );
-			bufferLen = 0;
-			continue;
-		}
-
-		// Interpret the argument
-		buffer[ bufferLen++ ] = (uint8_t)numToInt( arg1Ptr );
-
-		// Print out the arg
-		dPrint( arg1Ptr );
-		print(" ");
-	}
-
-	print( NL );
-
-	i2c_send( buffer, bufferLen );
-	*/
-}
-
-/*
-void cliFunc_ledWPage( char* args )
-{
-	char* curArgs;
-	char* arg1Ptr;
-	char* arg2Ptr = args;
-
-	// First specify the write address
-	curArgs = arg2Ptr;
-	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
-
-	// Stop processing args if no more are found
-	if ( *arg1Ptr == '\0' )
-		return;
-	uint8_t addr = numToInt( arg1Ptr );
-
-	// Next process page and starting address
-	curArgs = arg2Ptr;
-	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
-
-	// Stop processing args if no more are found
-	if ( *arg1Ptr == '\0' )
-		return;
-	uint8_t page[] = { addr, 0xFD, numToInt( arg1Ptr ) };
-
-	curArgs = arg2Ptr;
-	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
-
-	// Stop processing args if no more are found
-	if ( *arg1Ptr == '\0' )
-		return;
-	uint8_t data[] = { addr, numToInt( arg1Ptr ), 0 };
-
-	// Set the register page
-	while ( I2C_Send( page, sizeof( page ), 0 ) == 0 )
-		delay(1);
-
-	// Process all args
-	for ( ;; )
-	{
-		curArgs = arg2Ptr;
-		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
-
-		// Stop processing args if no more are found
-		if ( *arg1Ptr == '\0' )
-			break;
-
-		data[2] = numToInt( arg1Ptr );
-
-		// Write register location and data to I2C
-		while ( I2C_Send( data, sizeof( data ), 0 ) == 0 )
-			delay(1);
-
-		// Increment address
-		data[1]++;
-	}
-}
-*/
-
 void cliFunc_ledReset( char* args )
 {
 	print( NL ); // No \r\n by default after the command is entered
 
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		LED_zeroPages(
-			LED_ChannelMapping[ ch ].bus,
-			LED_ChannelMapping[ ch ].addr,
-			0x0B, 1, 0x00, 0x0C
-		); // Control Registers
-	}
+	// Reset I2C bus
+	GPIOC_PSOR |= (1<<5);
+	delayMicroseconds(50);
+	GPIOC_PCOR |= (1<<5);
+	i2c_reset();
+
+	// Clear control registers
+	LED_zeroControlPages();
 
 	// Clear buffers
 	for ( uint8_t buf = 0; buf < ISSI_Chips_define; buf++ )
@@ -1203,244 +1065,93 @@ void cliFunc_ledReset( char* args )
 		memset( (void*)LED_pageBuffer[ buf ].buffer, 0, LED_BufferLength * 2 );
 	}
 
+	// Reset LEDs
 	LED_reset();
-
-	// TODO Remove me
-	/*
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		LED_sendPage(
-			LED_ChannelMapping[ ch ].bus,
-			LED_ChannelMapping[ ch ].addr,
-			0x0B, 1, 0x00, 0x0C
-		); // Control Registers
-	}
-	*/
 }
 
-void cliFunc_ledSpeed( char* args )
+void cliFunc_ledFPS( char* args )
 {
 	print( NL ); // No \r\n by default after the command is entered
 
 	char* curArgs;
 	char* arg1Ptr;
 	char* arg2Ptr = args;
-	uint8_t speed = ISSI_AnimationSpeed_define;
 
 	// Process speed argument if given
 	curArgs = arg2Ptr;
 	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
 
-	// Check if f argument was given
-	switch ( *arg1Ptr )
+	// Just toggling FPS display
+	if ( *arg1Ptr == '\0' )
 	{
-	case 'f':
-	case 'F':
 		info_msg("FPS Toggle");
 		LED_displayFPS = !LED_displayFPS;
 		return;
 	}
 
-	// Stop processing args if no more are found
-	if ( *arg1Ptr != '\0' )
+	// Check if f argument was given
+	switch ( *arg1Ptr )
 	{
-		speed = numToInt( arg1Ptr );
-	}
-	// Default to default speed
-	else
-	{
-		info_msg("Setting default speed: ");
-		printInt8( speed );
+	case 'r': // Reset framerate
+	case 'R':
+		LED_framerate = ISSI_FrameRate_ms_define;
+		break;
+
+	default: // Convert to a number
+		LED_framerate = numToInt( arg1Ptr );
+		break;
 	}
 
-
-	// Set refresh speed per ISSI chip
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		uint8_t addr = LED_ChannelMapping[ ch ].addr;
-		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-
-		// Default refresh speed - TxA
-		// T is typically 11ms
-		// A is 1 to 64 (where 0 is 64)
-		LED_writeReg( bus, addr, 0x03, speed, 0x0B );
-	}
+	// Show result
+	info_msg("Setting framerate to: ");
+	printInt32( LED_framerate );
+	print("ms");
 }
 
-void cliFunc_ledCtrl( char* args )
+void cliFunc_ledToggle( char* args )
 {
+	print( NL ); // No \r\n by default after the command is entered
+	info_msg("LEDs Toggle");
+	LED_enable = !LED_enable;
+}
+
+void cliFunc_ledSet( char* args )
+{
+	print( NL ); // No \r\n by default after the command is entered
+
 	char* curArgs;
 	char* arg1Ptr;
 	char* arg2Ptr = args;
-	LedControl control;
 
-	// First process mode
+	// Process speed argument if given
 	curArgs = arg2Ptr;
 	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
 
-	// Stop processing args if no more are found
+	// Reset brightness
 	if ( *arg1Ptr == '\0' )
-		return;
-	control.mode = numToInt( arg1Ptr );
-
-
-	// Next process amount
-	curArgs = arg2Ptr;
-	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
-
-	// Stop processing args if no more are found
-	if ( *arg1Ptr == '\0' )
-		return;
-	control.amount = numToInt( arg1Ptr );
-
-
-	// Finally process led index, if it exists
-	// Default to 0
-	curArgs = arg2Ptr;
-	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
-	control.index = *arg1Ptr == '\0' ? 0 : numToInt( arg1Ptr );
-
-	// Process request
-	LED_control( &control );
-}
-
-uint8_t toggles = 0;
-void cliFunc_ledTest( char* args )
-{
-	// Clear LED Pages
-	// Enable LEDs based upon mask
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
-		uint8_t addr = LED_ChannelMapping[ ch ].addr;
-		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-		//LED_zeroPages( bus, addr, 0x00, 8, 0x00, 0xB4 ); // LED Registers
-
-		// For each page
-		for ( uint8_t pg = 0; pg < LED_FrameBuffersMax * 2; pg++ )
-		{
-			LED_sendPage(
-				bus,
-				addr,
-				(uint16_t*)&LED_ledEnableMask[ ch ],
-				sizeof( LED_EnableBuffer ) / 2,
-				pg
-			);
-		}
-	}
-
-	//LED_FrameBufferStart = 1;
-
-	/*
-	if ( toggles == 0 )
-	{
-		print("yaaaa");
-		toggles = 1;
-	// Setup ISSI auto frame play, but do not start yet
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		uint8_t addr = LED_ChannelMapping[ ch ].addr;
-		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-
-		// Set MODE to Picture mode
-		LED_writeReg( bus, addr, 0x00, 0x00, 0x0B );
-	}
+		LED_brightness = ISSI_Global_Brightness_define;
 	}
 	else
 	{
-		print("onnnn");
-		toggles = 0;
-	// Setup ISSI auto frame play, but do not start yet
+		LED_brightness = numToInt( arg1Ptr );
+	}
+
+	info_msg("LED Brightness Set");
+
+	// Update brightness
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
 		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-		// CNS 1 loop, FNS 4 frames - 0x14
-		LED_writeReg( bus, addr, 0x02, 0x14, 0x0B );
 
-		// Default refresh speed - TxA
-		// T is typically 11ms
-		// A is 1 to 64 (where 0 is 64)
-		LED_writeReg( bus, addr, 0x03, ISSI_AnimationSpeed_define, 0x0B );
-
-#if ISSI_Chip_31FL3732_define == 1
-		// Enable master sync for the first chip
-		if ( ch == 0 )
-		{
-			// Set MODE to Auto Frame Play
-			LED_writeReg( bus, addr, 0x00, 0x48, 0x0B );
-		}
-		// Slave sync for the rest
-		else
-		{
-			// Set MODE to Auto Frame Play
-			LED_writeReg( bus, addr, 0x00, 0x88, 0x0B );
-		}
-#else
-		// Set MODE to Auto Frame Play
-		LED_writeReg( bus, addr, 0x00, 0x08, 0x0B );
+#if ISSI_Chip_31FL3733_define == 1
+		LED_writeReg( bus, addr, 0x01, LED_brightness, ISSI_ConfigPage );
+#elif ISSI_Chip_31FL3732_define == 1
+		LED_writeReg( bus, addr, 0x04, LED_brightness, ISSI_ConfigPage );
+#elif ISSI_Chip_31FL3731_define == 1
+		// XXX (HaaTa) - This is emulated, see LED_scan and LED_linkedSend for implementation
 #endif
 	}
-	}
-	*/
-	/* XXX Didn't work
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		uint8_t addr = LED_ChannelMapping[ ch ].addr;
-		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-
-		// See, 31FL3732 datasheet for details on calculation
-		// Depends on Rext
-		// TODO Array set per chip
-		{
-			LED_writeReg( bus, addr, 0x04, ISSI_Global_Brightness_define, 0x0B );
-		}
-	}
-	*/
-	/* XXX Didn't work
-	// Setup ISSI auto frame play, but do not start yet
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		uint8_t addr = LED_ChannelMapping[ ch ].addr;
-		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-		// CNS 1 loop, FNS 4 frames - 0x14
-		LED_writeReg( bus, addr, 0x02, 0x14, 0x0B );
-
-		// Default refresh speed - TxA
-		// T is typically 11ms
-		// A is 1 to 64 (where 0 is 64)
-		LED_writeReg( bus, addr, 0x03, ISSI_AnimationSpeed_define, 0x0B );
-
-		// Set MODE to Auto Frame Play
-		LED_writeReg( bus, addr, 0x00, 0x08, 0x0B );
-	}
-	*/
-
-	/* XXX Didn't work
-	// Enable Software shutdown of ISSI chip
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		// Disable Software shutdown of ISSI chip
-		for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-		{
-			uint8_t addr = LED_ChannelMapping[ ch ].addr;
-			uint8_t bus = LED_ChannelMapping[ ch ].bus;
-			LED_writeReg( bus, addr, 0x0A, 0x00, 0x0B );
-			//LED_writeReg( bus, addr, 0x0A, 0x11, 0x0B );
-		}
-	}
-
-
-	// Disable Software shutdown of ISSI chip
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		// Disable Software shutdown of ISSI chip
-		for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-		{
-			uint8_t addr = LED_ChannelMapping[ ch ].addr;
-			uint8_t bus = LED_ChannelMapping[ ch ].bus;
-			LED_writeReg( bus, addr, 0x0A, 0x01, 0x0B );
-		}
-	}
-	*/
 }
 

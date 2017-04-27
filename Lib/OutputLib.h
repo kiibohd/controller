@@ -32,6 +32,7 @@
 
 #include "mk20dx.h"
 #include "delay.h"
+#include "time.h"
 
 #endif
 

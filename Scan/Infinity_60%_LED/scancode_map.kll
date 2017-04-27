@@ -6,72 +6,72 @@ Author = "HaaTa (Jacob Alexander) 2014-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-02-14;
+Date = 2017-04-02;
 
 
-S0x00 : U"Esc";
-S0x01 : U"1";
-S0x02 : U"2";
-S0x03 : U"3";
-S0x04 : U"4";
-S0x05 : U"5";
-S0x06 : U"6";
-S0x07 : U"7";
-S0x08 : U"8";
-S0x09 : U"9";
-S0x0A : U"0";
-S0x0B : U"Minus";
-S0x0C : U"Equal";
-S0x0D : U"Backslash";
-S0x0E : U"Backtick";
-S0x0F : U"Tab";
-S0x10 : U"Q";
-S0x11 : U"W";
-S0x12 : U"E";
-S0x13 : U"R";
-S0x14 : U"T";
-S0x15 : U"Y";
-S0x16 : U"U";
-S0x17 : U"I";
-S0x18 : U"O";
-S0x19 : U"P";
-S0x1A : U"LBrace";
-S0x1B : U"RBrace";
-S0x1C : U"Backspace";
-S0x1D : U"Ctrl";
-S0x1E : U"A";
-S0x1F : U"S";
-S0x20 : U"D";
-S0x21 : U"F";
-S0x22 : U"G";
-S0x23 : U"H";
-S0x24 : U"J";
-S0x25 : U"K";
-S0x26 : U"L";
-S0x27 : U"Semicolon";
-S0x28 : U"Quote";
-S0x29 : U"Enter";
-S0x2A : U"LShift";
-S0x2B : U"Z";
-S0x2C : U"X";
-S0x2D : U"C";
-S0x2E : U"V";
-S0x2F : U"B";
-S0x30 : U"N";
-S0x31 : U"M";
-S0x32 : U"Comma";
-S0x33 : U"Period";
-S0x34 : U"Slash";
-S0x35 : U"RShift";
-S0x36 : U"Function1"; # Fun key
-S0x37 : U"Function2"; # Left Blank Key
-S0x38 : U"LAlt";
-S0x39 : U"LGui";
-S0x3A : U"Space";
-S0x3B : U"RGui";
-S0x3C : U"RAlt";
-S0x3D : U"Function3"; # Right Blank Key 1
-S0x3E : U"Function4"; # Right Blank Key 2
+S0x01 : U"Esc";
+S0x02 : U"1";
+S0x03 : U"2";
+S0x04 : U"3";
+S0x05 : U"4";
+S0x06 : U"5";
+S0x07 : U"6";
+S0x08 : U"7";
+S0x09 : U"8";
+S0x0A : U"9";
+S0x0B : U"0";
+S0x0C : U"Minus";
+S0x0D : U"Equal";
+S0x0E : U"Backslash";
+S0x0F : U"Backtick";
+S0x10 : U"Tab";
+S0x11 : U"Q";
+S0x12 : U"W";
+S0x13 : U"E";
+S0x14 : U"R";
+S0x15 : U"T";
+S0x16 : U"Y";
+S0x17 : U"U";
+S0x18 : U"I";
+S0x19 : U"O";
+S0x1A : U"P";
+S0x1B : U"LBrace";
+S0x1C : U"RBrace";
+S0x1D : U"Backspace";
+S0x1E : U"Ctrl";
+S0x1F : U"A";
+S0x20 : U"S";
+S0x21 : U"D";
+S0x22 : U"F";
+S0x23 : U"G";
+S0x24 : U"H";
+S0x25 : U"J";
+S0x26 : U"K";
+S0x27 : U"L";
+S0x28 : U"Semicolon";
+S0x29 : U"Quote";
+S0x2A : U"Enter";
+S0x2B : U"LShift";
+S0x2C : U"Z";
+S0x2D : U"X";
+S0x2E : U"C";
+S0x2F : U"V";
+S0x30 : U"B";
+S0x31 : U"N";
+S0x32 : U"M";
+S0x33 : U"Comma";
+S0x34 : U"Period";
+S0x35 : U"Slash";
+S0x36 : U"RShift";
+S0x37 : U"Function1"; # Fun key
+S0x38 : U"Function2"; # Left Blank Key
+S0x39 : U"LAlt";
+S0x3A : U"LGui";
+S0x3B : U"Space";
+S0x3C : U"RGui";
+S0x3D : U"RAlt";
+S0x3E : U"Function3"; # Right Blank Key 1
+S0x3F : U"Function4"; # Right Blank Key 2
 
 
 # Defines available to the MD1_1 Scan Module
@@ -118,15 +118,91 @@ Pixel_Buffer_Buffer[0] = "LED_pageBuffer[0].buffer"; # Pointer to the start of t
 ### Pixel Mapping ###
 # Organizes each of the channels into pixels (may, or may not be multi-channel)
 
-# Number Row (?)
-# Top Alpha Row (?)
-# Mid Alpha Row (?)
-# Low Alpha Row (?)
-# Mod Row (?)
-# TODO
+# Number Row (1-15)
+P[  1](  0:8) : S1;
+P[  2](  1:8) : S2;
+P[  3](  2:8) : S3;
+P[  4](  3:8) : S4;
+P[  5](  4:8) : S5;
+P[  6](  5:8) : S6;
+P[  7](  6:8) : S7;
+P[  8](  7:8) : S8;
+P[  9]( 16:8) : S9;
+P[ 10]( 17:8) : S10;
+P[ 11]( 18:8) : S11;
+P[ 12]( 19:8) : S12;
+P[ 13]( 20:8) : S13;
+P[ 14]( 21:8) : S14;
+P[ 15]( 22:8) : S15;
+
+# Top Alpha Row (16-29)
+P[ 16]( 23:8) : S16;
+P[ 17]( 32:8) : S17;
+P[ 18]( 33:8) : S18;
+P[ 19]( 34:8) : S19;
+P[ 20]( 35:8) : S20;
+P[ 21]( 36:8) : S21;
+P[ 22]( 37:8) : S22;
+P[ 23]( 38:8) : S23;
+P[ 24]( 39:8) : S24;
+P[ 25]( 48:8) : S25;
+P[ 26]( 49:8) : S26;
+P[ 27]( 50:8) : S27;
+P[ 28]( 51:8) : S28;
+P[ 29]( 52:8) : S29;
+
+# Mid Alpha Row (30-42)
+P[ 30]( 53:8) : S30;
+P[ 31]( 54:8) : S31;
+P[ 32]( 55:8) : S32;
+P[ 33]( 64:8) : S33;
+P[ 34]( 65:8) : S34;
+P[ 35]( 66:8) : S35;
+P[ 36]( 67:8) : S36;
+P[ 37]( 68:8) : S37;
+P[ 38]( 69:8) : S38;
+P[ 39]( 70:8) : S39;
+P[ 40]( 71:8) : S40;
+P[ 41]( 80:8) : S41;
+P[ 42]( 81:8) : S42;
+
+# Low Alpha Row (43-55)
+P[ 43]( 82:8) : S43;
+P[ 44]( 83:8) : S44;
+P[ 45]( 84:8) : S45;
+P[ 46]( 85:8) : S46;
+P[ 47]( 86:8) : S47;
+P[ 48]( 87:8) : S48;
+P[ 49]( 96:8) : S49;
+P[ 50]( 97:8) : S50;
+P[ 51]( 98:8) : S51;
+P[ 52]( 99:8) : S52;
+P[ 53](100:8) : S53;
+P[ 54](101:8) : S54;
+P[ 55](102:8) : S55;
+
+# Mod Row (56-63)
+P[ 56](103:8) : S56;
+P[ 57](112:8) : S57;
+P[ 58](113:8) : S58;
+P[ 59](114:8) : S59;
+P[ 60](115:8) : S60;
+P[ 61](116:8) : S61;
+P[ 62](117:8) : S62;
+P[ 63](118:8) : S63;
+
+
 
 ### Physical Positions ###
+# XXX (HaaTa) - This part is adjusted depending on which layout of the IC60
+
 # Rows
+#S[1-15]  <= y:0;
+#S[16-29] <= y:-19.05;
+#S[30-42] <= y:-38.10;
+#S[43-55] <= y:-57.15;
+#S[56-63] <= y:-76.20;
+
 # Columns
 # TODO
 

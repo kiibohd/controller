@@ -150,6 +150,7 @@ message( "${CPU}" )
 set( COMPILER_SRCS
 	Lib/${CHIP_FAMILY}.c
 	Lib/delay.c
+	Lib/time.c
 )
 
 #| Clang needs a few more functions for linking

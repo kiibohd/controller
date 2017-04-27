@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +22,18 @@
 // ----- Includes -----
 
 // Project Includes
+#include <Lib/time.h>
+
+// General Includes
 #include <buildvars.h>
-#include "cli.h"
 #include <led.h>
 #include <print.h>
+
+// KLL Includes
 #include <kll_defs.h>
+
+// Local Includes
+#include "cli.h"
 
 
 
@@ -587,38 +594,17 @@ void cliFunc_tick( char* args )
 {
 	print( NL );
 
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
-	extern volatile uint32_t systick_millis_count;
-	uint32_t ms_count = systick_millis_count;
-#elif defined(_host_)
-	extern volatile uint32_t systick_millis_count;
-	uint32_t ms_count = systick_millis_count;
-#else
-	// TODO
-	uint32_t ms_count = 0;
-#endif
+	// Get current time
+	Time now = Time_now();
 
 	// Display <systick>:<cycleticks since systick>
 	info_msg("ns per cycletick: ");
-#if F_CPU == 72000000
-	print("13.889 ns");
-#elif F_CPU == 48000000
-	print("20.833 ns");
-#elif defined(_host_)
-	print("<USERDEFINED>");
-#else
-	print("<UNSET>");
-#endif
+	print( Time_ticksPer_ns_str );
 	print( NL );
 	info_print("<systick ms>:<cycleticks since systick>");
-	printInt32( ms_count );
+	printInt32( now.ms );
 	print(":");
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
-	printInt32( ARM_DWT_CYCCNT );
-#elif defined(_host_)
-	extern volatile uint32_t ns_since_systick_count;
-	printInt32( ns_since_systick_count );
-#endif
+	printInt32( now.ticks );
 	print( NL );
 }
 

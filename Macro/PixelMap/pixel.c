@@ -51,6 +51,8 @@ typedef enum PixelTest {
 	PixelTest_Off = 0,    // Disabled
 	PixelTest_Chan_All,   // Enable all positions
 	PixelTest_Chan_Roll,  // Iterate over all positions
+	PixelTest_Chan_Full,  // Turn on all pixels
+	PixelTest_Chan_Off,   // Turn off all pixels
 	PixelTest_Pixel_All,  // Enable all positions
 	PixelTest_Pixel_Roll, // Iterate over all positions
 	PixelTest_Pixel_Full, // Turn on all pixels
@@ -60,6 +62,12 @@ typedef enum PixelTest {
 	PixelTest_XY_All,
 	PixelTest_XY_Roll,
 } PixelTest;
+
+typedef enum AnimationControl {
+	AnimationControl_Forward = 0, // Default
+	AnimationControl_ForwardOne,
+	AnimationControl_Pause,
+} AnimationControl;
 
 
 
@@ -91,7 +99,7 @@ CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
 
 // Debug states
 PixelTest Pixel_testMode;
-uint16_t  Pixel_testPos;
+uint16_t  Pixel_testPos = 0;
 
 // Frame State
 //  Indicates to pixel and output modules current state of the buffer
@@ -99,6 +107,9 @@ FrameState Pixel_FrameState;
 
 // Animation Stack
 AnimationStack Pixel_AnimationStack;
+
+// Animation Control
+AnimationControl Pixel_animationControl;
 
 // Memory Stor for Animation Elements
 // Animation elements may be called multiple times, thus memory must be allocated per instance
@@ -169,6 +180,47 @@ void Pixel_Pixel_capability( TriggerMacro *trigger, uint8_t state, uint8_t state
 	// TODO Analog
 	if ( state != 0x01 )
 		return;
+}
+
+void Pixel_AnimationControl_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Pixel_AnimationControl_capability(func)");
+		return;
+	}
+
+	// Only use capability on press
+	// TODO Analog
+	if ( state != 0x01 )
+		return;
+
+	uint8_t arg  = *(uint8_t*)(&args[0]);
+
+	// Decide how to handle function
+	switch ( arg )
+	{
+	case 0: // Pause/Resume
+		// Determine how to handle Pause/Resume
+		switch ( Pixel_animationControl )
+		{
+		case AnimationControl_Forward:
+		case AnimationControl_ForwardOne:
+			Pixel_animationControl = AnimationControl_Pause;
+			break;
+		case AnimationControl_Pause:
+			Pixel_animationControl = AnimationControl_Forward;
+			break;
+		}
+		break;
+	case 1: // Forward one frame
+		Pixel_animationControl = AnimationControl_ForwardOne;
+		break;
+	case 2: // Forward
+		Pixel_animationControl = AnimationControl_Pause;
+		break;
+	}
 }
 
 
@@ -363,10 +415,16 @@ void Pixel_stackProcess()
 PixelBuf *Pixel_bufferMap( uint16_t channel )
 {
 	// TODO Generate based on keyboard
+#if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
 	if      ( channel < 144 ) return &Pixel_Buffers[0];
 	else if ( channel < 288 ) return &Pixel_Buffers[1];
 	else if ( channel < 432 ) return &Pixel_Buffers[2];
 	else if ( channel < 576 ) return &Pixel_Buffers[3];
+#elif ISSI_Chip_31FL3733_define == 1
+	if      ( channel < 192 ) return &Pixel_Buffers[0];
+	else if ( channel < 384 ) return &Pixel_Buffers[1];
+	else if ( channel < 576 ) return &Pixel_Buffers[2];
+#endif
 
 	// Invalid channel, return first channel and display error
 	erro_msg("Invalid channel: ");
@@ -1329,8 +1387,27 @@ inline void Pixel_process()
 	Pixel_updateUSBLEDs();
 
 	// Only update frame when ready
-	if ( Pixel_FrameState != FrameState_Update )
+	switch( Pixel_FrameState )
+	{
+	case FrameState_Update:
+	case FrameState_Pause:
+		break;
+	default:
 		return;
+	}
+
+	// Pause animation if set
+	switch ( Pixel_animationControl )
+	{
+	case AnimationControl_Forward:    // Ok
+	case AnimationControl_ForwardOne: // Ok + 1, then stop
+		Pixel_FrameState = FrameState_Update;
+		Pixel_FrameState = FrameState_Update;
+		break;
+	default: // Pause
+		Pixel_FrameState = FrameState_Pause;
+		return;
+	}
 
 	// First check if we are in a test mode
 	switch ( Pixel_testMode )
@@ -1350,10 +1427,32 @@ inline void Pixel_process()
 	// Blink all channels
 	case PixelTest_Chan_All:
 		// Update all positions
-		for ( uint16_t ch = Pixel_testPos; ch < Pixel_TotalChannels_KLL; ch++ )
+		for ( uint16_t ch = 0; ch < Pixel_TotalChannels_KLL; ch++ )
 		{
 			// Toggle channel
 			Pixel_channelToggle( ch );
+		}
+
+		goto pixel_process_done;
+
+	// Enable all channels
+	case PixelTest_Chan_Full:
+		// Update all positions
+		for ( uint16_t ch = 0; ch < Pixel_TotalChannels_KLL; ch++ )
+		{
+			// Toggle channel
+			Pixel_channelSet( ch, 255 );
+		}
+
+		goto pixel_process_done;
+
+	// Turn off all channels
+	case PixelTest_Chan_Off:
+		// Update all positions
+		for ( uint16_t ch = 0; ch < Pixel_TotalChannels_KLL; ch++ )
+		{
+			// Toggle channel
+			Pixel_channelSet( ch, 0 );
 		}
 
 		goto pixel_process_done;
@@ -1496,6 +1595,16 @@ inline void Pixel_process()
 	// Process Animation Stack
 	Pixel_stackProcess();
 
+	// Pause if necessary
+	switch( Pixel_animationControl )
+	{
+	case AnimationControl_ForwardOne:
+		Pixel_animationControl = AnimationControl_Pause;
+		break;
+	default:
+		break;
+	}
+
 pixel_process_done:
 	// Frame is now ready to send
 	Pixel_FrameState = FrameState_Ready;
@@ -1516,6 +1625,9 @@ inline void Pixel_setup()
 	// Clear animation stack
 	Pixel_AnimationStack.size = 0;
 	Pixel_clearAnimations();
+
+	// Set default animation control
+	Pixel_animationControl = AnimationControl_Forward;
 }
 
 
@@ -1691,6 +1803,20 @@ void cliFunc_chanTest( char* args )
 	case 'S':
 		info_msg("Stopping channel test");
 		Pixel_testMode = PixelTest_Off;
+		break;
+
+	case 'f':
+	case 'F':
+		info_msg("Enable all pixels");
+		Pixel_testPos = 0;
+		Pixel_testMode = PixelTest_Chan_Full;
+		break;
+
+	case 'o':
+	case 'O':
+		info_msg("Disable all pixels");
+		Pixel_testPos = 0;
+		Pixel_testMode = PixelTest_Chan_Off;
 		break;
 	}
 

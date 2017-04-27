@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Output Module |###
 #
-# Written by Jacob Alexander in 2011-2017 for the Kiibohd Controller
+# Written by Jacob Alexander in 2017 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -8,26 +8,24 @@
 
 
 ###
-# Required Sub-modules
+# Sub-module flag, cannot be included stand-alone
 #
-AddModule ( Output HID-IO )
-
+set ( SubModule 1 )
 
 
 ###
 # Module C files
 #
-
 set ( Module_SRCS
-	output_com.c
+	hidio_com.c
 )
-
 
 
 ###
 # Compiler Family Compatibility
 #
-set( ModuleCompatibility
+set ( ModuleCompatibility
+	arm
 	host
 )
 
