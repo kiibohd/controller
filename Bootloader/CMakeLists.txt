@@ -53,6 +53,16 @@ set ( BOOT_PRODUCT_STR
 
 
 ###
+# Flashing Station ID
+#
+set ( FLASHING_STATION_ID
+	"xXXx"
+	CACHE STRING "Placeholder string for flashing station"
+)
+
+
+
+###
 # Bootloader Configuration
 #
 set ( BOOTLOADER 1 )
@@ -103,6 +113,7 @@ endforeach ()
 #
 include_directories (
 	${CMAKE_SOURCE_DIR}/../Lib
+	${CMAKE_SOURCE_DIR}/..
 	${CMAKE_SOURCE_DIR}
 )
 

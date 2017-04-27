@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2016
+# Jacob Alexander 2011-2017
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -149,6 +149,10 @@ set( TARGET kiibohd )
 #| - This can be overridden by a Scan Module setup.cmake -
 #| USB Descriptor iManufacturer string
 set( MANUFACTURER "Kiibohd" )
+
+#| Flashing Station name
+#| This is a placeholder value, the flashing process will overwrite this value for you
+set( FLASHING_STATION_ID "xXXx" )
 
 #| General Settings
 cmake_minimum_required( VERSION 2.8 )

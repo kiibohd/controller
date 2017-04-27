@@ -31,6 +31,7 @@
 #define STR_MANUFACTURER        u"@MANUFACTURER@"
 #define STR_PRODUCT             u"@BOOT_PRODUCT_STR@"
 #define STR_SERIAL              u"00000000000000000000000000000000 - @CHIP@"
+#define STR_CONFIG_NAME         u"@FLASHING_STATION_ID@"
 #define STR_ALTNAME             u"@BOOT_DFU_ALTNAME@"
 
 

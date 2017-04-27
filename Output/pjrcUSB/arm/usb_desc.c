@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2013-2016)
+ * Modified by Jacob Alexander (2013-2017)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -485,7 +485,7 @@ static uint8_t config_descriptor[] = {
 	0xFF,
 	NUM_INTERFACE,                          // bNumInterfaces
 	1,                                      // bConfigurationValue
-	0,                                      // iConfiguration
+	4,                                      // iConfiguration
 	0xA0,                                   // bmAttributes
 	250,                                    // bMaxPower - Entry Index 8
 
@@ -509,7 +509,7 @@ static uint8_t config_descriptor[] = {
 	0x03,                                   // bInterfaceClass (0x03 = HID)
 	0x01,                                   // bInterfaceSubClass (0x00 = Non-Boot, 0x01 = Boot)
 	0x01,                                   // bInterfaceProtocol (0x01 = Keyboard)
-	KEYBOARD_INTERFACE + 4,                 // iInterface
+	KEYBOARD_INTERFACE + 5,                 // iInterface
 // - 9 bytes -
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,                                      // bLength
@@ -540,7 +540,7 @@ static uint8_t config_descriptor[] = {
 	0x03,                                   // bInterfaceClass (0x03 = HID)
 	0x00,                                   // bInterfaceSubClass (0x00 = Non-Boot, 0x01 = Boot)
 	0x01,                                   // bInterfaceProtocol (0x01 = Keyboard)
-	NKRO_KEYBOARD_INTERFACE + 4,            // iInterface
+	NKRO_KEYBOARD_INTERFACE + 5,            // iInterface
 // - 9 bytes -
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,                                      // bLength
@@ -571,7 +571,7 @@ static uint8_t config_descriptor[] = {
 	0x03,                                   // bInterfaceClass (0x03 = HID)
 	0x01,                                   // bInterfaceSubClass (0x00 = Non-Boot, 0x01 = Boot)
 	0x00,                                   // bInterfaceProtocol (0x00 = None)
-	SYS_CTRL_INTERFACE + 4,                 // iInterface
+	SYS_CTRL_INTERFACE + 5,                 // iInterface
 // - 9 bytes -
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,                                      // bLength
@@ -624,7 +624,7 @@ static uint8_t config_descriptor[] = {
 	0x02,                                   // bInterfaceClass
 	0x02,                                   // bInterfaceSubClass
 	0x01,                                   // bInterfaceProtocol
-	CDC_STATUS_INTERFACE + 4,               // iInterface
+	CDC_STATUS_INTERFACE + 5,               // iInterface
 // - 5 bytes -
 	// CDC Header Functional Descriptor, CDC Spec 5.2.3.1, Table 26
 	5,                                      // bFunctionLength
@@ -669,7 +669,7 @@ static uint8_t config_descriptor[] = {
 	0x0A,                                   // bInterfaceClass
 	0x00,                                   // bInterfaceSubClass
 	0x00,                                   // bInterfaceProtocol
-	CDC_DATA_INTERFACE + 4,                 // iInterface
+	CDC_DATA_INTERFACE + 5,                 // iInterface
 // - 7 bytes -
 	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
 	7,                                      // bLength
@@ -708,7 +708,7 @@ static uint8_t config_descriptor[] = {
 	0xFF,                                   // bInterfaceClass (0xFF)
 	0xFF,                                   // bInterfaceSubClass
 	0xFF,                                   // bInterfaceProtocol
-	RAWIO_INTERFACE + 4,                    // iInterface
+	RAWIO_INTERFACE + 5,                    // iInterface
 
 // - 7 bytes -
 	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
@@ -749,7 +749,7 @@ static uint8_t config_descriptor[] = {
 	0x03,                                   // bInterfaceClass (0x03 = HID)
 	0x00,                                   // bInterfaceSubClass (0x01 = Boot)
 	0x02,                                   // bInterfaceProtocol (0x02 = Mouse)
-	MOUSE_INTERFACE + 4,                    // iInterface
+	MOUSE_INTERFACE + 5,                    // iInterface
 // - 9 bytes -
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,                                      // bLength
@@ -790,7 +790,7 @@ static uint8_t config_descriptor[] = {
 	0x03,                                   // bInterfaceClass (0x03 = HID)
 	0x00,                                   // bInterfaceSubClass
 	0x00,                                   // bInterfaceProtocol
-	JOYSTICK_INTERFACE + 4,                 // iInterface
+	JOYSTICK_INTERFACE + 5,                 // iInterface
 // - 9 bytes -
 	// HID interface descriptor, HID 1.11 spec, section 6.2.1
 	9,                                      // bLength
@@ -848,6 +848,7 @@ struct usb_string_descriptor_struct string0 = {
 usb_string_descriptor( usb_string_manufacturer_name_default, STR_MANUFACTURER );
 usb_string_descriptor( usb_string_product_name_default, STR_PRODUCT );
 usb_string_descriptor( usb_string_serial_number_default, STR_SERIAL );
+usb_string_descriptor( usb_string_flashingstation_name, STR_CONFIG_NAME );
 
 #if enableKeyboard_define == 1
 usb_string_descriptor( usb_string_keyboard_name, KEYBOARD_NAME );
@@ -877,7 +878,11 @@ usb_string_descriptor( usb_string_joystick_name, JOYSTICK_NAME );
 // ----- Descriptors List -----
 
 #define iInterfaceString(num, var) \
-	{0x0300 + 4 + num, 0x0409, (const uint8_t *)&var, 0 }
+	{0x0300 + 5 + num, 0x0409, (const uint8_t *)&var, 0 }
+
+#define iInterfaceStringInitial(num, var) \
+	{0x0300 + num, 0x0409, (const uint8_t *)&var, 0 }
+
 
 // This table provides access to all the descriptor data above.
 
@@ -889,9 +894,10 @@ const usb_descriptor_list_t usb_descriptor_list[] = {
 	{0x0A00, 0x0000, usb_debug_descriptor, sizeof(usb_debug_descriptor)},
 
 	{0x0300, 0x0000, (const uint8_t *)&string0, 0},
-	{0x0301, 0x0409, (const uint8_t *)&usb_string_manufacturer_name, 0},
-	{0x0302, 0x0409, (const uint8_t *)&usb_string_product_name, 0},
-	{0x0303, 0x0409, (const uint8_t *)&usb_string_serial_number, 0},
+	iInterfaceStringInitial( 1, usb_string_manufacturer_name ),
+	iInterfaceStringInitial( 2, usb_string_product_name ),
+	iInterfaceStringInitial( 3, usb_string_serial_number ),
+	iInterfaceStringInitial( 4, usb_string_flashingstation_name ),
 
 #if enableKeyboard_define == 1
 	{0x2200, KEYBOARD_INTERFACE, keyboard_report_desc, sizeof(keyboard_report_desc)},

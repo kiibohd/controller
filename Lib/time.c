@@ -29,7 +29,11 @@
 #include <Lib/Interrupts.h>
 
 // Debug Includes
+#if !defined(_bootloader_)
 #include <print.h>
+#else
+#include <debug.h>
+#endif
 
 // Local Includes
 #include "delay.h"
