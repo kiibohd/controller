@@ -68,6 +68,7 @@
 
 // ----- Function Declarations -----
 
+void cliFunc_current    ( char* args );
 void cliFunc_kbdProtocol( char* args );
 void cliFunc_outputDebug( char* args );
 void cliFunc_readLEDs   ( char* args );
@@ -81,6 +82,7 @@ void cliFunc_usbInitTime( char* args );
 // ----- Variables -----
 
 // Output Module command dictionary
+CLIDict_Entry( current,     "Shows the current negotiated current" );
 CLIDict_Entry( kbdProtocol, "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode" );
 CLIDict_Entry( outputDebug, "Toggle Output Debug mode." );
 CLIDict_Entry( readLEDs,    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc." );
@@ -90,6 +92,7 @@ CLIDict_Entry( setMod,      "Set the modfier byte:" NL "\t\t1 LCtrl, 2 LShft, 4 
 CLIDict_Entry( usbInitTime, "Displays the time in ms from usb_init() till the last setup call." );
 
 CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
+	CLIDict_Item( current ),
 	CLIDict_Item( kbdProtocol ),
 	CLIDict_Item( outputDebug ),
 	CLIDict_Item( readLEDs ),
@@ -909,6 +912,14 @@ unsigned int Output_current_available()
 
 
 // ----- CLI Command Functions -----
+
+void cliFunc_current( char* args )
+{
+	print( NL );
+	info_msg("Current available: ");
+	printInt16( Output_current_available() );
+	print(" mA");
+}
 
 void cliFunc_kbdProtocol( char* args )
 {

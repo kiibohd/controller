@@ -173,6 +173,7 @@ typedef struct LED_ChannelMap {
 // ----- Function Declarations -----
 
 // CLI Functions
+void cliFunc_ledCheck ( char* args );
 void cliFunc_ledFPS   ( char* args );
 void cliFunc_ledReset ( char* args );
 void cliFunc_ledSet   ( char* args );
@@ -183,12 +184,14 @@ void cliFunc_ledToggle( char* args );
 // ----- Variables -----
 
 // Scan Module command dictionary
+CLIDict_Entry( ledCheck,    "Run LED diagnostics. Not all ISSI chips support this.");
 CLIDict_Entry( ledFPS,      "Show/set FPS of LED driver, r - Reset framerate" );
 CLIDict_Entry( ledReset,    "Reset ISSI chips." );
 CLIDict_Entry( ledSet,      "Set ISSI overall brightness." );
 CLIDict_Entry( ledToggle,   "Toggle ISSI hardware shutdown." );
 
 CLIDict_Def( ledCLIDict, "ISSI LED Module Commands" ) = {
+	CLIDict_Item( ledCheck ),
 	CLIDict_Item( ledFPS ),
 	CLIDict_Item( ledReset ),
 	CLIDict_Item( ledSet ),
@@ -205,6 +208,7 @@ volatile LED_Buffer LED_pageBuffer[ISSI_Chips_define];
 
 uint8_t LED_displayFPS; // Display fps to cli
 uint8_t LED_enable;     // Enable/disable ISSI chips
+uint8_t LED_pause;      // Pause ISSI updates
 uint8_t LED_brightness; // Global brightness for LEDs
 
 uint32_t LED_framerate; // Configured led framerate, given in ms per frame
@@ -401,7 +405,6 @@ void LED_writeReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t val, uint8_t 
 }
 
 // Read address
-// TODO Not working?
 uint8_t LED_readReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t page )
 {
 	/*
@@ -411,8 +414,6 @@ uint8_t LED_readReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t page )
 	printHex( addr );
 	print(" Reg: ");
 	printHex( reg );
-	print(" Val: ");
-	printHex( val );
 	print(" Page: ");
 	printHex( page );
 	print( NL );
@@ -426,15 +427,8 @@ uint8_t LED_readReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t page )
 	// Setup page
 	LED_setupPage( bus, addr, page );
 
-	// Register Setup
-	uint16_t regSetup[] = { addr, reg };
-
-	// Configure register
-	while ( i2c_send( bus, regSetup, sizeof( regSetup ) / 2 ) == -1 )
-		delayMicroseconds( ISSI_SendDelay );
-
 	// Register Read Command
-	uint16_t regReadCmd[] = { addr | 0x1, I2C_READ };
+	uint16_t regReadCmd[] = { addr, reg, I2C_RESTART, addr | 0x1, I2C_READ };
 	uint8_t recv_data;
 
 	// Request single register byte
@@ -447,90 +441,6 @@ uint8_t LED_readReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t page )
 #endif
 
 	return recv_data;
-}
-
-// Read ISSI page
-void LED_readPage( uint8_t bus, uint8_t addr, uint8_t *buffer, uint32_t len, uint8_t page )
-{
-	info_msg("I2C Read Page Bus: ");
-	printHex( bus );
-	print(" Addr: ");
-	printHex( addr );
-	print(" Len: ");
-	printHex( len );
-	print(" Page: ");
-	printHex( page );
-	print( NL );
-
-#if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
-	// Software shutdown must be enabled to read registers
-	LED_writeReg( bus, addr, 0x0A, 0x00, ISSI_ConfigPage );
-#endif
-
-	// Page Setup
-	LED_setupPage( bus, addr, page );
-
-	// Register Setup
-	uint16_t regSetup[] = { addr, 0x00 };
-
-	// Configure register
-	while ( i2c_send( bus, regSetup, sizeof( regSetup ) / 2 ) == -1 )
-		delayMicroseconds( ISSI_SendDelay );
-
-	// Read registers
-	for ( uint32_t reg = 0; reg < len; reg++ )
-	{
-		// Register Read Command
-		uint16_t regReadCmd[] = { addr | 0x1, I2C_READ };
-
-		// Request single register byte
-		while ( i2c_read( bus, regReadCmd, sizeof( regReadCmd ) / 2, &buffer[ reg ] ) == -1 )
-			delayMicroseconds( ISSI_SendDelay );
-	}
-
-#if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
-	// Disable software shutdown
-	LED_writeReg( bus, addr, 0x0A, 0x01, ISSI_ConfigPage );
-#endif
-}
-
-// Detect short or open circuit in Matrix
-// Only works with IS31FL3733
-void LED_shortOpenDetect()
-{
-#if ISSI_Chip_31FL3733_define == 1
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		uint8_t addr = LED_ChannelMapping[ ch ].addr;
-		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-
-		// Enable master sync for the first chip and disable software shutdown
-		// Also enable OSD (Open/Short Detect)
-		if ( ch == 0 )
-		{
-			LED_writeReg( bus, addr, 0x00, 0x45, ISSI_ConfigPage );
-		}
-		// Slave sync for the rest and disable software shutdown
-		// Also enable OSD (Open/Short Detect)
-		else
-		{
-			LED_writeReg( bus, addr, 0x00, 0x85, ISSI_ConfigPage );
-		}
-
-		// Read LED Control page
-		// TODO fix addr
-		uint8_t buffer[LED_EnableBufferLength * 3];
-		LED_readPage( bus, addr, buffer, sizeof( buffer ), ISSI_LEDControlPage );
-
-		// Validate short detection
-		// Use LED mask
-		// TODO
-
-		// Validate open detection
-		// Use LED mask
-		// TODO
-	}
-#endif
 }
 
 void LED_reset()
@@ -555,8 +465,14 @@ void LED_reset()
 		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
 
+#if ISSI_Chip_31FL3733_define == 1
+		// POR (Power-on-Reset)
+		// Clears all registers to default value (i.e. zeros)
+		LED_readReg( bus, addr, 0x11, ISSI_ConfigPage );
+#else
 		// Clear LED control pages
 		LED_zeroPages( bus, addr, 0x00, ISSI_LEDPages, 0x00, ISSI_PageLength ); // LED Registers
+#endif
 
 		// Set the enable mask
 		LED_sendPage(
@@ -634,6 +550,77 @@ void LED_reset()
 
 	// Force PixelMap to be ready for the next frame
 	Pixel_FrameState = FrameState_Update;
+
+	// Un-pause ISSI processing
+	LED_pause = 0;
+}
+
+// Detect short or open circuit in Matrix
+// Only works with IS31FL3733
+void LED_shortOpenDetect()
+{
+#if ISSI_Chip_31FL3733_define == 1
+	// Pause ISSI processing
+	LED_pause = 1;
+
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t addr = LED_ChannelMapping[ ch ].addr;
+		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+
+		// Set Global Current Control (needed for accurate reading)
+		LED_writeReg( bus, addr, 0x01, 0x01, ISSI_ConfigPage );
+
+		// Enable master sync for the first chip and disable software shutdown
+		// Also enable OSD (Open/Short Detect)
+		if ( ch == 0 )
+		{
+			LED_writeReg( bus, addr, 0x00, 0x45, ISSI_ConfigPage );
+		}
+		// Slave sync for the rest and disable software shutdown
+		// Also enable OSD (Open/Short Detect)
+		else
+		{
+			LED_writeReg( bus, addr, 0x00, 0x85, ISSI_ConfigPage );
+		}
+
+		// Wait for 3.3 ms before reading the value
+		// Needs at least 3.264 ms to query the information
+		delayMicroseconds(3300);
+
+		// Read registers
+		info_msg("Bus: ");
+		printHex( bus );
+		print(" Addr: ");
+		printHex( addr );
+		print(" - 0x18 -> 0x2F + 0x30 -> 0x47");
+		print(NL);
+
+		// Validate open detection
+		// TODO
+		for ( uint8_t reg = 0x18; reg < 0x30; reg++ )
+		{
+			uint8_t val = LED_readReg( bus, addr, reg, ISSI_LEDControlPage );
+			printHex_op( val, 2 );
+			print(" ");
+		}
+		print(NL);
+
+		// Validate short detection
+		// TODO
+		for ( uint8_t reg = 0x30; reg < 0x48; reg++ )
+		{
+			uint8_t val = LED_readReg( bus, addr, reg, ISSI_LEDControlPage );
+			printHex_op( val, 2 );
+			print(" ");
+		}
+		print(NL);
+	}
+
+	// We have to adjust various settings in order to get the correct reading
+	// Reset ISSI configuration
+	LED_reset();
+#endif
 }
 
 // Setup
@@ -810,6 +797,11 @@ inline void LED_scan()
 
 		LED_currentEvent = 0;
 	}
+
+	// Check if an LED_pause is set
+	// Some ISSI operations need a clear buffer, but still have the chip running
+	if ( LED_pause )
+		return;
 
 	// Check enable state
 	if ( LED_enable )
@@ -1045,6 +1037,14 @@ void LED_control_capability( TriggerMacro *trigger, uint8_t state, uint8_t state
 
 
 // ----- CLI Command Functions -----
+
+void cliFunc_ledCheck( char* args )
+{
+	print( NL ); // No \r\n by default after the command is entered
+
+	// TODO check for shorts and n/c points
+	LED_shortOpenDetect();
+}
 
 void cliFunc_ledReset( char* args )
 {
