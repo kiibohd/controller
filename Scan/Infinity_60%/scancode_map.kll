@@ -71,15 +71,3 @@ S0x3D : U"RAlt";
 S0x3E : U"Function3"; # Right Blank Key 1
 S0x3F : U"Function4"; # Right Blank Key 2
 
-
-# Custom Action Examples
-
-# Example capability, prints to cli
-action1 => CustomAction_action1_capability(); # No arguments
-
-# Blocks given USB Code, must be used with blockLink
-# Simple example, supports only blocking a single key at a time
-# Keys must be specified using numbers see Macro/PartialMap/usb_hid.h
-blockHold => CustomAction_blockHold_capability( usbCode : 1 ); # Single 8-bit argument
-blockKey => CustomAction_blockKey_capability( usbCode : 1 );
-

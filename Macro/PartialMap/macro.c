@@ -39,9 +39,6 @@
 #include "result.h"
 #include "macro.h"
 
-// TODO REMOVEME
-#include <pixel.h>
-
 
 
 // ----- Function Declarations -----
@@ -147,6 +144,8 @@ void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, 
 	if ( layer >= LayerNum || layer == 0 )
 		return;
 
+	// TODO TODO TODO TODO
+	/*
 	// TODO (HaaTa) Add as an event
 	// XXX Add definition so <pixel.h> is not required
 	AnimationStackElement element;
@@ -157,6 +156,7 @@ void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, 
 	element.divmask = 0x01;
 	element.divshift = 1;
 	Pixel_addAnimation( &element, 1 );
+	*/
 
 	// Is layer in the LayerIndexStack?
 	uint8_t inLayerIndexStack = 0;

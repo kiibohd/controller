@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Scan Module |###
 #
-# Written by Jacob Alexander in 2016 for the Kiibohd Controller
+# Written by Jacob Alexander in 2016-2017 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
