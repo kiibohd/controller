@@ -1,0 +1,176 @@
+# The MIT License (MIT)
+#  Copyright (c) 2017 Ivor Wanders
+#  Permission is hereby granted, free of charge, to any person obtaining a copy
+#  of this software and associated documentation files (the "Software"), to deal
+#  in the Software without restriction, including without limitation the rights
+#  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+#  copies of the Software, and to permit persons to whom the Software is
+#  furnished to do so, subject to the following conditions:
+#  The above copyright notice and this permission notice shall be included in all
+#  copies or substantial portions of the Software.
+#  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+#  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+#  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+#  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+#  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+#  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+#  SOFTWARE.
+
+Name = PS2;
+Version = 0.1;
+Author = "Ivor Wanders";
+KLL = 0.3c;
+
+# Modified Date
+Date = 2017-02-06;
+
+# Single byte codes: http://www.computer-engineering.org/ps2keyboard/scancodes2.html
+
+S0x1:U"F9"; # F9   F0,01
+S0x3:U"F5"; # F5   F0,03
+S0x4:U"F3"; # F3   F0,04
+S0x5:U"F1"; # F1   F0,05
+S0x6:U"F2"; # F2   F0,06
+S0x7:U"F12"; # F12   F0,07
+S0x9:U"F10"; # F10   F0,09
+S0x11:U"LAlt"; # L ALT   F0,11
+S0x12:U"LShift"; # L SHFT  FO,12
+S0x14:U"LCtrl"; # L CTRL  FO,14
+S0x15:U"Q"; # Q   F0,15
+S0x16:U"1"; # 1   F0,16
+S0x21:U"C"; # C   F0,21
+S0x22:U"X"; # X   F0,22
+S0x23:U"D"; # D   F0,23
+S0x24:U"E"; # E   F0,24
+S0x25:U"4"; # 4   F0,25
+S0x26:U"3"; # 3   F0,26
+S0x29:U"Space"; # SPACE   F0,29
+S0x31:U"N"; # N   F0,31
+S0x32:U"B"; # B   F0,32
+S0x33:U"H"; # H   F0,33
+S0x34:U"G"; # G   F0,34
+S0x35:U"Y"; # Y   F0,35
+S0x36:U"6"; # 6   F0,36
+S0x41:U"Comma"; # ,   F0,41
+S0x42:U"K"; # K   F0,42
+S0x43:U"I"; # I   F0,43
+S0x44:U"O"; # O   F0,44
+S0x45:U"0"; # 0   F0,45
+S0x46:U"9"; # 9   F0,46
+S0x49:U"Period"; # 0   F0,49
+S0x52:U"Quote"; # '   F0,52
+S0x54:U"LBrace"; # [ FO,54
+S0x55:U"Equals"; # = FO,55
+S0x58:U"CapsLock"; # CAPS   F0,58
+S0x59:U"RShift"; # R SHFT   F0,59
+S0x66:U"Backspace"; # BKSP   F0,66
+S0x69:U"P1"; # KP 1   F0,69
+S0x70:U"P0"; # KP 0   F0,70
+S0x71:U"P."; # KP .   F0,71
+S0x72:U"P2"; # KP 2   F0,72
+S0x73:U"P5"; # KP 5   F0,73
+S0x74:U"P6"; # KP 6   F0,74
+S0x75:U"P8"; # KP 8   F0,75
+S0x76:U"Esc"; # ESC   F0,76
+S0x77:U"NumLock"; # NUM   F0,77
+S0x78:U"F11"; # F11   F0,78
+S0x79:U"P+"; # KP +   F0,79
+S0x83:U"F7"; # F7   F0,83
+S0x0A:U"F8"; # F8   F0,0A
+S0x0B:U"F6"; # F6   F0,0B
+S0x0C:U"F4"; # F4   F0,0C
+S0x0D:U"Tab"; # TAB   F0,0D
+S0x0E:U"Backtick"; # `   F0,0E
+S0x1A:U"Z"; # Z   F0,1A
+S0x1B:U"S"; # S   F0,1B
+S0x1C:U"A"; # A   F0,1C
+S0x1D:U"W"; # W   F0,1D
+S0x1E:U"2"; # 2   F0,1E
+S0x2A:U"V"; # V   F0,2A
+S0x2B:U"F"; # F   F0,2B
+S0x2C:U"T"; # T   F0,2C
+S0x2D:U"R"; # R   F0,2D
+S0x2E:U"5"; # 5   F0,2E
+S0x3A:U"M"; # M   F0,3A
+S0x3B:U"J"; # J   F0,3B
+S0x3C:U"U"; # U   F0,3C
+S0x3D:U"7"; # 7   F0,3D
+S0x3E:U"8"; # 8   F0,3E
+S0x4A:U"Slash"; # /   F0,4A
+S0x4B:U"L"; # L   F0,4B
+S0x4C:U"Semicolon"; # ;   F0,4C
+S0x4D:U"P"; # P   F0,4D
+S0x4E:U"-"; # -   F0,4E
+S0x5A:U"Enter"; # ENTER   F0,5A
+S0x5B:U"RBrace"; # ]   F0,5B
+S0x5D:U"Backslash"; # \   F0,5D
+S0x6B:U"P4"; # KP 4   F0,6B
+S0x6C:U"P7"; # KP 7   F0,6C
+S0x7A:U"P3"; # KP 3   F0,7A
+S0x7B:U"P-"; # KP -   F0,7B
+S0x7C:U"P*"; # KP *   F0,7C
+S0x7D:U"P9"; # KP 9   F0,7D
+S0x7E:U"ScrollLock"; # SCROLL   F0,7E
+
+# Place the extended scancodes at 0x80 + second byte.
+
+# S0xE0,11:U"RAlt"; # R ALT	E0,F0,11
+S0x91:U"RAlt"; # R ALT	E0,F0,11
+
+# S0xE0,14:U"RCtrl"; # R CTRL	E0,F0,14
+S0x94:U"RCtrl"; # R CTRL	E0,F0,14
+
+# S0xE0,1F:U"LGui"; # L GUI	E0,F0,1F
+S0x9F:U"LGui"; # L GUI	E0,F0,1F
+
+# S0xE0,27:U"RGui"; # R GUI	E0,F0,27
+S0xa7:U"RGui"; # R GUI	E0,F0,27
+
+# S0xE0,2F:U""; # APPS	E0,F0,2F
+S0x2F:U"App"; # APPS	E0,F0,2F
+
+# S0xE0,4A:U"P/"; # KP /	E0,F0,4A
+S0xCA:U"P/"; # KP /	E0,F0,4A
+
+# S0xE0,5A:U"PEnter"; # KP EN	E0,F0,5A
+S0xDA:U"PEnter"; # KP EN	E0,F0,5A
+
+# S0xE0,69:U"End"; # END	E0,F0,69
+S0xE9:U"End"; # END	E0,F0,69
+
+# S0xE0,6B:U"Left"; # L ARROW	E0,F0,6B
+S0xEB:U"Left"; # L ARROW	E0,F0,6B
+
+# S0xE0,6C:U"Home"; # HOME	E0,F0,6C
+S0xEC:U"Home"; # HOME	E0,F0,6C
+
+# S0xE0,70:U"Insert"; # INSERT	E0,F0,70
+S0xF0:U"Insert"; # INSERT	E0,F0,70
+
+# S0xE0,71:U"Delete"; # DELETE	E0,F0,71
+S0xF1:U"Delete"; # DELETE	E0,F0,71
+
+# S0xE0,72:U"Down"; # D ARROW	E0,F0,72
+S0xF2:U"Down"; # D ARROW	E0,F0,72
+
+# S0xE0,74:U"Right"; # R ARROW	E0,F0,74
+S0xF4:U"Right"; # R ARROW	E0,F0,74
+
+# S0xE0,75:U"Up"; # U ARROW	E0,F0,75
+S0xF5:U"Up"; # U ARROW	E0,F0,75
+
+# S0xE0,7A:U"PageDown"; # PG DN	E0,F0,7A
+S0xFA:U"PageDown"; # PG DN	E0,F0,7A
+
+# S0xE0,7D:U"PageUp"; # PG UP	E0,F0,7D
+S0xFD:U"PageUp"; # PG UP	E0,F0,7D
+
+##  Pause and print screen are problematic, they cause eratic behaviour.
+##  Just comment them out and not treat them.
+
+# S0x"E1,14,77,E1,F0,14, F0,77":U"Pause"; # PAUSE	"-NONE-
+# S0xE1:U"Pause"; # PAUSE	"-NONE-
+
+# S0xE0,12,E0,7C ":U"PrintScreen"; # "PRNT SCRN"	"E0,F0, 7C,E0, F0,12 "
+# S0x92:U"PrintScreen"; # "PRNT SCRN"	"E0,F0, 7C,E0, F0,12 "
+
