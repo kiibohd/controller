@@ -1,10 +1,10 @@
 Name = PartialMapCapabilities;
-Version = 0.3;
+Version = 0.4;
 Author = "HaaTa (Jacob Alexander) 2014-2016";
 KLL = 0.3d;
 
 # Modified Date
-Date = 2016-04-08;
+Date = 2016-08-06;
 
 
 # Capabilties available to the PartialMap module
@@ -24,4 +24,21 @@ stateWordSize = 8; # Default for now, increase to 16 or 32 for higher limits
 
 indexWordSize => IndexWordSize_define;
 indexWordSize = 16; # Default for now, increase to 32 for higher limits (8 for less resource usage)
+
+# Block Key Capability
+# Add this capability as a combo to any key you want to explicitly block another
+# For example:
+# To turn Shift+1 into q
+# U"Shift" + U"1" : U"Q" + blockKey( 0xE1 ) + blockKey( 0x1E );
+#
+# 0xE1 - Left Shift (0xE5 is Right Shift)
+# 0x1E - 1
+#
+# NOTE: KLL is limited to using numbers for key blocking instead of the symbolic names
+#       A future version of KLL will address this
+blockKey => Macro_blockUSBKey_capability( usbCode : 1 );
+
+# This defines the maximum number of keys that can be blocked in a single processing loop
+maxBlockCount => Macro_maxBlockCount_define;
+maxBlockCount = 4;
 
