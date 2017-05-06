@@ -522,6 +522,10 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 		}
 	}
 
+	if ( !Connect_master && Connect_cableOkMaster && Connect_id == 255 ){
+		Connect_send_IdRequest();	
+	}
+
 	if ( Connect_debug )
 	{
 		dbug_msg("CABLECHECK RECEIVE - ");
