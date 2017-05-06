@@ -109,7 +109,7 @@ if [ $return_code != 0 ] ; then
 	exit $return_code
 fi
 
-make
+make -j -l $(nproc)
 return_code=$?
 if [ $return_code != 0 ] ; then
 	echo "Error in make. Exiting..."
