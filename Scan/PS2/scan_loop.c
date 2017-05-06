@@ -108,7 +108,6 @@ inline void Scan_setup() {
 	// Register Scan CLI dictionary
 	CLI_registerDictionary(scanCLIDict, scanCLIDictName);
 
-
 	// Enable interrupts for port B.
 	NVIC_ENABLE_IRQ(IRQ_PORTB);
 
