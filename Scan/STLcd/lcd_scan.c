@@ -35,6 +35,7 @@
 
 // Local Includes
 #include "lcd_scan.h"
+#include "DOS_8x8.h"
 
 
 
@@ -63,6 +64,8 @@ void cliFunc_lcdColor( char* args );
 void cliFunc_lcdDisp ( char* args );
 void cliFunc_lcdInit ( char* args );
 void cliFunc_lcdTest ( char* args );
+void cliFunc_lcdClear( char* args );
+void cliFunc_lcdPrint( char* args );
 
 
 
@@ -83,6 +86,8 @@ CLIDict_Entry( lcdColor,    "Set backlight color. 3 16-bit numbers: R G B. i.e. 
 CLIDict_Entry( lcdDisp,     "Write byte(s) to given page starting at given address. i.e. 0x1 0x5 0xFF 0x00" );
 CLIDict_Entry( lcdInit,     "Re-initialize the LCD display." );
 CLIDict_Entry( lcdTest,     "Test out the LCD display." );
+CLIDict_Entry( lcdClear,    "Clear the LCD display." );
+CLIDict_Entry( lcdPrint,    "Write text to LCD based on row and column. I.e., 0x3 0x1 Hello world. Character codes can be entered with \\nnn (decimal)." );
 
 CLIDict_Def( lcdCLIDict, "ST LCD Module Commands" ) = {
 	CLIDict_Item( lcdCmd ),
@@ -90,6 +95,8 @@ CLIDict_Def( lcdCLIDict, "ST LCD Module Commands" ) = {
 	CLIDict_Item( lcdDisp ),
 	CLIDict_Item( lcdInit ),
 	CLIDict_Item( lcdTest ),
+	CLIDict_Item( lcdClear ),
+	CLIDict_Item( lcdPrint ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -714,3 +721,110 @@ void cliFunc_lcdDisp( char* args )
 	}
 }
 
+void cliFunc_lcdClear( char* args )
+{
+	for ( uint8_t page = 0; page < 4; ++page)
+	{
+		LCD_writeControlReg( 0xB0 | page );
+
+		// Starting address 0x0
+		LCD_writeControlReg( 0x10 );
+		LCD_writeControlReg( 0x00 );
+
+		// See SPI_write()
+		for ( uint8_t i = 0; i < 128; ++i)
+		{
+			// Wait for SPI TxFIFO to have 4 or fewer entries
+			while ( !( SPI0_SR & SPI_SR_TFFF ) )
+				delayMicroseconds( 10 );
+
+			// Write byte to TxFIFO
+			// CS0, CTAR0
+			SPI0_PUSHR = ( 0 ) | SPI_PUSHR_PCS(1);
+
+			// Indicate transfer has completed
+			while ( !( SPI0_SR & SPI_SR_TCF ) );
+			SPI0_SR |= SPI_SR_TCF;
+		}
+	}
+}
+
+void cliFunc_lcdPrint( char* args )
+{
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// Get row
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Stop processing args if no more are found
+	if ( *arg1Ptr == '\0' )
+		return;
+
+	// Check range
+	uint8_t row = numToInt( arg1Ptr );
+	if ( row > 3 )
+		return;
+
+	// Get column
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Stop processing args if no more are found
+	if ( *arg1Ptr == '\0' )
+		return;
+
+	// Check range
+	uint8_t col = numToInt( arg1Ptr );
+	if ( col > 15 )
+		return;
+
+	// Set page (inverse of row)
+	LCD_writeControlReg( 0xB0 | ( 0x0F & (3 - row) ) );
+
+	// Set starting address (column * 8)
+	LCD_writeControlReg( 0x10 | ( ( 0xF0 & (col << 3) ) >> 4 ) );
+	LCD_writeControlReg( 0x00 | ( 0x0F & (col << 3) ));
+
+	// Don't walk off right side of display
+	uint8_t columns = 16 - col;
+
+	// There's an extra space before nul. Gobble it, but make sure not to walk off array.
+	while ( !( arg2Ptr[0] == '\0' || ( arg2Ptr[0] == ' ' && arg2Ptr[1] == '\0' ) )	&& columns )
+	{
+		uint8_t char_idx = (uint8_t) arg2Ptr[ 0 ];
+
+		// Primitive escape sequences
+		// Handle character codes (decimal of form \ddd)
+		if ( arg2Ptr[ 0 ] == '\\' &&
+				 arg2Ptr[ 1 ] >= '0' && arg2Ptr[ 1 ] <= '9' &&
+				 arg2Ptr[ 2 ] >= '0' && arg2Ptr[ 2 ] <= '9' &&
+				 arg2Ptr[ 3 ] >= '0' && arg2Ptr[ 3 ] <= '9' )
+		{
+			char code[4];
+			for (unsigned int i = 0; i < 3; ++i)
+				code[ i ] = arg2Ptr[ i+1 ];
+			code[ 3 ] = '\0';
+
+			char_idx = numToInt( code );
+			arg2Ptr += 3;
+		}
+		// \\ becomes \ .
+		else if ( arg2Ptr[ 0 ] == '\\' && arg2Ptr[ 1 ] == '\\' )
+		{
+			++arg2Ptr;
+			char_idx = (uint8_t) '\\';
+		}
+
+		++arg2Ptr;
+
+		if ( char_idx > 127 )
+			continue;
+
+		uint8_t* char_ptr = font_8x8[ char_idx ];
+		SPI_write( char_ptr, 8);
+		--columns;
+	}
+}
