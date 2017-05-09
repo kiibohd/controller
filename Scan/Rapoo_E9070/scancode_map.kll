@@ -1,0 +1,118 @@
+Name = "Rapoo E9070";
+Version = 0.1;
+Author = "nazar-pc (Nazar Mokrynskyi) 2017";
+KLL = 0.3d;
+
+# Modified Date
+Date = 2017-05-25;
+
+# Each group is one row of keys on keyboard starting from the top
+# Comments are added where layout differs on ANSI and ISO layouts
+S0x3A : U"Esc";
+S0x74 : U"F1";
+S0x75 : U"F2";
+S0x16 : U"F3";
+S0x3C : U"F4";
+S0x85 : U"F5";
+S0x3F : U"F6";
+S0x1A : U"F7";
+S0x79 : U"F8";
+S0x7C : U"F9";
+S0x8F : U"F10";
+S0x43 : U"F11";
+S0x69 : U"F12";
+S0x8E : U"PrintScreen";
+S0x00 : U"Pause";
+S0x7E : U"Insert";
+S0x7D : U"Delete";
+S0x57 : U"NumLock";
+S0x58 : U"Keypad Slash";
+S0x59 : U"Keypad Asterix";
+
+S0x73 : U"Backtick";
+S0x86 : U"1";
+S0x87 : U"2";
+S0x88 : U"3";
+S0x89 : U"4";
+S0x76 : U"5";
+S0x77 : U"6";
+S0x8A : U"7";
+S0x8B : U"8";
+S0x8C : U"9";
+S0x8D : U"0";
+S0x7A : U"-";
+S0x78 : U"=";
+S0x1D : U"Backspace";
+S0x46 : U"Keypad Decimal";
+S0x0E : U"Keypad Plus";
+S0x6C : U"Keypad Minus";
+
+S0x14 : U"Tab";
+S0x01 : U"q";
+S0x02 : U"w";
+S0x03 : U"e";
+S0x04 : U"r";
+S0x17 : U"t";
+S0x18 : U"y";
+S0x05 : U"u";
+S0x06 : U"i";
+S0x07 : U"o";
+S0x08 : U"p";
+S0x1B : U"[";
+S0x19 : U"]";
+S0x30 : U"\"; # In this row on ANSI layout, but below on ISO, code is also different on ISO
+S0x0B : U"Keypad 7";
+S0x0C : U"Keypad 8";
+S0x0D : U"Keypad 9";
+
+S0x56 : U"Enter"; # Between rows on ISO layout, but on next row in ANSI
+
+S0x15 : U"CapsLock";
+S0x27 : U"a";
+S0x28 : U"s";
+S0x29 : U"d";
+S0x2A : U"f";
+S0x3D : U"g";
+S0x3E : U"h";
+S0x2B : U"j";
+S0x2C : U"k";
+S0x2D : U"l";
+S0x2E : U";";
+S0x41 : U"'";
+S0x54 : U"\"; # In this row ISO layout, but above on ANSI
+S0x56 : U"Enter"; # In this row on ANSI layout, but above on ISO
+S0x1E : U"Keypad 4";
+S0x1F : U"Keypad 5";
+S0x20 : U"Keypad 6";
+
+S0x22 : U"LShift";
+S0x3B : U"ISO Slash"; # Not present here on ANSI layout
+S0x4D : U"z";
+S0x4E : U"x";
+S0x4F : U"c";
+S0x50 : U"v";
+S0x63 : U"b";
+S0x64 : U"n";
+S0x51 : U"m";
+S0x52 : U",";
+S0x53 : U".";
+S0x67 : U"/";
+S0x35 : U"RShift";
+S0x31 : U"Keypad 1";
+S0x32 : U"Keypad 2";
+S0x33 : U"Keypad 3";
+
+S0x72 : U"LCtrl";
+S0x2F : U"Function1";
+S0x23 : U"LGui";
+S0x42 : U"LAlt";
+S0x44 : U"Space";
+S0x68 : U"RAlt";
+S0x66 : SYS"ContextMenu";
+S0x4C : U"RCtrl";
+S0x6D : U"Left";
+S0x47 : U"Up";
+S0x6A : U"Down";
+S0x6B : U"Right";
+S0x45 : U"Keypad 0";
+S0x34 : U"Keypad Enter";
