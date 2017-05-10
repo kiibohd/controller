@@ -62,3 +62,8 @@ compile_commands.json
 ##################
 kll
 
+
+# Build directories #
+#######################
+Keyboards/ICED-L/
+Keyboards/ICED-R/

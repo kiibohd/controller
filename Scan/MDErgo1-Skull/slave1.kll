@@ -1,0 +1,11 @@
+Name = MDErgo1 Slave1;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2015";
+KLL = 0.3c;
+
+# Modified Date
+Date = 2015-08-06;
+
+# Sets all future Scan Code definitions to be applied to the first slave node
+ConnectId = 1;
+

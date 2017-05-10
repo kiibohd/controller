@@ -1,0 +1,117 @@
+Name = MDErgo1 Left then Right;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2015";
+KLL = 0.3c;
+
+# Modified Date
+Date = 2015-09-12;
+
+
+# Top Row
+S0x02 : U"Esc";
+S0x03 : U"5";
+S0x04 : U"4";
+S0x05 : U"3";
+S0x06 : U"2";
+S0x07 : U"1";
+S0x08 : U"Equals";
+
+# Top-Middle Row
+S0x0B : U"Function1";
+S0x0C : U"T";
+S0x0D : U"R";
+S0x0E : U"E";
+S0x0F : U"W";
+S0x10 : U"Q";
+S0x11 : U"Backslash";
+
+# Middle Row
+S0x15 : U"G";
+S0x16 : U"F";
+S0x17 : U"D";
+S0x18 : U"S";
+S0x19 : U"A";
+S0x1A : U"Tab";
+
+# Top Thumb Cluster
+S0x1B : U"LAlt";
+S0x1C : U"LCtrl";
+
+# Bottom-Middle Row
+S0x1D : U"Function2";
+S0x1E : U"B";
+S0x1F : U"V";
+S0x20 : U"C";
+S0x21 : U"X";
+S0x22 : U"Z";
+S0x23 : U"LShift";
+
+# Bottom Thumb Cluster
+S0x24 : U"Home";
+S0x25 : U"End";
+S0x26 : U"Delete";
+S0x27 : U"Backspace";
+
+# Bottom Row
+S0x28 : U"Function5";
+S0x29 : U"Function4";
+S0x2A : U"Function3";
+S0x2B : U"Backtick";
+S0x2C : U"LGui";
+
+
+# Sets all future Scan Code definitions to be applied to the first slave node
+ConnectId = 1;
+
+# Top Row
+S0x02 : U"Function6";
+S0x03 : U"6";
+S0x04 : U"7";
+S0x05 : U"8";
+S0x06 : U"9";
+S0x07 : U"0";
+S0x08 : U"Minus";
+
+# Top-Middle Row
+S0x0B : U"LBrace";
+S0x0C : U"Y";
+S0x0D : U"U";
+S0x0E : U"I";
+S0x0F : U"O";
+S0x10 : U"P";
+S0x11 : U"RBrace";
+
+# Middle Row
+S0x15 : U"H";
+S0x16 : U"J";
+S0x17 : U"K";
+S0x18 : U"L";
+S0x19 : U"Semicolon";
+S0x1A : U"Quote";
+
+# Top Thumb Cluster
+S0x1B : U"RAlt";
+S0x1C : U"RCtrl";
+
+# Bottom-Middle Row
+S0x1D : U"Function7";
+S0x1E : U"N";
+S0x1F : U"M";
+S0x20 : U"Comma";
+S0x21 : U"Period";
+S0x22 : U"Slash";
+S0x23 : U"RShift";
+
+# Bottom Thumb Cluster
+S0x24 : U"PageUp";
+S0x25 : U"PageDown";
+S0x26 : U"Enter";
+S0x27 : U"Space";
+
+# Bottom Row
+S0x28 : U"Left";
+S0x29 : U"Down";
+S0x2A : U"Up";
+S0x2B : U"Right";
+S0x2C : U"RGui";
+
