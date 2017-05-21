@@ -92,7 +92,7 @@ enableKeyboard = 1;
 
 # CDC / Serial Port Endpoint
 enableVirtualSerialPort => enableVirtualSerialPort_define;
-enableVirtualSerialPort = 1;
+enableVirtualSerialPort = 0;
 
 # Raw I/O Endpoint
 # *Currently Unused*
