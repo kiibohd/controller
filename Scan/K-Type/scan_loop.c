@@ -124,6 +124,10 @@ inline void Scan_finishedWithOutput( uint8_t sentKeys )
 }
 
 
+#if defined(Pixel_MapEnabled_define) && defined(animation_test_layout_define)
+uint8_t Pixel_addDefaultAnimation( uint32_t index );
+#endif
+
 // Signal from the Output Module that the available current has changed
 // current - mA
 void Scan_currentChange( unsigned int current )

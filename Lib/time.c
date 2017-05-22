@@ -208,9 +208,6 @@ uint32_t Time_ticks( Time time )
 // If the given time value is lower, then assume a single register wrap
 // This is around 49 days (plenty of time for most tasks)
 
-#if !defined(_host_)
-inline
-#endif
 Time Time_duration_rollover( Time since )
 {
 	Time now = Time_now();
