@@ -41,7 +41,7 @@ print("-Pixel Test-")
 i.control.cmd('rectDisp')()
 
 # Add Animation, index 3, to Stack (testanimation)
-i.control.cmd('addAnimation')(index=3)
+i.control.cmd('addAnimation')(name='testanimation')
 
 # Read animation stack info
 print( "Expecting Stack Size: 1 Got:", i.control.cmd('animationStackInfo')().size )
@@ -51,7 +51,7 @@ check( i.control.cmd('animationStackInfo')().size == 1 )
 i.control.loop(1)
 
 # Check Pixel 1
-expecting = ((0, 33, 49), (30, 70, 120))
+expecting = ((16, 0, 32), (30, 70, 120))
 print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(1) )
 check( i.control.cmd('readPixel')(1) == expecting )
 i.control.cmd('rectDisp')()
@@ -61,7 +61,7 @@ i.control.cmd('setFrameState')(2)
 i.control.loop(1)
 
 # Check Pixel 1
-expecting = ((0, 33, 49), (0, 0, 0))
+expecting = ((16, 0, 32), (0, 0, 0))
 print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(1) )
 check( i.control.cmd('readPixel')(1) == expecting )
 i.control.cmd('rectDisp')()
@@ -71,7 +71,7 @@ i.control.cmd('setFrameState')(2)
 i.control.loop(1)
 
 # Check Pixel 1
-expecting = ((0, 33, 49), (60, 90, 140))
+expecting = ((16, 0, 32), (60, 90, 140))
 print( "Expecting:", expecting, "Got:", i.control.cmd('readPixel')(1) )
 check( i.control.cmd('readPixel')(1) == expecting )
 i.control.cmd('rectDisp')()
@@ -93,7 +93,7 @@ check( i.control.cmd('animationStackInfo')().size == 0 )
 
 print("-Rainbow Test-")
 # Add Animation, index 2, to Stack (rainbow_static_fill_interp)
-i.control.cmd('addAnimation')(index=2, pfunc=1)
+i.control.cmd('addAnimation')(name='rainbow_static_fill_interp', pfunc=1)
 
 # Read animation stack info
 print( "Expecting Stack Size: 1 Got:", i.control.cmd('animationStackInfo')().size )
@@ -120,7 +120,7 @@ check( i.control.cmd('animationStackInfo')().size == 0 )
 
 print("-Clear ScanCode Test-");
 # Add Animation, index 1, to Stack (clear_pixels)
-i.control.cmd('addAnimation')(index=1)
+i.control.cmd('addAnimation')(name='clear_pixels')
 
 # Read animation stack info
 print( "Expecting Stack Size: 1 Got:", i.control.cmd('animationStackInfo')().size )
@@ -149,7 +149,7 @@ check( i.control.cmd('animationStackInfo')().size == 0 )
 
 print("-Color Fill Test-");
 # Add Animation, index 0, to Stack (blue_fill_interp)
-i.control.cmd('addAnimation')(index=0, pfunc=1)
+i.control.cmd('addAnimation')(name='blue_fill_interp', pfunc=1)
 
 # Read animation stack info
 print( "Expecting Stack Size: 1 Got:", i.control.cmd('animationStackInfo')().size )
@@ -175,8 +175,8 @@ check( i.control.cmd('animationStackInfo')().size == 0 )
 
 
 print("-Fade In Test-");
-# Add Animation, index 4, to Stack (z1_fade_in)
-i.control.cmd('addAnimation')(index=4, pfunc=1) # TODO
+# Add Animation, index 4, to Stack (fade_in)
+i.control.cmd('addAnimation')(name='fade_in', pfunc=1) # TODO
 
 # Loop 16 times, displaying each time
 for index in range( 27 ):
@@ -205,7 +205,7 @@ check( i.control.cmd('animationStackInfo')().size == 0 )
 
 print("-Rainbow Animation Test-");
 # Add Animation, index 5, to Stack (z2_rainbow_fill_interp)
-i.control.cmd('addAnimation')(index=5, pfunc=1) # TODO
+i.control.cmd('addAnimation')(name='rainbow_fill_interp', pfunc=1) # TODO
 
 # Loop 40 times, displaying each time
 for index in range( 40 ):

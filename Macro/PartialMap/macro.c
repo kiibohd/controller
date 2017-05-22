@@ -34,6 +34,11 @@
 #include <connect_scan.h>
 #endif
 
+// PixelMap Includes
+#if defined(Pixel_MapEnabled_define)
+#include <pixel.h>
+#endif
+
 // Local Includes
 #include "trigger.h"
 #include "result.h"
@@ -144,19 +149,20 @@ void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, 
 	if ( layer >= LayerNum || layer == 0 )
 		return;
 
+#if defined(Pixel_MapEnabled_define) && defined(animation_test_layout_define)
 	// TODO TODO TODO TODO
-	/*
 	// TODO (HaaTa) Add as an event
 	// XXX Add definition so <pixel.h> is not required
 	AnimationStackElement element;
 	element.trigger = trigger;
-	element.index = 13;
+	element.index = Animation__lock_event;
 	element.loops = 1;
 	element.pfunc = 0;
 	element.divmask = 0x01;
 	element.divshift = 1;
-	Pixel_addAnimation( &element, 1 );
-	*/
+	element.replace = AnimationReplaceType_Basic;
+	Pixel_addAnimation( &element );
+#endif
 
 	// Is layer in the LayerIndexStack?
 	uint8_t inLayerIndexStack = 0;

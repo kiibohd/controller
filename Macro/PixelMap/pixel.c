@@ -128,7 +128,7 @@ uint8_t  Pixel_AnimationStackElement_HostSize = sizeof( AnimationStackElement );
 // ----- Function Declarations -----
 
 uint8_t Pixel_animationProcess( AnimationStackElement *elem );
-uint8_t Pixel_addAnimation( AnimationStackElement *element, uint8_t replace );
+uint8_t Pixel_addAnimation( AnimationStackElement *element );
 uint8_t Pixel_determineLastTriggerScanCode( TriggerMacro *trigger );
 
 PixelBuf *Pixel_bufferMap( uint16_t channel );
@@ -138,6 +138,28 @@ AnimationStackElement *Pixel_lookupAnimation( uint16_t index, uint16_t prev );
 
 
 // ----- Capabilities -----
+
+void Pixel_AnimationIndex_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Pixel_AnimationIndex_capability(settingindex)");
+		return;
+	}
+
+	// Only use capability on press
+	// TODO Analog
+	if ( state != 0x01 )
+		return;
+
+	// Lookup animation settings
+	uint16_t index = *(uint16_t*)(&args[0]);
+	AnimationStackElement element = Pixel_AnimationSettings[ index ];
+	element.trigger = trigger;
+
+	Pixel_addAnimation( &element );
+}
 
 void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
@@ -161,10 +183,9 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	element.pfunc = *(uint8_t*)(&args[3]);
 	element.divmask = *(uint8_t*)(&args[4]);
 	element.divshift = *(uint8_t*)(&args[5]);
+	element.replace = *(uint8_t*)(&args[6]);
 
-	// Replace animation rather than add
-	uint8_t replace = *(uint8_t*)(&args[6]);
-	Pixel_addAnimation( &element, replace );
+	Pixel_addAnimation( &element );
 }
 
 void Pixel_Pixel_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
@@ -251,23 +272,34 @@ void Pixel_pixelInterpolate( PixelElement *elem, uint8_t position, uint8_t inten
 
 // -- Animation Stack --
 
+// Locates animation memory slot using default settings for the animation
+// Initiates animation to process on the next cycle
+// Returns 1 on success, 0 on failure to allocate
+uint8_t Pixel_addDefaultAnimation( uint32_t index )
+{
+	return Pixel_addAnimation( (AnimationStackElement*)&Pixel_AnimationSettings[ index ] );
+}
+
 // Allocates animaton memory slot
 // Initiates animation to process on the next cycle
 // Returns 1 on success, 0 on failure to allocate
-uint8_t Pixel_addAnimation( AnimationStackElement *element, AnimationReplaceType replace )
+uint8_t Pixel_addAnimation( AnimationStackElement *element )
 {
-	if ( replace )
+	if ( element->replace )
 	{
 		AnimationStackElement *found = Pixel_lookupAnimation( element->index, 0 );
 
 		// If found, modify stack element
-		if ( found != NULL && ( found->trigger == element->trigger || replace == AnimationReplaceType_All ) )
+		if ( found != NULL && ( found->trigger == element->trigger || element->replace == AnimationReplaceType_All ) )
 		{
-			found->pos = 0;
+			found->pos = element->pos;
 			found->loops = element->loops;
 			found->pfunc = element->pfunc;
+			found->ffunc = element->ffunc;
 			found->divmask = element->divmask;
 			found->divshift = element->divshift;
+			found->replace = element->replace;
+			found->state = element->state;
 			return 0;
 		}
 	}
@@ -421,6 +453,10 @@ PixelBuf *Pixel_bufferMap( uint16_t channel )
 	else if ( channel < 432 ) return &Pixel_Buffers[2];
 	else if ( channel < 576 ) return &Pixel_Buffers[3];
 #elif ISSI_Chip_31FL3733_define == 1
+	if      ( channel < 192 ) return &Pixel_Buffers[0];
+	else if ( channel < 384 ) return &Pixel_Buffers[1];
+	else if ( channel < 576 ) return &Pixel_Buffers[2];
+#else
 	if      ( channel < 192 ) return &Pixel_Buffers[0];
 	else if ( channel < 384 ) return &Pixel_Buffers[1];
 	else if ( channel < 576 ) return &Pixel_Buffers[2];
@@ -650,6 +686,10 @@ uint16_t Pixel_fillPixelLookup(
 	case PixelAddressType_Index:
 		// Lookup pixel by absolute index
 		*elem = (PixelElement*)&Pixel_Mapping[mod->index] - 1;
+		if ( mod->index <= Pixel_TotalPixels_KLL )
+		{
+			*valid = 1;
+		}
 		break;
 
 	case PixelAddressType_Rect:
@@ -724,7 +764,7 @@ uint16_t Pixel_fillPixelLookup(
 
 	case PixelAddressType_ScanCode:
 		// Make sure ScanCode exists
-		if ( mod->index >= MaxScanCode_KLL )
+		if ( mod->index > MaxScanCode_KLL )
 		{
 			erro_msg("Invalid ScanCode: ");
 			printInt16( mod->index );
@@ -983,6 +1023,18 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 			end = mod->rect.col;
 			break;
 
+		case PixelAddressType_ScanCode:
+			// If this is the first pixel, just set start at the same spot
+			start = prev != 0 ? prev->index : mod->index;
+			end = mod->index;
+			break;
+
+		case PixelAddressType_Index:
+			// If this is the first pixel, just set start at the same spot
+			start = prev != 0 ? prev->index : mod->index;
+			end = mod->index;
+			break;
+
 		default:
 			break;
 		}
@@ -1051,6 +1103,16 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 					interp_mod->rect.row = 0;
 					//interp_mod->rect.row = prev->rect.row + cur;
 				}
+				break;
+
+			case PixelAddressType_ScanCode:
+				interp_mod->index = start + cur;
+				// TODO Ignore unused ScanCodes
+				break;
+
+			case PixelAddressType_Index:
+				interp_mod->index = start + cur;
+				// TODO Ignore unused Indices
 				break;
 
 			default:
@@ -1153,6 +1215,25 @@ uint8_t Pixel_animationProcess( AnimationStackElement *elem )
 	if ( elem->index == 0xFFFF )
 	{
 		return 0;
+	}
+
+	// Check the play state
+	switch ( elem->state )
+	{
+	// Pause animation (paused animations will take up animation stack memory)
+	case AnimationPlayState_Pause:
+		return 1;
+
+	// Stopping animation (frees animation from stack memory)
+	case AnimationPlayState_Stop:
+		// Indicate animation slot is free
+		elem->index = 0xFFFF;
+		return 0;
+
+	// Do nothing
+	case AnimationPlayState_Start:
+	default:
+		break;
 	}
 
 	// Calculate sub-frame index
@@ -1342,6 +1423,7 @@ void Pixel_updateUSBLEDs()
 	element.ffunc = 0;
 	element.divmask = 1;
 	element.divshift = 1;
+	element.replace = AnimationReplaceType_Basic;
 
 	// NumLock
 	if ( USBKeys_LEDs & 0x01 )
@@ -1356,7 +1438,7 @@ void Pixel_updateUSBLEDs()
 	if ( USBKeys_LEDs & 0x02 )
 	{
 		element.index = caps_index;
-		Pixel_addAnimation( &element, AnimationReplaceType_Basic );
+		Pixel_addAnimation( &element );
 	}
 	else
 	{
@@ -1369,7 +1451,7 @@ void Pixel_updateUSBLEDs()
 	if ( USBKeys_LEDs & 0x04 )
 	{
 		element.index = scroll_index;
-		Pixel_addAnimation( &element, AnimationReplaceType_Basic );
+		Pixel_addAnimation( &element );
 	}
 	else
 	{

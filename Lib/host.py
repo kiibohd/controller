@@ -3,7 +3,7 @@
 Host-Side Setup Routines for KLL
 '''
 
-# Copyright (C) 2016 by Jacob Alexander
+# Copyright (C) 2016-2017 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@ Host-Side Setup Routines for KLL
 import argparse
 import ctypes
 import inspect
+import json
 import os
 import pty
 import sys
@@ -170,7 +171,7 @@ class Control:
 	'''
 	Handles general control of the libkiibohd host setup
 	'''
-	def __init__( self, scan_module, output_module, libkiibohd_path, CustomLoader ):
+	def __init__( self, scan_module, output_module, libkiibohd_path, CustomLoader, json_input_path ):
 		'''
 		Initializes control object
 
@@ -179,6 +180,10 @@ class Control:
 		'''
 		self.scan_module = scan_module
 		self.output_module = output_module
+
+		# Parse json file
+		with open( json_input_path, 'r' ) as inputFile:
+			self.json_input = json.load( inputFile )
 
 		self.CTYPE_callback = None
 		self.CTYPE_callback_ref = None

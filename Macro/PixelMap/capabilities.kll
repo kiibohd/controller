@@ -9,8 +9,13 @@ Date = 2017-02-05;
 
 # Capabilities
 animation => Pixel_Animation_capability( index : 2, loops : 1, pfunc : 1, divmask : 1, divshift : 1, replace : 1 );
+animationIndex => Pixel_AnimationIndex_capability( settingindex : 2 );
 pixel => Pixel_Pixel_capability();
 animation_control => Pixel_AnimationControl_capability( func : 1 );
+
+# Enable define
+Pixel_MapEnabled = "1";
+Pixel_MapEnabled => Pixel_MapEnabled_define;
 
 # Default Animation Mode
 # Set to PixelTest_Off for normal operation

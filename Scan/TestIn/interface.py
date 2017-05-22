@@ -79,11 +79,14 @@ LibModule = "@CMAKE_SOURCE_DIR@/Lib/host.py"
 # Import built kiibohd library
 libkiibohd_path = '@CMAKE_BINARY_DIR@/@CMAKE_SHARED_LIBRARY_PREFIX@kiibohd@CMAKE_SHARED_LIBRARY_SUFFIX@'
 
+# Json helper
+jsonInput = "@CMAKE_BINARY_DIR@/kll.json"
+
 # Setup Library Module
 lib = CustomLoader( "Lib", LibModule ).load_module("Lib")
 
 # Initialize libkiibohd
-control = lib.Control( ScanModule, OutputModule, libkiibohd_path, CustomLoader )
+control = lib.Control( ScanModule, OutputModule, libkiibohd_path, CustomLoader, jsonInput )
 control.process_args()
 control.process()
 

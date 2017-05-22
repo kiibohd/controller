@@ -103,6 +103,13 @@ typedef enum AnimationReplaceType {
 	AnimationReplaceType_All   = 2, // Replace no matter what trigger initiated
 } AnimationReplaceType;
 
+// Animation Play State
+typedef enum AnimationPlayState {
+	AnimationPlayState_Start = 0, // Start animation (default)
+	AnimationPlayState_Pause = 1, // Pause animation
+	AnimationPlayState_Stop  = 2, // Stop animation (removes animation state)
+} AnimationPlayState;
+
 
 
 // ----- Structs -----
@@ -159,20 +166,23 @@ typedef struct PixelModDataElement {
 
 // Animation stack element
 typedef struct AnimationStackElement {
-	TriggerMacro       *trigger;  // TriggerMacro that added element, set to 0 if unused
-	uint16_t            index;    // Animation id
-	uint16_t            pos;      // Current fundamental frame (XXX Make 32bit?)
-	uint8_t             loops;    // # of loops to run animation, 0 indicates infinite
-	uint8_t             divmask;  // # of process loops used for frame transition/hold (2,4,8,16,etc.)
-	                              //  Must be a contiguous mask
-	                              //  e.g.  0x00, 0x01, 0x03, 0x0F, etc.
-	                              //  *NOT* 0x02, 0x08, 0x24, etc.
-	uint8_t             divshift; // Matches divmask
-	                              //  Number of bits to shift until LSFB (least significant frame bit)
-	                              //  e.g.  0x03 => 2; 0x0F => 4
-	PixelFrameFunction  ffunc;    // Frame tweening function
-	PixelPixelFunction  pfunc;    // Pixel tweening function
+	TriggerMacro        *trigger;  // TriggerMacro that added element, set to 0 if unused
+	                               // If set to 1 in default settings, animation is enabled at start time
+	uint16_t             index;    // Animation id
+	uint16_t             pos;      // Current fundamental frame (XXX Make 32bit?)
+	uint8_t              loops;    // # of loops to run animation, 0 indicates infinite
+	uint8_t              divmask;  // # of process loops used for frame transition/hold (2,4,8,16,etc.)
+	                               //  Must be a contiguous mask
+	                               //  e.g.  0x00, 0x01, 0x03, 0x0F, etc.
+	                               //  *NOT* 0x02, 0x08, 0x24, etc.
+	uint8_t              divshift; // Matches divmask
+	                               //  Number of bits to shift until LSFB (least significant frame bit)
+	                               //  e.g.  0x03 => 2; 0x0F => 4
+	PixelFrameFunction   ffunc;    // Frame tweening function
+	PixelPixelFunction   pfunc;    // Pixel tweening function
 	// TODO ffunc and pfunc args
+	AnimationReplaceType replace;  // Replace type for stack element
+	AnimationPlayState   state;    // Animation state
 } AnimationStackElement;
 
 // Animation stack
@@ -187,6 +197,8 @@ typedef struct AnimationStack {
 // ----- Variables -----
 
 extern FrameState Pixel_FrameState;
+
+extern const AnimationStackElement Pixel_AnimationSettings[];
 
 extern       PixelBuf     Pixel_Buffers[];
 extern const PixelElement Pixel_Mapping[];

@@ -41,17 +41,17 @@ print( data.usb_keyboard() )
 
 
 # Press key 0x00
-i.control.cmd('addScanCode')( 0x02 )
+i.control.cmd('addScanCode')( 0x01 )
 
 # Run processing loop twice, needs to run twice in order to reach the Hold state
 i.control.loop(2)
 
 print( data.usb_keyboard() )
 print( data.usb_keyboard_data )
-check( set( data.usb_keyboard()[1] ) >= set([ 58 ]) ) # Check if [58] is a subset of the usb keyboard data
+check( set( data.usb_keyboard()[1] ) >= set([ 41 ]) ) # Check if [41] is a subset of the usb keyboard data
 
 # Release key 0x00
-i.control.cmd('removeScanCode')( 0x02 )
+i.control.cmd('removeScanCode')( 0x01 )
 
 # Run processing loop once, only needs to transition from hold to release
 i.control.loop(1)
@@ -64,7 +64,7 @@ print( data.usb_keyboard() )
 print("-- 3 key test --")
 
 # press keys
-i.control.cmd('addScanCode')( 0x02 )
+i.control.cmd('addScanCode')( 0x01 )
 i.control.cmd('addScanCode')( 0x06 )
 i.control.cmd('addScanCode')( 0x04 )
 
@@ -90,7 +90,7 @@ check( len( data.pending_trigger_list() ) == 0 )
 
 
 # Release keys
-i.control.cmd('removeScanCode')( 0x02 )
+i.control.cmd('removeScanCode')( 0x01 )
 i.control.cmd('removeScanCode')( 0x06 )
 i.control.cmd('removeScanCode')( 0x04 )
 i.control.cmd('removeScanCode')( 0x05 ) # Extra key (purposefully not pressed earlier to simulate bug)

@@ -33,8 +33,7 @@ data = i.control.data
 
 # Drop to cli, type exit in the displayed terminal to continue
 #i.control.cli()
-i.control.cmd('addAnimation')(index=15, pfunc=1, loops=1) # TODO
-i.control.loop(1)
+i.control.cmd('addAnimation')(name='underlighting_only_rotation', pfunc=1, loops=1) # TODO
 
 
 # Show output
@@ -46,7 +45,8 @@ i.control.cmd('rectDisp')()
 #	i.control.loop(1)
 
 # Loop 13 times, displaying each time
-for index in range( 69 ):
+for index in range( 12 ):
+#for index in range( 1 ):
 	# Read animation stack info
 	print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
 	check( i.control.cmd('animationStackInfo')().size == 1 )
@@ -58,7 +58,7 @@ for index in range( 69 ):
 	# Show output
 	i.control.cmd('rectDisp')()
 
-i.control.cmd('removeScanCode')( 0x3C )
+#i.control.cmd('removeScanCode')( 0x3C )
 i.control.loop(1)
 
 if False:

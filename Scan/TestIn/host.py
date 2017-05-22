@@ -114,7 +114,7 @@ class Commands:
 		'''
 		return control.kiibohd.Scan_removeScanCode( int( scan_code ) )
 
-	def addAnimation( self, index=0, pos=0, loops=1, divmask=0x0, divshift=0x0, ffunc=0, pfunc=0 ):
+	def addAnimation( self, name=None, index=0, pos=0, loops=1, divmask=0x0, divshift=0x0, ffunc=0, pfunc=0 ):
 		'''
 		Adds a given animation (by index) to the processing loop
 
@@ -132,6 +132,14 @@ class Commands:
 		# Read AnimationStackElement size
 		size = cast( control.kiibohd.Pixel_AnimationStackElement_HostSize, POINTER( c_uint8 ) )[0]
 		control.refresh_callback()
+
+		# If a name is given, do lookup using json
+		if name is not None:
+			lookup = control.json_input['AnimationIds']
+			if name not in lookup.keys():
+				print( "{0} '{1}' is an invalid animation id.".format( ERROR, name ) )
+			else:
+				index = lookup[ name ]
 
 		# Allocate memory for AnimationStackElement struct
 		elem = cast( create_string_buffer( size ), POINTER( AnimationStackElement ) )

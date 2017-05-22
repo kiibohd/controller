@@ -975,6 +975,7 @@ void LED_control( LedControl control, uint8_t arg )
 		return;
 	}
 
+#if ISSI_Chip_31FL3733_define || ISSI_Chip_31FL3732_define
 	// Update brightness
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
@@ -989,6 +990,7 @@ void LED_control( LedControl control, uint8_t arg )
 		// XXX (HaaTa) - This is emulated, see LED_scan for implementation
 #endif
 	}
+#endif
 }
 
 void LED_control_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
@@ -1139,6 +1141,7 @@ void cliFunc_ledSet( char* args )
 
 	info_msg("LED Brightness Set");
 
+#if ISSI_Chip_31FL3733_define || ISSI_Chip_31FL3732_define
 	// Update brightness
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
@@ -1153,5 +1156,6 @@ void cliFunc_ledSet( char* args )
 		// XXX (HaaTa) - This is emulated, see LED_scan and LED_linkedSend for implementation
 #endif
 	}
+#endif
 }
 

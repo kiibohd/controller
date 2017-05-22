@@ -136,24 +136,7 @@ void Scan_currentChange( unsigned int current )
 	if ( current == 500 )
 	{
 		// TODO REMOVEME once default animations can be set
-		AnimationStackElement element;
-		element.index = 15;
-		element.loops = 0;
-		element.pfunc = 1;
-		element.divmask = 0x01; // Half speed
-		element.divshift = 2;
-		Pixel_addAnimation( &element, 0 );
-	}
-	else
-	{
-		// TODO REMOVEME once default animations can be set
-		AnimationStackElement element;
-		element.index = 7;
-		element.loops = 1;
-		element.pfunc = 1;
-		element.divmask = 0x01;
-		element.divshift = 1;
-		Pixel_addAnimation( &element, 0 );
+		Pixel_addDefaultAnimation( Animation__rainbow_wave );
 	}
 }
 
