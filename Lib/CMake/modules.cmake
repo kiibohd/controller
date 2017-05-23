@@ -69,7 +69,12 @@ macro ( PathPrepend Output SourcesPath )
 	foreach ( item ${ARGN} )
 		# If the leading character is a / treat as an absolute path
 		string ( SUBSTRING "${item}" 0 1 character )
+		string ( SUBSTRING "${item}" 1 2 windows_drv )
 		if ( character STREQUAL "/" )
+			set ( tmpSource ${tmpSource} "${item}" )
+
+		# Check if a Windows Drive path
+		elseif ( windows_drv STREQUAL ":/" )
 			set ( tmpSource ${tmpSource} "${item}" )
 
 		# Otherwise just set the path
