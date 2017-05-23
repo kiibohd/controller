@@ -219,22 +219,6 @@ typedef struct ResultsPending {
 
 
 
-// -- List Structs
-
-// Result pending list struct
-typedef struct ResultPendingElem {
-	TriggerMacro *trigger;
-	index_uint_t  index;
-} ResultPendingElem;
-
-// Results Pending - Ring-buffer definition
-typedef struct ResultsPending {
-	ResultPendingElem data[ ResultMacroNum_KLL ];
-	index_uint_t      size;
-} ResultsPending;
-
-
-
 // ----- Capabilities -----
 
 // Capability
