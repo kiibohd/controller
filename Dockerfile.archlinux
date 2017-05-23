@@ -2,7 +2,8 @@ FROM base/archlinux
 
 RUN pacman -Sy --noconfirm \
 	git cmake ctags tmux libusb python python-pillow ninja dfu-util awk gcc gdb \
-	arm-none-eabi-binutils arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib && \
+	arm-none-eabi-binutils arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib \
+	clang && \
 	rm -rf /var/cache/pacman/pkg
 
 VOLUME /controller

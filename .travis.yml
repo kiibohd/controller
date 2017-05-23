@@ -12,7 +12,7 @@ os:
   - osx
 
 compiler:
-  - clang
+  #- clang
   - gcc
 
 # Build Scripts

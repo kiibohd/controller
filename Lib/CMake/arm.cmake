@@ -202,13 +202,13 @@ set( WARN "-Wall -ggdb3" )
 #|  -f...:        tuning, see GCC manual
 #| NOTE: -fshort-wchar is specified to allow USB strings be passed conveniently
 #| Bootloader Compiler Flags
-if( BOOTLOADER )
+if ( BOOTLOADER )
 
 	## Clang Compiler
 	if ( "${COMPILER}" MATCHES "clang" )
 		# TODO Not currently working, clang doesn't support all the neccessary extensions
 		message ( AUTHOR_WARNING "clang doesn't support all the needed extensions, code may need rework to use clang" )
-		set ( TUNING "-D_bootloader_ -Wno-main -msoft-float -target arm-none-eabi -mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -fplan9-extensions -fstrict-volatile-bitfields -flto -fno-use-linker-plugin" )
+		set ( TUNING "-D_bootloader_ -Wno-main -msoft-float -target arm-none-eabi -mtbm -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -fplan9-extensions -fstrict-volatile-bitfields -flto -fno-use-linker-plugin" )
 
 	## GCC Compiler
 	else ()
@@ -220,13 +220,13 @@ if( BOOTLOADER )
 else ()
 	## Clang Compiler
 	if ( "${COMPILER}" MATCHES "clang" )
-		set ( TUNING "-target arm-none-eabi -mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
+		set ( TUNING "-target arm-none-eabi -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
 
 	## GCC Compiler
-	else()
+	else ()
 		set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
 	endif ()
-endif()
+endif ()
 
 
 #| Optimization level, can be [0, 1, 2, 3, s].
@@ -240,13 +240,18 @@ add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING}
 
 
 #| Linker Flags
-if( BOOTLOADER )
+if ( BOOTLOADER )
 	# Bootloader linker flags
 	set( LINKER_FLAGS "${TUNING} -Wl,--gc-sections -fwhole-program -T${CMAKE_CURRENT_SOURCE_DIR}/../Lib/${CHIP}.bootloader.ld -nostartfiles -Wl,-Map=link.map" )
-else()
-	# Normal linker flags
-	set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
-endif()
+else ()
+	## Clang Compiler
+	if ( "${COMPILER}" MATCHES "clang" )
+		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
+	else ()
+		# Normal linker flags
+		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
+	endif ()
+endif ()
 
 
 #| Enable color output with Ninja
