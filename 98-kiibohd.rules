@@ -1,26 +1,29 @@
 # Half-Kay, Kiibohd
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789]?", ENV{ID_MM_DEVICE_IGNORE}="1"
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789]?", ENV{MTP_NO_PROBE}="1"
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789]?", MODE:="0666"
+SUBSYSTEM=="usb" ATTRS{idVendor}=="16c0" ATTRS{idProduct}=="04[789]?" ENV{ID_MM_DEVICE_IGNORE}="1"
+SUBSYSTEM=="usb" ATTRS{idVendor}=="16c0" ATTRS{idProduct}=="04[789]?" ENV{MTP_NO_PROBE}="1"
+SUBSYSTEM=="usb" ATTR{idVendor}=="16c0" ATTR{idProduct}=="04[789]?" MODE:="0666"
 
 # Kiibohd Serial Interface
-SUBSYSTEM=="tty", ATTRS{idVendor}=="16c0", ATTRS{idProduct}=="04[789]?", SYMLINK+="kiibohd", MODE:="0666"
-SUBSYSTEM=="tty", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="b04d", SYMLINK+="kiibohd", MODE:="0666"
+SUBSYSTEM=="tty" ATTRS{idVendor}=="16c0" ATTRS{idProduct}=="04[789]?" SYMLINK+="kiibohd" MODE:="0666"
+SUBSYSTEM=="tty" ATTRS{idVendor}=="1c11" ATTRS{idProduct}=="b04d" SYMLINK+="kiibohd" MODE:="0666"
 
 # Kiibohd Device
-#SUBSYSTEMS=="usb", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="b04d", MODE:="0666"
+SUBSYSTEM=="usb" ATTR{idVendor}=="1c11" ATTR{idProduct}=="b04d" MODE:="0666"
 
 # DFU Bootloader (MCHCK)
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="2323", ATTRS{idProduct}=="0001", ENV{ID_MM_DEVICE_IGNORE}="1"
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="2323", ATTRS{idProduct}=="0001", ENV{MTP_NO_PROBE}="1"
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="2323", ATTRS{idProduct}=="0001", MODE:="0666"
+SUBSYSTEM=="usb" ATTRS{idVendor}=="2323" ATTRS{idProduct}=="0001" ENV{ID_MM_DEVICE_IGNORE}="1"
+SUBSYSTEM=="usb" ATTRS{idVendor}=="2323" ATTRS{idProduct}=="0001" ENV{MTP_NO_PROBE}="1"
+SUBSYSTEM=="usb" ATTR{idVendor}=="2323" ATTR{idProduct}=="0001" MODE:="0666"
 
 # Kiibohd DFU Bootloader
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="1C11", ATTRS{idProduct}=="b007", ENV{ID_MM_DEVICE_IGNORE}="1"
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="1C11", ATTRS{idProduct}=="b007", ENV{MTP_NO_PROBE}="1"
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="b007", MODE:="0666"
+SUBSYSTEM=="usb" ATTRS{idVendor}=="1C11" ATTRS{idProduct}=="b007" ENV{ID_MM_DEVICE_IGNORE}="1"
+SUBSYSTEM=="usb" ATTRS{idVendor}=="1C11" ATTRS{idProduct}=="b007" ENV{MTP_NO_PROBE}="1"
+SUBSYSTEM=="usb" ATTR{idVendor}=="1c11" ATTR{idProduct}=="b007" MODE:="0666"
 
 # Kiibohd Force Gauge
-SUBSYSTEM=="tty", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="f05c", MODE:="0666", SYMLINK+="force"
-SUBSYSTEMS=="usb", ATTRS{idVendor}=="1c11", ATTRS{idProduct}=="f05c", MODE:="0666"
+# e.g. udevadm info -a -p /sys/bus/usb/devices/3-5
+# sudo udevadm test /sys/bus/usb/devices/3-5:1.0/tty/ttyACM0
+# Use ATTR on root, ATTRS on leaves
+SUBSYSTEM=="tty"  ATTRS{idVendor}=="1c11" ATTRS{idProduct}=="f05c" MODE:="0666" SYMLINK+="force"
+SUBSYSTEM=="usb" ATTR{idVendor}=="1c11" ATTR{idProduct}=="f05c" MODE:="0666"
 

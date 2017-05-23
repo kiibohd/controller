@@ -23,7 +23,7 @@ BaseMap="scancode_map"
 # This is the default layer of the keyboard
 # NOTE: To combine kll files into a single layout, separate them by spaces
 # e.g.  DefaultMap="mylayout mylayoutmod"
-DefaultMap="md1Overlay stdFuncMap"
+DefaultMap="stdFuncMap"
 
 # This is where you set the additional layers
 # NOTE: Indexing starts at 1
@@ -44,7 +44,8 @@ PartialMaps[1]="hhkbpro2"
 # NOTE: Changing any of these variables will require a force build to compile correctly
 
 # Keyboard Module Configuration
-ScanModule="Infinity_60%"
+ScanModule="MD1"
+#ScanModule="Infinity_60%" # XXX Ninja build generator has issues with %'s in filenames...
 MacroModule="PartialMap"
 OutputModule="pjrcUSB"
 DebugModule="full"

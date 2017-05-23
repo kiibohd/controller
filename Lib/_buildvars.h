@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2016 by Jacob Alexander
+/* Copyright (C) 2013-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,7 @@
 #define STR_MANUFACTURER        L"@MANUFACTURER@"
 #define STR_PRODUCT             L"Keyboard - @ScanModule@ @MacroModule@ @OutputModule@ @DebugModule@"
 #define STR_SERIAL              L"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX - @CHIP@"
+#define STR_CONFIG_NAME         L"@FLASHING_STATION_ID@"
 
 
 // Strings used in the CLI module

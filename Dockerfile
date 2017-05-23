@@ -2,7 +2,7 @@ FROM ubuntu:xenial
 
 RUN apt-get update && \
     apt-get install -qy git cmake ctags tmux libusb-1.0-0-dev binutils-arm-none-eabi \
-    gcc-arm-none-eabi libnewlib-arm-none-eabi dfu-util python3 python3-pil git && \
+    gcc-arm-none-eabi libnewlib-arm-none-eabi dfu-util python3 python3-pil git ninja-build && \
     rm -rf /var/lib/apt/lists/*
 
 VOLUME /controller
@@ -17,7 +17,7 @@ CMD /bin/bash
 
 # 3. Build the firmware
 # ./ergodox.bash
- 
+
 # 4. Exit the container and load the firmware
 #   a. exit
 #   b. cd ./Keyboards/ICED-L.gcc/

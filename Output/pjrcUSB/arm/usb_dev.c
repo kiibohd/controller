@@ -903,12 +903,14 @@ static void usb_control( uint32_t stat )
 			// Keyboard Interface
 			case KEYBOARD_INTERFACE:
 				USBKeys_LEDs = buf[0];
+				USBKeys_LEDs_Changed = 1;
 				break;
 			// NKRO Keyboard Interface
 			case NKRO_KEYBOARD_INTERFACE:
 				// Already set with the control sequence
 				// Only use 2nd byte, first byte is the report id
 				USBKeys_LEDs = buf[1];
+				USBKeys_LEDs_Changed = 1;
 				break;
 			default:
 				warn_msg("Unknown interface - ");

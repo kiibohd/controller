@@ -33,12 +33,16 @@ environment:
       SCRIPT: ergodox.bash
     - SCRIPT_DIR: Keyboards
       SCRIPT: whitefox.bash
+    - SCRIPT_DIR: Keyboards
+      SCRIPT: k-type.bash
 
     # Debug Build Tests
     - SCRIPT_DIR: Keyboards/Testing
       SCRIPT: uartout.bash
     - SCRIPT_DIR: Keyboards/Testing
       SCRIPT: usbmuxuart.bash
+    - SCRIPT_DIR: Keyboards/Testing
+      SCRIPT: macrotest.bash
 
     # Bootloader Build Tests
     - SCRIPT_DIR: Bootloader/Builds
@@ -89,5 +93,6 @@ build_script:
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && git --version"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && python3 --version"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && arm-none-eabi-gcc --version"'
+  - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && git clone https://github.com/kiibohd/kll.git"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\"/%SCRIPT_DIR% && export wincmake_path=\"%WIN_CMAKE%\" && COMPILER=gcc ./%SCRIPT%"'
 

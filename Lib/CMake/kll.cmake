@@ -11,7 +11,7 @@
 # Check if KLL compiler is needed
 #
 
-if ( "${MacroModule}" STREQUAL "PartialMap" )
+if ( "${MacroModule}" STREQUAL "PartialMap" OR "${MacroModule}" STREQUAL "PixelMap" )
 
 
 ###
@@ -62,7 +62,7 @@ endif () # kll/kll.py exists
 
 #| Add each of the detected capabilities.kll
 foreach ( filename ${ScanModule_KLL} ${MacroModule_KLL} ${OutputModule_KLL} ${DebugModule_KLL} )
-	set ( BaseMap_Args ${BaseMap_Args} ${filename} )
+	set ( Config_Args ${Config_Args} ${filename} )
 	set ( KLL_DEPENDS ${KLL_DEPENDS} ${filename} )
 endforeach ()
 
@@ -90,8 +90,6 @@ endforeach ()
 
 #| Configure DefaultMap if specified
 if ( NOT "${DefaultMap}" STREQUAL "" )
-	set ( DefaultMap_Args -d )
-
 	string ( REPLACE " " ";" MAP_LIST ${DefaultMap} ) # Change spaces to semicolons
 	foreach ( MAP ${MAP_LIST} )
 		# Check if kll file is in build directory, otherwise default to layout directory
@@ -101,6 +99,9 @@ if ( NOT "${DefaultMap}" STREQUAL "" )
 		elseif ( EXISTS "${PROJECT_SOURCE_DIR}/kll/layouts/${MAP}.kll" )
 			set ( DefaultMap_Args ${DefaultMap_Args} ${PROJECT_SOURCE_DIR}/kll/layouts/${MAP}.kll )
 			set ( KLL_DEPENDS ${KLL_DEPENDS} ${PROJECT_SOURCE_DIR}/kll/layouts/${MAP}.kll )
+		elseif ( EXISTS "${pathname}/${MAP}.kll" )
+			set ( DefaultMap_Args ${DefaultMap_Args} ${pathname}/${MAP}.kll )
+			set ( KLL_DEPENDS ${KLL_DEPENDS} ${pathname}/${MAP}.kll )
 		else ()
 			message ( FATAL " Could not find '${MAP}.kll' DefaultMap" )
 		endif ()
@@ -111,7 +112,7 @@ endif ()
 if ( NOT "${PartialMaps}" STREQUAL "" )
 	# For each partial layer
 	foreach ( MAP ${PartialMaps} )
-		set ( PartialMap_Args ${PartialMap_Args} -p )
+		set ( PartialMap_Args ${PartialMap_Args} --partial )
 
 		# Combine each layer
 		string ( REPLACE " " ";" MAP_LIST ${MAP} ) # Change spaces to semicolons
@@ -123,6 +124,9 @@ if ( NOT "${PartialMaps}" STREQUAL "" )
 			elseif ( EXISTS "${PROJECT_SOURCE_DIR}/kll/layouts/${MAP_PART}.kll" )
 				set ( PartialMap_Args ${PartialMap_Args} ${PROJECT_SOURCE_DIR}/kll/layouts/${MAP_PART}.kll )
 				set ( KLL_DEPENDS ${KLL_DEPENDS} ${PROJECT_SOURCE_DIR}/kll/layouts/${MAP_PART}.kll )
+			elseif ( EXISTS "${pathname}/${MAP}.kll" )
+				set ( PartialMap_Args ${PartialMap_Args} ${pathname}/${MAP}.kll )
+				set ( KLL_DEPENDS ${KLL_DEPENDS} ${pathname}/${MAP}.kll )
 			else ()
 				message ( FATAL " Could not find '${MAP_PART}.kll' PartialMap" )
 			endif ()
@@ -144,14 +148,41 @@ endforeach ()
 #
 
 #| KLL Options
-set ( kll_backend   --backend kiibohd )
-set ( kll_template  --templates ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdKeymap.h ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdDefs.h )
-set ( kll_outputname generatedKeymap.h kll_defs.h )
-set ( kll_output    --outputs ${kll_outputname} )
+set ( kll_emitter    kiibohd )
+set ( kll_keymap     generatedKeymap.h )
+set ( kll_defs       kll_defs.h )
+set ( kll_pixelmap   generatedPixelmap.c )
+set ( kll_outputname ${kll_keymap} ${kll_defs} ${kll_pixelmap} )
+
+#| KLL Version
+set ( kll_version_cmd
+	${PROJECT_SOURCE_DIR}/kll/kll
+	--version
+)
 
 #| KLL Cmd
-set ( kll_cmd ${PROJECT_SOURCE_DIR}/kll/kll.py ${BaseMap_Args} ${DefaultMap_Args} ${PartialMap_Args} ${kll_backend} ${kll_template} ${kll_output} )
+set ( kll_cmd
+	${PROJECT_SOURCE_DIR}/kll/kll
+	--config ${Config_Args}
+	--base ${BaseMap_Args}
+	--default ${DefaultMap_Args}
+	${PartialMap_Args}
+	--emitter ${kll_emitter}
+	--def-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdDefs.h
+	--map-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdKeymap.h
+	--pixel-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdPixelmap.c
+	--def-output ${kll_defs}
+	--map-output ${kll_keymap}
+	--pixel-output ${kll_pixelmap}
+	#--operation-organization-display
+	#--data-organization-display
+	#--data-finalization-debug
+	#--data-finalization-display
+	#--data-analysis-debug
+)
+
 add_custom_command ( OUTPUT ${kll_outputname}
+	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd}
 	DEPENDS ${KLL_DEPENDS}
 	COMMENT "Generating KLL Layout"
@@ -159,6 +190,7 @@ add_custom_command ( OUTPUT ${kll_outputname}
 
 #| KLL Regen Convenience Target
 add_custom_target ( kll_regen
+	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd}
 	COMMENT "Re-generating KLL Layout"
 )
@@ -167,6 +199,7 @@ add_custom_target ( kll_regen
 set ( SRCS ${SRCS} ${kll_outputname} )
 
 
-
+else ()
+message ( AUTHOR_WARNING "Unknown Macro module, ignoring kll generation" )
 endif () # PartialMap
 

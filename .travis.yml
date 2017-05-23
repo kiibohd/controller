@@ -1,5 +1,5 @@
 # travis-ci integration for the kiibohd controller firmware
-# XXX Using Ubuntu 14.04 Trusty as 12.04 is too ancient and doesn't support Debian repo properly
+# XXX Using Ubuntu 14.04 Trusty in root mode (we need universe repo, means we can't use container infra yet)
 
 sudo: required
 dist: trusty
@@ -12,20 +12,8 @@ os:
   - osx
 
 compiler:
-  - clang
+  #- clang
   - gcc
-
-addons:
-  apt:
-    sources:
-      - debian-sid
-    packages:
-      - binutils-arm-none-eabi
-      - gcc-arm-none-eabi
-      - exuberant-ctags
-        #- libc6-dev-i386 # Needed for clang!?
-      - libnewlib-arm-none-eabi
-      - tree
 
 # Build Scripts
 env:
@@ -34,10 +22,12 @@ env:
   - DIR=Keyboards SCRIPT=infinity_led.bash
   - DIR=Keyboards SCRIPT=ergodox.bash
   - DIR=Keyboards SCRIPT=whitefox.bash
+  - DIR=Keyboards SCRIPT=k-type.bash
 
   # Debug Build Tests
   - DIR=Keyboards/Testing SCRIPT=uartout.bash
   - DIR=Keyboards/Testing SCRIPT=usbmuxuart.bash
+  - DIR=Keyboards/Testing SCRIPT=macrotest.bash
 
   # Bootloader Build Tests
   - DIR=Bootloader/Builds SCRIPT=mk20dx128vlf5.bash
@@ -48,6 +38,10 @@ matrix:
   # TODO - Still some travis clang issues
   allow_failures:
     - compiler: clang
+    # Currently there are issues running the macrotest on macOS
+    - compiler: gcc
+      env: DIR=Keyboards/Testing SCRIPT=macrotest.bash
+      os: osx
 
   exclude:
     # Bootloader doesn't support clang yet
@@ -56,33 +50,50 @@ matrix:
     - compiler: clang
       env: DIR=Bootloader/Builds SCRIPT=mk20dx256vlh7.bash
     # xcode *and* brew don't support clang ARMCCompiler for arm-none-eabi, sigh useless Apple
-    # Disabling Linux clang builds until Travis has less crappy repos available
     - compiler: clang
       env: DIR=Keyboards SCRIPT=infinity.bash
+      os: osx
     - compiler: clang
       env: DIR=Keyboards SCRIPT=infinity_led.bash
+      os: osx
     - compiler: clang
       env: DIR=Keyboards SCRIPT=ergodox.bash
+      os: osx
     - compiler: clang
       env: DIR=Keyboards SCRIPT=whitefox.bash
+      os: osx
+    - compiler: clang
+      env: DIR=Keyboards SCRIPT=k-type.bash
+      os: osx
     - compiler: clang
       env: DIR=Keyboards/Testing SCRIPT=uartout.bash
+      os: osx
     - compiler: clang
       env: DIR=Keyboards/Testing SCRIPT=usbmuxuart.bash
+      os: osx
+    - compiler: clang
+      env: DIR=Keyboards/Testing SCRIPT=macrotest.bash
+      os: osx
     - compiler: clang
       env: DIR=Bootloader/Builds SCRIPT=mk20dx128vlf5.bash
+      os: osx
     - compiler: clang
       env: DIR=Bootloader/Builds SCRIPT=mk20dx256vlh7.bash
+      os: osx
 
 # Package Setup
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python3 ctags dfu-util tree; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]];   then brew tap Caskroom/cask; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]];   then brew install Caskroom/cask/gcc-arm-embedded; fi
-  # This may work, but we'd have to compile llvm...
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "clang" ]]; then brew tap homebrew/versions; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "clang" ]]; then brew install homebrew/versions/llvm38 --with-all-targets --with-asan --with-lld --HEAD; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install software-properties-common -y; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository universe -y; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded -y; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then cd "$(brew --repo)" && git fetch && git reset --hard origin/master && brew update && cd -; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install tree python3 ctags dfu-util; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]]; then brew tap Caskroom/cask; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]]; then brew install Caskroom/cask/gcc-arm-embedded; fi
+  # TODO - Add proper gcc for macrotest on macOS
 
 # System setup
 install:

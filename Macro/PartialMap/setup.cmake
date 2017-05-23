@@ -24,5 +24,6 @@ set ( Module_SRCS
 set ( ModuleCompatibility
 	arm
 	avr
+	host
 )
 

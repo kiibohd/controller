@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -34,6 +34,7 @@
 #include <matrix_scan.h>
 #include <macro.h>
 #include <output_com.h>
+#include <pixel.h>
 
 // Local Includes
 #include "scan_loop.h"
@@ -45,6 +46,8 @@
 // Number of scans since the last USB send
 uint16_t Scan_scanCount = 0;
 
+uint8_t Scan_strobe_position;
+
 
 
 // ----- Functions -----
@@ -53,7 +56,7 @@ uint16_t Scan_scanCount = 0;
 inline void Scan_setup()
 {
 	// Setup UART Connect, if Output_Available, this is the master node
-	Connect_setup( Output_Available );
+	Connect_setup( Output_Available, 1 );
 
 	// Setup GPIO pins for matrix scanning
 	Matrix_setup();
@@ -64,8 +67,14 @@ inline void Scan_setup()
 	// Setup the ST/NHD lcd display
 	LCD_setup();
 
+	// Setup Pixel Map
+	Pixel_setup();
+
 	// Reset scan count
 	Scan_scanCount = 0;
+
+	// Reset starting strobe position
+	Scan_strobe_position = 0;
 }
 
 
@@ -73,16 +82,26 @@ inline void Scan_setup()
 inline uint8_t Scan_loop()
 {
 	// Scan Matrix
-	Matrix_scan( Scan_scanCount++ );
+	Matrix_scan( Scan_scanCount, &Scan_strobe_position, 4 );
 
 	// Process any interconnect commands
 	Connect_scan();
+
+	// Prepare any LED events
+	Pixel_process();
 
 	// Process any LED events
 	LED_scan();
 
 	// Process any LCD events
 	LCD_scan();
+
+	// Check if we are ready roll ovr the strobe position
+	if ( Scan_strobe_position >= Matrix_totalColumns() - 1 )
+	{
+		Scan_strobe_position = 0;
+		Scan_scanCount++;
+	}
 
 	return 0;
 }

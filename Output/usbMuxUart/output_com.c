@@ -125,6 +125,7 @@ uint8_t  USBKeys_SentCLI = 0;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t  USBKeys_LEDs = 0;
+volatile uint8_t  USBKeys_LEDs_Changed;
 
 // Currently pressed mouse buttons, bitmask, 0 represents no buttons pressed
 volatile uint16_t USBMouse_Buttons = 0;

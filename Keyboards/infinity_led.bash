@@ -3,7 +3,7 @@
 # Keyboard: Infinity 60% with LED backlight support (MD1.1)
 #
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2016
+# Jacob Alexander 2016-2017
 
 
 
@@ -23,7 +23,7 @@ BaseMap="scancode_map"
 # This is the default layer of the keyboard
 # NOTE: To combine kll files into a single layout, separate them by spaces
 # e.g.  DefaultMap="mylayout mylayoutmod"
-DefaultMap="md1Overlay stdFuncMap"
+DefaultMap="stdFuncMap"
 
 # This is where you set the additional layers
 # NOTE: Indexing starts at 1
@@ -44,8 +44,9 @@ PartialMaps[1]="hhkbpro2"
 # NOTE: Changing any of these variables will require a force build to compile correctly
 
 # Keyboard Module Configuration
-ScanModule="Infinity_60%_LED"
-MacroModule="PartialMap"
+ScanModule="MD1.1"
+#ScanModule="Infinity_60%_LED" # XXX Ninja build generator has issues with %'s in filenames...
+MacroModule="PixelMap"
 OutputModule="pjrcUSB"
 DebugModule="full"
 

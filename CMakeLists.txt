@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2016
+# Jacob Alexander 2011-2017
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -25,6 +25,7 @@ set( CHIP
 	"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
 #       "mk20dx256"        # Teensy   3.1,3.2 (arm)
 #       "mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
+#       "host"             # System compiler test environment
 	CACHE STRING "Microcontroller Chip"
 )
 
@@ -149,8 +150,16 @@ set( TARGET kiibohd )
 #| USB Descriptor iManufacturer string
 set( MANUFACTURER "Kiibohd" )
 
+#| Flashing Station name
+#| This is a placeholder value, the flashing process will overwrite this value for you
+set( FLASHING_STATION_ID "xXXx" )
+
 #| General Settings
 cmake_minimum_required( VERSION 2.8 )
+
+#| Compiler Version (only available after project() command)
+message( STATUS "Full Compiler:" )
+message( "${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_VERSION}" )
 
 
 

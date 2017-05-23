@@ -89,11 +89,21 @@ if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
 	set( SIZE_FLASH 126976 )
 	set( F_CPU "48000000" )
 
+	# Bootloader has a lower flash restriction to fit inside protected area
+	if ( BOOTLOADER )
+		set( SIZE_FLASH 4096 )
+	endif ()
+
 #| Kiibohd-dfu
 elseif ( "${CHIP}" MATCHES "mk20dx256vlh7" )
 	set( SIZE_RAM    65536 )
 	set( SIZE_FLASH 253952 )
 	set( F_CPU "72000000" )
+
+	# Bootloader has a lower flash restriction to fit inside protected area
+	if ( BOOTLOADER )
+		set( SIZE_FLASH 8192 )
+	endif ()
 
 #| Teensy 3.0
 elseif ( "${CHIP}" MATCHES "mk20dx128" )
@@ -140,6 +150,7 @@ message( "${CPU}" )
 set( COMPILER_SRCS
 	Lib/${CHIP_FAMILY}.c
 	Lib/delay.c
+	Lib/time.c
 )
 
 #| Clang needs a few more functions for linking
@@ -191,13 +202,13 @@ set( WARN "-Wall -ggdb3" )
 #|  -f...:        tuning, see GCC manual
 #| NOTE: -fshort-wchar is specified to allow USB strings be passed conveniently
 #| Bootloader Compiler Flags
-if( BOOTLOADER )
+if ( BOOTLOADER )
 
 	## Clang Compiler
 	if ( "${COMPILER}" MATCHES "clang" )
 		# TODO Not currently working, clang doesn't support all the neccessary extensions
 		message ( AUTHOR_WARNING "clang doesn't support all the needed extensions, code may need rework to use clang" )
-		set ( TUNING "-D_bootloader_ -Wno-main -msoft-float -target arm-none-eabi -mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -fplan9-extensions -fstrict-volatile-bitfields -flto -fno-use-linker-plugin" )
+		set ( TUNING "-D_bootloader_ -Wno-main -msoft-float -target arm-none-eabi -mtbm -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -fplan9-extensions -fstrict-volatile-bitfields -flto -fno-use-linker-plugin" )
 
 	## GCC Compiler
 	else ()
@@ -209,13 +220,13 @@ if( BOOTLOADER )
 else ()
 	## Clang Compiler
 	if ( "${COMPILER}" MATCHES "clang" )
-		set ( TUNING "-target arm-none-eabi -mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
+		set ( TUNING "-target arm-none-eabi -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin" )
 
 	## GCC Compiler
-	else()
+	else ()
 		set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
 	endif ()
-endif()
+endif ()
 
 
 #| Optimization level, can be [0, 1, 2, 3, s].
@@ -224,23 +235,38 @@ endif()
 set( OPT "s" )
 
 
-#| Dependency Files
-#| Compiler flags to generate dependency files.
-set( GENDEPFLAGS "-MMD" )
-
-
 #| Compiler Flags
-add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS}" )
+add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD}" )
 
 
 #| Linker Flags
-if( BOOTLOADER )
+if ( BOOTLOADER )
 	# Bootloader linker flags
 	set( LINKER_FLAGS "${TUNING} -Wl,--gc-sections -fwhole-program -T${CMAKE_CURRENT_SOURCE_DIR}/../Lib/${CHIP}.bootloader.ld -nostartfiles -Wl,-Map=link.map" )
-else()
-	# Normal linker flags
-	set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
-endif()
+else ()
+	## Clang Compiler
+	if ( "${COMPILER}" MATCHES "clang" )
+		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
+	else ()
+		# Normal linker flags
+		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
+	endif ()
+endif ()
+
+
+#| Enable color output with Ninja
+if( CMAKE_GENERATOR STREQUAL "Ninja" )
+	## Clang Compiler
+	if ( "${COMPILER}" MATCHES "clang" )
+		add_definitions( "-fcolor-diagnostics" )
+	## GCC Compiler
+	else ()
+		add_definitions( "-fdiagnostics-color=always" )
+	endif ()
+
+	# We always use the gcc linker for arm-none-eabi
+	set( LINKER_FLAGS "${LINKER_FLAGS} -fdiagnostics-color=always" )
+endif ()
 
 
 #| Hex Flags (XXX, CMake seems to have issues if you quote the arguments for the custom commands...)

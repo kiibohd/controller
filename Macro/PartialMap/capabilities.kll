@@ -25,3 +25,7 @@ stateWordSize = 8; # Default for now, increase to 16 or 32 for higher limits
 indexWordSize => IndexWordSize_define;
 indexWordSize = 16; # Default for now, increase to 32 for higher limits (8 for less resource usage)
 
+# Press/Release Cache
+PressReleaseCache => PressReleaseCache_define;
+PressReleaseCache = 1;
+

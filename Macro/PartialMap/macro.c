@@ -34,6 +34,11 @@
 #include <connect_scan.h>
 #endif
 
+// PixelMap Includes
+#if defined(Pixel_MapEnabled_define)
+#include <pixel.h>
+#endif
+
 // Local Includes
 #include "trigger.h"
 #include "result.h"
@@ -56,6 +61,7 @@ void cliFunc_macroList ( char* args );
 void cliFunc_macroProc ( char* args );
 void cliFunc_macroShow ( char* args );
 void cliFunc_macroStep ( char* args );
+void cliFunc_posList   ( char* args );
 
 
 
@@ -75,6 +81,7 @@ CLIDict_Entry( macroList,   "List the defined trigger and result macros." );
 CLIDict_Entry( macroProc,   "Pause/Resume macro processing." );
 CLIDict_Entry( macroShow,   "Show the macro corresponding to the given index." NL "\t\t\033[35mT16\033[0m Indexed Trigger Macro 0x10, \033[35mR12\033[0m Indexed Result Macro 0x0C" );
 CLIDict_Entry( macroStep,   "Do N macro processing steps. Defaults to 1." );
+CLIDict_Entry( posList,     "List physical key positions by ScanCode." );
 
 CLIDict_Def( macroCLIDict, "Macro Module Commands" ) = {
 	CLIDict_Item( capList ),
@@ -90,6 +97,7 @@ CLIDict_Def( macroCLIDict, "Macro Module Commands" ) = {
 	CLIDict_Item( macroProc ),
 	CLIDict_Item( macroShow ),
 	CLIDict_Item( macroStep ),
+	CLIDict_Item( posList ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -134,12 +142,22 @@ uint8_t macroInterconnectCacheSize = 0;
 
 // ----- Capabilities -----
 
+#if defined(Pixel_MapEnabled_define) && defined(animation_test_layout_define)
+uint8_t Pixel_addDefaultAnimation( uint32_t index );
+#endif
+
 // Sets the given layer with the specified layerState
-void Macro_layerState( uint8_t state, uint8_t stateType, uint16_t layer, uint8_t layerState )
+void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint16_t layer, uint8_t layerState )
 {
 	// Ignore if layer does not exist or trying to manipulate layer 0/Default layer
 	if ( layer >= LayerNum || layer == 0 )
 		return;
+
+#if defined(Pixel_MapEnabled_define) && defined(animation_test_layout_define)
+	// TODO TODO TODO TODO
+	// TODO (HaaTa) Add as an event
+	Pixel_addDefaultAnimation( Animation__lock_event );
+#endif
 
 	// Is layer in the LayerIndexStack?
 	uint8_t inLayerIndexStack = 0;
@@ -240,7 +258,7 @@ void Macro_layerState_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	// Get layer toggle byte
 	uint8_t layerState = args[ sizeof(uint16_t) ];
 
-	Macro_layerState( state, stateType, layer, layerState );
+	Macro_layerState( trigger, state, stateType, layer, layerState );
 }
 
 
@@ -264,7 +282,7 @@ void Macro_layerLatch_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
-	Macro_layerState( state, stateType, layer, 0x02 );
+	Macro_layerState( trigger, state, stateType, layer, 0x02 );
 }
 
 
@@ -289,7 +307,7 @@ void Macro_layerLock_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
-	Macro_layerState( state, stateType, layer, 0x04 );
+	Macro_layerState( trigger, state, stateType, layer, 0x04 );
 }
 
 
@@ -321,7 +339,7 @@ void Macro_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	if ( LayerState[ layer ] == 0x00 && state == 0x03 )
 		return;
 
-	Macro_layerState( state, stateType, layer, 0x01 );
+	Macro_layerState( trigger, state, stateType, layer, 0x01 );
 }
 
 
@@ -347,7 +365,7 @@ void Macro_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 	// Unset previous rotation layer if not 0
 	if ( Macro_rotationLayer != 0 )
 	{
-		Macro_layerState( state, stateType, Macro_rotationLayer, 0x04 );
+		Macro_layerState( trigger, state, stateType, Macro_rotationLayer, 0x04 );
 	}
 
 	// Get direction of rotation, 0, next, non-zero previous
@@ -373,7 +391,7 @@ void Macro_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 	}
 
 	// Toggle the computed layer rotation
-	Macro_layerState( state, stateType, Macro_rotationLayer, 0x04 );
+	Macro_layerState( trigger, state, stateType, Macro_rotationLayer, 0x04 );
 }
 
 
@@ -404,7 +422,7 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 		uint8_t latch = LayerState[ cachedLayer ] & 0x02;
 		if ( latch && latch_expire )
 		{
-			Macro_layerState( 0, 0, cachedLayer, 0x02 );
+			Macro_layerState( 0, 0, 0, cachedLayer, 0x02 );
 #if defined(ConnectEnabled_define) && defined(LCDEnabled_define)
 			// Evaluate the layerStack capability if available (LCD + Interconnect)
 			extern void LCD_layerStack_capability(
@@ -431,7 +449,7 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 		uint8_t latch = LayerState[ macroLayerIndexStack[ layerIndex ] ] & 0x02;
 		if ( latch && latch_expire )
 		{
-			Macro_layerState( 0, 0, macroLayerIndexStack[ layerIndex ], 0x02 );
+			Macro_layerState( 0, 0, 0, macroLayerIndexStack[ layerIndex ], 0x02 );
 		}
 
 		// Only use layer, if state is valid
@@ -485,8 +503,10 @@ nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire )
 
 // Add an interconnect ScanCode
 // These are handled differently (less information is sent, hold/off states must be assumed)
+// Returns 1 if added, 0 if the ScanCode is already in the buffer
+// Returns 2 if there's an error
 #if defined(ConnectEnabled_define) || defined(PressReleaseCache_define)
-void Macro_pressReleaseAdd( void *trigger_ptr )
+uint8_t Macro_pressReleaseAdd( void *trigger_ptr )
 {
 	TriggerGuide *trigger = (TriggerGuide*)trigger_ptr;
 
@@ -532,7 +552,7 @@ void Macro_pressReleaseAdd( void *trigger_ptr )
 		print(" ");
 		printHex( trigger->scanCode );
 		print( NL );
-		return;
+		return 2;
 	}
 
 	// Add trigger to the Interconnect Cache
@@ -544,12 +564,14 @@ void Macro_pressReleaseAdd( void *trigger_ptr )
 		{
 			// Update the state
 			macroInterconnectCache[ c ].state = trigger->state;
-			return;
+			return 0;
 		}
 	}
 
 	// If not in the list, add it
 	macroInterconnectCache[ macroInterconnectCacheSize++ ] = *trigger;
+
+	return 1;
 }
 #endif
 
@@ -1368,3 +1390,37 @@ void cliFunc_macroStep( char* args )
 	// Set the macro step counter, negative int's are cast to uint
 	macroStepCounter = count;
 }
+
+// Convenience Macro
+#define Key_PositionPrint( key, name ) \
+	printInt16( Key_Position[ key ].name.i ); \
+	print("."); \
+	printInt16( Key_Position[ key ].name.f )
+
+void cliFunc_posList( char* args )
+{
+	print( NL );
+
+	/* TODO Add printFloat function
+	// List out physical key positions by scan code
+	for ( uint8_t key = 0; key < MaxScanCode; key++ )
+	{
+		printInt8( key + 1 );
+		print(": [");
+		Key_PositionPrint( key, x );
+		print(", ");
+		Key_PositionPrint( key, y );
+		print(", ");
+		Key_PositionPrint( key, z );
+		print("] r[");
+		Key_PositionPrint( key, rx );
+		print(", ");
+		Key_PositionPrint( key, ry );
+		print(", ");
+		Key_PositionPrint( key, rz );
+		print("]");
+		print( NL );
+	}
+	*/
+}
+

@@ -130,13 +130,8 @@ set( FORMAT "ihex" )
 set( F_CPU "16000000" )
 
 
-#| Dependency Files
-#| Compiler flags to generate dependency files.
-set( GENDEPFLAGS "-MMD -MP" )
-
-
 #| Compiler Flags
-add_definitions( "-mmcu=${MCU} -DF_CPU=${F_CPU} -D_${MCU}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD} ${GENDEPFLAGS}" )
+add_definitions( "-mmcu=${MCU} -DF_CPU=${F_CPU} -D_${MCU}_=1 -O${OPT} ${TUNING} ${WARN} ${CSTANDARD}" )
 
 
 #| Linker Flags

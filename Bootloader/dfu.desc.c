@@ -1,5 +1,5 @@
 // Originally Generated from MCHCK Toolkit
-/* Copyright (c) Jacob Alexander 2014-2016 <haata@kiibohd.com>
+/* Copyright (c) Jacob Alexander 2014-2017 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,7 +43,7 @@ static const struct usb_config_1 usb_config_1 = {
 		.wTotalLength = sizeof(struct usb_config_1),
 		.bNumInterfaces = 1,
 		.bConfigurationValue = 1,
-		.iConfiguration = 0,
+		.iConfiguration = 5,
 		.one = 1,
 		.bMaxPower = 50
 	},
@@ -113,6 +113,7 @@ struct usb_desc_string_t * const dfu_device_str_desc[] = {
 	USB_DESC_STRING(STR_PRODUCT),
 	USB_DESC_STRING(STR_SERIAL),
 	USB_DESC_STRING(STR_ALTNAME),
+	USB_DESC_STRING(STR_CONFIG_NAME),
 	NULL
 };
 

@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Bootloader |###
 #
-# Jacob Alexander 2011-2016
+# Jacob Alexander 2011-2017
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -38,6 +38,26 @@ set ( COMPILER
 	"gcc"   # arm-none-eabi-gcc / avr-gcc - Default
 #       "clang" # arm-none-eabi
 	CACHE STRING "Compiler Type"
+)
+
+
+
+###
+# Product String
+#
+set ( BOOT_PRODUCT_STR
+	"Kiibohd DFU Bootloader"
+	CACHE STRING "Product String"
+)
+
+
+
+###
+# Flashing Station ID
+#
+set ( FLASHING_STATION_ID
+	"xXXx"
+	CACHE STRING "Placeholder string for flashing station"
 )
 
 
@@ -93,6 +113,7 @@ endforeach ()
 #
 include_directories (
 	${CMAKE_SOURCE_DIR}/../Lib
+	${CMAKE_SOURCE_DIR}/..
 	${CMAKE_SOURCE_DIR}
 )
 
@@ -110,6 +131,10 @@ set ( TARGET kiibohd_bootloader )
 
 #| General Settings
 cmake_minimum_required ( VERSION 2.8 )
+
+#| Compiler Version (only available after project() command)
+message( STATUS "Full Compiler:" )
+message( "${CMAKE_C_COMPILER} ${CMAKE_C_COMPILER_VERSION}" )
 
 
 

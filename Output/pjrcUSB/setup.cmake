@@ -1,10 +1,17 @@
-###| CMake Kiibohd Controller USB Module |###
+###| CMake Kiibohd Controller Output Module |###
 #
-# Written by Jacob Alexander in 2011-2016 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2017 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
 ###
+
+
+###
+# Required Sub-modules
+#
+AddModule ( Output HID-IO )
+
 
 
 ###

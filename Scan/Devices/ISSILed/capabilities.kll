@@ -1,0 +1,160 @@
+# ISSILed
+Name = ISSILedCapabilities;
+Version = 0.4;
+Author = "HaaTa (Jacob Alexander) 2015-2017";
+KLL = 0.5;
+
+# Modified Date
+Date = 2017-03-29;
+
+# Basic ISSI Capabilities
+# Modes
+#  0: Decrease brightness of all leds
+#  1: Increase brightness of all leds
+#  2: Set brightness of all leds
+#  3: Turn off all leds
+#  4: Turn on all leds
+#  5: Toggle all leds
+# Amount -> 0 -> 255
+ledControl => LED_control_capability( mode : 1, amount : 1 );
+
+
+# Defines available to the ISSILed sub-module
+
+# Driver Chip
+# Selects which driver chip being used
+# Set to 1 to enable
+# Valid Chips
+#  31FL3731 - http://www.issi.com/WW/pdf/31FL3731.pdf (31FL3731C has the same datasheet)
+#  31FL3732 - http://www.issi.com/WW/pdf/31FL3732.pdf
+#  31FL3733 - http://www.issi.com/WW/pdf/31FL3733.pdf
+ISSI_Chip_31FL3731 => ISSI_Chip_31FL3731_define;
+ISSI_Chip_31FL3732 => ISSI_Chip_31FL3732_define;
+ISSI_Chip_31FL3733 => ISSI_Chip_31FL3733_define;
+ISSI_Chip_31FL3731 = 0;
+ISSI_Chip_31FL3732 = 0;
+ISSI_Chip_31FL3733 = 0;
+
+
+# Chip:Bus Mapping
+# Usually there is only one ISSI chip; however there can be more than one.
+# Sometimes there are multiple chips across multiple I2C buses.
+# When there are multiple buses, the chips need to be enumerated so that the MCU buffers align correctly.
+LED_MapCh1_Bus  => LED_MapCh1_Bus_define;
+LED_MapCh1_Addr => LED_MapCh1_Addr_define;
+LED_MapCh2_Bus  => LED_MapCh2_Bus_define;
+LED_MapCh2_Addr => LED_MapCh2_Addr_define;
+LED_MapCh3_Bus  => LED_MapCh3_Bus_define;
+LED_MapCh3_Addr => LED_MapCh3_Addr_define;
+LED_MapCh4_Bus  => LED_MapCh4_Bus_define;
+LED_MapCh4_Addr => LED_MapCh4_Addr_define;
+LED_MapCh1_Bus  = 0x0;
+LED_MapCh1_Addr = ISSI_Ch1;
+LED_MapCh2_Bus  = 0x0;
+LED_MapCh2_Addr = ISSI_Ch2;
+LED_MapCh3_Bus  = 0x0;
+LED_MapCh3_Addr = ISSI_Ch3;
+LED_MapCh4_Bus  = 0x0;
+LED_MapCh4_Addr = ISSI_Ch4;
+
+
+# Enable/Disable LEDs
+# Set to 1 to enable ISSI chips
+# Set to 0 to enable low power (hardware shutdown)
+ISSI_Enable => ISSI_Enable_define;
+ISSI_Enable = 1;
+
+# Global Brightness
+# 31FL3731 (emulated)
+# 31FL3732
+# 31FL3733
+#  0 to 0xFF (255)
+#  See datasheet for current calculation, depends on Rext
+ISSI_Global_Brightness => ISSI_Global_Brightness_define;
+ISSI_Global_Brightness = 255;
+
+# Available ISSI Chips
+ISSI_Chips => ISSI_Chips_define;
+ISSI_Chips = 1; # 1 by default
+
+# I2C Buses
+ISSI_I2C_Buses => ISSI_I2C_Buses_define;
+ISSI_I2C_Buses = 1; # 1 by default
+
+# I2C LED Struct Definition
+LED_BufferStruct = "
+typedef struct LED_Buffer {
+	uint16_t i2c_addr;
+	uint16_t reg_addr;
+	uint16_t buffer[144];
+} LED_Buffer;
+extern LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
+";
+
+# FPS Target
+# Each ISSI chip setup has a different optimal framerate.
+# This setting specifies a target frame rate. This is sort've like "V-Sync" on monitors.
+# So the framerate will not go above this amount.
+# If the framerate goes below, ledFPS cli will issue warnings when enabled.
+ISSI_FrameRate_ms => ISSI_FrameRate_ms_define;
+ISSI_FrameRate_ms = 10; # 1000 / <ISSI_FrameRate_ms> = 100 fps
+
+
+# LED Default Enable Mask
+#
+# By default, all LEDs are enabled
+# However, this may cause issuse with some led matrices, so it is recommended to disable unused positions
+# Each LED is represented by a single bit
+# See (http://www.issi.com/WW/pdf/31FL3731C.pdf) for details
+ISSILedMask1 => ISSILedMask1_define;
+ISSILedMask1 = "
+	0xFF, 0xFF, /* C1-1 -> C1-16 */
+	0xFF, 0xFF, /* C2-1 -> C2-16 */
+	0xFF, 0xFF, /* C3-1 -> C3-16 */
+	0xFF, 0xFF, /* C4-1 -> C4-16 */
+	0xFF, 0xFF, /* C5-1 -> C5-16 */
+	0xFF, 0xFF, /* C6-1 -> C6-16 */
+	0xFF, 0xFF, /* C7-1 -> C7-16 */
+	0xFF, 0xFF, /* C8-1 -> C8-16 */
+	0xFF, 0xFF, /* C9-1 -> C9-16 */
+";
+
+ISSILedMask2 => ISSILedMask2_define;
+ISSILedMask2 = "
+	0xFF, 0xFF, /* C1-1 -> C1-16 */
+	0xFF, 0xFF, /* C2-1 -> C2-16 */
+	0xFF, 0xFF, /* C3-1 -> C3-16 */
+	0xFF, 0xFF, /* C4-1 -> C4-16 */
+	0xFF, 0xFF, /* C5-1 -> C5-16 */
+	0xFF, 0xFF, /* C6-1 -> C6-16 */
+	0xFF, 0xFF, /* C7-1 -> C7-16 */
+	0xFF, 0xFF, /* C8-1 -> C8-16 */
+	0xFF, 0xFF, /* C9-1 -> C9-16 */
+";
+
+ISSILedMask3 => ISSILedMask3_define;
+ISSILedMask3 = "
+	0xFF, 0xFF, /* C1-1 -> C1-16 */
+	0xFF, 0xFF, /* C2-1 -> C2-16 */
+	0xFF, 0xFF, /* C3-1 -> C3-16 */
+	0xFF, 0xFF, /* C4-1 -> C4-16 */
+	0xFF, 0xFF, /* C5-1 -> C5-16 */
+	0xFF, 0xFF, /* C6-1 -> C6-16 */
+	0xFF, 0xFF, /* C7-1 -> C7-16 */
+	0xFF, 0xFF, /* C8-1 -> C8-16 */
+	0xFF, 0xFF, /* C9-1 -> C9-16 */
+";
+
+ISSILedMask4 => ISSILedMask4_define;
+ISSILedMask4 = "
+	0xFF, 0xFF, /* C1-1 -> C1-16 */
+	0xFF, 0xFF, /* C2-1 -> C2-16 */
+	0xFF, 0xFF, /* C3-1 -> C3-16 */
+	0xFF, 0xFF, /* C4-1 -> C4-16 */
+	0xFF, 0xFF, /* C5-1 -> C5-16 */
+	0xFF, 0xFF, /* C6-1 -> C6-16 */
+	0xFF, 0xFF, /* C7-1 -> C7-16 */
+	0xFF, 0xFF, /* C8-1 -> C8-16 */
+	0xFF, 0xFF, /* C9-1 -> C9-16 */
+";
+

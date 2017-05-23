@@ -43,8 +43,8 @@ For the full compilation details, please refer to the [wiki](https://github.com/
 Supported Microcontrollers
 --------------------------
 
-* Teensy 2.0 (Partial)
-* Teensy 2.0++
+* Teensy 2.0 (Deprecated)
+* Teensy 2.0++ (Deprecated)
 * Teensy 3.0
 * Teensy 3.1/3.2
 * mk20dx128vlf5

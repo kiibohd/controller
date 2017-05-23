@@ -26,6 +26,7 @@
 
 // Project Includes
 #include <cli.h>
+#include <hidio_com.h>
 #include <led.h>
 #include <print.h>
 #include <scan_loop.h>
@@ -36,8 +37,9 @@
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
 #include "arm/usb_dev.h"
 #include "arm/usb_keyboard.h"
-#include "arm/usb_serial.h"
 #include "arm/usb_mouse.h"
+#include "arm/usb_rawio.h"
+#include "arm/usb_serial.h"
 #endif
 
 // KLL
@@ -66,6 +68,7 @@
 
 // ----- Function Declarations -----
 
+void cliFunc_current    ( char* args );
 void cliFunc_kbdProtocol( char* args );
 void cliFunc_outputDebug( char* args );
 void cliFunc_readLEDs   ( char* args );
@@ -79,6 +82,7 @@ void cliFunc_usbInitTime( char* args );
 // ----- Variables -----
 
 // Output Module command dictionary
+CLIDict_Entry( current,     "Shows the current negotiated current" );
 CLIDict_Entry( kbdProtocol, "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode" );
 CLIDict_Entry( outputDebug, "Toggle Output Debug mode." );
 CLIDict_Entry( readLEDs,    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc." );
@@ -88,6 +92,7 @@ CLIDict_Entry( setMod,      "Set the modfier byte:" NL "\t\t1 LCtrl, 2 LShft, 4 
 CLIDict_Entry( usbInitTime, "Displays the time in ms from usb_init() till the last setup call." );
 
 CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
+	CLIDict_Item( current ),
 	CLIDict_Item( kbdProtocol ),
 	CLIDict_Item( outputDebug ),
 	CLIDict_Item( readLEDs ),
@@ -119,6 +124,7 @@ uint8_t  USBKeys_SentCLI;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t  USBKeys_LEDs = 0;
+volatile uint8_t  USBKeys_LEDs_Changed;
 
 // Currently pressed mouse buttons, bitmask, 0 represents no buttons pressed
 volatile uint16_t USBMouse_Buttons = 0;
@@ -645,6 +651,9 @@ void Output_flushBuffers()
 	// Reset USBKeys_Keys size
 	USBKeys_Sent = 0;
 	USBKeys_SentCLI = 0;
+
+	// Set USBKeys_LEDs_Changed to indicate that we should update LED status
+	USBKeys_LEDs_Changed = 1;
 }
 
 
@@ -662,6 +671,11 @@ inline void Output_setup()
 
 	// Flush key buffers
 	Output_flushBuffers();
+
+#if enableRawIO_define == 1
+	// Setup HID-IO
+	HIDIO_setup();
+#endif
 }
 
 
@@ -684,6 +698,11 @@ inline void Output_send()
 		USBMouse_Changed = USBMouseChangeState_All;
 	}
 	*/
+
+#if enableRawIO_define == 1
+	// HID-IO Process
+	HIDIO_process();
+#endif
 
 #if enableMouse_define == 1
 	// Process mouse actions
@@ -893,6 +912,14 @@ unsigned int Output_current_available()
 
 
 // ----- CLI Command Functions -----
+
+void cliFunc_current( char* args )
+{
+	print( NL );
+	info_msg("Current available: ");
+	printInt16( Output_current_available() );
+	print(" mA");
+}
 
 void cliFunc_kbdProtocol( char* args )
 {

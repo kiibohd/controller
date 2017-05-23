@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2016 by Jacob Alexander
+/* Copyright (C) 2013-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,8 +29,9 @@
 
 // You can change these to give your code its own name.
 #define STR_MANUFACTURER        u"@MANUFACTURER@"
-#define STR_PRODUCT             u"Kiibohd DFU Bootloader"
+#define STR_PRODUCT             u"@BOOT_PRODUCT_STR@"
 #define STR_SERIAL              u"00000000000000000000000000000000 - @CHIP@"
+#define STR_CONFIG_NAME         u"@FLASHING_STATION_ID@"
 #define STR_ALTNAME             u"@BOOT_DFU_ALTNAME@"
 
 

@@ -3,7 +3,7 @@
 # Keyboard: Ergodox
 #
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015-2016
+# Jacob Alexander 2015-2017
 
 
 
@@ -48,7 +48,7 @@ PartialMaps[2]="iced_numpad"
 
 # Keyboard Module Configuration
 ScanModule="Infinity_Ergodox"
-MacroModule="PartialMap"
+MacroModule="PixelMap"
 OutputModule="pjrcUSB"
 DebugModule="full"
 

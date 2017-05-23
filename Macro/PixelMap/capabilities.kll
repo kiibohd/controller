@@ -1,0 +1,42 @@
+# PixelMap
+Name = PixelMapCapabilities;
+Version = 0.3;
+Author = "HaaTa (Jacob Alexander) 2015-2017";
+KLL = 0.5;
+
+# Modified Date
+Date = 2017-02-05;
+
+# Capabilities
+animation => Pixel_Animation_capability( index : 2, loops : 1, pfunc : 1, divmask : 1, divshift : 1, replace : 1 );
+animationIndex => Pixel_AnimationIndex_capability( settingindex : 2 );
+pixel => Pixel_Pixel_capability();
+animation_control => Pixel_AnimationControl_capability( func : 1 );
+
+# Enable define
+Pixel_MapEnabled = "1";
+Pixel_MapEnabled => Pixel_MapEnabled_define;
+
+# Default Animation Mode
+# Set to PixelTest_Off for normal operation
+# Other options:
+# - PixelTest_Chan_All   : Flashes all channels
+# - PixelTest_Chan_Roll  : Rolls through all channels in order
+# - PixelTest_Pixel_All  : Flashes all pixels
+# - PixelTest_Pixel_Roll : Rolls through all pixels in order (useful when soldering LEDs)
+Pixel_Test_Mode = "PixelTest_Off";
+Pixel_Test_Mode => Pixel_Test_Mode_define;
+
+# Pixel Buffer Defines
+Pixel_Buffer_Size   => Pixel_Buffer_Size_define;
+Pixel_Buffer_Width  => Pixel_Buffer_Width_define;
+Pixel_Buffer_Buffer => Pixel_Buffer_Buffer_define;
+Pixel_Buffer_Length => Pixel_Buffer_Length_define;
+
+# Pixel Display Mapping Parameters
+Pixel_DisplayMapping_UnitSize = 19; # Default unit spacing in mm
+Pixel_DisplayMapping_ColumnSize = 1;
+Pixel_DisplayMapping_RowSize = 2;
+Pixel_DisplayMapping_ColumnDirection = -1; # TODO Set to 1 and move -1 to K-Type
+Pixel_DisplayMapping_RowDirection = 1;
+

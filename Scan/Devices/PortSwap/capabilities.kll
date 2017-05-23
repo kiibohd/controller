@@ -1,0 +1,17 @@
+Name = PortSwapCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2015";
+KLL = 0.3d;
+
+# Modified Date
+Date = 2015-10-23;
+
+# Cross interconnect pins, required for complex cabling arrangements
+portCross => Port_cross_capability();
+
+# Capability to swap the USB port mapping
+portSwapUSB => Port_usb_capability();
+
+# Capability to swap the interconnect port mapping
+portSwapInter => Port_uart_capability();
+

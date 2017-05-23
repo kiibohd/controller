@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Initialization |###
 #
-# Written by Jacob Alexander in 2011-2014 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2016 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -17,6 +17,32 @@ set( CMAKE_DISABLE_SOURCE_CHANGES  ON )
 set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
 
 
+
+###
+# Detect Compiling System Information
+#
+
+#| CPU Type
+message( STATUS "Build CPU Detected:" )
+execute_process ( COMMAND uname -m
+	OUTPUT_VARIABLE DETECTED_PROCESSOR_ARCHITECTURE
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message( "${DETECTED_PROCESSOR_ARCHITECTURE}" )
+
+
+#| Detect OS
+message( STATUS "Build OS Detected:" )
+execute_process ( COMMAND uname -sr
+	OUTPUT_VARIABLE DETECTED_BUILD_OS
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message( "${DETECTED_BUILD_OS}" )
+
+
+
 ###
 # Compiler Lookup
 #
@@ -28,6 +54,10 @@ if ( "${CHIP}" MATCHES "^at90usb.*$" OR "${CHIP}" MATCHES "^atmega.*$" )
 #| arm match
 elseif ( "${CHIP}" MATCHES "^mk20dx.*$" )
 	set( COMPILER_FAMILY "arm" )
+
+#| Host compiler match
+elseif ( "${CHIP}" MATCHES "^host$" )
+	set( COMPILER_FAMILY "host" )
 
 #| Invalid CHIP
 else ()

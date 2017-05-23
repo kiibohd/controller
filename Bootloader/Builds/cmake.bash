@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is bash lib file for the convenience build scripts
 # Don't call this script directly
-# Jacob Alexander 2015-2016
+# Jacob Alexander 2015-2017
 
 # Check if compiler has been overridden by the environment
 Compiler=${COMPILER:-${Compiler}}
@@ -11,7 +11,7 @@ BuildPath=${BuildPath}.${Compiler}
 
 # Make sure all of the relevant variables have been set
 # NOTE: PartialMaps and DefaultMap do not have to be set
-VariablesList=(BuildPath Chip Compiler)
+VariablesList=(BuildPath Chip Compiler MANUFACTURER BOOT_PRODUCT_STR)
 ExitEarly=false
 for var in ${VariablesList[@]}; do
 	if [ -z ${!var+x} ]; then
@@ -83,6 +83,74 @@ while (( "$#" >= "1" )); do
 done
 
 
+# Detect which OS
+case "$OSTYPE" in
+# Linux
+"linux-gnu")
+	echo "${OSTYPE}/Linux is supported."
+	echo "If you are having issues, make sure you are using a very recent version of gcc. i.e. Ubuntu might not have a recent enough version in their repos."
+	;;
+# macOS
+"darwin"*)
+	echo "${OSTYPE}/macOS is unsupported for bootloader."
+	echo "Might work, usually requires a very recent version of gcc in order to hit the space optimization requirements."
+	;;
+# Cygwin
+"cygwin")
+	echo "${OSTYPE} is unsupported for bootloader."
+	echo "Might work, usually requires a very recent version of gcc in order to hit the space optimization requirements."
+	;;
+# Others
+*)
+	echo "${OSTYPE} is unsupported for bootloader."
+	;;
+esac
+
+
+# Determine which CMake Makefile Generator to use
+# If found, default to Ninja, otherwise use Make
+if [ -z "${CMAKE_GENERATOR}" ]; then
+	# First look for ninja (default), always runs a parallel build
+	if type ninja &> /dev/null; then
+		CMAKE_GENERATOR="Ninja"
+	# Then look for make
+	elif type make &> /dev/null; then
+		CMAKE_GENERATOR="Unix Makefiles"
+	# Error
+	else
+		echo "ERROR: Could not find a makefile generator"
+		echo "Supported: ninja, make"
+		exit 1
+	fi
+fi
+
+case "${CMAKE_GENERATOR}" in
+"Ninja")
+	MAKE="ninja"
+	;;
+"Unix Makefiles")
+	MAKE="make"
+	;;
+*)
+	echo "Invalid CMAKE_GENERATOR. See cmake --help"
+	exit 1
+esac
+
+# Append generator name (to support building both types on the same system)
+BuildPath="${BuildPath}.${MAKE}"
+echo "Selected Generator: ${CMAKE_GENERATOR}"
+
+
+# Prepend OSType (so not to clobber builds if using the same storage medium, i.e. dropbox)
+BuildPath="${OSTYPE}.${BuildPath}"
+echo "${BuildPath}"
+
+
+# Info
+echo "Manufacturer: ${MANUFACTURER}"
+echo "Boot Product Str: ${BOOT_PRODUCT_STR}"
+
+
 # Run CMake commands
 mkdir -p "${BuildPath}"
 cd "${BuildPath}"
@@ -94,11 +162,11 @@ if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
 		exit 1
 	fi
 	echo "Cygwin Build"
-	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" "${CMakeListsPath}" -G 'Unix Makefiles'
+	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 
 # Linux / Mac (and everything else)
 else
-	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" "${CMakeListsPath}"
+	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 	return_code=$?
 
 fi
@@ -108,7 +176,8 @@ if [ $return_code != 0 ] ; then
 	exit $return_code
 fi
 
-make
+# Automatically determines the build system and initiates it
+cmake --build .
 return_code=$?
 if [ $return_code != 0 ] ; then
 	echo "Error in make. Exiting..."

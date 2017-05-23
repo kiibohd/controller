@@ -66,6 +66,8 @@ void _print( const char* s )
 	}
 #elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
 	Output_putstr( (char*)s );
+#elif defined(_host_) // Host
+	Output_putstr( (char*)s );
 #endif
 }
 

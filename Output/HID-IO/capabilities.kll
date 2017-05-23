@@ -1,0 +1,27 @@
+# HID-IO
+
+Name = HID-IOCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2017";
+KLL = 0.5;
+
+# Modified Date
+Date = 2017-04-02;
+
+
+# TODO
+# - PixelAPI
+# - AnalogAPI
+# - Unicode Output
+# - Version Info
+
+# TODO Restricted
+# - Reload
+# - Keypress send (Sequence of Combos)
+# - Reflash
+#   * Remote
+#     + Interconnect
+#     + Downstream MCU
+#   * Layout
+#
+
