@@ -74,7 +74,7 @@ i.control.loop(1)
 print( data.usb_keyboard() )
 print( " Triggers", data.trigger_list_buffer() )
 print( " TPending", data.pending_trigger_list() )
-check( len( data.pending_trigger_list() ) == 6 )
+check( len( data.pending_trigger_list() ) == 3 )
 #print( " RPending", data.pending_result_list() )
 
 
