@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2016 by Jacob Alexander
+/* Copyright (C) 2011-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -69,6 +69,12 @@ void _print( const char* s )
 #elif defined(_host_) // Host
 	Output_putstr( (char*)s );
 #endif
+}
+
+// Print a char
+void printChar( char c )
+{
+	Output_putchar( c );
 }
 
 

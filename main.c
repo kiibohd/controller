@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2016 by Jacob Alexander
+/* Copyright (C) 2011-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,8 +60,7 @@ int main()
 		CLI_process();
 
 		// Acquire Key Indices
-		// Loop continuously until scan_loop returns 0
-		while ( Scan_loop() );
+		Scan_loop();
 
 		// Run Macros over Key Indices and convert to USB Keys
 		Macro_process();
@@ -96,8 +95,7 @@ int Host_cli_process()
 int Host_process()
 {
 	// Acquire Key Indices
-	// Loop continuously until scan_loop returns 0
-	while ( Scan_loop() );
+	Scan_loop();
 
 	// Run Macros over Key Indices and convert to USB Keys
 	Macro_process();

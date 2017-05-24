@@ -258,7 +258,7 @@ class Commands:
 
 class Callbacks:
 	'''
-	Container class of commands required byt the host-side KLL implementation
+	Container class of commands required by the host-side KLL implementation
 	'''
 
 

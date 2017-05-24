@@ -3,7 +3,7 @@
 Host-Side Python Commands for TestOut Output Module
 '''
 
-# Copyright (C) 2016 by Jacob Alexander
+# Copyright (C) 2016-2017 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,10 +20,11 @@ Host-Side Python Commands for TestOut Output Module
 
 ### Imports ###
 
+import copy
 import os
 import sys
 
-from ctypes import POINTER, cast, c_uint8, c_uint16
+from ctypes import POINTER, cast, c_char_p, c_uint8, c_uint16, Structure
 
 
 
@@ -40,6 +41,50 @@ WARNING = '\033[5;1;33mWARNING\033[0m:'
 data = None
 debug = False
 control = None
+
+
+
+### Structs ###
+
+class HIDIO_Packet( Structure ):
+	'''
+	HIDIO_Packet struct
+	See hidio_com.h in Output/HID-IO
+	'''
+	_fields_ = [
+		( 'upper_len', c_uint8, 2 ),
+		( 'width',     c_uint8, 2 ),
+		( 'cont',      c_uint8, 1 ),
+		( 'type',      c_uint8, 3 ),
+		( 'len',       c_uint8 ),
+	]
+
+	def copy( self ):
+		'''
+		Makes a copy of the structure values
+		'''
+		val = HIDIO_Packet()
+		val.upper_len = copy.copy( self.upper_len )
+		val.width = copy.copy( self.width )
+		val.cont = copy.copy( self.cont )
+		val.type = copy.copy( self.type )
+		val.len = copy.copy( self.len )
+		return val
+
+	def full_len( self ):
+		'''
+		Calculate full length
+		'''
+		return self.len + (self.upper_len << 8)
+
+	def __repr__( self ):
+		val = "(len={0}, width={1}, cont={2}, type={3})".format(
+			self.full_len(),
+			self.width,
+			self.cont,
+			self.type,
+		)
+		return val
 
 
 
@@ -130,8 +175,25 @@ class USBKeyboard:
 
 class Commands:
 	'''
-	Container class of commands available to controll the host-side KLL implementation
+	Container class of commands available to control the host-side KLL implementation
 	'''
+
+	def setRawIOLoopback( self, enable=True ):
+		'''
+		Enable/Disable RawIO loopback
+		Used to internally test the kiibohd RawIO mechanism.
+
+		NOTE: May not work well with all packet types as it's Device-to-Device instead of Host-to-Device.
+		'''
+		data.rawio_loopback = enable
+
+	def HIDIO_test_2_request( self, payload_len, payload_value ):
+		'''
+		HIDIO_test_2_request wrapper
+		'''
+		control.kiibohd.HIDIO_test_2_request.argtypes = [ c_uint16, c_uint16 ]
+		return control.kiibohd.HIDIO_test_2_request( payload_len, payload_value )
+
 
 
 class Callbacks:
@@ -192,21 +254,70 @@ class Callbacks:
 
 	def rawio_available( self, args ):
 		'''
-		TODO
+		Returns the size of rawio_outgoing_buffer
 		'''
-		print("rawio_available not implemented")
+		return len( data.rawio_outgoing_buffer )
 
 	def rawio_rx( self, args ):
 		'''
-		TODO
+		Copy 64 byte buffer to received pointer
 		'''
-		print("rawio_tx not implemented")
+		# TODO (HaaTa): Support packet sizes other than 64 bytes
+
+		# Prepare buffer
+		buf = cast( args, POINTER( c_uint8 * 64 ) )[0]
+
+		# Check if there are packets
+		if len( data.rawio_outgoing_buffer ) == 0:
+			return 0
+
+		# Pop entry from outgoing buffer
+		dataelem = data.rawio_outgoing_buffer.pop(0)
+
+		# Copy payload
+		for idx in range( 0, dataelem[0].full_len() + 3 ):
+			buf[idx] = dataelem[3][idx]
+
+		return 1
 
 	def rawio_tx( self, args ):
 		'''
-		TODO
+		Add 64 byte buffer to rawio_incoming_buffer
 		'''
-		print("rawio_tx not implemented")
+		# TODO (HaaTa): Support packet sizes other than 64 bytes
+
+		# Get buffer and packet hdr
+		buf = cast( args, POINTER( c_uint8 * 64 ) )[0]
+		header_pkt = cast( args, POINTER( HIDIO_Packet ) )[0]
+		header = header_pkt.copy()
+
+		# Get id, and convert to an int
+		width = header.width + 3
+		id_bytes = buf[2:width]
+		idval = int.from_bytes( id_bytes, byteorder='little', signed=False )
+
+		# Determine payload length
+		length = header.full_len()
+
+		# Get payload
+		payload = buf[width:length + 2]
+
+		# Prepare tuple
+		# TODO (HaaTa): Copy buf contents so they don't disappear on us
+		for_buf = (
+			header,
+			idval,
+			payload,
+			buf[:],
+		)
+
+		# Store header, id, payload and data (data so that we can redirect the raw packet as necessary)
+		if not data.rawio_loopback:
+			data.rawio_incoming_buffer.append( for_buf )
+		else:
+			data.rawio_outgoing_buffer.append( for_buf )
+
+		return 1
 
 	def restart( self, args ):
 		'''
@@ -238,11 +349,15 @@ class Callbacks:
 			print("serial_read:", character, conv_char )
 		return conv_char
 
-	def serial_write( self, output ):
+	def serial_write( self, args ):
 		'''
 		Output to screen and to virtual serial interface if it exists
 		'''
-		print( output, end='' )
+		output = cast( args, c_char_p ).value
+		try:
+			print( output.decode("utf-8"), end='' )
+		except UnicodeDecodeError:
+			print( output, end='' )
 
 		# If serial is enabled, duplicate output to stdout and serial interface
 		# Must re-encode back to bytes from utf-8

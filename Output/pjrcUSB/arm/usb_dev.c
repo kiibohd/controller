@@ -586,7 +586,7 @@ static void usb_setup()
 		case NKRO_KEYBOARD_INTERFACE:
 			break;
 		default:
-			warn_msg("Unknown interface - ");
+			warn_msg("(SET_REPORT, SETUP) Unknown interface - ");
 			printHex( setup.wIndex );
 			print( NL );
 			endpoint0_stall();
@@ -913,7 +913,7 @@ static void usb_control( uint32_t stat )
 				USBKeys_LEDs_Changed = 1;
 				break;
 			default:
-				warn_msg("Unknown interface - ");
+				warn_msg("(SET_REPORT, BULK) Unknown interface - ");
 				printHex( setup.wIndex );
 				print( NL );
 				break;
@@ -1393,6 +1393,8 @@ restart:
 					{
 						b->addr = packet->buf;
 						b->desc = BDT_DESC( 64, ((uint32_t)b & 8) ? DATA1 : DATA0 );
+
+						// TODO Signal that RawIO interrupts should be processed
 					}
 					else
 					{

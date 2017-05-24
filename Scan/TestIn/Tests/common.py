@@ -3,7 +3,7 @@
 Common functions for Host-side KLL tests
 '''
 
-# Copyright (C) 2016 by Jacob Alexander
+# Copyright (C) 2016-2017 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -20,6 +20,8 @@ Common functions for Host-side KLL tests
 
 ### Imports ###
 
+import inspect
+import linecache
 import sys
 
 
@@ -36,6 +38,7 @@ WARNING = '\033[5;1;33mWARNING\033[0m:'
 
 test_pass = 0
 test_fail = 0
+test_fail_info = []
 
 def check( condition ):
 	'''
@@ -48,7 +51,17 @@ def check( condition ):
 	else:
 		global test_fail
 		test_fail += 1
-		print( "{0} Test failed!".format( ERROR ) )
+
+		# Collect failure info
+		frame = inspect.currentframe().f_back
+		line_file = inspect.getframeinfo( frame ).filename
+		line_no = inspect.getlineno( frame )
+		line_info = linecache.getline( line_file, line_no )
+
+		print( "{0} Test failed! \033[1;m{1}:\033[1;34m{2}\033[0m {3}".format( ERROR, line_file, line_no, line_info ) )
+
+		# Store info for final report
+		test_fail_info.append( (frame, line_file, line_no, line_info) )
 
 
 def result():
@@ -66,5 +79,10 @@ def result():
 	if test_fail == 0:
 		sys.exit( 0 )
 	else:
+		# Print report
+		print("----Failed Tests----")
+		for (frame, line_file, line_no, line_info) in test_fail_info:
+			print( "\033[1;m{0}:\033[1;34m{1}\033[0m {2}".format( line_file, line_no, line_info ) )
+
 		sys.exit( 1 )
 
