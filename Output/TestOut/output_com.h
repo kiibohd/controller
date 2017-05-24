@@ -153,3 +153,7 @@ int Output_getchar();
 int Output_putchar( char c );
 int Output_putstr( char* str );
 
+unsigned int Output_rawio_availablechar();
+int Output_rawio_getbuffer( char* buffer );
+int Output_rawio_sendbuffer( char* buffer );
+

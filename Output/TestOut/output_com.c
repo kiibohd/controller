@@ -783,7 +783,7 @@ inline void Output_softReset()
 
 
 // USB RawIO buffer available
-inline unsigned int Output_rawio_availablechar()
+unsigned int Output_rawio_availablechar()
 {
 #if enableRawIO_define == 1
 	return (unsigned int)Output_callback( "rawio_available", "" );
@@ -795,7 +795,7 @@ inline unsigned int Output_rawio_availablechar()
 
 // USB RawIO get buffer
 // XXX Must be a 64 byte buffer
-inline int Output_rawio_getbuffer( char* buffer )
+int Output_rawio_getbuffer( char* buffer )
 {
 #if enableRawIO_define == 1
 	// TODO
@@ -808,7 +808,7 @@ inline int Output_rawio_getbuffer( char* buffer )
 
 // USB RawIO send buffer
 // XXX Must be a 64 byte buffer
-inline int Output_rawio_sendbuffer( char* buffer )
+int Output_rawio_sendbuffer( char* buffer )
 {
 #if enableRawIO_define == 1
 	return Output_callback( "rawio_tx", buffer );

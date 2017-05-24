@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2013-2016)
+ * Modified by Jacob Alexander (2013-2017)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -104,7 +104,9 @@
 #define RAWIO_RX_ENDPOINT       8
 #define RAWIO_RX_SIZE           64
 #define RAWIO_RX_INTERVAL       1
-#define RAWIO_NAME              L"API Interface"
+#define RAWIO_USAGE_PAGE        0xFFFF
+#define RAWIO_USAGE             0xFFFF
+#define RAWIO_NAME              L"RawIO API Interface"
 
 #define MOUSE_INTERFACE         6 // Mouse
 #define MOUSE_ENDPOINT          9
@@ -125,7 +127,7 @@
 #define NKRO_KEYBOARD_DESC_SIZE   (9+9+7)
 #define SYS_CTRL_DESC_SIZE        (9+9+7)
 #define SERIAL_CDC_DESC_SIZE      (8+9+5+5+4+5+7+9+7+7)
-#define RAWIO_DESC_SIZE           (9+7+7)
+#define RAWIO_DESC_SIZE           (9+9+7+7)
 #define MOUSE_DESC_SIZE           (9+9+7)
 #define JOYSTICK_DESC_SIZE        (9+9+7)
 

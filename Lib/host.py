@@ -29,7 +29,7 @@ import pty
 import sys
 import termios
 
-from ctypes import CFUNCTYPE, POINTER, cast, c_int, c_char_p, c_uint8, c_uint16, c_uint32, Structure
+from ctypes import CFUNCTYPE, POINTER, cast, c_int, c_char_p, c_void_p, c_uint8, c_uint16, c_uint32, Structure
 
 
 
@@ -117,6 +117,10 @@ class Data:
     '''
     def __init__( self ):
         self.usb_keyboard_data = None
+
+        self.rawio_loopback = False
+        self.rawio_incoming_buffer = []
+        self.rawio_outgoing_buffer = []
 
     def usb_keyboard( self ):
         '''
@@ -249,7 +253,7 @@ class Control:
         '''
         Setup callback
         '''
-        self.CTYPE_callback = CFUNCTYPE( c_int, c_char_p, c_char_p )
+        self.CTYPE_callback = CFUNCTYPE( c_int, c_char_p, c_void_p )
         try:
             refresh_callback()
         except Exception as err:
@@ -446,7 +450,7 @@ def callback( command, args ):
     # Lookup function in callback dictionary
     # Every function must taken a single argument
     # Must convert byte string to utf-8 first
-    ret = control.callback_dict[ command.decode('utf-8') ]( args.decode('utf-8') )
+    ret = control.callback_dict[ command.decode('utf-8') ]( args )
 
     # Refresh callback interface
     refresh_callback()

@@ -25,7 +25,61 @@
 
 // ----- Defines -----
 
+// TODO Query from driver interface
+#define HIDIO_MAX_PACKET_SIZE 64
+
+
+
 // ----- Enumerations -----
+
+typedef enum HIDIO_Packet_Type {
+	HIDIO_Packet_Type__Data      = 0,
+	HIDIO_Packet_Type__ACK       = 1,
+	HIDIO_Packet_Type__NAK       = 2,
+	HIDIO_Packet_Type__Sync      = 3,
+	HIDIO_Packet_Type__Continued = 4,
+} HIDIO_Packet_Type;
+
+typedef enum HIDIO_Return {
+	HIDIO_Return__Ok,
+	HIDIO_Return__InBuffer_Fail,  // Problem with the incoming buffer
+	HIDIO_Return__OutBuffer_Fail, // Problem generating the outgoing buffer
+	HIDIO_Return__Delay,          // Delay processing (used when processing will be long, and within an interrupt)
+	HIDIO_Return__Unknown,        // Unknown Id
+} HIDIO_Return;
+
+
+
+// ----- Structs -----
+
+typedef struct HIDIO_Packet {
+	uint8_t           upper_len:2; // Upper 2 bits of length field (generally unused)
+	uint8_t           width:2;     // 0 - 8bits, 1 - 16bits, 2 - 24bits, 3 - 32bits
+	uint8_t           cont:1;      // 0 - Only packet, 1 continued packet following
+	HIDIO_Packet_Type type:3;
+	uint8_t           len;         // Lower 8 bits of length field
+	uint8_t           id[0];       // Starting byte of id field (up to 4 bytes long, depending on width field)
+} __attribute((packed)) HIDIO_Packet;
+
+typedef struct HIDIO_Buffer {
+	uint16_t head;
+	uint16_t tail;
+	uint16_t cur_buf_head; // On continued packets, we need to continously update the size field (HIDIO_Buffer_Entry)
+	uint8_t waiting; // Set to 1, if we need to update cur_buf_head
+	uint16_t len;
+	uint16_t packets_ready; // Number of packets that are ready to be consumed
+	uint8_t *data; // HIDIO_Buffer_Entry
+} HIDIO_Buffer;
+
+typedef struct HIDIO_Buffer_Entry {
+	uint32_t id;
+	uint16_t size;
+	uint8_t done; // Set to 0 if not complete, 1 if complete
+	HIDIO_Packet_Type type;
+	uint8_t data[0];
+} __attribute((packed)) HIDIO_Buffer_Entry;
+
+
 
 // ----- Variables -----
 
@@ -33,4 +87,5 @@
 
 void HIDIO_setup();
 void HIDIO_process();
+void HIDIO_packet_interrupt( uint8_t* buf );
 

@@ -89,6 +89,7 @@ fi
 
 #cmd python3 Tests/test.py # XXX (HaaTa) Disabling for now, need to implement general-case macro testing
 cmd python3 Tests/animation.py
+cmd python3 Tests/hidio.py
 
 # Tally results
 result

@@ -71,6 +71,12 @@ void _print( const char* s )
 #endif
 }
 
+// Print a char
+void printChar( char c )
+{
+	Output_putchar( c );
+}
+
 
 
 // Number Printing Functions

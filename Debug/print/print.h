@@ -91,6 +91,7 @@
 
 void _print( const char *s );
 void printstrs( char* first, ... );
+void printChar( char c );
 
 
 // Printing numbers

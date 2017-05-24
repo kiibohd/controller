@@ -308,6 +308,31 @@ static uint8_t sys_ctrl_report_desc[] = {
 #endif
 
 
+// Raw HID
+#if enableRawIO_define == 1
+static uint8_t rawio_report_desc[] = {
+	0x06,                // Usage Page (Vendor Defined)
+	LSB(RAWIO_USAGE_PAGE), MSB(RAWIO_USAGE_PAGE),
+	0x0A,                // Usage (Mouse)
+	LSB(RAWIO_USAGE), MSB(RAWIO_USAGE),
+	0xA1, 0x01,          // Collection (Application)
+	0x75, 0x08,          //   Report Size (8)
+	0x15, 0x00,          //   Logical Minimum (0)
+	0x25, 0xFF,          //   Logical Maximum (255)
+
+	0x95, RAWIO_TX_SIZE, //     Report Count
+	0x09, 0x01,          //     Usage (Input)
+	0x81, 0x02,          //     Input (Data,Var,Abs)
+
+	0x95, RAWIO_RX_SIZE, //     Report Count
+	0x09, 0x02,          //     Usage (Output)
+	0x91, 0x02,          //     Output (Data,Var,Abs)
+
+	0xC0,                // End Collection - Consumer Control
+};
+#endif
+
+
 // Mouse Protocol 1, HID 1.11 spec, Appendix B, page 59-60, with wheel extension
 #if enableMouse_define == 1
 static uint8_t mouse_report_desc[] = {
@@ -705,17 +730,28 @@ static uint8_t config_descriptor[] = {
 	RAWIO_INTERFACE,                        // bInterfaceNumber
 	0,                                      // bAlternateSetting
 	2,                                      // bNumEndpoints
-	0xFF,                                   // bInterfaceClass (0xFF)
-	0xFF,                                   // bInterfaceSubClass
-	0xFF,                                   // bInterfaceProtocol
+	0x03,                                   // bInterfaceClass (0x03)
+	0x00,                                   // bInterfaceSubClass
+	0x00,                                   // bInterfaceProtocol
 	RAWIO_INTERFACE + 5,                    // iInterface
+
+// - 9 bytes -
+	// HID interface descriptor, HID 1.11 spec, section 6.2.1
+	9,                                      // bLength
+	0x21,                                   // bDescriptorType
+	0x11, 0x01,                             // bcdHID
+	0,                                      // bCountryCode
+	1,                                      // bNumDescriptors
+	0x22,                                   // bDescriptorType
+	LSB(sizeof(rawio_report_desc)),         // wDescriptorLength
+	MSB(sizeof(rawio_report_desc)),
 
 // - 7 bytes -
 	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
 	7,                                      // bLength
 	5,                                      // bDescriptorType
 	RAWIO_TX_ENDPOINT | 0x80,               // bEndpointAddress
-	0x02,                                   // bmAttributes (0x02=bulk)
+	0x03,                                   // bmAttributes (0x03=intr)
 	RAWIO_TX_SIZE, 0,                       // wMaxPacketSize
 	RAWIO_TX_INTERVAL,                      // bInterval
 
@@ -724,7 +760,7 @@ static uint8_t config_descriptor[] = {
 	7,                                      // bLength
 	5,                                      // bDescriptorType
 	RAWIO_RX_ENDPOINT,                      // bEndpointAddress
-	0x02,                                   // bmAttributes (0x02=bulk)
+	0x03,                                   // bmAttributes (0x03=intr)
 	RAWIO_RX_SIZE, 0,                       // wMaxPacketSize
 	RAWIO_RX_INTERVAL,                      // bInterval
 #else
@@ -920,6 +956,8 @@ const usb_descriptor_list_t usb_descriptor_list[] = {
 #endif
 
 #if enableRawIO_define == 1
+	{0x2200, RAWIO_INTERFACE, rawio_report_desc, sizeof(rawio_report_desc)},
+	{0x2100, RAWIO_INTERFACE, config_descriptor + RAWIO_DESC_BASE_OFFSET, 9},
 	iInterfaceString( RAWIO_INTERFACE, usb_string_rawio_name ),
 #endif
 
