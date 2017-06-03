@@ -250,7 +250,7 @@ void i2c_isr( uint8_t ch )
 	volatile uint8_t *I2C_S   = (uint8_t*)(&I2C0_S) + i2c_offset[ch];
 	volatile uint8_t *I2C_D   = (uint8_t*)(&I2C0_D) + i2c_offset[ch];
 
-	uint8_t element;
+	uint16_t element;
 	uint8_t status;
 
 	status = *I2C_S;
