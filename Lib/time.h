@@ -67,6 +67,7 @@ uint32_t Time_ticks( Time time );
 
 // Durations
 Time Time_duration( Time since );
+Time Time_duration_rollover( Time since );
 
 uint32_t Time_duration_ticks( Time since );
 uint32_t Time_duration_days( Time since );

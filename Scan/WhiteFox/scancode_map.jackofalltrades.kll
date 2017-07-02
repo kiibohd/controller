@@ -1,0 +1,182 @@
+# Whitefox - JackOfAllTrades
+
+Name = JackOfAllTrades;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2015-2017";
+KLL = 0.5;
+
+# Modified Date
+Date = 2017-07-01;
+
+
+# Top Row (1-16)
+S0x01 : U"Esc";
+S0x02 : U"1";
+S0x03 : U"2";
+S0x04 : U"3";
+S0x05 : U"4";
+S0x06 : U"5";
+S0x07 : U"6";
+S0x08 : U"7";
+S0x09 : U"8";
+S0x0A : U"9";
+S0x0B : U"0";
+S0x0C : U"Minus";
+S0x0D : U"Equal";
+
+S0x0F : U"Backspace";
+S0x10 : U"Backtick";
+
+# Top Alphabet Row (17-31)
+S0x11 : U"Tab";
+S0x12 : U"Q";
+S0x13 : U"W";
+S0x14 : U"E";
+S0x15 : U"R";
+S0x16 : U"T";
+S0x17 : U"Y";
+S0x18 : U"U";
+S0x19 : U"I";
+S0x1A : U"O";
+S0x1B : U"P";
+S0x1C : U"LBrace";
+S0x1D : U"RBrace";
+S0x1E : U"Backslash";
+S0x1F : U"Delete";
+
+# Middle Alphabet Row (32-46)
+S0x20 : U"CapsLock";
+S0x21 : U"A";
+S0x22 : U"S";
+S0x23 : U"D";
+S0x24 : U"F";
+S0x25 : U"G";
+S0x26 : U"H";
+S0x27 : U"J";
+S0x28 : U"K";
+S0x29 : U"L";
+S0x2A : U"Semicolon";
+S0x2B : U"Quote";
+
+S0x2D : U"Enter";
+S0x2E : U"PageUp";
+
+# Bottom Alphabet Row (47-61)
+S0x2F : U"LShift";
+
+S0x31 : U"Z";
+S0x32 : U"X";
+S0x33 : U"C";
+S0x34 : U"V";
+S0x35 : U"B";
+S0x36 : U"N";
+S0x37 : U"M";
+S0x38 : U"Comma";
+S0x39 : U"Period";
+S0x3A : U"Slash";
+S0x3B : U"RShift";
+
+S0x3D : U"Up";
+
+# Bottom Row (62-71)
+S0x3E : U"LCtrl";
+S0x3F : U"LGui";
+S0x40 : U"LAlt";
+S0x41 : U"Space";
+S0x42 : U"RAlt";
+S0x43 : U"Function1";
+
+S0x45 : U"Left";
+S0x46 : U"Down";
+S0x47 : U"Right";
+
+
+
+### Physical Positions ###
+
+## Rows
+S[1-16]  <= y:0;
+S[17-31] <= y:-19.05;
+S[32-46] <= y:-38.10;
+S[47-61] <= y:-57.15;
+S[62-71] <= y:-76.20;
+
+## Columns
+# Top Row
+S[1] <= x:0;
+S[2] <= x:19.05;
+S[3] <= x:38.1;
+S[4] <= x:57.15;
+S[5] <= x:76.2;
+S[6] <= x:95.25;
+S[7] <= x:114.3;
+S[8] <= x:133.35;
+S[9] <= x:152.4;
+S[10] <= x:171.45;
+S[11] <= x:190.5;
+S[12] <= x:209.55;
+S[13] <= x:228.6;
+
+S[15] <= x:257.1; # x
+
+S[16,31,46,61,71] <= x:285.75;
+
+# Top Alphabet Row
+S[17] <= x:4.76;
+S[18] <= x:27.81;
+S[19] <= x:46.86;
+S[20] <= x:65.91;
+S[21] <= x:84.96;
+S[22] <= x:104.01;
+S[23] <= x:123.06;
+S[24] <= x:142.11;
+S[25] <= x:161.16;
+S[26] <= x:180.21;
+S[27] <= x:199.26;
+S[28] <= x:218.31;
+S[29] <= x:237.36;
+S[30] <= x:260.41; # x
+
+# Middle Alphabet Row
+S[32] <= x:7.14;
+S[33] <= x:33.14;
+S[34] <= x:52.19;
+S[35] <= x:71.24;
+S[36] <= x:90.29;
+S[37] <= x:109.34;
+S[38] <= x:128.39;
+S[39] <= x:147.44;
+S[40] <= x:166.49;
+S[41] <= x:185.54;
+S[42] <= x:204.59;
+S[43] <= x:223.64;
+
+S[45] <= x:254.64; # x
+
+# Bottom Alphabet Row
+S[47] <= x:11.9; # x
+
+S[49] <= x:42.9;
+S[50] <= x:61.95;
+S[51] <= x:81;
+S[52] <= x:100.05;
+S[53] <= x:119.1;
+S[54] <= x:138.15;
+S[55] <= x:157.2;
+S[56] <= x:176.25;
+S[57] <= x:195.3;
+S[58] <= x:214.35;
+S[59] <= x:249.55; # x
+
+
+# Bottom Row
+S[62] <= x:2.38; # x
+S[63] <= x:26.1925; # x
+S[64] <= x:50.005; # x
+S[65] <= x:121.7975; # x
+S[66] <= x:192.8375; # x
+S[67] <= x:216.65; # x
+
+S[69] <= x:247.65;
+S[70] <= x:266.7;
+
