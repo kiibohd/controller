@@ -58,7 +58,7 @@ def check( condition ):
         line_no = inspect.getlineno( frame )
         line_info = linecache.getline( line_file, line_no )
 
-        print( "{0} Test failed! \033[1;m{1}:\033[1;34m{2}\033[0m {3}".format( ERROR, line_file, line_no, line_info ) )
+        print( "{0} Test failed! \033[1;m{1}:\033[1;34m{2}\033[0m {3}".format( ERROR, line_file, line_no, line_info ), end='' )
 
         # Store info for final report
         test_fail_info.append( (frame, line_file, line_no, line_info) )
@@ -82,7 +82,14 @@ def result():
         # Print report
         print("----Failed Tests----")
         for (frame, line_file, line_no, line_info) in test_fail_info:
-            print( "\033[1;m{0}:\033[1;34m{1}\033[0m {2}".format( line_file, line_no, line_info ) )
+            print( "\033[1;m{0}:\033[1;34m{1}\033[0m {2}".format( line_file, line_no, line_info ), end='' )
 
         sys.exit( 1 )
+
+
+def header( val ):
+    '''
+    Bold prints a string to stdout
+    '''
+    print( "\033[1m{0}\033[0m".format( val ) )
 

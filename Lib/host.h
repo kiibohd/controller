@@ -33,6 +33,7 @@
 
 // System Includes
 #include <stdint.h>
+#include <string.h>
 
 
 

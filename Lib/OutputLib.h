@@ -54,7 +54,6 @@
 #if defined(_host_)
 
 #include "host.h"
-#include <string.h>
 
 #endif
 

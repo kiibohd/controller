@@ -21,6 +21,8 @@
 
 #pragma once
 
+#if defined(_kinetis_)
+
 // ----- Defines -----
 
 //
@@ -249,4 +251,6 @@ const char *ChipVersion_lookup()
 
 	return "--";
 }
+
+#endif
 
