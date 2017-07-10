@@ -326,7 +326,7 @@ class Control:
 		# Run cli if enabled
 		self.virtual_serialport_process()
 
-	def loop( self, number_of_loops=1 ):
+	def loop( self, number_of_loops=1, quiet=False ):
 		'''
 		Run Host-side KLL main processing loop N number of times
 
@@ -337,7 +337,8 @@ class Control:
 			# Refresh callback interface
 			refresh_callback()
 
-			print( ">Host_process ({0})".format( loop ) )
+			if not quiet:
+				print( ">Host_process ({0})".format( loop ) )
 			self.kiibohd.Host_process()
 			loop += 1
 

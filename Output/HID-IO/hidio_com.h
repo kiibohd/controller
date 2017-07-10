@@ -54,7 +54,7 @@ typedef enum HIDIO_Return {
 
 typedef struct HIDIO_Packet {
 	uint8_t           upper_len:2; // Upper 2 bits of length field (generally unused)
-	uint8_t           width:2;     // 0 - 8bits, 1 - 16bits, 2 - 24bits, 3 - 32bits
+	uint8_t           id_width:2;  // 0 - 8bits, 1 - 16bits, 2 - 24bits, 3 - 32bits
 	uint8_t           cont:1;      // 0 - Only packet, 1 continued packet following
 	HIDIO_Packet_Type type:3;
 	uint8_t           len;         // Lower 8 bits of length field
@@ -65,7 +65,7 @@ typedef struct HIDIO_Buffer {
 	uint16_t head;
 	uint16_t tail;
 	uint16_t cur_buf_head; // On continued packets, we need to continously update the size field (HIDIO_Buffer_Entry)
-	uint8_t waiting; // Set to 1, if we need to update cur_buf_head
+	uint8_t waiting; // Set to 1, if we need to update cur_buf_head; or if waiting for an ACK packet
 	uint16_t len;
 	uint16_t packets_ready; // Number of packets that are ready to be consumed
 	uint8_t *data; // HIDIO_Buffer_Entry

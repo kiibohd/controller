@@ -187,12 +187,29 @@ class Commands:
 		'''
 		data.rawio_loopback = enable
 
+	def setRawIOPacketSize( self, packet_size=8 ):
+		'''
+		Set RawIO packet size
+		Should not be set lower than 8 bytes
+
+		Typical value is 64 bytes.
+		'''
+		control.kiibohd.HIDIO_packet_size.argtypes = [ c_uint16 ]
+		return control.kiibohd.HIDIO_packet_size( packet_size )
+
 	def HIDIO_test_2_request( self, payload_len, payload_value ):
 		'''
 		HIDIO_test_2_request wrapper
 		'''
 		control.kiibohd.HIDIO_test_2_request.argtypes = [ c_uint16, c_uint16 ]
 		return control.kiibohd.HIDIO_test_2_request( payload_len, payload_value )
+
+	def HIDIO_invalid_65535_request( self ):
+		'''
+		HIDIO_invalid_65535_request wrapper
+		'''
+		control.kiibohd.HIDIO_invalid_65535_request.argtypes = []
+		return control.kiibohd.HIDIO_invalid_65535_request()
 
 
 
@@ -275,7 +292,7 @@ class Callbacks:
 		dataelem = data.rawio_outgoing_buffer.pop(0)
 
 		# Copy payload
-		for idx in range( 0, dataelem[0].full_len() + 3 ):
+		for idx in range( 0, dataelem[0].full_len() + 2 ):
 			buf[idx] = dataelem[3][idx]
 
 		return 1
