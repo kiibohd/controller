@@ -53,13 +53,36 @@ typedef enum HIDIO_Return {
 // ----- Structs -----
 
 typedef struct HIDIO_Packet {
-	uint8_t           upper_len:2; // Upper 2 bits of length field (generally unused)
-	uint8_t           id_width:2;  // 0 - 8bits, 1 - 16bits, 2 - 24bits, 3 - 32bits
-	uint8_t           cont:1;      // 0 - Only packet, 1 continued packet following
 	HIDIO_Packet_Type type:3;
+	uint8_t           cont:1;      // 0 - Only packet, 1 continued packet following
+	uint8_t           id_width:1;  // 0 - 16bits, 1 - 32bits
+	uint8_t           reserved:1;  // Reserved
+	uint8_t           upper_len:2; // Upper 2 bits of length field (generally unused)
 	uint8_t           len;         // Lower 8 bits of length field
-	uint8_t           id[0];       // Starting byte of id field (up to 4 bytes long, depending on width field)
+	uint8_t           data[0];     // Start of data payload (may start with Id)
 } __attribute((packed)) HIDIO_Packet;
+
+typedef struct HIDIO_Packet16 {
+	HIDIO_Packet_Type type:3;
+	uint8_t           cont:1;      // 0 - Only packet, 1 continued packet following
+	uint8_t           id_width:1;  // 0 - 16bits, 1 - 32bits
+	uint8_t           reserved:1;  // Reserved
+	uint8_t           upper_len:2; // Upper 2 bits of length field (generally unused)
+	uint8_t           len;         // Lower 8 bits of length field
+	uint16_t          id;          // Id field (check id_width to see which struct to use)
+	uint8_t           data[0];     // Start of data payload
+} __attribute((packed)) HIDIO_Packet16;
+
+typedef struct HIDIO_Packet32 {
+	HIDIO_Packet_Type type:3;
+	uint8_t           cont:1;      // 0 - Only packet, 1 continued packet following
+	uint8_t           id_width:1;  // 0 - 16bits, 1 - 32bits
+	uint8_t           reserved:1;  // Reserved
+	uint8_t           upper_len:2; // Upper 2 bits of length field (generally unused)
+	uint8_t           len;         // Lower 8 bits of length field
+	uint32_t          id;          // Id field (check id_width to see which struct to use)
+	uint8_t           data[0];     // Start of data payload
+} __attribute((packed)) HIDIO_Packet32;
 
 typedef struct HIDIO_Buffer {
 	uint16_t head;

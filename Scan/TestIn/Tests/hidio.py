@@ -57,10 +57,11 @@ check( len( data.rawio_incoming_buffer ) == 0 )
 # Check contents of outgoing buffer (should have packet in loopback mode)
 print( "Outgoing Buf:", data.rawio_outgoing_buffer )
 check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 2 )
+check( data.rawio_outgoing_buffer[0][0].len == 3 )
 check( data.rawio_outgoing_buffer[0][0].type == 0 )
 check( data.rawio_outgoing_buffer[0][0].cont == 0 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 1 )
 check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
 
 
@@ -74,10 +75,11 @@ check( len( data.rawio_incoming_buffer ) == 0 )
 # Check contents of outgoing buffer (should have ACK packet in loopback mode)
 print( "Outgoing Buf:", data.rawio_outgoing_buffer )
 check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 2 )
+check( data.rawio_outgoing_buffer[0][0].len == 3 )
 check( data.rawio_outgoing_buffer[0][0].type == 1 )
 check( data.rawio_outgoing_buffer[0][0].cont == 0 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 1 )
 check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
 
 
@@ -94,10 +96,10 @@ check( len( data.rawio_outgoing_buffer ) == 0 )
 
 
 
-# Send continued packet sequence (2 packets, payload length of 120 bytes, 64 byte packet length)
+# Send continued packet sequence (2 packets, payload length of 110 bytes, 64 byte packet length)
 print("")
 header("- Two packet continued payload -")
-i.control.cmd('HIDIO_test_2_request')( 120, 0xAC )
+i.control.cmd('HIDIO_test_2_request')( 110, 0xAC )
 
 
 # A single processing loop (receives, then sends packets)
@@ -115,6 +117,7 @@ check( data.rawio_outgoing_buffer[0][0].len == 62 )
 check( data.rawio_outgoing_buffer[0][0].type == 0 )
 check( data.rawio_outgoing_buffer[0][0].cont == 1 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 60 )
 check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
 
 
@@ -129,10 +132,11 @@ check( len( data.rawio_incoming_buffer ) == 0 )
 # Check contents of outgoing buffer (should have an ACK packet in loopback mode)
 print( "Outgoing Buf:", data.rawio_outgoing_buffer )
 check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 1 )
+check( data.rawio_outgoing_buffer[0][0].len == 2 )
 check( data.rawio_outgoing_buffer[0][0].type == 1 )
 check( data.rawio_outgoing_buffer[0][0].cont == 0 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 0 )
 
 
 # A single processing loop (receives, then sends packets)
@@ -146,10 +150,11 @@ check( len( data.rawio_incoming_buffer ) == 0 )
 # Check contents of outgoing buffer (should have packet in loopback mode)
 print( "Outgoing Buf:", data.rawio_outgoing_buffer )
 check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 60 )
+check( data.rawio_outgoing_buffer[0][0].len == 52 )
 check( data.rawio_outgoing_buffer[0][0].type == 4 )
 check( data.rawio_outgoing_buffer[0][0].cont == 0 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 50 )
 check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
 
 
@@ -168,11 +173,13 @@ check( data.rawio_outgoing_buffer[0][0].len == 62 )
 check( data.rawio_outgoing_buffer[0][0].type == 1 )
 check( data.rawio_outgoing_buffer[0][0].cont == 1 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 60 )
 check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
-check( data.rawio_outgoing_buffer[1][0].len == 60 )
+check( data.rawio_outgoing_buffer[1][0].len == 52 )
 check( data.rawio_outgoing_buffer[1][0].type == 4 )
 check( data.rawio_outgoing_buffer[1][0].cont == 0 )
 check( data.rawio_outgoing_buffer[1][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[1][2] ) == 50 )
 check( data.rawio_outgoing_buffer[1][2][0] == 0xAC ) # Payload check
 
 
@@ -211,6 +218,7 @@ check( data.rawio_outgoing_buffer[0][0].len == 62 )
 check( data.rawio_outgoing_buffer[0][0].type == 0 )
 check( data.rawio_outgoing_buffer[0][0].cont == 1 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 60 )
 check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
 
 
@@ -225,10 +233,11 @@ check( len( data.rawio_incoming_buffer ) == 0 )
 # Check contents of outgoing buffer (should have an ACK packet in loopback mode)
 print( "Outgoing Buf:", data.rawio_outgoing_buffer )
 check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 1 )
+check( data.rawio_outgoing_buffer[0][0].len == 2 )
 check( data.rawio_outgoing_buffer[0][0].type == 1 )
 check( data.rawio_outgoing_buffer[0][0].cont == 0 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 0 )
 
 
 # A single processing loop (receives, then sends packets)
@@ -247,6 +256,7 @@ check( data.rawio_outgoing_buffer[0][0].type == 4 )
 check( data.rawio_outgoing_buffer[0][0].cont == 1 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
 check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 60 )
 
 
 # A single processing loop (receives, then sends packets)
@@ -260,10 +270,11 @@ check( len( data.rawio_incoming_buffer ) == 0 )
 # Check contents of outgoing buffer (should have an ACK packet in loopback mode)
 print( "Outgoing Buf:", data.rawio_outgoing_buffer )
 check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 1 )
+check( data.rawio_outgoing_buffer[0][0].len == 2 )
 check( data.rawio_outgoing_buffer[0][0].type == 1 )
 check( data.rawio_outgoing_buffer[0][0].cont == 0 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 0 )
 
 
 # A single processing loop (receives, then sends packets)
@@ -277,10 +288,11 @@ check( len( data.rawio_incoming_buffer ) == 0 )
 # Check contents of outgoing buffer (should have packet in loopback mode)
 print( "Outgoing Buf:", data.rawio_outgoing_buffer )
 check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 39 )
+check( data.rawio_outgoing_buffer[0][0].len == 42 )
 check( data.rawio_outgoing_buffer[0][0].type == 4 )
 check( data.rawio_outgoing_buffer[0][0].cont == 0 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 40 )
 check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
 
 
@@ -299,16 +311,19 @@ check( data.rawio_outgoing_buffer[0][0].len == 62 )
 check( data.rawio_outgoing_buffer[0][0].type == 1 )
 check( data.rawio_outgoing_buffer[0][0].cont == 1 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 60 )
 check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
 check( data.rawio_outgoing_buffer[1][0].len == 62 )
 check( data.rawio_outgoing_buffer[1][0].type == 4 )
 check( data.rawio_outgoing_buffer[1][0].cont == 1 )
 check( data.rawio_outgoing_buffer[1][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[1][2] ) == 60 )
 check( data.rawio_outgoing_buffer[1][2][0] == 0xAC ) # Payload check
-check( data.rawio_outgoing_buffer[2][0].len == 39 )
+check( data.rawio_outgoing_buffer[2][0].len == 42 )
 check( data.rawio_outgoing_buffer[2][0].type == 4 )
 check( data.rawio_outgoing_buffer[2][0].cont == 0 )
 check( data.rawio_outgoing_buffer[2][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[2][2] ) == 40 )
 check( data.rawio_outgoing_buffer[2][2][0] == 0xAC ) # Payload check
 
 
@@ -347,6 +362,7 @@ check( data.rawio_outgoing_buffer[0][0].len == 2 )
 check( data.rawio_outgoing_buffer[0][0].type == 0 )
 check( data.rawio_outgoing_buffer[0][0].cont == 0 )
 check( data.rawio_outgoing_buffer[0][1] == 65535 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 0 )
 
 
 # A single processing loop (receivves, then sends packets)
@@ -364,6 +380,7 @@ check( data.rawio_outgoing_buffer[0][0].len == 2 )
 check( data.rawio_outgoing_buffer[0][0].type == 2 )
 check( data.rawio_outgoing_buffer[0][0].cont == 0 )
 check( data.rawio_outgoing_buffer[0][1] == 65535 ) # Id check
+check( len( data.rawio_outgoing_buffer[0][2] ) == 0 )
 
 
 # A single processing loop (receives, then sends packets)
@@ -427,7 +444,7 @@ time_end = time.time() + time_secs
 bytes_sent = 0
 bytes_rcvd = 0
 loops = 0
-payload_len = 61
+payload_len = 60
 
 # Run through-put test for time duration
 while time.time() < time_end:
@@ -466,7 +483,7 @@ time_end = time.time() + time_secs
 bytes_sent = 0
 bytes_rcvd = 0
 loops = 0
-payload_len = 122
+payload_len = 120
 
 # Run through-put test for time duration
 while time.time() < time_end:
@@ -516,7 +533,7 @@ time_end = time.time() + time_secs
 bytes_sent = 0
 bytes_rcvd = 0
 loops = 0
-payload_len = 183
+payload_len = 180
 
 # Run through-put test for time duration
 while time.time() < time_end:
