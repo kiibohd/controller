@@ -52,10 +52,11 @@ class HIDIO_Packet( Structure ):
 	See hidio_com.h in Output/HID-IO
 	'''
 	_fields_ = [
-		( 'upper_len', c_uint8, 2 ),
-		( 'width',     c_uint8, 2 ),
-		( 'cont',      c_uint8, 1 ),
 		( 'type',      c_uint8, 3 ),
+		( 'cont',      c_uint8, 1 ),
+		( 'id_width',  c_uint8, 1 ),
+		( 'reserved',  c_uint8, 1 ),
+		( 'upper_len', c_uint8, 2 ),
 		( 'len',       c_uint8 ),
 	]
 
@@ -65,11 +66,23 @@ class HIDIO_Packet( Structure ):
 		'''
 		val = HIDIO_Packet()
 		val.upper_len = copy.copy( self.upper_len )
-		val.width = copy.copy( self.width )
+		val.width = copy.copy( self.id_width )
 		val.cont = copy.copy( self.cont )
 		val.type = copy.copy( self.type )
 		val.len = copy.copy( self.len )
 		return val
+
+	def id_width_bytes( self ):
+		'''
+		Calculate number of bytes the Id is
+		'''
+		# 16 bit Id
+		if self.id_width == 0:
+			return 2
+
+		# 32 bit Id
+		else:
+			return 4
 
 	def full_len( self ):
 		'''
@@ -309,7 +322,7 @@ class Callbacks:
 		header = header_pkt.copy()
 
 		# Get id, and convert to an int
-		width = header.width + 3
+		width = header.id_width_bytes() + 2
 		id_bytes = buf[2:width]
 		idval = int.from_bytes( id_bytes, byteorder='little', signed=False )
 

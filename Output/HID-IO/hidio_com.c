@@ -231,38 +231,67 @@ uint16_t HIDIO_buffer_position( HIDIO_Buffer *buffer, uint16_t cur_pos, uint16_t
 }
 
 // Get id from data stream
-// May be between 8 and 32 bits wide
-// width: 0 - 8bits, 1 - 16bits, 2 - 24bits, 3 - 32bits
-uint32_t HIDIO_buffer_id( uint8_t *buf, uint8_t width )
+// May be either 16 bits or 32 bits wide
+uint32_t HIDIO_buffer_id( HIDIO_Packet *packet )
 {
 	uint32_t id = 0;
-	for ( uint8_t id_pos = 0; id_pos <= width; id_pos++ )
+
+	// 16 bit Id
+	if ( packet->id_width == 0 )
 	{
-		id |= buf[ id_pos ] << id_pos * 8;
+		HIDIO_Packet16 *pkt = (HIDIO_Packet16*)packet;
+		id = pkt->id;
 	}
+	// 32 bit Id
+	else
+	{
+		HIDIO_Packet32 *pkt = (HIDIO_Packet32*)packet;
+		id = pkt->id;
+	}
+
 	return id;
 }
 
-// Calculate Id width
+// Get data payload start of packet
+uint8_t *HIDIO_payload_start( HIDIO_Packet *packet )
+{
+	uint8_t *data = 0;
+
+	// 16 bit Id
+	if ( packet->id_width == 0 )
+	{
+		HIDIO_Packet16 *pkt = (HIDIO_Packet16*)packet;
+		data = pkt->data;
+	}
+	// 32 bit Id
+	else
+	{
+		HIDIO_Packet32 *pkt = (HIDIO_Packet32*)packet;
+		data = pkt->data;
+	}
+
+	return data;
+}
+
+// Return width in bytes
+uint8_t HIDIO_buffer_id_width( uint8_t id_width )
+{
+	// If 1, 32bit; 0, 16bit
+	return id_width ? 4 : 2;
+}
+
+// Calculate Id width in bytes
 uint8_t HIDIO_id_width( uint32_t id )
 {
 	// Calculate width of id
 	uint8_t width = 0;
-	if ( id <= 0xFF )
-	{
-		width = 0;
-	}
-	else if ( id <= 0xFFFF )
-	{
-		width = 1;
-	}
-	else if ( id <= 0xFFFFFF )
+	if ( id <= 0xFFFF )
 	{
 		width = 2;
 	}
-	else if ( id <= 0xFFFFFFFF )
+	else
 	{
-		width = 3;
+		width = 4;
 	}
 
 	return width;
@@ -297,7 +326,7 @@ uint16_t HIDIO_buffer_generate_packet(
 
 	// Determine payload max
 	uint8_t width = HIDIO_id_width( id );
-	uint16_t max_payload = HIDIO_max_payload( width + 1 );
+	uint16_t max_payload = HIDIO_max_payload( width );
 
 	// Number of packets and current packet number
 	// Ignore calculation for zero-length packet
@@ -350,38 +379,61 @@ uint16_t HIDIO_buffer_generate_packet(
 
 			// Determine length of this new packet
 			// Start with total bytes left, plus id width
-			uint16_t packet_len = bytes_left + width + 1;
+			uint16_t packet_len = bytes_left + width;
 
 			// If larger than payload_len, reduce
-			uint16_t cur_payload_len = payload_len - pos + width + 1;
+			uint16_t cur_payload_len = payload_len - pos + width;
 			if ( packet_len > cur_payload_len )
 			{
 				packet_len = cur_payload_len;
 			}
 
-			// Start new packet
-			HIDIO_Packet packet = {
-				.type = cur_packet == 1 ? type : HIDIO_Packet_Type__Continued,
-				.cont = cur_packet == packet_count ? 0 : 1,
-				.id_width = width,
-				.upper_len = (packet_len >> 8) & 0x3,
-				.len = (packet_len & 0xFF),
-			};
+			// Get info for packet header
+			uint8_t p_type = cur_packet == 1 ? type : HIDIO_Packet_Type__Continued;
+			uint8_t p_cont = cur_packet == packet_count ? 0 : 1;
 
-			// Copy packet header data to buffer
-			for ( uint8_t byte = 0; byte < sizeof(HIDIO_Packet); byte++ )
+			// Start new packet and copy into buffer
+			// Use 16 bit Ids if possible (more efficient)
+			if ( id <= 0xFFFF )
 			{
-				HIDIO_buffer_push_byte( buf, ((uint8_t*)&packet)[ byte ] );
-			}
+				HIDIO_Packet16 packet = {
+					.type = p_type,
+					.cont = p_cont,
+					.id = (uint16_t)id,
+					.id_width = 0,
+					.upper_len = (packet_len >> 8) & 0x3,
+					.len = (packet_len & 0xFF),
+				};
 
-			// Push Id to buffer
-			for ( uint8_t c = 0; c <= width; c++ )
+				// Copy packet header data to buffer
+				for ( uint8_t byte = 0; byte < sizeof(HIDIO_Packet16); byte++ )
+				{
+					HIDIO_buffer_push_byte( buf, ((uint8_t*)&packet)[ byte ] );
+				}
+
+				// There's always enough room for header
+				bytes_left -= sizeof(HIDIO_Packet16);
+			}
+			else
 			{
-				HIDIO_buffer_push_byte( buf, (id >> c) & 0xFF );
-			}
+				HIDIO_Packet32 packet = {
+					.type = p_type,
+					.cont = p_cont,
+					.id = id,
+					.id_width = 1,
+					.upper_len = (packet_len >> 8) & 0x3,
+					.len = (packet_len & 0xFF),
+				};
 
-			// There's always enough room for header and id
-			bytes_left -= sizeof(HIDIO_Packet) + width + 1;
+				// Copy packet header data to buffer
+				for ( uint8_t byte = 0; byte < sizeof(HIDIO_Packet32); byte++ )
+				{
+					HIDIO_buffer_push_byte( buf, ((uint8_t*)&packet)[ byte ] );
+				}
+
+				// There's always enough room for header
+				bytes_left -= sizeof(HIDIO_Packet32);
+			}
 		}
 
 		// Push payload
@@ -847,18 +899,21 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 
 	// Check if the length is valid
 	uint16_t packet_len = (packet->upper_len << 8) | packet->len;
-	if ( packet_len > HIDIO_MAX_PACKET_SIZE )
+	if ( packet_len > HIDIO_Packet_Size )
 		return;
 
 	// Packet type
 	HIDIO_Packet_Type type = packet->type;
 
+	// Id Width
+	uint8_t id_width_len = HIDIO_buffer_id_width( packet->id_width );
+
 	// Payload length, excludes the Id length from the packet length
-	uint16_t payload_len = packet_len - (packet->id_width + 1);
+	uint16_t payload_len = packet_len - id_width_len;
 
 	// Check if valid Id
 	uint32_t id = 0;
-	char *data = 0;
+	uint8_t *data = 0;
 	switch ( type )
 	{
 	case HIDIO_Packet_Type__Sync:
@@ -874,11 +929,10 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 
 	// Most packet types
 	default:
-		id = HIDIO_buffer_id( packet->id, packet->id_width );
-		// TODO check valid Id
+		id = HIDIO_buffer_id( packet );
 
 		// Data start
-		data = (char*)&packet->id[ packet->id_width + 1 ];
+		data = HIDIO_payload_start( packet );
 		break;
 	}
 
