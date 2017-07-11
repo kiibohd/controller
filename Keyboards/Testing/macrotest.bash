@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is a build and test script used to test KLL functionality
 # It runs on the host system and doesn't require a device to flash onto
-# Jacob Alexander 2016
+# Jacob Alexander 2016-2017
 
 
 
@@ -83,6 +83,7 @@ cd "${BuildPath}"
 
 cmd python3 Tests/test.py
 cmd python3 Tests/animation.py
+cmd python3 Tests/hidio.py
 
 # Tally results
 result
