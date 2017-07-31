@@ -85,21 +85,21 @@ typedef struct HIDIO_Packet32 {
 } __attribute((packed)) HIDIO_Packet32;
 
 typedef struct HIDIO_Buffer {
-	uint16_t head;
-	uint16_t tail;
-	uint16_t cur_buf_head; // On continued packets, we need to continously update the size field (HIDIO_Buffer_Entry)
-	uint8_t waiting; // Set to 1, if we need to update cur_buf_head; or if waiting for an ACK packet
-	uint16_t len;
-	uint16_t packets_ready; // Number of packets that are ready to be consumed
-	uint8_t *data; // HIDIO_Buffer_Entry
+	uint16_t  head;
+	uint16_t  tail;
+	uint16_t  cur_buf_head; // On continued packets, we need to continously update the size field (HIDIO_Buffer_Entry)
+	uint8_t   waiting; // Set to 1, if we need to update cur_buf_head; or if waiting for an ACK packet
+	uint16_t  len;
+	uint16_t  packets_ready; // Number of packets that are ready to be consumed
+	uint8_t  *data; // HIDIO_Buffer_Entry
 } HIDIO_Buffer;
 
 typedef struct HIDIO_Buffer_Entry {
-	uint32_t id;
-	uint16_t size;
-	uint8_t done; // Set to 0 if not complete, 1 if complete
+	uint32_t          id;
+	uint16_t          size;
+	uint8_t           done; // Set to 0 if not complete, 1 if complete
 	HIDIO_Packet_Type type;
-	uint8_t data[0];
+	uint8_t           data[0];
 } __attribute((packed)) HIDIO_Buffer_Entry;
 
 
