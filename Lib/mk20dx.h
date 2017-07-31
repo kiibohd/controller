@@ -2014,7 +2014,7 @@ typedef struct {
 #define ARM_DWT_CYCCNT          *(volatile uint32_t *)0xE0001004 // Cycle count register
 
 // Other
-#define VBAT                    *(volatile uint8_t *)0x4003E000 // Register available in all power states
+#define VBAT                    *(volatile uint8_t *)0x4003E000 // Register available in all power states (32-bytes)
 
 
 
