@@ -22,6 +22,7 @@
 // ----- Includes -----
 
 // Project Includes
+#include <Lib/entropy.h>
 #include <Lib/time.h>
 
 // General Includes
@@ -48,6 +49,7 @@ CLIDict_Entry( exit,      "Host KLL Only - Exits cli." );
 #endif
 CLIDict_Entry( help,      "You're looking at it :P" );
 CLIDict_Entry( led,       "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules..." );
+CLIDict_Entry( rand,      "If entropy available, print a random 32-bit number." );
 CLIDict_Entry( reload,    "Signals microcontroller to reflash/reload." );
 CLIDict_Entry( reset,     "Resets the terminal back to initial settings." );
 CLIDict_Entry( restart,   "Sends a software restart, should be similar to powering on the device." );
@@ -63,6 +65,7 @@ CLIDict_Def( basicCLIDict, "General Commands" ) = {
 #endif
 	CLIDict_Item( help ),
 	CLIDict_Item( led ),
+	CLIDict_Item( rand ),
 	CLIDict_Item( reload ),
 	CLIDict_Item( reset ),
 	CLIDict_Item( restart ),
@@ -563,6 +566,21 @@ void cliFunc_led( char* args )
 {
 	CLILEDState ^= 1 << 1; // Toggle between 0 and 1
 	errorLED( CLILEDState ); // Enable/Disable error LED
+}
+
+void cliFunc_rand( char* args )
+{
+	print( NL );
+
+	// Check if entropy available
+	if ( !rand_available() )
+	{
+		warn_print("No entropy available!");
+		return;
+	}
+
+	info_msg("Rand: ");
+	printHex32( rand_value32() );
 }
 
 void cliFunc_reload( char* args )

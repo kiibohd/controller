@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2014-2015
+ * Modifications by Jacob Alexander 2014-2017
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -40,6 +40,7 @@
 #endif
 
 // Local Includes
+#include "entropy.h"
 #include "mk20dx.h"
 
 
@@ -710,6 +711,10 @@ void ResetHandler()
 	WDOG_STCTRLH &= ~WDOG_STCTRLH_WDOGEN;
 #endif
 
+	// Intialize entropy for random numbers
+	rand_initialize();
+
+	// Start main
 	main();
 	while ( 1 ); // Shouldn't get here...
 }

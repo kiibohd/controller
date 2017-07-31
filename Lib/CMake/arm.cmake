@@ -150,6 +150,7 @@ message( "${CPU}" )
 set( COMPILER_SRCS
 	Lib/${CHIP_FAMILY}.c
 	Lib/delay.c
+	Lib/entropy.c
 	Lib/time.c
 )
 

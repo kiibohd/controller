@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2016
+# Jacob Alexander 2016-2017
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -43,6 +43,7 @@ set( HOST 1 )
 #| Extra Compiler Sources
 #| Mostly for convenience functions like interrupt handlers
 set( COMPILER_SRCS
+	Lib/entropy.c
 	Lib/host.c
 	Lib/time.c
 )
