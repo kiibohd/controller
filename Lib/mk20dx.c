@@ -520,6 +520,10 @@ void *memcpy( void *dst, const void *src, unsigned int len )
 
 // ----- Chip Entry Point -----
 
+// Weak versions of Device specific functions
+void Chip_reset( uint8_t bootToFirmware )   __attribute__ ((weak));
+void Device_reset( uint8_t bootToFirmware ) __attribute__ ((weak));
+
 __attribute__ ((section(".startup")))
 void ResetHandler()
 {
@@ -548,10 +552,18 @@ void ResetHandler()
 		|| memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0
 	)
 	{
+		// Bootloader mode
+		Chip_reset( 0 );
+		Device_reset( 0 );
+
 		memset( (uint8_t*)&VBAT, 0, sizeof(VBAT) );
 	}
 	else
 	{
+		// Firmware mode
+		Chip_reset( 1 );
+		Device_reset( 1 );
+
 		uint32_t addr = (uintptr_t)&_app_rom;
 		SCB_VTOR = addr; // relocate vector table
 		jump_to_app( addr );

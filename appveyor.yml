@@ -46,9 +46,7 @@ environment:
 
     # Bootloader Build Tests
     - SCRIPT_DIR: Bootloader/Builds
-      SCRIPT: mk20dx128vlf5.bash
-    - SCRIPT_DIR: Bootloader/Builds
-      SCRIPT: mk20dx256vlh7.bash
+      SCRIPT: all.bash
 
 
 # Commands run before cloning git repo

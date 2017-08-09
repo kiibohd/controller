@@ -30,8 +30,7 @@ env:
   - DIR=Keyboards/Testing SCRIPT=macrotest.bash
 
   # Bootloader Build Tests
-  - DIR=Bootloader/Builds SCRIPT=mk20dx128vlf5.bash
-  - DIR=Bootloader/Builds SCRIPT=mk20dx256vlh7.bash
+  - DIR=Bootloader/Builds SCRIPT=all.bash
 
 # Exclusions
 matrix:
@@ -46,9 +45,7 @@ matrix:
   exclude:
     # Bootloader doesn't support clang yet
     - compiler: clang
-      env: DIR=Bootloader/Builds SCRIPT=mk20dx128vlf5.bash
-    - compiler: clang
-      env: DIR=Bootloader/Builds SCRIPT=mk20dx256vlh7.bash
+      env: DIR=Bootloader/Builds SCRIPT=all.bash
     # xcode *and* brew don't support clang ARMCCompiler for arm-none-eabi, sigh useless Apple
     - compiler: clang
       env: DIR=Keyboards SCRIPT=infinity.bash
@@ -75,10 +72,7 @@ matrix:
       env: DIR=Keyboards/Testing SCRIPT=macrotest.bash
       os: osx
     - compiler: clang
-      env: DIR=Bootloader/Builds SCRIPT=mk20dx128vlf5.bash
-      os: osx
-    - compiler: clang
-      env: DIR=Bootloader/Builds SCRIPT=mk20dx256vlh7.bash
+      env: DIR=Bootloader/Builds SCRIPT=all.bash
       os: osx
 
 # Package Setup

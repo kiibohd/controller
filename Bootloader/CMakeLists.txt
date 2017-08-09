@@ -87,11 +87,19 @@ set ( SRCS
 	flash.c
 	kinetis.c
 	usb.c
+	Devices/${CHIP}.c
 )
+
+# Add device file, if it exists
+if ( EXISTS ${CMAKE_SOURCE_DIR}/Devices/${BOOT_PRODUCT_STR}.c )
+	set ( SRCS ${SRCS}
+		Devices/${BOOT_PRODUCT_STR}.c
+	)
+endif ()
 
 # Only compile in if necessary
 if ( CHIP STREQUAL "mk20dx256vlh7" )
-	set( SRCS ${SRCS}
+	set ( SRCS ${SRCS}
 		debug.c
 	)
 endif ()

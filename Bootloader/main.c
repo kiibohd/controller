@@ -184,37 +184,23 @@ void init_usb_bootloader( int config )
 #endif
 }
 
+
+// Weak versions of Device specific functions
+void Chip_process()   __attribute__ ((weak));
+void Chip_setup()     __attribute__ ((weak));
+void Device_process() __attribute__ ((weak));
+void Device_setup()   __attribute__ ((weak));
+
+
+// Main entry point
+// NOTE: Code does not start here, see Lib/mk20dx.c
 void main()
 {
-#if defined(_mk20dx128vlf5_) // Kiibohd-dfu / Infinity
-	// XXX McHCK uses B16 instead of A19
-
-	// Enabling LED to indicate we are in the bootloader
-	GPIOA_PDDR |= (1<<19);
-	// Setup pin - A19 - See Lib/pin_map.mchck for more details on pins
-	PORTA_PCR19 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PSOR |= (1<<19);
-
-#elif defined(_mk20dx256vlh7_) // Kiibohd-dfu
-	// Enabling LED to indicate we are in the bootloader
-	GPIOA_PDDR |= (1<<5);
-	// Setup pin - A5 - See Lib/pin_map.mchck for more details on pins
-	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PSOR |= (1<<5);
-
-	// TODO Add CMake configuration for disabling
-	// Set LCD backlight on ICED to Red
-	GPIOC_PDDR |= (1<<1);
-	PORTC_PCR1 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOC_PCOR |= (1<<1);
-#else
-#error "Incompatible chip for bootloader"
-#endif
-
+	// Prepared debug output (when supported)
 	uart_serial_setup();
 	printNL( NL "Bootloader DFU-Mode" );
 
-	// Bootloader Enter Reasons
+	// Bootloader Entry Reasons
 	print(" RCM_SRS0 - ");
 	printHex( RCM_SRS0 & 0x60 );
 	print( NL " RCM_SRS1 - ");
@@ -225,6 +211,10 @@ void main()
 	printHex( memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 );
 	print( NL );
 
+	// Device/Chip specific setup
+	Chip_setup();
+	Device_setup();
+
 #ifdef FLASH_DEBUG
 	for ( uint8_t sector = 0; sector < 3; sector++ )
 		sector_print( &_app_rom, sector, 16 );
@@ -234,44 +224,14 @@ void main()
 	flash_prepare_flashing();
 	usb_init( &dfu_device );
 
-#if defined(_mk20dx256vlh7_) // Kiibohd-dfu
-	// PTA4 - USB Swap
-	// Start, disabled
-	GPIOA_PDDR |= (1<<4);
-	PORTA_PCR4 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PCOR |= (1<<4);
-
-	#define USBPortSwapDelay_ms 1000
-	// For keyboards with dual usb ports, doesn't do anything on keyboards without them
-	// If a USB connection is not detected in 2 seconds, switch to the other port to see if it's plugged in there
-	uint32_t last_ms = systick_millis_count;
-	uint8_t attempt = 0;
+	// Main Loop
 	for (;;)
 	{
 		usb_poll();
 
-		// Only check for swapping after delay
-		uint32_t wait_ms = systick_millis_count - last_ms;
-		if ( wait_ms < USBPortSwapDelay_ms + attempt / 2 * USBPortSwapDelay_ms )
-		{
-			continue;
-		}
-
-		last_ms = systick_millis_count;
-
-		// USB not initialized, attempt to swap
-		if ( usb.state != USBD_STATE_ADDRESS )
-		{
-			print("USB not initializing, port swapping (if supported)");
-			GPIOA_PTOR |= (1<<4);
-			attempt++;
-		}
+		// Device specific functions
+		Chip_process();
+		Device_process();
 	}
-#else
-	for (;;)
-	{
-		usb_poll();
-	}
-#endif
 }
 
