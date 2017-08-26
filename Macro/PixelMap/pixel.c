@@ -64,9 +64,11 @@ typedef enum PixelTest {
 } PixelTest;
 
 typedef enum AnimationControl {
-	AnimationControl_Forward = 0, // Default
-	AnimationControl_ForwardOne,
-	AnimationControl_Pause,
+	AnimationControl_Forward    = 0, // Default
+	AnimationControl_ForwardOne = 1,
+	AnimationControl_Pause      = 2,
+	AnimationControl_Stop       = 3, // Clears all animations, then sets forward
+	AnimationControl_Reset      = 4, // Clears all animations, starts initial animations (sets forward)
 } AnimationControl;
 
 
@@ -130,6 +132,8 @@ uint8_t  Pixel_AnimationStackElement_HostSize = sizeof( AnimationStackElement );
 uint8_t Pixel_animationProcess( AnimationStackElement *elem );
 uint8_t Pixel_addAnimation( AnimationStackElement *element );
 uint8_t Pixel_determineLastTriggerScanCode( TriggerMacro *trigger );
+
+void Pixel_pixelSet( PixelElement *elem, uint32_t value );
 
 PixelBuf *Pixel_bufferMap( uint16_t channel );
 
@@ -231,6 +235,7 @@ void Pixel_AnimationControl_capability( TriggerMacro *trigger, uint8_t state, ui
 			Pixel_animationControl = AnimationControl_Pause;
 			break;
 		case AnimationControl_Pause:
+		default:
 			Pixel_animationControl = AnimationControl_Forward;
 			break;
 		}
@@ -240,6 +245,12 @@ void Pixel_AnimationControl_capability( TriggerMacro *trigger, uint8_t state, ui
 		break;
 	case 2: // Forward
 		Pixel_animationControl = AnimationControl_Pause;
+		break;
+	case 3: // Stop (clears all animations)
+		Pixel_animationControl = AnimationControl_Stop;
+		break;
+	case 4: // Reset (restarts animations)
+		Pixel_animationControl = AnimationControl_Reset;
 		break;
 	}
 }
@@ -379,6 +390,17 @@ void Pixel_clearAnimations()
 	for ( uint16_t pos = 0; pos < Pixel_AnimationStackSize; pos++ )
 	{
 		Pixel_AnimationElement_Stor[pos].index = 0xFFFF;
+	}
+}
+
+// Clears all pixels
+void Pixel_clearPixels()
+{
+	// Update all positions
+	for ( uint16_t px = 0; px < Pixel_TotalPixels_KLL; px++ )
+	{
+		// Unset pixel
+		Pixel_pixelSet( (PixelElement*)&Pixel_Mapping[ px ], 0 );
 	}
 }
 
@@ -1354,10 +1376,10 @@ void Pixel_channelToggle( uint16_t channel )
 	}
 }
 
-// Debug function, used by cli only XXX
+// Set each of the channels to a specific value
 void Pixel_pixelSet( PixelElement *elem, uint32_t value )
 {
-	// Toggle each of the channels of the pixel
+	// Set each of the channels of the pixel
 	for ( uint8_t ch = 0; ch < elem->channels; ch++ )
 	{
 		Pixel_channelSet( elem->indices[ch], value );
@@ -1415,6 +1437,7 @@ void Pixel_updateUSBLEDs()
 	if ( !USBKeys_LEDs_Changed )
 		return;
 
+	/*
 	AnimationStackElement element;
 	element.trigger = 0;
 	element.pos = 0;
@@ -1457,6 +1480,7 @@ void Pixel_updateUSBLEDs()
 	{
 		Pixel_delAnimation( scroll_index, 1 );
 	}
+	*/
 
 	USBKeys_LEDs_Changed = 0;
 #endif
@@ -1484,7 +1508,19 @@ inline void Pixel_process()
 	case AnimationControl_Forward:    // Ok
 	case AnimationControl_ForwardOne: // Ok + 1, then stop
 		Pixel_FrameState = FrameState_Update;
+		break;
+	case AnimationControl_Stop:       // Clear animations, then proceed forward
 		Pixel_FrameState = FrameState_Update;
+		Pixel_clearAnimations();
+		Pixel_clearPixels();
+		Pixel_animationControl = AnimationControl_Forward;
+		break;
+	case AnimationControl_Reset:      // Clear animations, then restart initial
+		Pixel_FrameState = FrameState_Update;
+		Pixel_clearAnimations();
+		Pixel_clearPixels();
+		Pixel_animationControl = AnimationControl_Forward;
+		// TODO - restart initial
 		break;
 	default: // Pause
 		Pixel_FrameState = FrameState_Pause;
@@ -1705,7 +1741,6 @@ inline void Pixel_setup()
 	Pixel_testMode = Pixel_Test_Mode_define;
 
 	// Clear animation stack
-	Pixel_AnimationStack.size = 0;
 	Pixel_clearAnimations();
 
 	// Set default animation control
