@@ -46,12 +46,12 @@ uint8_t  attempt;
 // ----- Functions -----
 
 // Called early-on during ResetHandler
-inline void Device_reset()
+void Device_reset()
 {
 }
 
 // Called during bootloader initialization
-inline void Device_setup()
+void Device_setup()
 {
 	// PTA4 - USB Swap
 	// Start, disabled
@@ -65,7 +65,7 @@ inline void Device_setup()
 }
 
 // Called during each loop of the main bootloader sequence
-inline void Device_process()
+void Device_process()
 {
 	// For keyboards with dual usb ports, doesn't do anything on keyboards without them
 	// If a USB connection is not detected in 2 seconds, switch to the other port to see if it's plugged in there

@@ -32,17 +32,17 @@
 // ----- Functions -----
 
 // Called early-on during ResetHandler
-inline void Device_reset()
+void Device_reset()
 {
 }
 
 // Called during bootloader initialization
-inline void Device_setup()
+void Device_setup()
 {
 }
 
 // Called during each loop of the main bootloader sequence
-inline void Device_process()
+void Device_process()
 {
 }
 

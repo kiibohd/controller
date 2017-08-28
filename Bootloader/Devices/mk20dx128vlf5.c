@@ -32,12 +32,12 @@
 // ----- Functions -----
 
 // Called early-on during ResetHandler
-inline void Chip_reset()
+void Chip_reset()
 {
 }
 
 // Called during bootloader initialization
-inline void Chip_setup()
+void Chip_setup()
 {
 	// XXX McHCK uses B16 instead of A19
 
@@ -50,7 +50,7 @@ inline void Chip_setup()
 }
 
 // Called during each loop of the main bootloader sequence
-inline void Chip_process()
+void Chip_process()
 {
 }
 
