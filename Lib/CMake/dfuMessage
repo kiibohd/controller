@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Jacob Alexander 2017
+# Message for DFU targets
+
+# Message
+echo -e "\033[1mNOTE\033[m: ${1}.secure.dfu.bin is required for secure Kiibohd Bootloaders."
+echo -e "Only keyboards from late 2017 and onwards, support this."
+echo -e "See \033[1mlsusb -d 1c11: -v\033[m and look for iInterface 4 Kiibohd DFU Secure."
+echo -e "Otherwise, use the ${1}.dfu.bin file when it says iInterface 4 Kiibohd DFU."
+echo -e "Use the physical reset button on the back of the keyboard to temporarily disable secure mode."
+echo -e "\033[1;33mNOTE2\033[m: Secure mode is disabled currently, but will be enabled when key negotiation is supported."
+
+

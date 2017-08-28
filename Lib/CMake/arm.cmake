@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2016
+# Jacob Alexander 2011-2017
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -172,7 +172,12 @@ if ( "${CHIP}" MATCHES "mk20dx128vlf5" OR "${CHIP}" MATCHES "mk20dx256vlh7" )
 	set( PRODUCT_ID      "0xB04D" )
 	set( BOOT_VENDOR_ID  "0x1C11" )
 	set( BOOT_PRODUCT_ID "0xB007" )
-	set( BOOT_DFU_ALTNAME "Kiibohd DFU" )
+	if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
+		set( BOOT_DFU_ALTNAME "Kiibohd DFU" )
+	else ()
+		# The | symbol is replaced by a space if in secure mode, or a \0 if not (at runtime)
+		set( BOOT_DFU_ALTNAME "Kiibohd DFU|Secure" )
+	endif ()
 	set( DFU 1 )
 	message( "dfu" )
 elseif ( "${CHIP}" MATCHES "mk20dx128" OR "${CHIP}" MATCHES "mk20dx256" )
@@ -188,7 +193,7 @@ endif ()
 #| Compiler flag to set the C Standard level.
 #|     c89   = "ANSI" C
 #|     gnu89 = c89 plus GCC extensions
-#|     c99   = ISO C99 standard (not yet fully implemented)
+#|     c99   = ISO C99 standard
 #|     gnu99 = c99 plus GCC extensions
 #|     gnu11 = c11 plus GCC extensions
 set( CSTANDARD "-std=gnu11" )

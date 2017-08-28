@@ -38,15 +38,15 @@
 
 // ----- Variables -----
 
-static uint32_t last_ms;
-static uint8_t  attempt;
+uint32_t last_ms;
+uint8_t  attempt;
 
 
 
 // ----- Functions -----
 
 // Called early-on during ResetHandler
-inline void Device_reset( uint8_t bootToFirmware )
+inline void Device_reset()
 {
 }
 
@@ -82,7 +82,7 @@ inline void Device_process()
 	// USB not initialized, attempt to swap
 	if ( usb.state != USBD_STATE_ADDRESS )
 	{
-		print("USB not initializing, port swapping (if supported)");
+		print("USB not initializing, port swapping");
 		GPIOA_PTOR |= (1<<4);
 		attempt++;
 	}

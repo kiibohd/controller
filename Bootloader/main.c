@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2016 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2017 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include <delay.h>
 
 // Local Includes
+#include "weak.h"
 #include "mchck.h"
 #include "dfu.desc.h"
 
@@ -36,6 +37,9 @@
  * Unfortunately we can't DMA directly to FlexRAM, so we'll have to stage here.
  */
 static char staging[ USB_DFU_TRANSFER_SIZE ];
+
+// DFU State
+static struct dfu_ctx dfu_ctx;
 
 
 
@@ -100,7 +104,7 @@ static enum dfu_status setup_read( size_t off, size_t *len, void **buf )
 		? (void*)(&_app_rom_end) - *buf + 1
 		: USB_DFU_TRANSFER_SIZE;
 
-	return (DFU_STATUS_OK);
+	return DFU_STATUS_OK;
 }
 
 static enum dfu_status setup_write( size_t off, size_t len, void **buf )
@@ -119,13 +123,19 @@ static enum dfu_status setup_write( size_t off, size_t len, void **buf )
 #endif
 
 	if ( len > sizeof(staging) )
-		return (DFU_STATUS_errADDRESS);
+	{
+		return DFU_STATUS_errADDRESS;
+	}
 
 	// We only allow the last write to be less than one sector size.
 	if ( off == 0 )
+	{
 		last = 0;
+	}
 	if ( last && len != 0 )
-		return (DFU_STATUS_errADDRESS);
+	{
+		return DFU_STATUS_errADDRESS;
+	}
 	if ( len != USB_DFU_TRANSFER_SIZE )
 	{
 		last = 1;
@@ -133,7 +143,7 @@ static enum dfu_status setup_write( size_t off, size_t len, void **buf )
 	}
 
 	*buf = staging;
-	return (DFU_STATUS_OK);
+	return DFU_STATUS_OK;
 }
 
 static enum dfu_status finish_write( void *buf, size_t off, size_t len )
@@ -142,15 +152,52 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 
 	// If nothing left to flash, this is still ok
 	if ( len == 0 )
-		return (DFU_STATUS_OK);
+	{
+		return DFU_STATUS_OK;
+	}
+
+#if defined(_mk20dx256vlh7_)
+	if ( off == 0 && dfu_ctx.verified == DFU_VALIDATION_UNKNOWN )
+	{
+		// Reset offset
+		dfu_ctx.off = 0;
+
+		// First block, if using Chip_validation, skip flashing this block and use for key validation
+		// When key disabled, we supported a key'd file OR a non-key'd file
+		switch ( Chip_validation( (uint8_t*)buf ) )
+		{
+		// Key disabled, no key
+		case 0:
+			dfu_ctx.verified = DFU_VALIDATION_OK;
+			break;
+
+		// Invalid key
+		case -1:
+			dfu_ctx.verified = DFU_VALIDATION_FAILED;
+			return DFU_STATUS_errFILE;
+
+		// Valid key, or Key disabled and a key.
+		default:
+			dfu_ctx.verified = DFU_VALIDATION_PENDING;
+			print( "Valid firmware key" NL );
+
+			// Do not use this block
+			return DFU_STATUS_OK;
+		}
+	}
+#endif
 
 	// If the binary is larger than the internal flash, error
 	if ( off + (uintptr_t)&_app_rom + len > (uintptr_t)&_app_rom_end )
-		return (DFU_STATUS_errADDRESS);
+	{
+		return DFU_STATUS_errADDRESS;
+	}
 
 	target = flash_get_staging_area( off + (uintptr_t)&_app_rom, USB_DFU_TRANSFER_SIZE );
 	if ( !target )
-		return (DFU_STATUS_errADDRESS);
+	{
+		return DFU_STATUS_errADDRESS;
+	}
 	memcpy( target, buf, len );
 
 	// Depending on the error return a different status
@@ -160,19 +207,16 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 	case FTFL_FSTAT_RDCOLERR: // Flash Read Collision Error
 	case FTFL_FSTAT_ACCERR:   // Flash Access Error
 	case FTFL_FSTAT_FPVIOL:   // Flash Protection Violation Error
-		return (DFU_STATUS_errADDRESS);
+		return DFU_STATUS_errADDRESS;
 	case FTFL_FSTAT_MGSTAT0:  // Memory Controller Command Completion Error
-		return (DFU_STATUS_errADDRESS);
+		return DFU_STATUS_errADDRESS;
 	*/
 
 	case 0:
 	default: // No error
-		return (DFU_STATUS_OK);
+		return DFU_STATUS_OK;
 	}
 }
-
-
-static struct dfu_ctx dfu_ctx;
 
 void init_usb_bootloader( int config )
 {
@@ -181,16 +225,23 @@ void init_usb_bootloader( int config )
 #if defined(_mk20dx256vlh7_) // Kiibohd-dfu
 	// Make sure SysTick counter is disabled
 	SYST_CSR = 0;
+
+	// Clear verified status
+	dfu_ctx.verified = DFU_VALIDATION_UNKNOWN;
 #endif
 }
 
-
-// Weak versions of Device specific functions
-void Chip_process()   __attribute__ ((weak));
-void Chip_setup()     __attribute__ ((weak));
-void Device_process() __attribute__ ((weak));
-void Device_setup()   __attribute__ ((weak));
-
+// Code jump routine
+__attribute__((noreturn))
+static inline void jump_to_app( uintptr_t addr )
+{
+	// addr is in r0
+	__asm__("ldr sp, [%[addr], #0]\n"
+		"ldr pc, [%[addr], #4]"
+		:: [addr] "r" (addr));
+	// NOTREACHED
+	__builtin_unreachable();
+}
 
 // Main entry point
 // NOTE: Code does not start here, see Lib/mk20dx.c
@@ -199,6 +250,49 @@ void main()
 	// Prepared debug output (when supported)
 	uart_serial_setup();
 	printNL( NL "Bootloader DFU-Mode" );
+
+	// Early setup
+	Chip_reset();
+	Device_reset();
+
+	// Bootloader Section
+	extern uint32_t _app_rom;
+
+	// We treat _app_rom as pointer to directly read the stack
+	// pointer and check for valid app code.  This is no fool
+	// proof method, but it should help for the first flash.
+	//
+	// Purposefully disabling the watchdog *after* the reset check this way
+	// if the chip goes into an odd state we'll reset to the bootloader (invalid firmware image)
+	// RCM_SRS0 & 0x20
+	//
+	// Also checking for ARM lock-up signal (invalid firmware image)
+	// RCM_SRS1 & 0x02
+	if (    // PIN  (External Reset Pin/Switch)
+		RCM_SRS0 & 0x40
+		// WDOG (Watchdog timeout)
+		|| RCM_SRS0 & 0x20
+		// LOCKUP (ARM Core LOCKUP event)
+		|| RCM_SRS1 & 0x02
+		// Blank flash check
+		|| _app_rom == 0xffffffff
+		// Software reset
+		|| memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0
+	)
+	{
+		// Bootloader mode
+		memset( (uint8_t*)&VBAT, 0, sizeof(VBAT) );
+	}
+	else
+	{
+		// Firmware mode
+		uint32_t addr = (uintptr_t)&_app_rom;
+		SCB_VTOR = addr; // relocate vector table
+		jump_to_app( addr );
+	}
+
+	// Disable Watchdog for bootloader
+	WDOG_STCTRLH &= ~WDOG_STCTRLH_WDOGEN;
 
 	// Bootloader Entry Reasons
 	print(" RCM_SRS0 - ");
@@ -217,7 +311,9 @@ void main()
 
 #ifdef FLASH_DEBUG
 	for ( uint8_t sector = 0; sector < 3; sector++ )
+	{
 		sector_print( &_app_rom, sector, 16 );
+	}
 	print( NL );
 #endif
 

@@ -32,7 +32,7 @@
 // ----- Functions -----
 
 // Called early-on during ResetHandler
-inline void Device_reset( uint8_t bootToFirmware )
+inline void Device_reset()
 {
 }
 

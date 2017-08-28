@@ -1,9 +1,9 @@
 # pjrcUSB
 
 Name = pjrcUSBCapabilities;
-Version = 0.8;
-Author = "HaaTa (Jacob Alexander) 2014-2016";
-KLL = 0.3d;
+Version = 0.9;
+Author = "HaaTa (Jacob Alexander) 2014-2017";
+KLL = 0.5;
 
 # Modified Date
 Date = 2016-05-31;
@@ -31,8 +31,15 @@ keyboardLocale = 0;
 usbProtocol => USBProtocol_define;
 usbProtocol = 1;
 
+# Secure Bootloader Mode
+# XXX (HaaTa)
+# Currently disabled, but this should be enabled by default when infrastructure is ready.
+secureBootloaderEnabled => SecureBootloader_define;
+secureBootloaderEnabled = 0;
+#secureBootloaderEnabled = 1;
+
 # Bootloader Mode capability
-# XXX
+# XXX (HaaTa)
 # By default this is disabled on purpose
 # It is a large security hazard
 flashModeEnabled => flashModeEnabled_define;
@@ -71,6 +78,7 @@ enableDeviceRestartOnUSBTimeout = 0;
 # On specific actions (such as USB key actions), will trigger the host device to wake if USB is suspended
 enableUSBResume => enableUSBResume_define;
 enableUSBResume = 1;
+
 
 ## USB Endpoint Configuration ##
 # 1 - Enable endpoint

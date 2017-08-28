@@ -21,9 +21,14 @@
 
 // ----- Includes -----
 
+// Project Includes
+#include <Lib/entropy.h>
+
 // Local Includes
+#include "../weak.h"
 #include "../mchck.h"
 #include "../debug.h"
+#include "../dfu.desc.h"
 
 
 
@@ -31,15 +36,73 @@
 
 // ----- Variables -----
 
+uint32_t Chip_secure1;
+uint32_t Chip_secure2;
+
+
+
 // ----- Functions -----
 
 // Called early-on during ResetHandler
-inline void Chip_reset( uint8_t bootToFirmware )
+void Chip_reset()
 {
+	// Generating Secure Key
+	print( "Generating Secure Key..." NL );
+
+	// Read current 64 bit secure number
+	Chip_secure1 = VBAT_SECURE1;
+	Chip_secure2 = VBAT_SECURE2;
+
+	// Generate 64 bit random numbers
+	while ( !rand_available() );
+	VBAT_SECURE1 = rand_value32();
+	while ( !rand_available() );
+	VBAT_SECURE2 = rand_value32();
+
+	// Disable rand generation
+	rand_disable();
+
+	// Secure indicator string (lsusb), iInterface
+	uint16_t *indicator_string = dfu_device_str_desc[4]->bString;
+	uint16_t replacement = u' '; // Replace with space in secure mode
+
+	// If using an external reset, disable secure validation
+	// Or if the flash is blank
+	if (    // PIN  (External Reset Pin/Switch)
+		RCM_SRS0 & 0x40
+		// Blank flash check
+		|| _app_rom == 0xffffffff
+	)
+	{
+		print( "Secure Key Bypassed." NL );
+		Chip_secure1 = 0;
+		Chip_secure2 = 0;
+
+		// Replace with \0 to hide part of string
+		replacement = u'\0';
+	}
+
+	// Modify iInterface delimiter
+	for ( uint8_t pos = 0; indicator_string[ pos ] != u'\0'; pos++ )
+	{
+		// Looking for | character
+		if ( indicator_string[ pos ] == u'|' )
+		{
+			indicator_string[ pos ] = replacement;
+
+			// If shortening, also change length
+			if ( replacement == u'\0' )
+			{
+				dfu_device_str_desc[4]->bLength = pos;
+			}
+		}
+	}
+
+	print( "Secure Key Generated." NL );
 }
 
 // Called during bootloader initialization
-inline void Chip_setup()
+void Chip_setup()
 {
 	// Enabling LED to indicate we are in the bootloader
 	GPIOA_PDDR |= (1<<5);
@@ -47,19 +110,62 @@ inline void Chip_setup()
 	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOA_PSOR |= (1<<5);
 
-	// TODO Disable this by default
-	print( " Secure Code - ");
-	uint8_t *vbat_reg = (uint8_t*)&VBAT;
-	// Start at byte 24 and 28
-	uint32_t *secure1 = (uint32_t*)&vbat_reg[24];
-	uint32_t *secure2 = (uint32_t*)&vbat_reg[28];
-	printHex_op( *secure1, 8 );
-	printHex_op( *secure2, 8 );
+	/*
+	print( "Cur Secure Code - ");
+	printHex_op( Chip_secure1, 8 );
+	printHex_op( Chip_secure2, 8 );
 	print( NL );
+	print( "New Secure Code - ");
+	printHex_op( VBAT_SECURE1, 8 );
+	printHex_op( VBAT_SECURE2, 8 );
+	print( NL );
+	*/
 }
 
 // Called during each loop of the main bootloader sequence
-inline void Chip_process()
+void Chip_process()
 {
+}
+
+// Key validation
+// Point to start of key
+// Returns -1 if invalid
+// Returns start-of-data offset if valid (may be unused until next block)
+int8_t Chip_validation( uint8_t* key )
+{
+	// Ignore check if set to 0s
+	if ( Chip_secure1 == 0 && Chip_secure2 == 0 )
+	{
+		// Check to see if there's a key set, start after the key section
+		// Block size is 1024 (0x400)
+		uint8_t key_section = 8;
+		for ( uint16_t byte = key_section; byte < 1024; byte++ )
+		{
+			// If anything isn't zero, this is a data section
+			if ( key[byte] != 0 )
+			{
+				key_section = 0;
+			}
+		}
+
+		return key_section;
+	}
+
+	// Check first 32 bits, then second 32 bits of incoming key
+	if (
+		*(uint32_t*)&key[0] == Chip_secure1
+		&& *(uint32_t*)&key[4] == Chip_secure2
+	)
+	{
+		return 8;
+	}
+	print("KEY: ");
+	printHex(*(uint32_t*)&key[0]);
+	printHex(*(uint32_t*)&key[4]);
+	print(NL);
+
+	// Otherwise, an invalid key
+	print( "Invalid firmware key!" NL );
+	return -1;
 }
 

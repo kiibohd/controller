@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# Jacob Alexander 2017
+# Prepends a 64 bit value to the beginning of a file
+# Used to add/modify security key for the Kiibohd Bootloader
+
+# Error out on issues
+set -e
+
+# Check for an argument
+if [ $# -eq 0 ]; then
+	echo "Requires at least one argument."
+	echo "$0 <filename> [<key1> <key2>]"
+fi
+
+input_file=${1}
+tmp_file=newbin.bin
+CLEARKEY=${CLEARKEY:-false}
+STRIPKEY=${STRIPKEY:-false}
+
+# Check for 2nd argument, then convert to an base 10 integer
+if [ $# -eq 2 ]; then
+	key=$((${2}))
+
+# Otherwise, use a zero'd key
+else
+	key=0
+fi
+
+# If PREPENDKEY is set, use that
+if [ ! -z "${PREPENDKEY}" ]; then
+	key=$((${PREPENDKEY}))
+fi
+
+# Check if valid file
+if [ ! -e ${input_file} ]; then
+	echo "${input_file} is not a valid file"
+	exit 1
+fi
+
+# Read the first 4 bytes to determine if this is a valid file
+# XXX (HaaTa) This check may not always be valid
+cur_key=$(head -c 4 ${input_file} | hexdump -C | cut -b9- | cut -d"|" -f1 | tr -d ' \t\n\r')
+
+# Check if key is unset
+if [ "${cur_key}" != "00800020" ]; then
+	# Check if CLEARKEY was set to true
+	if ${CLEARKEY} || ${STRIPKEY}; then
+		# Strip first 1024 bytes
+		dd bs=1024 skip=1 if=${input_file} of=${tmp_file} &> /dev/null
+		# Overwrite old file
+		mv ${tmp_file} ${input_file}
+
+		# Do not prepend a new key
+		if ${STRIPKEY}; then
+			exit 0
+		fi
+	else
+		echo "Key already set!: ${cur_key}"
+		exit 1
+	fi
+fi
+
+# Generate printf key
+# XXX (HaaTa) Currently only the mk20dx256vlh7 is supported
+# The key must sit in it's own block (which is 1024 bytes)
+# This means we have to pad 1016 bytes in addition to the 8 bytes to the beginning of the file
+#    8 * 2 = 16 digits
+# 1016 * 2 = 2032 digits
+output_key=$(printf "%016X" ${key})
+echo "Key Prepended: ${output_key}"
+
+# 4 bytes at a time, then re-order to Little-Endian
+echo ${output_key}$(printf "%02032X" 0) | sed 's/\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)/\\\\\\x\4\\\\\\x\3\\\\\\x\2\\\\\\x\1/gI' | xargs printf > ${tmp_file}
+
+# Append old file onto new one
+cat ${input_file} >> ${tmp_file}
+
+# Overwrite old file
+mv ${tmp_file} ${input_file}
+

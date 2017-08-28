@@ -474,19 +474,6 @@ const uint8_t flashconfigbytes[16] = {
 
 // ----- Functions -----
 
-#if ( defined(_mk20dx128vlf5_) || defined(_mk20dx256vlh7_) ) && defined(_bootloader_) // Bootloader Section
-__attribute__((noreturn))
-static inline void jump_to_app( uintptr_t addr )
-{
-	// addr is in r0
-	__asm__("ldr sp, [%[addr], #0]\n"
-		"ldr pc, [%[addr], #4]"
-		:: [addr] "r" (addr));
-	// NOTREACHED
-	__builtin_unreachable();
-}
-#endif
-
 void *memset( void *addr, int val, unsigned int len )
 {
 	char *buf = addr;
@@ -520,55 +507,9 @@ void *memcpy( void *dst, const void *src, unsigned int len )
 
 // ----- Chip Entry Point -----
 
-// Weak versions of Device specific functions
-void Chip_reset( uint8_t bootToFirmware )   __attribute__ ((weak));
-void Device_reset( uint8_t bootToFirmware ) __attribute__ ((weak));
-
 __attribute__ ((section(".startup")))
 void ResetHandler()
 {
-#if ( defined(_mk20dx128vlf5_) || defined(_mk20dx256vlh7_) ) && defined(_bootloader_) // Bootloader Section
-	extern uint32_t _app_rom;
-
-	// We treat _app_rom as pointer to directly read the stack
-	// pointer and check for valid app code.  This is no fool
-	// proof method, but it should help for the first flash.
-	//
-	// Purposefully disabling the watchdog *after* the reset check this way
-	// if the chip goes into an odd state we'll reset to the bootloader (invalid firmware image)
-	// RCM_SRS0 & 0x20
-	//
-	// Also checking for ARM lock-up signal (invalid firmware image)
-	// RCM_SRS1 & 0x02
-	if (    // PIN  (External Reset Pin/Switch)
-		RCM_SRS0 & 0x40
-		// WDOG (Watchdog timeout)
-		|| RCM_SRS0 & 0x20
-		// LOCKUP (ARM Core LOCKUP event)
-		|| RCM_SRS1 & 0x02
-		// Blank flash check
-		|| _app_rom == 0xffffffff
-		// Software reset
-		|| memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0
-	)
-	{
-		// Bootloader mode
-		Chip_reset( 0 );
-		Device_reset( 0 );
-
-		memset( (uint8_t*)&VBAT, 0, sizeof(VBAT) );
-	}
-	else
-	{
-		// Firmware mode
-		Chip_reset( 1 );
-		Device_reset( 1 );
-
-		uint32_t addr = (uintptr_t)&_app_rom;
-		SCB_VTOR = addr; // relocate vector table
-		jump_to_app( addr );
-	}
-#endif
 	// Disable Watchdog
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
@@ -718,9 +659,6 @@ void ResetHandler()
 
 #if !defined(_bootloader_)
 	__enable_irq();
-#else
-	// Disable Watchdog for bootloader
-	WDOG_STCTRLH &= ~WDOG_STCTRLH_WDOGEN;
 #endif
 
 	// Intialize entropy for random numbers

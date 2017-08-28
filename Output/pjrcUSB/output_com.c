@@ -672,6 +672,13 @@ inline void Output_setup()
 	// Flush key buffers
 	Output_flushBuffers();
 
+	// Check if we need to disable secure bootloader mode
+	// This is done by setting both 32 bit Kiibohd specific VBAT secure register regions
+#if ( defined(_mk20dx128vlf5_) || defined(_mk20dx256vlh7_) ) && SecureBootloader_define == 0
+	VBAT_SECURE1 = 0;
+	VBAT_SECURE2 = 0;
+#endif
+
 #if enableRawIO_define == 1
 	// Setup HID-IO
 	HIDIO_setup();

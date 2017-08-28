@@ -101,7 +101,7 @@ CLIDict_Def( lcdCLIDict, "ST LCD Module Commands" ) = {
 
 // ----- Functions -----
 
-inline void SPI_setup()
+void SPI_setup()
 {
 	// Enable SPI internal clock
 	SIM_SCGC6 |= SIM_SCGC6_SPI0;
@@ -208,7 +208,7 @@ void LCD_writeDisplayReg( uint8_t page, uint8_t *buffer, uint8_t len )
 	SPI_write( buffer, len );
 }
 
-inline void LCD_clearPage( uint8_t page )
+void LCD_clearPage( uint8_t page )
 {
 	// Set the register page
 	LCD_writeControlReg( 0xB0 | ( 0x0F & page ) );
