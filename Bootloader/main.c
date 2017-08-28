@@ -281,7 +281,7 @@ void main()
 	)
 	{
 		// Bootloader mode
-		memset( (uint8_t*)&VBAT, 0, sizeof(VBAT) );
+		memset( (uint8_t*)&VBAT, 0, sizeof(sys_reset_to_loader_magic) );
 	}
 	else
 	{

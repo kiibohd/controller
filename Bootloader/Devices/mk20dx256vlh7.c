@@ -93,7 +93,7 @@ void Chip_reset()
 			// If shortening, also change length
 			if ( replacement == u'\0' )
 			{
-				dfu_device_str_desc[4]->bLength = pos;
+				dfu_device_str_desc[4]->bLength = pos * 2 + 2;
 			}
 		}
 	}
@@ -159,10 +159,6 @@ int8_t Chip_validation( uint8_t* key )
 	{
 		return 8;
 	}
-	print("KEY: ");
-	printHex(*(uint32_t*)&key[0]);
-	printHex(*(uint32_t*)&key[4]);
-	print(NL);
 
 	// Otherwise, an invalid key
 	print( "Invalid firmware key!" NL );
