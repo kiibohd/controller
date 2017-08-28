@@ -439,7 +439,8 @@ const uint8_t flashconfigbytes[16] = {
 	//  http://cache.freescale.com/files/microcontrollers/doc/app_note/AN4507.pdf
 	//  http://cache.freescale.com/files/32bit/doc/ref_manual/K20P48M50SF0RM.pdf (28.34.6)
 	//
-	0xFF, 0xFF, 0xFF, 0xFE, // Program Flash Protection Bytes FPROT0-3
+	// XXX (HaaTa) 8 kB (this has changed from the original 4 kB)
+	0xFF, 0xFF, 0xFF, 0xFC, // Program Flash Protection Bytes FPROT0-3
 
 	0xBE, // Flash security byte FSEC
 	0x03, // Flash nonvolatile option byte FOPT
@@ -461,6 +462,7 @@ const uint8_t flashconfigbytes[16] = {
 	//  http://cache.freescale.com/files/microcontrollers/doc/app_note/AN4507.pdf
 	//  http://cache.freescale.com/files/32bit/doc/ref_manual/K20P64M72SF1RM.pdf (28.34.6)
 	//
+	// XXX (HaaTa) 8 kB (minimum protected region)
 	0xFF, 0xFF, 0xFF, 0xFE, // Program Flash Protection Bytes FPROT0-3
 
 	0xBE, // Flash security byte FSEC

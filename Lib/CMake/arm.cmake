@@ -86,12 +86,14 @@ set( MCU "${CHIP}" ) # For loading script compatibility
 #| MCHCK Based / Kiibohd-dfu
 if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
 	set( SIZE_RAM    16384 )
-	set( SIZE_FLASH 126976 )
+	#set( SIZE_FLASH 126976 ) # XXX (HaaTa) Old size, still valid for nearly all keyboards
+	set( SIZE_FLASH 122880 ) # For extended bootloader (8kB)
 	set( F_CPU "48000000" )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
-		set( SIZE_FLASH 4096 )
+		#set( SIZE_FLASH 4096 ) # XXX (HaaTa) Old size
+		set( SIZE_FLASH 8192 ) # XXX (HaaTa) Old size
 	endif ()
 
 #| Kiibohd-dfu
