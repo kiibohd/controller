@@ -31,6 +31,7 @@
 // ----- Includes -----
 
 #include "entropy.h"
+#include "mk20dx.h"
 
 
 

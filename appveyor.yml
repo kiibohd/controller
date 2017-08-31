@@ -26,15 +26,9 @@ environment:
   matrix:
     # Input Club Keyboard Tests
     - SCRIPT_DIR: Keyboards
-      SCRIPT: infinity.bash
+      SCRIPT: ic_keyboards.bash
     - SCRIPT_DIR: Keyboards
-      SCRIPT: infinity_led.bash
-    - SCRIPT_DIR: Keyboards
-      SCRIPT: ergodox.bash
-    - SCRIPT_DIR: Keyboards
-      SCRIPT: whitefox.bash
-    - SCRIPT_DIR: Keyboards
-      SCRIPT: k-type.bash
+      SCRIPT: others.bash
 
     # Debug Build Tests
     - SCRIPT_DIR: Keyboards/Testing

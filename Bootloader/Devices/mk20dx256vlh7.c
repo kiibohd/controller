@@ -70,6 +70,8 @@ void Chip_reset()
 	// Or if the flash is blank
 	if (    // PIN  (External Reset Pin/Switch)
 		RCM_SRS0 & 0x40
+		// WDOG (Watchdog timeout)
+		|| RCM_SRS0 & 0x20
 		// Blank flash check
 		|| _app_rom == 0xffffffff
 	)

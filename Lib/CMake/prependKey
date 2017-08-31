@@ -42,7 +42,11 @@ fi
 cur_key=$(head -c 4 ${input_file} | hexdump -C | cut -b9- | cut -d"|" -f1 | tr -d ' \t\n\r')
 
 # Check if key is unset
-if [ "${cur_key}" != "00800020" ]; then
+# 00200020 - mk20dx128vlf5
+# 00800020 - mk20dx256vlh7
+if [ "${cur_key}" = "00800020" ] || [ "${cur_key}" = "00200020" ]; then
+	echo "Setting new key"
+else
 	# Check if CLEARKEY was set to true
 	if ${CLEARKEY} || ${STRIPKEY}; then
 		# Strip first 1024 bytes

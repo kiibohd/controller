@@ -15,7 +15,7 @@
  */
 
 //
-// WhiteFox
+// K-Type
 //
 
 // ----- Includes -----
@@ -62,6 +62,15 @@ void Device_setup()
 	// Setup parameters for USB port swap
 	last_ms = systick_millis_count;
 	attempt = 0;
+
+	// Setup scanning for S1
+	// Row1
+	GPIOD_PDDR &= ~(1<<5);
+	PORTD_PCR5 = PORT_PCR_PE | PORT_PCR_PFE | PORT_PCR_MUX(1);
+	// Col1
+	GPIOB_PDDR |= (1<<2);
+	PORTB_PCR2 = PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOB_PSOR |= (1<<2);
 }
 
 // Called during each loop of the main bootloader sequence
@@ -85,6 +94,13 @@ void Device_process()
 		print("USB not initializing, port swapping");
 		GPIOA_PTOR |= (1<<4);
 		attempt++;
+	}
+
+	// Check for S1 being pressed
+	if ( GPIOD_PDIR & (1<<5) )
+	{
+		print( "Reset key pressed." NL );
+		SOFTWARE_RESET();
 	}
 }
 

@@ -154,6 +154,20 @@ void usage_fault_default_isr()
 }
 
 
+// NVIC - Watchdog ISR
+void watchdog_default_isr()
+{
+	print("Watchdog timeout! ");
+	printHex( WDOG_TMROUTH );
+	print(" ");
+	printHex( WDOG_TMROUTL );
+	print( NL );
+	print("Watchdog Reset Count: ");
+	printHex( WDOG_RSTCNT );
+	print( NL );
+}
+
+
 // NVIC - Default ISR/Vector Linking
 void nmi_isr()              __attribute__ ((weak, alias("nmi_default_isr")));
 void hard_fault_isr()       __attribute__ ((weak, alias("hard_fault_default_isr")));
@@ -187,7 +201,7 @@ void flash_cmd_isr()        __attribute__ ((weak, alias("unused_isr")));
 void flash_error_isr()      __attribute__ ((weak, alias("unused_isr")));
 void low_voltage_isr()      __attribute__ ((weak, alias("unused_isr")));
 void wakeup_isr()           __attribute__ ((weak, alias("unused_isr")));
-void watchdog_isr()         __attribute__ ((weak, alias("unused_isr")));
+void watchdog_isr()         __attribute__ ((weak, alias("watchdog_default_isr")));
 void i2c0_isr()             __attribute__ ((weak, alias("unused_isr")));
 void i2c1_isr()             __attribute__ ((weak, alias("unused_isr")));
 void i2c2_isr()             __attribute__ ((weak, alias("unused_isr")));
@@ -513,9 +527,10 @@ __attribute__ ((section(".startup")))
 void ResetHandler()
 {
 	// Disable Watchdog
+	while ( WDOG_TMROUTL < 2 ); // Must wait for WDOG timer if already running, before jumping
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
-	WDOG_STCTRLH = WDOG_STCTRLH_ALLOWUPDATE;
+	WDOG_STCTRLH &= ~WDOG_STCTRLH_WDOGEN;
 
 	uint32_t *src = (uint32_t*)&_etext;
 	uint32_t *dest = (uint32_t*)&_sdata;
@@ -659,9 +674,8 @@ void ResetHandler()
 	SYST_RVR = (F_CPU / 1000) - 1;
 	SYST_CSR = SYST_CSR_CLKSOURCE | SYST_CSR_TICKINT | SYST_CSR_ENABLE;
 
-#if !defined(_bootloader_)
+	// Enable IRQs
 	__enable_irq();
-#endif
 
 	// Intialize entropy for random numbers
 	rand_initialize();

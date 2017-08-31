@@ -148,7 +148,6 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 	}
 	case USB_CTRL_REQ_DFU_UPLOAD:
 	{
-#if defined(_mk20dx256vlh7_) // Kiibohd-dfu
 		void *buf;
 		size_t len = 0;
 
@@ -204,9 +203,6 @@ static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		print(" state:");
 		printHex( ctx->state );
 		print( NL );
-#endif
-#else
-		ctx->state = DFU_STATE_dfuERROR;
 #endif
 		goto out;
 	}
@@ -284,9 +280,7 @@ out_no_status:
 void dfu_init( dfu_setup_read_t setup_read, dfu_setup_write_t setup_write, dfu_finish_write_t finish_write, struct dfu_ctx *ctx )
 {
 	ctx->state = DFU_STATE_dfuIDLE;
-#if defined(_mk20dx256vlh7_) // Kiibohd-dfu
 	ctx->setup_read = setup_read;
-#endif
 	ctx->setup_write = setup_write;
 	ctx->finish_write = finish_write;
 	usb_attach_function(&dfu_function, &ctx->header);

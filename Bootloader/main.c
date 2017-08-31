@@ -222,13 +222,11 @@ void init_usb_bootloader( int config )
 {
 	dfu_init( setup_read, setup_write, finish_write, &dfu_ctx );
 
-#if defined(_mk20dx256vlh7_) // Kiibohd-dfu
-	// Make sure SysTick counter is disabled
+	// Make sure SysTick counter is disabled (dfu has issues otherwise)
 	SYST_CSR = 0;
 
 	// Clear verified status
 	dfu_ctx.verified = DFU_VALIDATION_UNKNOWN;
-#endif
 }
 
 // Code jump routine
@@ -285,14 +283,19 @@ void main()
 	}
 	else
 	{
+		// Enable Watchdog before jumping
+		// XXX (HaaTa) This watchdog cannot trigger an IRQ, as we're relocating the vector table
+		WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
+		WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
+		WDOG_TOVALH = 0;
+		WDOG_TOVALL = 1000;
+		WDOG_STCTRLH |= WDOG_STCTRLH_WDOGEN;
+
 		// Firmware mode
 		uint32_t addr = (uintptr_t)&_app_rom;
 		SCB_VTOR = addr; // relocate vector table
 		jump_to_app( addr );
 	}
-
-	// Disable Watchdog for bootloader
-	WDOG_STCTRLH &= ~WDOG_STCTRLH_WDOGEN;
 
 	// Bootloader Entry Reasons
 	print(" RCM_SRS0 - ");

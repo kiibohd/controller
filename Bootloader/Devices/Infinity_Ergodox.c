@@ -22,6 +22,7 @@
 
 // Local Includes
 #include "../mchck.h"
+#include "../debug.h"
 
 
 
@@ -43,10 +44,25 @@ void Device_setup()
 	GPIOC_PDDR |= (1<<1);
 	PORTC_PCR1 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOC_PCOR |= (1<<1);
+
+	// Setup scanning for S7
+	// Row1
+	GPIOD_PDDR &= ~(1<<1);
+	PORTD_PCR1 = PORT_PCR_PE | PORT_PCR_PFE | PORT_PCR_MUX(1);
+	// Col9
+	GPIOD_PDDR |= (1<<0);
+	PORTD_PCR0 = PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOD_PSOR |= (1<<0);
 }
 
 // Called during each loop of the main bootloader sequence
 void Device_process()
 {
+	// Check for S7 being pressed
+	if ( GPIOD_PDIR & (1<<1) )
+	{
+		print( "Reset key pressed." NL );
+		SOFTWARE_RESET();
+	}
 }
 

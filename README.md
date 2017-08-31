@@ -12,6 +12,8 @@ Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](
 
 [![Visit our IRC channel](https://kiwiirc.com/buttons/irc.freenode.net/input.club.png)](https://kiwiirc.com/client/irc.freenode.net/#input.club)
 
+[Visit our Discord Channel](https://discord.gg/GACJa4f)
+
 
 
 Official Keyboards
@@ -61,6 +63,16 @@ It's possible to port chips with lower specs, but will be more effort and have f
 
 
 
+Bootloader
+----------
+
+A custom bootloader (based off of [McHCK](https://github.com/mchck/mchck)) is available.
+This is only necessary when assembling a keybaord with a blank MCU or if you're attempting to re-flash your bootloader (requires external tools).
+
+[Bootloader](Bootloader)
+
+
+
 Contributions
 -------------
 
@@ -82,10 +94,3 @@ Code written specifically for the Kiibohd Controller use the following licenses:
 * MIT
 * GPLv3
 * Public Domain
-
-
-
-Contact
--------
-
-If you really need to get a hold of HaaTa, email is best: `haata@kiibohd.com`
