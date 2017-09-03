@@ -78,19 +78,18 @@ void Device_process()
 {
 	// For keyboards with dual usb ports, doesn't do anything on keyboards without them
 	// If a USB connection is not detected in 2 seconds, switch to the other port to see if it's plugged in there
-
-	// Only check for swapping after delay
-	uint32_t wait_ms = systick_millis_count - last_ms;
-	if ( wait_ms < USBPortSwapDelay_ms + attempt / 2 * USBPortSwapDelay_ms )
-	{
-		return;
-	}
-
-	last_ms = systick_millis_count;
-
 	// USB not initialized, attempt to swap
 	if ( usb.state != USBD_STATE_ADDRESS )
 	{
+		// Only check for swapping after delay
+		uint32_t wait_ms = systick_millis_count - last_ms;
+		if ( wait_ms < USBPortSwapDelay_ms + attempt / 2 * USBPortSwapDelay_ms )
+		{
+			return;
+		}
+
+		last_ms = systick_millis_count;
+
 		print("USB not initializing, port swapping");
 		GPIOA_PTOR |= (1<<4);
 		attempt++;
