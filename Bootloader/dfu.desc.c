@@ -123,3 +123,15 @@ const struct usbd_device dfu_device = {
 	}
 };
 
+// Initialize DFU USB descriptor
+void dfu_usb_init()
+{
+	usb_init( &dfu_device );
+}
+
+// Poll USB for changes in DFU status
+void dfu_usb_poll()
+{
+	usb_poll();
+}
+

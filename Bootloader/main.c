@@ -27,8 +27,6 @@
 
 #include "debug.h"
 
-#include "usb-internal.h"
-
 
 
 // ----- Variables -----
@@ -321,12 +319,12 @@ void main()
 #endif
 
 	flash_prepare_flashing();
-	usb_init( &dfu_device );
+	dfu_usb_init(); // Initialize USB and dfu
 
 	// Main Loop
 	for (;;)
 	{
-		usb_poll();
+		dfu_usb_poll();
 
 		// Device specific functions
 		Chip_process();
