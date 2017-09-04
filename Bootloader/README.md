@@ -166,7 +166,7 @@ Please refer to [Secure DFU](Documentation/SecureDFU.md) for details, including 
 The bootloader has a basic debug UART which outputs some useful information while it's running.
 You'll need to setup your device for [external debugging](https://github.com/kiibohd/controller/wiki/External-Debugging).
 
-* [mk20dx128vlf5](Documentation/mk20dx128vlf5.md) - UART1 (Tx1/Rx1)
+* [mk20dx128vlf5](Documentation/mk20dx128vlf5.md) - UART0 (Tx0/Rx0)
 * [mk20dx256vlh7](Documentation/mk20dx256vlh7.md) - UART2 (Tx2/Rx2)
 
 
