@@ -1,4 +1,4 @@
-/* Copyright (C) 2015 by Jacob Alexander
+/* Copyright (C) 2015-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,6 +49,26 @@
 #define SIM_SCGC4_UART  SIM_SCGC4_UART2
 #define IRQ_UART_STATUS IRQ_UART2_STATUS
 
+#elif defined(_mk20dx128vlf5_) // UART0 Debug
+#define UART_BDH    UART0_BDH
+#define UART_BDL    UART0_BDL
+#define UART_C1     UART0_C1
+#define UART_C2     UART0_C2
+#define UART_C3     UART0_C3
+#define UART_C4     UART0_C4
+#define UART_CFIFO  UART0_CFIFO
+#define UART_D      UART0_D
+#define UART_PFIFO  UART0_PFIFO
+#define UART_RCFIFO UART0_RCFIFO
+#define UART_RWFIFO UART0_RWFIFO
+#define UART_S1     UART0_S1
+#define UART_S2     UART0_S2
+#define UART_SFIFO  UART0_SFIFO
+#define UART_TWFIFO UART0_TWFIFO
+
+#define SIM_SCGC4_UART  SIM_SCGC4_UART0
+#define IRQ_UART_STATUS IRQ_UART0_STATUS
+
 #else
 #error "Bootloader UART Debug unsupported"
 #endif
@@ -57,7 +77,7 @@
 
 // ----- Functions -----
 
-#if defined(_mk20dx256vlh7_)
+#if defined(_mk20dx128vlf5_) || defined(_mk20dx256vlh7_)
 
 void uart_serial_setup()
 {
@@ -68,6 +88,9 @@ void uart_serial_setup()
 #if defined(_mk20dx256vlh7_)
 	// Pin Setup for UART2
 	PORTD_PCR3 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
+#elif defined(_mk20dx128vlf5_)
+	// Pin Setup for UART0
+	PORTA_PCR2 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
 #endif
 
 
@@ -82,6 +105,17 @@ void uart_serial_setup()
 	UART_BDH = (uint8_t)(baud >> 8);
 	UART_BDL = (uint8_t)baud;
 	UART_C4 = 0x11;
+
+#elif defined(_mk20dx128vlf5_)
+	// Setup baud rate - 115200 Baud
+	// 48 MHz / ( 16 * Baud ) = BDH/L
+	// Baud: 115200 -> 48 MHz / ( 16 * 115200 ) = 26.0416667
+	// Thus baud setting = 26
+	// NOTE: If finer baud adjustment is needed see UARTx_C4 -> BRFA in the datasheet
+	uint16_t baud = 26; // Max setting of 8191
+	UART_BDH = (uint8_t)(baud >> 8);
+	UART_BDL = (uint8_t)baud;
+	UART_C4 = 0x02;
 
 #endif
 
