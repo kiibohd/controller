@@ -170,7 +170,7 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	// Display capability name
 	if ( stateType == 0xFF && state == 0xFF )
 	{
-		print("Pixel_Animation_capability(index,loops,pfunc,divmask,divshift,replace)");
+		print("Pixel_Animation_capability(index,loops,pfunc,framedelay,frameoption,replace)");
 		return;
 	}
 
@@ -182,11 +182,12 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	AnimationStackElement element;
 	element.trigger = trigger;
 	element.pos = 0; // TODO (HaaTa) Start at specific frame
+	element.subpos = 0;
 	element.index = *(uint16_t*)(&args[0]);
 	element.loops = *(uint8_t*)(&args[2]);
 	element.pfunc = *(uint8_t*)(&args[3]);
-	element.divmask = *(uint8_t*)(&args[4]);
-	element.divshift = *(uint8_t*)(&args[5]);
+	element.framedelay = *(uint8_t*)(&args[4]);
+	element.frameoption = *(uint8_t*)(&args[5]);
 	element.replace = *(uint8_t*)(&args[6]);
 
 	Pixel_addAnimation( &element );
@@ -304,11 +305,12 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element )
 		if ( found != NULL && ( found->trigger == element->trigger || element->replace == AnimationReplaceType_All ) )
 		{
 			found->pos = element->pos;
+			found->subpos = element->subpos;
 			found->loops = element->loops;
 			found->pfunc = element->pfunc;
 			found->ffunc = element->ffunc;
-			found->divmask = element->divmask;
-			found->divshift = element->divshift;
+			found->framedelay = element->framedelay;
+			found->frameoption = element->frameoption;
 			found->replace = element->replace;
 			found->state = element->state;
 			return 0;
@@ -1191,15 +1193,16 @@ next:
 // -- Frame Tweening --
 
 // Standard Pixel Frame Function (no additional processing)
-void Pixel_frameTweenStandard( uint16_t frame, uint8_t subframe, const uint8_t *data, AnimationStackElement *elem )
+void Pixel_frameTweenStandard( const uint8_t *data, AnimationStackElement *elem )
 {
-	// Increment frame position
-	elem->pos++;
-
 	// Do nothing during sub-frames, skip
-	if ( subframe != 0 )
+	if ( elem->subpos != 0 )
 	{
-		return;
+		// But only if frame strech isn't set
+		if ( !( elem->frameoption & PixelFrameOption_FrameStretch ) )
+		{
+			return;
+		}
 	}
 
 	// Lookup Pixel Tweening Function
@@ -1219,7 +1222,7 @@ void Pixel_frameTweenStandard( uint16_t frame, uint8_t subframe, const uint8_t *
 
 // Pixel Frame Interpolation Tweening
 // Do averaging between key frames
-void Pixel_frameTweenInterpolation( uint16_t frame, uint8_t subframe, const uint8_t *data, AnimationStackElement *elem )
+void Pixel_frameTweenInterpolation( const uint8_t *data, AnimationStackElement *elem )
 {
 	// TODO
 }
@@ -1258,15 +1261,9 @@ uint8_t Pixel_animationProcess( AnimationStackElement *elem )
 		break;
 	}
 
-	// Calculate sub-frame index
-	uint8_t subframe = elem->pos & elem->divmask;
-
-	// Calculate frame index
-	uint16_t frame = elem->pos >> elem->divshift;
-
 	// Lookup animation frame to make sure we have something to do
 	// TODO Make sure animation index exists -HaaTa
-	const uint8_t *data = Pixel_Animations[elem->index][frame];
+	const uint8_t *data = Pixel_Animations[elem->index][elem->pos];
 
 	// If there is no frame data, that means we either stop, or restart
 	if ( data == 0 )
@@ -1290,14 +1287,36 @@ uint8_t Pixel_animationProcess( AnimationStackElement *elem )
 	switch ( elem->ffunc )
 	{
 	case PixelFrameFunction_Interpolation:
-		Pixel_frameTweenInterpolation( frame, subframe, data, elem );
+		Pixel_frameTweenInterpolation( data, elem );
 		break;
 
 	// Generic, no additonal processing necessary
 	case PixelFrameFunction_Off:
 	case PixelFrameFunction_InterpolationKLL:
-		Pixel_frameTweenStandard( frame, subframe, data, elem );
+		Pixel_frameTweenStandard( data, elem );
 		break;
+	}
+
+	// Increment positions
+	// framedelay case
+	if ( elem->framedelay > 0 )
+	{
+		// Roll-over subpos for framedelay
+		if ( elem->subpos == elem->framedelay )
+		{
+			elem->subpos = 0;
+			elem->pos++;
+		}
+		// Increment subposition
+		else
+		{
+			elem->subpos++;
+		}
+	}
+	// Full-speed
+	else
+	{
+		elem->pos++;
 	}
 
 	return 1;
@@ -1441,11 +1460,12 @@ void Pixel_updateUSBLEDs()
 	AnimationStackElement element;
 	element.trigger = 0;
 	element.pos = 0;
+	element.subpos = 0;
 	element.loops = 0;
 	element.pfunc = 0;
 	element.ffunc = 0;
-	element.divmask = 1;
-	element.divshift = 1;
+	element.framedelay = 1;
+	element.frameoption = 0;
 	element.replace = AnimationReplaceType_Basic;
 
 	// NumLock
@@ -2189,10 +2209,10 @@ void cliFunc_aniStack( char* args )
 		printInt16( elem->pos );
 		print(") loops(");
 		printInt8( elem->loops );
-		print(") divmask(");
-		printInt8( elem->divmask );
-		print(") divshift(");
-		printInt8( elem->divshift );
+		print(") framedelay(");
+		printInt8( elem->framedelay );
+		print(") frameoption(");
+		printInt8( elem->frameoption );
 		print(") ffunc(");
 		printInt8( elem->ffunc );
 		print(") pfunc(");

@@ -62,14 +62,15 @@ class AnimationStackElement( Structure ):
 	See Macro/PixelMap/pixel.h
 	'''
 	_fields_ = [
-		( "trigger",  POINTER( TriggerMacro ) ),
-		( "index",    c_uint16 ),
-		( "pos",      c_uint16 ),
-		( "loops",    c_uint8 ),
-		( "divmask",  c_uint8 ),
-		( "divshift", c_uint8 ),
-		( "ffunc",    c_uint8 ),
-		( "pfunc",    c_uint8 ),
+		( "trigger",     POINTER( TriggerMacro ) ),
+		( "index",       c_uint16 ),
+		( "pos",         c_uint16 ),
+		( "subpos",      c_uint8 ),
+		( "loops",       c_uint8 ),
+		( "framedelay",  c_uint8 ),
+		( "frameoption", c_uint8 ),
+		( "ffunc",       c_uint8 ),
+		( "pfunc",       c_uint8 ),
 	]
 
 class PixelBuf( Structure ):
