@@ -89,7 +89,7 @@ inline uint8_t Scan_loop()
 	Matrix_scan( Scan_scanCount, &Scan_strobe_position, 4 );
 
 	// Check if we are ready to leave the scan loop
-	if ( Scan_strobe_position >= Matrix_totalColumns() - 1 )
+	if ( Scan_strobe_position >= Matrix_totalColumns() )
 	{
 		Scan_strobe_position = 0;
 		Scan_scanCount++;

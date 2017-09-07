@@ -97,7 +97,7 @@ inline uint8_t Scan_loop()
 	LCD_scan();
 
 	// Check if we are ready roll ovr the strobe position
-	if ( Scan_strobe_position >= Matrix_totalColumns() - 1 )
+	if ( Scan_strobe_position >= Matrix_totalColumns() )
 	{
 		Scan_strobe_position = 0;
 		Scan_scanCount++;
