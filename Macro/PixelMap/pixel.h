@@ -111,10 +111,19 @@ typedef enum AnimationReplaceType {
 
 // Animation Play State
 typedef enum AnimationPlayState {
-	AnimationPlayState_Start = 0, // Start animation (default)
-	AnimationPlayState_Pause = 1, // Pause animation
+	AnimationPlayState_Start = 0, // Start animation
+	AnimationPlayState_Pause = 1, // Pause animation (default set by KLL Compiler)
 	AnimationPlayState_Stop  = 2, // Stop animation (removes animation state)
 } AnimationPlayState;
+
+typedef enum AnimationControl {
+	AnimationControl_Forward    = 0, // Default
+	AnimationControl_ForwardOne = 1,
+	AnimationControl_Pause      = 2, // Pauses current animations
+	AnimationControl_Stop       = 3, // Clears all animations, then sets forward
+	AnimationControl_Reset      = 4, // Clears all animations, starts initial animations (sets forward)
+	AnimationControl_WipePause  = 5, // Pauses animations, clears the display
+} AnimationControl;
 
 
 
@@ -220,4 +229,6 @@ extern const uint16_t     Pixel_ScanCodeToPixel[];
 
 void Pixel_process();
 void Pixel_setup();
+
+void Pixel_setAnimationControl( AnimationControl control );
 

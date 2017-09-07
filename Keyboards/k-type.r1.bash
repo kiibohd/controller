@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
-# This is a build script template for testing builds
+#!/bin/bash
+# This is a build script template
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015-2017
+# Jacob Alexander 2016-2017
 
 
 
@@ -11,17 +11,17 @@
 
 # Feel free to change the variables in this section to configure your keyboard
 
-BuildPath="template"
+BuildPath="K-Type"
 
 ## KLL Configuration ##
 
 # Generally shouldn't be changed, this will affect every layer
-BaseMap="scancode_map"
+BaseMap="defaultMap"
 
 # This is the default layer of the keyboard
 # NOTE: To combine kll files into a single layout, separate them by spaces
 # e.g.  DefaultMap="mylayout mylayoutmod"
-DefaultMap="md1Overlay stdFuncMap"
+DefaultMap="k-type/release.1 stdFuncMap"
 
 # This is where you set the additional layers
 # NOTE: Indexing starts at 1
@@ -29,8 +29,6 @@ DefaultMap="md1Overlay stdFuncMap"
 # e.g.  PartialMaps[1]="layer1 layer1mod"
 #       PartialMaps[2]="layer2"
 #       PartialMaps[3]="layer3"
-PartialMaps[1]="hhkbpro2"
-PartialMaps[2]="colemak"
 
 
 
@@ -43,13 +41,13 @@ PartialMaps[2]="colemak"
 # NOTE: Changing any of these variables will require a force build to compile correctly
 
 # Keyboard Module Configuration
-ScanModule="Infinity_60"
-MacroModule="PartialMap"
+ScanModule="K-Type"
+MacroModule="PixelMap"
 OutputModule="pjrcUSB"
 DebugModule="full"
 
 # Microcontroller
-Chip="mk20dx128vlf5"
+Chip="mk20dx256vlh7"
 
 # Compiler Selection
 Compiler="gcc"
@@ -63,14 +61,11 @@ Compiler="gcc"
 # Shouldn't need to touch this section
 
 # Check if the library can be found
-if [ ! -f ../cmake.bash ]; then
+if [ ! -f cmake.bash ]; then
 	echo "ERROR: Cannot find 'cmake.bash'"
 	exit 1
 fi
 
-# Override CMakeLists path
-CMakeListsPath="../../.."
-
 # Load the library
-source "../cmake.bash"
+source cmake.bash
 

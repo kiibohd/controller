@@ -136,11 +136,5 @@ void Scan_currentChange( unsigned int current )
 	Connect_currentChange( current );
 	Matrix_currentChange( current );
 	LED_currentChange( current );
-
-	if ( current == 500 )
-	{
-		// TODO REMOVEME once default animations can be set
-		Pixel_addDefaultAnimation( Animation__rainbow_wave );
-	}
 }
 

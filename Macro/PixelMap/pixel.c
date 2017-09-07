@@ -63,14 +63,6 @@ typedef enum PixelTest {
 	PixelTest_XY_Roll,
 } PixelTest;
 
-typedef enum AnimationControl {
-	AnimationControl_Forward    = 0, // Default
-	AnimationControl_ForwardOne = 1,
-	AnimationControl_Pause      = 2,
-	AnimationControl_Stop       = 3, // Clears all animations, then sets forward
-	AnimationControl_Reset      = 4, // Clears all animations, starts initial animations (sets forward)
-} AnimationControl;
-
 
 
 // ----- Variables -----
@@ -159,6 +151,16 @@ void Pixel_AnimationIndex_capability( TriggerMacro *trigger, uint8_t state, uint
 
 	// Lookup animation settings
 	uint16_t index = *(uint16_t*)(&args[0]);
+
+	// Check if a valid setting
+	if ( index >= Pixel_AnimationSettingsNum_KLL )
+	{
+		warn_msg("Invalid AnimationSetting index: ");
+		printInt16( index );
+		print( NL );
+		return;
+	}
+
 	AnimationStackElement element = Pixel_AnimationSettings[ index ];
 	element.trigger = trigger;
 
@@ -253,6 +255,9 @@ void Pixel_AnimationControl_capability( TriggerMacro *trigger, uint8_t state, ui
 	case 4: // Reset (restarts animations)
 		Pixel_animationControl = AnimationControl_Reset;
 		break;
+	case 5: // Pauses animations and clears display
+		Pixel_animationControl = AnimationControl_WipePause;
+		break;
 	}
 }
 
@@ -289,6 +294,14 @@ void Pixel_pixelInterpolate( PixelElement *elem, uint8_t position, uint8_t inten
 // Returns 1 on success, 0 on failure to allocate
 uint8_t Pixel_addDefaultAnimation( uint32_t index )
 {
+	if ( index >= Pixel_AnimationSettingsNum_KLL )
+	{
+		warn_msg("Invalid AnimationSetting index: ");
+		printInt32( index );
+		print( NL );
+		return 0;
+	}
+
 	return Pixel_addAnimation( (AnimationStackElement*)&Pixel_AnimationSettings[ index ] );
 }
 
@@ -1506,6 +1519,36 @@ void Pixel_updateUSBLEDs()
 #endif
 }
 
+// External Animation Control
+void Pixel_setAnimationControl( AnimationControl control )
+{
+	Pixel_animationControl = control;
+}
+
+// Starting Animation setup
+void Pixel_initializeStartAnimations()
+{
+	// Iterate over starting animations
+	for ( uint32_t index = 0; index < Pixel_AnimationSettingsNum_KLL; index++ )
+	{
+		// Check if a starting animation
+		if ( Pixel_AnimationSettings[ index ].state == AnimationPlayState_Start )
+		{
+			// Default animations are noted by the TriggerMacro *trigger pointer being set to 1
+			if ( (uintptr_t)(Pixel_AnimationSettings[ index ].trigger) == 1 )
+			{
+				// Start animation
+				if ( Pixel_addDefaultAnimation( index ) == 0 )
+				{
+					warn_msg("Failed to start starting animation index: ");
+					printInt32( index );
+					print( NL );
+				}
+			}
+		}
+	}
+}
+
 // Pixel Procesing Loop
 inline void Pixel_process()
 {
@@ -1541,6 +1584,10 @@ inline void Pixel_process()
 		Pixel_clearPixels();
 		Pixel_animationControl = AnimationControl_Forward;
 		// TODO - restart initial
+		break;
+	case AnimationControl_WipePause:  // Pauses animations, clears the display
+		Pixel_FrameState = FrameState_Pause;
+		Pixel_clearPixels();
 		break;
 	default: // Pause
 		Pixel_FrameState = FrameState_Pause;
@@ -1765,6 +1812,9 @@ inline void Pixel_setup()
 
 	// Set default animation control
 	Pixel_animationControl = AnimationControl_Forward;
+
+	// Add initial animations
+	Pixel_initializeStartAnimations();
 }
 
 

@@ -787,12 +787,16 @@ inline void LED_scan()
 		if ( LED_currentEvent < 150 )
 		{
 			LED_enable = 0;
+
+			// Pause animations and clear display
+			Pixel_setAnimationControl( AnimationControl_WipePause );
 		}
 		else
 		{
 			LED_enable = 1;
-			// Trigger power-up animation
-			// TODO
+
+			// Start animations
+			Pixel_setAnimationControl( AnimationControl_Forward );
 		}
 
 		LED_currentEvent = 0;

@@ -74,6 +74,7 @@ output_key=$(printf "%016X" ${key})
 echo "Key Prepended: ${output_key}"
 
 # 4 bytes at a time, then re-order to Little-Endian
+# XXX (HaaTa) This seems to not work on macOS (removing the tailing I breaks the formatting...)
 echo ${output_key}$(printf "%02032X" 0) | sed 's/\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)/\\\\\\x\4\\\\\\x\3\\\\\\x\2\\\\\\x\1/gI' | xargs printf > ${tmp_file}
 
 # Append old file onto new one
