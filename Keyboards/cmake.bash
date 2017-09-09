@@ -25,7 +25,6 @@ if $ExitEarly; then
 	exit 1
 fi
 
-
 # Prepare PartialMaps
 PartialMapsExpanded="${PartialMaps[1]}"
 count=2 # Start the loop at index 2
@@ -34,54 +33,9 @@ while [ "$count" -le "${#PartialMaps[@]}" ]; do
 	count=$(($count+1))
 done
 
-
 # Internal Variables
 CMakeListsPath=${CMakeListsPath:-"../.."}
 PROG_NAME=$(basename $0)
-
-
-# Process the command line arguments (if any)
-while (( "$#" >= "1" )); do
-	# Scan each argument
-	key="$1"
-	case $key in
-	-c|--cmakelists-path)
-		CMakeListsPath="$2"
-		shift
-		;;
-	-f|--force-rebuild)
-		# Remove the old directory first
-		rm -rf "${BuildPath}"
-		;;
-	-o|--output-path)
-		BuildPath="$2"
-		shift
-		;;
-	-h|--help)
-		echo "Usage: $PROG_NAME [options...]"
-		echo ""
-		echo "Convenience script to build the source of a given keyboard."
-		echo "Edit '$PROG_NAME' to configure the keyboard options such as KLL layouts."
-		echo ""
-		echo "Arguments:"
-		echo " -c, --cmakelists-path PATH    Set the path of CMakeLists.txt"
-		echo "                               Default: ${CMakeListsPath}"
-		echo " -f, --force-rebuild           Deletes the old build directory and rebuilds from scratch."
-		echo " -o, --output-path PATH        Set the path of the build files."
-		echo "                               Default: ${BuildPath}"
-		echo " -h, --help                    This message."
-		exit 1
-		;;
-	*)
-		echo "INVALID ARG: '$1'"
-		exit 2
-		;;
-	esac
-
-	# Shift to the next argument
-	shift
-done
-
 
 # Detect which OS
 case "$OSTYPE" in
@@ -115,7 +69,6 @@ case "$OSTYPE" in
 	;;
 esac
 
-
 # Determine which CMake Makefile Generator to use
 # If found, default to Ninja, otherwise use Make
 if [ -z "${CMAKE_GENERATOR}" ]; then
@@ -147,13 +100,61 @@ esac
 
 # Append generator name (to support building both types on the same system)
 BuildPath="${BuildPath}.${MAKE}"
-echo "Selected Generator: ${CMAKE_GENERATOR}"
-
-
 # Prepend OSType (so not to clobber builds if using the same storage medium, i.e. dropbox)
 BuildPath="${OSTYPE}.${BuildPath}"
-echo "${BuildPath}"
 
+# Process the command line arguments (if any)
+while (( "$#" >= "1" )); do
+	# Scan each argument
+	key="$1"
+	case $key in
+	-c|--cmakelists-path)
+		CMakeListsPath="$2"
+		shift
+		;;
+	-f|--force-rebuild)
+		# Remove the old directory first
+		rm -rf "${BuildPath}"
+		;;
+	-o|--output-path)
+		BuildPath="$2"
+		shift
+		;;
+	-h|--help)
+		echo "Usage: $PROG_NAME [options...] [default_map] [partial_maps...]"
+		echo ""
+		echo "Convenience script to build the source of a given keyboard."
+		echo "Edit '$PROG_NAME' to configure the keyboard options such as KLL layouts."
+		echo ""
+		echo "Arguments:"
+		echo " -c, --cmakelists-path PATH    Set the path of CMakeLists.txt"
+		echo "                               Default: ${CMakeListsPath}"
+		echo " -f, --force-rebuild           Deletes the old build directory and rebuilds from scratch."
+		echo " -o, --output-path PATH        Set the path of the build files."
+		echo "                               Default: ${BuildPath}"
+		echo " -h, --help                    This message."
+		exit 1
+		;;
+	-*)
+		echo "INVALID ARG: '$1'"
+		exit 2
+		;;
+	*)
+		echo "INVALID ARG: '$1'"
+		exit 2
+		;;
+	esac
+
+	# Shift to the next argument
+	shift
+done
+
+# Override the defaults if the environment variables are set.
+DefaultMap=${DefaultMapOverride:-${DefaultMap}}
+PartialMapsExpanded=${PartialMapsExpandedOverride:-${PartialMapsExpanded}}
+
+echo "Selected Generator: ${CMAKE_GENERATOR}"
+echo "${BuildPath}"
 
 # Run CMake commands
 mkdir -p "${BuildPath}"
@@ -182,7 +183,7 @@ if [ $return_code != 0 ] ; then
 fi
 
 # Automatically determines the build system and initiates it
-cmake --build .
+cmake --build . ${CMakeExtraBuildArgs}
 return_code=$?
 if [ $return_code != 0 ] ; then
 	echo "Error in make. Exiting..."
