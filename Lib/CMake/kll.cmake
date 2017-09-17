@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller KLL Configurator |###
 #
-# Written by Jacob Alexander in 2014-2016 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2017 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -33,7 +33,7 @@ endif ()
 # KLL Installation (Make sure repo has been cloned)
 #
 
-if ( NOT EXISTS "${PROJECT_SOURCE_DIR}/kll/kll.py" )
+if ( NOT EXISTS "${PROJECT_SOURCE_DIR}/kll/kll" )
 	message ( STATUS "Downloading latest kll version:" )
 
 	# Make sure git is available
