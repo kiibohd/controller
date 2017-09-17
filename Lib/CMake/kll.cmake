@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller KLL Configurator |###
 #
-# Written by Jacob Alexander in 2014-2016 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2017 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -27,31 +27,6 @@ if ( NOT CMAKE_HOST_WIN32 )
 	)
 	find_package ( PythonInterp 3 REQUIRED )
 endif ()
-
-
-###
-# KLL Installation (Make sure repo has been cloned)
-#
-
-if ( NOT EXISTS "${PROJECT_SOURCE_DIR}/kll/kll.py" )
-	message ( STATUS "Downloading latest kll version:" )
-
-	# Make sure git is available
-	find_package ( Git REQUIRED )
-
-	# Clone kll git repo
-	execute_process ( COMMAND ${GIT_EXECUTABLE} clone https://github.com/kiibohd/kll.git
-		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-	)
-elseif ( REFRESH_KLL ) # Otherwise attempt to update the repo
-	message ( STATUS "Checking for latest kll version:" )
-
-	# Clone kll git repo
-	execute_process ( COMMAND ${GIT_EXECUTABLE} pull --rebase
-		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/kll
-	)
-endif () # kll/kll.py exists
-
 
 
 ###
