@@ -32,7 +32,7 @@
 MEMORY
 {
 	FLASH     (rx) : ORIGIN = 0x0,                  LENGTH = 128K
-	FLASH_APP (rx) : ORIGIN = 4K,                   LENGTH = 128K - 8K
+	FLASH_APP (rx) : ORIGIN = 8K,                   LENGTH = 128K - 8K
 	RAM      (rwx) : ORIGIN = 0x20000000 - 16K / 2, LENGTH = 16K
 }
 
