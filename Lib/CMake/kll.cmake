@@ -43,6 +43,11 @@ if ( NOT EXISTS "${PROJECT_SOURCE_DIR}/kll/kll.py" )
 	execute_process ( COMMAND ${GIT_EXECUTABLE} clone https://github.com/kiibohd/kll.git
 		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	)
+
+	# Checkout last working branch
+	execute_process ( COMMAND ${GIT_EXECUTABLE} checkout 69476f66c6701126063782c414d0ce93b1e8141f
+		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/kll
+	)
 elseif ( REFRESH_KLL ) # Otherwise attempt to update the repo
 	message ( STATUS "Checking for latest kll version:" )
 
