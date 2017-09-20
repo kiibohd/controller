@@ -662,6 +662,11 @@ inline void Output_setup()
 
 	// Flush key buffers
 	Output_flushBuffers();
+
+	// Check if we need to disable secure bootloader mode
+	// This is done by setting both 32 bit Kiibohd specific VBAT secure register regions
+	VBAT_SECURE1 = 0;
+	VBAT_SECURE2 = 0;
 }
 
 
