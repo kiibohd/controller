@@ -102,6 +102,8 @@ esac
 BuildPath="${BuildPath}.${MAKE}"
 # Prepend OSType (so not to clobber builds if using the same storage medium, i.e. dropbox)
 BuildPath="${OSTYPE}.${BuildPath}"
+# Append Extra Name if necessary
+BuildPath="${BuildPath}${ExtraBuildPath}"
 
 # Process the command line arguments (if any)
 while (( "$#" >= "1" )); do
@@ -167,12 +169,12 @@ if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
 		exit 1
 	fi
 	echo "Cygwin Build"
-	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DScanModule="${ScanModule}" -DMacroModule="${MacroModule}" -DOutputModule="${OutputModule}" -DDebugModule="${DebugModule}" -DBaseMap="${BaseMap}" -DDefaultMap="${DefaultMap}" -DPartialMaps="${PartialMapsExpanded}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
+	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DScanModule="${ScanModule}" -DMacroModule="${MacroModule}" -DOutputModule="${OutputModule}" -DDebugModule="${DebugModule}" -DBaseMap="${BaseMap}" -DDefaultMap="${DefaultMap}" -DPartialMaps="${PartialMapsExpanded}" ${CMakeExtraArgs} "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 	return_code=$?
 
 # Linux / Mac (and everything else)
 else
-	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DScanModule="${ScanModule}" -DMacroModule="${MacroModule}" -DOutputModule="${OutputModule}" -DDebugModule="${DebugModule}" -DBaseMap="${BaseMap}" -DDefaultMap="${DefaultMap}" -DPartialMaps="${PartialMapsExpanded}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
+	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DScanModule="${ScanModule}" -DMacroModule="${MacroModule}" -DOutputModule="${OutputModule}" -DDebugModule="${DebugModule}" -DBaseMap="${BaseMap}" -DDefaultMap="${DefaultMap}" -DPartialMaps="${PartialMapsExpanded}" ${CMakeExtraArgs} "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 	return_code=$?
 
 fi

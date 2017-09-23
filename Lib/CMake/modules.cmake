@@ -123,7 +123,10 @@ function ( AddModule ModuleType ModuleName )
 	add_definitions ( -I${ModuleFullPath} )
 
 	# Check module compatibility
-	ModuleCompatibility( ${ModulePath} ${ModuleCompatibility} )
+	# Ignore if overriding the compiler family
+	if ( NOT CompilerOverride )
+		ModuleCompatibility( ${ModulePath} ${ModuleCompatibility} )
+	endif ()
 
 	# Check if this is a main module add
 	foreach ( extraArg ${ARGN} )

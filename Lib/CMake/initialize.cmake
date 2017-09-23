@@ -64,6 +64,12 @@ else ()
 	message( FATAL_ERROR "CHIP: ${CHIP} - Unknown chip, could not choose compiler..." )
 endif ()
 
+#| Override Compiler
+if ( CompilerOverride )
+	message ( "Compiler Override to ${CompilerOverride}" )
+	set( COMPILER_FAMILY "${CompilerOverride}" )
+endif ()
+
 #| Results of Compiler Lookup
 message( STATUS "Compiler Family:" )
 message( "${COMPILER_FAMILY}" )
