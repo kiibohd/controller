@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is a build and test script used to test KLL functionality
 # It runs on the host system and doesn't require a device to flash onto
-# Jacob Alexander 2016
+# Jacob Alexander 2016-2017
 
 
 
@@ -29,7 +29,7 @@ DefaultMap="animation_test stdFuncMap"
 # e.g.  PartialMaps[1]="layer1 layer1mod"
 #       PartialMaps[2]="layer2"
 #       PartialMaps[3]="layer3"
-PartialMaps[1]="hhkbpro2"
+PartialMaps[1]="ic60/hhkbpro2"
 PartialMaps[2]="colemak"
 
 
