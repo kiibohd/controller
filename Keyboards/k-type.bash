@@ -16,7 +16,7 @@ BuildPath="K-Type"
 ## KLL Configuration ##
 
 # Generally shouldn't be changed, this will affect every layer
-BaseMap="defaultMap"
+BaseMap="scancode_map"
 
 # This is the default layer of the keyboard
 # NOTE: To combine kll files into a single layout, separate them by spaces

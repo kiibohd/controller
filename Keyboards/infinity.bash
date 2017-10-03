@@ -3,7 +3,7 @@
 # Keyboard: Infinity 60% (MD1)
 #
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015-2016
+# Jacob Alexander 2015-2017
 
 
 
@@ -31,7 +31,7 @@ DefaultMap="stdFuncMap"
 # e.g.  PartialMaps[1]="layer1 layer1mod"
 #       PartialMaps[2]="layer2"
 #       PartialMaps[3]="layer3"
-PartialMaps[1]="hhkbpro2"
+PartialMaps[1]="ic60/hhkbpro2"
 
 
 
