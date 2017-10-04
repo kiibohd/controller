@@ -548,6 +548,7 @@ void ResetHandler()
 	}
 #endif
 	// Disable Watchdog
+	while ( WDOG_TMROUTL < 2 ); // Must wait for WDOG timer if already running, before jumping
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
 	WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
 	WDOG_STCTRLH = WDOG_STCTRLH_ALLOWUPDATE;
