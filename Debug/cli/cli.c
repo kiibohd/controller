@@ -58,7 +58,7 @@ CLIDict_Def( basicCLIDict, "General Commands" ) = {
 
 // ----- Functions -----
 
-inline void prompt()
+void prompt()
 {
 	print("\033[2K\r"); // Erases the current line and resets cursor to beginning of line
 	print("\033[1;34m:\033[0m "); // Blue bold prompt

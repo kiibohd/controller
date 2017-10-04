@@ -267,7 +267,7 @@ void i2c0_isr()
 
 // ----- Functions -----
 
-inline void I2C_setup()
+void I2C_setup()
 {
 	// Enable I2C internal clock
 	SIM_SCGC4 |= SIM_SCGC4_I2C0; // Bus 0
@@ -420,7 +420,7 @@ inline void LED_setup()
 }
 
 
-inline uint8_t I2C_BufferCopy( uint8_t *data, uint8_t sendLen, uint8_t recvLen, I2C_Buffer *buffer )
+uint8_t I2C_BufferCopy( uint8_t *data, uint8_t sendLen, uint8_t recvLen, I2C_Buffer *buffer )
 {
 	uint8_t reTurn = 0;
 
