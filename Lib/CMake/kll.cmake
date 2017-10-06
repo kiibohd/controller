@@ -190,6 +190,10 @@ set ( kll_cmd_display_options
 	--data-analysis-display
 )
 
+set ( kll_cmd_final_display_options
+	--data-analysis-display
+)
+
 add_custom_command ( OUTPUT ${kll_outputname}
 	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd}
@@ -216,6 +220,13 @@ add_custom_target ( kll_display
 	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd} ${kll_cmd_display_options}
 	COMMENT "Re-generating KLL Layout in Display Mode"
+)
+
+#| KLL Regen Final Display Target
+add_custom_target ( kll_final_display
+	COMMAND ${kll_version_cmd}
+	COMMAND ${kll_cmd} ${kll_cmd_final_display_options}
+	COMMENT "Re-generating KLL Layout in Final Display Mode"
 )
 
 #| KLL Regen Token Debug
