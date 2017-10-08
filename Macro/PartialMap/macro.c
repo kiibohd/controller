@@ -142,22 +142,12 @@ uint8_t macroInterconnectCacheSize = 0;
 
 // ----- Capabilities -----
 
-#if defined(Pixel_MapEnabled_define) && defined(animation_test_layout_define)
-uint8_t Pixel_addDefaultAnimation( uint32_t index );
-#endif
-
 // Sets the given layer with the specified layerState
 void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint16_t layer, uint8_t layerState )
 {
 	// Ignore if layer does not exist or trying to manipulate layer 0/Default layer
 	if ( layer >= LayerNum || layer == 0 )
 		return;
-
-#if defined(Pixel_MapEnabled_define) && defined(animation_test_layout_define)
-	// TODO TODO TODO TODO
-	// TODO (HaaTa) Add as an event
-	Pixel_addDefaultAnimation( Animation__lock_event );
-#endif
 
 	// Is layer in the LayerIndexStack?
 	uint8_t inLayerIndexStack = 0;

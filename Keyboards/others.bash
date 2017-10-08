@@ -27,8 +27,8 @@ source "common.bash"
 ###########
 
 # Run builds
-cmd ./k-type.r1.bash
 cmd ./k-type.p2.bash
+cmd ./k-type.p3.bash
 cmd ./ps2_converter.bash
 cmd ./template.bash
 
