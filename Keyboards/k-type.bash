@@ -61,11 +61,11 @@ Compiler="gcc"
 # Shouldn't need to touch this section
 
 # Check if the library can be found
-if [ ! -f cmake.bash ]; then
+if [ ! -f "${BASH_SOURCE%/*}/cmake.bash" ]; then
 	echo "ERROR: Cannot find 'cmake.bash'"
 	exit 1
 fi
 
 # Load the library
-source cmake.bash
+source "${BASH_SOURCE%/*}/cmake.bash"
 
