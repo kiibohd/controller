@@ -247,7 +247,7 @@ void Pixel_AnimationControl_capability( TriggerMacro *trigger, uint8_t state, ui
 		Pixel_animationControl = AnimationControl_ForwardOne;
 		break;
 	case 2: // Forward
-		Pixel_animationControl = AnimationControl_Pause;
+		Pixel_animationControl = AnimationControl_Forward;
 		break;
 	case 3: // Stop (clears all animations)
 		Pixel_animationControl = AnimationControl_Stop;
@@ -257,6 +257,9 @@ void Pixel_AnimationControl_capability( TriggerMacro *trigger, uint8_t state, ui
 		break;
 	case 5: // Pauses animations and clears display
 		Pixel_animationControl = AnimationControl_WipePause;
+		break;
+	case 6: // Pauses animation
+		Pixel_animationControl = AnimationControl_Pause;
 		break;
 	}
 }
