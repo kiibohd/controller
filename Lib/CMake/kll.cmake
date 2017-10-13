@@ -160,6 +160,17 @@ set ( kll_version_cmd
 	--version
 )
 
+#| KLL Configurator Options
+#|
+#| Applied when running a compilation using KiiConf
+#|
+if ( DEFINED CONFIGURATOR )
+	set ( ignore ${CONFIGURATOR} ) # Needs to be here to hide warning about CONFIGURATOR
+	set ( kll_configurator_options
+		--preprocessor-tmp-path ${PROJECT_BINARY_DIR}/tmp_kll
+	)
+endif ()
+
 #| KLL Cmd
 set ( kll_cmd
 	${PROJECT_SOURCE_DIR}/kll/kll
@@ -174,6 +185,7 @@ set ( kll_cmd
 	--def-output ${kll_defs}
 	--map-output ${kll_keymap}
 	--pixel-output ${kll_pixelmap}
+	${kll_configurator_options}
 )
 
 set ( kll_cmd_debug_options
