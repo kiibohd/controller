@@ -26,14 +26,12 @@
 
 // Project Includes
 #include <cli.h>
-#include <connect_scan.h>
 #include <led.h>
 #include <led_scan.h>
 #include <print.h>
 #include <matrix_scan.h>
 #include <macro.h>
 #include <output_com.h>
-#include <port_scan.h>
 #include <pixel.h>
 
 // Local Includes
@@ -57,12 +55,6 @@ uint8_t Scan_strobe_position;
 // Setup
 inline void Scan_setup()
 {
-	// Setup Port Swap module
-	Port_setup();
-
-	// Setup UART Connect, if Output_Available, this is the master node
-	Connect_setup( Output_Available, 1 );
-
 	// Setup GPIO pins for matrix scanning
 	Matrix_setup();
 
@@ -83,14 +75,8 @@ inline void Scan_setup()
 // Main Detection Loop
 inline uint8_t Scan_loop()
 {
-	// Port Swap detection
-	Port_scan();
-
 	// Scan Matrix
 	Matrix_scan( Scan_scanCount, &Scan_strobe_position, 4 );
-
-	// Process any interconnect commands
-	Connect_scan();
 
 	// Prepare any LED events
 	Pixel_process();
@@ -129,7 +115,6 @@ inline void Scan_finishedWithOutput( uint8_t sentKeys )
 void Scan_currentChange( unsigned int current )
 {
 	// Indicate to all submodules current change
-	Connect_currentChange( current );
 	Matrix_currentChange( current );
 	LED_currentChange( current );
 }

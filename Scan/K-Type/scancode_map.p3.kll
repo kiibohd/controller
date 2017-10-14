@@ -118,10 +118,6 @@ S0x5F : U"Right";
 
 
 
-### TODO REMOVEME
-flashModeEnabled = 1;
-
-
 # Driver Chip
 ISSI_Chip_31FL3733 = 1;
 
@@ -187,6 +183,15 @@ typedef struct LED_Buffer {
 } LED_Buffer;
 extern LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
 ";
+
+
+
+### Pixel Display Mapping Parameters ###
+Pixel_DisplayMapping_UnitSize = 19; # Default unit spacing in mm
+Pixel_DisplayMapping_ColumnSize = 1;
+Pixel_DisplayMapping_RowSize = 2;
+Pixel_DisplayMapping_ColumnDirection = -1;
+Pixel_DisplayMapping_RowDirection = 1;
 
 
 

@@ -31,6 +31,7 @@ cmd ./ergodox.bash
 cmd ./infinity.bash
 cmd ./infinity_led.bash
 cmd ./k-type.bash
+cmd ./kira.bash
 cmd ./whitefox.bash
 
 # Tally results

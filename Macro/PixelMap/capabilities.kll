@@ -37,6 +37,6 @@ Pixel_Buffer_Length => Pixel_Buffer_Length_define;
 Pixel_DisplayMapping_UnitSize = 19; # Default unit spacing in mm
 Pixel_DisplayMapping_ColumnSize = 1;
 Pixel_DisplayMapping_RowSize = 2;
-Pixel_DisplayMapping_ColumnDirection = -1; # TODO Set to 1 and move -1 to K-Type
+Pixel_DisplayMapping_ColumnDirection = 1; # Either 1 or -1, K-Type is -1
 Pixel_DisplayMapping_RowDirection = 1;
 

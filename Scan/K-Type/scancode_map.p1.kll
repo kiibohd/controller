@@ -214,6 +214,15 @@ Pixel_Buffer_Buffer[3] = "LED_pageBuffer[3].buffer";
 
 
 
+### Pixel Display Mapping Parameters ###
+Pixel_DisplayMapping_UnitSize = 19; # Default unit spacing in mm
+Pixel_DisplayMapping_ColumnSize = 1;
+Pixel_DisplayMapping_RowSize = 2;
+Pixel_DisplayMapping_ColumnDirection = -1;
+Pixel_DisplayMapping_RowDirection = 1;
+
+
+
 ### Pixel Mapping ###
 # Organizes each of the channels into pixels (may, or may not be multi-channel)
 
