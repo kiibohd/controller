@@ -19,6 +19,16 @@ endif ()
 
 
 ###
+# GCC versions less than 5 don't support -fdiagnostics-color=always
+#
+
+if ( CMAKE_C_COMPILER_VERSION VERSION_LESS "5" )
+	remove_definitions( "-fdiagnostics-color=always" )
+endif ()
+
+
+
+###
 # Build Targets
 #
 
