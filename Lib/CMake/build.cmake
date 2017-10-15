@@ -24,6 +24,7 @@ endif ()
 
 if ( CMAKE_C_COMPILER_VERSION VERSION_LESS "5" )
 	remove_definitions( "-fdiagnostics-color=always" )
+	string ( REPLACE "-fdiagnostics-color=always" "" LINKER_FLAGS ${LINKER_FLAGS} )
 endif ()
 
 
