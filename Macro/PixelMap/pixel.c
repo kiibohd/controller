@@ -1586,7 +1586,7 @@ inline void Pixel_process()
 		Pixel_clearAnimations();
 		Pixel_clearPixels();
 		Pixel_animationControl = AnimationControl_Forward;
-		// TODO - restart initial
+		Pixel_initializeStartAnimations();
 		break;
 	case AnimationControl_WipePause:  // Pauses animations, clears the display
 		Pixel_FrameState = FrameState_Pause;
