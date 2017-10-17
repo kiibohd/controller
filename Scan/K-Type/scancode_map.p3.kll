@@ -1,12 +1,12 @@
 # K-Type Base Configuration - Prototype #3 - Production #1
 
 Name = K-Type;
-Version = 0.6;
+Version = 0.7;
 Author = "HaaTa (Jacob Alexander) 2015-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-11-06;
+Date = 2017-11-17;
 
 
 # Function Row (1-16)
@@ -122,7 +122,21 @@ S0x5F : U"Right";
 ISSI_Chip_31FL3733 = 1;
 
 # Global Brightness
-ISSI_Global_Brightness = 255; # 0xFF by default (max)
+# 0xFF (255) is the max
+# Measurements on K-Type (all white) 2017-11-17 on Production Unit (HaaTa)
+# 255 - 1.30 A
+# 200 - 1.20 A
+# 150 - 1.10 A
+# 125 - 1.00 A
+# 100 - 0.80 A
+#  75 - 0.60 A
+#  50 - 0.42 A
+#  25 - 0.23 A
+#  10 - 0.12 A
+#   5 - 0.08 A
+#   1 - 0.06 A
+#   0 - 0.05 A
+ISSI_Global_Brightness = 128; # Half brightness, approx. 1 A @ All White
 
 # Available ISSI Chips
 ISSI_Chips = 2; # 2 by default
