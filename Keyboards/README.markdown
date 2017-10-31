@@ -27,9 +27,12 @@ Example
 Projects
 --------
 
+* ergodox.bash      (Infinity Ergodox 2015/08/15)
 * infinity.bash     (Infinity Keyboard 2014/10/15 (MD1))
 * infinity_led.bash (Infinity Keyboard with LED backlight support (MD1.1))
-* ergodox.bash      (Infinity Ergodox 2015/08/15)
+* k-type.bash       (K-Type Keyboard, Production)
+* k-type.p2.bash    (K-Type Prototype 2)
+* k-type.p3.bash    (K-Type Prototype 3)
 * template.bash     (Example template for new keyboards)
 * whitefox.bash     (WhiteFox Keyboard)
 
@@ -58,3 +61,4 @@ An example of how to use these scripts to compile KLL files from the [Ergodox co
 1. cd into `controller/Keyboards `
 1. run `./ergodox.bash`
 1. Upload `kiibohd.dfu.bin` to the keyboard.
+
