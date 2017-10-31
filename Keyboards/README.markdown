@@ -28,18 +28,36 @@ Projects
 --------
 
 * ergodox.bash      (Infinity Ergodox 2015/08/15)
+
+    - ergodox-l.bash (Left  Side)
+    - ergodox-r.bash (Right Side)
+
 * infinity.bash     (Infinity Keyboard 2014/10/15 (MD1))
 * infinity_led.bash (Infinity Keyboard with LED backlight support (MD1.1))
 * k-type.bash       (K-Type Keyboard, Production)
-* k-type.p2.bash    (K-Type Prototype 2)
-* k-type.p3.bash    (K-Type Prototype 3)
-* template.bash     (Example template for new keyboards)
-* whitefox.bash     (WhiteFox Keyboard)
+* whitefox.bash     (WhiteFox Keyboard, defaults to TrueFox)
+
+    - whitefox.aria.bash            (Aria               Layout)
+    - whitefox.iso.bash             (ISO                Layout)
+    - whitefox.jackofalltrades.bash (Jack Of All Trades Layout)
+    - whitefox.truefox.bash         (TrueFox            Layout)
+    - whitefox.vanilla.bash         (Vanilla            Layout)
+    - whitefox.winkeyless.bash      (Winkeyless         Layout)
 
 
 **Extra files**
 
-* cmake.bash (Used by the compilation script, does nothing on it's own)
+* cmake.bash         (Used by the compilation script, does nothing on it's own)
+* common.bash        (Script used during CI and testing)
+* icpad.bash
+* ic_keyboards.bash  (Script used during CI and testing)
+* k-type.p2.bash     (K-Type Prototype 2)
+* k-type.p3.bash     (K-Type Prototype 3)
+* kira.bash
+* others.bash        (Script used during CI and testing)
+* ps2_converter.bash (PS2 Converter for Teensy 3.1/3.2)
+* template.bash      (Example template for new keyboards)
+
 
 Example Usage
 -------------
@@ -51,13 +69,14 @@ An example of how to use these scripts to compile KLL files from the [Ergodox co
 1. create a directory for your layout in `controller/kll/layouts` called "mine" (just a suggestion)
 1. move *.kll files from firmware download into `controller/kll/layouts/mine`
 1. update the `BuildPath`s and `DefaultMap` and `PartialMaps` in `ergodox.bash`
-    
+
     2. `BuildPath="my_layout-l"`
     2. `DefaultMap="mine/MDErgo1-Default-0 lcdFuncMap"`
     2. `PartialMaps[1]="mine/MDErgo1-Default-1 lcdFuncMap"`
     2. Repeat `PartialMaps[]` with a sequential number for each layer you have
     2. `BuildPath="my_layout-r"`
     2. Take note that all layouts will need the `lcdFuncMap` added for ErgoDox
+
 1. cd into `controller/Keyboards `
 1. run `./ergodox.bash`
 1. Upload `kiibohd.dfu.bin` to the keyboard.

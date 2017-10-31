@@ -32,7 +32,12 @@ cmd ./infinity.bash
 cmd ./infinity_led.bash
 cmd ./k-type.bash
 cmd ./kira.bash
-cmd ./whitefox.bash
+cmd ./whitefox.aria.bash
+cmd ./whitefox.iso.bash
+cmd ./whitefox.jackofalltrades.bash
+cmd ./whitefox.truefox.bash
+cmd ./whitefox.vanilla.bash
+cmd ./whitefox.winkeyless.bash
 
 # Tally results
 result

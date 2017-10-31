@@ -1,105 +1,105 @@
 # Whitefox - ISO
 
 Name = ISO;
-Version = 0.1;
+Version = 0.2;
 Author = "HaaTa (Jacob Alexander) 2015-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-07-01;
+Date = 2017-11-01;
 
 
 # Top Row (1-16)
-S0x01 : U"Esc";
-S0x02 : U"1";
-S0x03 : U"2";
-S0x04 : U"3";
-S0x05 : U"4";
-S0x06 : U"5";
-S0x07 : U"6";
-S0x08 : U"7";
-S0x09 : U"8";
-S0x0A : U"9";
-S0x0B : U"0";
-S0x0C : U"Minus";
-S0x0D : U"Equal";
+S1 : U"Esc";
+S2 : U"1";
+S3 : U"2";
+S4 : U"3";
+S5 : U"4";
+S6 : U"5";
+S7 : U"6";
+S8 : U"7";
+S9 : U"8";
+S10 : U"9";
+S11 : U"0";
+S12 : U"Minus";
+S13 : U"Equal";
 
-S0x0F : U"Backspace";
-S0x10 : U"Backtick";
+S15 : U"Backspace";
+S16 : U"Backtick";
 
 # Top Alphabet Row (17-31)
-S0x11 : U"Tab";
-S0x12 : U"Q";
-S0x13 : U"W";
-S0x14 : U"E";
-S0x15 : U"R";
-S0x16 : U"T";
-S0x17 : U"Y";
-S0x18 : U"U";
-S0x19 : U"I";
-S0x1A : U"O";
-S0x1B : U"P";
-S0x1C : U"LBrace";
-S0x1D : U"RBrace";
+S17 : U"Tab";
+S18 : U"Q";
+S19 : U"W";
+S20 : U"E";
+S21 : U"R";
+S22 : U"T";
+S23 : U"Y";
+S24 : U"U";
+S25 : U"I";
+S26 : U"O";
+S27 : U"P";
+S28 : U"LBrace";
+S29 : U"RBrace";
 
-S0x1F : U"Delete";
+S31 : U"Delete";
 
 # Middle Alphabet Row (32-46)
-S0x20 : U"CapsLock";
-S0x21 : U"A";
-S0x22 : U"S";
-S0x23 : U"D";
-S0x24 : U"F";
-S0x25 : U"G";
-S0x26 : U"H";
-S0x27 : U"J";
-S0x28 : U"K";
-S0x29 : U"L";
-S0x2A : U"Semicolon";
-S0x2B : U"Quote";
-S0x2C : U"Backslash";
-S0x2D : U"Enter";
-S0x2E : U"PageUp";
+S32 : U"CapsLock";
+S33 : U"A";
+S34 : U"S";
+S35 : U"D";
+S36 : U"F";
+S37 : U"G";
+S38 : U"H";
+S39 : U"J";
+S40 : U"K";
+S41 : U"L";
+S42 : U"Semicolon";
+S43 : U"Quote";
+S44 : U"Backslash";
+S45 : U"Enter";
+S46 : U"PageUp";
 
 # Bottom Alphabet Row (47-61)
-S0x2F : U"LShift";
-S0x2F : U"ISO Slash";
-S0x31 : U"Z";
-S0x32 : U"X";
-S0x33 : U"C";
-S0x34 : U"V";
-S0x35 : U"B";
-S0x36 : U"N";
-S0x37 : U"M";
-S0x38 : U"Comma";
-S0x39 : U"Period";
-S0x3A : U"Slash";
-S0x3B : U"RShift";
-S0x3C : U"Up";
-S0x3D : U"PageDown";
+S47 : U"LShift";
+S48 : U"ISO Slash";
+S49 : U"Z";
+S50 : U"X";
+S51 : U"C";
+S52 : U"V";
+S53 : U"B";
+S54 : U"N";
+S55 : U"M";
+S56 : U"Comma";
+S57 : U"Period";
+S58 : U"Slash";
+S59 : U"RShift";
+S60 : U"Up";
+S61 : U"PageDown";
 
 # Bottom Row (62-71)
-S0x3E : U"LCtrl";
-S0x3F : U"Function1";
-S0x40 : U"LAlt";
-S0x41 : U"Space";
-S0x42 : U"RAlt";
-S0x43 : U"Super";
-S0x44 : U"RCtrl";
-S0x45 : U"Left";
-S0x46 : U"Down";
-S0x47 : U"Right";
+S62 : U"LCtrl";
+S63 : U"Function1";
+S64 : U"LAlt";
+S65 : U"Space";
+S66 : U"RAlt";
+S67 : U"Super";
+S68 : U"RCtrl";
+S69 : U"Left";
+S70 : U"Down";
+S71 : U"Right";
 
 
 
 ### Physical Positions ###
 
 ## Rows
-S[1-16]  <= y:0;
-S[17-31] <= y:-19.05;
-S[32-46] <= y:-38.10;
-S[47-61] <= y:-57.15;
-S[62-71] <= y:-76.20;
+S[1-13,15,16]  <= y:0;
+S[17-29,31]    <= y:-19.05;
+S[32-46]       <= y:-38.10;
+S[47-61]       <= y:-57.15;
+S[62-71]       <= y:-76.20;
 
 ## Columns
 # Top Row

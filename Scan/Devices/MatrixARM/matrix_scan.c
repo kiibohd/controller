@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -454,6 +454,8 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 					// Basic debug output
 					if ( matrixDebugMode == 1 && state->curState == KeyState_Press )
 					{
+						printInt8( key_disp );
+						print(":");
 						printHex( key_disp );
 						print(" ");
 					}
