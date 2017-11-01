@@ -31,8 +31,8 @@
 #include <scan_loop.h>
 
 // USB Includes
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+#if defined(_avr_at_)
+#elif defined(_kinetis_)
 #include "arm/uart_serial.h"
 #endif
 
@@ -196,9 +196,9 @@ inline int Output_putchar( char c )
 // USB Send String to output buffer, null terminated
 inline int Output_putstr( char* str )
 {
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+#if defined(_avr_at_) // AVR
 	uint16_t count = 0;
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
+#elif defined(_kinetis_) // ARM
 	uint32_t count = 0;
 #endif
 	// Count characters until NULL character, then send the amount counted
@@ -212,8 +212,8 @@ inline int Output_putstr( char* str )
 // Soft Chip Reset
 inline void Output_softReset()
 {
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
+#if defined(_avr_at_) // AVR
+#elif defined(_kinetis_) // ARM
 	SOFTWARE_RESET();
 #endif
 }

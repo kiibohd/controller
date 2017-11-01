@@ -31,24 +31,32 @@
 
 MEMORY
 {
-	FLASH (rx) : ORIGIN = 4K,                   LENGTH = 128K - 8K
-	RAM  (rwx) : ORIGIN = 0x20000000 - 16K / 2, LENGTH = 16K
+	FLASH     (rx) : ORIGIN = 0x0,                  LENGTH = 128K
+	FLASH_APP (rx) : ORIGIN = 8K,                   LENGTH = 128K - 8K
+	RAM      (rwx) : ORIGIN = 0x20000000 - 16K / 2, LENGTH = 16K
 }
 
 /* Starting Address of the application ROM */
-_app_rom     = ORIGIN( FLASH );
+_bootloader  = ORIGIN( FLASH );
+_app_rom     = ORIGIN( FLASH_APP );
 _app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
+
+FlexRAM = 0x14000000;
+FTFL = 0x40020000;
+SCB = 0xe000ed00;
+USB0 = 0x40072000;
+SIM = 0x40047000;
 
 /* Section Definitions */
 SECTIONS
 {
 	.text :
 	{
-		. = 0;
-		KEEP(* (.vectors))
+		. = 0; KEEP(* (.vectors)) /* MUST BE AT 0 */
 		*(.startup*)
-		*(.text*)
+		. = 0x400; KEEP(* (.flashconfig)) /* MUST BE AT 0x400 */
 		*(.rodata*)
+		*(.text*)
 		. = ALIGN(4);
 		KEEP(*(.init))
 	} > FLASH
@@ -79,6 +87,7 @@ SECTIONS
 	.data : AT (_etext) {
 		. = ALIGN(4);
 		_sdata = .;
+		*(SORT_BY_ALIGNMENT(.ramtext.*) SORT_BY_ALIGNMENT(.data*))
 		*(.data*)
 		. = ALIGN(4);
 		_edata = .;

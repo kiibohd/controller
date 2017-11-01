@@ -26,6 +26,8 @@
 // Compiler Includes
 
 // Project Includes
+#include <Lib/mcu_compat.h>
+
 
 
 // ----- Defines -----
@@ -44,7 +46,7 @@
 
 // ----- Functions -----
 
-#if defined(_mk20dx128vlf5_) || defined(_mk20dx256vlh7_)
+#if defined(_kii_v1_) || defined(_kii_v2_)
 int Output_putstr( char* str );
 
 int uart_serial_write( const void *buffer, uint32_t size );

@@ -89,38 +89,20 @@ int flash_erase_sector( uintptr_t addr )
 	return ftfl_submit_cmd();
 }
 
-int flash_program_section_longwords( uintptr_t addr, size_t num_words )
+int flash_program_section( uintptr_t addr, size_t num )
 {
 #ifdef FLASH_DEBUG
 	// Debug
 	print("Programming Sector: address(");
 	printHex( addr );
-	print(") longwords(");
-	printHex( num_words );
+	print(") units (");
+	printHex( num );
 	printNL(")");
 #endif
 
 	FTFL.fccob.program_section.fcmd = FTFL_FCMD_PROGRAM_SECTION;
 	FTFL.fccob.program_section.addr = addr;
-	FTFL.fccob.program_section.num_words = num_words;
-
-	return ftfl_submit_cmd();
-}
-
-int flash_program_section_phrases( uintptr_t addr, size_t num_phrases )
-{
-#ifdef FLASH_DEBUG
-	// Debug
-	print("Programming Sector: address(");
-	printHex( addr );
-	print(") phrases(");
-	printHex( num_phrases );
-	printNL(")");
-#endif
-
-	FTFL.fccob.program_section.fcmd = FTFL_FCMD_PROGRAM_SECTION;
-	FTFL.fccob.program_section.addr = addr;
-	FTFL.fccob.program_section.num_words = num_phrases;
+	FTFL.fccob.program_section.num_words = num;
 
 	return ftfl_submit_cmd();
 }
@@ -130,7 +112,7 @@ int flash_program_sector( uintptr_t addr, size_t len )
 	if ( len != USB_DFU_TRANSFER_SIZE )
 		return 1;
 
-#if defined(_mk20dx128vlf5_)
+#if defined(_mk20dx128vlf5_) || defined(_mk20dx128vlh7_)
 	// Check if this is the beginning of a sector
 	// Only erase if necessary
 	if ( (addr & (FLASH_SECTOR_SIZE - 1)) == 0
@@ -138,8 +120,8 @@ int flash_program_sector( uintptr_t addr, size_t len )
 		&& flash_erase_sector( addr ) )
 			return 1;
 
-	// Program sector
-	return flash_program_section_longwords( addr, FLASH_SECTOR_SIZE / 4 );
+	// Program sector (longword)
+	return flash_program_section( addr, FLASH_SECTOR_SIZE / 4 );
 #elif defined(_mk20dx256vlh7_)
 	// Check if beginning of sector and erase if not empty
 	// Each sector is 2 kB in length, but we can only write to half a sector at a time
@@ -149,8 +131,19 @@ int flash_program_sector( uintptr_t addr, size_t len )
 		&& flash_erase_sector( addr ) )
 			return 1;
 
-	// Program half-sector
-	return flash_program_section_phrases( addr, FLASH_SECTOR_SIZE / 16 );
+	// Program half-sector (phrases)
+	return flash_program_section( addr, FLASH_SECTOR_SIZE / 16 );
+#elif defined(_mk22fx512avlh12_)
+	// Check if beginning of sector and erase if not empty
+	// Each sector is 4 kB in length, but we can only write to half a sector at a time
+	// We can only erase an entire sector at a time
+	if ( (addr & (FLASH_SECTOR_SIZE - 1)) == 0
+		&& flash_read_1s_sector( addr, FLASH_SECTOR_SIZE / 16 )
+		&& flash_erase_sector( addr ) )
+			return 1;
+
+	// Program half-sector (double phrases)
+	return flash_program_section( addr, FLASH_SECTOR_SIZE / 32 );
 #endif
 }
 

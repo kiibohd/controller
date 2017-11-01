@@ -21,6 +21,9 @@
 
 // ----- Includes -----
 
+// Project Includes
+#include <Lib/mcu_compat.h>
+
 // Local Includes
 #include "mchck.h"
 
@@ -29,7 +32,7 @@
 // ----- Defines -----
 
 // UART Configuration
-#if defined(_mk20dx256vlh7_) // UART2 Debug
+#if defined(_kii_v2_) // UART2 Debug
 #define UART_BDH    UART2_BDH
 #define UART_BDL    UART2_BDL
 #define UART_C1     UART2_C1
@@ -49,7 +52,7 @@
 #define SIM_SCGC4_UART  SIM_SCGC4_UART2
 #define IRQ_UART_STATUS IRQ_UART2_STATUS
 
-#elif defined(_mk20dx128vlf5_) // UART0 Debug
+#elif defined(_kii_v1_) // UART0 Debug
 #define UART_BDH    UART0_BDH
 #define UART_BDL    UART0_BDL
 #define UART_C1     UART0_C1
@@ -77,24 +80,22 @@
 
 // ----- Functions -----
 
-#if defined(_mk20dx128vlf5_) || defined(_mk20dx256vlh7_)
-
 void uart_serial_setup()
 {
 	// Setup the the UART interface for keyboard data input
 	SIM_SCGC4 |= SIM_SCGC4_UART; // Disable clock gating
 
 // Kiibohd-dfu
-#if defined(_mk20dx256vlh7_)
+#if defined(_kii_v2_)
 	// Pin Setup for UART2
 	PORTD_PCR3 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
-#elif defined(_mk20dx128vlf5_)
+#elif defined(_kii_v1_)
 	// Pin Setup for UART0
 	PORTA_PCR2 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
 #endif
 
 
-#if defined(_mk20dx256vlh7_) // UART2 Debug
+#if defined(_kii_v2_) // UART2 Debug
 	// Setup baud rate - 115200 Baud
 	// Uses Bus Clock
 	// 36 MHz / ( 16 * Baud ) = BDH/L
@@ -106,7 +107,7 @@ void uart_serial_setup()
 	UART_BDL = (uint8_t)baud;
 	UART_C4 = 0x11;
 
-#elif defined(_mk20dx128vlf5_)
+#elif defined(_kii_v1_)
 	// Setup baud rate - 115200 Baud
 	// 48 MHz / ( 16 * Baud ) = BDH/L
 	// Baud: 115200 -> 48 MHz / ( 16 * 115200 ) = 26.0416667
@@ -243,6 +244,4 @@ void printHex_op( uint32_t in, uint8_t op )
 	// Print number
 	Output_putstr( tmpStr );
 }
-
-#endif
 

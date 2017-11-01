@@ -22,6 +22,7 @@
 // ----- Includes -----
 
 // Project Includes
+#include <Lib/chip_version.h>
 #include <Lib/entropy.h>
 #include <Lib/time.h>
 
@@ -638,17 +639,75 @@ void cliFunc_version( char* args )
 	print( " \033[1mBuild Date:\033[0m    " CLI_BuildDate      NL );
 	print( " \033[1mBuild OS:\033[0m      " CLI_BuildOS        NL );
 	print( " \033[1mArchitecture:\033[0m  " CLI_Arch           NL );
-	print( " \033[1mChip:\033[0m          " CLI_Chip           NL );
+	print( " \033[1mChip Compiled:\033[0m " CLI_ChipShort " (" CLI_Chip ")" NL );
 	print( " \033[1mCPU:\033[0m           " CLI_CPU            NL );
 	print( " \033[1mDevice:\033[0m        " CLI_Device         NL );
 	print( " \033[1mModules:\033[0m       " CLI_Modules        NL );
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+#if defined(_teensy_)
+	print( " \033[1mTeensy:\033[0m        Yes"                 NL );
+#endif
+#if defined(_kinetis_)
+	print( NL );
+	print( " \033[1mCPU Detected:\033[0m  " );
+	print( ChipVersion_lookup() );
+	print( NL);
+
+	print( " \033[1mCPU Id:\033[0m        " );
+	printHex32( SCB_CPUID );
+	print( NL "  (Implementor:");
+	print( ChipVersion_cpuid_implementor() );
+	print( ":" );
+	printHex32( SCB_CPUID_IMPLEMENTOR );
+	print( ")(Variant:" );
+	printHex32( SCB_CPUID_VARIANT );
+	print( ")(Arch:" );
+	printHex32( SCB_CPUID_ARCH );
+	print( ")(PartNo:" );
+	print( ChipVersion_cpuid_partno() );
+	print( ":" );
+	printHex32( SCB_CPUID_PARTNO );
+	print( ")(Revision:" );
+	printHex32( SCB_CPUID_REVISION );
+	print( ")" NL );
+
+	print( " \033[1mDevice Id:\033[0m     " );
+	printHex32( SIM_SDID );
+	print( NL "  (Pincount:");
+	print( ChipVersion_pincount[ SIM_SDID_PINID ] );
+	print( ":" );
+	printHex32( SIM_SDID_PINID );
+	print( ")(Family:" );
+	print( ChipVersion_familyid[ SIM_SDID_FAMID ] );
+	print( ":" );
+	printHex32( SIM_SDID_FAMID );
+	print( ")(Die:" );
+	printHex32( SIM_SDID_DIEID );
+	print( ")(Rev:" );
+	printHex32( SIM_SDID_REVID );
+	print( ")" NL );
+
+	print( " \033[1mFlash Cfg:\033[0m     " );
+	printHex32( SIM_FCFG1 & 0xFFFFFFF0 );
+	print( NL "  (FlexNVM:" );
+	printInt16( ChipVersion_nvmsize[ SIM_FCFG1_NVMSIZE ] );
+	print( "kB)(PFlash:" );
+	printInt16( ChipVersion_pflashsize[ SIM_FCFG1_PFSIZE ] );
+	print( "kB)(EEPROM:" );
+	printInt16( ChipVersion_eepromsize[ SIM_FCFG1_EESIZE ] );
+	print( ")(DEPART:" );
+	printHex32( SIM_FCFG1_DEPART );
+	print( ")" NL );
+
+	print( " \033[1mRAM:\033[0m           ");
+	printInt16( ChipVersion_ramsize[ SIM_SOPT1_RAMSIZE ] );
+	print( " kB" NL );
+
 	print( " \033[1mUnique Id:\033[0m     " );
 	printHex32_op( SIM_UIDH, 8 );
 	printHex32_op( SIM_UIDMH, 8 );
 	printHex32_op( SIM_UIDML, 8 );
 	printHex32_op( SIM_UIDL, 8 );
-#elif defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+#elif defined(_avr_at_)
 #elif defined(_host_)
 #else
 #error "No unique id defined."

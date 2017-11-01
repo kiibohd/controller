@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2013-2017
+ * Modifications by Jacob Alexander 2014-2017 for use with McHCK
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,49 +29,75 @@
  * SOFTWARE.
  */
 
-// ----- Local Includes -----
-
-#include "delay.h"
-#include "kinetis.h"
-
-
-
-// ----- Variables -----
-
-// The systick interrupt is supposed to increment this at 1 kHz rate
-volatile uint32_t systick_millis_count = 0;
-
-
-
-// ----- Functions -----
-
-void yield(void) {};
-
-uint32_t micros(void)
+MEMORY
 {
-	uint32_t count, current, istatus;
-
-	__disable_irq();
-	current = SYST_CVR;
-	count = systick_millis_count;
-	istatus = SCB_ICSR; // bit 26 indicates if systick exception pending
-	__enable_irq();
-	if ((istatus & SCB_ICSR_PENDSTSET) && current > ((F_CPU / 1000) - 50)) count++;
-	current = ((F_CPU / 1000) - 1) - current;
-	return count * 1000 + current / (F_CPU / 1000000);
+	FLASH (rx) : ORIGIN = 8K,                   LENGTH = 128K - 8K
+	RAM  (rwx) : ORIGIN = 0x20000000 - 32K / 2, LENGTH = 32K
 }
 
-void delay(uint32_t ms)
-{
-	uint32_t start = micros();
+/* Starting Address of the application ROM */
+_app_rom     = ORIGIN( FLASH );
+_app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
 
-	while (1) {
-		if ((micros() - start) >= 1000) {
-			ms--;
-			if (ms == 0) break;
-			start += 1000;
-		}
-		yield();
-	}
+/* Section Definitions */
+SECTIONS
+{
+	.text :
+	{
+		. = 0;
+		KEEP(* (.vectors))
+		*(.startup*)
+		*(.text*)
+		*(.rodata*)
+		. = ALIGN(4);
+		KEEP(*(.init))
+	} > FLASH
+
+	.ARM.exidx :
+	{
+		__exidx_start = .;
+		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
+		__exidx_end = .;
+	} > FLASH
+	_etext = .;
+
+	.usbdescriptortable (NOLOAD) : {
+		. = ALIGN(512);
+		*(.usbdescriptortable*)
+	} > RAM
+
+	.dmabuffers (NOLOAD) : {
+		. = ALIGN(4);
+		*(.dmabuffers*)
+	} > RAM
+
+	.usbbuffers (NOLOAD) : {
+		. = ALIGN(4);
+		*(.usbbuffers*)
+	} > RAM
+
+	.data : AT (_etext) {
+		. = ALIGN(4);
+		_sdata = .;
+		*(.data*)
+		. = ALIGN(4);
+		_edata = .;
+	} > RAM
+
+	.noinit (NOLOAD) : {
+		*(.noinit*)
+	} > RAM
+
+	.bss : {
+		. = ALIGN(4);
+		_sbss = .;
+		*(.bss*)
+		*(COMMON)
+		. = ALIGN(4);
+		_ebss = .;
+		__bss_end = .;
+	} > RAM
+
+	_estack = ORIGIN(RAM) + LENGTH(RAM);
 }
 

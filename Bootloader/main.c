@@ -154,7 +154,6 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 		return DFU_STATUS_OK;
 	}
 
-#if defined(_mk20dx256vlh7_)
 	if ( off == 0 && dfu_ctx.verified == DFU_VALIDATION_UNKNOWN )
 	{
 		// Reset offset
@@ -183,7 +182,6 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 			return DFU_STATUS_OK;
 		}
 	}
-#endif
 
 	// If the binary is larger than the internal flash, error
 	if ( off + (uintptr_t)&_app_rom + len > (uintptr_t)&_app_rom_end )
@@ -295,8 +293,18 @@ void main()
 		jump_to_app( addr );
 	}
 
+	// Detected CPU
+	print("CPU Id: ");
+	printHex( SCB_CPUID );
+	print( NL "Device Id: ");
+	printHex( SIM_SDID );
+	print( NL "Flash CFG: ");
+	printHex( SIM_FCFG1 & 0xFFFFFFF0 );
+	print( NL "RAM: ");
+	printHex( SIM_SOPT1_RAMSIZE );
+
 	// Bootloader Entry Reasons
-	print(" RCM_SRS0 - ");
+	print( NL " RCM_SRS0 - ");
 	printHex( RCM_SRS0 & 0x60 );
 	print( NL " RCM_SRS1 - ");
 	printHex( RCM_SRS1 & 0x02 );

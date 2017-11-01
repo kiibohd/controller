@@ -58,7 +58,6 @@ static void dfu_dnload_complete( void *buf, ssize_t len, void *cbdata )
 	}
 	ctx->status = ctx->finish_write( buf, ctx->off, len );
 
-#if defined(_mk20dx256vlh7_)
 	// If this is the first block (and was used for key validation), don't increment offset
 	switch ( ctx->verified )
 	{
@@ -71,9 +70,6 @@ static void dfu_dnload_complete( void *buf, ssize_t len, void *cbdata )
 	default:
 		break;
 	}
-#else
-	ctx->off += len;
-#endif
 	ctx->len = len;
 
 	if ( ctx->status != DFU_STATUS_async )
@@ -83,13 +79,11 @@ static void dfu_dnload_complete( void *buf, ssize_t len, void *cbdata )
 
 	usb_handle_control_status( ctx->state == DFU_STATE_dfuERROR );
 
-#if defined(_mk20dx256vlh7_)
 	// If we failed validation, reset
 	if ( ctx->verified == DFU_VALIDATION_FAILED )
 	{
 		SOFTWARE_RESET();
 	}
-#endif
 }
 
 static void dfu_reset_system( void *buf, ssize_t len, void *cbdata )

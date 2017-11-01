@@ -26,9 +26,9 @@
 #include <print.h>
 
 // USB Includes
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+#if defined(_avr_at_)
 #include <avr/usb_keyboard_serial.h>
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+#elif defined(_kinetis_)
 #include <arm/usb_dev.h>
 #endif
 

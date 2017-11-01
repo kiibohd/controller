@@ -26,6 +26,7 @@
 #include <stddef.h>
 
 // System Includes
+#include <Lib/mcu_compat.h>
 #include <Lib/Interrupts.h>
 
 // Debug Includes
@@ -77,7 +78,7 @@ const char* Time_ticksPer_ns_str = "<UNKNOWN>";
 // Get current time
 Time Time_now()
 {
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+#if defined(_kinetis_)
 	Time time = {
 		.ms    = systick_millis_count,
 		.ticks = ARM_DWT_CYCCNT,

@@ -82,6 +82,7 @@ include ( initialize )
 #
 set ( SRCS
 	main.c
+	debug.c
 	dfu.c
 	dfu.desc.c
 	flash.c
@@ -94,13 +95,6 @@ set ( SRCS
 if ( EXISTS ${CMAKE_SOURCE_DIR}/Devices/${BOOT_PRODUCT_STR}.c )
 	set ( SRCS ${SRCS}
 		Devices/${BOOT_PRODUCT_STR}.c
-	)
-endif ()
-
-# Only compile in if necessary
-if ( CHIP STREQUAL "mk20dx256vlh7" OR CHIP STREQUAL "mk20dx128vlf5" )
-	set ( SRCS ${SRCS}
-		debug.c
 	)
 endif ()
 

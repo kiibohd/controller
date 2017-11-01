@@ -1,7 +1,6 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
- * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2013-2017
+ * Copyright (c) 2017 PJRC.COM, LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,49 +28,87 @@
  * SOFTWARE.
  */
 
-// ----- Local Includes -----
-
-#include "delay.h"
-#include "kinetis.h"
-
-
-
-// ----- Variables -----
-
-// The systick interrupt is supposed to increment this at 1 kHz rate
-volatile uint32_t systick_millis_count = 0;
-
-
-
-// ----- Functions -----
-
-void yield(void) {};
-
-uint32_t micros(void)
+MEMORY
 {
-	uint32_t count, current, istatus;
-
-	__disable_irq();
-	current = SYST_CVR;
-	count = systick_millis_count;
-	istatus = SCB_ICSR; // bit 26 indicates if systick exception pending
-	__enable_irq();
-	if ((istatus & SCB_ICSR_PENDSTSET) && current > ((F_CPU / 1000) - 50)) count++;
-	current = ((F_CPU / 1000) - 1) - current;
-	return count * 1000 + current / (F_CPU / 1000000);
+	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 512K
+	RAM  (rwx) : ORIGIN = 0x1FFF0000, LENGTH = 192K
 }
 
-void delay(uint32_t ms)
-{
-	uint32_t start = micros();
 
-	while (1) {
-		if ((micros() - start) >= 1000) {
-			ms--;
-			if (ms == 0) break;
-			start += 1000;
-		}
-		yield();
-	}
+SECTIONS
+{
+	.text : {
+		. = 0;
+		KEEP(*(.vectors))
+		*(.startup*)
+		/* TODO: does linker detect startup overflow onto flashconfig? */
+		. = 0x400;
+		KEEP(*(.flashconfig*))
+		*(.text*)
+		*(.rodata*)
+		. = ALIGN(4);
+		KEEP(*(.init))
+		. = ALIGN(4);
+		__preinit_array_start = .;
+		KEEP (*(.preinit_array))
+		__preinit_array_end = .;
+		__init_array_start = .;
+		KEEP (*(SORT(.init_array.*)))
+		KEEP (*(.init_array))
+		__init_array_end = .;
+	} > FLASH = 0xFF
+
+	.ARM.exidx : {
+		__exidx_start = .;
+		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
+		__exidx_end = .;
+	} > FLASH
+	_etext = .;
+
+	.usbdescriptortable (NOLOAD) : {
+		/* . = ORIGIN(RAM); */
+		. = ALIGN(512);
+		*(.usbdescriptortable*)
+	} > RAM
+
+	.dmabuffers (NOLOAD) : {
+		. = ALIGN(4);
+		*(.dmabuffers*)
+	} > RAM
+
+	.usbbuffers (NOLOAD) : {
+		. = ALIGN(4);
+		*(.usbbuffers*)
+	} > RAM
+
+	.data : AT (_etext) {
+		. = ALIGN(4);
+		_sdata = .;
+		*(.fastrun*)
+		*(.data*)
+		. = ALIGN(4);
+		_edata = .;
+	} > RAM
+
+	.noinit (NOLOAD) : {
+		*(.noinit*)
+	} > RAM
+
+	.bss : {
+		. = ALIGN(4);
+		_sbss = .;
+		__bss_start__ = .;
+		*(.bss*)
+		*(COMMON)
+		. = ALIGN(4);
+		_ebss = .;
+		__bss_end = .;
+		__bss_end__ = .;
+	} > RAM
+
+	_estack = ORIGIN(RAM) + LENGTH(RAM);
 }
+
+
+
 

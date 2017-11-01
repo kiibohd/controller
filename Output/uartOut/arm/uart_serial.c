@@ -38,7 +38,7 @@
 // ----- Defines -----
 
 // UART Configuration
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // UART0 Debug
+#if defined(_kii_v1_) || defined(_teensy_3_) // UART0 Debug
 #define UART_BDH    UART0_BDH
 #define UART_BDL    UART0_BDL
 #define UART_C1     UART0_C1
@@ -58,7 +58,7 @@
 #define SIM_SCGC4_UART  SIM_SCGC4_UART0
 #define IRQ_UART_STATUS IRQ_UART0_STATUS
 
-#elif defined(_mk20dx256vlh7_) // UART2 Debug
+#elif defined(_kii_v2_) // UART2 Debug
 #define UART_BDH    UART2_BDH
 #define UART_BDL    UART2_BDL
 #define UART_C1     UART2_C1
@@ -96,9 +96,9 @@ volatile uint8_t uart_configured = 0;
 
 // ----- Interrupt Functions -----
 
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // UART0 Debug
+#if defined(_kii_v1_) || defined(_teensy_3_) // UART0 Debug
 void uart0_status_isr()
-#elif defined(_mk20dx256vlh7_) // UART2 Debug
+#elif defined(_kii_v2_) // UART2 Debug
 void uart2_status_isr()
 #endif
 {
@@ -161,13 +161,13 @@ void uart_serial_setup()
 	SIM_SCGC4 |= SIM_SCGC4_UART; // Disable clock gating
 
 // MCHCK / Kiibohd-dfu
-#if defined(_mk20dx128vlf5_)
+#if defined(_kii_v1_)
 	// Pin Setup for UART0
 	PORTA_PCR1 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(2); // RX Pin
 	PORTA_PCR2 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(2); // TX Pin
 
 // Kiibohd-dfu
-#elif defined(_mk20dx256vlh7_)
+#elif defined(_kii_v2_)
 	// Pin Setup for UART2
 	PORTD_PCR2 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(3); // RX Pin
 	PORTD_PCR3 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
@@ -180,7 +180,7 @@ void uart_serial_setup()
 #endif
 
 
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // UART0 Debug
+#if defined(_kii_v1_) || defined(_teensy_3_) // UART0 Debug
 	// Setup baud rate - 115200 Baud
 	// 48 MHz / ( 16 * Baud ) = BDH/L
 	// Baud: 115200 -> 48 MHz / ( 16 * 115200 ) = 26.0416667
@@ -191,7 +191,7 @@ void uart_serial_setup()
 	UART_BDL = (uint8_t)baud;
 	UART_C4 = 0x02;
 
-#elif defined(_mk20dx256vlh7_) // UART2 Debug
+#elif defined(_kii_v2_) // UART2 Debug
 	// Setup baud rate - 115200 Baud
 	// Uses Bus Clock
 	// 36 MHz / ( 16 * Baud ) = BDH/L
@@ -209,10 +209,10 @@ void uart_serial_setup()
 	UART_C1 = UART_C1_ILT;
 
 	// Interrupt notification watermarks
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) // UART0 Debug
+#if defined(_kii_v1_) || defined(_teensy_3_) // UART0 Debug
 	UART_TWFIFO = 2;
 	UART_RWFIFO = 4;
-#elif defined(_mk20dx256vlh7_) // UART2 Debug
+#elif defined(_kii_v2_) // UART2 Debug
 	// UART2 has a single byte FIFO
 	UART_TWFIFO = 1;
 	UART_RWFIFO = 1;
@@ -336,7 +336,7 @@ void uart_device_reload()
 	}
 
 // MCHCK
-#if defined(_mk20dx128vlf5_)
+#if defined(_kii_v1_)
 
 	// MCHCK Kiibohd Variant
 	// Check to see if PTA3 (has a pull-up) is connected to GND (usually via jumper)
@@ -360,7 +360,7 @@ void uart_device_reload()
 	}
 
 // Kiibohd mk20dx256vlh7
-#elif defined(_mk20dx256vlh7_)
+#elif defined(_kii_v2_)
 	// Copies variable into the VBAT register, must be identical to the variable in the bootloader to jump to the bootloader flash mode
 	for ( int pos = 0; pos < sizeof(sys_reset_to_loader_magic); pos++ )
 		(&VBAT)[ pos ] = sys_reset_to_loader_magic[ pos ];

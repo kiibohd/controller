@@ -1,7 +1,6 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
- * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2014-2017 for use with McHCK
+ * Copyright (c) 2017 PJRC.COM, LLC.
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -31,38 +30,35 @@
 
 MEMORY
 {
-	FLASH     (rx) : ORIGIN = 0x0,                  LENGTH = 128K
-	FLASH_APP (rx) : ORIGIN = 8K,                   LENGTH = 128K - 8K
-	RAM      (rwx) : ORIGIN = 0x20000000 - 16K / 2, LENGTH = 16K
+	FLASH (rx) : ORIGIN = 0x00000000, LENGTH = 1024K
+	RAM  (rwx) : ORIGIN = 0x1FFF0000, LENGTH = 256K
 }
 
-/* Starting Address of the application ROM */
-_bootloader  = ORIGIN( FLASH );
-_app_rom     = ORIGIN( FLASH_APP );
-_app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
 
-FlexRAM = 0x14000000;
-FTFL = 0x40020000;
-SCB = 0xe000ed00;
-USB0 = 0x40072000;
-SIM = 0x40047000;
-
-/* Section Definitions */
 SECTIONS
 {
-	.text :
-	{
-		. = 0; KEEP(* (.vectors)) /* MUST BE AT 0 */
+	.text : {
+		. = 0;
+		KEEP(*(.vectors))
 		*(.startup*)
-		*(.rodata*)
-		. = 0x400; KEEP(* (.flashconfig)) /* MUST BE AT 0x400 */
+		/* TODO: does linker detect startup overflow onto flashconfig? */
+		. = 0x400;
+		KEEP(*(.flashconfig*))
 		*(.text*)
+		*(.rodata*)
 		. = ALIGN(4);
 		KEEP(*(.init))
-	} > FLASH
+		. = ALIGN(4);
+		__preinit_array_start = .;
+		KEEP (*(.preinit_array))
+		__preinit_array_end = .;
+		__init_array_start = .;
+		KEEP (*(SORT(.init_array.*)))
+		KEEP (*(.init_array))
+		__init_array_end = .;
+	} > FLASH = 0xFF
 
-	.ARM.exidx :
-	{
+	.ARM.exidx : {
 		__exidx_start = .;
 		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
 		__exidx_end = .;
@@ -70,6 +66,7 @@ SECTIONS
 	_etext = .;
 
 	.usbdescriptortable (NOLOAD) : {
+		/* . = ORIGIN(RAM); */
 		. = ALIGN(512);
 		*(.usbdescriptortable*)
 	} > RAM
@@ -87,7 +84,7 @@ SECTIONS
 	.data : AT (_etext) {
 		. = ALIGN(4);
 		_sdata = .;
-		*(SORT_BY_ALIGNMENT(.ramtext.*) SORT_BY_ALIGNMENT(.data*))
+		*(.fastrun*)
 		*(.data*)
 		. = ALIGN(4);
 		_edata = .;
@@ -100,13 +97,18 @@ SECTIONS
 	.bss : {
 		. = ALIGN(4);
 		_sbss = .;
+		__bss_start__ = .;
 		*(.bss*)
 		*(COMMON)
 		. = ALIGN(4);
 		_ebss = .;
 		__bss_end = .;
+		__bss_end__ = .;
 	} > RAM
 
 	_estack = ORIGIN(RAM) + LENGTH(RAM);
 }
+
+
+
 

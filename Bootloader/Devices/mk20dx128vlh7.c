@@ -15,7 +15,8 @@
  */
 
 //
-// Kiibohd-dfu / Infinity 60% / Infinity 60% LED
+// Kiibohd-dfu
+// Infinity Ergodox / WhiteFox / K-Type
 //
 
 // ----- Includes -----
@@ -105,13 +106,11 @@ void Chip_reset()
 // Called during bootloader initialization
 void Chip_setup()
 {
-	// XXX McHCK uses B16 instead of A19
-
 	// Enabling LED to indicate we are in the bootloader
-	GPIOA_PDDR |= (1<<19);
-	// Setup pin - A19 - See Lib/pin_map.mchck for more details on pins
-	PORTA_PCR19 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PSOR |= (1<<19);
+	GPIOA_PDDR |= (1<<5);
+	// Setup pin - A5 - See Lib/pin_map.mchck for more details on pins
+	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+	GPIOA_PSOR |= (1<<5);
 
 	/*
 	print( "Cur Secure Code - ");

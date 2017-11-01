@@ -69,7 +69,7 @@ void i2c_setup()
 
 			break;
 
-#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+#if defined(_kii_v2_)
 		case 1:
 			// Enable I2C internal clock
 			SIM_SCGC4 |= SIM_SCGC4_I2C1; // Bus 1
@@ -123,7 +123,7 @@ void i2c_setup()
 			NVIC_ENABLE_IRQ( IRQ_I2C0 );
 			break;
 
-#if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+#if defined(_kii_v2_)
 		case 1:
 
 			// Enable I2C Interrupt

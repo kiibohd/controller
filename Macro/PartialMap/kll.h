@@ -68,9 +68,9 @@ typedef uint8_t index_uint_t;
 // e.g. mk20s  -> 32 bit
 //      atmega -> 16 bit
 // Default to whatever is detected
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
+#if defined(_kinetis_)
 typedef uint32_t nat_ptr_t;
-#elif defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+#elif defined(_avr_at_)
 typedef uint16_t nat_ptr_t;
 #else
 typedef uintptr_t nat_ptr_t;

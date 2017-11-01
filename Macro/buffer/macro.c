@@ -77,7 +77,7 @@ inline void macro_finishedWithBuffer( uint8_t sentKeys )
 
 void jumpToBootloader(void)
 {
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+#if defined(_avr_at_) // AVR
 	cli();
 	// disable watchdog, if enabled
 	// disable all peripherals

@@ -22,9 +22,7 @@ env:
   - DIR=Keyboards SCRIPT=others.bash
 
   # Debug Build Tests
-  - DIR=Keyboards/Testing SCRIPT=uartout.bash
-  - DIR=Keyboards/Testing SCRIPT=usbmuxuart.bash
-  - DIR=Keyboards/Testing SCRIPT=macrotest.bash
+  - DIR=Keyboards/Testing SCRIPT=all_tests.bash
 
   # Bootloader Build Tests
   - DIR=Bootloader/Builds SCRIPT=all.bash
@@ -51,13 +49,7 @@ matrix:
       env: DIR=Keyboards SCRIPT=others.bash
       os: osx
     - compiler: clang
-      env: DIR=Keyboards/Testing SCRIPT=uartout.bash
-      os: osx
-    - compiler: clang
-      env: DIR=Keyboards/Testing SCRIPT=usbmuxuart.bash
-      os: osx
-    - compiler: clang
-      env: DIR=Keyboards/Testing SCRIPT=macrotest.bash
+      env: DIR=Keyboards/Testing SCRIPT=all_tests.bash
       os: osx
     - compiler: clang
       env: DIR=Bootloader/Builds SCRIPT=all.bash

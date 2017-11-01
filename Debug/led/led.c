@@ -36,13 +36,13 @@
 inline void init_errorLED()
 {
 // AVR
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+#if defined(_avr_at_)
 
 	// Use pin D6 as an output (LED)
 	DDRD |= (1<<6);
 
 // ARM
-#elif defined(_mk20dx128_) || defined(_mk20dx256_)
+#elif defined(_teensy_3_)
 
 	// Enable pin
 	GPIOC_PDDR |= (1<<5);
@@ -51,7 +51,7 @@ inline void init_errorLED()
 	PORTC_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 
 // MCHCK / Kiibohd-dfu
-#elif defined(_mk20dx128vlf5_)
+#elif defined(_kii_v1_)
 
 /* Actual MCHCK
 	// Enable pin
@@ -68,7 +68,7 @@ inline void init_errorLED()
 	PORTA_PCR19 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 
 // Kiibohd-dfu
-#elif defined(_mk20dx256vlh7_)
+#elif defined(_kii_v2_)
 	// Kiibohd-dfu
 	// Enable pin
 	GPIOA_PDDR |= (1<<5);
@@ -82,7 +82,7 @@ inline void init_errorLED()
 inline void errorLED( uint8_t on )
 {
 // AVR
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+#if defined(_avr_at_)
 
 	// Error LED On (D6)
 	if ( on ) {
@@ -94,7 +94,7 @@ inline void errorLED( uint8_t on )
 	}
 
 // ARM
-#elif defined(_mk20dx128_) || defined(_mk20dx256_)
+#elif defined(_teensy_3_)
 
 	// Error LED On (C5)
 	if ( on ) {
@@ -106,7 +106,7 @@ inline void errorLED( uint8_t on )
 	}
 
 // MCHCK
-#elif defined(_mk20dx128vlf5_)
+#elif defined(_kii_v1_)
 
 /* Actual MCHCK
 	// Error LED On (B16)
@@ -129,7 +129,7 @@ inline void errorLED( uint8_t on )
 	}
 
 // Kiibohd-dfu
-#elif defined(_mk20dx256vlh7_)
+#elif defined(_kii_v2_)
 	// Kiibohd-dfu
 	// Error LED On (A5)
 	if ( on ) {

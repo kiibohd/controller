@@ -17,14 +17,16 @@
 #| You _MUST_ clean the build directory if you change this value
 #|
 set( CHIP
-#       "at90usb162"       # Teensy   1.0 (avr)
-#       "atmega32u4"       # Teensy   2.0 (avr)
-#       "at90usb646"       # Teensy++ 1.0 (avr)
-#       "at90usb1286"      # Teensy++ 2.0 (avr)
+#       "atmega32u4"       # Teensy   2.0 (avr) - Deprecated
+#       "at90usb1286"      # Teensy++ 2.0 (avr) - Deprecated
 #       "mk20dx128"        # Teensy   3.0 (arm)
 	"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
+#	"mk20dx128vlf5"    # Kiibohd-dfu mk20dx128vlh7
 #       "mk20dx256"        # Teensy   3.1,3.2 (arm)
 #       "mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
+#       "mk22fx512avlh7"   # Kiibohd-dfu mk22fx512avlh7
+#       "mk64fx512"        # Teensy   3.5 (arm)
+#       "mk66fx1m0"        # Teensy   3.6 (arm)
 #       "host"             # System compiler test environment
 	CACHE STRING "Microcontroller Chip"
 )

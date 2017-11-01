@@ -30,7 +30,7 @@
 // You can change these to give your code its own name.
 #define STR_MANUFACTURER        L"@MANUFACTURER@"
 #define STR_PRODUCT             L"Keyboard - @ScanModule@ @MacroModule@ @OutputModule@ @DebugModule@"
-#define STR_SERIAL              L"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX - @CHIP@"
+#define STR_SERIAL              L"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX - @CHIP_SHORT@"
 #define STR_CONFIG_NAME         L"@FLASHING_STATION_ID@"
 
 
@@ -46,7 +46,8 @@
 #define CLI_BuildDate           "@Build_Date@"
 #define CLI_BuildOS             "@CMAKE_SYSTEM@"
 #define CLI_Arch                "@COMPILER_FAMILY@"
-#define CLI_Chip                "@MCU@"
+#define CLI_Chip                "@CHIP@"
+#define CLI_ChipShort           "@CHIP_SHORT@"
 #define CLI_CPU                 "@CPU@"
 #define CLI_Device              "Keyboard"
 

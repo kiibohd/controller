@@ -43,8 +43,13 @@ cur_key=$(head -c 4 ${input_file} | hexdump -C | cut -b9- | cut -d"|" -f1 | tr -
 
 # Check if key is unset
 # 00200020 - mk20dx128vlf5
+# 00400020 - mk20dx128vlh7
 # 00800020 - mk20dx256vlh7
-if [ "${cur_key}" = "00800020" ] || [ "${cur_key}" = "00200020" ]; then
+# 00000120 - mk22fx512avlh12
+if [ "${cur_key}" = "00800020" ] \
+		|| [ "${cur_key}" = "00200020" ] \
+		|| [ "${cur_key}" = "00000120" ] \
+		|| [ "${cur_key}" = "00400020" ]; then
 	echo "Setting new key"
 else
 	# Check if CLEARKEY was set to true

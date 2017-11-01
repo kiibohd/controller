@@ -68,9 +68,14 @@ endif ()
 #| Chip Name (Linker)
 #|
 #| "mk20dx128vlf5"    # McHCK / Kiibohd-dfu
+#| "mk20dx128vlh7"    # Kiibohd-dfu
 #| "mk20dx256vlh7"    # Kiibohd-dfu
+#| "mk22fx512avlh12"  # Kiibohd-dfu
+#|
 #| "mk20dx128"        # Teensy   3.0
-#| "mk20dx256"        # Teensy   3.1
+#| "mk20dx256"        # Teensy   3.1/3.2
+#| "mk64fx512"        # Teensy   3.5
+#| "mk66fx1m0"        # Teensy   3.6
 
 message( STATUS "Chip Selected:" )
 message( "${CHIP}" )
@@ -89,6 +94,8 @@ if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
 	#set( SIZE_FLASH 126976 ) # XXX (HaaTa) Old size, still valid for nearly all keyboards
 	set( SIZE_FLASH 122880 ) # For extended bootloader (8kB)
 	set( F_CPU "48000000" )
+	set( CHIP_SHORT "mk20dx128" )
+	set( DFU 1 )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
@@ -97,14 +104,43 @@ if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
 	endif ()
 
 #| Kiibohd-dfu
-elseif ( "${CHIP}" MATCHES "mk20dx256vlh7" )
-	set( SIZE_RAM    65536 )
-	set( SIZE_FLASH 253952 )
+elseif ( "${CHIP}" MATCHES "mk20dx128vlh7" )
+	set( SIZE_RAM    32768 )
+	set( SIZE_FLASH 122880 ) # For extended bootloader (8kB)
 	set( F_CPU "72000000" )
+	set( CHIP_SHORT "mk20dx128" )
+	set( DFU 1 )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
 		set( SIZE_FLASH 8192 )
+	endif ()
+
+#| Kiibohd-dfu
+elseif ( "${CHIP}" MATCHES "mk20dx256vlh7" OR "${CHIP}" MATCHES "mk20dx256vmc7" )
+	set( SIZE_RAM    65536 )
+	set( SIZE_FLASH 253952 )
+	set( F_CPU "72000000" )
+	set( CHIP_SHORT "mk20dx256" )
+	set( DFU 1 )
+
+	# Bootloader has a lower flash restriction to fit inside protected area
+	if ( BOOTLOADER )
+		set( SIZE_FLASH 8192 )
+	endif ()
+
+#| Kiibohd-dfu
+# https://www.nxp.com/part/MK22FX512AVLH12
+elseif ( "${CHIP}" MATCHES "mk22fx512avlh12" )
+	set( SIZE_RAM   131072 )
+	set( SIZE_FLASH 507904 )
+	set( F_CPU "72000000" ) # XXX (HaaTa) purposefully slow for now
+	set( CHIP_SHORT "mk22fx512a" )
+	set( DFU 1 )
+
+	# Bootloader has a lower flash restriction to fit inside protected area
+	if ( BOOTLOADER )
+		set( SIZE_FLASH 16384 )
 	endif ()
 
 #| Teensy 3.0
@@ -112,12 +148,32 @@ elseif ( "${CHIP}" MATCHES "mk20dx128" )
 	set( SIZE_RAM    16384 )
 	set( SIZE_FLASH 131072 )
 	set( F_CPU "48000000" )
+	set( CHIP_SHORT "mk20dx128" )
+	set( TEENSY 1 )
 
-#| Teensy 3.1
+#| Teensy 3.1 / 3.2
 elseif ( "${CHIP}" MATCHES "mk20dx256" )
 	set( SIZE_RAM    65536 )
 	set( SIZE_FLASH 262144 )
 	set( F_CPU "48000000" ) # XXX Also supports 72 MHz, but may requires code changes
+	set( CHIP_SHORT "mk20dx256" )
+	set( TEENSY 1 )
+
+#| Teensy 3.5
+elseif ( "${CHIP}" MATCHES "mk64fx512" )
+	set( SIZE_RAM   196608 )
+	set( SIZE_FLASH 524288 )
+	set( F_CPU "48000000" ) # XXX (HaaTa) purposefully slow for now
+	set( CHIP_SHORT "mk64fx512" )
+	set( TEENSY 1 )
+
+#| Teensy 3.6
+elseif ( "${CHIP}" MATCHES "mk66fx1m0" )
+	set( SIZE_RAM    262144 )
+	set( SIZE_FLASH 1048576 )
+	set( F_CPU "48000000" ) # XXX (HaaTa) purposefully slow for now
+	set( CHIP_SHORT "mk66fx1m0" )
+	set( TEENSY 1 )
 
 #| Unknown ARM
 else ()
@@ -127,13 +183,17 @@ endif ()
 
 #| Chip Base Type
 #| Automatically chosed based on the chip name.
-if ( "${CHIP}" MATCHES "^mk20dx.*$" )
-	set( CHIP_FAMILY "mk20dx" )
-	message( STATUS "Chip Family:" )
-	message( "${CHIP_FAMILY}" )
+if ( "${CHIP}" MATCHES "^mk2.*$" )
+	set( CHIP_FAMILY "mk2x" )
+	set( CHIP_SUPPORT "kinetis" )
+elseif ( "${CHIP}" MATCHES "^mk6.*$" )
+	set( CHIP_FAMILY "mk6x" )
+	set( CHIP_SUPPORT "kinetis" )
 else ()
 	message( FATAL_ERROR "Unknown chip family: ${CHIP}" )
 endif ()
+message( STATUS "Chip Family:" )
+message( "${CHIP_FAMILY}" )
 
 
 #| CPU Type
@@ -150,7 +210,7 @@ message( "${CPU}" )
 #| Extra Compiler Sources
 #| Mostly for convenience functions like interrupt handlers
 set( COMPILER_SRCS
-	Lib/${CHIP_FAMILY}.c
+	Lib/${CHIP_SUPPORT}.c
 	Lib/delay.c
 	Lib/entropy.c
 	Lib/time.c
@@ -169,25 +229,21 @@ message( "${COMPILER_SRCS}" )
 
 #| USB Defines, this is how the loader programs detect which type of chip base is used
 message( STATUS "Bootloader Type:" )
-if ( "${CHIP}" MATCHES "mk20dx128vlf5" OR "${CHIP}" MATCHES "mk20dx256vlh7" )
+if ( DFU )
 	set( VENDOR_ID       "0x1C11" )
 	set( PRODUCT_ID      "0xB04D" )
 	set( BOOT_VENDOR_ID  "0x1C11" )
 	set( BOOT_PRODUCT_ID "0xB007" )
-	if ( "${CHIP}" MATCHES "mk20dx128vlf5" )
-		set( BOOT_DFU_ALTNAME "Kiibohd DFU" )
-	else ()
-		# The | symbol is replaced by a space if in secure mode, or a \0 if not (at runtime)
-		set( BOOT_DFU_ALTNAME "Kiibohd DFU|Secure" )
-	endif ()
-	set( DFU 1 )
+
+	# The | symbol is replaced by a space if in secure mode, or a \0 if not (at runtime)
+	set( BOOT_DFU_ALTNAME "Kiibohd DFU|Secure" )
+
 	message( "dfu" )
-elseif ( "${CHIP}" MATCHES "mk20dx128" OR "${CHIP}" MATCHES "mk20dx256" )
+elseif ( TEENSY )
 	set( VENDOR_ID       "0x1C11" )
 	set( PRODUCT_ID      "0xB04D" )
 	set( BOOT_VENDOR_ID  "0x16c0" ) # TODO Double check, this is likely incorrect
 	set( BOOT_PRODUCT_ID "0x0487" )
-	set( TEENSY 1 )
 	message( "Teensy" )
 endif ()
 
@@ -250,14 +306,14 @@ add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING}
 #| Linker Flags
 if ( BOOTLOADER )
 	# Bootloader linker flags
-	set( LINKER_FLAGS "${TUNING} -Wl,--gc-sections -fwhole-program -T${CMAKE_CURRENT_SOURCE_DIR}/../Lib/${CHIP}.bootloader.ld -nostartfiles -Wl,-Map=link.map" )
+	set( LINKER_FLAGS "${TUNING} -Wl,--gc-sections -fwhole-program -T${CMAKE_CURRENT_SOURCE_DIR}/../Lib/ld/${CHIP}.bootloader.ld -nostartfiles -Wl,-Map=link.map" )
 else ()
 	## Clang Compiler
 	if ( "${COMPILER}" MATCHES "clang" )
-		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
+		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/ld/${CHIP}.ld" )
 	else ()
 		# Normal linker flags
-		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/${CHIP}.ld" )
+		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/ld/${CHIP}.ld" )
 	endif ()
 endif ()
 

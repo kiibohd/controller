@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2016 by Jacob Alexander
+/* Copyright (C) 2013-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,10 +27,13 @@
 
 // ----- Includes -----
 
-// ARM
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+#include <Lib/mcu_compat.h>
 
-#include "mk20dx.h"
+
+// ARM
+#if defined(_kinetis_)
+
+#include "kinetis.h"
 #include "delay.h"
 #include "time.h"
 
@@ -39,7 +42,7 @@
 
 
 // AVR
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+#if defined(_avr_at_)
 
 #include <util/delay.h>
 

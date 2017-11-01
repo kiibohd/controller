@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander (2013-2016)
+ * Modifications by Jacob Alexander (2013-2017)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -1221,7 +1221,7 @@ void usb_device_reload()
 {
 // MCHCK
 // Kiibohd mk20dx256vlh7
-#if defined(_mk20dx128vlf5_) || defined(_mk20dx256vlh7_)
+#if defined(_kii_v2_)
 	// Copies variable into the VBAT register, must be identical to the variable in the bootloader to jump to the bootloader flash mode
 	for ( int pos = 0; pos < sizeof(sys_reset_to_loader_magic); pos++ )
 		(&VBAT)[ pos ] = sys_reset_to_loader_magic[ pos ];
@@ -1521,7 +1521,7 @@ uint8_t usb_init()
 	//     Simplifies defines considerably
 	usb_set_config_descriptor_size();
 
-#if defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+#if defined(_kinetis_)
 	// Write the unique id to the USB Descriptor memory location
 	// It's split up into 4 32 bit registers
 	// 1) Read out register

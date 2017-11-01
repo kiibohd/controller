@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2016 by Jacob Alexander
+/* Copyright (C) 2011-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -57,14 +57,14 @@ void printstrs( char* first, ... )
 // Print a constant string
 void _print( const char* s )
 {
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+#if defined(_avr_at_) // AVR
 	// Pull string out of flash
 	char c;
 	while ( ( c = pgm_read_byte( s++ ) ) != '\0' )
 	{
 		Output_putchar( c );
 	}
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
+#elif defined(_kinetis_) // ARM
 	Output_putstr( (char*)s );
 #elif defined(_host_) // Host
 	Output_putstr( (char*)s );

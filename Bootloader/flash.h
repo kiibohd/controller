@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2015 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2017 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,10 +19,12 @@
 
 // ----- Defines -----
 
-#if defined(_mk20dx128vlf5_)
+#if defined(_mk20dx128vlf5_) || defined(_mk20dx128vlh7_)
 #define FLASH_SECTOR_SIZE 1024
 #elif defined(_mk20dx256vlh7_)
 #define FLASH_SECTOR_SIZE 2048
+#elif defined(_mk22fx512avlh12_)
+#define FLASH_SECTOR_SIZE 4096
 #endif
 
 

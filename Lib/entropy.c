@@ -24,39 +24,7 @@
  * along with Entropy.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// Not used for the mk20dx128vlf5 (not enough flash space)
-#if defined(_bootloader_) && defined(_mk20dx128vlf5_)
-
-
-// ----- Includes -----
-
-#include "entropy.h"
-#include "mk20dx.h"
-
-
-
-// ----- Functions -----
-
-void rand_initialize()
-{
-}
-
-void rand_disable()
-{
-}
-
-uint8_t rand_available()
-{
-	return 0;
-}
-
-uint32_t rand_value32()
-{
-	return 0;
-}
-
-
-#elif defined(_host_)
+#if defined(_host_)
 
 
 // ----- Includes -----
@@ -100,7 +68,7 @@ uint32_t rand_value32()
 
 #include "atomic.h"
 #include "entropy.h"
-#include "mk20dx.h"
+#include "kinetis.h"
 
 
 

@@ -32,9 +32,9 @@
 #include <scan_loop.h>
 
 // USB Includes
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_)
+#if defined(_avr_at_)
 #include "avr/usb_keyboard_serial.h"
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+#elif defined(_kinetis_)
 #include "arm/usb_dev.h"
 #include "arm/usb_keyboard.h"
 #include "arm/usb_mouse.h"
@@ -674,7 +674,7 @@ inline void Output_setup()
 
 	// Check if we need to disable secure bootloader mode
 	// This is done by setting both 32 bit Kiibohd specific VBAT secure register regions
-#if ( defined(_mk20dx128vlf5_) || defined(_mk20dx256vlh7_) ) && SecureBootloader_define == 0
+#if ( defined(_kii_v1_) || defined(_kii_v2_) ) && SecureBootloader_define == 0
 	VBAT_SECURE1 = 0;
 	VBAT_SECURE2 = 0;
 #endif
@@ -790,9 +790,9 @@ inline int Output_putchar( char c )
 inline int Output_putstr( char* str )
 {
 #if enableVirtualSerialPort_define == 1
-#if defined(_at90usb162_) || defined(_atmega32u4_) || defined(_at90usb646_) || defined(_at90usb1286_) // AVR
+#if defined(_avr_at_) // AVR
 	uint16_t count = 0;
-#elif defined(_mk20dx128_) || defined(_mk20dx128vlf5_) || defined(_mk20dx256_) || defined(_mk20dx256vlh7_) // ARM
+#elif defined(_kinetis_) // ARM
 	uint32_t count = 0;
 #endif
 	// Count characters until NULL character, then send the amount counted
