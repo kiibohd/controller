@@ -40,7 +40,8 @@
 # Changing the switches on the K-Type
 The keyboard has hotswap support via switch sockets allowing you to change out and replace the keyswitches with different ones as long as:
 1. The switches have the same pinspacing - for example Alps switches are not compatible
-2. The switches were not desoldered and/or were never soldered. This is due to desoldered pins having a coat of solder on them, which varies in thickness depending on desoldering quality. This additional thickness may damage the sockets or detach them from the circuit board due to the extra insertion force. If you are attempting to use desoldered switches, proceed at your own risk as this may void your warranty.
+2. The switches are plate mount. If you have PCB mount switches, you may, at your discretion, cut off the two small plastic pegs on the bottom of the switch to have them be the same as plate mount.
+3. The switches were not desoldered and/or were never soldered. This is due to desoldered pins having a coat of solder on them, which varies in thickness depending on desoldering quality. This additional thickness may damage the sockets or detach them from the circuit board due to the extra insertion force. If you are attempting to use desoldered switches, proceed at your own risk as this may void your warranty.
 
 To replace the switches, use the following procedure:
 
