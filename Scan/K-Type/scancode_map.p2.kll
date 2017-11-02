@@ -102,7 +102,7 @@ S0x57 : U"LAlt";
 S0x58 : U"Space";
 S0x59 : U"RAlt";
 S0x5A : U"RGui";
-S0x5B : U"Menu";
+S0x5B : U"App";
 S0x5C : U"RCtrl";
 S0x5D : U"Left";
 S0x5E : U"Down";
