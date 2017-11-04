@@ -34,7 +34,7 @@ matrix:
     - compiler: clang
     # Currently there are issues running the macrotest on macOS
     - compiler: gcc
-      env: DIR=Keyboards/Testing SCRIPT=macrotest.bash
+      env: DIR=Keyboards/Testing SCRIPT=all_tests.bash
       os: osx
 
   exclude:
