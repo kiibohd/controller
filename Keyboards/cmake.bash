@@ -152,6 +152,7 @@ while (( "$#" >= "1" )); do
 done
 
 # Override the defaults if the environment variables are set.
+BaseMap=${BaseMapOverride:-${BaseMap}}
 DefaultMap=${DefaultMapOverride:-${DefaultMap}}
 PartialMapsExpanded=${PartialMapsExpandedOverride:-${PartialMapsExpanded}}
 
