@@ -28,8 +28,9 @@
  
 ### Flashing - Windows
  1) (First time only) Download [Zadig](http://zadig.akeo.ie/)
-    1) With your K-Type in Flash mode you should see an entry in the Zadig dropdown entitled simply "K-Type"
-    2) With the "WinUSB" driver selected; click the "Install Driver" button
+    1) Put the K-Type in [Flash mode](#entering-flash-mode).
+    2) In the Zadig dropdown list, select "K-Type". If you do not see "K-Type" in the list then your board isn't in flash mode.
+    3) With the "WinUSB" driver selected, click the "Install Driver" button.
  2) Download [dfu-util](http://dfu-util.sourceforge.net/) and unzip to a folder
  3) Copy the `kiibohd.dfu.bin` file from the unpacked firmware zip file into the `dfu-util` directory
  4) Open a command prompt (Start => cmd.exe)
