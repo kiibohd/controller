@@ -22,6 +22,7 @@
 // Project Includes
 #include <cli.h>
 #include <kll_defs.h>
+#include <latency.h>
 #include <led.h>
 #include <print.h>
 #include <pixel.h>
@@ -248,6 +249,9 @@ const LED_EnableBuffer LED_ledEnableMask[ISSI_Chips_define] = {
 #if ISSI_Chips_define >= 5
 #error "Invalid number of ISSI Chips"
 #endif
+
+// Latency measurement resource
+static uint8_t ledLatencyResource;
 
 
 
@@ -706,6 +710,9 @@ inline void LED_setup()
 
 	// Reset LED sequencing
 	LED_reset();
+
+	// Allocate latency resource
+	ledLatencyResource = Latency_add_resource("ISSILed", LatencyOption_Ticks);
 }
 
 
@@ -780,6 +787,9 @@ void LED_linkedSend()
 unsigned int LED_currentEvent = 0;
 inline void LED_scan()
 {
+	// Latency measurement start
+	Latency_start_time( ledLatencyResource );
+
 	// Check for current change event
 	if ( LED_currentEvent )
 	{
@@ -805,7 +815,7 @@ inline void LED_scan()
 	// Check if an LED_pause is set
 	// Some ISSI operations need a clear buffer, but still have the chip running
 	if ( LED_pause )
-		return;
+		goto led_finish_scan;
 
 	// Check enable state
 	if ( LED_enable )
@@ -818,22 +828,22 @@ inline void LED_scan()
 	{
 		// Enable hardware shutdown
 		GPIOB_PCOR |= (1<<16);
-		return;
+		goto led_finish_scan;
 	}
 
 	// Only start if we haven't already
 	// And if we've finished updating the buffers
 	if ( Pixel_FrameState == FrameState_Sending )
-		return;
+		goto led_finish_scan;
 
 	// Only send frame to ISSI chip if buffers are ready
 	if ( Pixel_FrameState != FrameState_Ready )
-		return;
+		goto led_finish_scan;
 
 	// Adjust frame rate (i.e. delay and do something else for a bit)
 	Time duration = Time_duration( LED_timePrev );
 	if ( duration.ms < LED_framerate )
-		return;
+		goto led_finish_scan;
 
 	// FPS Display
 	if ( LED_displayFPS )
@@ -908,6 +918,10 @@ inline void LED_scan()
 	// Pixel_FrameState will be updated when complete
 	LED_chipSend = 0; // Start with chip 0
 	LED_linkedSend();
+
+led_finish_scan:
+	// Latency measurement end
+	Latency_end_time( ledLatencyResource );
 }
 
 

@@ -21,6 +21,7 @@
 
 // Project Includes
 #include <cli.h>
+#include <latency.h>
 #include <led.h>
 #include <print.h>
 #include <scan_loop.h>
@@ -113,6 +114,10 @@ uint8_t macroPauseMode = 0;
 
 // Macro step counter - If non-zero, the step counter counts down every time the macro module does one processing loop
 uint16_t macroStepCounter = 0;
+
+
+// Latency resource
+static uint8_t macroLatencyResource;
 
 
 // Key Trigger List Buffer and Layer Cache
@@ -710,6 +715,9 @@ void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 // Called once per USB buffer send
 inline void Macro_process()
 {
+	// Latency measurement
+	Latency_start_time( macroLatencyResource );
+
 #if defined(ConnectEnabled_define)
 	// Only compile in if a Connect node module is available
 	// If this is a interconnect slave node, send all scancodes to master node
@@ -785,6 +793,9 @@ inline void Macro_process()
 	// Reset TriggerList buffer
 	macroTriggerListBufferSize = 0;
 
+	// Latency measurement
+	Latency_end_time( macroLatencyResource );
+
 	// If Macro debug mode is set, clear the USB Buffer
 	if ( macroDebugMode )
 	{
@@ -819,6 +830,9 @@ inline void Macro_setup()
 
 	// Setup Results
 	Result_setup();
+
+	// Allocate resource for latency measurement
+	macroLatencyResource = Latency_add_resource("PartialMap", LatencyOption_Ticks);
 }
 
 

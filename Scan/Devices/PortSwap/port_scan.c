@@ -22,6 +22,7 @@
 // Project Includes
 #include <cli.h>
 #include <kll_defs.h>
+#include <latency.h>
 #include <led.h>
 #include <print.h>
 
@@ -72,6 +73,9 @@ CLIDict_Def( portCLIDict, "Port Swap Module Commands" ) = {
 	CLIDict_Item( portUSB ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
+
+// Latency measurement resource
+static uint8_t portLatencyResource;
 
 
 
@@ -134,11 +138,17 @@ inline void Port_setup()
 
 	// Starting point for automatic port swapping
 	Port_lastcheck_ms = systick_millis_count;
+
+	// Allocate latency measurement resource
+	portLatencyResource = Latency_add_resource("PortSwap", LatencyOption_Ticks);
 }
 
 // Port State processing loop
 inline uint8_t Port_scan()
 {
+	// Latency measurement start
+	Latency_start_time( portLatencyResource );
+
 	// TODO Add in interconnect line cross
 
 	#define USBPortSwapDelay_ms 1000
@@ -156,6 +166,9 @@ inline uint8_t Port_scan()
 			Port_usb_swap();
 		}
 	}
+
+	// Latency measurement end
+	Latency_end_time( portLatencyResource );
 
 	return 0;
 }

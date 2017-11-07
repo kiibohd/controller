@@ -28,6 +28,7 @@
 
 // General Includes
 #include <buildvars.h>
+#include <latency.h>
 #include <led.h>
 #include <print.h>
 
@@ -49,6 +50,7 @@ CLIDict_Entry( colorTest, "Displays a True Color ANSI test sequence to test term
 CLIDict_Entry( exit,      "Host KLL Only - Exits cli." );
 #endif
 CLIDict_Entry( help,      "You're looking at it :P" );
+CLIDict_Entry( latency,   "Show latency of specific modules and routiines. Specify index for a single item" );
 CLIDict_Entry( led,       "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules..." );
 CLIDict_Entry( rand,      "If entropy available, print a random 32-bit number." );
 CLIDict_Entry( reload,    "Signals microcontroller to reflash/reload." );
@@ -65,6 +67,7 @@ CLIDict_Def( basicCLIDict, "General Commands" ) = {
 	CLIDict_Item( exit ),
 #endif
 	CLIDict_Item( help ),
+	CLIDict_Item( latency ),
 	CLIDict_Item( led ),
 	CLIDict_Item( rand ),
 	CLIDict_Item( reload ),
@@ -559,6 +562,55 @@ void cliFunc_help( char* args )
 
 			_print( CLIDict[dict][cmd].description ); // This print is required by AVR (flash)
 			print( NL );
+		}
+	}
+}
+
+void printLatency( uint8_t resource )
+{
+	printInt8( resource );
+	print(":");
+	print( Latency_query_name( resource ) );
+	print("\t");
+	printInt32( Latency_query( LatencyQuery_Count, resource ) );
+	print("\t");
+	printInt32( Latency_query( LatencyQuery_Min, resource ) );
+	print("\t");
+	printInt32( Latency_query( LatencyQuery_Average, resource ) );
+	print("\t");
+	printInt32( Latency_query( LatencyQuery_Last, resource ) );
+	print("\t");
+	printInt32( Latency_query( LatencyQuery_Max, resource ) );
+}
+
+void cliFunc_latency( char* args )
+{
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	print( NL );
+	print("Latency" NL );
+	print("<i>:<module>\t<count>\t<min>\t<avg>\t<last>\t<max>");
+
+	// If no arguments print all
+	if ( arg1Ptr[0] == '\0' )
+	{
+		// Iterate through all the latency resources
+		for ( uint8_t c = 0; c < Latency_resources(); c++ )
+		{
+			print( NL );
+			printLatency( c );
+		}
+	}
+	else
+	{
+		print( NL );
+		if ( arg1Ptr[0] < Latency_resources() )
+		{
+			printLatency( arg1Ptr[0] );
 		}
 	}
 }

@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Debug Module |###
 #
-# Written by Jacob Alexander in 2011-2016 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2017 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -12,6 +12,7 @@
 #
 
 AddModule ( Debug cli )
+AddModule ( Debug latency )
 AddModule ( Debug led )
 AddModule ( Debug print )
 

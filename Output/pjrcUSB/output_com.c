@@ -27,6 +27,7 @@
 // Project Includes
 #include <cli.h>
 #include <hidio_com.h>
+#include <latency.h>
 #include <led.h>
 #include <print.h>
 #include <scan_loop.h>
@@ -176,6 +177,9 @@ uint16_t Output_USBCurrent_Available = 0;
 volatile uint32_t USBInit_TimeStart;
 volatile uint32_t USBInit_TimeEnd;
 volatile uint16_t USBInit_Ticks;
+
+// Latency measurement resource
+static uint8_t outputLatencyResource;
 
 
 
@@ -683,12 +687,18 @@ inline void Output_setup()
 	// Setup HID-IO
 	HIDIO_setup();
 #endif
+
+	// Latency resource allocation
+	outputLatencyResource = Latency_add_resource("USBOutput", LatencyOption_Ticks);
 }
 
 
 // USB Data Send
 inline void Output_send()
 {
+	// Start latency measurement
+	Latency_start_time( outputLatencyResource );
+
 	// USB status checks
 	// Non-standard USB state manipulation, usually does nothing
 	usb_device_check();
@@ -742,6 +752,9 @@ inline void Output_send()
 		break;
 	}
 #endif
+
+	// End latency measurement
+	Latency_end_time( outputLatencyResource );
 }
 
 

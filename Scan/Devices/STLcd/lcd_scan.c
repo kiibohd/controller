@@ -22,6 +22,7 @@
 // Project Includes
 #include <cli.h>
 #include <kll_defs.h>
+#include <latency.h>
 #include <led.h>
 #include <print.h>
 
@@ -92,6 +93,9 @@ CLIDict_Def( lcdCLIDict, "ST LCD Module Commands" ) = {
 	CLIDict_Item( lcdTest ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
+
+// Latency resource allocation
+static uint8_t stlcdLatencyResource;
 
 
 
@@ -174,7 +178,7 @@ void LCD_writeDataReg( uint8_t byte )
 {
 	// Wait for TxFIFO to be empt
 	while ( SPI0_TxFIFO_CNT != 0 );
-        
+
         // Set A0 high to enter display register mode
         GPIOC_PSOR |= (1<<7);
 
@@ -359,6 +363,9 @@ inline void LCD_setup()
 	// Blue
 	FTM0_C2V = STLcdBacklightBlue_define;
 	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(4);
+
+	// Allocate Latency resource
+	stlcdLatencyResource = Latency_add_resource("STLcd", LatencyOption_Ticks);
 }
 
 
@@ -398,7 +405,14 @@ static inline void check_caps_lock()
 
 inline uint8_t LCD_scan()
 {
+	// Latency measurement start
+	Latency_start_time( stlcdLatencyResource );
+
 	check_caps_lock();
+
+	// Latency measurement end
+	Latency_end_time( stlcdLatencyResource );
+
 	return 0;
 }
 

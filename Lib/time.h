@@ -64,6 +64,12 @@ uint32_t Time_us( Time time );
 uint32_t Time_ns( Time time );
 uint32_t Time_ticks( Time time );
 
+Time Time_from_days( uint32_t days );
+Time Time_from_hours( uint32_t hours );
+Time Time_from_minutes( uint32_t minutes );
+Time Time_from_seconds( uint32_t seconds );
+Time Time_from_ms( uint32_t ms );
+
 
 // Durations
 Time Time_duration( Time since );

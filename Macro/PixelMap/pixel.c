@@ -22,6 +22,7 @@
 // Project Includes
 #include <cli.h>
 #include <kll_defs.h>
+#include <latency.h>
 #include <led.h>
 #include <print.h>
 #include <output_com.h>
@@ -116,6 +117,9 @@ uint8_t  Pixel_MaxChannelPerPixel_Host = Pixel_MaxChannelPerPixel;
 uint16_t Pixel_Mapping_HostLen = 128; // TODO Define
 uint8_t  Pixel_AnimationStackElement_HostSize = sizeof( AnimationStackElement );
 #endif
+
+// Latency Measurement Resource
+static uint8_t pixelLatencyResource;
 
 
 
@@ -1555,6 +1559,9 @@ void Pixel_initializeStartAnimations()
 // Pixel Procesing Loop
 inline void Pixel_process()
 {
+	// Start latency measurement
+	Latency_start_time( pixelLatencyResource );
+
 	// Update USB LED Status
 	Pixel_updateUSBLEDs();
 
@@ -1565,7 +1572,7 @@ inline void Pixel_process()
 	case FrameState_Pause:
 		break;
 	default:
-		return;
+		goto pixel_process_final;
 	}
 
 	// Pause animation if set
@@ -1594,7 +1601,7 @@ inline void Pixel_process()
 		break;
 	default: // Pause
 		Pixel_FrameState = FrameState_Pause;
-		return;
+		goto pixel_process_final;
 	}
 
 	// First check if we are in a test mode
@@ -1707,7 +1714,7 @@ inline void Pixel_process()
 		// Ignore if pixel set to 0
 		if ( pixel == 0 )
 		{
-			return;
+			goto pixel_process_final;
 		}
 
 		// Toggle channel
@@ -1748,7 +1755,7 @@ inline void Pixel_process()
 		// Ignore if pixel set to 0
 		if ( pixel == 0 )
 		{
-			return;
+			goto pixel_process_final;
 		}
 
 		// Toggle channel
@@ -1796,6 +1803,10 @@ inline void Pixel_process()
 pixel_process_done:
 	// Frame is now ready to send
 	Pixel_FrameState = FrameState_Ready;
+
+pixel_process_final:
+	// End latency measurement
+	Latency_end_time( pixelLatencyResource );
 }
 
 
@@ -1818,6 +1829,9 @@ inline void Pixel_setup()
 
 	// Add initial animations
 	Pixel_initializeStartAnimations();
+
+	// Allocate latency resource
+	pixelLatencyResource = Latency_add_resource("PixelMap", LatencyOption_Ticks);
 }
 
 

@@ -202,6 +202,66 @@ uint32_t Time_ticks( Time time )
 	return ticks;
 }
 
+#if !defined(_host_)
+inline
+#endif
+Time Time_from_days( uint32_t days )
+{
+	Time time = {
+		.ms    = days * 1000 * 3600 * 24,
+		.ticks = 0,
+	};
+	return time;
+}
+
+#if !defined(_host_)
+inline
+#endif
+Time Time_from_hours( uint32_t hours )
+{
+	Time time = {
+		.ms    = hours * 1000 * 3600,
+		.ticks = 0,
+	};
+	return time;
+}
+
+#if !defined(_host_)
+inline
+#endif
+Time Time_from_minutes( uint32_t minutes )
+{
+	Time time = {
+		.ms    = minutes * 60 * 1000,
+		.ticks = 0,
+	};
+	return time;
+}
+
+#if !defined(_host_)
+inline
+#endif
+Time Time_from_seconds( uint32_t seconds )
+{
+	Time time = {
+		.ms    = seconds * 1000,
+		.ticks = 0,
+	};
+	return time;
+}
+
+#if !defined(_host_)
+inline
+#endif
+Time Time_from_ms( uint32_t ms )
+{
+	Time time = {
+		.ms    = ms,
+		.ticks = 0,
+	};
+	return time;
+}
+
 
 // -- Time Duration Functions --
 //

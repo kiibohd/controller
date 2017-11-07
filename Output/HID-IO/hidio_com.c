@@ -21,6 +21,7 @@
 
 // Project Includes
 #include <cli.h>
+#include <latency.h>
 #include <led.h>
 #include <output_com.h>
 #include <print.h>
@@ -44,6 +45,9 @@ CLIDict_Def( hidioCLIDict, "HID-IO Module Commands" ) = {
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
+// Latency Resource
+//static uint8_t hidioLatencyResource;
+
 
 
 // ----- Capabilities -----
@@ -57,12 +61,21 @@ inline void HIDIO_setup()
 	CLI_registerDictionary( hidioCLIDict, hidioCLIDictName );
 
 	// TODO
+
+	// Allocate latency resource
+	//uint8_t hidioLatencyResource = Latency_add_resource("HID-IO");
 }
 
 // HID-IO Processing Loop
 inline void HIDIO_process()
 {
+	// Start latency measurement
+	//Latency_start_time( hidioLatencyResource );
+
 	// TODO
+
+	// End latency measurement
+	//Latency_end_time( hidioLatencyResource );
 }
 
 

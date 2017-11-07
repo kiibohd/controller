@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2017 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 // Project Includes
 #include <cli.h>
 #include <kll_defs.h>
+#include <latency.h>
 #include <led.h>
 #include <print.h>
 #include <macro.h>
@@ -166,6 +167,9 @@ CLIDict_Def( uartConnectCLIDict, "UARTConnect Module Commands" ) = {
 	CLIDict_Item( connectSts ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
+
+// Latency measurement resource
+static uint8_t connectLatencyResource;
 
 
 // -- Connect Device Id Variables --
@@ -1013,6 +1017,9 @@ void Connect_setup( uint8_t master, uint8_t first )
 
 	// Reset the state of the UART variables
 	Connect_reset();
+
+	// Allocate latency measurement resource
+	connectLatencyResource = Latency_add_resource("UARTConnect", LatencyOption_Ticks);
 }
 
 
@@ -1160,6 +1167,9 @@ void Connect_rx_process( uint8_t uartNum )
 // - SyncEvent is also blocking until sent
 void Connect_scan()
 {
+	// Latency measurement start
+	Latency_start_time( connectLatencyResource );
+
 	// Check if initially configured as a slave and usb comes up
 	// Then reconfigure as a master
 	if ( !Connect_master && Output_Available && !Connect_override )
@@ -1203,6 +1213,9 @@ void Connect_scan()
 		Connect_rx_process( 0 );
 		Connect_rx_process( 1 );
 	}
+
+	// Latency measurement end
+	Latency_end_time( connectLatencyResource );
 }
 
 

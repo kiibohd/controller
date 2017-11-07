@@ -27,6 +27,7 @@
 // Project Includes
 #include <cli.h>
 #include <kll_defs.h>
+#include <latency.h>
 #include <led.h>
 #include <print.h>
 #include <macro.h>
@@ -102,6 +103,9 @@ uint16_t matrixPrevScans = 0;
 
 // System Timer used for delaying debounce decisions
 extern volatile uint32_t systick_millis_count;
+
+// Latency tracking
+uint8_t matrixLatencyResource;
 
 
 
@@ -252,6 +256,9 @@ void Matrix_setup()
 	// Clear scan stats counters
 	matrixMaxScans  = 0;
 	matrixPrevScans = 0;
+
+	// Setup latency module
+	matrixLatencyResource = Latency_add_resource("MatrixARM", LatencyOption_Ticks);
 }
 
 void Matrix_keyPositionDebug( KeyPosition pos )
@@ -319,6 +326,13 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 
 	// For each strobe, scan each of the sense pins
 	uint8_t strobe_section = *position + count;
+
+	// Start of each full section
+	if ( *position == 0 )
+	{
+		Latency_start_time( matrixLatencyResource );
+	}
+
 	for ( uint8_t strobe = *position; strobe < Matrix_colsNum && strobe < strobe_section; strobe++ )
 	{
 		#ifdef STROBE_DELAY
@@ -564,6 +578,13 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 		}
 	}
 #endif
+
+	// Measure ending latency if final strobe
+	if ( *position + 1 == Matrix_colsNum )
+	{
+		Latency_end_time( matrixLatencyResource );
+	}
+
 	// . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 
 

@@ -30,6 +30,7 @@
 #include <output_com.h>
 
 #include <cli.h>
+#include <latency.h>
 #include <led.h>
 #include <print.h>
 
@@ -44,6 +45,8 @@ int main()
 	CLKPR = 0x80;
 	CLKPR = 0x00;
 #endif
+	// Setup Latency Measurements
+	Latency_init();
 
 	// Enable CLI
 	CLI_init();
