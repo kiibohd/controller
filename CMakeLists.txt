@@ -68,7 +68,7 @@ include( initialize )
 #| Please look at the {Scan,Macro,Output,Debug} for information on the modules and how to create new ones
 
 ##| Deals with acquiring the keypress information and turning it into a key index
-set(   ScanModule "MD1"
+set(   ScanModule "Infinity_60"
 	CACHE STRING "Scan Module" )
 
 ##| Provides the mapping functions for DefaultMap and handles any macro processing before sending to the OutputModule
