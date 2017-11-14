@@ -1,3 +1,14 @@
+- [Flashing the K-Type](#flashing-the-k-type)
+    + [Entering Flash Mode.](#entering-flash-mode)
+    + [Configure Your Layout](#configure-your-layout)
+    + [Flashing - macOS](#flashing---macos)
+    + [Flashing - linux](#flashing---linux)
+    + [Flashing - Windows](#flashing---windows)
+      - [Command Prompt Flashing](#command-prompt-flashing)
+- [Adding a static color map on the K-Type](#adding-a-static-color-map-on-the-k-type)
+- [Adding an pre-built animation to the K-Type](#adding-an-pre-built-animation-to-the-k-type)
+- [Changing the switches on the K-Type](#changing-the-switches-on-the-k-type)
+
 # Flashing the K-Type
 
 ### Entering Flash Mode.
