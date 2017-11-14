@@ -1,12 +1,12 @@
 # Infinity Ergodox
 
 Name = MDErgo1;
-Version = 0.3;
+Version = 0.4;
 Author = "HaaTa (Jacob Alexander) 2014-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-04-02;
+Date = 2017-11-14;
 
 ########
 # NOTE #
@@ -37,6 +37,15 @@ ISSI_Chips = 1;
 
 # I2C Buses
 ISSI_I2C_Buses = 1; # 1 by default
+
+
+# FPS Target
+# Each ISSI chip setup has a different optimal framerate.
+# This setting specifies a target frame rate. This is sort've like "V-Sync" on monitors.
+# So the framerate will not go above this amount.
+# If the framerate goes below, ledFPS cli will issue warnings when enabled.
+ISSI_FrameRate_ms => ISSI_FrameRate_ms_define;
+ISSI_FrameRate_ms = 10; # 1000 / <ISSI_FrameRate_ms> = 100 fps
 
 
 # LED Default Enable Mask Override
