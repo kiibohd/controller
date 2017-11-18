@@ -1,73 +1,13 @@
-Name = Infinity 60%;
-Version = 0.4;
-Author = "HaaTa (Jacob Alexander) 2014-2016";
+# Infinity 60%
+
+Name = "Infinity 60%";
+Version = 0.5;
+Author = "HaaTa (Jacob Alexander) 2014-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2016-12-30;
+Date = 2017-11-17;
 
 
-S0x01 : U"Esc";
-S0x02 : U"1";
-S0x03 : U"2";
-S0x04 : U"3";
-S0x05 : U"4";
-S0x06 : U"5";
-S0x07 : U"6";
-S0x08 : U"7";
-S0x09 : U"8";
-S0x0A : U"9";
-S0x0B : U"0";
-S0x0C : U"Minus";
-S0x0D : U"Equal";
-S0x0E : U"Backslash";
-S0x0F : U"Backtick";
-S0x10 : U"Tab";
-S0x11 : U"Q";
-S0x12 : U"W";
-S0x13 : U"E";
-S0x14 : U"R";
-S0x15 : U"T";
-S0x16 : U"Y";
-S0x17 : U"U";
-S0x18 : U"I";
-S0x19 : U"O";
-S0x1A : U"P";
-S0x1B : U"LBrace";
-S0x1C : U"RBrace";
-S0x1D : U"Backspace";
-S0x1E : U"Ctrl";
-S0x1F : U"A";
-S0x20 : U"S";
-S0x21 : U"D";
-S0x22 : U"F";
-S0x23 : U"G";
-S0x24 : U"H";
-S0x25 : U"J";
-S0x26 : U"K";
-S0x27 : U"L";
-S0x28 : U"Semicolon";
-S0x29 : U"Quote";
-S0x2A : U"Enter";
-S0x2B : U"LShift";
-S0x2C : U"Z";
-S0x2D : U"X";
-S0x2E : U"C";
-S0x2F : U"V";
-S0x30 : U"B";
-S0x31 : U"N";
-S0x32 : U"M";
-S0x33 : U"Comma";
-S0x34 : U"Period";
-S0x35 : U"Slash";
-S0x36 : U"RShift";
-S0x37 : U"Function1"; # Fun key
-S0x38 : U"Function2"; # Left Blank Key
-S0x39 : U"LAlt";
-S0x3A : U"LGui";
-S0x3B : U"Space";
-S0x3C : U"RGui";
-S0x3D : U"RAlt";
-S0x3E : U"Function3"; # Right Blank Key 1
-S0x3F : U"Function4"; # Right Blank Key 2
+# N/A - Nothing needed in this file (for now)
 

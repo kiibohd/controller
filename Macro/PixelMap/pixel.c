@@ -272,6 +272,26 @@ void Pixel_AnimationControl_capability( TriggerMacro *trigger, uint8_t state, ui
 
 // ----- Functions -----
 
+// -- Debug Functions --
+
+// Debug info for PixelElement
+void Pixel_showPixelElement( PixelElement *elem )
+{
+	print("W:");
+	printInt8( elem->width );
+	print(" C:");
+	printInt8( elem->channels );
+	print(" I:");
+	printInt16( elem->indices[0] );
+	for ( uint8_t c = 1; c < elem->channels; c++ )
+	{
+		print(",");
+		printInt16( elem->indices[c] );
+
+	}
+}
+
+
 // -- Utility Functions --
 
 // TODO Support non-8bit channels
@@ -1377,7 +1397,7 @@ void Pixel_channelSet( uint16_t channel, uint32_t value )
 	{
 	// Invalid width, default to 8
 	default:
-		warn_msg("Unknown width, using 8: ");
+		warn_msg("ChanSet Unknown width: ");
 		printInt8( pixbuf->width );
 		print(" Ch: ");
 		printHex( channel );
@@ -1404,6 +1424,8 @@ void Pixel_channelSet( uint16_t channel, uint32_t value )
 // Debug function, used by cli only XXX
 void Pixel_channelToggle( uint16_t channel )
 {
+	printInt16( channel );
+	print(NL);
 	// Determine which buffer we are in
 	PixelBuf *pixbuf = Pixel_bufferMap( channel );
 
@@ -1412,7 +1434,7 @@ void Pixel_channelToggle( uint16_t channel )
 	{
 	// Invalid width, default to 8
 	default:
-		warn_msg("Unknown width, using 8: ");
+		warn_msg("ChanToggle Unknown width: ");
 		printInt8( pixbuf->width );
 		print(" Ch: ");
 		printHex( channel );
@@ -1944,34 +1966,34 @@ void cliFunc_pixelTest( char* args )
 		info_msg("All pixel test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Pixel_All;
-		break;
+		return;
 
 	case 'r':
 	case 'R':
 		info_msg("Pixel roll test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Pixel_Roll;
-		break;
+		return;
 
 	case 's':
 	case 'S':
 		info_msg("Stopping pixel test");
 		Pixel_testMode = PixelTest_Off;
-		break;
+		return;
 
 	case 'f':
 	case 'F':
 		info_msg("Enable all pixels");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Pixel_Full;
-		break;
+		return;
 
 	case 'o':
 	case 'O':
 		info_msg("Disable all pixels");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Pixel_Off;
-		break;
+		return;
 	}
 
 	// Check for specific position
@@ -1979,14 +2001,19 @@ void cliFunc_pixelTest( char* args )
 	{
 		Pixel_testPos = numToInt( arg1Ptr );
 	}
-	else
-	{
-		info_msg("Pixel: ");
-		printInt16( Pixel_testPos + 1 );
-	}
+
+	// Debug info
+	info_msg("Pixel: ");
+	printInt16( Pixel_testPos + 1 );
+	print(" ");
+
+	// Lookup pixel element
+	PixelElement *elem = (PixelElement*)&Pixel_Mapping[ Pixel_testPos ];
+	Pixel_showPixelElement( elem );
+	print( NL );
 
 	// Toggle channel
-	Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ Pixel_testPos ] );
+	Pixel_pixelToggle( elem );
 
 	// Increment channel
 	Pixel_testPos++;
@@ -2049,11 +2076,11 @@ void cliFunc_chanTest( char* args )
 	{
 		Pixel_testPos = numToInt( arg1Ptr );
 	}
-	else
-	{
-		info_msg("Channel: ");
-		printInt16( Pixel_testPos );
-	}
+
+	// Debug info
+	info_msg("Channel: ");
+	printInt16( Pixel_testPos );
+	print( NL );
 
 	// Toggle pixel
 	Pixel_channelToggle( Pixel_testPos );
@@ -2105,16 +2132,21 @@ void cliFunc_pixelSCTest( char* args )
 	{
 		Pixel_testPos = numToInt( arg1Ptr );
 	}
-	else
-	{
-		info_msg("Scancode: ");
-		printInt16( Pixel_testPos + 1 );
-		print(" Pixel: ");
-		printInt16( Pixel_ScanCodeToPixel[ Pixel_testPos ] );
-	}
 
 	// Lookup pixel
 	uint16_t pixel = Pixel_ScanCodeToPixel[ Pixel_testPos ];
+
+	// Debug info
+	info_msg("ScanCode: ");
+	printInt16( Pixel_testPos + 1 );
+	print(" Pixel: ");
+	printInt16( pixel );
+	print(" ");
+
+	// Lookup pixel element
+	PixelElement *elem = (PixelElement*)&Pixel_Mapping[ pixel - 1 ];
+	Pixel_showPixelElement( elem );
+	print( NL );
 
 	// Increment pixel
 	Pixel_testPos++;
@@ -2128,7 +2160,7 @@ void cliFunc_pixelSCTest( char* args )
 	}
 
 	// Toggle pixel
-	Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+	Pixel_pixelToggle( elem );
 }
 
 void cliFunc_pixelXYTest( char* args )
@@ -2228,20 +2260,25 @@ void cliFunc_pixelXYTest( char* args )
 	{
 		Pixel_testPos = numToInt( arg1Ptr );
 	}
-	else
-	{
-		info_msg("Position (x,y): ");
-		printInt16( Pixel_testPos % Pixel_DisplayMapping_Cols_KLL );
-		print(",");
-		printInt16( Pixel_testPos / Pixel_DisplayMapping_Cols_KLL );
-		print(":");
-		printInt16( Pixel_testPos );
-		print(" Pixel: ");
-		printInt16( Pixel_DisplayMapping[ Pixel_testPos ] );
-	}
 
 	// Lookup pixel
 	uint16_t pixel = Pixel_DisplayMapping[ Pixel_testPos ];
+
+	// Debug info
+	info_msg("Position (x,y): ");
+	printInt16( Pixel_testPos % Pixel_DisplayMapping_Cols_KLL );
+	print(",");
+	printInt16( Pixel_testPos / Pixel_DisplayMapping_Cols_KLL );
+	print(":");
+	printInt16( Pixel_testPos );
+	print(" Pixel: ");
+	printInt16( pixel );
+	print(" ");
+
+	// Lookup pixel element
+	PixelElement *elem = (PixelElement*)&Pixel_Mapping[ pixel - 1 ];
+	Pixel_showPixelElement( elem );
+	print( NL );
 
 	// Increment pixel
 	Pixel_testPos++;
@@ -2255,7 +2292,7 @@ void cliFunc_pixelXYTest( char* args )
 	}
 
 	// Toggle pixel
-	Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+	Pixel_pixelToggle( elem );
 }
 void cliFunc_aniAdd( char* args )
 {

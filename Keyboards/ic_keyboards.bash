@@ -28,8 +28,12 @@ source "common.bash"
 
 # Run builds
 cmd ./ergodox.bash
-cmd ./infinity.bash
-cmd ./infinity_led.bash
+cmd ./infinity.alphabet.bash
+cmd ./infinity.hacker.bash
+cmd ./infinity.standard.bash
+cmd ./infinity_led.alphabet.bash
+cmd ./infinity_led.hacker.bash
+cmd ./infinity_led.standard.bash
 cmd ./k-type.bash
 cmd ./kira.bash
 cmd ./whitefox.aria.bash

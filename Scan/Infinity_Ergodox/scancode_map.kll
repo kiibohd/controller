@@ -46,6 +46,7 @@ ISSI_I2C_Buses = 1; # 1 by default
 # If the framerate goes below, ledFPS cli will issue warnings when enabled.
 ISSI_FrameRate_ms => ISSI_FrameRate_ms_define;
 ISSI_FrameRate_ms = 10; # 1000 / <ISSI_FrameRate_ms> = 100 fps
+ISSI_FrameRate_ms = 100; # 1000 / <ISSI_FrameRate_ms> = 100 fps
 
 
 # LED Default Enable Mask Override
@@ -76,63 +77,63 @@ Pixel_Buffer_Buffer[0] = "LED_pageBuffer[0].buffer"; # Pointer to the start of t
 
 
 
+### Pixel Display Mapping Parameters ###
+Pixel_DisplayMapping_UnitSize = 19; # Default unit spacing in mm
+Pixel_DisplayMapping_ColumnSize = 1;
+Pixel_DisplayMapping_RowSize = 2;
+
+
+
 ### Pixel Mapping ###
 # Organizes each of the channels into pixels (may, or may not be multi-channel)
 
 # Top Row (1-7)
-P[  1](  0:8) : S1;  # D39
-P[  2]( 16:8) : S2;  # D40
-P[  3]( 32:8) : S3;  # D41
-P[  4]( 48:8) : S4;  # D42
-P[  5]( 64:8) : S5;  # D43
-P[  6](  1:8) : S6;  # D44
-P[  7]( 17:8) : S7;  # D45
+P[  1](  0:8) : S3;  # D39
+P[  2]( 16:8) : S4;  # D40
+P[  3]( 32:8) : S5;  # D41
+P[  4]( 48:8) : S6;  # D42
+P[  5]( 64:8) : S7;  # D43
+P[  6](  1:8) : S8;  # D44
+P[  7]( 17:8) : S9;  # D45
 
-# 2nd Roxx(8-14)
-P[  8]( 33:8) : S8;  # D46
-P[  9]( 49:8) : S9;  # D47
-P[ 10]( 65:8) : S10; # D48
-P[ 11](  2:8) : S11; # D49
-P[ 12]( 18:8) : S12; # D50
-P[ 13]( 34:8) : S13; # D51
-P[ 14]( 50:8) : S14; # D52
+# 2nd Row (8-14)
+P[  8]( 33:8) : S12; # D46
+P[  9]( 49:8) : S13; # D47
+P[ 10]( 65:8) : S14; # D48
+P[ 11](  2:8) : S15; # D49
+P[ 12]( 18:8) : S16; # D50
+P[ 13]( 34:8) : S17; # D51
+P[ 14]( 50:8) : S18; # D52
 
-# 3rd Roxx(15-20)
-P[ 15]( 66:8) : S15; # D53
-P[ 16](  3:8) : S16; # D54
-P[ 17]( 19:8) : S17; # D55
-P[ 18]( 35:8) : S18; # D56
-P[ 19]( 51:8) : S19; # D57
-P[ 20]( 67:8) : S20; # D58
+# 3rd Row (15-20)
+P[ 15]( 66:8) : S22; # D53
+P[ 16](  3:8) : S23; # D54
+P[ 17]( 19:8) : S24; # D55
+P[ 18]( 35:8) : S25; # D56
+P[ 19]( 51:8) : S26; # D57
+P[ 20]( 67:8) : S27; # D58
 
-# 4th Roxx(21-29)
-P[ 21](  4:8) : S21; # D59
-P[ 22]( 20:8) : S22; # D60
-P[ 23]( 36:8) : S23; # D61
-P[ 24]( 52:8) : S24; # D62
-P[ 25]( 68:8) : S25; # D63
-P[ 26](  5:8) : S26; # D64
-P[ 27]( 21:8) : S27; # D65
-P[ 28]( 37:8) : S28; # D66
-P[ 29]( 53:8) : S29; # D67
+# 4th Row (21-29)
+P[ 21](  4:8) : S28; # D59
+P[ 22]( 20:8) : S29; # D60
+P[ 23]( 36:8) : S30; # D61
+P[ 24]( 52:8) : S31; # D62
+P[ 25]( 68:8) : S32; # D63
+P[ 26](  5:8) : S33; # D64
+P[ 27]( 21:8) : S34; # D65
+P[ 28]( 37:8) : S35; # D66
+P[ 29]( 53:8) : S36; # D67
 
-# Bottomxxow (30-38)
-P[ 30]( 69:8) : S30; # D68
-P[ 31](  6:8) : S31; # D69
-P[ 32]( 22:8) : S32; # D70
-P[ 33]( 38:8) : S33; # D71
-P[ 34]( 54:8) : S34; # D72
-P[ 35](  7:8) : S35; # D73
-P[ 36]( 23:8) : S36; # D74
-P[ 37]( 39:8) : S37; # D75
-P[ 38]( 55:8) : S38; # D76
-
-
-
-### Physical Positions ###
-# Rows
-# Columns
-# TODO
+# Bottom Row (30-38)
+P[ 30]( 69:8) : S37; # D68
+P[ 31](  6:8) : S38; # D69
+P[ 32]( 22:8) : S39; # D70
+P[ 33]( 38:8) : S40; # D71
+P[ 34]( 54:8) : S41; # D72
+P[ 35](  7:8) : S42; # D73
+P[ 36]( 23:8) : S43; # D74
+P[ 37]( 39:8) : S44; # D75
+P[ 38]( 55:8) : S45; # D76
 
 
 
