@@ -1,0 +1,33 @@
+# MatrixARMPeriodic
+Name = MatrixARMPeriodicCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2017";
+KLL = 0.5;
+
+# Modified Date
+Date = 2017-11-19;
+
+# Defines available to the MatrixArmPeriodic sub-module
+
+# This defines the minimum amount of time after a transition until allowing another transition
+# Generally switches require a minimum 5 ms debounce period
+# Since a decision can usually be made quite quickly, there is little latency on each press
+# However, this defines the latency at which the switch state can change
+MinDebounceTime => MinDebounceTime_define;
+MinDebounceTime = 5; # 5 ms
+
+# This defines the number of clock cycles between periodic scans
+# i.e. Between each strobe of the matrix there is a delay to allow for other system processing
+# It is highly dependent on the MCU clock speed; however, debounce time is handled in absolute time
+# so there is generally little worry about scanning too quickly other than starving other functions.
+# If you scan too slowly, keypresses may be slow/delayed, or even dropped.
+PeriodicCycles => PeriodicCycles_define;
+PeriodicCycles = 2000; # 2000 cycles
+
+# This option delays each strobe by the given number of microseconds
+# By default this should *NOT* be set unless your keyboard is having issues
+# Delaying more than 10 usecs may cause significant slow-downs with other keyboard functions
+StrobeDelay => StrobeDelay_define;
+StrobeDelay = 0; # Disabled
+#StrobeDelay = 10; # 10 us
+

@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2017 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,17 +64,23 @@ extern const ResultMacro ResultMacroList[];
 
 // ----- Variables -----
 
-// Key Trigger List Buffer and Layer Cache
-// The layer cache is set on press only, hold and release events refer to the value set on press
-extern TriggerGuide macroTriggerListBuffer[];
-extern var_uint_t macroTriggerListBufferSize;
-extern var_uint_t macroTriggerListLayerCache[];
+// Incoming Trigger Event Buffer
+extern TriggerEvent macroTriggerEventBuffer[];
+extern var_uint_t macroTriggerEventBufferSize;
+extern var_uint_t macroTriggerEventLayerCache[];
+
+// Debug Variables
+extern uint8_t voteDebugMode;
 
 // Pending Trigger Macro Index List
 //  * Any trigger macros that need processing from a previous macro processing loop
 // TODO, figure out a good way to scale this array size without wasting too much memory, but not rejecting macros
 //       Possibly could be calculated by the KLL compiler
 // XXX It may be possible to calculate the worst case using the KLL compiler
+#if TriggerMacroNum == 0
+#undef TriggerMacroNum
+#define TriggerMacroNum 1
+#endif
 index_uint_t macroTriggerMacroPendingList[ TriggerMacroNum ] = { 0 };
 index_uint_t macroTriggerMacroPendingListSize = 0;
 
@@ -82,13 +88,62 @@ index_uint_t macroTriggerMacroPendingListSize = 0;
 
 // ----- Protected Macro Functions -----
 
-extern nat_ptr_t *Macro_layerLookup( TriggerGuide *guide, uint8_t latch_expire );
+extern nat_ptr_t *Macro_layerLookup( TriggerEvent *event, uint8_t latch_expire );
 
 extern void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro );
 
 
 
 // ----- Functions -----
+
+// -- Debug --
+
+// Show TriggerMacroVote
+void Trigger_showTriggerMacroVote( TriggerMacroVote vote )
+{
+	const char *result = "";
+
+	// Static voting
+	switch ( vote )
+	{
+	case TriggerMacroVote_Invalid:
+		result = "V:I";
+		break;
+
+	case TriggerMacroVote_Release:
+		result = "V:R";
+		break;
+
+	case TriggerMacroVote_Pass:
+		result = "V:P";
+		break;
+
+	case TriggerMacroVote_PassRelease:
+		result = "V:PR";
+		break;
+
+	default:
+		print("V:");
+		if ( vote & TriggerMacroVote_Fail )
+		{
+			print("F");
+		}
+		if ( vote & TriggerMacroVote_DoNothingRelease )
+		{
+			print("NR");
+		}
+		else if ( vote & TriggerMacroVote_DoNothing )
+		{
+			print("N");
+		}
+		return;
+	}
+
+	print( result );
+}
+
+
+// -- General --
 
 // Determine if long ResultMacro (more than 1 seqence element)
 uint8_t Macro_isLongResultMacro( const ResultMacro *macro )
@@ -104,7 +159,7 @@ uint8_t Macro_isLongResultMacro( const ResultMacro *macro )
 
 
 // Determine if long TriggerMacro (more than 1 sequence element)
-uint8_t Macro_isLongTriggerMacro( const TriggerMacro *macro )
+uint8_t Trigger_isLongTriggerMacro( const TriggerMacro *macro )
 {
 	// Check the second sequence combo length
 	// If non-zero return non-zero (long sequence)
@@ -114,42 +169,56 @@ uint8_t Macro_isLongTriggerMacro( const TriggerMacro *macro )
 
 
 // Votes on the given key vs. guide, short macros
-TriggerMacroVote Macro_evalShortTriggerMacroVote( TriggerGuide *key, TriggerGuide *guide )
+TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, TriggerGuide *guide )
 {
 	// Depending on key type
 	switch ( guide->type )
 	{
 	// Normal State Type
-	case 0x00:
+	case TriggerType_Switch1:
 		// For short TriggerMacros completely ignore incorrect keys
-		if ( guide->scanCode == key->scanCode )
+		if ( guide->scanCode == event->index )
 		{
-			switch ( key->state )
+			switch ( event->state )
 			{
 			// Correct key, pressed, possible passing
-			case 0x01:
+			case ScheduleType_P:
 				return TriggerMacroVote_Pass;
 
 			// Correct key, held, possible passing or release
-			case 0x02:
+			case ScheduleType_H:
 				return TriggerMacroVote_PassRelease;
 
 			// Correct key, released, possible release
-			case 0x03:
+			case ScheduleType_R:
 				return TriggerMacroVote_Release;
+
+			// Invalid state, fail
+			default:
+				return TriggerMacroVote_Fail;
 			}
 		}
 
 		return TriggerMacroVote_DoNothing;
 
 	// LED State Type
-	case 0x01:
+	case TriggerType_LED1:
 		erro_print("LED State Type - Not implemented...");
 		break;
 
 	// Analog State Type
-	case 0x02:
+	case TriggerType_Analog1:
 		erro_print("Analog State Type - Not implemented...");
+		break;
+
+	// Layer State Type
+	case TriggerType_Layer1:
+		erro_print("Layer State Type - Not implemented...");
+		break;
+
+	// Animation State Type
+	case TriggerType_Animation1:
+		erro_print("Animation State Type - Not implement...");
 		break;
 
 	// Invalid State Type
@@ -165,62 +234,80 @@ TriggerMacroVote Macro_evalShortTriggerMacroVote( TriggerGuide *key, TriggerGuid
 
 // Votes on the given key vs. guide, long macros
 // A long macro is defined as a guide with more than 1 combo
-TriggerMacroVote Macro_evalLongTriggerMacroVote( TriggerGuide *key, TriggerGuide *guide )
+TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerGuide *guide )
 {
 	// Depending on key type
 	switch ( guide->type )
 	{
 	// Normal State Type
-	case 0x00:
+	case TriggerType_Switch1:
 		// Depending on the state of the buffered key, make voting decision
 		// Incorrect key
-		if ( guide->scanCode != key->scanCode )
+		if ( guide->scanCode != event->index )
 		{
-			switch ( key->state )
+			switch ( event->state )
 			{
 			// Wrong key, pressed, fail
-			case 0x01:
+			case ScheduleType_P:
 				return TriggerMacroVote_Fail;
 
 			// Wrong key, held, do not pass (no effect)
-			case 0x02:
+			case ScheduleType_H:
 				return TriggerMacroVote_DoNothing;
 
 			// Wrong key released, fail out if pos == 0
-			case 0x03:
+			case ScheduleType_R:
 				return TriggerMacroVote_DoNothing | TriggerMacroVote_DoNothingRelease;
+
+			// Invalid state, fail
+			default:
+				return TriggerMacroVote_Fail;
 			}
 		}
 
 		// Correct key
 		else
 		{
-			switch ( key->state )
+			switch ( event->state )
 			{
 			// Correct key, pressed, possible passing
-			case 0x01:
+			case ScheduleType_P:
 				return TriggerMacroVote_Pass;
 
 			// Correct key, held, possible passing or release
-			case 0x02:
+			case ScheduleType_H:
 				return TriggerMacroVote_PassRelease;
 
 			// Correct key, released, possible release
-			case 0x03:
+			case ScheduleType_R:
 				return TriggerMacroVote_Release;
+
+			// Invalid state, fail
+			default:
+				return TriggerMacroVote_Fail;
 			}
 		}
 
 		break;
 
 	// LED State Type
-	case 0x01:
+	case TriggerType_LED1:
 		erro_print("LED State Type - Not implemented...");
 		break;
 
 	// Analog State Type
-	case 0x02:
+	case TriggerType_Analog1:
 		erro_print("Analog State Type - Not implemented...");
+		break;
+
+	// Layer State Type
+	case TriggerType_Layer1:
+		erro_print("Layer State Type - Not implemented...");
+		break;
+
+	// Animation State Type
+	case TriggerType_Animation1:
+		erro_print("Animation State Type - Not implement...");
 		break;
 
 	// Invalid State Type
@@ -235,7 +322,7 @@ TriggerMacroVote Macro_evalLongTriggerMacroVote( TriggerGuide *key, TriggerGuide
 
 
 // Evaluate/Update TriggerMacro
-TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
+TriggerMacroEval Trigger_evalTriggerMacro( var_uint_t triggerMacroIndex )
 {
 	// Lookup TriggerMacro
 	const TriggerMacro *macro = &TriggerMacroList[ triggerMacroIndex ];
@@ -261,7 +348,7 @@ TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 	}
 
 	// Check if this is a long Trigger Macro
-	uint8_t longMacro = Macro_isLongTriggerMacro( macro );
+	uint8_t longMacro = Trigger_isLongTriggerMacro( macro );
 
 	// Iterate through the items in the combo, voting the on the key state
 	// If any of the pressed keys do not match, fail the macro
@@ -282,16 +369,16 @@ TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 
 		TriggerMacroVote vote = TriggerMacroVote_Invalid;
 		// Iterate through the key buffer, comparing to each key in the combo
-		for ( var_uint_t key = 0; key < macroTriggerListBufferSize; key++ )
+		for ( var_uint_t key = 0; key < macroTriggerEventBufferSize; key++ )
 		{
 			// Lookup key information
-			TriggerGuide *keyInfo = &macroTriggerListBuffer[ key ];
+			TriggerEvent *triggerInfo = &macroTriggerEventBuffer[ key ];
 
 			// If vote is a pass (>= 0x08, no more keys in the combo need to be looked at)
 			// Also mask all of the non-passing votes
 			vote |= longMacro
-				? Macro_evalLongTriggerMacroVote( keyInfo, guide )
-				: Macro_evalShortTriggerMacroVote( keyInfo, guide );
+				? Trigger_evalLongTriggerMacroVote( triggerInfo, guide )
+				: Trigger_evalShortTriggerMacroVote( triggerInfo, guide );
 			if ( vote >= TriggerMacroVote_Pass )
 			{
 				vote &= TriggerMacroVote_Release | TriggerMacroVote_PassRelease | TriggerMacroVote_Pass;
@@ -312,6 +399,15 @@ TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 	// And this is the first position in the combo, just remove it (nothing important happened)
 	if ( longMacro && overallVote & TriggerMacroVote_DoNothingRelease && pos == 0 )
 		overallVote |= TriggerMacroVote_Fail;
+
+	// Vote Debug
+	switch ( voteDebugMode )
+	{
+	case 1:
+		Trigger_showTriggerMacroVote( overallVote );
+		print( NL );
+		break;
+	}
 
 	// Decide new state of macro after voting
 	// Fail macro, remove from pending list
@@ -359,7 +455,7 @@ TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 			else
 			{
 				// Only trigger result once, on press, if long trigger (more than 1 combo)
-				if ( Macro_isLongTriggerMacro( macro ) )
+				if ( Trigger_isLongTriggerMacro( macro ) )
 				{
 					return TriggerMacroEval_DoResultAndRemove;
 				}
@@ -388,23 +484,23 @@ TriggerMacroEval Macro_evalTriggerMacro( var_uint_t triggerMacroIndex )
 
 
 // Update pending trigger list
-void Macro_updateTriggerMacroPendingList()
+void Trigger_updateTriggerMacroPendingList()
 {
-	// Iterate over the macroTriggerListBuffer to add any new Trigger Macros to the pending list
-	for ( var_uint_t key = 0; key < macroTriggerListBufferSize; key++ )
+	// Iterate over the macroTriggerEventBuffer to add any new Trigger Macros to the pending list
+	for ( var_uint_t key = 0; key < macroTriggerEventBufferSize; key++ )
 	{
 		// TODO LED States
 		// TODO Analog Switches
 		// Only add TriggerMacro to pending list if key was pressed (not held, released or off)
-		if ( macroTriggerListBuffer[ key ].state == 0x00 && macroTriggerListBuffer[ key ].state != 0x01 )
+		if ( macroTriggerEventBuffer[ key ].state == 0x00 && macroTriggerEventBuffer[ key ].state != 0x01 )
 			continue;
 
 		// TODO Analog
 		// If this is a release case, indicate to layer lookup for possible latch expiry
-		uint8_t latch_expire = macroTriggerListBuffer[ key ].state == 0x03;
+		uint8_t latch_expire = macroTriggerEventBuffer[ key ].state == 0x03;
 
 		// Lookup Trigger List
-		nat_ptr_t *triggerList = Macro_layerLookup( &macroTriggerListBuffer[ key ], latch_expire );
+		nat_ptr_t *triggerList = Macro_layerLookup( &macroTriggerEventBuffer[ key ], latch_expire );
 
 		// If there was an error during lookup, skip
 		if ( triggerList == 0 )
@@ -471,7 +567,7 @@ void Trigger_setup()
 void Trigger_process()
 {
 	// Update pending trigger list, before processing TriggerMacros
-	Macro_updateTriggerMacroPendingList();
+	Trigger_updateTriggerMacroPendingList();
 
 	// Tail pointer for macroTriggerMacroPendingList
 	// Macros must be explicitly re-added
@@ -480,7 +576,7 @@ void Trigger_process()
 	// Iterate through the pending TriggerMacros, processing each of them
 	for ( var_uint_t macro = 0; macro < macroTriggerMacroPendingListSize; macro++ )
 	{
-		switch ( Macro_evalTriggerMacro( macroTriggerMacroPendingList[ macro ] ) )
+		switch ( Trigger_evalTriggerMacro( macroTriggerMacroPendingList[ macro ] ) )
 		{
 		// Trigger Result Macro (purposely falling through)
 		case TriggerMacroEval_DoResult:

@@ -45,6 +45,7 @@ set( HOST 1 )
 set( COMPILER_SRCS
 	Lib/entropy.c
 	Lib/host.c
+	Lib/periodic.c
 	Lib/time.c
 )
 

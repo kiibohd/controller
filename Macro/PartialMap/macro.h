@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2017 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,9 +25,11 @@
 
 // ----- Functions -----
 
-void Macro_analogState( uint8_t scanCode, uint8_t state );
-void Macro_keyState( uint8_t scanCode, uint8_t state );
-void Macro_ledState( uint8_t ledCode, uint8_t state );
+void Macro_analogState( uint16_t scanCode, uint8_t state );
+void Macro_animationState( uint16_t animationIndex, uint8_t state );
+void Macro_keyState( uint16_t scanCode, uint8_t state );
+void Macro_ledState( uint16_t ledCode, uint8_t state );
+
 void Macro_process();
 void Macro_setup();
 

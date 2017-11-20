@@ -327,7 +327,7 @@ void Connect_send_IdReport( uint8_t id )
 // id is the currently assigned id to the slave
 // scanCodeStateList is an array of [scancode, state]'s (8 bit values)
 // numScanCodes is the number of scan codes to parse from array
-void Connect_send_ScanCode( uint8_t id, TriggerGuide *scanCodeStateList, uint8_t numScanCodes )
+void Connect_send_ScanCode( uint8_t id, TriggerEvent *scanCodeStateList, uint8_t numScanCodes )
 {
 	// Lock master bound Tx
 	uart_lockTx( UART_Master );
@@ -1259,7 +1259,7 @@ void cliFunc_connectCmd( char* args )
 
 	case ScanCode:
 	{
-		TriggerGuide scanCodes[] = { { 0x00, 0x01, 0x05 }, { 0x00, 0x03, 0x16 } };
+		TriggerEvent scanCodes[] = { { 0x00, 0x01, 0x05 }, { 0x00, 0x03, 0x16 } };
 		Connect_send_ScanCode( 10, scanCodes, 2 );
 		break;
 	}

@@ -81,7 +81,7 @@ source "../common.bash"
 # Run tests
 cd "${BuildPath}"
 
-cmd python3 Tests/test.py
+#cmd python3 Tests/test.py # XXX (HaaTa) Disabling for now, need to implement general-case macro testing
 cmd python3 Tests/animation.py
 
 # Tally results

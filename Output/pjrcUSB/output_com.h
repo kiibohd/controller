@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2016 by Jacob Alexander
+/* Copyright (C) 2013-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -109,6 +109,8 @@ extern volatile uint16_t USBInit_Ticks;     // Number of times the end time has 
 // ----- Functions -----
 
 void Output_setup();
+void Output_poll();
+void Output_periodic();
 void Output_send();
 
 void Output_flushBuffers();

@@ -56,11 +56,6 @@ CLIDict_Def( scanCLIDict, "Scan Module Commands" ) = {
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
-// Number of scans since the last USB send
-uint16_t Scan_scanCount = 0;
-
-uint8_t Scan_strobe_position;
-
 
 
 // ----- Functions -----
@@ -74,29 +69,28 @@ inline void Scan_setup()
 	// Setup GPIO pins for matrix scanning
 	Matrix_setup();
 
-	// Reset scan count
-	Scan_scanCount = 0;
-
-	// Reset starting strobe position
-	Scan_strobe_position = 0;
+	// Start Matrix Scanner
+	Matrix_start();
 }
 
 
-// Main Detection Loop
-inline uint8_t Scan_loop()
+// Main Poll Loop
+// This is for operations that need to be run as often as possible
+// Usually reserved for LED update routines and other things that need quick update rates
+void Scan_poll()
+{
+}
+
+
+// Main Periodic Scan
+// This function is called periodically at a constant rate
+// Useful for matrix scanning and anything that requires consistent attention
+//
+// output_done: Signals that we can transition to the next state (i.e. USB Output is finished)
+uint8_t Scan_periodic( uint8_t output_done )
 {
 	// Scan Matrix
-	Matrix_scan( Scan_scanCount, &Scan_strobe_position, 4 );
-
-	// Check if we are ready to leave the scan loop
-	if ( Scan_strobe_position >= Matrix_totalColumns() )
-	{
-		Scan_strobe_position = 0;
-		Scan_scanCount++;
-		return 0;
-	}
-
-	return 1;
+	return Matrix_single_scan( output_done );
 }
 
 
@@ -109,9 +103,6 @@ inline void Scan_finishedWithMacro( uint8_t sentKeys )
 // Signal from Output Module that all keys have been processed (that it knows about)
 inline void Scan_finishedWithOutput( uint8_t sentKeys )
 {
-	// Reset scan loop indicator (resets each key debounce state)
-	// TODO should this occur after USB send or Macro processing?
-	Scan_scanCount = 0;
 }
 
 

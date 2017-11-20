@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2013-2016
+ * Modifications by Jacob Alexander 2013-2017
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -81,7 +81,26 @@ static uint8_t transmit_previous_timeout = 0;
 
 // ----- Functions -----
 
-// send the contents of keyboard_keys and keyboard_modifier_keys
+// Re-send the contents of the keyboard buffer, if exceeding the expiry timer
+void usb_keyboard_idle_update()
+{
+	// XXX (HaaTa) Disabled for now. Needs more testing.
+#if 0
+	// Ignore if set to 0
+	if ( USBKeys_Idle_Config != 0 )
+	{
+		// Check if we need to send an update
+		// USBKeys_Idle_Expiry is updated on usb_tx
+		if ( USBKeys_Idle_Expiry + USBKeys_Idle_Config * 4 >= systick_millis_count )
+		{
+			USBKeys_Changed = USBKeyChangeState_All;
+		}
+	}
+#endif
+}
+
+
+// Send the contents of keyboard_keys and keyboard_modifier_keys
 void usb_keyboard_send()
 {
 	uint32_t wait_count = 0;

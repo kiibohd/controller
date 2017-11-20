@@ -46,32 +46,7 @@
 
 // ----- Function Declarations -----
 
-void cliFunc_kbdProtocol( char* args );
-void cliFunc_readLEDs   ( char* args );
-void cliFunc_sendKeys   ( char* args );
-void cliFunc_setKeys    ( char* args );
-void cliFunc_setMod     ( char* args );
-
-
-
 // ----- Variables -----
-
-// Output Module command dictionary
-CLIDict_Entry( kbdProtocol, "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode" );
-CLIDict_Entry( readLEDs,    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc." );
-CLIDict_Entry( sendKeys,    "Send the prepared list of USB codes and modifier byte." );
-CLIDict_Entry( setKeys,     "Prepare a space separated list of USB codes (decimal). Waits until \033[35msendKeys\033[0m." );
-CLIDict_Entry( setMod,      "Set the modfier byte:" NL "\t\t1 LCtrl, 2 LShft, 4 LAlt, 8 LGUI, 16 RCtrl, 32 RShft, 64 RAlt, 128 RGUI" );
-
-CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
-	CLIDict_Item( kbdProtocol ),
-	CLIDict_Item( readLEDs ),
-	CLIDict_Item( sendKeys ),
-	CLIDict_Item( setKeys ),
-	CLIDict_Item( setMod ),
-	{ 0, 0, 0 } // Null entry for dictionary end
-};
-
 
 // Which modifier keys are currently pressed
 // 1=left ctrl,    2=left shift,   4=left alt,    8=left gui
@@ -146,21 +121,30 @@ void Output_flashMode_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 
 // ----- Functions -----
 
-// USB Module Setup
+// UART Module Setup
 inline void Output_setup()
 {
 	// Setup UART
 	uart_serial_setup();
-
-	// Register USB Output CLI dictionary
-	CLI_registerDictionary( outputCLIDict, outputCLIDictName );
 }
 
 
-// USB Data Send
-inline void Output_send(void)
+// UART Data Poll
+inline void Output_poll()
 {
-	// TODO
+}
+
+
+// UART Data Periodic
+inline void Output_periodic()
+{
+}
+
+
+// UART Data Ready
+uint8_t Output_ready()
+{
+	return 1;
 }
 
 
@@ -171,14 +155,14 @@ inline void Output_firmwareReload()
 }
 
 
-// USB Input buffer available
+// UART Input buffer available
 inline unsigned int Output_availablechar()
 {
 	return uart_serial_available();
 }
 
 
-// USB Get Character from input buffer
+// UART Get Character from input buffer
 inline int Output_getchar()
 {
 	// XXX Make sure to check output_availablechar() first! Information is lost with the cast (error codes) (AVR)
@@ -186,14 +170,14 @@ inline int Output_getchar()
 }
 
 
-// USB Send Character to output buffer
+// UART Send Character to output buffer
 inline int Output_putchar( char c )
 {
 	return uart_serial_putchar( c );
 }
 
 
-// USB Send String to output buffer, null terminated
+// UART Send String to output buffer, null terminated
 inline int Output_putstr( char* str )
 {
 #if defined(_avr_at_) // AVR
@@ -220,69 +204,4 @@ inline void Output_softReset()
 
 
 // ----- CLI Command Functions -----
-
-void cliFunc_kbdProtocol( char* args )
-{
-	print( NL );
-	info_msg("Keyboard Protocol: ");
-	printInt8( USBKeys_Protocol );
-}
-
-
-void cliFunc_readLEDs( char* args )
-{
-	print( NL );
-	info_msg("LED State: ");
-	printInt8( USBKeys_LEDs );
-}
-
-
-void cliFunc_sendKeys( char* args )
-{
-	// Copy USBKeys_KeysCLI to USBKeys_Keys
-	for ( uint8_t key = 0; key < USBKeys_SentCLI; ++key )
-	{
-		// TODO
-		//USBKeys_Keys[key] = USBKeys_KeysCLI[key];
-	}
-	USBKeys_Sent = USBKeys_SentCLI;
-
-	// Set modifier byte
-	USBKeys_Modifiers = USBKeys_ModifiersCLI;
-}
-
-
-void cliFunc_setKeys( char* args )
-{
-	char* curArgs;
-	char* arg1Ptr;
-	char* arg2Ptr = args;
-
-	// Parse up to USBKeys_MaxSize args (whichever is least)
-	for ( USBKeys_SentCLI = 0; USBKeys_SentCLI < USB_BOOT_MAX_KEYS; ++USBKeys_SentCLI )
-	{
-		curArgs = arg2Ptr;
-		CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
-
-		// Stop processing args if no more are found
-		if ( *arg1Ptr == '\0' )
-			break;
-
-		// Add the USB code to be sent
-		// TODO
-		//USBKeys_KeysCLI[USBKeys_SentCLI] = numToInt( arg1Ptr );
-	}
-}
-
-
-void cliFunc_setMod( char* args )
-{
-	// Parse number from argument
-	//  NOTE: Only first argument is used
-	char* arg1Ptr;
-	char* arg2Ptr;
-	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
-
-	USBKeys_ModifiersCLI = numToInt( arg1Ptr );
-}
 

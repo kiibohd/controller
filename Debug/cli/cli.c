@@ -24,6 +24,7 @@
 // Project Includes
 #include <Lib/chip_version.h>
 #include <Lib/entropy.h>
+#include <Lib/periodic.h>
 #include <Lib/time.h>
 
 // General Includes
@@ -52,6 +53,7 @@ CLIDict_Entry( exit,      "Host KLL Only - Exits cli." );
 CLIDict_Entry( help,      "You're looking at it :P" );
 CLIDict_Entry( latency,   "Show latency of specific modules and routiines. Specify index for a single item" );
 CLIDict_Entry( led,       "Enables/Disables indicator LED. Try a couple times just in case the LED is in an odd state.\r\n\t\t\033[33mWarning\033[0m: May adversely affect some modules..." );
+CLIDict_Entry( periodic,  "Set the number of clock cycles between periodic scans." );
 CLIDict_Entry( rand,      "If entropy available, print a random 32-bit number." );
 CLIDict_Entry( reload,    "Signals microcontroller to reflash/reload." );
 CLIDict_Entry( reset,     "Resets the terminal back to initial settings." );
@@ -69,6 +71,7 @@ CLIDict_Def( basicCLIDict, "General Commands" ) = {
 	CLIDict_Item( help ),
 	CLIDict_Item( latency ),
 	CLIDict_Item( led ),
+	CLIDict_Item( periodic ),
 	CLIDict_Item( rand ),
 	CLIDict_Item( reload ),
 	CLIDict_Item( reset ),
@@ -619,6 +622,28 @@ void cliFunc_led( char* args )
 {
 	CLILEDState ^= 1 << 1; // Toggle between 0 and 1
 	errorLED( CLILEDState ); // Enable/Disable error LED
+}
+
+void cliFunc_periodic( char* args )
+{
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+	print( NL );
+
+	// Set clock cycles if an argument is given
+	if ( arg1Ptr[0] != '\0' )
+	{
+		uint32_t cycles = (uint32_t)numToInt( arg1Ptr );
+
+		Periodic_init( cycles );
+	}
+
+	// Show number of clock cycles between periods
+	info_msg("Period Clock Cycles: ");
+	printInt32( Periodic_cycles() );
 }
 
 void cliFunc_rand( char* args )

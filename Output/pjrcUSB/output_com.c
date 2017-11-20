@@ -70,6 +70,7 @@
 // ----- Function Declarations -----
 
 void cliFunc_current    ( char* args );
+void cliFunc_idle       ( char* args );
 void cliFunc_kbdProtocol( char* args );
 void cliFunc_outputDebug( char* args );
 void cliFunc_readLEDs   ( char* args );
@@ -83,8 +84,9 @@ void cliFunc_usbInitTime( char* args );
 // ----- Variables -----
 
 // Output Module command dictionary
-CLIDict_Entry( current,     "Shows the current negotiated current" );
-CLIDict_Entry( kbdProtocol, "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode" );
+CLIDict_Entry( current,     "Shows the current negotiated current." );
+CLIDict_Entry( idle,        "Show/set the HID Idle time (multiples of 4 ms)." );
+CLIDict_Entry( kbdProtocol, "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode." );
 CLIDict_Entry( outputDebug, "Toggle Output Debug mode." );
 CLIDict_Entry( readLEDs,    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc." );
 CLIDict_Entry( sendKeys,    "Send the prepared list of USB codes and modifier byte." );
@@ -94,6 +96,7 @@ CLIDict_Entry( usbInitTime, "Displays the time in ms from usb_init() till the la
 
 CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
 	CLIDict_Item( current ),
+	CLIDict_Item( idle ),
 	CLIDict_Item( kbdProtocol ),
 	CLIDict_Item( outputDebug ),
 	CLIDict_Item( readLEDs ),
@@ -179,7 +182,8 @@ volatile uint32_t USBInit_TimeEnd;
 volatile uint16_t USBInit_Ticks;
 
 // Latency measurement resource
-static uint8_t outputLatencyResource;
+static uint8_t outputPeriodicLatencyResource;
+static uint8_t outputPollLatencyResource;
 
 
 
@@ -689,37 +693,40 @@ inline void Output_setup()
 #endif
 
 	// Latency resource allocation
-	outputLatencyResource = Latency_add_resource("USBOutput", LatencyOption_Ticks);
+	outputPeriodicLatencyResource = Latency_add_resource("USBOutputPeri", LatencyOption_Ticks);
+	outputPollLatencyResource = Latency_add_resource("USBOutputPoll", LatencyOption_Ticks);
 }
 
 
-// USB Data Send
-inline void Output_send()
+// USB Data Poll
+inline void Output_poll()
 {
 	// Start latency measurement
-	Latency_start_time( outputLatencyResource );
+	Latency_start_time( outputPollLatencyResource );
 
 	// USB status checks
 	// Non-standard USB state manipulation, usually does nothing
 	usb_device_check();
 
-	// XXX - Behaves oddly on Mac OSX, might help with corrupted packets specific to OSX? -HaaTa
-	/*
-	// Check if idle count has been exceed, this forces usb_keyboard_send and usb_mouse_send to update
-	// TODO Add joystick as well (may be endpoint specific, currently not kept track of)
-	if ( usb_configuration && USBKeys_Idle_Config && (
-		USBKeys_Idle_Expiry < systick_millis_count ||
-		USBKeys_Idle_Expiry + USBKeys_Idle_Config * 4 >= systick_millis_count ) )
-	{
-		USBKeys_Changed = USBKeyChangeState_All;
-		USBMouse_Changed = USBMouseChangeState_All;
-	}
-	*/
+	// Re-send last usb keyboard state if we've passed the expiry time
+	// And the HID IDLE is set
+	usb_keyboard_idle_update();
 
 #if enableRawIO_define == 1
 	// HID-IO Process
 	HIDIO_process();
 #endif
+
+	// End latency measurement
+	Latency_end_time( outputPollLatencyResource );
+}
+
+
+// USB Data Periodic
+inline void Output_periodic()
+{
+	// Start latency measurement
+	Latency_start_time( outputPeriodicLatencyResource );
 
 #if enableMouse_define == 1
 	// Process mouse actions
@@ -754,7 +761,7 @@ inline void Output_send()
 #endif
 
 	// End latency measurement
-	Latency_end_time( outputLatencyResource );
+	Latency_end_time( outputPeriodicLatencyResource );
 }
 
 
@@ -939,6 +946,30 @@ void cliFunc_current( char* args )
 	info_msg("Current available: ");
 	printInt16( Output_current_available() );
 	print(" mA");
+}
+
+void cliFunc_idle( char* args )
+{
+	print( NL );
+
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	// Set Idle count
+	if ( arg1Ptr[0] != '\0' )
+	{
+		uint8_t idle = (uint8_t)numToInt( arg1Ptr );
+		USBKeys_Idle_Config = idle;
+	}
+
+	// Show Idle count
+	info_msg("USB Idle Config: ");
+	printInt16( 4 * USBKeys_Idle_Config );
+	print(" ms - ");
+	printInt8( USBKeys_Idle_Config );
 }
 
 void cliFunc_kbdProtocol( char* args )

@@ -26,12 +26,15 @@
 
 // Project Includes
 #include <cli.h>
+#include <hidio_com.h>
+#include <latency.h>
 #include <led.h>
 #include <print.h>
 #include <scan_loop.h>
 
 // USB Includes
 #if defined(_avr_at_)
+#include "avr/usb_keyboard_serial.h"
 #elif defined(_kinetis_)
 #include <arm/uart_serial.h>
 #include <arm/usb_dev.h>
@@ -177,6 +180,10 @@ uint16_t Output_USBCurrent_Available = 0;
 volatile uint32_t USBInit_TimeStart;
 volatile uint32_t USBInit_TimeEnd;
 volatile uint16_t USBInit_Ticks;
+
+// Latency measurement resource
+static uint8_t outputPeriodicLatencyResource;
+static uint8_t outputPollLatencyResource;
 
 
 
@@ -646,6 +653,13 @@ void Output_flushBuffers()
 	USBKeys_ConsCtrl = 0;
 	USBKeys_Modifiers = 0;
 	USBKeys_SysCtrl = 0;
+
+	// Reset USBKeys_Keys size
+	USBKeys_Sent = 0;
+	USBKeys_SentCLI = 0;
+
+	// Set USBKeys_LEDs_Changed to indicate that we should update LED status
+	USBKeys_LEDs_Changed = 1;
 }
 
 
@@ -666,29 +680,50 @@ inline void Output_setup()
 
 	// Flush key buffers
 	Output_flushBuffers();
+
+	// Check if we need to disable secure bootloader mode
+	// This is done by setting both 32 bit Kiibohd specific VBAT secure register regions
+#if ( defined(_kii_v1_) || defined(_kii_v2_) ) && SecureBootloader_define == 0
+	VBAT_SECURE1 = 0;
+	VBAT_SECURE2 = 0;
+#endif
+
+#if enableRawIO_define == 1
+	// Setup HID-IO
+	HIDIO_setup();
+#endif
+
+	// Latency resource allocation
+	outputPeriodicLatencyResource = Latency_add_resource("USBOutputPeri", LatencyOption_Ticks);
+	outputPollLatencyResource = Latency_add_resource("USBOutputPoll", LatencyOption_Ticks);
 }
 
 
-// USB Data Send
-inline void Output_send()
+// USB Data Poll
+inline void Output_poll()
 {
+	// Start latency measurement
+	Latency_start_time( outputPollLatencyResource );
+
 	// USB status checks
 	// Non-standard USB state manipulation, usually does nothing
 	usb_device_check();
 
-	// Boot Mode Only, unset stale keys
-	// XXX - Behaves oddly on Mac OSX, might help with corrupted packets specific to OSX? -HaaTa
-	/*
-	// Check if idle count has been exceed, this forces usb_keyboard_send and usb_mouse_send to update
-	// TODO Add joystick as well (may be endpoint specific, currently not kept track of)
-	if ( usb_configuration && USBKeys_Idle_Config && (
-		USBKeys_Idle_Expiry < systick_millis_count ||
-		USBKeys_Idle_Expiry + USBKeys_Idle_Config * 4 >= systick_millis_count ) )
-	{
-		USBKeys_Changed = USBKeyChangeState_All;
-		USBMouse_Changed = USBMouseChangeState_All;
-	}
-	*/
+#if enableRawIO_define == 1
+	// HID-IO Process
+	HIDIO_process();
+#endif
+
+	// End latency measurement
+	Latency_end_time( outputPollLatencyResource );
+}
+
+
+// USB Data Periodic
+inline void Output_periodic()
+{
+	// Start latency measurement
+	Latency_start_time( outputPeriodicLatencyResource );
 
 #if enableMouse_define == 1
 	// Process mouse actions
@@ -697,23 +732,23 @@ inline void Output_send()
 #endif
 
 #if enableKeyboard_define == 1
+	// Boot Mode Only, unset stale keys
 	if ( USBKeys_Protocol == 0 )
+	{
 		for ( uint8_t c = USBKeys_Sent; c < USB_BOOT_MAX_KEYS; c++ )
+		{
 			USBKeys_Keys[c] = 0;
+		}
+	}
 
 	// Send keypresses while there are pending changes
 	while ( USBKeys_Changed )
 		usb_keyboard_send();
 
-	// Clear keys sent
-	USBKeys_Sent = 0;
-
 	// Signal Scan Module we are finished
 	switch ( USBKeys_Protocol )
 	{
 	case 0: // Boot Mode
-		// Clear modifiers only in boot mode
-		USBKeys_Modifiers = 0;
 		Scan_finishedWithOutput( USBKeys_Sent <= USB_BOOT_MAX_KEYS ? USBKeys_Sent : USB_BOOT_MAX_KEYS );
 		break;
 	case 1: // NKRO Mode
@@ -721,6 +756,9 @@ inline void Output_send()
 		break;
 	}
 #endif
+
+	// End latency measurement
+	Latency_end_time( outputPeriodicLatencyResource );
 }
 
 

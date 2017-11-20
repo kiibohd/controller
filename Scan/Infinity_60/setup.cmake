@@ -23,7 +23,7 @@ set ( MatrixARM_Path ${CMAKE_CURRENT_LIST_DIR} )
 # Required Submodules
 #
 
-AddModule ( Scan Devices/MatrixARM )
+AddModule ( Scan Devices/MatrixARMPeriodic )
 
 
 ###

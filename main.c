@@ -34,9 +34,40 @@
 #include <led.h>
 #include <print.h>
 
+#include <Lib/periodic.h>
 
 
-// ----- Functions -----
+
+// ----- Variables -----
+
+// Output module ready tracker
+static volatile uint8_t output_done;
+
+
+
+// ----- MCU-only Functions -----
+#if !defined(_host_)
+
+// Run periodically at a consistent time rate
+// Used to process events that need to be run at regular intervals
+// And have negative effect being delayed or stretched too much
+void main_periodic()
+{
+	// Scan module periodic routines
+	// Returns non-zero if ready to process macros
+	if ( Scan_periodic( output_done ) )
+	{
+		// Run Macros over Key Indices and convert to USB Keys
+		Macro_process();
+
+		// Send periodic USB results
+		Output_periodic();
+
+		// Indicate to Scan Module that we can assign new states
+		output_done = 1;
+	}
+}
+
 
 int main()
 {
@@ -51,28 +82,38 @@ int main()
 	// Enable CLI
 	CLI_init();
 
+	// Setup periodic timer function
+	Periodic_function( &main_periodic );
+
 	// Setup Modules
 	Output_setup();
 	Macro_setup();
 	Scan_setup();
 
+	// We're ready for keypresses right away
+	output_done = 1;
+
 	// Main Detection Loop
 	while ( 1 )
 	{
+		// Run constantly
+		// Used to process things such as the cli and output module (i.e. USB).
+		// Should not be used to run things that require consistent timing.
+		// While counter-intuitive, things such as LED/Display modules should be run as poll
+		// as they need to run as quickly as possible, in case there needs to be frame drops
+
 		// Process CLI
 		CLI_process();
 
-		// Acquire Key Indices
-		// Loop continuously until scan_loop returns 0
-		while ( Scan_loop() );
+		// Scan module poll routines
+		Scan_poll();
 
-		// Run Macros over Key Indices and convert to USB Keys
-		Macro_process();
-
-		// Sends USB data only if changed
-		Output_send();
+		// Output module poll routines
+		Output_poll();
 	}
 }
+
+#endif
 
 // ----- Host-only Functions -----
 #if defined(_host_)

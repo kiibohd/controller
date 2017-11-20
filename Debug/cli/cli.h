@@ -125,6 +125,7 @@ void cliFunc_exit     ( char* args );
 void cliFunc_help     ( char* args );
 void cliFunc_latency  ( char* args );
 void cliFunc_led      ( char* args );
+void cliFunc_periodic ( char* args );
 void cliFunc_rand     ( char* args );
 void cliFunc_reload   ( char* args );
 void cliFunc_reset    ( char* args );

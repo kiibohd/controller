@@ -22,6 +22,7 @@
 #include <kll_defs.h>
 
 // Project Includes
+#include <Lib/time.h>
 #include <print.h>
 #include <scan_loop.h>
 #include <macro.h>
@@ -76,35 +77,85 @@ typedef uint16_t nat_ptr_t;
 typedef uintptr_t nat_ptr_t;
 #endif
 
+// - NOTE -
+// ScheduleState index size
+// This will greatly increase the amount of flash required for the lookup tables.
+// If possible, should be set to 8bit.
+// XXX (HaaTa) Compute using KLL compiler
+#define ScheduleStateSize_define 8
+#if ScheduleStateSize_define == 32
+typedef uint32_t state_uint_t;
+#elif ScheduleStateSize_define == 16
+typedef uint16_t state_uint_t;
+#elif ScheduleStateSize_define == 8
+typedef uint8_t state_uint_t;
+#else
+#error "Invalid ScheduleStateSize, possible values: 32, 16, 8."
+#endif
+
 
 
 // ----- Structs -----
 
 // -- Scheduling
-
+// ScheduleStates are contained in a separate datastructure and retrieved by index.
+// In most cases a schedule is duplicated many times, and thus does not need to be repeated in memory.
+//
+// States:
+//   * Press/Hold/Release/Off - PHRO
+//   * Start/On/Stop/Off      - AODO
+//   * Done/Repeat/Off        - DRO
+//   * Threshold (Range)      - 0x01 (Released), 0x10 (Light press), 0xFF (Max press) (Threashold)
+//   * Debug                  - 0xFF (Print capability name)
+//
+// States with the same numerical value have same/similar function, but is called something else in that case.
+//
 typedef enum ScheduleState {
-	ScheduleType_P,   // Press
-	ScheduleType_H,   // Hold
-	ScheduleType_R,   // Release
-	ScheduleType_O,   // Off
-	ScheduleType_UP,  // Unique Press
-	ScheduleType_UR,  // Unique Release
+	ScheduleType_P      = 0x01, // Press
+	ScheduleType_H      = 0x02, // Hold
+	ScheduleType_R      = 0x03, // Release
+	ScheduleType_O      = 0x00, // Off
+	ScheduleType_UP     = 0x04, // Unique Press
+	ScheduleType_UR     = 0x05, // Unique Release
 
-	ScheduleType_A,   // Activate
-	ScheduleType_D,   // Deactivate
-	ScheduleType_On,  // On
-	ScheduleType_Off, // Off
+	ScheduleType_A      = 0x01, // Activate
+	ScheduleType_On     = 0x02, // On
+	ScheduleType_D      = 0x03, // Deactivate
+	ScheduleType_Off    = 0x00, // Off
+
+	ScheduleType_Done   = 0x06, // Done
+	ScheduleType_Repeat = 0x07, // Repeat
+
+	ScheduleType_Debug  = 0xFF, // Print capability name
 } ScheduleState;
 
-// TODO - Do we need 64-bits for time here? It's the easiest to implement -HaaTa
-typedef struct Schedule {
-	uint32_t systick;   // ms systick
-	uint32_t cycletick; // Usually in the ns range, e.g. 13.889 ns per tick
+// Schedule parameter container
+// time   - Time constraints for parameter
+//          Set to 0.0 if unused
+// state  - Required state condition
+// analog - Analog threshold condition
+typedef struct ScheduleParam {
+	Time time; // ms systick + cycletick (e.g. 13.889 ns per tick for 72 MHz)
 	union {
 		ScheduleState state;
 		uint8_t analog;
 	};
+} ScheduleParam;
+
+// Main schedule container
+// params - Pointer to list of ScheduleParams
+// count  - Number of ScheduleParams
+typedef struct Schedule {
+	ScheduleParam *params;
+	uint8_t count;
 } Schedule;
+
+// TODO Add to KLL, compute based on number of schedules
+#define ScheduleNum_KLL 2
+typedef struct ScheduleLookup {
+	Schedule schedule[ ScheduleNum_KLL ];
+	state_uint_t count;
+} ScheduleLookup;
 
 
 
@@ -145,19 +196,29 @@ typedef struct ResultGuide {
 // -- Trigger Macro
 // Defines the sequence of combinations to Trigger a Result Macro
 // For RAM optimization reasons TriggerMacro has been split into TriggerMacro and TriggerMacroRecord
-// Key Types:
-//   * 0x00 Normal (Press/Hold/Release)
-//   * 0x01 LED State (On/Off)
-//   * 0x02 Analog (Threshold)
-//   * 0x03-0xFE Reserved
+// Types:
+//   * 0x00 Switch Bank 1    (   0- 255) [PHRO]
+//   * 0x01 Switch Bank 2    ( 256- 511) [PHRO]
+//   * 0x02 Switch Bank 3    ( 512- 767) [PHRO]
+//   * 0x03 Switch Bank 4    ( 768-1023) [PHRO]
+//   * 0x04 LED    Bank 1    (   0- 255) [AODO]
+//   * 0x05 Analog Bank 1    (   0- 255) [Threshold]
+//   * 0x06 Analog Bank 2    ( 256- 511) [Threshold]
+//   * 0x07 Analog Bank 3    ( 512- 767) [Threshold]
+//   * 0x08 Analog Bank 4    ( 768-1023) [Threshold]
+//   * 0x09 Layer  Bank 1    (   0- 255) [AODO]
+//   * 0x0A Layer  Bank 2    ( 256- 511) [AODO]
+//   * 0x0B Layer  Bank 3    ( 512- 767) [AODO]
+//   * 0x0C Layer  Bank 4    ( 768-1023) [AODO]
+//   * 0x0D Animation Bank 1 (   0- 255) [DRO]
+//   * 0x0E Animation Bank 2 ( 256- 511) [DRO]
+//   * 0x0F Animation Bank 3 ( 512- 767) [DRO]
+//   * 0x10 Animation Bank 4 ( 768-1023) [DRO]
+//   * 0x11-0xFE Reserved
 //   * 0xFF Debug State
 //
-// Key State:
-//   * Off                - 0x00 (all flag states)
-//   * On                 - 0x01
-//   * Press/Hold/Release - 0x01/0x02/0x03
-//   * Threshold (Range)  - 0x01 (Released), 0x10 (Light press), 0xFF (Max press)
-//   * Debug              - 0xFF (Print capability name)
+// States:
+//   * See ScheduleState above.
 //
 // Combo Length of 0 signifies end of sequence
 //
@@ -166,6 +227,31 @@ typedef struct ResultGuide {
 //
 // TriggerMacroRecord.pos   -> <current combo position>
 // TriggerMacroRecord.state -> <status of the macro pos>
+
+// TriggerType
+typedef enum TriggerType {
+	TriggerType_Switch1    = 0x00,
+	TriggerType_Switch2    = 0x01,
+	TriggerType_Switch3    = 0x02,
+	TriggerType_Switch4    = 0x03,
+	TriggerType_LED1       = 0x04,
+	TriggerType_Analog1    = 0x05,
+	TriggerType_Analog2    = 0x06,
+	TriggerType_Analog3    = 0x07,
+	TriggerType_Analog4    = 0x08,
+	TriggerType_Layer1     = 0x09,
+	TriggerType_Layer2     = 0x0A,
+	TriggerType_Layer3     = 0x0B,
+	TriggerType_Layer4     = 0x0C,
+	TriggerType_Animation1 = 0x0D,
+	TriggerType_Animation2 = 0x0E,
+	TriggerType_Animation3 = 0x0F,
+	TriggerType_Animation4 = 0x10,
+
+	/* Reserved 0x11-0xFE */
+
+	TriggerType_Debug   = 0xFF,
+} TriggerType;
 
 // TriggerMacro states
 typedef enum TriggerMacroState {
@@ -194,12 +280,12 @@ typedef struct TriggerGuide {
 	uint8_t scanCode;
 } TriggerGuide;
 
-// Same as a TriggerGuide, but is used for incoming events rather than event comparisons
-typedef struct TriggerBuffer {
-	uint8_t type;
-	uint8_t state;
-	uint8_t scanCode;
-} TriggerBuffer;
+// Used for incoming Trigger events
+typedef struct TriggerEvent {
+	TriggerType   type;
+	ScheduleState state;
+	uint8_t       index;
+} TriggerEvent;
 
 
 

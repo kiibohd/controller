@@ -27,13 +27,23 @@ Example
 Projects
 --------
 
-* ergodox.bash      (Infinity Ergodox 2015/08/15)
+* ergodox.bash      (Infinity Ergodox 2015/08/15, builds both sides)
 
     - ergodox-l.bash (Left  Side)
     - ergodox-r.bash (Right Side)
 
-* infinity.bash     (Infinity Keyboard 2014/10/15 (MD1))
-* infinity_led.bash (Infinity Keyboard with LED backlight support (MD1.1))
+* infinity.bash     (Infinity Keyboard 2014/10/15 (MD1), defaults to Alphabet)
+
+    - infinity.alphabet.bash
+    - infinity.hacker.bash
+    - infinity.standard.bash
+
+* infinity_led.bash (Infinity Keyboard with LED backlight support (MD1.1), defaults to Alphabet)
+
+    - infinity_led.alphabet.bash
+    - infinity_led.hacker.bash
+    - infinity_led.standard.bash
+
 * k-type.bash       (K-Type Keyboard, Production)
 * whitefox.bash     (WhiteFox Keyboard, defaults to TrueFox)
 
@@ -57,6 +67,18 @@ Projects
 * others.bash        (Script used during CI and testing)
 * ps2_converter.bash (PS2 Converter for Teensy 3.1/3.2)
 * template.bash      (Example template for new keyboards)
+
+
+**Tests**
+
+* Testing/macrotest.bash  (Basic host-side unit-tests)
+* Testing/mk20test.bash   (mk20dx128vlh7 test build)
+* Testing/mk22test.bash   (mk22fx512avlh12 test build)
+* Testing/mk64test.bash   (mk64fx512 Teensy 3.5 test build)
+* Testing/mk66test.bash   (mk66fx1m0 Teensy 3.6 test build)
+* Testing/template.bash   (Example test template)
+* Testing/uartout.bash    (Test mk20dx128vlf5 with uartOut Output Module)
+* Testing/usbmuxuart.bash (Test mk20dx128vlf5 with usbMuxUart Output Module)
 
 
 Example Usage

@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,24 +21,22 @@
 
 #pragma once
 
+// ----- Defines -----
+
 // ----- Includes -----
 
-// Compiler Includes
+// System Includes
 #include <stdint.h>
 
 
 
+// ----- Structs -----
+
+// ----- Variables -----
+
 // ----- Functions -----
 
-// Functions to be called by main.c
-void Scan_setup();
-void Scan_poll();
-
-uint8_t Scan_periodic( uint8_t output_done );
-
-// Call-backs
-void Scan_finishedWithMacro( uint8_t sentKeys );  // Called by Macro Module
-void Scan_finishedWithOutput( uint8_t sentKeys ); // Called by Output Module
-
-void Scan_currentChange( unsigned int current ); // Called by Output Module
+void Periodic_init( uint32_t cycles );
+void Periodic_function( void *func );
+uint32_t Periodic_cycles();
 

@@ -213,6 +213,7 @@ set( COMPILER_SRCS
 	Lib/${CHIP_SUPPORT}.c
 	Lib/delay.c
 	Lib/entropy.c
+	Lib/periodic.c
 	Lib/time.c
 )
 

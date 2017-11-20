@@ -22,8 +22,8 @@ Official Keyboards
 * Infinity 60%
 * Infinity 60% LED
 * Infinity Ergodox
+* K-Type
 * WhiteFox
-* K-Type (coming soon)
 
 
 The Kiibohd firmware supports a lot of other keyboards, but these are more obscure/custom/lesser known.
@@ -60,6 +60,20 @@ Some considerations for minimum specs:
 * ~25 kB of Flash
 
 It's possible to port chips with lower specs, but will be more effort and have fewer features.
+
+
+
+Modules
+-------
+
+Scan <-> Macro <-> Output
+
+* [Debug Modules](Debug) - Debug support modules (e.g. cli)
+* [Scan Modules](Scan) - Defines keyboard behaviour (e.g. K-Type)
+* [Macro Modules](Macro) - KLL support modules
+* [Output Modules](Output) - Defines what the keyboard talks over (e.g. USB)
+
+General Code can be found in [Lib](Lib).
 
 
 

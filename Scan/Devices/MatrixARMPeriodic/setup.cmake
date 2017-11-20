@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Scan Module |###
 #
-# Written by Jacob Alexander in 2014-2017 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -36,6 +36,4 @@ set_property (
 set ( ModuleCompatibility
 	arm
 )
-
-message( FATAL_ERROR "MatrixARM has been deprecated in favour of MatrixARMPeriodic. Your scan module will need to be updated." )
 
