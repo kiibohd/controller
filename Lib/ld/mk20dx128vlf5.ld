@@ -29,9 +29,10 @@
  * SOFTWARE.
  */
 
+/* XXX (HaaTa) DO NOT CHANGE FLASH ORIGIN to 8K UNLESS YOU TEST WORKING with 4K BOOTLOADER */
 MEMORY
 {
-	FLASH (rx) : ORIGIN = 8K,                   LENGTH = 128K - 8K
+	FLASH (rx) : ORIGIN = 4K,                   LENGTH = 128K - 8K
 	RAM  (rwx) : ORIGIN = 0x20000000 - 16K / 2, LENGTH = 16K
 }
 
