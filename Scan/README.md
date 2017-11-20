@@ -1,9 +1,15 @@
-# Kiibohd Controller - Macro Modules
+# Kiibohd Controller - Scan Modules
 
-Macro Modules do any internal processing of signals received by the Scan Modules before sending them elsewhere.
-The results may be re-directed back to a Scan Module sub-driver or to an Output Module.
+Scan Modules are the main control module within the Kiibohd Controller.
+They are given preferential control over the main execution loop.
+This is important for timing sensitive operations such as key matrix scanning and protocol converters.
 
-For most devices this is where KLL itself is implemented.
+There are two types of Scan Modules: main and sub-modules.
+
+The main modules are what defines the behaviour of the execution loop, such as WhiteFox or K-Type.
+
+The sub-modules are usually found inside the [Devices](Devices) folder.
+Device sub-modules are drivers or sub-functionality that may be used by main Scan Modules.
 
 
 ## Modules
@@ -12,11 +18,22 @@ Brief descriptions of each of the modules.
 
 ### Input Club Supported
 
-* [PartialMap](PartialMap) - Main portion of KLL implementation
-* [PixelMap](PixelMap) - Pixel control portion of KLL implementation, not used by all Scan Modules.
+* [Infinity_60](Infinity_60) - Infinity 60% Scan Module
+* [Infinity_60_LED](Infinity_60_LED) - Infinity 60% with LED support
+* [Infinity_Ergodox](Infinity_Ergodox) - Infinity Ergodox Scan Module
+* [Kira](Kira) - Kira Scan Module
+* [K-Type](K-Type) - K-Type Scan Module
+* [WhiteFox](WhiteFox) - WhiteFox Scan Module
 
 
-### Deprecated
+### Sub-Modules
 
-* [buffer](buffer) - Pre-KLL macro sub-system (long-deprecated, has some useful code left)
+* [Devices](Devices) - Sub-module device drivers
+
+
+### Other
+
+* [CK3](CK3) - Ghosted matrix keyboard (2KRO)
+* [Deprecated](Deprecated) - Old Scan Modules that are no longer maintained but may still have useful code.
+* [PS2](PS2) - PS/2 Converter using a Teensy 3.2
 
