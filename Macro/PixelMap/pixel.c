@@ -992,6 +992,15 @@ uint16_t Pixel_pixelTweenNextPos( PixelElement *elem, PixelElement *prev )
 
 	uint16_t ret = 0;
 
+#if Pixel_HardCode_ChanWidth_define != 0 && Pixel_HardCode_Channels_define != 0
+	// More efficient tweening, as we know the number of channels and width at compile time in all cases.
+	ret = (
+		( Pixel_HardCode_ChanWidth_define / 8 + sizeof( PixelChange ) )
+		* Pixel_HardCode_Channels_define
+	) + sizeof( PixelModElement );
+
+#else
+	// Determine tweening using nearby pixel definitions
 	// First try the next element
 	if ( elem != 0 )
 	{
@@ -1010,6 +1019,7 @@ uint16_t Pixel_pixelTweenNextPos( PixelElement *elem, PixelElement *prev )
 	// TODO - This is BAD, will break in most cases, except for K-Type like keyboards.
 	erro_print("Pixel Tween Bug!");
 	ret = ( ( 8 / 8 + sizeof( PixelChange ) ) * 3 ) + sizeof( PixelModElement );
+#endif
 
 	return ret;
 }
@@ -1424,8 +1434,6 @@ void Pixel_channelSet( uint16_t channel, uint32_t value )
 // Debug function, used by cli only XXX
 void Pixel_channelToggle( uint16_t channel )
 {
-	printInt16( channel );
-	print(NL);
 	// Determine which buffer we are in
 	PixelBuf *pixbuf = Pixel_bufferMap( channel );
 
@@ -2003,6 +2011,7 @@ void cliFunc_pixelTest( char* args )
 	}
 
 	// Debug info
+	print( NL );
 	info_msg("Pixel: ");
 	printInt16( Pixel_testPos + 1 );
 	print(" ");
@@ -2078,6 +2087,7 @@ void cliFunc_chanTest( char* args )
 	}
 
 	// Debug info
+	print( NL );
 	info_msg("Channel: ");
 	printInt16( Pixel_testPos );
 	print( NL );
@@ -2137,6 +2147,7 @@ void cliFunc_pixelSCTest( char* args )
 	uint16_t pixel = Pixel_ScanCodeToPixel[ Pixel_testPos ];
 
 	// Debug info
+	print( NL );
 	info_msg("ScanCode: ");
 	printInt16( Pixel_testPos + 1 );
 	print(" Pixel: ");
@@ -2265,6 +2276,7 @@ void cliFunc_pixelXYTest( char* args )
 	uint16_t pixel = Pixel_DisplayMapping[ Pixel_testPos ];
 
 	// Debug info
+	print( NL );
 	info_msg("Position (x,y): ");
 	printInt16( Pixel_testPos % Pixel_DisplayMapping_Cols_KLL );
 	print(",");

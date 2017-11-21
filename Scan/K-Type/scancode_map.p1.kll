@@ -139,6 +139,10 @@ LED_MapCh3_Addr = ISSI_Ch3;
 LED_MapCh4_Bus  = 0x0;
 LED_MapCh4_Addr = ISSI_Ch4;
 
+# Channel Optimizations
+Pixel_HardCode_ChanWidth = 8;
+Pixel_HardCode_Channels = 3;
+
 
 # FPS Target
 # Each ISSI chip setup has a different optimal framerate.

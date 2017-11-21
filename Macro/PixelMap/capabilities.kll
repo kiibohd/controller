@@ -40,3 +40,11 @@ Pixel_DisplayMapping_RowSize = 2;
 Pixel_DisplayMapping_ColumnDirection = 1; # Either 1 or -1, K-Type is -1
 Pixel_DisplayMapping_RowDirection = 1;
 
+# Channel Optimized
+# Used to hard-code channel width and count
+# For keyboards with only a single channel setting (e.g. K-Type), this is much more efficient
+Pixel_HardCode_ChanWidth => Pixel_HardCode_ChanWidth_define;
+Pixel_HardCode_Channels => Pixel_HardCode_Channels_define;
+Pixel_HardCode_ChanWidth = 0;
+Pixel_HardCode_Channels = 0;
+

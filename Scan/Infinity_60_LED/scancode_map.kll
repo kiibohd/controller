@@ -21,6 +21,10 @@ ISSI_Chips = 1;
 # I2C Buses
 ISSI_I2C_Buses = 1; # 1 by default
 
+# Channel Optimizations
+Pixel_HardCode_ChanWidth = 8;
+Pixel_HardCode_Channels = 1;
+
 
 # FPS Target
 # Each ISSI chip setup has a different optimal framerate.
