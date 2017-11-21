@@ -121,6 +121,9 @@ void i2c_setup()
 		case 0:
 			// Enable I2C Interrupt
 			NVIC_ENABLE_IRQ( IRQ_I2C0 );
+
+			// Set priority below USB, but not too low to maintain performance
+			NVIC_SET_PRIORITY( IRQ_PIT_CH0, 150 );
 			break;
 
 #if defined(_kii_v2_)
@@ -128,6 +131,9 @@ void i2c_setup()
 
 			// Enable I2C Interrupt
 			NVIC_ENABLE_IRQ( IRQ_I2C1 );
+
+			// Set priority below USB, but not too low to maintain performance
+			NVIC_SET_PRIORITY( IRQ_PIT_CH1, 150 );
 			break;
 #endif
 		}

@@ -54,8 +54,8 @@ void Periodic_init( uint32_t cycles )
 	// Enable PIT Ch0 interrupt
 	NVIC_ENABLE_IRQ( IRQ_PIT_CH0 );
 
-	// Set PIT0 interrupt to 2nd highest priority
-	NVIC_SET_PRIORITY( IRQ_PIT_CH0, 1 );
+	// Set PIT0 interrupt to a low priority
+	NVIC_SET_PRIORITY( IRQ_PIT_CH0, 200 );
 }
 
 void Periodic_function( void *func )

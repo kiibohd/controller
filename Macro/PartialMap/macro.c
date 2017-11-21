@@ -112,6 +112,7 @@ uint8_t layerDebugMode;
 // Macro debug flag - If set, clears the USB Buffers after signalling processing completion
 // 1 - Disable USB output, show debug
 // 2 - Enabled USB output, show debug
+// 3 - Disable USB output
 uint8_t macroDebugMode;
 
 // Vote debug flag - If set show the result of each
@@ -1125,6 +1126,7 @@ void Macro_process()
 			print( NL );
 		}
 
+	case 3:
 	default:
 		break;
 	}
@@ -1164,10 +1166,9 @@ void Macro_process()
 	Latency_end_time( macroLatencyResource );
 
 	// If Macro debug mode is set, clear the USB Buffer
-	if ( macroDebugMode == 1 )
+	if ( macroDebugMode == 1 || macroDebugMode == 3 )
 	{
-		USBKeys_Modifiers = 0;
-		USBKeys_Sent = 0;
+		USBKeys_Changed = 0;
 	}
 }
 
@@ -1492,13 +1493,18 @@ void cliFunc_macroDebug( char* args )
 	// Set the macro debug flag depending on the argument
 	switch ( arg1Ptr[0] )
 	{
+	// 3 as argument
+	case '3':
+		macroDebugMode = macroDebugMode != 3 ? 3 : 0;
+		break;
+
 	// 2 as argument
-	case 2:
+	case '2':
 		macroDebugMode = macroDebugMode != 2 ? 2 : 0;
 		break;
 
 	// No argument
-	case 1:
+	case '1':
 	case '\0':
 		macroDebugMode = macroDebugMode != 1 ? 1 : 0;
 		break;

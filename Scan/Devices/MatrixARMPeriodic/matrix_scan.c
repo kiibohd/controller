@@ -74,25 +74,25 @@ CLIDict_Def( matrixCLIDict, "Matrix Module Commands" ) = {
 };
 
 // Debounce Array
-static KeyState Matrix_scanArray[ Matrix_colsNum * Matrix_rowsNum ];
+static volatile KeyState Matrix_scanArray[ Matrix_colsNum * Matrix_rowsNum ];
 
 
 // Matrix debug flag - If set to 1, for each keypress the scan code is displayed in hex
 //                     If set to 2, for each key state change, the scan code is displayed along with the state
 //                     If set to 3, for each scan, update a state table
-static uint8_t matrixDebugMode;
+static volatile uint8_t matrixDebugMode;
 
 // Matrix State Table Debug Counter - If non-zero display state table after every matrix scan
-static uint16_t matrixDebugStateCounter;
+static volatile uint16_t matrixDebugStateCounter;
 
 // Matrix Current Strobe
-static uint8_t matrixCurrentStrobe;
+static volatile uint8_t matrixCurrentStrobe;
 
 // System Timer used for delaying debounce decisions
 extern volatile uint32_t systick_millis_count;
 
 // Latency tracking
-static uint8_t matrixLatencyResource;
+static volatile uint8_t matrixLatencyResource;
 
 
 
@@ -295,7 +295,7 @@ uint8_t Matrix_single_scan( uint8_t next_state )
 		{
 			continue;
 		}
-		KeyState *state = &Matrix_scanArray[ key ];
+		volatile KeyState *state = &Matrix_scanArray[ key ];
 
 		// Signal Detected
 		// Increment count and right shift opposing count
@@ -462,19 +462,19 @@ uint8_t Matrix_single_scan( uint8_t next_state )
 		for ( uint8_t key = 0; key < Matrix_maxKeys; key++ )
 		{
 			// Every 4 keys, put a newline
-			if ( key % 4 == 0 )
+			if ( key % 5 == 0 )
 				print( NL );
 
-			print("\033[1m0x");
-			printHex_op( key + 1, 2 );
+			print("\033[1m");
+			printInt16( key + 1 );
 			print("\033[0m");
 			print(":");
 			Matrix_keyPositionDebug( Matrix_scanArray[ key ].prevState );
 			Matrix_keyPositionDebug( Matrix_scanArray[ key ].curState );
 			print(" 0x");
-			printHex_op( Matrix_scanArray[ key ].activeCount, 4 );
+			printHex_op( Matrix_scanArray[ key ].activeCount, 2 );
 			print(" 0x");
-			printHex_op( Matrix_scanArray[ key ].inactiveCount, 4 );
+			printHex_op( Matrix_scanArray[ key ].inactiveCount, 2 );
 			print(" ");
 		}
 
@@ -483,7 +483,7 @@ uint8_t Matrix_single_scan( uint8_t next_state )
 
 
 	// Increment strobe, and allow matrix processing
-	if ( ++matrixCurrentStrobe > Matrix_colsNum )
+	if ( ++matrixCurrentStrobe >= Matrix_colsNum )
 	{
 		matrixCurrentStrobe = 0;
 		return 1;
@@ -517,15 +517,15 @@ void cliFunc_matrixInfo( char* args )
 {
 	print( NL );
 	info_msg("Columns:  ");
-	printHex( Matrix_colsNum );
+	printInt8( Matrix_colsNum );
 
 	print( NL );
 	info_msg("Rows:     ");
-	printHex( Matrix_rowsNum );
+	printInt8( Matrix_rowsNum );
 
 	print( NL );
 	info_msg("Max Keys: ");
-	printHex( Matrix_maxKeys );
+	printInt8( Matrix_maxKeys );
 }
 
 void cliFunc_matrixDebug( char* args )
@@ -544,16 +544,16 @@ void cliFunc_matrixDebug( char* args )
 	// T as argument
 	case 'T':
 	case 't':
-	case 2:
+	case '2':
 		matrixDebugMode = matrixDebugMode != 2 ? 2 : 0;
 		break;
 
-	case 3:
+	case '3':
 		matrixDebugMode = matrixDebugMode != 3 ? 3 : 0;
 		break;
 
 	// No argument
-	case 1:
+	case '1':
 	case '\0':
 		matrixDebugMode = matrixDebugMode != 1 ? 1 : 0;
 		break;

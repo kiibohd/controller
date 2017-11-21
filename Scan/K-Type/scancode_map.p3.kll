@@ -117,6 +117,9 @@ S0x5E : U"Down";
 S0x5F : U"Right";
 
 
+# Latency Resources
+latencyResources = 10;
+
 
 # Driver Chip
 ISSI_Chip_31FL3733 = 1;

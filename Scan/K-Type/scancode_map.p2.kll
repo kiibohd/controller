@@ -113,6 +113,10 @@ S0x5F : U"Right";
 flashModeEnabled = 1;
 
 
+# Latency Resources
+latencyResources = 10;
+
+
 # Driver Chip
 ISSI_Chip_31FL3732 = 1;
 
