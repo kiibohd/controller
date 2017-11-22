@@ -34,7 +34,7 @@
 void Scan_setup();
 void Scan_poll();
 
-uint8_t Scan_periodic( uint8_t output_done );
+uint8_t Scan_periodic();
 
 // Call-backs
 void Scan_finishedWithMacro( uint8_t sentKeys );  // Called by Macro Module

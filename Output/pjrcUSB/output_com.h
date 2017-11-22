@@ -131,7 +131,6 @@ extern volatile uint16_t USBInit_Ticks;     // Number of times the end time has 
 void Output_setup();
 void Output_poll();
 void Output_periodic();
-void Output_send();
 
 void Output_flushBuffers();
 

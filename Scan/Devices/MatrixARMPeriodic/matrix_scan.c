@@ -260,7 +260,7 @@ inline uint8_t Matrix_totalColumns()
 // Single strobe matrix scan
 // Only goes through a single strobe
 // This module keeps track of the next strobe to scan
-uint8_t Matrix_single_scan( uint8_t next_state )
+uint8_t Matrix_single_scan()
 {
 
 	// Start latency measurement
@@ -322,13 +322,6 @@ uint8_t Matrix_single_scan( uint8_t next_state )
 		// But only if:
 		// 1) Enough time has passed since last state change
 		// 2) Either active or inactive count is over the debounce threshold
-		// 3) We are allowed to move to the next state
-
-		// Determine if we can move to the next state
-		if ( !next_state )
-		{
-			continue;
-		}
 
 		// Update previous state
 		state->prevState = state->curState;

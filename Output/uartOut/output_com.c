@@ -48,26 +48,16 @@
 
 // ----- Variables -----
 
-// Which modifier keys are currently pressed
-// 1=left ctrl,    2=left shift,   4=left alt,    8=left gui
-// 16=right ctrl, 32=right shift, 64=right alt, 128=right gui
-	uint8_t  USBKeys_Modifiers    = 0;
-	uint8_t  USBKeys_ModifiersCLI = 0; // Separate CLI send buffer
-
-// Currently pressed keys, max is defined by USB_MAX_KEY_SEND
-	uint8_t  USBKeys_Keys   [USB_NKRO_BITFIELD_SIZE_KEYS];
-	uint8_t  USBKeys_KeysCLI[USB_NKRO_BITFIELD_SIZE_KEYS]; // Separate CLI send buffer
-
-// System Control and Consumer Control 1KRO containers
-	uint8_t  USBKeys_SysCtrl;
-	uint16_t USBKeys_ConsCtrl;
+// USBKeys Keyboard Buffer
+USBKeys USBKeys_primary; // Primary send buffer
+USBKeys USBKeys_idle;    // Idle timeout send buffer
 
 // The number of keys sent to the usb in the array
 	uint8_t  USBKeys_Sent    = 0;
-	uint8_t  USBKeys_SentCLI = 0;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t  USBKeys_LEDs = 0;
+volatile uint8_t  USBKeys_LEDs_Changed;
 
 // Protocol setting from the host.
 // 0 - Boot Mode

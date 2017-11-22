@@ -82,13 +82,22 @@ inline void Scan_setup()
 }
 
 
-// Main Detection Loop
-inline uint8_t Scan_loop()
+// Main Poll Loop
+// This is for operations that need to be run as often as possible
+// Usually reserved for LED update routines and other things that need quick update rates
+void Scan_poll()
 {
 	// Prepare any LED events
 	Pixel_process();
+}
 
-	return 0;
+
+// Main Periodic Scan
+// This function is called periodically at a constant rate
+// Useful for matrix scanning and anything that requires consistent attention
+uint8_t Scan_periodic()
+{
+	return 1;
 }
 
 

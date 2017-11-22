@@ -74,9 +74,6 @@ void cliFunc_idle       ( char* args );
 void cliFunc_kbdProtocol( char* args );
 void cliFunc_outputDebug( char* args );
 void cliFunc_readLEDs   ( char* args );
-void cliFunc_sendKeys   ( char* args );
-void cliFunc_setKeys    ( char* args );
-void cliFunc_setMod     ( char* args );
 void cliFunc_usbInitTime( char* args );
 
 
@@ -725,6 +722,8 @@ inline void Output_periodic()
 	switch ( USBKeys_Protocol )
 	{
 	case 0: // Boot Mode
+		// Clear modifiers only in boot mode
+		USBKeys_primary.modifiers = 0;
 		Scan_finishedWithOutput( USBKeys_Sent <= USB_BOOT_MAX_KEYS ? USBKeys_Sent : USB_BOOT_MAX_KEYS );
 		break;
 	case 1: // NKRO Mode

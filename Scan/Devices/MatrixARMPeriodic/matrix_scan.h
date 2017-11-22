@@ -139,7 +139,7 @@ typedef struct KeyState {
 void Matrix_setup();
 void Matrix_start();
 
-uint8_t Matrix_single_scan( uint8_t next_state );
+uint8_t Matrix_single_scan();
 uint8_t Matrix_totalColumns();
 
 void Matrix_currentChange( unsigned int current );

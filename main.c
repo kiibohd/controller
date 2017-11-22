@@ -38,15 +38,24 @@
 
 
 
+// ----- Enumerations -----
+
+typedef enum PeriodicStage {
+	PeriodicStage_Scan,
+	PeriodicStage_Macro,
+	PeriodicStage_Output,
+} PeriodicStage;
+
+
+
 // ----- Variables -----
 
-// Output module ready tracker
-static volatile uint8_t output_done;
+// Periodic Stage Tracker
+static volatile PeriodicStage stage_tracker;
 
 
 
-// ----- MCU-only Functions -----
-#if !defined(_host_)
+// ----- Functions -----
 
 // Run periodically at a consistent time rate
 // Used to process events that need to be run at regular intervals
@@ -54,20 +63,32 @@ static volatile uint8_t output_done;
 void main_periodic()
 {
 	// Scan module periodic routines
-	// Returns non-zero if ready to process macros
-	if ( Scan_periodic( output_done ) )
+	switch ( stage_tracker )
 	{
+	case PeriodicStage_Scan:
+		// Returns non-zero if ready to process macros
+		if ( Scan_periodic() )
+		{
+			stage_tracker = PeriodicStage_Macro;
+		}
+		break;
+
+	case PeriodicStage_Macro:
 		// Run Macros over Key Indices and convert to USB Keys
 		Macro_process();
+		stage_tracker = PeriodicStage_Output;
+		break;
 
+	case PeriodicStage_Output:
 		// Send periodic USB results
 		Output_periodic();
-
-		// Indicate to Scan Module that we can assign new states
-		output_done = 1;
+		stage_tracker = PeriodicStage_Scan;
+		break;
 	}
 }
 
+// ----- MCU-only Functions -----
+#if !defined(_host_)
 
 int main()
 {
@@ -90,8 +111,8 @@ int main()
 	Macro_setup();
 	Scan_setup();
 
-	// We're ready for keypresses right away
-	output_done = 1;
+	// Start scanning on first periodic loop
+	stage_tracker = PeriodicStage_Scan;
 
 	// Main Detection Loop
 	while ( 1 )
@@ -137,17 +158,40 @@ int Host_cli_process()
 	return CLI_process();
 }
 
+int Host_periodic()
+{
+	main_periodic();
+
+	return 1;
+}
+
+int Host_poll()
+{
+	// Run constantly
+	// Used to process things such as the cli and output module (i.e. USB).
+	// Should not be used to run things that require consistent timing.
+	// While counter-intuitive, things such as LED/Display modules should be run as poll
+	// as they need to run as quickly as possible, in case there needs to be frame drops
+
+	// Process CLI
+	CLI_process();
+
+	// Scan module poll routines
+	Scan_poll();
+
+	// Output module poll routines
+	Output_poll();
+
+	return 1;
+}
+
 int Host_process()
 {
-	// Acquire Key Indices
-	// Loop continuously until scan_loop returns 0
-	while ( Scan_loop() );
+	// Run a single periodic loop
+	Host_periodic();
 
-	// Run Macros over Key Indices and convert to USB Keys
-	Macro_process();
-
-	// Sends USB data only if changed
-	Output_send();
+	// Then a single poll loop
+	Host_poll();
 
 	return 1;
 }

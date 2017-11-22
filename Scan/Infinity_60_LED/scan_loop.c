@@ -84,12 +84,10 @@ void Scan_poll()
 // Main Periodic Scan
 // This function is called periodically at a constant rate
 // Useful for matrix scanning and anything that requires consistent attention
-//
-// output_done: Signals that we can transition to the next state (i.e. USB Output is finished)
-uint8_t Scan_periodic( uint8_t output_done )
+uint8_t Scan_periodic()
 {
 	// Scan Matrix
-	return Matrix_single_scan( output_done );
+	return Matrix_single_scan();
 }
 
 

@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,7 +32,9 @@
 
 // Functions to be called by main.c
 void Scan_setup();
-uint8_t Scan_loop();
+void Scan_poll();
+
+uint8_t Scan_periodic();
 
 // Call-backs
 void Scan_finishedWithMacro( uint8_t sentKeys );  // Called by Macro Module
