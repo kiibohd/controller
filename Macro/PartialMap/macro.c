@@ -1168,7 +1168,7 @@ void Macro_process()
 	// If Macro debug mode is set, clear the USB Buffer
 	if ( macroDebugMode == 1 || macroDebugMode == 3 )
 	{
-		USBKeys_Changed = 0;
+		USBKeys_primary.changed = 0;
 	}
 }
 

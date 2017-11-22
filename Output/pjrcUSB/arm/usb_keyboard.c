@@ -84,8 +84,6 @@ static uint8_t transmit_previous_timeout = 0;
 // Re-send the contents of the keyboard buffer, if exceeding the expiry timer
 void usb_keyboard_idle_update()
 {
-	// XXX (HaaTa) Disabled for now. Needs more testing.
-#if 0
 	// Ignore if set to 0
 	if ( USBKeys_Idle_Config != 0 )
 	{
@@ -93,15 +91,18 @@ void usb_keyboard_idle_update()
 		// USBKeys_Idle_Expiry is updated on usb_tx
 		if ( USBKeys_Idle_Expiry + USBKeys_Idle_Config * 4 >= systick_millis_count )
 		{
-			USBKeys_Changed = USBKeyChangeState_All;
+			USBKeys_idle.changed = USBKeyChangeState_All;
+
+			// Send packets for each of the keyboard interfaces
+			while ( USBKeys_idle.changed )
+				usb_keyboard_send( &USBKeys_idle );
 		}
 	}
-#endif
 }
 
 
 // Send the contents of keyboard_keys and keyboard_modifier_keys
-void usb_keyboard_send()
+void usb_keyboard_send( USBKeys *buffer )
 {
 	uint32_t wait_count = 0;
 	usb_packet_t *tx_packet;
@@ -119,7 +120,7 @@ void usb_keyboard_send()
 		if ( usb_resume() )
 		{
 			// Drop packet
-			USBKeys_Changed = USBKeyChangeState_None;
+			buffer->changed = USBKeyChangeState_None;
 			return;
 		}
 
@@ -141,7 +142,7 @@ void usb_keyboard_send()
 					break;
 			}
 		}
-		else if ( USBKeys_Changed &
+		else if ( buffer->changed &
 			( USBKeyChangeState_System | USBKeyChangeState_Consumer )
 		)
 		{
@@ -157,7 +158,7 @@ void usb_keyboard_send()
 		if ( ++wait_count > TX_TIMEOUT || transmit_previous_timeout )
 		{
 			transmit_previous_timeout = 1;
-			USBKeys_Changed = USBKeyChangeState_None; // Indicate packet lost
+			buffer->changed = USBKeyChangeState_None; // Indicate packet lost
 			#if enableDeviceRestartOnUSBTimeout == 1
 			warn_print("USB Transmit Timeout...restarting device");
 			usb_device_software_reset();
@@ -177,43 +178,49 @@ void usb_keyboard_send()
 	uint8_t *tx_buf = tx_packet->buf;
 
 	// Check system control keys
-	if ( USBKeys_Changed & USBKeyChangeState_System )
+	if ( buffer->changed & USBKeyChangeState_System )
 	{
 		if ( Output_DebugMode )
 		{
 			print("SysCtrl[");
-			printHex_op( USBKeys_SysCtrl, 2 );
+			printHex_op( buffer->sys_ctrl, 2 );
 			print( "] " NL );
 		}
 
+		// Store update for idle packet
+		USBKeys_idle.sys_ctrl = buffer->sys_ctrl;
+
 		*tx_buf++ = 0x02; // ID
-		*tx_buf   = USBKeys_SysCtrl;
+		*tx_buf   = buffer->sys_ctrl;
 		tx_packet->len = 2;
 
 		// Send USB Packet
 		usb_tx( SYS_CTRL_ENDPOINT, tx_packet );
-		USBKeys_Changed &= ~USBKeyChangeState_System; // Mark sent
+		buffer->changed &= ~USBKeyChangeState_System; // Mark sent
 		return;
 	}
 
 	// Check consumer control keys
-	if ( USBKeys_Changed & USBKeyChangeState_Consumer )
+	if ( buffer->changed & USBKeyChangeState_Consumer )
 	{
 		if ( Output_DebugMode )
 		{
 			print("ConsCtrl[");
-			printHex_op( USBKeys_ConsCtrl, 2 );
+			printHex_op( buffer->cons_ctrl, 2 );
 			print( "] " NL );
 		}
 
+		// Store update for idle packet
+		USBKeys_idle.cons_ctrl = buffer->cons_ctrl;
+
 		*tx_buf++ = 0x03; // ID
-		*tx_buf++ = (uint8_t)(USBKeys_ConsCtrl & 0x00FF);
-		*tx_buf   = (uint8_t)(USBKeys_ConsCtrl >> 8);
+		*tx_buf++ = (uint8_t)(buffer->cons_ctrl & 0x00FF);
+		*tx_buf   = (uint8_t)(buffer->cons_ctrl >> 8);
 		tx_packet->len = 3;
 
 		// Send USB Packet
 		usb_tx( SYS_CTRL_ENDPOINT, tx_packet );
-		USBKeys_Changed &= ~USBKeyChangeState_Consumer; // Mark sent
+		buffer->changed &= ~USBKeyChangeState_Consumer; // Mark sent
 		return;
 	}
 
@@ -225,28 +232,31 @@ void usb_keyboard_send()
 		if ( Output_DebugMode )
 		{
 			dbug_msg("Boot USB: ");
-			printHex_op( USBKeys_Modifiers, 2 );
+			printHex_op( buffer->modifiers, 2 );
 			print(" ");
 			printHex( 0 );
 			print(" ");
-			printHex_op( USBKeys_Keys[0], 2 );
-			printHex_op( USBKeys_Keys[1], 2 );
-			printHex_op( USBKeys_Keys[2], 2 );
-			printHex_op( USBKeys_Keys[3], 2 );
-			printHex_op( USBKeys_Keys[4], 2 );
-			printHex_op( USBKeys_Keys[5], 2 );
+			printHex_op( buffer->keys[0], 2 );
+			printHex_op( buffer->keys[1], 2 );
+			printHex_op( buffer->keys[2], 2 );
+			printHex_op( buffer->keys[3], 2 );
+			printHex_op( buffer->keys[4], 2 );
+			printHex_op( buffer->keys[5], 2 );
 			print( NL );
 		}
 
+		// Store update for idle packet
+		memcpy( &USBKeys_idle.keys, buffer->keys, USB_BOOT_MAX_KEYS );
+
 		// Boot Mode
-		*tx_buf++ = USBKeys_Modifiers;
+		*tx_buf++ = buffer->modifiers;
 		*tx_buf++ = 0;
-		memcpy( tx_buf, USBKeys_Keys, USB_BOOT_MAX_KEYS );
+		memcpy( tx_buf, buffer->keys, USB_BOOT_MAX_KEYS );
 		tx_packet->len = 8;
 
 		// Send USB Packet
 		usb_tx( KEYBOARD_ENDPOINT, tx_packet );
-		USBKeys_Changed = USBKeyChangeState_None;
+		buffer->changed = USBKeyChangeState_None;
 		break;
 
 	// Send NKRO keyboard interrupts packet(s)
@@ -257,55 +267,59 @@ void usb_keyboard_send()
 		}
 
 		// Standard HID Keyboard
-		if ( USBKeys_Changed )
+		if ( buffer->changed )
 		{
 			// USB NKRO Debug output
 			if ( Output_DebugMode )
 			{
-				printHex_op( USBKeys_Modifiers, 2 );
+				printHex_op( buffer->modifiers, 2 );
 				print(" ");
 				for ( uint8_t c = 0; c < 6; c++ )
-					printHex_op( USBKeys_Keys[ c ], 2 );
+					printHex_op( buffer->keys[ c ], 2 );
 				print(" ");
 				for ( uint8_t c = 6; c < 20; c++ )
-					printHex_op( USBKeys_Keys[ c ], 2 );
+					printHex_op( buffer->keys[ c ], 2 );
 				print(" ");
-				printHex_op( USBKeys_Keys[20], 2 );
+				printHex_op( buffer->keys[20], 2 );
 				print(" ");
 				for ( uint8_t c = 21; c < 27; c++ )
-					printHex_op( USBKeys_Keys[ c ], 2 );
+					printHex_op( buffer->keys[ c ], 2 );
 				print( NL );
 			}
 
+			// Store update for idle packet
+			memcpy( &USBKeys_idle.keys, buffer->keys, USB_NKRO_BITFIELD_SIZE_KEYS );
+
+			// Clear packet length
 			tx_packet->len = 0;
 
 			// Modifiers
 			*tx_buf++ = 0x01; // ID
-			*tx_buf++ = USBKeys_Modifiers;
+			*tx_buf++ = buffer->modifiers;
 			tx_packet->len += 2;
 
 			// 4-49 (first 6 bytes)
-			memcpy( tx_buf, USBKeys_Keys, 6 );
+			memcpy( tx_buf, buffer->keys, 6 );
 			tx_buf += 6;
 			tx_packet->len += 6;
 
 			// 51-155 (Middle 14 bytes)
-			memcpy( tx_buf, USBKeys_Keys + 6, 14 );
+			memcpy( tx_buf, buffer->keys + 6, 14 );
 			tx_buf += 14;
 			tx_packet->len += 14;
 
 			// 157-164 (Next byte)
-			memcpy( tx_buf, USBKeys_Keys + 20, 1 );
+			memcpy( tx_buf, buffer->keys + 20, 1 );
 			tx_buf += 1;
 			tx_packet->len += 1;
 
 			// 176-221 (last 6 bytes)
-			memcpy( tx_buf, USBKeys_Keys + 21, 6 );
+			memcpy( tx_buf, buffer->keys + 21, 6 );
 			tx_packet->len += 6;
 
 			// Send USB Packet
 			usb_tx( NKRO_KEYBOARD_ENDPOINT, tx_packet );
-			USBKeys_Changed = USBKeyChangeState_None; // Mark sent
+			buffer->changed = USBKeyChangeState_None; // Mark sent
 		}
 
 		break;

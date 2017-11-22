@@ -67,18 +67,39 @@ typedef enum USBMouseChangeState {
 
 
 
+// ----- Structs -----
+
+// Buffer structure for USB HID keyboard output
+typedef struct USBKeys {
+	// Which modifier keys are currently pressed
+	// 1=left ctrl,    2=left shift,   4=left alt,    8=left gui
+	// 16=right ctrl, 32=right shift, 64=right alt, 128=right gui
+	uint8_t  modifiers;
+
+	// Currently pressed keys, max is defined by USB_MAX_KEY_SEND
+	uint8_t  keys[USB_NKRO_BITFIELD_SIZE_KEYS];
+
+	// System Control and Consumer Control 1KRO containers
+	uint8_t  sys_ctrl;
+	uint16_t cons_ctrl;
+
+	// Indicate if USB should send update
+	// OS only needs update if there has been a change in state
+	USBKeyChangeState changed;
+} USBKeys;
+
+
+
 // ----- Variables -----
 
 // Variables used to communciate to the output module
 // XXX Even if the output module is not USB, this is internally understood keymapping scheme
-extern          uint8_t  USBKeys_Modifiers;
-extern          uint8_t  USBKeys_Keys[USB_NKRO_BITFIELD_SIZE_KEYS];
+extern          USBKeys  USBKeys_primary;
+extern          USBKeys  USBKeys_idle;
+
 extern          uint8_t  USBKeys_Sent;
 extern volatile uint8_t  USBKeys_LEDs;
 extern volatile uint8_t  USBKeys_LEDs_Changed;
-
-extern          uint8_t  USBKeys_SysCtrl;  // 1KRO container for System Control HID table
-extern          uint16_t USBKeys_ConsCtrl; // 1KRO container for Consumer Control HID table
 
 extern volatile uint8_t  USBKeys_Protocol; // 0 - Boot Mode, 1 - NKRO Mode
 
@@ -91,7 +112,6 @@ extern          uint8_t  USBKeys_Idle_Config;
 extern          uint32_t USBKeys_Idle_Expiry;
 extern          uint8_t  USBKeys_Idle_Count; // AVR only
 
-extern USBKeyChangeState   USBKeys_Changed;
 extern USBMouseChangeState USBMouse_Changed;
 
 extern volatile uint8_t  Output_Available; // 0 - Output module not fully functional, 1 - Output module working
