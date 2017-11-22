@@ -31,7 +31,6 @@
 // ----- Defines -----
 
 #define DebounceCounter uint8_t
-#define DebounceMinThreshold 0xF / 2
 #define DebounceDivThreshold 0xFF
 
 #if   ( MinDebounceTime_define > 0xFF )

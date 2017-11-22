@@ -321,18 +321,11 @@ uint8_t Matrix_single_scan( uint8_t next_state )
 		// Check for state change
 		// But only if:
 		// 1) Enough time has passed since last state change
-		// 2) Minimum number of scans has been met
-		// 3) Either active or inactive count is over the debounce threshold
-		// 4) We are allowed to move to the next state
+		// 2) Either active or inactive count is over the debounce threshold
+		// 3) We are allowed to move to the next state
 
 		// Determine if we can move to the next state
 		if ( !next_state )
-		{
-			continue;
-		}
-
-		// Make sure either active or inactive has enough data points to make a decision
-		if ( state->activeCount < DebounceMinThreshold && state->inactiveCount < DebounceMinThreshold )
 		{
 			continue;
 		}
