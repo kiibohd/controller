@@ -81,7 +81,7 @@ Bootloader
 ----------
 
 A custom bootloader (based off of [McHCK](https://github.com/mchck/mchck)) is available.
-This is only necessary when assembling a keybaord with a blank MCU or if you're attempting to re-flash your bootloader (requires external tools).
+This is only necessary when assembling a keyboard with a blank MCU or if you're attempting to re-flash your bootloader (requires external tools).
 
 [Bootloader](Bootloader)
 
