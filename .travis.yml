@@ -18,14 +18,14 @@ compiler:
 # Build Scripts
 env:
   # Keyboard Tests
-  - DIR=Keyboards SCRIPT=ic_keyboards.bash # Input Club Keyboards
+  - DIR=Keyboards SCRIPT=ic_keyboards.bash DEPLOY_NAME=Firmware # Input Club Keyboards
   - DIR=Keyboards SCRIPT=others.bash
 
   # Debug Build Tests
   - DIR=Keyboards/Testing SCRIPT=all_tests.bash
 
   # Bootloader Build Tests
-  - DIR=Bootloader/Builds SCRIPT=all.bash
+  - DIR=Bootloader/Builds SCRIPT=all.bash DEPLOY_NAME=Bootloader
 
 # Exclusions
 matrix:
@@ -62,7 +62,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository universe -y; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded -y; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build -y; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install tree python3 ctags dfu-util; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]]; then brew tap Caskroom/cask; fi
@@ -93,6 +93,34 @@ install:
 # Run test script(s)
 script:
   - (cd ${DIR} && COMPILER=${CC} ./${SCRIPT})
+
+# Setup Deploy
+before_deploy:
+  - mkdir -p deploy
+
+  # Copy files for deployment and prepend the tag name
+  - if [[ "$SCRIPT" == "ic_keyboards.bash" ]]; then for f in Keyboards/firmware/*.dfu.bin; do cp -f ${f} deploy/${TRAVIS_TAG}.$(basename ${f}); done; fi
+  - if [[ "$SCRIPT" == "all.bash" ]]; then for f in Bootloader/Builds/bootloader/*.bootloader.bin; do cp -f ${f} deploy/${TRAVIS_TAG}.$(basename ${f}); done; fi
+
+  # Show files being deployed
+  - tree deploy
+
+# Deploy release
+deploy:
+  name: ${TRAVIS_TAG}
+  body: $(git for-each-ref --format '%(refname) %09 %(taggerdate) %(subject) %(taggeremail)' refs/tags/${TRAVIS_TAG})
+  provider: releases
+  api_key: $GITHUB_OAUTH_TOKEN
+  skip_cleanup: true
+  draft: true # XXX Must "publish" on github
+  prerelease: true # XXX Set this to false to enable a stable release
+  file_glob: true
+  file: deploy/*.bin
+  on:
+    tags: true
+    repo: kiibohd/controller
+    condition: $TRAVIS_OS_NAME = linux
+    condition: $DEPLOY_NAME != ""
 
 # Post test script commands
 after_script:
