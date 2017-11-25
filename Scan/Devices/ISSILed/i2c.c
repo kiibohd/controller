@@ -83,25 +83,31 @@ void i2c_setup()
 		}
 
 		// SCL Frequency Divider
-#if ISSI_Chip_31FL3731_define == 1
-		// 0x40 -> 36 MHz / (4 * 28) = 321.428 kBaud
+#if ISSI_Chip_31FL3731_define == 1 && defined(_kii_v1_)
+		// 0x85 -> 48 MHz / (4 * 28) = 400 kBaud
 		// 0x80 => mul(4)
-		// 0x00 => ICL(28)
+		// 0x05 => ICR(30)
+		*I2C_F = 0x85;
+		*I2C_FLT = 0x04;
+#elif ISSI_Chip_31FL3731_define == 1 && defined(_kii_v2_)
+		// 0x84 -> 36 MHz / (4 * 28) = 321.428 kBaud
+		// 0x80 => mul(4)
+		// 0x04 => ICR(28)
 		*I2C_F = 0x84;
 		*I2C_FLT = 0x03;
-#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define
+#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define == 1
 		/*
 		// Works
-		// 0x40 -> 36 MHz / (4 * 28) = 321.428 kBaud
+		// 0x84 -> 36 MHz / (4 * 28) = 321.428 kBaud
 		// 0x80 => mul(4)
-		// 0x00 => ICL(28)
+		// 0x04 => ICR(28)
 		*I2C_F = 0x84;
 		*I2C_FLT = 0x02;
 
 		// Also works, 80 fps, no errors (flicker?)
-		// 0x40 -> 36 MHz / (1 * 44) = 818.181 kBaud
-		// 0x80 => mul(1)
-		// 0x0C => ICL(44)
+		// 0x0C -> 36 MHz / (1 * 44) = 818.181 kBaud
+		// 0x00 => mul(1)
+		// 0x0C => ICR(44)
 		*I2C_F = 0x0C;
 		*I2C_FLT = 0x02; // Glitch protection, reduce if you see bus errors
 		*/
@@ -109,7 +115,7 @@ void i2c_setup()
 		// Also works, 86 fps, no errors, using frame delay of 50 us
 		// 0x40 -> 36 MHz / (2 * 20) = 900 kBaud
 		// 0x40 => mul(2)
-		// 0x00 => ICL(20)
+		// 0x00 => ICR(20)
 		*I2C_F = 0x40;
 		*I2C_FLT = 0x02;
 #endif
