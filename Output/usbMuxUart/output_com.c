@@ -100,8 +100,8 @@ CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
 
 
 // USBKeys Keyboard Buffer
-USBKeys USBKeys_primary; // Primary send buffer
-USBKeys USBKeys_idle;    // Idle timeout send buffer
+volatile USBKeys USBKeys_primary; // Primary send buffer
+volatile USBKeys USBKeys_idle;    // Idle timeout send buffer
 
 // The number of keys sent to the usb in the array
 uint8_t  USBKeys_Sent    = 0;
@@ -628,8 +628,8 @@ void Output_usbMouse_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 void Output_flushBuffers()
 {
 	// Zero out USBKeys buffers
-	memset( &USBKeys_primary, 0, sizeof( USBKeys ) );
-	memset( &USBKeys_idle, 0, sizeof( USBKeys ) );
+	memset( (void*)&USBKeys_primary, 0, sizeof( USBKeys ) );
+	memset( (void*)&USBKeys_idle, 0, sizeof( USBKeys ) );
 
 	// Reset USBKeys_Keys size
 	USBKeys_Sent = 0;

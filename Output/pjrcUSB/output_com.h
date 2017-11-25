@@ -94,8 +94,8 @@ typedef struct USBKeys {
 
 // Variables used to communciate to the output module
 // XXX Even if the output module is not USB, this is internally understood keymapping scheme
-extern          USBKeys  USBKeys_primary;
-extern          USBKeys  USBKeys_idle;
+extern volatile USBKeys  USBKeys_primary;
+extern volatile USBKeys  USBKeys_idle;
 
 extern          uint8_t  USBKeys_Sent;
 extern volatile uint8_t  USBKeys_LEDs;

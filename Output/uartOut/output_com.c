@@ -49,8 +49,8 @@
 // ----- Variables -----
 
 // USBKeys Keyboard Buffer
-USBKeys USBKeys_primary; // Primary send buffer
-USBKeys USBKeys_idle;    // Idle timeout send buffer
+volatile USBKeys USBKeys_primary; // Primary send buffer
+volatile USBKeys USBKeys_idle;    // Idle timeout send buffer
 
 // The number of keys sent to the usb in the array
 	uint8_t  USBKeys_Sent    = 0;

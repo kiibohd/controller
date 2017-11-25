@@ -100,8 +100,8 @@ CLIDict_Def( outputCLIDict, "USB Module Commands" ) = {
 
 
 // USBKeys Keyboard Buffer
-USBKeys USBKeys_primary; // Primary send buffer
-USBKeys USBKeys_idle;    // Idle timeout send buffer
+volatile USBKeys USBKeys_primary; // Primary send buffer
+volatile USBKeys USBKeys_idle;    // Idle timeout send buffer
 
 // The number of keys sent to the usb in the array
 uint8_t  USBKeys_Sent;
@@ -378,9 +378,8 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 		{
 			// Determine if key was set
 			uint8_t keyFound = 0;
-			uint8_t old_sent = USBKeys_Sent;
 
-			for ( uint8_t curkey = 0, newkey = 0; curkey < old_sent; curkey++, newkey++ )
+			for ( uint8_t newkey = 0; newkey < USBKeys_Sent; newkey++ )
 			{
 				// On press, key already present, don't re-add
 				if ( keyPress && USBKeys_primary.keys[newkey] == key )
@@ -392,9 +391,11 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 				// On release, remove if found
 				if ( !keyPress && USBKeys_primary.keys[newkey] == key )
 				{
-					// Shift next key onto this one
-					// (Doesn't matter if it overflows, buffer is large enough, and size is used)
-					USBKeys_primary.keys[newkey--] = USBKeys_primary.keys[++curkey];
+					// Shift keys over
+					for ( uint8_t pos = newkey; pos < USBKeys_Sent - 1; pos++ )
+					{
+						USBKeys_primary.keys[pos] = USBKeys_primary.keys[pos + 1];
+					}
 					USBKeys_Sent--;
 					keyFound = 1;
 					USBKeys_primary.changed = USBKeyChangeState_MainKeys;
@@ -624,8 +625,8 @@ void Output_usbMouse_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 void Output_flushBuffers()
 {
 	// Zero out USBKeys buffers
-	memset( &USBKeys_primary, 0, sizeof( USBKeys ) );
-	memset( &USBKeys_idle, 0, sizeof( USBKeys ) );
+	memset( (void*)&USBKeys_primary, 0, sizeof( USBKeys ) );
+	memset( (void*)&USBKeys_idle, 0, sizeof( USBKeys ) );
 
 	// Reset USBKeys_Keys size
 	USBKeys_Sent = 0;
