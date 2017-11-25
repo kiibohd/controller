@@ -27,21 +27,24 @@ source "common.bash"
 ###########
 
 # Run builds
-cmd ./ergodox.bash
-cmd ./infinity.alphabet.bash
-cmd ./infinity.hacker.bash
-cmd ./infinity.standard.bash
-cmd ./infinity_led.alphabet.bash
-cmd ./infinity_led.hacker.bash
-cmd ./infinity_led.standard.bash
-cmd ./k-type.bash
-cmd ./kira.bash
-cmd ./whitefox.aria.bash
-cmd ./whitefox.iso.bash
-cmd ./whitefox.jackofalltrades.bash
-cmd ./whitefox.truefox.bash
-cmd ./whitefox.vanilla.bash
-cmd ./whitefox.winkeyless.bash
+cmd_cpy ./ergodox-l.bash                kiibohd.dfu.bin firmware/ergodox.left.dfu.bin
+cmd_cpy ./ergodox-r.bash                kiibohd.dfu.bin firmware/ergodox.right.dfu.bin
+cmd_cpy ./infinity.alphabet.bash        kiibohd.dfu.bin firmware/infinity.alphabet.dfu.bin
+cmd_cpy ./infinity.hacker.bash          kiibohd.dfu.bin firmware/infinity.hacker.dfu.bin
+cmd_cpy ./infinity.standard.bash        kiibohd.dfu.bin firmware/infinity.standard.dfu.bin
+cmd_cpy ./infinity_led.alphabet.bash    kiibohd.dfu.bin firmware/infinity_led.alphabet.dfu.bin
+cmd_cpy ./infinity_led.hacker.bash      kiibohd.dfu.bin firmware/infinity_led.hacker.dfu.bin
+cmd_cpy ./infinity_led.standard.bash    kiibohd.dfu.bin firmware/infinity_led.standard.dfu.bin
+cmd_cpy ./k-type.bash                   kiibohd.dfu.bin firmware/k-type.dfu.bin
+cmd_cpy ./kira.bash                     kiibohd.dfu.bin firmware/kira.dfu.bin
+cmd_cpy ./whitefox.aria.bash            kiibohd.dfu.bin firmware/whitefox.aria.bin
+cmd_cpy ./whitefox.iso.bash             kiibohd.dfu.bin firmware/whitefox.iso.bin
+cmd_cpy ./whitefox.jackofalltrades.bash kiibohd.dfu.bin firmware/whitefox.jackofalltrades.bin
+cmd_cpy ./whitefox.truefox.bash         kiibohd.dfu.bin firmware/whitefox.truefox.bin
+cmd_cpy ./whitefox.vanilla.bash         kiibohd.dfu.bin firmware/whitefox.vanilla.bin
+cmd_cpy ./whitefox.winkeyless.bash      kiibohd.dfu.bin firmware/whitefox.winkeyless.bin
+result
+exit $?
 
 # Tally results
 result
