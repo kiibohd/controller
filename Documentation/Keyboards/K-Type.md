@@ -16,7 +16,21 @@
  1) Flip your K-Type over.
  2) With the keys down you should see a small hole on the left side in the middle of the board.
  3) While the keyboard is plugged in, use a paperclip or other small object to press the button inside the case.
+    - TIP: you can also configure a key combination to enter flash mode. On the default layout it's Fn-ESC.
  4) If the LEDs turn off and you see the amber light in the diffuser on the lower right (when looking at the top) it is now in flash mode.
+    - Note: on some keyboards there is no amber light indication (there are no leds at all in flash mode)
+
+#### Failsafe mode
+
+In case the keyboard cannot load the flashed firmware it will go into failsafe mode. In this state the keyboard is unresponsive, but can still enter flash mode:
+1) Unplug an replug the USB cable
+2) Press the flash button (as described above) twice in a row
+
+### Exiting Flash Mode
+
+Press ESC or unplug the keyboard.
+
+The keyboard exists flash mode automatically after a successful flash.
  
 #### [K-Type Flashing Video Tutorial](https://youtu.be/i5wFVnEJcok)
 
