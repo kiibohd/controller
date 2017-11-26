@@ -37,12 +37,12 @@ cmd_cpy ./infinity_led.hacker.bash      kiibohd.dfu.bin firmware/infinity_led.ha
 cmd_cpy ./infinity_led.standard.bash    kiibohd.dfu.bin firmware/infinity_led.standard.dfu.bin
 cmd_cpy ./k-type.bash                   kiibohd.dfu.bin firmware/k-type.dfu.bin
 cmd_cpy ./kira.bash                     kiibohd.dfu.bin firmware/kira.dfu.bin
-cmd_cpy ./whitefox.aria.bash            kiibohd.dfu.bin firmware/whitefox.aria.bin
-cmd_cpy ./whitefox.iso.bash             kiibohd.dfu.bin firmware/whitefox.iso.bin
-cmd_cpy ./whitefox.jackofalltrades.bash kiibohd.dfu.bin firmware/whitefox.jackofalltrades.bin
-cmd_cpy ./whitefox.truefox.bash         kiibohd.dfu.bin firmware/whitefox.truefox.bin
-cmd_cpy ./whitefox.vanilla.bash         kiibohd.dfu.bin firmware/whitefox.vanilla.bin
-cmd_cpy ./whitefox.winkeyless.bash      kiibohd.dfu.bin firmware/whitefox.winkeyless.bin
+cmd_cpy ./whitefox.aria.bash            kiibohd.dfu.bin firmware/whitefox.aria.dfu.bin
+cmd_cpy ./whitefox.iso.bash             kiibohd.dfu.bin firmware/whitefox.iso.dfu.bin
+cmd_cpy ./whitefox.jackofalltrades.bash kiibohd.dfu.bin firmware/whitefox.jackofalltrades.dfu.bin
+cmd_cpy ./whitefox.truefox.bash         kiibohd.dfu.bin firmware/whitefox.truefox.dfu.bin
+cmd_cpy ./whitefox.vanilla.bash         kiibohd.dfu.bin firmware/whitefox.vanilla.dfu.bin
+cmd_cpy ./whitefox.winkeyless.bash      kiibohd.dfu.bin firmware/whitefox.winkeyless.dfu.bin
 result
 exit $?
 
