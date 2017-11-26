@@ -34,9 +34,14 @@
  
 ### Flashing - linux
 
- 1) Using your system package manager install [dfu-util](http://dfu-util.sourceforge.net/releases/) (e.g. on arch linux `pacman -S dfu-util`)
+ 1) Using your system package manager install [dfu-util](http://dfu-util.sourceforge.net/releases/), e.g.:
+    - on Debian, Ubuntu and Mint: `sudo apt-get install dfu-util`
+    - on Arch Linux `pacman -S dfu-util`
+    - on Fedora `sudo dnf install dfu-util`
  2) Navigate to the directory you unzipped the firmware to
  3) With the K-Type in flash mode enter the command `dfu-util -D kiibohd.dfu.bin`
+    - If the above fails, try running the command with `sudo` (i.e. `sudo dfu-util -D kiibohd.dfu.bin`)
+    
  4) You're done, enjoy your keyboard
  
 ### Flashing - Windows
