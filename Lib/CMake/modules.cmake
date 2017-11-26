@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Source Configurator |###
 #
-# Written by Jacob Alexander in 2011-2016 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2017 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -16,22 +16,22 @@ set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/Lib/CMake/" )
 
 
 ###
-# Module Overrides (Used in the buildall.bash script)
+# Host Build Mode (Override ScanModule and OutputModules)
+# Or Normal Path Setup
 #
-if ( ( DEFINED ScanModuleOverride ) AND ( EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/Scan/${ScanModuleOverride} ) )
-	set( ScanModule ${ScanModuleOverride} )
+if ( HostBuild )
+	set(  ScanModulePath    "Scan/TestIn"          )
+	set( MacroModulePath   "Macro/${MacroModule}"  )
+	set( OutputModulePath "Output/TestOut"         )
+	set( DebugModulePath   "Debug/${DebugModule}"  )
+
+#| Normal Path Setup
+else ()
+	set(  ScanModulePath    "Scan/${ScanModule}"   )
+	set( MacroModulePath   "Macro/${MacroModule}"  )
+	set( OutputModulePath "Output/${OutputModule}" )
+	set( DebugModulePath   "Debug/${DebugModule}"  )
 endif ()
-
-
-
-
-###
-# Path Setup
-#
-set(  ScanModulePath    "Scan/${ScanModule}"   )
-set( MacroModulePath   "Macro/${MacroModule}"  )
-set( OutputModulePath "Output/${OutputModule}" )
-set( DebugModulePath   "Debug/${DebugModule}"  )
 
 #| Top-level directory adjustment
 set( HEAD_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
@@ -152,10 +152,17 @@ endfunction ()
 
 
 #| Add main modules
-AddModule ( Scan   ${ScanModule}   1 )
-AddModule ( Macro  ${MacroModule}  1 )
-AddModule ( Output ${OutputModule} 1 )
-AddModule ( Debug  ${DebugModule}  1 )
+if ( HostBuild )
+	AddModule ( Scan   TestIn          1 )
+	AddModule ( Macro  ${MacroModule}  1 )
+	AddModule ( Output TestOut         1 )
+	AddModule ( Debug  ${DebugModule}  1 )
+else ()
+	AddModule ( Scan   ${ScanModule}   1 )
+	AddModule ( Macro  ${MacroModule}  1 )
+	AddModule ( Output ${OutputModule} 1 )
+	AddModule ( Debug  ${DebugModule}  1 )
+endif ()
 
 
 

@@ -66,8 +66,13 @@ foreach ( filename ${ScanModule_KLL} ${MacroModule_KLL} ${OutputModule_KLL} ${De
 	set ( KLL_DEPENDS ${KLL_DEPENDS} ${filename} )
 endforeach ()
 
+#| If this is a HostBuild, we're overriding the BaseMap directory to the original module
 #| If set BaseMap cannot be found, use default map
-set ( pathname "${PROJECT_SOURCE_DIR}/${ScanModulePath}" )
+if ( HostBuild )
+	set ( pathname "${PROJECT_SOURCE_DIR}/Scan/${ScanModule}" )
+else ()
+	set ( pathname "${PROJECT_SOURCE_DIR}/${ScanModulePath}" )
+endif ()
 
 string ( REPLACE " " ";" MAP_LIST ${BaseMap} ) # Change spaces to semicolons
 foreach ( MAP ${MAP_LIST} )

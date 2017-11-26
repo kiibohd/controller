@@ -6,7 +6,7 @@ Author = "HaaTa (Jacob Alexander) 2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-11-14;
+Date = 2017-11-26;
 
 
 # Function Row (1-19)
@@ -191,7 +191,7 @@ typedef struct LED_Buffer {
 	uint16_t reg_addr;
 	uint16_t buffer[192];
 } LED_Buffer;
-extern LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
+volatile LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
 ";
 
 

@@ -24,6 +24,11 @@ else ()
 	message( AUTHOR_WARNING "COMPILER: ${COMPILER} - Unknown compiler selection" )
 endif ()
 
+# If Apple and gcc, then this is actually clang
+if ( APPLE AND "${COMPILER}" MATCHES "gcc" )
+	set( COMPILER "clang" )
+endif ()
+
 
 
 ###
@@ -93,11 +98,7 @@ if ( "${COMPILER}" MATCHES "clang" )
 
 #| GCC Compiler
 else()
-	if ( APPLE )
-		set( TUNING "-fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
-	else ()
-		set( TUNING "-nostdlib -fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
-	endif ()
+	set( TUNING "-nostdlib -fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
 endif()
 
 
@@ -125,7 +126,7 @@ add_definitions( -D_host_=1 ${OS_TUNING} ${TUNING} ${WARN} ${CSTANDARD} )
 
 #| Linker Flags
 if ( APPLE )
-	set( LINKER_FLAGS "${TUNING} -lcrt1.o" )
+	set( LINKER_FLAGS "${TUNING}" )
 else ()
 	set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections" )
 endif ()

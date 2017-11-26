@@ -9,6 +9,10 @@ Compiler=${COMPILER:-${Compiler}}
 # Append to BuildPath, depending on which compiler this is
 BuildPath=${BuildPath}.${Compiler}
 
+# Default to not using HostBuild
+EnableHostBuild=${EnableHostBuild:-false}
+EnableHostOnlyBuild=${EnableHostOnlyBuild:-false}
+
 # Make sure all of the relevant variables have been set
 # NOTE: PartialMaps and DefaultMap do not have to be set
 VariablesList=(BuildPath BaseMap ScanModule MacroModule OutputModule DebugModule Chip Compiler)
@@ -104,6 +108,8 @@ BuildPath="${BuildPath}.${MAKE}"
 BuildPath="${OSTYPE}.${BuildPath}"
 # Append Extra Name if necessary
 BuildPath="${BuildPath}${ExtraBuildPath}"
+# Path used for host builds
+HostPath="${BuildPath}.host"
 
 # Process the command line arguments (if any)
 while (( "$#" >= "1" )); do
@@ -117,6 +123,16 @@ while (( "$#" >= "1" )); do
 	-f|--force-rebuild)
 		# Remove the old directory first
 		rm -rf "${BuildPath}"
+		;;
+	-b|--host-build)
+		# Enables host-build, tests out kll files using local simulation
+		EnableHostBuild=true
+		;;
+	-B|--host-only-build)
+		# Enables host-build, tests out kll files using local simulation
+		# Does not run the main build
+		EnableHostBuild=true
+		EnableHostOnlyBuild=true
 		;;
 	-o|--output-path)
 		BuildPath="$2"
@@ -151,17 +167,16 @@ while (( "$#" >= "1" )); do
 	shift
 done
 
-# Override the defaults if the environment variables are set.
-BaseMap=${BaseMapOverride:-${BaseMap}}
-DefaultMap=${DefaultMapOverride:-${DefaultMap}}
-PartialMapsExpanded=${PartialMapsExpandedOverride:-${PartialMapsExpanded}}
+# If EnableHostOnlyBuild is enabled, EnableHostBuild should be set
+if ${EnableHostOnlyBuild}; then
+	EnableHostBuild=true
+fi
 
-echo "Selected Generator: ${CMAKE_GENERATOR}"
-echo "${BuildPath}"
 
-# Run CMake commands
-mkdir -p "${BuildPath}"
-cd "${BuildPath}"
+
+#
+# Determine OS Build Type
+#
 
 # Cygwin
 if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
@@ -170,14 +185,139 @@ if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
 		exit 1
 	fi
 	echo "Cygwin Build"
-	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DScanModule="${ScanModule}" -DMacroModule="${MacroModule}" -DOutputModule="${OutputModule}" -DDebugModule="${DebugModule}" -DBaseMap="${BaseMap}" -DDefaultMap="${DefaultMap}" -DPartialMaps="${PartialMapsExpanded}" ${CMakeExtraArgs} "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
+	OS_BUILD=cygwin
+
+# Linux / Mac (and everything else)
+else
+	echo "Unix Build"
+	OS_BUILD=unix
+fi
+
+
+# Override the defaults if the environment variables are set.
+BaseMap=${BaseMapOverride:-${BaseMap}}
+DefaultMap=${DefaultMapOverride:-${DefaultMap}}
+PartialMapsExpanded=${PartialMapsExpandedOverride:-${PartialMapsExpanded}}
+
+echo "Selected Generator: ${CMAKE_GENERATOR}"
+echo "${BuildPath}"
+
+
+
+#
+# Run Host Build (test kll)
+#
+
+if ${EnableHostBuild}; then
+	# Prepare CMake directory
+	mkdir -p "${HostPath}"
+	cd "${HostPath}"
+
+	# Cygwin
+	if [[ "${OS_BUILD}" == "cygwin" ]]; then
+		PATH="$wincmake_path":"${PATH}" cmake \
+			-DHostBuild=1 \
+			-DCHIP="host" \
+			-DCOMPILER="${Compiler}" \
+			-DScanModule="${ScanModule}" \
+			-DMacroModule="${MacroModule}" \
+			-DOutputModule="TestOut" \
+			-DDebugModule="${DebugModule}" \
+			-DBaseMap="${BaseMap}" \
+			-DDefaultMap="${DefaultMap}" \
+			-DPartialMaps="${PartialMapsExpanded}" \
+			${CMakeExtraArgs} "${CMakeListsPath}" \
+			-G "${CMAKE_GENERATOR}"
+		return_code=$?
+	# Everything else
+	else
+		cmake \
+			-DHostBuild=1 \
+			-DCHIP="host" \
+			-DCOMPILER="${Compiler}" \
+			-DScanModule="${ScanModule}" \
+			-DMacroModule="${MacroModule}" \
+			-DOutputModule="TestOut" \
+			-DDebugModule="${DebugModule}" \
+			-DBaseMap="${BaseMap}" \
+			-DDefaultMap="${DefaultMap}" \
+			-DPartialMaps="${PartialMapsExpanded}" \
+			${CMakeExtraArgs} "${CMakeListsPath}" \
+			-G "${CMAKE_GENERATOR}"
+		return_code=$?
+	fi
+
+	if [ $return_code != 0 ] ; then
+		echo "Error in host build cmake. Exiting..."
+		exit $return_code
+	fi
+
+	# Cygwin
+	if [[ "${OS_BUILD}" == "cygwin" ]]; then
+		# Automatically determines the build system and initiates it
+		PATH="$wincmake_path":"${PATH}"	cmake --build . ${CMakeExtraBuildArgs}
+		return_code=$?
+
+	# Everything else
+	else
+		# Automatically determines the build system and initiates it
+		cmake --build . ${CMakeExtraBuildArgs}
+		return_code=$?
+	fi
+
+	if [ $return_code != 0 ] ; then
+		echo "Error in host build. Exiting..."
+		exit $return_code
+	fi
+	echo "Host-Build has been compiled into: '${HostPath}'"
+	if ${EnableHostOnlyBuild}; then
+		exit $return_code
+	fi
+
+	cd -
+fi
+
+
+
+#
+# Run Build
+#
+
+# Prepare CMake directory
+mkdir -p "${BuildPath}"
+cd "${BuildPath}"
+
+# Cygwin
+if [[ "${OS_BUILD}" == "cygwin" ]]; then
+	PATH="$wincmake_path":"${PATH}" cmake \
+		-DCHIP="${Chip}" \
+		-DCOMPILER="${Compiler}" \
+		-DScanModule="${ScanModule}" \
+		-DMacroModule="${MacroModule}" \
+		-DOutputModule="${OutputModule}" \
+		-DDebugModule="${DebugModule}" \
+		-DBaseMap="${BaseMap}" \
+		-DDefaultMap="${DefaultMap}" \
+		-DPartialMaps="${PartialMapsExpanded}" \
+		${CMakeExtraArgs} "${CMakeListsPath}" \
+		-G "${CMAKE_GENERATOR}"
 	return_code=$?
 
 # Linux / Mac (and everything else)
 else
-	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DScanModule="${ScanModule}" -DMacroModule="${MacroModule}" -DOutputModule="${OutputModule}" -DDebugModule="${DebugModule}" -DBaseMap="${BaseMap}" -DDefaultMap="${DefaultMap}" -DPartialMaps="${PartialMapsExpanded}" ${CMakeExtraArgs} "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
+	cmake \
+		-DCHIP="${Chip}" \
+		-DCOMPILER="${Compiler}" \
+		-DScanModule="${ScanModule}" \
+		-DMacroModule="${MacroModule}" \
+		-DOutputModule="${OutputModule}" \
+		-DDebugModule="${DebugModule}" \
+		-DBaseMap="${BaseMap}" \
+		-DDefaultMap="${DefaultMap}" \
+		-DPartialMaps="${PartialMapsExpanded}" \
+		${CMakeExtraArgs} "${CMakeListsPath}" \
+		-G "${CMAKE_GENERATOR}"
 	return_code=$?
-
 fi
 
 if [ $return_code != 0 ] ; then
@@ -186,10 +326,19 @@ if [ $return_code != 0 ] ; then
 fi
 
 # Automatically determines the build system and initiates it
-cmake --build . ${CMakeExtraBuildArgs}
-return_code=$?
+# Cygwin
+if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
+	PATH="$wincmake_path":"${PATH}"	cmake --build . ${CMakeExtraBuildArgs}
+	return_code=$?
+
+# Linux / Mac (and everything else)
+else
+	cmake --build . ${CMakeExtraBuildArgs}
+	return_code=$?
+fi
+
 if [ $return_code != 0 ] ; then
-	echo "Error in make. Exiting..."
+	echo "Error in build. Exiting..."
 	exit $return_code
 fi
 

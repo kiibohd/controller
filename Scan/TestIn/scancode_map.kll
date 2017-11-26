@@ -1,16 +1,11 @@
 # TestIn Base Configuration
 Name = TestIn;
-Version = 0.2;
+Version = 0.3;
 Author = "HaaTa (Jacob Alexander) 2016-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-01-16;
-
-# Options
-
-# Press/Release Cache
-PressReleaseCache = 1;
+Date = 2017-11-26;
 
 
 # Function Row
@@ -129,7 +124,7 @@ typedef struct LED_Buffer {
 	uint16_t reg_addr;
 	uint16_t buffer[192];
 } LED_Buffer;
-extern LED_Buffer LED_pageBuffer[ 2 ];
+volatile LED_Buffer LED_pageBuffer[ 2 ];
 ";
 
 

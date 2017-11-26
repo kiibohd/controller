@@ -19,6 +19,7 @@ compiler:
 env:
   # Keyboard Tests
   - DIR=Keyboards SCRIPT=ic_keyboards.bash # Input Club Keyboards
+  - DIR=Keyboards SCRIPT=ic_keyboards.bash EnableHostOnlyBuild=true # Input Club Keyboards - Host-Side Build
   - DIR=Keyboards SCRIPT=others.bash
 
   # Debug Build Tests
@@ -35,30 +36,16 @@ matrix:
   # TODO - Still some travis clang issues
   allow_failures:
     - compiler: clang
-    # Currently there are issues running the macrotest on macOS
-    - compiler: gcc
-      env: DIR=Keyboards/Testing SCRIPT=all_tests.bash
-      os: osx
 
   exclude:
     # Bootloader doesn't support clang yet
     - compiler: clang
       env: DIR=Bootloader/Builds SCRIPT=all.bash
-    # xcode *and* brew don't support clang ARMCCompiler for arm-none-eabi, sigh useless Apple
+    # xcode *and* brew don't support clang ARMCCompiler for arm-none-eabi, sigh, useless Apple
     - compiler: clang
-      env: DIR=Keyboards SCRIPT=ic_keyboards.bash
-      os: osx
-    - compiler: clang
-      env: DIR=Keyboards SCRIPT=others.bash
-      os: osx
-    - compiler: clang
-      env: DIR=Keyboards/Testing SCRIPT=all_tests.bash
-      os: osx
-    - compiler: clang
-      env: DIR=Bootloader/Builds SCRIPT=all.bash
       os: osx
     # No need to build deployment for macOS
-    - env: DIR=Lib/CMake SCRIPT=travis_deploy.bash
+    - env: DIR=Lib/CMake SCRIPT=travis_deploy.bash DEPLOY_NAME=All
       os: osx
 
 # Package Setup
@@ -72,8 +59,8 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install tree python3 ctags dfu-util; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]]; then brew tap Caskroom/cask; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]]; then brew install Caskroom/cask/gcc-arm-embedded; fi
-  # TODO - Add proper gcc for macrotest on macOS
+  # This fails to download sometimes, just retry till it works
+  - while [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]] && [[ "$(which arm-none-eabi-gcc)" -ne 0 ]]; do brew install Caskroom/cask/gcc-arm-embedded; done
 
 # System setup
 install:
@@ -114,7 +101,6 @@ before_deploy:
 # Deploy release
 deploy:
   name: ${TRAVIS_TAG}
-  target_commitish: ${TRAVIS_TAG}
   body: $(git for-each-ref --format '%(refname) %09 %(taggerdate) %(subject) %(taggeremail)' refs/tags/${TRAVIS_TAG})
   provider: releases
   api_key: $GITHUB_OAUTH_TOKEN

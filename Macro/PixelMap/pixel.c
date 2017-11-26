@@ -1141,10 +1141,13 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 		{
 			goto next;
 		}
-
+#ifndef __clang__
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 		PixelElement *prev_pixel_elem = 0;
+#ifndef __clang__
 #pragma GCC diagnostic pop
+#endif
 		PixelElement *elem = 0;
 
 		// Prepare tweened PixelModElement
@@ -1249,9 +1252,13 @@ next:
 		prev = mod;
 
 		// Determine next position
+#ifndef __clang__
 #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#endif
 		pos += Pixel_pixelTweenNextPos( elem, prev_pixel_elem );
+#ifndef __clang__
 #pragma GCC diagnostic pop
+#endif
 
 		// Lookup next mod element
 		mod = (PixelModElement*)&frame[pos];

@@ -1,12 +1,12 @@
 # Infinity 60% LED
 
 Name = "Infinity 60% LED";
-Version = 0.6;
+Version = 0.7;
 Author = "HaaTa (Jacob Alexander) 2014-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-11-17;
+Date = 2017-11-26;
 
 
 # Defines available to the MD1_1 Scan Module
@@ -21,9 +21,15 @@ ISSI_Chips = 1;
 # I2C Buses
 ISSI_I2C_Buses = 1; # 1 by default
 
-# Channel Optimizations
-Pixel_HardCode_ChanWidth = 8;
-Pixel_HardCode_Channels = 1;
+# I2C LED Struct Definition
+LED_BufferStruct = "
+typedef struct LED_Buffer {
+	uint16_t i2c_addr;
+	uint16_t reg_addr;
+	uint16_t buffer[144];
+} LED_Buffer;
+volatile LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
+";
 
 
 # FPS Target
@@ -60,6 +66,10 @@ Pixel_Buffer_Size[]    =   0; # Starting channel for each buffer
 Pixel_Buffer_Width[]   =  16; # Width of each channel buffer (may be different than effective channel size)
 Pixel_Buffer_Length[]  = 144; # Length of each buffer (count, not bytes)
 Pixel_Buffer_Buffer[0] = "LED_pageBuffer[0].buffer"; # Pointer to the start of the buffer
+
+# Channel Optimizations
+Pixel_HardCode_ChanWidth = 8;
+Pixel_HardCode_Channels = 1;
 
 
 

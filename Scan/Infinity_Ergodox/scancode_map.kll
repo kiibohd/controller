@@ -6,7 +6,7 @@ Author = "HaaTa (Jacob Alexander) 2014-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-11-14;
+Date = 2017-11-26;
 
 ########
 # NOTE #
@@ -37,6 +37,16 @@ ISSI_Chips = 1;
 
 # I2C Buses
 ISSI_I2C_Buses = 1; # 1 by default
+
+# I2C LED Struct Definition
+LED_BufferStruct = "
+typedef struct LED_Buffer {
+	uint16_t i2c_addr;
+	uint16_t reg_addr;
+	uint16_t buffer[144];
+} LED_Buffer;
+volatile LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
+";
 
 
 # FPS Target

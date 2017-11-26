@@ -1,0 +1,27 @@
+# TestIn Capabilities
+Name = TestIn;
+Version = 0.3;
+Author = "HaaTa (Jacob Alexander) 2016-2017";
+KLL = 0.5;
+
+# Modified Date
+Date = 2017-11-26;
+
+
+
+#
+# LED Options
+#
+
+# Available ISSI Chips
+ISSI_Chips => ISSI_Chips_define;
+
+
+
+#
+# Macro Options
+#
+
+# Press/Release Cache
+PressReleaseCache = 1;
+

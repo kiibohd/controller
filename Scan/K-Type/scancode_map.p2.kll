@@ -219,6 +219,16 @@ Pixel_Buffer_Buffer[1] = "LED_pageBuffer[1].buffer";
 Pixel_Buffer_Buffer[2] = "LED_pageBuffer[2].buffer";
 Pixel_Buffer_Buffer[3] = "LED_pageBuffer[3].buffer";
 
+# I2C LED Struct Definition
+LED_BufferStruct = "
+typedef struct LED_Buffer {
+	uint16_t i2c_addr;
+	uint16_t reg_addr;
+	uint16_t buffer[144];
+} LED_Buffer;
+volatile LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
+";
+
 
 
 ### Pixel Display Mapping Parameters ###

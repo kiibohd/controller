@@ -205,7 +205,7 @@ CLIDict_Def( ledCLIDict, "ISSI LED Module Commands" ) = {
 // Emulated brightness buffer
 volatile LED_Buffer LED_pageBuffer_brightness[ISSI_Chips_define];
 #endif
-volatile LED_Buffer LED_pageBuffer[ISSI_Chips_define];
+extern LED_Buffer LED_pageBuffer[ISSI_Chips_define];
 
 uint8_t LED_displayFPS; // Display fps to cli
 uint8_t LED_enable;     // Enable/disable ISSI chips
