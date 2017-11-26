@@ -18,14 +18,17 @@ compiler:
 # Build Scripts
 env:
   # Keyboard Tests
-  - DIR=Keyboards SCRIPT=ic_keyboards.bash DEPLOY_NAME=Firmware # Input Club Keyboards
+  - DIR=Keyboards SCRIPT=ic_keyboards.bash # Input Club Keyboards
   - DIR=Keyboards SCRIPT=others.bash
 
   # Debug Build Tests
   - DIR=Keyboards/Testing SCRIPT=all_tests.bash
 
   # Bootloader Build Tests
-  - DIR=Bootloader/Builds SCRIPT=all.bash DEPLOY_NAME=Bootloader
+  - DIR=Bootloader/Builds SCRIPT=all.bash
+
+  # Deployment Build
+  - DIR=Lib/CMake SCRIPT=travis_deploy.bash DEPLOY_NAME=All
 
 # Exclusions
 matrix:
@@ -53,6 +56,9 @@ matrix:
       os: osx
     - compiler: clang
       env: DIR=Bootloader/Builds SCRIPT=all.bash
+      os: osx
+    # No need to build deployment for macOS
+    - env: DIR=Lib/CMake SCRIPT=travis_deploy.bash
       os: osx
 
 # Package Setup
@@ -108,6 +114,7 @@ before_deploy:
 # Deploy release
 deploy:
   name: ${TRAVIS_TAG}
+  target_commitish: ${TRAVIS_TAG}
   body: $(git for-each-ref --format '%(refname) %09 %(taggerdate) %(subject) %(taggeremail)' refs/tags/${TRAVIS_TAG})
   provider: releases
   api_key: $GITHUB_OAUTH_TOKEN
