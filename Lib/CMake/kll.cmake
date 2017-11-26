@@ -179,6 +179,7 @@ endif ()
 #| KLL Cmd
 set ( kll_cmd
 	${PROJECT_SOURCE_DIR}/kll/kll
+	--kiibohd-debug
 	--config ${Config_Args}
 	--base ${BaseMap_Args}
 	--default ${DefaultMap_Args}

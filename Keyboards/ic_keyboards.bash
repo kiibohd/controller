@@ -78,6 +78,8 @@ if [ "${1}" != "win" ]; then
 
 # Windows (no symlinks)
 else
+	env
+
 	cmd_cpy ./ergodox-l.bash                kiibohd.dfu.bin firmware/ergodox.left.dfu.bin
 	cmd_cpy ./ergodox-r.bash                kiibohd.dfu.bin firmware/ergodox.right.dfu.bin
 	cmd_cpy ./infinity.bash                 kiibohd.dfu.bin firmware/infinity.dfu.bin

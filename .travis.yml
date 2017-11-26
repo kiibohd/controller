@@ -57,10 +57,10 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded -y; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install tree python3 ctags dfu-util; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install tree python3 ctags dfu-util binutils gnu-sed; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]]; then brew tap Caskroom/cask; fi
   # This fails to download sometimes, just retry till it works
-  - while [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]] && [[ "$(which arm-none-eabi-gcc)" -ne 0 ]]; do brew install Caskroom/cask/gcc-arm-embedded; done
+  - while [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]] && [[ "$EnableHostOnlyBuild" != "true" ]] && ! type arm-none-eabi-gcc &> /dev/null; do brew install Caskroom/cask/gcc-arm-embedded; done
 
 # System setup
 install:

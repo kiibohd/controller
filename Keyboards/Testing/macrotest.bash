@@ -81,6 +81,12 @@ source "../common.bash"
 # Run tests
 cd "${BuildPath}"
 
+# Not Supported on Cygwin
+if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
+	echo "macrotest.bash is unsupported on Cygwin. As are any host-side kll tests."
+	exit 0
+fi
+
 #cmd python3 Tests/test.py # XXX (HaaTa) Disabling for now, need to implement general-case macro testing
 cmd python3 Tests/animation.py
 

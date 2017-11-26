@@ -247,7 +247,7 @@ if ${EnableHostBuild}; then
 		return_code=$?
 	fi
 
-	if [ $return_code != 0 ] ; then
+	if [[ "$return_code" -ne "0" ]] ; then
 		echo "Error in host build cmake. Exiting..."
 		exit $return_code
 	fi
@@ -265,7 +265,7 @@ if ${EnableHostBuild}; then
 		return_code=$?
 	fi
 
-	if [ $return_code != 0 ] ; then
+	if [[ "$return_code" -ne "0" ]] ; then
 		echo "Error in host build. Exiting..."
 		exit $return_code
 	fi
@@ -320,7 +320,7 @@ else
 	return_code=$?
 fi
 
-if [ $return_code != 0 ] ; then
+if [[ "$return_code" -ne "0" ]] ; then
 	echo "Error in cmake. Exiting..."
 	exit $return_code
 fi
@@ -328,7 +328,7 @@ fi
 # Automatically determines the build system and initiates it
 # Cygwin
 if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
-	PATH="$wincmake_path":"${PATH}"	cmake --build . ${CMakeExtraBuildArgs}
+	PATH="$wincmake_path":"${PATH}"	VERBOSE=1 cmake --build . ${CMakeExtraBuildArgs}
 	return_code=$?
 
 # Linux / Mac (and everything else)
@@ -337,7 +337,7 @@ else
 	return_code=$?
 fi
 
-if [ $return_code != 0 ] ; then
+if [[ "$return_code" -ne "0" ]] ; then
 	echo "Error in build. Exiting..."
 	exit $return_code
 fi

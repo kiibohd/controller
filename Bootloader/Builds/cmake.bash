@@ -171,7 +171,7 @@ else
 
 fi
 
-if [ $return_code != 0 ] ; then
+if [[ "$return_code" -ne "0" ]] ; then
 	echo "Error in cmake. Exiting..."
 	exit $return_code
 fi
@@ -179,7 +179,7 @@ fi
 # Automatically determines the build system and initiates it
 cmake --build .
 return_code=$?
-if [ $return_code != 0 ] ; then
+if [[ "$return_code" -ne "0" ]] ; then
 	echo "Error in make. Exiting..."
 	exit $return_code
 fi

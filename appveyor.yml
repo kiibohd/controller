@@ -47,10 +47,8 @@ init:
 # Setup Build Instance
 install:
   - 'appveyor DownloadFile http://cygwin.com/setup-%CYG_ARCH%.exe -FileName setup.exe'
-  # XXX There are issues if you try to install python3 here, just used the default one pre-installed on appveyor
   - 'setup.exe -qnNdO -R "%CYG_ROOT%" -s "%CYG_MIRROR%" -l "%CYG_CACHE%" -P ctags -P tree -P p7zip'
   - '%CYG_ROOT%/bin/bash -lc "cygcheck -dc cygwin"'
-  - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\"/%SCRIPT_DIR% && export wincmake_path=\"%WIN_CMAKE%\" && which cmake"'
   - '%CYG_ROOT%/bin/bash -lc "ls -l /cygdrive/c"'
   # Only download if cache is missing
   - if not exist c:/gcc-arm-none-eabi.zip appveyor DownloadFile %ARM_COMPILER_URL% -FileName c:/gcc-arm-none-eabi.zip
@@ -64,13 +62,12 @@ install:
   - 7z d c:/gcc-arm-none-eabi.zip "armv8*" -r
   - 7z d c:/gcc-arm-none-eabi.zip "*.html" -r
   - dir
-  - cmake --version
 
 
 # Build Commands
 build_script:
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && du -sh /cygdrive/c/gcc-arm-none-eabi.zip"'
-  - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && 7z x -o/ /cygdrive/c/gcc-arm-none-eabi.zip"'
+  - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && 7z x -o/usr/local /cygdrive/c/gcc-arm-none-eabi.zip"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && pwd"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && tree"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && which cmake"'
@@ -82,9 +79,11 @@ build_script:
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && python3 --version"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && arm-none-eabi-gcc --version"'
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && git clone https://github.com/kiibohd/kll.git"'
-  - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\"/%SCRIPT_DIR% && export wincmake_path=\"%WIN_CMAKE%\" && COMPILER=gcc ./%SCRIPT%" win'
+  - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\"/%SCRIPT_DIR% && export wincmake_path=\"%WIN_CMAKE%\" && COMPILER=gcc ./%SCRIPT% win"'
 
 # Post Build Commands
 on_finish:
+  - dir
+  - dir c:\
   - '%CYG_ROOT%/bin/bash -lc "cd \"$OLDPWD\" && tree"'
 

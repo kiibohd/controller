@@ -91,9 +91,10 @@ if ( "${COMPILER}" MATCHES "clang" )
 	endif ()
 
 	# Set compiler utilities for clang on macOS
+	# Requires homebrew binutils
 	if ( APPLE )
-		set ( CMAKE_OBJDUMP objdump )
-		set ( CMAKE_NM nm )
+		set ( CMAKE_OBJDUMP gobjdump )
+		set ( CMAKE_NM gnm )
 	endif ()
 
 #| GCC Compiler
@@ -133,7 +134,7 @@ endif ()
 
 
 #| Lss Flags
-if ( "${COMPILER}" MATCHES "clang" OR APPLE )
+if ( "${COMPILER}" MATCHES "clang" AND NOT APPLE )
 	set( LSS_FLAGS -section-headers )
 else ()
 	set( LSS_FLAGS -h -S -z )
