@@ -65,6 +65,8 @@ void cliFunc_macroStep ( char* args );
 void cliFunc_posList   ( char* args );
 void cliFunc_voteDebug ( char* args );
 
+void Macro_layerStateTrigger( uint16_t layerIndex, uint8_t state );
+
 
 
 // ----- Variables -----
@@ -151,12 +153,15 @@ TriggerEvent macroInterconnectCache[ MaxScanCode ];
 uint8_t macroInterconnectCacheSize = 0;
 #endif
 
+// Previous HID LED State
+static uint8_t macroPrevHIDLEDState;
+
 
 
 // ----- Capabilities -----
 
 // Sets the given layer with the specified layerState
-void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint16_t layer, uint8_t layerState )
+void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint16_t layer, LayerStateType layerState )
 {
 	// Ignore if layer does not exist or trying to manipulate layer 0/Default layer
 	if ( layer >= LayerNum || layer == 0 )
@@ -178,6 +183,9 @@ void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, 
 		stackItem++;
 	}
 
+	// Use previous layer state to determine activate/on/deactivate state for trigger
+	LayerStateType prevState = LayerState[ layer ];
+
 	// Toggle Layer State Byte
 	if ( LayerState[ layer ] & layerState )
 	{
@@ -190,6 +198,26 @@ void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, 
 		LayerState[ layer ] |= layerState;
 	}
 
+
+	// Determine activate/on/deactivate state for trigger
+	ScheduleState trigger_state = ScheduleType_Off;
+
+	// Activate (off->on)
+	if ( !prevState && LayerState[ layer ] )
+	{
+		trigger_state = ScheduleType_A;
+	}
+	// Deactivate (on->off)
+	else if ( prevState && !LayerState[ layer ] )
+	{
+		trigger_state = ScheduleType_D;
+	}
+
+	// Process layer trigger
+	// On (on->on) is handled by the main processing loop)
+	Macro_layerStateTrigger( layer, trigger_state );
+
+
 	// If the layer was not in the LayerIndexStack add it
 	if ( !inLayerIndexStack )
 	{
@@ -197,7 +225,7 @@ void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, 
 	}
 
 	// If the layer is in the LayerIndexStack and the state is 0x00, remove
-	if ( LayerState[ layer ] == 0x00 && inLayerIndexStack )
+	if ( LayerState[ layer ] == LayerStateType_Off && inLayerIndexStack )
 	{
 		// Remove the layer from the LayerIndexStack
 		// Using the already positioned stackItem variable from the loop above
@@ -251,7 +279,7 @@ void Macro_layerState_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	// Only use capability on press or release
 	// TODO Analog
 	// XXX This may cause issues, might be better to implement state table here to decide -HaaTa
-	if ( stateType == 0x00 && state == 0x02 ) // Hold condition
+	if ( state == 0x02 ) // Hold condition
 		return;
 
 	// Get layer index from arguments
@@ -278,14 +306,14 @@ void Macro_layerLatch_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 
 	// Only use capability on press
 	// TODO Analog
-	if ( stateType == 0x00 && state != 0x03 ) // Only on release
+	if ( state != 0x03 ) // Only on release
 		return;
 
 	// Get layer index from arguments
 	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
-	Macro_layerState( trigger, state, stateType, layer, 0x02 );
+	Macro_layerState( trigger, state, stateType, layer, LayerStateType_Latch );
 }
 
 
@@ -303,14 +331,14 @@ void Macro_layerLock_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	// Only use capability on press
 	// TODO Analog
 	// XXX Could also be on release, but that's sorta dumb -HaaTa
-	if ( stateType == 0x00 && state != 0x01 ) // All normal key conditions except press
+	if ( state != 0x01 ) // All normal key conditions except press
 		return;
 
 	// Get layer index from arguments
 	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
-	Macro_layerState( trigger, state, stateType, layer, 0x04 );
+	Macro_layerState( trigger, state, stateType, layer, LayerStateType_Lock );
 }
 
 
@@ -327,7 +355,7 @@ void Macro_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 
 	// Only use capability on press or release
 	// TODO Analog
-	if ( stateType == 0x00 && ( state == 0x00 || state == 0x02 ) ) // Only pass press or release conditions
+	if ( state == 0x00 || state == 0x02 ) // Only pass press or release conditions
 		return;
 
 	// Get layer index from arguments
@@ -342,7 +370,7 @@ void Macro_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	if ( LayerState[ layer ] == 0x00 && state == 0x03 )
 		return;
 
-	Macro_layerState( trigger, state, stateType, layer, 0x01 );
+	Macro_layerState( trigger, state, stateType, layer, LayerStateType_Shift );
 }
 
 
@@ -362,13 +390,13 @@ void Macro_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 	// Only use capability on press
 	// TODO Analog
 	// XXX Could also be on release, but that's sorta dumb -HaaTa
-	if ( stateType == 0x00 && state != 0x01 ) // All normal key conditions except press
+	if ( state != 0x01 ) // All normal key conditions except press
 		return;
 
 	// Unset previous rotation layer if not 0
 	if ( Macro_rotationLayer != 0 )
 	{
-		Macro_layerState( trigger, state, stateType, Macro_rotationLayer, 0x04 );
+		Macro_layerState( trigger, state, stateType, Macro_rotationLayer, LayerStateType_Lock );
 	}
 
 	// Get direction of rotation, 0, next, non-zero previous
@@ -394,7 +422,7 @@ void Macro_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 	}
 
 	// Toggle the computed layer rotation
-	Macro_layerState( trigger, state, stateType, Macro_rotationLayer, 0x04 );
+	Macro_layerState( trigger, state, stateType, Macro_rotationLayer, LayerStateType_Lock );
 }
 
 
@@ -567,9 +595,9 @@ nat_ptr_t *Macro_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 {
 	uint8_t index = event->index;
 
-	// TODO Analog, LED, Layer, Animation
+	// TODO Analog
 	// If a normal key, and not pressed, do a layer cache lookup
-	if ( event->type == 0x00 && event->state != 0x01 )
+	if ( event->state != 0x01 )
 	{
 		// Cached layer
 		var_uint_t cachedLayer = macroTriggerEventLayerCache[ index ];
@@ -582,10 +610,10 @@ nat_ptr_t *Macro_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 		nat_ptr_t *trigger_list = map[ index - layer->first ];
 
 		// Check if latch has been pressed for this layer
-		uint8_t latch = LayerState[ cachedLayer ] & 0x02;
+		uint8_t latch = LayerState[ cachedLayer ] & LayerStateType_Latch;
 		if ( latch && latch_expire )
 		{
-			Macro_layerState( 0, 0, 0, cachedLayer, 0x02 );
+			Macro_layerState( 0, 0, 0, cachedLayer, LayerStateType_Latch );
 #if defined(ConnectEnabled_define) && defined(LCDEnabled_define)
 			// Evaluate the layerStack capability if available (LCD + Interconnect)
 			extern void LCD_layerStack_capability(
@@ -609,16 +637,20 @@ nat_ptr_t *Macro_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 
 		// Check if latch has been pressed for this layer
 		// XXX Regardless of whether a key is found, the latch is removed on first lookup
-		uint8_t latch = LayerState[ macroLayerIndexStack[ layerIndex ] ] & 0x02;
+		uint8_t latch = LayerState[ macroLayerIndexStack[ layerIndex ] ] & LayerStateType_Latch;
 		if ( latch && latch_expire )
 		{
-			Macro_layerState( 0, 0, 0, macroLayerIndexStack[ layerIndex ], 0x02 );
+			Macro_layerState( 0, 0, 0, macroLayerIndexStack[ layerIndex ], LayerStateType_Latch );
 		}
 
 		// Only use layer, if state is valid
 		// XOR each of the state bits
 		// If only two are enabled, do not use this state
-		if ( (LayerState[ macroLayerIndexStack[ layerIndex ] ] & 0x01) ^ (latch>>1) ^ ((LayerState[ macroLayerIndexStack[ layerIndex ] ] & 0x04)>>2) )
+		if (
+			( LayerState[ macroLayerIndexStack[ layerIndex ] ] & LayerStateType_Shift ) ^
+			( latch >> 1 ) ^
+			( ( LayerState[ macroLayerIndexStack[ layerIndex ] ] & LayerStateType_Lock ) >> 2 )
+		)
 		{
 			// Lookup layer
 			nat_ptr_t **map = (nat_ptr_t**)layer->triggerMap;
@@ -862,8 +894,6 @@ void Macro_analogState( uint16_t scanCode, uint8_t state )
 //   * 0x03 - Deactivate
 void Macro_ledState( uint16_t ledCode, uint8_t state )
 {
-	// TODO Handle change for interconnect
-
 	// Lookup done based on size of scanCode
 	uint8_t index = ledCode;
 	TriggerType type = TriggerType_LED1;
@@ -890,8 +920,6 @@ void Macro_ledState( uint16_t ledCode, uint8_t state )
 //   * 0x07 - Repeat
 void Macro_animationState( uint16_t animationIndex, uint8_t state )
 {
-	// TODO Handle change for interconnect
-
 	// Lookup done based on size of layerIndex
 	uint8_t index = 0;
 	TriggerType type = TriggerType_Animation1;
@@ -902,7 +930,7 @@ void Macro_animationState( uint16_t animationIndex, uint8_t state )
 	case ScheduleType_Done:   // Activate
 	case ScheduleType_Repeat: // On
 		// Check if layer is out of range
-		// TODO check total animatinos
+		// TODO check total animations
 		/*
 		if ( animationIndex > AnimationNum_KLL )
 		{
@@ -943,17 +971,14 @@ void Macro_animationState( uint16_t animationIndex, uint8_t state )
 }
 
 
-/* TODO Merge with Macro_layerState
 // Update layer state
 // States:
 //   * 0x00 - Off
 //   * 0x01 - Activate
 //   * 0x02 - On
 //   * 0x03 - Deactivate
-void Macro_layerState( uint16_t layerIndex, uint8_t state )
+void Macro_layerStateTrigger( uint16_t layerIndex, uint8_t state )
 {
-	// TODO Handle change for interconnect
-
 	// Lookup done based on size of layerIndex
 	uint8_t index = 0;
 	TriggerType type = TriggerType_Layer1;
@@ -994,6 +1019,16 @@ void Macro_layerState( uint16_t layerIndex, uint8_t state )
 			type = TriggerType_Layer4;
 		}
 
+		// Make sure we haven't already added the layer during this processing cycle
+		for ( var_uint_t c = 0; c < macroTriggerEventBufferSize; c++ )
+		{
+			// If index and type match, no need to re-add
+			if ( macroTriggerEventBuffer[ c ].index == index && macroTriggerEventBuffer[ c ].type == type )
+			{
+				return;
+			}
+		}
+
 		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].index = index;
 		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].state = state;
 		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].type  = type;
@@ -1001,7 +1036,6 @@ void Macro_layerState( uint16_t layerIndex, uint8_t state )
 		break;
 	}
 }
-*/
 
 
 // Append result macro to pending list, checking for duplicates
@@ -1023,7 +1057,7 @@ void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 	macroResultMacroPendingList.data[ macroResultMacroPendingList.size ].trigger = (TriggerMacro*)triggerMacro;
 	macroResultMacroPendingList.data[ macroResultMacroPendingList.size++ ].index = resultMacroIndex;
 
-	// Lookup scanCode of the last key in the last combo
+	// Lookup index of the last key in the last combo
 	var_uint_t pos = 0;
 	for ( uint8_t comboLength = triggerMacro->guide[0]; comboLength > 0; )
 	{
@@ -1031,12 +1065,12 @@ void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 		comboLength = triggerMacro->guide[ pos ];
 	}
 
-	uint8_t scanCode = ((TriggerGuide*)&triggerMacro->guide[ pos - TriggerGuideSize ])->scanCode;
+	uint8_t index = ((TriggerGuide*)&triggerMacro->guide[ pos - TriggerGuideSize ])->index;
 
-	// Lookup scanCode in buffer list for the current state and stateType
+	// Lookup index in buffer list for the current state and stateType
 	for ( var_uint_t keyIndex = 0; keyIndex < macroTriggerEventBufferSize; keyIndex++ )
 	{
-		if ( macroTriggerEventBuffer[ keyIndex ].index == scanCode )
+		if ( macroTriggerEventBuffer[ keyIndex ].index == index )
 		{
 			ResultMacroRecordList[ resultMacroIndex ].state     = macroTriggerEventBuffer[ keyIndex ].state;
 			ResultMacroRecordList[ resultMacroIndex ].stateType = macroTriggerEventBuffer[ keyIndex ].type;
@@ -1048,12 +1082,87 @@ void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 }
 
 
+// Determine the new state of the HID LED
+ScheduleState Macro_HIDLEDState( uint8_t cur, uint8_t prev, uint8_t mask )
+{
+	// No change (Hold or Off)
+	if ( ( cur & mask ) == ( prev & mask ) )
+	{
+		// Hold
+		if ( cur & mask )
+		{
+			return ScheduleType_On;
+		}
+		// Off
+		else
+		{
+			return ScheduleType_Off;
+		}
+	}
+	// Activate or Deactivate
+	else
+	{
+		// Activate
+		if ( cur & mask )
+		{
+			return ScheduleType_A;
+		}
+		// Deactivate
+		else
+		{
+			return ScheduleType_D;
+		}
+	}
+}
+
+
+// Processes HID LED State
+// Using the current and previous state determine what events to generate
+void Macro_HIDLEDProcess()
+{
+	// NumLock
+	Macro_ledState( LED_NUM_LOCK, Macro_HIDLEDState( USBKeys_LEDs, macroPrevHIDLEDState, 0x01 ) );
+	// CapsLock
+	Macro_ledState( LED_CAPS_LOCK, Macro_HIDLEDState( USBKeys_LEDs, macroPrevHIDLEDState, 0x02 ) );
+	// ScrollLock
+	Macro_ledState( LED_SCROLL_LOCK, Macro_HIDLEDState( USBKeys_LEDs, macroPrevHIDLEDState, 0x04 ) );
+	// Compose
+	Macro_ledState( LED_COMPOSE, Macro_HIDLEDState( USBKeys_LEDs, macroPrevHIDLEDState, 0x08 ) );
+	// Kana
+	Macro_ledState( LED_KANA, Macro_HIDLEDState( USBKeys_LEDs, macroPrevHIDLEDState, 0x10 ) );
+	// Power
+	Macro_ledState( LED_POWER, Macro_HIDLEDState( USBKeys_LEDs, macroPrevHIDLEDState, 0x20 ) );
+	// Shift
+	Macro_ledState( LED_SHIFT, Macro_HIDLEDState( USBKeys_LEDs, macroPrevHIDLEDState, 0x40 ) );
+
+	// Update previous state
+	macroPrevHIDLEDState = USBKeys_LEDs;
+}
+
+
+// Process LayerStack for triggers
+// Detects On (on->on) trigger events
+void Macro_LayerTriggerProcess()
+{
+	for ( index_uint_t index = 0; index < macroLayerIndexStackSize; index++ )
+	{
+		Macro_layerStateTrigger( macroLayerIndexStack[ index ], ScheduleType_On );
+	}
+}
+
+
 // Macro Procesing Loop
 // Called once per USB buffer send
 void Macro_process()
 {
 	// Latency measurement
 	Latency_start_time( macroLatencyResource );
+
+	// Check for HID LED states
+	Macro_HIDLEDProcess();
+
+	// Check for layer states
+	Macro_LayerTriggerProcess();
 
 #if defined(ConnectEnabled_define)
 	// Only compile in if a Connect node module is available
@@ -1619,7 +1728,7 @@ void macroDebugShowTrigger( var_uint_t index )
 			TriggerGuide *guide = (TriggerGuide*)(&macro->guide[ pos ]);
 
 			// Display guide information about trigger key
-			printHex( guide->scanCode );
+			printHex( guide->index );
 			print("|");
 			printHex( guide->type );
 			print("|");

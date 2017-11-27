@@ -108,7 +108,6 @@ uint8_t  USBKeys_Sent;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t  USBKeys_LEDs = 0;
-volatile uint8_t  USBKeys_LEDs_Changed;
 
 // Currently pressed mouse buttons, bitmask, 0 represents no buttons pressed
 volatile uint16_t USBMouse_Buttons = 0;
@@ -630,9 +629,6 @@ void Output_flushBuffers()
 
 	// Reset USBKeys_Keys size
 	USBKeys_Sent = 0;
-
-	// Set USBKeys_LEDs_Changed to indicate that we should update LED status
-	USBKeys_LEDs_Changed = 1;
 }
 
 
