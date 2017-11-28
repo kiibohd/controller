@@ -127,14 +127,14 @@ static uint8_t keyboard_report_desc[] = {
 
 	// LED Report
 	0x75, 0x01,          //   Report Size (1),
-	0x95, 0x07,          //   Report Count (7),
+	0x95, 0x05,          //   Report Count (5),
 	0x05, 0x08,          //   Usage Page (LEDs),
 	0x19, 0x01,          //   Usage Minimum (1),
-	0x29, 0x07,          //   Usage Maximum (7),
+	0x29, 0x05,          //   Usage Maximum (5),
 	0x91, 0x02,          //   Output (Data, Variable, Absolute),
 
 	// LED Report Padding
-	0x75, 0x01,          //   Report Size (1),
+	0x75, 0x03,          //   Report Size (3),
 	0x95, 0x01,          //   Report Count (1),
 	0x91, 0x03,          //   Output (Constant),
 
@@ -160,14 +160,14 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	// LED Report
 	0x85, 0x01,          //   Report ID (1),
 	0x75, 0x01,          //   Report Size (1),
-	0x95, 0x07,          //   Report Count (7),
+	0x95, 0x05,          //   Report Count (5),
 	0x05, 0x08,          //   Usage Page (LEDs),
 	0x19, 0x01,          //   Usage Minimum (1),
-	0x29, 0x07,          //   Usage Maximum (7),
+	0x29, 0x05,          //   Usage Maximum (5),
 	0x91, 0x02,          //   Output (Data, Variable, Absolute),
 
 	// LED Report Padding
-	0x75, 0x01,          //   Report Size (1),
+	0x75, 0x03,          //   Report Size (3),
 	0x95, 0x01,          //   Report Count (1),
 	0x91, 0x03,          //   Output (Constant),
 

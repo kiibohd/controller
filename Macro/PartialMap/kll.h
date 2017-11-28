@@ -275,9 +275,9 @@ typedef struct TriggerMacroRecord {
 // Used for storing Trigger elements
 #define TriggerGuideSize sizeof( TriggerGuide )
 typedef struct TriggerGuide {
-	TriggerType   type;
-	ScheduleState state;
-	uint8_t       index;
+	uint8_t type;
+	uint8_t state;
+	uint8_t scanCode;
 } TriggerGuide;
 
 // Used for incoming Trigger events
@@ -392,13 +392,6 @@ typedef struct Capability {
 // Last defines the last scan code used (helps reduce RAM usage)
 //
 // The name is defined for cli debugging purposes (Null terminated string)
-
-typedef enum LayerStateType {
-	LayerStateType_Off   = 0x00,
-	LayerStateType_Shift = 0x01,
-	LayerStateType_Latch = 0x02,
-	LayerStateType_Lock  = 0x04,
-} LayerStateType;
 
 typedef struct Layer {
 	const nat_ptr_t **triggerMap;

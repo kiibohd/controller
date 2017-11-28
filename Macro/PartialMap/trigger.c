@@ -171,27 +171,13 @@ uint8_t Trigger_isLongTriggerMacro( const TriggerMacro *macro )
 // Votes on the given key vs. guide, short macros
 TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, TriggerGuide *guide )
 {
-	// Types must match
-	if ( event->type != guide->type )
-	{
-		return TriggerMacroVote_DoNothing;
-	}
-
 	// Depending on key type
-	switch ( event->type )
+	switch ( guide->type )
 	{
-	// Press/Hold/Release/Off Voting Types
+	// Normal State Type
 	case TriggerType_Switch1:
-	case TriggerType_Switch2:
-	case TriggerType_Switch3:
-	case TriggerType_Switch4:
-	case TriggerType_LED1:
-	case TriggerType_Layer1:
-	case TriggerType_Layer2:
-	case TriggerType_Layer3:
-	case TriggerType_Layer4:
 		// For short TriggerMacros completely ignore incorrect keys
-		if ( guide->index == event->index )
+		if ( guide->scanCode == event->index )
 		{
 			switch ( event->state )
 			{
@@ -215,20 +201,24 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 
 		return TriggerMacroVote_DoNothing;
 
-	// Animation State Type
-	case TriggerType_Animation1:
-	case TriggerType_Animation2:
-	case TriggerType_Animation3:
-	case TriggerType_Animation4:
-		erro_print("Animation State Type - Not implemented...");
+	// LED State Type
+	case TriggerType_LED1:
+		erro_print("LED State Type - Not implemented...");
 		break;
 
 	// Analog State Type
 	case TriggerType_Analog1:
-	case TriggerType_Analog2:
-	case TriggerType_Analog3:
-	case TriggerType_Analog4:
 		erro_print("Analog State Type - Not implemented...");
+		break;
+
+	// Layer State Type
+	case TriggerType_Layer1:
+		erro_print("Layer State Type - Not implemented...");
+		break;
+
+	// Animation State Type
+	case TriggerType_Animation1:
+		erro_print("Animation State Type - Not implement...");
 		break;
 
 	// Invalid State Type
@@ -246,28 +236,14 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 // A long macro is defined as a guide with more than 1 combo
 TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerGuide *guide )
 {
-	// Types must match
-	if ( event->type != guide->type )
-	{
-		return TriggerMacroVote_Fail;
-	}
-
 	// Depending on key type
-	switch ( event->type )
+	switch ( guide->type )
 	{
-	// Press/Hold/Release/Off Voting Types
+	// Normal State Type
 	case TriggerType_Switch1:
-	case TriggerType_Switch2:
-	case TriggerType_Switch3:
-	case TriggerType_Switch4:
-	case TriggerType_LED1:
-	case TriggerType_Layer1:
-	case TriggerType_Layer2:
-	case TriggerType_Layer3:
-	case TriggerType_Layer4:
 		// Depending on the state of the buffered key, make voting decision
 		// Incorrect key
-		if ( guide->index != event->index )
+		if ( guide->scanCode != event->index )
 		{
 			switch ( event->state )
 			{
@@ -314,20 +290,24 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 
 		break;
 
-	// Animation State Type
-	case TriggerType_Animation1:
-	case TriggerType_Animation2:
-	case TriggerType_Animation3:
-	case TriggerType_Animation4:
-		erro_print("Animation State Type - Not implemented...");
+	// LED State Type
+	case TriggerType_LED1:
+		erro_print("LED State Type - Not implemented...");
 		break;
 
 	// Analog State Type
 	case TriggerType_Analog1:
-	case TriggerType_Analog2:
-	case TriggerType_Analog3:
-	case TriggerType_Analog4:
 		erro_print("Analog State Type - Not implemented...");
+		break;
+
+	// Layer State Type
+	case TriggerType_Layer1:
+		erro_print("Layer State Type - Not implemented...");
+		break;
+
+	// Animation State Type
+	case TriggerType_Animation1:
+		erro_print("Animation State Type - Not implement...");
 		break;
 
 	// Invalid State Type
@@ -509,6 +489,13 @@ void Trigger_updateTriggerMacroPendingList()
 	// Iterate over the macroTriggerEventBuffer to add any new Trigger Macros to the pending list
 	for ( var_uint_t key = 0; key < macroTriggerEventBufferSize; key++ )
 	{
+		// TODO LED States
+		// TODO Analog Switches
+		// Only add TriggerMacro to pending list if key was pressed (not held, released or off)
+		if ( macroTriggerEventBuffer[ key ].state == 0x00 && macroTriggerEventBuffer[ key ].state != 0x01 )
+			continue;
+
+		// TODO Analog
 		// If this is a release case, indicate to layer lookup for possible latch expiry
 		uint8_t latch_expire = macroTriggerEventBuffer[ key ].state == 0x03;
 
@@ -553,6 +540,17 @@ void Trigger_updateTriggerMacroPendingList()
 	}
 }
 
+
+
+void Trigger_state( uint8_t type, uint8_t state, uint8_t index )
+{
+}
+
+
+uint8_t Trigger_update( uint8_t type, uint8_t state, uint8_t index )
+{
+	return 0;
+}
 
 
 void Trigger_setup()

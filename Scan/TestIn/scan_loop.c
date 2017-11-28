@@ -110,13 +110,13 @@ inline void Scan_finishedWithOutput( uint8_t sentKeys )
 // Returns 1 if added, 0 if the ScanCode is already in the buffer
 // Returns 2 if there's an error
 // Generally 1 will be the return
-int Scan_addScanCode( uint8_t index )
+int Scan_addScanCode( uint8_t scanCode )
 {
 	// Add key event to macro key buffer
 	TriggerGuide guide = {
-		.type  = 0x00,
-		.state = 0x01, // Press
-		.index = index,
+		.type     = 0x00,
+		.state    = 0x01, // Press
+		.scanCode = scanCode,
 	};
 
 	return Macro_pressReleaseAdd( &guide );
@@ -127,13 +127,13 @@ int Scan_addScanCode( uint8_t index )
 // Returns 1 if added, 0 if the ScanCode is already in the buffer
 // Returns 2 if there's an error
 // Generally 0 will be the return
-int Scan_removeScanCode( uint8_t index )
+int Scan_removeScanCode( uint8_t scanCode )
 {
 	// Add key event to macro key buffer
 	TriggerGuide guide = {
-		.type  = 0x00,
-		.state = 0x03, // Release
-		.index = index,
+		.type     = 0x00,
+		.state    = 0x03, // Release
+		.scanCode = scanCode,
 	};
 
 	return Macro_pressReleaseAdd( &guide );

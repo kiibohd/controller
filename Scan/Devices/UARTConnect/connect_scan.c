@@ -676,7 +676,7 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 
 				// This variable is in generatedKeymaps.h
 				extern uint8_t InterconnectOffsetList[];
-				Connect_receive_ScanCodeBuffer.index = Connect_receive_ScanCodeBuffer.index + InterconnectOffsetList[ Connect_receive_ScanCodeDeviceId ];
+				Connect_receive_ScanCodeBuffer.scanCode = Connect_receive_ScanCodeBuffer.scanCode + InterconnectOffsetList[ Connect_receive_ScanCodeDeviceId ];
 			}
 
 			// ScanCode receive debug
@@ -687,7 +687,7 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 				print(" ");
 				printHex( Connect_receive_ScanCodeBuffer.state );
 				print(" ");
-				printHex( Connect_receive_ScanCodeBuffer.index );
+				printHex( Connect_receive_ScanCodeBuffer.scanCode );
 				print( NL );
 			}
 
