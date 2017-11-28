@@ -628,6 +628,12 @@ static void usb_setup()
 		#endif
 		USBKeys_Idle_Config = (setup.wValue >> 8);
 		USBKeys_Idle_Expiry = 0;
+
+		// Force Idle Timeout if defined by KLL
+		if ( USBIdle_force_define == 1 )
+		{
+			USBKeys_Idle_Config = USBIdle_define;
+		}
 		goto send;
 
 	case 0x02A1: // HID GET_IDLE

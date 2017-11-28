@@ -25,6 +25,20 @@ toggleKbdProtocol => Output_toggleKbdProtocol_capability();
 keyboardLocale => KeyboardLocale_define;
 keyboardLocale = 0;
 
+# USB Idle Timeout
+# After a USB HID packet is sent (Keyboard only), send another packet after n * 4 ms
+# This should generally be set to 0 (0 ms) unless you know what you'er doing.
+# NOTE: This is generally set to 0 on all OSs *except* macOS for non-Apple keyboards.
+usbIdle => USBIdle_define;
+usbIdle = 0;
+
+# USB Idle Timeout Force
+# Ignore the Host settings for USB Idle Timeout
+# Set to 0 to allow the host to set
+# Set to 1 to force the usbIdle setting above
+usbIdleForce => USBIdle_force_define;
+usbIdleForce = 0;
+
 # Default KRO Mode
 # Set to 0 for Boot Mode (6KRO)
 # Set to 1 for NKRO Mode (default)

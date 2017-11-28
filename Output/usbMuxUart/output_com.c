@@ -132,7 +132,7 @@ USBMouseChangeState USBMouse_Changed = 0;
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
 // 0 - Disables
-uint8_t  USBKeys_Idle_Config = 0;
+volatile uint8_t  USBKeys_Idle_Config = 0;
 
 // Count until idle timeout
 uint32_t USBKeys_Idle_Expiry = 0;

@@ -108,7 +108,7 @@ extern volatile uint16_t USBMouse_Relative_x;
 extern volatile uint16_t USBMouse_Relative_y;
 
 // Keeps track of the idle timeout refresh (used on Mac OSX)
-extern          uint8_t  USBKeys_Idle_Config;
+extern volatile uint8_t  USBKeys_Idle_Config;
 extern          uint32_t USBKeys_Idle_Expiry;
 extern          uint8_t  USBKeys_Idle_Count; // AVR only
 

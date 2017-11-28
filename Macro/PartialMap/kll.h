@@ -393,6 +393,13 @@ typedef struct Capability {
 //
 // The name is defined for cli debugging purposes (Null terminated string)
 
+typedef enum LayerStateType {
+	LayerStateType_Off   = 0x00,
+	LayerStateType_Shift = 0x01,
+	LayerStateType_Latch = 0x02,
+	LayerStateType_Lock  = 0x04,
+} LayerStateType;
+
 typedef struct Layer {
 	const nat_ptr_t **triggerMap;
 	const char *name;

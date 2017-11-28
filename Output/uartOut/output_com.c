@@ -70,7 +70,7 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
-	uint8_t  USBKeys_Idle_Config = 125;
+volatile uint8_t  USBKeys_Idle_Config = 125;
 
 // count until idle timeout
 	uint8_t  USBKeys_Idle_Count = 0;

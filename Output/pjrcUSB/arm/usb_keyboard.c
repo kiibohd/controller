@@ -247,6 +247,7 @@ void usb_keyboard_send( USBKeys *buffer )
 
 		// Store update for idle packet
 		memcpy( (void*)&USBKeys_idle.keys, buffer->keys, USB_BOOT_MAX_KEYS );
+		USBKeys_idle.modifiers = buffer->modifiers;
 
 		// Boot Mode
 		*tx_buf++ = buffer->modifiers;
@@ -289,6 +290,7 @@ void usb_keyboard_send( USBKeys *buffer )
 
 			// Store update for idle packet
 			memcpy( (void*)&USBKeys_idle.keys, buffer->keys, USB_NKRO_BITFIELD_SIZE_KEYS );
+			USBKeys_idle.modifiers = buffer->modifiers;
 
 			// Clear packet length
 			tx_packet->len = 0;
