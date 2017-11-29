@@ -5,7 +5,7 @@ Author = "HaaTa (Jacob Alexander) 2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-11-19;
+Date = 2017-11-28;
 
 # Defines available to the MatrixArmPeriodic sub-module
 
@@ -22,7 +22,7 @@ MinDebounceTime = 5; # 5 ms
 # so there is generally little worry about scanning too quickly other than starving other functions.
 # If you scan too slowly, keypresses may be slow/delayed, or even dropped.
 PeriodicCycles => PeriodicCycles_define;
-PeriodicCycles = 4000; # 4000 cycles
+PeriodicCycles = 1000; # 1000 cycles
 
 # This option delays each strobe by the given number of microseconds
 # By default this should *NOT* be set unless your keyboard is having issues

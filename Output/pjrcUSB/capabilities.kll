@@ -1,12 +1,12 @@
 # pjrcUSB
 
 Name = pjrcUSBCapabilities;
-Version = 0.9;
+Version = 0.10;
 Author = "HaaTa (Jacob Alexander) 2014-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2016-05-31;
+Date = 2017-11-28;
 
 
 # Output capabilities
@@ -36,8 +36,9 @@ usbIdle = 0;
 # Ignore the Host settings for USB Idle Timeout
 # Set to 0 to allow the host to set
 # Set to 1 to force the usbIdle setting above
+# XXX (HaaTa) Forcing all OSs to not use Idle timeouts. This just eats up cycles and shouldn't be needed.
 usbIdleForce => USBIdle_force_define;
-usbIdleForce = 0;
+usbIdleForce = 1;
 
 # Default KRO Mode
 # Set to 0 for Boot Mode (6KRO)
