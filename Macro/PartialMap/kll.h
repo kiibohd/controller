@@ -307,10 +307,17 @@ typedef struct ResultsPending {
 
 // ----- Capabilities -----
 
+// Capability Features
+typedef enum CapabilityFeature {
+	CapabilityFeature_None = 0x0, // Default
+	CapabilityFeature_Safe = 0x1, // Safe to call capability immediately (i.e. no queueing)
+} CapabilityFeature;
+
 // Capability
 typedef struct Capability {
-	const void *func;
-	const uint8_t argCount;
+	const void             *func;
+	const uint8_t           argCount;
+	const CapabilityFeature features;
 } Capability;
 
 // Total Number of Capabilities

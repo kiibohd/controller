@@ -75,7 +75,7 @@ void main_periodic()
 
 	case PeriodicStage_Macro:
 		// Run Macros over Key Indices and convert to USB Keys
-		Macro_process();
+		Macro_periodic();
 		stage_tracker = PeriodicStage_Output;
 		break;
 
@@ -129,6 +129,9 @@ int main()
 		// Scan module poll routines
 		Scan_poll();
 
+		// Macro module poll routines
+		Macro_poll();
+
 		// Output module poll routines
 		Output_poll();
 	}
@@ -178,6 +181,9 @@ int Host_poll()
 
 	// Scan module poll routines
 	Scan_poll();
+
+	// Macro module poll routines
+	Macro_poll();
 
 	// Output module poll routines
 	Output_poll();

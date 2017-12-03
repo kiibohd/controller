@@ -30,5 +30,6 @@
 void Result_add( uint32_t result );
 
 void Result_process();
+void Result_process_delayed();
 void Result_setup();
 

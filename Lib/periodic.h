@@ -38,5 +38,7 @@
 
 void Periodic_init( uint32_t cycles );
 void Periodic_function( void *func );
+void Periodic_enable();
+void Periodic_disable();
 uint32_t Periodic_cycles();
 

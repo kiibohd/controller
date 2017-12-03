@@ -58,6 +58,18 @@ void Periodic_init( uint32_t cycles )
 	NVIC_SET_PRIORITY( IRQ_PIT_CH0, 200 );
 }
 
+void Periodic_enable()
+{
+	// Used to re-enable IRQ
+	NVIC_ENABLE_IRQ( IRQ_PIT_CH0 );
+}
+
+void Periodic_disable()
+{
+	// Used to disable IRQ
+	NVIC_DISABLE_IRQ( IRQ_PIT_CH0 );
+}
+
 void Periodic_function( void *func )
 {
 	// Set function pointer
@@ -89,6 +101,14 @@ void Periodic_function( void *func )
 {
 	// Set function pointer
 	periodic_func = func;
+}
+
+void Periodic_enable()
+{
+}
+
+void Periodic_disable()
+{
 }
 
 uint32_t Periodic_cycles()

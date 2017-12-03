@@ -1048,9 +1048,18 @@ void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 }
 
 
-// Macro Procesing Loop
+// Macro Processing Loop, called often
+// Generally takes care of thread-unsafe calls to capabilities that must be synchronized
+void Macro_poll()
+{
+	// Process delayed capabilities
+	Result_process_delayed();
+}
+
+
+// Macro Processing Loop, called from the periodic execution thread
 // Called once per USB buffer send
-void Macro_process()
+void Macro_periodic()
 {
 	// Latency measurement
 	Latency_start_time( macroLatencyResource );

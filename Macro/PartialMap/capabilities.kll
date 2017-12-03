@@ -1,11 +1,11 @@
 # PartialMap
 Name = PartialMapCapabilities;
-Version = 0.4;
+Version = 0.5;
 Author = "HaaTa (Jacob Alexander) 2014-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-11-05;
+Date = 2017-12-02;
 
 
 # Capabilties available to the PartialMap module
@@ -29,4 +29,8 @@ indexWordSize = 16; # Default for now, increase to 32 for higher limits (8 for l
 # Press/Release Cache
 PressReleaseCache => PressReleaseCache_define;
 PressReleaseCache = 1;
+
+# Delayed Capabilities Stack Size
+DelayedCapabilitiesStackSize => ResultCapabilityStackSize_define;
+DelayedCapabilitiesStackSize = 10;
 

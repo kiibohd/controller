@@ -30,7 +30,8 @@ void Macro_animationState( uint16_t animationIndex, uint8_t state );
 void Macro_keyState( uint16_t scanCode, uint8_t state );
 void Macro_ledState( uint16_t ledCode, uint8_t state );
 
-void Macro_process();
+void Macro_periodic();
+void Macro_poll();
 void Macro_setup();
 
 uint8_t Macro_pressReleaseAdd( void *trigger ); // triggers is of type TriggerGuide, void* for circular dependencies
