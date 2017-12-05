@@ -213,9 +213,11 @@ void Pixel_Pixel_capability( TriggerMacro *trigger, uint8_t state, uint8_t state
 	if ( state != 0x01 )
 		return;
 
+	/*
 	PixelChange change = *(PixelChange*)(&args[0]);
 	uint16_t channel = *(uint16_t*)(&args[1]);
 	uint32_t value = *(uint32_t*)(&args[3]);
+	*/
 
 	// TODO (HaaTa) Apply the channel modification
 }

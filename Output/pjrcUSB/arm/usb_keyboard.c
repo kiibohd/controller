@@ -95,14 +95,34 @@ void usb_keyboard_idle_update()
 
 			// Send packets for each of the keyboard interfaces
 			while ( USBKeys_idle.changed )
-				usb_keyboard_send( &USBKeys_idle );
+			{
+				usb_keyboard_send( (USBKeys*)&USBKeys_idle, USBKeys_Protocol );
+			}
 		}
 	}
 }
 
 
+// Send usb clear packet
+// Useful when switching between 6kro and nkro
+void usb_keyboard_clear( uint8_t protocol )
+{
+	// Prepare empty buffer
+	USBKeys buffer = {
+		.modifiers = 0,
+		.keys = { 0 },
+		.sys_ctrl = 0,
+		.cons_ctrl = 0,
+		.changed = USBKeyChangeState_All,
+	};
+
+	// Send updates
+	usb_keyboard_send( &buffer, protocol );
+}
+
+
 // Send the contents of keyboard_keys and keyboard_modifier_keys
-void usb_keyboard_send( USBKeys *buffer )
+void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 {
 	uint32_t wait_count = 0;
 	usb_packet_t *tx_packet;
@@ -124,7 +144,7 @@ void usb_keyboard_send( USBKeys *buffer )
 			return;
 		}
 
-		if ( USBKeys_Protocol == 0 ) // Boot Mode
+		if ( protocol == 0 ) // Boot Mode
 		{
 			if ( usb_tx_packet_count( KEYBOARD_ENDPOINT ) < TX_PACKET_LIMIT )
 			{
@@ -133,7 +153,7 @@ void usb_keyboard_send( USBKeys *buffer )
 					break;
 			}
 		}
-		else if ( USBKeys_Protocol == 1 ) // NKRO Mode
+		else if ( protocol == 1 ) // NKRO Mode
 		{
 			if ( usb_tx_packet_count( NKRO_KEYBOARD_ENDPOINT ) < TX_PACKET_LIMIT )
 			{
@@ -224,7 +244,7 @@ void usb_keyboard_send( USBKeys *buffer )
 		return;
 	}
 
-	switch ( USBKeys_Protocol )
+	switch ( protocol )
 	{
 	// Send boot keyboard interrupt packet(s)
 	case 0:

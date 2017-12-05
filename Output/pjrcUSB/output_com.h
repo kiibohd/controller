@@ -97,11 +97,13 @@ typedef struct USBKeys {
 extern volatile USBKeys  USBKeys_primary;
 extern volatile USBKeys  USBKeys_idle;
 
-extern          uint8_t  USBKeys_Sent;
+extern volatile uint8_t  USBKeys_Sent;
 extern volatile uint8_t  USBKeys_LEDs;
 extern volatile uint8_t  USBKeys_LEDs_Changed;
 
 extern volatile uint8_t  USBKeys_Protocol; // 0 - Boot Mode, 1 - NKRO Mode
+extern volatile uint8_t  USBKeys_Protocol_New;
+extern volatile uint8_t  USBKeys_Protocol_Change;
 
 extern volatile uint16_t USBMouse_Buttons; // Bitmask for mouse buttons
 extern volatile uint16_t USBMouse_Relative_x;
@@ -109,8 +111,8 @@ extern volatile uint16_t USBMouse_Relative_y;
 
 // Keeps track of the idle timeout refresh (used on Mac OSX)
 extern volatile uint8_t  USBKeys_Idle_Config;
-extern          uint32_t USBKeys_Idle_Expiry;
-extern          uint8_t  USBKeys_Idle_Count; // AVR only
+extern volatile uint32_t USBKeys_Idle_Expiry;
+extern volatile uint8_t  USBKeys_Idle_Count; // AVR only
 
 extern USBMouseChangeState USBMouse_Changed;
 

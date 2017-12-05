@@ -44,5 +44,6 @@
 // ----- Functions -----
 
 void usb_keyboard_idle_update();
-void usb_keyboard_send();
+void usb_keyboard_send( USBKeys *buffer, uint8_t protocol );
+void usb_keyboard_clear( uint8_t protocol );
 

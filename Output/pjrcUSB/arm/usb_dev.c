@@ -658,13 +658,18 @@ static void usb_setup()
 		printHex( setup.wValue & 0xFF );
 		print(NL);
 		#endif
-		USBKeys_Protocol = setup.wValue & 0xFF; // 0 - Boot Mode, 1 - NKRO Mode
+		USBKeys_Protocol_New = setup.wValue & 0xFF; // 0 - Boot Mode, 1 - NKRO Mode
+		// TODO (HaaTa) Transliterate? 6kro <-> nkro
 
 		// Force Boot Mode if defined by KLL
 		if ( USBProtocol_define == 0 )
 		{
-			USBKeys_Protocol = USBProtocol_define;
+			USBKeys_Protocol_New = USBProtocol_define;
 		}
+
+		// Request protocol update
+		USBKeys_Protocol_New = 1;
+
 		goto send;
 
 	case 0x03A1: /// HID GET_PROTOCOL

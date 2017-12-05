@@ -53,7 +53,7 @@ volatile USBKeys USBKeys_primary; // Primary send buffer
 volatile USBKeys USBKeys_idle;    // Idle timeout send buffer
 
 // The number of keys sent to the usb in the array
-	uint8_t  USBKeys_Sent    = 0;
+volatile uint8_t  USBKeys_Sent    = 0;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t  USBKeys_LEDs = 0;
@@ -73,7 +73,7 @@ USBKeyChangeState USBKeys_Changed = USBKeyChangeState_None;
 volatile uint8_t  USBKeys_Idle_Config = 125;
 
 // count until idle timeout
-	uint8_t  USBKeys_Idle_Count = 0;
+volatile uint8_t  USBKeys_Idle_Count = 0;
 
 // Indicates whether the Output module is fully functional
 // 0 - Not fully functional, 1 - Fully functional

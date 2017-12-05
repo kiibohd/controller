@@ -104,7 +104,7 @@ volatile USBKeys USBKeys_primary; // Primary send buffer
 volatile USBKeys USBKeys_idle;    // Idle timeout send buffer
 
 // The number of keys sent to the usb in the array
-uint8_t  USBKeys_Sent;
+volatile uint8_t  USBKeys_Sent;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t  USBKeys_LEDs = 0;
@@ -121,6 +121,8 @@ volatile uint16_t USBMouse_Relative_y = 0;
 // 0 - Boot Mode
 // 1 - NKRO Mode (Default, unless set by a BIOS or boot interface)
 volatile uint8_t  USBKeys_Protocol = USBProtocol_define;
+volatile uint8_t  USBKeys_Protocol_New = USBProtocol_define;
+volatile uint8_t  USBKeys_Protocol_Change; // New value to set to USBKeys_Protocol if _Change is set
 
 // Indicate if USB should send update
 USBMouseChangeState USBMouse_Changed = 0;
@@ -131,8 +133,8 @@ USBMouseChangeState USBMouse_Changed = 0;
 volatile uint8_t  USBKeys_Idle_Config = USBIdle_define;
 
 // Count until idle timeout
-uint32_t USBKeys_Idle_Expiry = 0;
-uint8_t  USBKeys_Idle_Count = 0;
+volatile uint32_t USBKeys_Idle_Expiry = 0;
+volatile uint8_t  USBKeys_Idle_Count = 0;
 
 // Indicates whether the Output module is fully functional
 // 0 - Not fully functional, 1 - Fully functional
@@ -189,7 +191,8 @@ void Output_kbdProtocolBoot_capability( TriggerMacro *trigger, uint8_t state, ui
 	Output_flushBuffers();
 
 	// Set the keyboard protocol to Boot Mode
-	USBKeys_Protocol = 0;
+	USBKeys_Protocol_New = 0;
+	USBKeys_Protocol_Change = 1;
 #endif
 }
 
@@ -218,7 +221,8 @@ void Output_kbdProtocolNKRO_capability( TriggerMacro *trigger, uint8_t state, ui
 	Output_flushBuffers();
 
 	// Set the keyboard protocol to NKRO Mode
-	USBKeys_Protocol = 1;
+	USBKeys_Protocol_New = 1;
+	USBKeys_Protocol_Change = 1;
 #endif
 }
 
@@ -241,7 +245,8 @@ void Output_toggleKbdProtocol_capability( TriggerMacro *trigger, uint8_t state, 
 		Output_flushBuffers();
 
 		// Toggle the keyboard protocol Mode
-		USBKeys_Protocol = !USBKeys_Protocol;
+		USBKeys_Protocol_New = !USBKeys_Protocol;
+		USBKeys_Protocol_Change = 1;
 	}
 #endif
 }
@@ -648,6 +653,9 @@ inline void Output_setup()
 	// Register USB Output CLI dictionary
 	CLI_registerDictionary( outputCLIDict, outputCLIDictName );
 
+	// USB Protocol Transition variable
+	USBKeys_Protocol_Change = 0;
+
 	// Flush key buffers
 	Output_flushBuffers();
 
@@ -706,6 +714,17 @@ inline void Output_periodic()
 #endif
 
 #if enableKeyboard_define == 1
+	// Determine if we need to change the Kbd Protocol
+	if ( USBKeys_Protocol_Change )
+	{
+		// Clear current interface
+		usb_keyboard_clear( USBKeys_Protocol );
+
+		// Set new protocol
+		USBKeys_Protocol = USBKeys_Protocol_New;
+		USBKeys_Protocol_Change = 0;
+	}
+
 	// Boot Mode Only, unset stale keys
 	if ( USBKeys_Protocol == 0 )
 	{
@@ -717,7 +736,9 @@ inline void Output_periodic()
 
 	// Send keypresses while there are pending changes
 	while ( USBKeys_primary.changed )
-		usb_keyboard_send( &USBKeys_primary );
+	{
+		usb_keyboard_send( (USBKeys*)&USBKeys_primary, USBKeys_Protocol );
+	}
 
 	// Signal Scan Module we are finished
 	switch ( USBKeys_Protocol )
@@ -960,7 +981,8 @@ void cliFunc_kbdProtocol( char* args )
 		// Do nothing if the argument was wrong
 		if ( mode == 0 || mode == 1 )
 		{
-			USBKeys_Protocol = mode;
+			USBKeys_Protocol_New = mode;
+			USBKeys_Protocol_Change = 1;
 			info_msg("Setting Keyboard Protocol to: ");
 			printInt8( USBKeys_Protocol );
 		}
