@@ -22,6 +22,7 @@
 // ----- Includes -----
 
 // Project Includes
+#include <Lib/mcu_compat.h>
 #include <Lib/chip_version.h>
 #include <Lib/entropy.h>
 #include <Lib/periodic.h>

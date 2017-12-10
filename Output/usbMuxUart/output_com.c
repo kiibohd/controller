@@ -40,6 +40,7 @@
 #include <arm/usb_dev.h>
 #include <arm/usb_keyboard.h>
 #include <arm/usb_serial.h>
+#include "arm/usb_rawio.h"
 #include "arm/usb_mouse.h"
 #endif
 
@@ -844,6 +845,43 @@ inline int Output_putstr( char* str )
 inline void Output_softReset()
 {
 	usb_device_software_reset();
+}
+
+
+// USB RawIO buffer available
+unsigned int Output_rawio_availablechar()
+{
+#if enableRawIO_define == 1
+	return usb_rawio_available();
+#else
+	return 0;
+#endif
+}
+
+
+// USB RawIO get buffer
+// XXX Must be a 64 byte buffer
+int Output_rawio_getbuffer( char* buffer )
+{
+#if enableRawIO_define == 1
+	// No timeout, fail immediately
+	return usb_rawio_rx( (void*)buffer, 0 );
+#else
+	return 0;
+#endif
+}
+
+
+// USB RawIO send buffer
+// XXX Must be a 64 byte buffer
+int Output_rawio_sendbuffer( char* buffer )
+{
+#if enableRawIO_define == 1
+	// No timeout, fail immediately
+	return usb_rawio_tx( (void*)buffer, 0 );
+#else
+	return 0;
+#endif
 }
 
 
