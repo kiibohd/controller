@@ -78,9 +78,6 @@ void Scan_poll()
 	// Port Swap detection
 	Port_scan();
 
-	// Process any interconnect commands
-	Connect_scan();
-
 	// Prepare any LED events
 	Pixel_process();
 
@@ -94,6 +91,9 @@ void Scan_poll()
 // Useful for matrix scanning and anything that requires consistent attention
 uint8_t Scan_periodic()
 {
+	// Process any interconnect commands
+	Connect_scan();
+
 	// Scan Matrix
 	return Matrix_single_scan();
 }

@@ -73,9 +73,6 @@ inline void Scan_setup()
 // Usually reserved for LED update routines and other things that need quick update rates
 void Scan_poll()
 {
-	// Process any interconnect commands
-	Connect_scan();
-
 	// Prepare any LED events
 	Pixel_process();
 
@@ -92,6 +89,9 @@ void Scan_poll()
 // Useful for matrix scanning and anything that requires consistent attention
 uint8_t Scan_periodic()
 {
+	// Process any interconnect commands
+	Connect_scan();
+
 	// Scan Matrix
 	return Matrix_single_scan();
 }
