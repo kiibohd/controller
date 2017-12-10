@@ -3,7 +3,7 @@
 Host-Side Setup Routines for KLL
 '''
 
-# Copyright (C) 2016 by Jacob Alexander
+# Copyright (C) 2016-2017 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -39,33 +39,33 @@ WARNING = '\033[5;1;33mWARNING\033[0m:'
 
 # Maintains compatibility to Python 3.2
 class FileLoader:
-	'''
-	Modified version of FileLoader from Python 3.3
-	'''
-	def __init__( self, fullname, path ):
-		self.name = fullname
-		self.path = path
+    '''
+    Modified version of FileLoader from Python 3.3
+    '''
+    def __init__( self, fullname, path ):
+        self.name = fullname
+        self.path = path
 
-	def load_module( self, fullname ):
-		return super( FileLoader, self ).load_module( fullname )
+    def load_module( self, fullname ):
+        return super( FileLoader, self ).load_module( fullname )
 
-	def get_filename( self, fullname ):
-		return self.path
+    def get_filename( self, fullname ):
+        return self.path
 
-	def get_data( self, path ):
-		with io.FileIO( path, 'r' ) as file:
-			return file.read()
+    def get_data( self, path ):
+        with io.FileIO( path, 'r' ) as file:
+            return file.read()
 
 class CustomLoader( FileLoader, SourceLoader ):
-	'''
-	Compatibility Class
-	Used to work around importlib.util.module_from_spec() not being available.
-	'''
-	def get_code( self, fullname ):
-		source = self.get_source( fullname )
-		path = self.get_filename( fullname )
-		parsed = ast.parse( source )
-		return compile( parsed, path, 'exec', dont_inherit=True, optimize=0 )
+    '''
+    Compatibility Class
+    Used to work around importlib.util.module_from_spec() not being available.
+    '''
+    def get_code( self, fullname ):
+        source = self.get_source( fullname )
+        path = self.get_filename( fullname )
+        parsed = ast.parse( source )
+        return compile( parsed, path, 'exec', dont_inherit=True, optimize=0 )
 
 
 

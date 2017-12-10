@@ -39,69 +39,69 @@ i.control.cmd('addAnimation')(name='testanimation', pfunc=1, loops=1) # TODO
 # Show output
 i.control.cmd('rectDisp')()
 #for index in range( 15 ):
-#	i.control.cmd('addScanCode')( 0x3C )
-#	i.control.loop(1)
-#	i.control.cmd('removeScanCode')( 0x3C )
-#	i.control.loop(1)
+#    i.control.cmd('addScanCode')( 0x3C )
+#    i.control.loop(1)
+#    i.control.cmd('removeScanCode')( 0x3C )
+#    i.control.loop(1)
 
 # Loop 13 times, displaying each time
 #for index in range( 12 ):
 for index in range( 2 ):
-	# Read animation stack info
-	print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
-	check( i.control.cmd('animationStackInfo')().size == 1 )
+    # Read animation stack info
+    print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
+    check( i.control.cmd('animationStackInfo')().size == 1 )
 
-	# Loop once
-	i.control.cmd('setFrameState')(2)
-	i.control.loop(1)
+    # Loop once
+    i.control.cmd('setFrameState')(2)
+    i.control.loop(1)
 
-	# Show output
-	i.control.cmd('rectDisp')()
+    # Show output
+    i.control.cmd('rectDisp')()
 
 #i.control.cmd('removeScanCode')( 0x3C )
 i.control.loop(1)
 
 if False:
 
-	print("-Rainbow Animation Test-");
+    print("-Rainbow Animation Test-");
 
-	# Add Animation, index 5, to Stack (z2_rainbow_fill_interp)
-	i.control.cmd('addAnimation')(index=2, pfunc=1) # TODO
+    # Add Animation, index 5, to Stack (z2_rainbow_fill_interp)
+    i.control.cmd('addAnimation')(index=2, pfunc=1) # TODO
 
-	# Loop 13 times, displaying each time
-	for index in range( 2 ):
-		# Read animation stack info
-		print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
-		check( i.control.cmd('animationStackInfo')().size == 1 )
+    # Loop 13 times, displaying each time
+    for index in range( 2 ):
+        # Read animation stack info
+        print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
+        check( i.control.cmd('animationStackInfo')().size == 1 )
 
-		# Loop once
-		i.control.cmd('setFrameState')(2)
-		i.control.loop(1)
+        # Loop once
+        i.control.cmd('setFrameState')(2)
+        i.control.loop(1)
 
-		# Show output
-		i.control.cmd('rectDisp')()
+        # Show output
+        i.control.cmd('rectDisp')()
 
 
-	i.control.cmd('addAnimation')(index=10, loops=30, pfunc=1) # TODO
-	for index in range( 30 ):
-		# Read animation stack info
-		print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
-		check( i.control.cmd('animationStackInfo')().size == 1 )
+    i.control.cmd('addAnimation')(index=10, loops=30, pfunc=1) # TODO
+    for index in range( 30 ):
+        # Read animation stack info
+        print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
+        check( i.control.cmd('animationStackInfo')().size == 1 )
 
-		# Loop once
-		i.control.cmd('setFrameState')(2)
-		i.control.loop(1)
+        # Loop once
+        i.control.cmd('setFrameState')(2)
+        i.control.loop(1)
 
-		# Show output
-		i.control.cmd('rectDisp')()
+        # Show output
+        i.control.cmd('rectDisp')()
 
-	# Loop one more time to clear stack
-	#i.control.cmd('setFrameState')(2)
-	#i.control.loop(1)
+    # Loop one more time to clear stack
+    #i.control.cmd('setFrameState')(2)
+    #i.control.loop(1)
 
-	# Read animation stack info
-	#print( "Final - Expecting Stack Size: 0 Got:", i.control.cmd('animationStackInfo')().size )
-	#check( i.control.cmd('animationStackInfo')().size == 0 )
+    # Read animation stack info
+    #print( "Final - Expecting Stack Size: 0 Got:", i.control.cmd('animationStackInfo')().size )
+    #check( i.control.cmd('animationStackInfo')().size == 0 )
 
 
 ##### Tests Complete #####

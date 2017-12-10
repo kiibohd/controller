@@ -180,16 +180,16 @@ i.control.cmd('addAnimation')(name='fade_in', pfunc=1) # TODO
 
 # Loop 16 times, displaying each time
 for index in range( 27 ):
-	# Read animation stack info
-	print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
-	check( i.control.cmd('animationStackInfo')().size == 1 )
+    # Read animation stack info
+    print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
+    check( i.control.cmd('animationStackInfo')().size == 1 )
 
-	# Loop once
-	i.control.cmd('setFrameState')(2)
-	i.control.loop(1)
+    # Loop once
+    i.control.cmd('setFrameState')(2)
+    i.control.loop(1)
 
-	# Show output
-	i.control.cmd('rectDisp')()
+    # Show output
+    i.control.cmd('rectDisp')()
 
 # Loop one more time to clear stack
 i.control.cmd('setFrameState')(2)
@@ -209,16 +209,16 @@ i.control.cmd('addAnimation')(name='rainbow_fill_interp', pfunc=1) # TODO
 
 # Loop 40 times, displaying each time
 for index in range( 40 ):
-	# Read animation stack info
-	print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
-	check( i.control.cmd('animationStackInfo')().size == 1 )
+    # Read animation stack info
+    print( "Loop {0} - Expecting Stack Size: 1 Got: {1}".format( index, i.control.cmd('animationStackInfo')().size ) )
+    check( i.control.cmd('animationStackInfo')().size == 1 )
 
-	# Loop once
-	i.control.cmd('setFrameState')(2)
-	i.control.loop(1)
+    # Loop once
+    i.control.cmd('setFrameState')(2)
+    i.control.loop(1)
 
-	# Show output
-	i.control.cmd('rectDisp')()
+    # Show output
+    i.control.cmd('rectDisp')()
 
 # Loop one more time to clear stack
 i.control.cmd('setFrameState')(2)
