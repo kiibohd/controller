@@ -71,3 +71,94 @@ Config Matrix_type = Config_Pulldown;
 In general, you should be using an internal pull-down resistor as per the example above.
 There are special situations where this does not apply, but unless you know what you're doing, this isn't what you want.
 
+
+## Debugging Keypress Issues
+
+Sometimes your keyboard may exhibit typing problems such as:
+
+* Extra keypresses (of same character) - Debounce, USB
+* Nearby keypresses (keys you did not press) - Ghosting, Strobe Delay (bad pull-up resistors)
+* Missing keypresses - Debounce, USB, Scan Rate
+
+
+### Debounce
+
+Keyboard switches generally have a minimum **debounce time**.
+This means that a key press or release may require a delay before the value is certain.
+
+In most cases this is ~5ms (which is the default).
+
+* [Cherry MX](https://cdn.sparkfun.com/datasheets/Components/Switches/MX%20Series.pdf)
+
+The debounce time can be adjusted using KLL (default) or using the cli (dynamic).
+When testing new values, using the cli is the easiest.
+
+```c
+MinDebounceTime = 5; # 5 ms
+```
+
+```bash
+: debounce
+INFO - Debounce Timer: 5ms
+: debounce 7
+INFO - Debounce Timer: 7ms
+```
+
+
+### Strobe Delay
+
+Some MCUs have slow pull-up resistors (or possibly transistors).
+This is usually quite rare, but there is a work around.
+The idea is to pause before strobing each column such that there is time for the previous strobe to turn off.
+**Note**: This shouldn't be necessary in nearly all cases.
+
+It is disabled (set to 0) by default.
+
+```c
+StrobeDelay = 0; # Disabled, 0us
+```
+
+```bash
+: strobeDelay
+INFO - Strobe Delay: 0us
+: strobeDelay 10
+INFO - Strobe Delay: 10us
+```
+
+
+### Scan Rate
+
+While not specific to this module, this firmware has a notion of a periodic scan rate.
+Between each strobe a given amount of cycles are given to other functions of the keyboard (though other interrupts can interrupt a periodic scan as well).
+
+If you are getting dropped keypresses, you can attempt to decrease the number of clock cycles to wait.
+If you are getting bad display performance (e.g. LEDs), you can try to increase the number of clock cycles to wait (gives more time to process effects).
+
+```c
+PeriodicCycles = 1000; # 1000 cycles
+```
+
+```bash
+: periodic
+INFO - Period Clock Cycles: 1000
+: periodic 2000
+INFO - Period Clock Cycles: 2000
+```
+
+
+### Other Sources of Problems
+
+Other issues include:
+
+* Bad/noise USB bus
+  + Bad cable
+  + Bad connector
+  + Bad port
+  + Bad USB chipset
+* Keyboard bugs
+  + Usually fixable with a list of reproduction steps
+* OS ignoring USB packets
+  + Sometimes fixable on the keyboard side, but may require some trade-offs
+* Incompatible USB descriptor
+  + Even if the USB HID descriptor is valid, it doesn't mean an OS supports it...
+

@@ -44,32 +44,32 @@
 
 // ----- Defines -----
 
-#if StrobeDelay_define > 0 && !defined( STROBE_DELAY )
-#define STROBE_DELAY StrobeDelay_define
-#endif
-
-
-
 // ----- Function Declarations -----
 
 // CLI Functions
+void cliFunc_debounce( char* args );
 void cliFunc_matrixDebug( char* args );
 void cliFunc_matrixInfo( char* args );
 void cliFunc_matrixState( char* args );
+void cliFunc_strobeDelay( char* args );
 
 
 
 // ----- Variables -----
 
 // Scan Module command dictionary
+CLIDict_Entry( debounce,     "Set the debounce timer (ms). Useful for bouncy switches." );
 CLIDict_Entry( matrixDebug,  "Enables matrix debug mode, prints out each scan code." NL "\t\tIf argument \033[35mT\033[0m is given, prints out each scan code state transition." );
 CLIDict_Entry( matrixInfo,   "Print info about the configured matrix." );
 CLIDict_Entry( matrixState,  "Prints out the current scan table N times." NL "\t\t \033[1mO\033[0m - Off, \033[1;33mP\033[0m - Press, \033[1;32mH\033[0m - Hold, \033[1;35mR\033[0m - Release, \033[1;31mI\033[0m - Invalid" );
+CLIDict_Entry( strobeDelay,  "Set the strobe delay (us). Useful for bad pullup resistors." );
 
 CLIDict_Def( matrixCLIDict, "Matrix Module Commands" ) = {
+	CLIDict_Item( debounce ),
 	CLIDict_Item( matrixDebug ),
 	CLIDict_Item( matrixInfo ),
 	CLIDict_Item( matrixState ),
+	CLIDict_Item( strobeDelay ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -93,6 +93,12 @@ extern volatile uint32_t systick_millis_count;
 
 // Latency tracking
 static volatile uint8_t matrixLatencyResource;
+
+// Debounce expiry time
+static volatile uint8_t debounceExpiryTime;
+
+// Strobe delay setting
+static volatile uint8_t strobeDelayTime;
 
 
 
@@ -215,6 +221,12 @@ void Matrix_setup()
 	// Debug counter reset
 	matrixDebugStateCounter = 0;
 
+	// Debounce expiry time
+	debounceExpiryTime = MinDebounceTime_define;
+
+	// Strobe delay setting
+	strobeDelayTime = StrobeDelay_define;
+
 	// Setup latency module
 	matrixLatencyResource = Latency_add_resource("MatrixARMPeri", LatencyOption_Ticks);
 }
@@ -277,11 +289,11 @@ uint8_t Matrix_single_scan()
 	Matrix_pin( Matrix_cols[ strobe ], Type_StrobeOn );
 
 	// Used to allow the strobe signal to propagate, generally not required
-	#ifdef STROBE_DELAY
-	start = micros();
-	while ((micros() - start) < STROBE_DELAY);
-	#endif
-
+	if ( strobeDelayTime > 0 )
+	{
+		uint32_t start = micros();
+		while ( (micros() - start ) < strobeDelayTime );
+	}
 
 	// Scan each of the sense pins
 	for ( uint8_t sense = 0; sense < Matrix_rowsNum; sense++ )
@@ -342,7 +354,7 @@ uint8_t Matrix_single_scan()
 			{
 				// If not enough time has passed since Hold
 				// Keep previous state
-				if ( lastTransition < MinDebounceTime_define )
+				if ( lastTransition < debounceExpiryTime )
 				{
 					state->curState = state->prevState;
 					continue;
@@ -358,7 +370,7 @@ uint8_t Matrix_single_scan()
 			{
 				// If not enough time has passed since Hold
 				// Keep previous state
-				if ( lastTransition < MinDebounceTime_define )
+				if ( lastTransition < debounceExpiryTime )
 				{
 					state->curState = state->prevState;
 					continue;
@@ -499,6 +511,25 @@ void Matrix_currentChange( unsigned int current )
 
 // ----- CLI Command Functions -----
 
+void cliFunc_debounce( char* args )
+{
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	if ( arg1Ptr[0] != '\0' )
+	{
+		debounceExpiryTime = (uint8_t)numToInt( arg1Ptr );
+	}
+
+	print( NL );
+	info_msg("Debounce Timer: ");
+	printInt8( debounceExpiryTime );
+	print("ms");
+}
+
 void cliFunc_matrixInfo( char* args )
 {
 	print( NL );
@@ -569,5 +600,24 @@ void cliFunc_matrixState( char* args )
 	{
 		matrixDebugStateCounter = (uint16_t)numToInt( arg1Ptr );
 	}
+}
+
+void cliFunc_strobeDelay( char* args )
+{
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	if ( arg1Ptr[0] != '\0' )
+	{
+		strobeDelayTime = (uint8_t)numToInt( arg1Ptr );
+	}
+
+	print( NL );
+	info_msg("Strobe Delay: ");
+	printInt8( strobeDelayTime );
+	print("us");
 }
 
