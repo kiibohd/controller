@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2015 by Jacob Alexander
+/* Copyright (C) 2014-2017 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -237,7 +237,8 @@ void uart_serial_setup()
 	// UART_C2_TE UART_C2_RE UART_C2_RIE UART_C2_ILIE
 	UART_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE | UART_C2_ILIE;
 
-	// Add interrupt to the vector table
+	// Add interrupt to the vector table (slightly higher than USB)
+	NVIC_SET_PRIORITY( IRQ_UART_STATUS, 111 );
 	NVIC_ENABLE_IRQ( IRQ_UART_STATUS );
 
 	// UART is now ready to use

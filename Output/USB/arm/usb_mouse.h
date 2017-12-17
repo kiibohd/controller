@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2015-2016)
+ * Modified by Jacob Alexander (2015-2017)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -37,7 +37,7 @@
 #include <inttypes.h>
 
 // Local Includes
-#include <output_com.h>
+#include <output_usb.h>
 
 
 

@@ -130,29 +130,22 @@ extern volatile uint16_t USBInit_Ticks;     // Number of times the end time has 
 
 // ----- Functions -----
 
-void Output_setup();
-void Output_poll();
-void Output_periodic();
+void USB_setup();
+void USB_poll();
+void USB_periodic();
 
-void Output_flushBuffers();
+void USB_flushBuffers();
 
-void Output_firmwareReload();
-void Output_softReset();
+void USB_firmwareReload(); // Request firmware reload
+void USB_softReset();      // Request soft reset
 
-// Relies on USB serial module
-unsigned int Output_availablechar();
+unsigned int USB_availablechar();
 
-// Returns the total mA available (total, if used in a chain, each device will have to use a slice of it)
-unsigned int Output_current_available();
+int USB_getchar();
+int USB_putchar( char c );
+int USB_putstr( char* str );
 
-void Output_update_external_current( unsigned int current );
-void Output_update_usb_current( unsigned int current );
-
-int Output_getchar();
-int Output_putchar( char c );
-int Output_putstr( char* str );
-
-unsigned int Output_rawio_availablechar();
-int Output_rawio_getbuffer( char* buffer );
-int Output_rawio_sendbuffer( char* buffer );
+unsigned int USB_rawio_availablechar();
+int USB_rawio_getbuffer( char* buffer );
+int USB_rawio_sendbuffer( char* buffer );
 

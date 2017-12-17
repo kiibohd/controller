@@ -8,6 +8,13 @@
 
 
 ###
+# Required Sub-modules
+#
+
+AddModule ( Output Interface )
+
+
+###
 # Module C files
 #
 
@@ -16,6 +23,7 @@ if ( ${COMPILER_FAMILY} MATCHES "avr" )
 
 	set ( Module_SRCS
 		output_com.c
+		output_uart.c
 		avr/uart_serial.c
 	)
 
@@ -24,20 +32,11 @@ elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 
 	set ( Module_SRCS
 		output_com.c
+		output_uart.c
 		arm/uart_serial.c
 	)
 
 endif ()
-
-
-###
-# Includes
-#
-
-# Use pjrcUSB output_com.h
-include_directories (
-	${CMAKE_CURRENT_LIST_DIR}/../USB
-)
 
 
 ###

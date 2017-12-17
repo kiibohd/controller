@@ -34,7 +34,7 @@ cmd ./mk64test.bash
 cmd ./mk66test.bash
 cmd ./template.bash
 cmd ./uartout.bash
-cmd ./usbmuxuart.bash
+cmd ./usbxuart.bash
 
 # Tally results
 result

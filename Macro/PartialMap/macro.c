@@ -1143,8 +1143,19 @@ void Macro_periodic()
 	// Check macroTriggerEventBufferSize to make sure no overflow
 	if ( macroTriggerEventBufferSize >= MaxScanCode )
 	{
-		erro_print("Macro Trigger Event Overflow! Serious Bug!");
-		macroTriggerEventBufferSize = 0;
+		// No scancodes defined
+		if ( MaxScanCode == 0 )
+		{
+			warn_print("No scancodes defined! Check your BaseMap!");
+		}
+		// Bug!
+		else
+		{
+			erro_msg("Macro Trigger Event Overflow! Serious Bug! ");
+			printInt16( macroTriggerEventBufferSize );
+			print( NL );
+			macroTriggerEventBufferSize = 0;
+		}
 	}
 
 	// If the pause flag is set, only process if the step counter is non-zero
@@ -1175,10 +1186,12 @@ void Macro_periodic()
 	Latency_end_time( macroLatencyResource );
 
 	// If Macro debug mode is set, clear the USB Buffer
+#if defined(Output_USBEnabled_define)
 	if ( macroDebugMode == 1 || macroDebugMode == 3 )
 	{
 		USBKeys_primary.changed = 0;
 	}
+#endif
 }
 
 

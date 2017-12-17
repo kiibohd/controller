@@ -6,7 +6,12 @@ Author = "HaaTa (Jacob Alexander) 2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-04-02;
+Date = 2017-12-17;
+
+
+# Enable define
+Output_HIDIOEnabled = "1";
+Output_HIDIOEnabled => Output_HIDIOEnabled_define;
 
 
 # TODO

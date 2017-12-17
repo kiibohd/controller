@@ -10,8 +10,9 @@
 ###
 # Required Sub-modules
 #
-AddModule ( Output HID-IO )
 
+AddModule ( Output HID-IO )
+AddModule ( Output Interface )
 
 
 ###
@@ -23,6 +24,7 @@ if ( ${COMPILER_FAMILY} MATCHES "avr" )
 
 	set ( Module_SRCS
 		output_com.c
+		output_usb.c
 		avr/usb_keyboard_serial.c
 	)
 
@@ -31,6 +33,7 @@ elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 
 	set ( Module_SRCS
 		output_com.c
+		output_usb.c
 		arm/usb_desc.c
 		arm/usb_dev.c
 		arm/usb_joystick.c

@@ -64,10 +64,10 @@ kll
 
 # Build Directories #
 #####################
-*.gcc.make
-*.gcc.ninja
-*.clang.make
-*.clang.ninja
+*.gcc.make*
+*.gcc.ninja*
+*.clang.make*
+*.clang.ninja*
 
 # Python Generated #
 ####################

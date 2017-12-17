@@ -1,12 +1,12 @@
-# pjrcUSB
+# USB
 
-Name = pjrcUSBCapabilities;
-Version = 0.10;
+Name = USBCapabilities;
+Version = 0.11;
 Author = "HaaTa (Jacob Alexander) 2014-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-11-28;
+Date = 2017-12-17;
 
 
 # Output capabilities
@@ -20,6 +20,10 @@ mouseOut    => Output_usbMouse_capability( mouseCode : 2, relative_x : 2, relati
 kbdProtocolBoot => Output_kbdProtocolBoot_capability();
 kbdProtocolNKRO => Output_kbdProtocolNKRO_capability();
 toggleKbdProtocol => Output_toggleKbdProtocol_capability();
+
+# Enable define
+Output_USBEnabled = "1";
+Output_USBEnabled => Output_USBEnabled_define;
 
 # Locale Settings
 keyboardLocale => KeyboardLocale_define;

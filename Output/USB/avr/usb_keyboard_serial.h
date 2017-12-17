@@ -1,6 +1,6 @@
 /* USB Keyboard and CDC Serial Device for Teensy USB Development Board
  * Copyright (c) 2009 PJRC.COM, LLC
- * Modifications by Jacob Alexander (2011-2015)
+ * Modifications by Jacob Alexander (2011-2017)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -38,7 +38,7 @@
 #include <util/delay.h>
 
 // Local Includes
-#include "output_com.h"
+#include "output_usb.h"
 
 
 
