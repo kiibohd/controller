@@ -221,21 +221,27 @@ const char *ChipVersion_lookup()
 		switch ( pflash )
 		{
 		case 128:
-			return "mk20dx128vlh7";
+			switch ( SIM_SDID_PINID )
+			{
+			case 4:
+				return "mk20dx128vlf5";
+			case 5:
+				return "mk20dx128vlh7";
+			default:
+				return "mk20dx128XXXX";
+			}
 		case 256:
-			return "mk20dx256vlh7";
+			switch ( SIM_SDID_PINID )
+			{
+			case 5:
+				return "mk20dx256vlh7";
+			case 9:
+				return "mk20dx256vmc7";
+			default:
+				return "mk20dx256XXXX";
+			}
 		default:
 			return "mk20dxXXXvlh7";
-		}
-	}
-	else if ( SIM_SDID & 0x00000099 ) // TODO Might be 0x97 81/121-pin
-	{
-		switch ( pflash )
-		{
-		case 256:
-			return "mk20dx256vmc7";
-		default:
-			return "mk20dxXXXvmc7";
 		}
 	}
 	else if ( SIM_SDID & 0x00000315 )
