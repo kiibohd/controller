@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller UART Output Module |###
 #
-# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2017 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -36,7 +36,7 @@ endif ()
 
 # Use pjrcUSB output_com.h
 include_directories (
-	${CMAKE_CURRENT_LIST_DIR}/../pjrcUSB
+	${CMAKE_CURRENT_LIST_DIR}/../USB
 )
 
 

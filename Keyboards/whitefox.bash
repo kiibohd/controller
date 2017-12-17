@@ -52,7 +52,7 @@ PartialMaps[1]="whitefox/whitefox"
 # Keyboard Module Configuration
 ScanModule="WhiteFox"
 MacroModule="PixelMap"
-OutputModule="pjrcUSB"
+OutputModule="USB"
 DebugModule="full"
 
 # Microcontroller

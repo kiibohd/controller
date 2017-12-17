@@ -43,7 +43,7 @@ DefaultMap="kira/demo.1 stdFuncMap remote_reload"
 # Keyboard Module Configuration
 ScanModule="Kira"
 MacroModule="PixelMap"
-OutputModule="pjrcUSB"
+OutputModule="USB"
 DebugModule="full"
 
 # Microcontroller

@@ -12,8 +12,8 @@ Brief descriptions of each of the modules.
 ### Input Club Supported
 
 * [HID-IO](HID-IO) - HID-IO support module. Host-to-Device RPC mechanism.
-* [pjrcUSB](pjrcUSB) - USB HID stack implementation based on PJRC's Teensy stack (heavily modified).
+* [USB](USB) - USB stack implementation originally based on PJRC's Teensy USB stack (heavily modified).
 * [TestOut](TestOut) - Host-Side KLL output module.
-* [uartOut](uartOut) - UART-only output module, useful during early MCU porting efforts.
-* [usbMuxUart](usbMuxUart) - USB+UART output module, useful when debugging USB issues.
+* [UARTOut](UARTOut) - UART-only output module, useful during early MCU porting efforts.
+* [USBxUART](USBxUART) - USB+UART output module, useful when debugging USB issues.
 

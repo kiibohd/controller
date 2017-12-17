@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Muxed UART and USB Output Module |###
 #
-# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2017 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -11,8 +11,8 @@
 # Required Submodules
 #
 
-AddModule ( Output pjrcUSB )
-AddModule ( Output uartOut )
+AddModule ( Output USB )
+AddModule ( Output UARTOut )
 
 
 ###
@@ -25,8 +25,8 @@ set( Module_SRCS
 
 # Remove duplicate output_com.c files from pjrcUSB and uartOut
 list ( REMOVE_ITEM Output_SRCS
-	Output/pjrcUSB/output_com.c
-	Output/uartOut/output_com.c
+	Output/USB/output_com.c
+	Output/UARTOut/output_com.c
 )
 
 

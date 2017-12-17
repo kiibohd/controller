@@ -45,7 +45,7 @@ PartialMaps[2]="k-type/unset_v1 k-type/color_painter"
 # Keyboard Module Configuration
 ScanModule="K-Type"
 MacroModule="PixelMap"
-OutputModule="pjrcUSB"
+OutputModule="USB"
 DebugModule="full"
 
 # Microcontroller

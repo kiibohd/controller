@@ -76,7 +76,7 @@ set(  MacroModule "PartialMap"
 	CACHE STRING "Macro Module" )
 
 ##| Sends the current list of usb key codes through USB HID
-set( OutputModule "pjrcUSB"
+set( OutputModule "USB"
 	CACHE STRING "Output Module"
 )
 

@@ -48,7 +48,7 @@ PartialMaps[2]="infinity_ergodox/iced_numpad"
 # Keyboard Module Configuration
 ScanModule="Infinity_Ergodox"
 MacroModule="PixelMap"
-OutputModule="pjrcUSB"
+OutputModule="USB"
 DebugModule="full"
 
 # Microcontroller

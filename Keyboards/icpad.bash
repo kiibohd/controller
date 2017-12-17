@@ -44,7 +44,7 @@ PartialMaps[1]=""
 # Keyboard Module Configuration
 ScanModule="ICPad"
 MacroModule="PixelMap"
-OutputModule="pjrcUSB"
+OutputModule="USB"
 DebugModule="full"
 
 # Microcontroller

@@ -45,7 +45,7 @@ DefaultMap="k-type/vmw stdFuncMap"
 # Keyboard Module Configuration
 ScanModule="K-Type"
 MacroModule="PixelMap"
-OutputModule="pjrcUSB"
+OutputModule="USB"
 DebugModule="full"
 
 # Microcontroller

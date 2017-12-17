@@ -54,7 +54,7 @@ PartialMaps[1]="ic60/hhkbpro2"
 # Keyboard Module Configuration
 ScanModule="Infinity_60_LED"
 MacroModule="PixelMap"
-OutputModule="pjrcUSB"
+OutputModule="USB"
 DebugModule="full"
 
 # Microcontroller

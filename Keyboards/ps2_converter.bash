@@ -41,7 +41,7 @@ DefaultMap="stdFuncMap"
 # Keyboard Module Configuration
 ScanModule="PS2"
 MacroModule="PartialMap"
-OutputModule="pjrcUSB"
+OutputModule="USB"
 DebugModule="full"
 
 # Microcontroller
