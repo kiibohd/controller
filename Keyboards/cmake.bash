@@ -198,6 +198,12 @@ fi
 BaseMap=${BaseMapOverride:-${BaseMap}}
 DefaultMap=${DefaultMapOverride:-${DefaultMap}}
 PartialMapsExpanded=${PartialMapsExpandedOverride:-${PartialMapsExpanded}}
+LayoutName=${LayoutNameOverride:-${LayoutName}}
+
+# If Layout name is set, prepend a :
+if [ "${LayoutName}" != "" ]; then
+	LayoutName=:${LayoutName}
+fi
 
 echo "Selected Generator: ${CMAKE_GENERATOR}"
 echo "${BuildPath}"
@@ -223,6 +229,7 @@ if ${EnableHostBuild}; then
 			-DMacroModule="${MacroModule}" \
 			-DOutputModule="TestOut" \
 			-DDebugModule="${DebugModule}" \
+			-DLayoutName="${LayoutName}" \
 			-DBaseMap="${BaseMap}" \
 			-DDefaultMap="${DefaultMap}" \
 			-DPartialMaps="${PartialMapsExpanded}" \
@@ -239,6 +246,7 @@ if ${EnableHostBuild}; then
 			-DMacroModule="${MacroModule}" \
 			-DOutputModule="TestOut" \
 			-DDebugModule="${DebugModule}" \
+			-DLayoutName="${LayoutName}" \
 			-DBaseMap="${BaseMap}" \
 			-DDefaultMap="${DefaultMap}" \
 			-DPartialMaps="${PartialMapsExpanded}" \
@@ -296,6 +304,7 @@ if [[ "${OS_BUILD}" == "cygwin" ]]; then
 		-DMacroModule="${MacroModule}" \
 		-DOutputModule="${OutputModule}" \
 		-DDebugModule="${DebugModule}" \
+		-DLayoutName="${LayoutName}" \
 		-DBaseMap="${BaseMap}" \
 		-DDefaultMap="${DefaultMap}" \
 		-DPartialMaps="${PartialMapsExpanded}" \
@@ -312,6 +321,7 @@ else
 		-DMacroModule="${MacroModule}" \
 		-DOutputModule="${OutputModule}" \
 		-DDebugModule="${DebugModule}" \
+		-DLayoutName="${LayoutName}" \
 		-DBaseMap="${BaseMap}" \
 		-DDefaultMap="${DefaultMap}" \
 		-DPartialMaps="${PartialMapsExpanded}" \

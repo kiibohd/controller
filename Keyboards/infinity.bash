@@ -23,6 +23,9 @@ fi
 
 BuildPath="IC60"
 
+# Define Layout Name
+LayoutName=${Layout}
+
 ## KLL Configuration ##
 
 # Generally shouldn't be changed, this will affect every layer

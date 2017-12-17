@@ -111,6 +111,10 @@ set(  DebugModule "full"
 #| NOTE2: Layers are always based up the BaseMap (which should be an ANSI-like mapping)
 #| NOTE3: Compiler looks in kll/layouts and the build directory for layout files (precedence on build directory)
 
+set(  LayoutName ""
+	CACHE STRING "Layout Name for Keyboard, often unset. No functional purpose other than documentation."
+)
+
 ##| Set the base keyboard .kll map, defaults to "defaultMap" if not found
 ##| Looks in Scan/<Module Name> for the available BaseMaps
 set(     BaseMap "defaultMap"

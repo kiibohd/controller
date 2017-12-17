@@ -33,7 +33,7 @@
 
 // You can change these to give your code its own name.
 #define STR_MANUFACTURER        L"@MANUFACTURER@"
-#define STR_PRODUCT             L"Keyboard - @ScanModule@ @MacroModule@ @OutputModule@ @DebugModule@"
+#define STR_PRODUCT             L"Keyboard - @ScanModule@@LayoutName@ @MacroModule@ @OutputModule@"
 #define STR_SERIAL              L"XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX - @CHIP_SHORT@"
 #define STR_CONFIG_NAME         L"@FLASHING_STATION_ID@"
 
@@ -52,7 +52,7 @@
 #define CLI_RepoOrigin          "@Git_Origin_URL@"
 #define CLI_CommitDate          "@Git_Date_INFO@"
 #define CLI_CommitAuthor        @Git_Commit_Author@
-#define CLI_Modules             "Scan(@ScanModule@) Macro(@MacroModule@) Output(@OutputModule@) Debug(@DebugModule@)"
+#define CLI_Modules             "Scan(@ScanModule@@LayoutName@) Macro(@MacroModule@) Output(@OutputModule@) Debug(@DebugModule@)"
 #define CLI_BuildDate           "@Build_Date@"
 #define CLI_BuildOS             "@CMAKE_SYSTEM@"
 #define CLI_Arch                "@COMPILER_FAMILY@"
