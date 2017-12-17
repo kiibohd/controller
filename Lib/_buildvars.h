@@ -27,6 +27,10 @@
 
 // ----- Defines -----
 
+// Helpers
+#define _STR_HELPER(x)
+#define _STR(x) _STR_HELPER(x)
+
 // You can change these to give your code its own name.
 #define STR_MANUFACTURER        L"@MANUFACTURER@"
 #define STR_PRODUCT             L"Keyboard - @ScanModule@ @MacroModule@ @OutputModule@ @DebugModule@"
@@ -36,6 +40,12 @@
 
 // Strings used in the CLI module
 #define CLI_Revision            "@Git_Commit_Revision@"
+#define CLI_RevisionNumber      @Git_Commit_Number@
+#define CLI_RevisionNumberStr   "@Git_Commit_Number@"
+#define CLI_Version             "@Git_Recent_Tag@"
+#define CLI_VersionRevision     "@Git_Recent_Tag_Revision@"
+#define CLI_VersionRevNumber    @Git_Recent_Tag_Commit_Number@
+#define CLI_VersionRevNumberStr "@Git_Recent_Tag_Commit_Number@"
 #define CLI_Branch              "@Git_Branch_INFO@"
 #define CLI_ModifiedStatus      "@Git_Modified_Status@"
 #define CLI_ModifiedFiles       "@Git_Modified_Files@"

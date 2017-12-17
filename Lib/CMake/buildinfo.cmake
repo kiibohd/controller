@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Source Configurator |###
 #
-# Written by Jacob Alexander in 2011-2016 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2017 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -74,6 +74,33 @@ execute_process ( COMMAND ${GIT_EXECUTABLE} show -s --format=%H
 execute_process ( COMMAND ${GIT_EXECUTABLE} rev-list --count HEAD
 	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 	OUTPUT_VARIABLE Git_Commit_Number
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	RESULT_VARIABLE res_var
+)
+
+#| Most Recent Tag (on branch)
+execute_process ( COMMAND ${GIT_EXECUTABLE} for-each-ref refs/tags --sort=-taggerdate "--format=%(refname:short)" --count=1
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+	OUTPUT_VARIABLE Git_Recent_Tag
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	RESULT_VARIABLE res_var
+)
+
+#| Most Recent Tag Hash (on branch)
+execute_process ( COMMAND ${GIT_EXECUTABLE} rev-list -n 1 ${Git_Recent_Tag}
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+	OUTPUT_VARIABLE Git_Recent_Tag_Revision
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	RESULT_VARIABLE res_var
+)
+
+#| Most Recent Tag Commit Number (on branch)
+execute_process ( COMMAND ${GIT_EXECUTABLE} rev-list --count ${Git_Recent_Tag_Revision}
+	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+	OUTPUT_VARIABLE Git_Recent_Tag_Commit_Number
 	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 	RESULT_VARIABLE res_var

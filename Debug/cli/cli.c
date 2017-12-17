@@ -708,21 +708,25 @@ void cliFunc_tick( char* args )
 void cliFunc_version( char* args )
 {
 	print( NL );
-	print( " \033[1mRevision:\033[0m      " CLI_Revision       NL );
-	print( " \033[1mBranch:\033[0m        " CLI_Branch         NL );
+	print( " \033[1mRevision:\033[0m      " CLI_Revision          NL );
+	print( " \033[1mRevision #:\033[0m    " CLI_RevisionNumberStr NL );
+	print( " \033[1mVersion:\033[0m       " CLI_Version " (+" );
+	printInt16( CLI_RevisionNumber - CLI_VersionRevNumber );
+	print( ":" CLI_VersionRevNumberStr ")" NL );
+	print( " \033[1mBranch:\033[0m        " CLI_Branch            NL );
 	print( " \033[1mTree Status:\033[0m   " CLI_ModifiedStatus CLI_ModifiedFiles NL );
-	print( " \033[1mRepo Origin:\033[0m   " CLI_RepoOrigin     NL );
-	print( " \033[1mCommit Date:\033[0m   " CLI_CommitDate     NL );
-	print( " \033[1mCommit Author:\033[0m " CLI_CommitAuthor   NL );
-	print( " \033[1mBuild Date:\033[0m    " CLI_BuildDate      NL );
-	print( " \033[1mBuild OS:\033[0m      " CLI_BuildOS        NL );
-	print( " \033[1mArchitecture:\033[0m  " CLI_Arch           NL );
+	print( " \033[1mRepo Origin:\033[0m   " CLI_RepoOrigin        NL );
+	print( " \033[1mCommit Date:\033[0m   " CLI_CommitDate        NL );
+	print( " \033[1mCommit Author:\033[0m " CLI_CommitAuthor      NL );
+	print( " \033[1mBuild Date:\033[0m    " CLI_BuildDate         NL );
+	print( " \033[1mBuild OS:\033[0m      " CLI_BuildOS           NL );
+	print( " \033[1mArchitecture:\033[0m  " CLI_Arch              NL );
 	print( " \033[1mChip Compiled:\033[0m " CLI_ChipShort " (" CLI_Chip ")" NL );
-	print( " \033[1mCPU:\033[0m           " CLI_CPU            NL );
-	print( " \033[1mDevice:\033[0m        " CLI_Device         NL );
-	print( " \033[1mModules:\033[0m       " CLI_Modules        NL );
+	print( " \033[1mCPU:\033[0m           " CLI_CPU               NL );
+	print( " \033[1mDevice:\033[0m        " CLI_Device            NL );
+	print( " \033[1mModules:\033[0m       " CLI_Modules           NL );
 #if defined(_teensy_)
-	print( " \033[1mTeensy:\033[0m        Yes"                 NL );
+	print( " \033[1mTeensy:\033[0m        Yes"                    NL );
 #endif
 #if defined(_kinetis_)
 	print( NL );
