@@ -54,7 +54,8 @@
 #define CLI_CommitAuthor        @Git_Commit_Author@
 #define CLI_Modules             "Scan(@ScanModule@@LayoutName@) Macro(@MacroModule@) Output(@OutputModule@) Debug(@DebugModule@)"
 #define CLI_BuildDate           "@Build_Date@"
-#define CLI_BuildOS             "@CMAKE_SYSTEM@"
+#define CLI_BuildOS             "@Build_OS@"
+#define CLI_BuildCompiler       "@CMAKE_C_COMPILER@ @CMAKE_C_COMPILER_VERSION@"
 #define CLI_Arch                "@COMPILER_FAMILY@"
 #define CLI_Chip                "@CHIP@"
 #define CLI_ChipShort           "@CHIP_SHORT@"

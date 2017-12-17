@@ -720,6 +720,7 @@ void cliFunc_version( char* args )
 	print( " \033[1mCommit Author:\033[0m " CLI_CommitAuthor      NL );
 	print( " \033[1mBuild Date:\033[0m    " CLI_BuildDate         NL );
 	print( " \033[1mBuild OS:\033[0m      " CLI_BuildOS           NL );
+	print( " \033[1mCompiler:\033[0m      " CLI_BuildCompiler     NL );
 	print( " \033[1mArchitecture:\033[0m  " CLI_Arch              NL );
 	print( " \033[1mChip Compiled:\033[0m " CLI_ChipShort " (" CLI_Chip ")" NL );
 	print( " \033[1mCPU:\033[0m           " CLI_CPU               NL );
