@@ -32,8 +32,19 @@
 // _kinetis_k66_ - Kinetis K66-Series MCU
 // _kinetis_fpu_ - Kinetis MCU with FPU
 //
+// _sam_      - SAM MCU
+// _sam4s_    - SAM 4s    MCU
+// _sam4s8_   - SAM 4s8   MCU
+// _sam4s16_  - SAM 4s16  MCU
+// _sam4sa16_ - SAM 4sa16 MCU
+// _sam4sd16_ - SAM 4sd16 MCU
+// _sam4sd32_ - SAM 4sd32 MCU
+// _sam4s_b_  - SAM 4s 64-pin  MCU
+// _sam4s_c_  - SAM 4s 100-pin MCU
+//
 // _kii_v1_ - Kiibohd Firmware Layout v1 - First Keyboard: Infinity 60%
 // _kii_v2_ - Kiibohd Firmware Layout v2 - First Keyboard: Infinity Ergodox
+// _kii_v3_ - Kiibohd Firmware Layout v3 - First Keyboard: TBD
 //
 // _teensy_          - PJRC Teensy
 // _teensy_2_        - PJRC Teensy 2 Series
@@ -106,6 +117,61 @@
 	#define _kinetis_k6x_ 1
 	#define _kinetis_k64_ 1
 	#define _kinetis_fpu_ 1
+#endif
+
+
+
+// - SAM ARM MCUs -
+
+// sam4s8b (1028 kB)
+#if defined(_sam4s8b_)
+	#define _sam_ 1
+	#define _sam4s_ 1
+	#define _sam4s_b_ 1
+	#define _sam4s8_ 1
+	#define _kii_v3_ 1
+#endif
+
+// sam4s16b (1028 kB)
+#if defined(_sam4s16b_)
+	#define _sam_ 1
+	#define _sam4s_ 1
+	#define _sam4s_b_ 1
+	#define _sam4s16_ 1
+	#define _kii_v3_ 1
+#endif
+
+// sam4sa16b (sam4s16b /w HCache) (1024 kB)
+#if defined(_sam4sa16b_)
+	#define _sam_ 1
+	#define _sam4s_ 1
+	#define _sam4s_b_ 1
+	#define _sam4sa_ 1
+	#define _sam4sa16_ 1
+	#define _sam_hcache_ 1
+	#define _kii_v3_ 1
+#endif
+
+// sam4sd16b (HCache) (2 x 512 kB)
+#if defined(_sam4sd16b_)
+	#define _sam_ 1
+	#define _sam4s_ 1
+	#define _sam4s_b_ 1
+	#define _sam4sd_ 1
+	#define _sam4sd16_ 1
+	#define _sam_hcache_ 1
+	#define _kii_v3_ 1
+#endif
+
+// sam4sd32b (HCache) (2 x 1028 kB)
+#if defined(_sam4sd32b_)
+	#define _sam_ 1
+	#define _sam4s_ 1
+	#define _sam4s_b_ 1
+	#define _sam4sd_ 1
+	#define _sam4sd32_ 1
+	#define _sam_hcache_ 1
+	#define _kii_v3_ 1
 #endif
 
 
