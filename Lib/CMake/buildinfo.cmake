@@ -145,7 +145,13 @@ set ( GitLastCommitDate "${Git_Modified_Status} ${Git_Branch_INFO} - ${Git_Date_
 
 #| Build Platform
 message( STATUS "Build OS Detected:" )
-if ( NOT APPLE AND NOT CYGWIN ) # Linux
+if ( "${DETECTED_BUILD_KERNEL}" MATCHES "Darwin" )
+	set( Build_OS ${CMAKE_SYSTEM} )
+
+elseif ( "${DETECTED_BUILD_KERNEL}" MATCHES "CYGWIN" )
+	set( Build_OS ${CMAKE_SYSTEM} )
+
+else () # Linux
 	find_program( LSB_RELEASE lsb_release )
 	execute_process( COMMAND ${LSB_RELEASE} -dcs
 		OUTPUT_VARIABLE Build_OS
@@ -156,8 +162,6 @@ if ( NOT APPLE AND NOT CYGWIN ) # Linux
 	# Replace quotes to be compatible with C
 	string( REPLACE "\"" "'" Build_OS ${Build_OS} )
 	string( REPLACE "\n" " " Build_OS ${Build_OS} )
-else ()
-	set( Build_OS ${CMAKE_SYSTEM} )
 endif ()
 message( "${Build_OS}" )
 
