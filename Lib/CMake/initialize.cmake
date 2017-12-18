@@ -23,8 +23,9 @@ set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
 #
 
 #| CPU Type
+find_program( UNAME uname )
 message( STATUS "Build CPU Detected:" )
-execute_process ( COMMAND uname -m
+execute_process( COMMAND ${UNAME} -m
 	OUTPUT_VARIABLE DETECTED_PROCESSOR_ARCHITECTURE
 	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -33,13 +34,31 @@ message( "${DETECTED_PROCESSOR_ARCHITECTURE}" )
 
 
 #| Detect OS
-message( STATUS "Build OS Detected:" )
-execute_process ( COMMAND uname -sr
-	OUTPUT_VARIABLE DETECTED_BUILD_OS
+message( STATUS "Build Kernel Detected:" )
+execute_process( COMMAND ${UNAME} -sr
+	OUTPUT_VARIABLE DETECTED_BUILD_KERNEL
 	ERROR_QUIET
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-message( "${DETECTED_BUILD_OS}" )
+message( "${DETECTED_BUILD_KERNEL}" )
+
+
+#| Build Platform
+message( STATUS "Build OS Detected:" )
+if ( NOT APPLE AND NOT CYGWIN ) # Linux
+	find_program( LSB_RELEASE lsb_release )
+	execute_process( COMMAND ${LSB_RELEASE} -dircs
+		OUTPUT_VARIABLE Build_OS
+		ERROR_QUIET
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		RESULT_VARIABLE res_var
+	)
+	# Replace quotes to be compatible with C
+	string( REPLACE "\"" "'" Build_OS ${Build_OS} )
+else ()
+	set( Build_OS ${CMAKE_SYSTEM} )
+endif ()
+message( "${Build_OS}" )
 
 
 

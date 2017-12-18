@@ -143,16 +143,3 @@ execute_process ( COMMAND "date" "+%Y-%m-%d %T %z"
 #| Last Commit Date
 set ( GitLastCommitDate "${Git_Modified_Status} ${Git_Branch_INFO} - ${Git_Date_INFO}" )
 
-#| Build Platform
-if ( NOT APPLE AND NOT CYGWIN ) # Linux
-	find_program ( LSB_RELEASE lsb_release )
-	execute_process ( COMMAND ${LSB_RELEASE} -ircs
-		OUTPUT_VARIABLE Build_OS
-		ERROR_QUIET
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-		RESULT_VARIABLE res_var
-	)
-else ()
-	set ( Build_OS ${CMAKE_SYSTEM} )
-endif ()
-
