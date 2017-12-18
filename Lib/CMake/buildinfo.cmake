@@ -147,7 +147,7 @@ set ( GitLastCommitDate "${Git_Modified_Status} ${Git_Branch_INFO} - ${Git_Date_
 message( STATUS "Build OS Detected:" )
 if ( NOT APPLE AND NOT CYGWIN ) # Linux
 	find_program( LSB_RELEASE lsb_release )
-	execute_process( COMMAND ${LSB_RELEASE} -dircs
+	execute_process( COMMAND ${LSB_RELEASE} -dcs
 		OUTPUT_VARIABLE Build_OS
 		ERROR_QUIET
 		OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -155,6 +155,7 @@ if ( NOT APPLE AND NOT CYGWIN ) # Linux
 	)
 	# Replace quotes to be compatible with C
 	string( REPLACE "\"" "'" Build_OS ${Build_OS} )
+	string( REPLACE "\n" " " Build_OS ${Build_OS} )
 else ()
 	set( Build_OS ${CMAKE_SYSTEM} )
 endif ()
