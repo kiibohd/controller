@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is a build and test script used to test KLL functionality
 # It runs on the host system and doesn't require a device to flash onto
-# Jacob Alexander 2016-2018
+# Jacob Alexander 2016-2017
 
 
 
@@ -11,7 +11,7 @@
 
 # Feel free to change the variables in this section to configure your keyboard
 
-BuildPath="macrotest"
+BuildPath="klltest"
 
 ## KLL Configuration ##
 
@@ -87,9 +87,7 @@ if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
 	exit 0
 fi
 
-#cmd python3 Tests/test.py # XXX (HaaTa) Disabling for now, need to implement general-case macro testing
-cmd python3 Tests/animation.py
-cmd python3 Tests/hidio.py
+cmd python3 Tests/kll.py
 
 # Tally results
 result

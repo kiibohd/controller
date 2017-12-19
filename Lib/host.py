@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
 '''
 Host-Side Setup Routines for KLL
 '''
 
-# Copyright (C) 2016-2017 by Jacob Alexander
+# Copyright (C) 2016-2018 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,6 +23,7 @@ import argparse
 import ctypes
 import inspect
 import json
+import logging
 import os
 import pty
 import sys
@@ -31,14 +31,17 @@ import termios
 
 from ctypes import CFUNCTYPE, POINTER, cast, c_int, c_char_p, c_void_p, c_uint8, c_uint16, c_uint32, Structure
 
+import kiilogger
+
+
+
+### Logger ###
+
+logger = kiilogger.get_logger('Lib/host.py')
+
 
 
 ### Decorators ###
-
-## Print Decorator Variables
-ERROR = '\033[5;1;31mERROR\033[0m:'
-WARNING = '\033[5;1;33mWARNING\033[0m:'
-
 
 ## Python Text Formatting Fixer...
 ##  Because the creators of Python are averse to proper capitalization.
@@ -225,8 +228,7 @@ class Control:
         try:
             kiibohd = ctypes.CDLL( libkiibohd_path )
         except Exception as err:
-            print( "{0} Could not open -> {1}".format( ERROR, libkiibohd_path ) )
-            print( err )
+            logger.error("Could not open -> {}\n{}", libkiibohd_path, err )
             sys.exit( 1 )
         self.kiibohd = kiibohd
 
@@ -257,8 +259,7 @@ class Control:
         try:
             refresh_callback()
         except Exception as err:
-            print( "{0} Could not register libkiibohd callback function".format( ERROR ) )
-            print( err )
+            logger.error("Could not register libkiibohd callback function\n{}", err)
             sys.exit( 1 )
 
     def process_args( self ):
@@ -302,14 +303,14 @@ class Control:
 
         # Enable virtual serial port
         if args.cli:
-            print("Enabling Virtual Serial Port")
+            logger.info("Enabling Virtual Serial Port")
             self.virtual_serialport_setup()
 
         # Run test if requested, then exit
         if args.test:
-            print("libkiibohd.so - Callback Test")
+            logger.info("libkiibohd.so - Callback Test")
             val = self.kiibohd.Host_callback_test()
-            print("Return Value:", val )
+            logger.info("Return Value:", val )
             sys.exit( 0 )
 
         return args
@@ -319,14 +320,14 @@ class Control:
         Run main commands
         '''
         # Initialize kiibohd
-        print(">Host_init")
+        logger.info("Host_init")
         self.kiibohd.Host_init()
         print("")
 
         # Run cli if enabled
         self.virtual_serialport_process()
 
-    def loop( self, number_of_loops=1, quiet=False ):
+    def loop( self, number_of_loops=1 ):
         '''
         Run Host-side KLL main processing loop N number of times
 
@@ -337,8 +338,7 @@ class Control:
             # Refresh callback interface
             refresh_callback()
 
-            if not quiet:
-                print( ">Host_process ({0})".format( loop ) )
+            logger.debug("Host_process ({})", loop)
             self.kiibohd.Host_process()
             loop += 1
 
@@ -360,6 +360,15 @@ class Control:
         '''
         # Refresh callback interface
         refresh_callback()
+
+        # Only print stack (show full calling function) info if in debug mode
+        if logger.isEnabledFor(logging.DEBUG):
+            parentstack_info = inspect.stack()[-1]
+            logger.debug("cmd - {} {}:{}",
+                parentstack_info.code_context[0][:-1],
+                parentstack_info.filename,
+                parentstack_info.lineno
+            )
 
         return self.command_dict[ command_name ]
 
@@ -407,7 +416,7 @@ class Control:
 
         # Setup ttyname
         self.serial_name = os.ttyname( self.serial_slave )
-        print( self.serial_name )
+        logger.info( self.serial_name )
 
         # Setup serial interface
         self.serial = self.serial_master
@@ -428,11 +437,12 @@ def get_method_dict( obj ):
 
 def refresh_callback():
     '''
-    XXX
     Refresh callback pointer
+
+    XXX (HaaTa)
     For some reason, either garbage collection, or something else, the pointer becomes stale in certain situations
     Usually when calling different library functions
-    This just refreshes the pointer (shouldn't be necessary, but it works...) -Jacob
+    This just refreshes the pointer (shouldn't be necessary, but it works...)
     '''
     # Prevent garbage collection
     global callback_func
@@ -446,7 +456,7 @@ def callback( command, args ):
     libkiibohd callback function
     '''
     if control.debug:
-        print( "Callback:", command, args )
+        logger.debug("Callback: {} {}", command, args)
 
     # Lookup function in callback dictionary
     # Every function must taken a single argument
@@ -464,6 +474,6 @@ def callback( command, args ):
 ### Main Entry Point ###
 
 if __name__ == '__main__':
-    print( "{0} Do not call directly.".format( ERROR ) )
+    logger.error("Do not call directly.")
     sys.exit( 1 )
 

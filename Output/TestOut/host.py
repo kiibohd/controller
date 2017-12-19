@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
 '''
 Host-Side Python Commands for TestOut Output Module
 '''
 
-# Copyright (C) 2016-2017 by Jacob Alexander
+# Copyright (C) 2016-2018 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,13 +25,13 @@ import sys
 
 from ctypes import POINTER, cast, c_char_p, c_uint8, c_uint16, Structure
 
+import kiilogger
 
 
-### Decorators ###
 
-## Print Decorator Variables
-ERROR = '\033[5;1;31mERROR\033[0m:'
-WARNING = '\033[5;1;33mWARNING\033[0m:'
+### Logger ###
+
+logger = kiilogger.get_logger('Output/TestOut/host.py')
 
 
 
@@ -235,7 +234,7 @@ class Callbacks:
         '''
         TODO
         '''
-        print("device_reload not implemented")
+        logger.warning("device_reload not implemented")
 
     def keyboard_send( self, args ):
         '''
@@ -280,7 +279,7 @@ class Callbacks:
         '''
         TODO
         '''
-        print("mouse_send not implemented")
+        logger.warning("mouse_send not implemented")
 
     def rawio_available( self, args ):
         '''
@@ -353,7 +352,7 @@ class Callbacks:
         '''
         TODO
         '''
-        print("restart not implemented")
+        logger.warning("restart not implemented")
 
     def serial_available( self, args ):
         '''
@@ -361,7 +360,7 @@ class Callbacks:
         '''
         total = len( control.serial_buf )
         if debug:
-            print("serial_available:", total )
+            logger.debug("serial_available: {}", total)
         return total
 
     def serial_read( self, args ):
@@ -376,7 +375,7 @@ class Callbacks:
         control.serial_buf = control.serial_buf[1:]
         conv_char = ord( character )
         if debug:
-            print("serial_read:", character, conv_char )
+            logger.debug("serial_read: {} {}", character, conv_char)
         return conv_char
 
     def serial_write( self, args ):
@@ -399,6 +398,6 @@ class Callbacks:
 ### Main Entry Point ###
 
 if __name__ == '__main__':
-    print( "{0} Do not call directly.".format( ERROR ) )
+    logger.error("Do not call directly.")
     sys.exit( 1 )
 

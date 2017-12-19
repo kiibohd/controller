@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
 '''
 Host-Side Python Commands for TestIn Scan Module
 '''
 
-# Copyright (C) 2016-2017 by Jacob Alexander
+# Copyright (C) 2016-2018 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,13 +23,13 @@ import sys
 
 from ctypes import (Structure, POINTER, cast, c_uint32, c_uint16, c_uint8, c_void_p, create_string_buffer)
 
+import kiilogger
 
 
-### Decorators ###
 
-## Print Decorator Variables
-ERROR = '\033[5;1;31mERROR\033[0m:'
-WARNING = '\033[5;1;33mWARNING\033[0m:'
+### Logger ###
+
+logger = kiilogger.get_logger('Scan/TestIn/host.py')
 
 
 
@@ -115,6 +114,26 @@ class Commands:
         '''
         return control.kiibohd.Scan_removeScanCode( int( scan_code ) )
 
+    def setMacroDebugMode( self, debugmode ):
+        '''
+        Sets macroDebugMode
+
+        0 - Disable (default)
+        1 - Disable USB Output, show debug
+        2 - Enabled USB Output, show debug
+        3 - Disable USB Output
+        '''
+        cast( control.kiibohd.macroDebugMode, POINTER( c_uint8 ) )[0] = debugmode
+
+    def setVoteDebugMode( self, debugmode ):
+        '''
+        Sets voteDebugMode
+
+        0 - Disable (default)
+        1 - Show result of each vote
+        '''
+        cast( control.kiibohd.voteDebugMode, POINTER( c_uint8 ) )[0] = debugmode
+
     def addAnimation( self, name=None, index=0, pos=0, loops=1, divmask=0x0, divshift=0x0, ffunc=0, pfunc=0 ):
         '''
         Adds a given animation (by index) to the processing loop
@@ -138,7 +157,7 @@ class Commands:
         if name is not None:
             lookup = control.json_input['AnimationIds']
             if name not in lookup.keys():
-                print( "{0} '{1}' is an invalid animation id.".format( ERROR, name ) )
+                logger.error("'{}' is an invalid animation id.", name)
             else:
                 index = lookup[ name ]
 
@@ -267,6 +286,6 @@ class Callbacks:
 ### Main Entry Point ###
 
 if __name__ == '__main__':
-    print( "{0} Do not call directly.".format( ERROR ) )
+    logger.error("Do not call directly.")
     sys.exit( 1 )
 

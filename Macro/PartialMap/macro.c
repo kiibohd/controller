@@ -1114,10 +1114,14 @@ void Macro_periodic()
 				default:
 					break;
 				}
+				break;
 
 			// Not implemented
 			default:
-				erro_print("Interconnect Trigger Event Type - Not Implemented");
+				erro_msg("Interconnect Trigger Event Type - Not Implemented ");
+				printInt8( macroInterconnectCache[ c ].type );
+				print( NL );
+				break;
 			}
 		}
 	}
