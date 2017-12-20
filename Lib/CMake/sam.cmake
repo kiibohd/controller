@@ -11,11 +11,16 @@
 
 #| Chip Name (Linker)
 #|
-#| "sam4s8b"   # Kiibohd-dfu
-#| "sam4s16b"  # Kiibohd-dfu
-#| "sam4sa16b" # Kiibohd-dfu
-#| "sam4sd16b" # Kiibohd-dfu
-#| "sam4sd32b" # Kiibohd-dfu
+#| "sam4s8b"   #  64-pin Kiibohd-dfu
+#| "sam4s8c"   # 100-pin Kiibohd-dfu
+#| "sam4s16b"  #  64-pin Kiibohd-dfu
+#| "sam4s16c"  # 100-pin Kiibohd-dfu
+#| "sam4sa16b" #  64-pin Kiibohd-dfu
+#| "sam4sa16c" # 100-pin Kiibohd-dfu
+#| "sam4sd16b" #  64-pin Kiibohd-dfu
+#| "sam4sd16c" # 100-pin Kiibohd-dfu
+#| "sam4sd32b" #  64-pin Kiibohd-dfu
+#| "sam4sd32c" # 100-pin Kiibohd-dfu
 
 
 #| Chip Size and CPU Frequency Database
@@ -26,7 +31,8 @@
 #|   examples use this variable to calculate timings.  Do not add a "UL" here.
 #| Kiibohd-dfu
 # http://www.microchip.com/wwwproducts/en/ATSAM4S8B
-if ( "${CHIP}" MATCHES "sam4s8b" )
+# http://www.microchip.com/wwwproducts/en/ATSAM4S8C
+if ( "${CHIP}" MATCHES "sam4s8b" OR "${CHIP}" MATCHES "sam4s8c" )
 	set( SIZE_RAM    131072 )
 	set( SIZE_FLASH  516096 ) # 8kB bootloader (524288 bytes)
 	set( F_CPU    120000000 )
@@ -42,7 +48,8 @@ if ( "${CHIP}" MATCHES "sam4s8b" )
 
 #| Kiibohd-dfu
 # http://www.microchip.com/wwwproducts/en/ATSAM4S16B
-elseif ( "${CHIP}" MATCHES "sam4s16b" )
+# http://www.microchip.com/wwwproducts/en/ATSAM4S16C
+elseif ( "${CHIP}" MATCHES "sam4s16b" OR "${CHIP}" MATCHES "sam4s16c" )
 	set( SIZE_RAM    131072 )
 	set( SIZE_FLASH 1040384 ) # 8kB bootloader (1048576 bytes)
 	set( F_CPU    120000000 )
@@ -58,7 +65,8 @@ elseif ( "${CHIP}" MATCHES "sam4s16b" )
 
 #| Kiibohd-dfu
 # http://www.microchip.com/wwwproducts/en/ATSAM4SA16B
-elseif ( "${CHIP}" MATCHES "sam4sa16b" )
+# http://www.microchip.com/wwwproducts/en/ATSAM4SA16C
+elseif ( "${CHIP}" MATCHES "sam4sa16b" OR "${CHIP}" MATCHES "sam4sa16c" )
 	set( SIZE_RAM    163840 )
 	set( SIZE_FLASH 1040384 ) # 8kB bootloader (1048576 bytes)
 	set( F_CPU    120000000 )
@@ -73,7 +81,9 @@ elseif ( "${CHIP}" MATCHES "sam4sa16b" )
 	endif ()
 
 #| Kiibohd-dfu
-elseif ( "${CHIP}" MATCHES "sam4sd16b" )
+# http://www.microchip.com/wwwproducts/en/ATSAM4SD16B
+# http://www.microchip.com/wwwproducts/en/ATSAM4SD16C
+elseif ( "${CHIP}" MATCHES "sam4sd16b" OR "${CHIP}" MATCHES "sam4sd16c" )
 	set( SIZE_RAM    163840 )
 	set( SIZE_FLASH 1040384 ) # 8kB bootloader (1048576 bytes)
 	set( F_CPU    120000000 )
@@ -88,7 +98,9 @@ elseif ( "${CHIP}" MATCHES "sam4sd16b" )
 	endif ()
 
 #| Kiibohd-dfu
-elseif ( "${CHIP}" MATCHES "sam4sd32b" )
+# http://www.microchip.com/wwwproducts/en/ATSAM4SD32B
+# http://www.microchip.com/wwwproducts/en/ATSAM4SD32C
+elseif ( "${CHIP}" MATCHES "sam4sd32b" OR "${CHIP}" MATCHES "sam4sd32c" )
 	set( SIZE_RAM    163840 )
 	set( SIZE_FLASH 1040384 ) # 8kB bootloader (2097152 bytes)
 	set( F_CPU    120000000 )
