@@ -21,17 +21,112 @@
 
 #pragma once
 
-#if defined(_kinetis_)
-
-// ----- Defines -----
-
-//
-// - SIM_SDID Lookup -
-//
-
 // ----- Includes -----
 
 #include <stdint.h>
+
+
+#if defined(_sam_)
+
+// ----- Includes -----
+
+#include <Lib/sam.h>
+
+
+
+// ----- Variables -----
+
+// See 30.3.1 CHIPID_CIDR | EPROC | Embedded Processor
+// http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-11100-32-bit%20Cortex-M4-Microcontroller-SAM4S_Datasheet.pdf
+const char *ChipVersion_proctype[] = {
+	"SAMx7",     // 0 - 000 - Cortex-M7
+	"ARM946ES",  // 1 - 001
+	"ARM7TDMI",  // 2 - 010
+	"CM3",       // 3 - 011 - Cortex-M3
+	"ARM920T",   // 4 - 100
+	"ARM926EJS", // 5 - 101
+	"CA5",       // 6 - 110 - Cortex-A5
+	"CM4",       // 7 - 111 - Cortex-M4
+};
+
+// See 30.3.1 CHIPID_CIDR | NVPSIZ | NVPSIZ2 | Nonvolatile Program Memory Size
+// http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-11100-32-bit%20Cortex-M4-Microcontroller-SAM4S_Datasheet.pdf
+// Mark reserved as 0xFFFF
+const uint16_t ChipVersion_nvmsize[] = {
+	0,      // 0  - 0000 -    0 kB
+	8,      // 1  - 0001 -    8 kB
+	16,     // 2  - 0010 -   16 kB
+	32,     // 3  - 0011 -   32 kB
+	0xFFFF, // 4  - 0100
+	64,     // 5  - 0101 -   64 kB
+	0xFFFF, // 6  - 0110
+	128,    // 7  - 0111 -  128 kB
+	160,    // 8  - 1000 -  160 kB
+	256,    // 9  - 1001 -  256 kB
+	512,    // 10 - 1010 -  512 kB
+	0xFFFF, // 11 - 1011
+	1024,   // 12 - 1100 - 1024 kB
+	0xFFFF, // 13 - 1101
+	2048,   // 14 - 1110 - 2048 kB
+	0xFFFF, // 15 - 1111
+};
+
+// See 30.3.1 CHIPID_CIDR | SRAMSIZ | Internal SRAM Size
+// http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-11100-32-bit%20Cortex-M4-Microcontroller-SAM4S_Datasheet.pdf
+// Mark reserved as 0xFFFF
+const uint16_t ChipVersion_sramsize[] = {
+	48,  // 0  - 0000 -  48 kB
+	192, // 1  - 0001 - 192 kB
+	384, // 2  - 0010 - 384 kB
+	6,   // 3  - 0011 -   6 kB
+	24,  // 4  - 0100 -  24 kB
+	4,   // 5  - 0101 -   4 kB
+	80,  // 6  - 0110 -  80 kB
+	160, // 7  - 0111 - 160 kB
+	8,   // 8  - 1000 -   8 kB
+	16,  // 9  - 1001 -  16 kB
+	32,  // 10 - 1010 -  32 kB
+	64,  // 11 - 1011 -  64 kB
+	128, // 12 - 1100 - 128 kB
+	256, // 13 - 1101 - 256 kB
+	96,  // 14 - 1110 -  96 kB
+	512, // 15 - 1111 - 512 kB
+};
+
+// See 30.3.1 CHIPID_CIDR | ARCH | Architecture Identifier
+// http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-11100-32-bit%20Cortex-M4-Microcontroller-SAM4S_Datasheet.pdf
+// XXX (HaaTa) - Only from 0x88 to 0x8A, make sure to update offset when adding more
+const char *ChipVersion_archid[] = {
+	"SAM4SxA", // 0x88 - 136 - 1000 1000 - 48-pin
+	"SAM4SxB", // 0x89 - 137 - 1000 1001 - 64-pin
+	"SAM4SxC", // 0x8A - 138 - 1000 1010 - 100-pin
+};
+
+// See 30.3.1 CHIPID_CIDR | NVPTYP | Nonvolatile Program Memory Type
+// http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-11100-32-bit%20Cortex-M4-Microcontroller-SAM4S_Datasheet.pdf
+// Mark reserved as --
+const char *ChipVersion_nvmtype[] = {
+	"ROM",       // 0 - 000 - ROM
+	"ROMLESS",   // 1 - 001 - ROMless or on-chip Flash
+	"FLASH",     // 2 - 010 - Embedded Flash Memory
+	"ROM_FLASH", // 3 - 011 - ROM adn Embedded Flash Memory (NVPSIZ is ROM, NVPSIZ2 is Flash)
+	"SRAM",      // 4 - 100 - SRAM emulating ROM
+	"--",        // 5 - 101
+	"--",        // 6 - 110
+	"--",        // 7 - 111
+};
+
+
+
+
+// ----- Function Declarations -----
+
+// ----- Functions -----
+
+#elif defined(_kinetis_)
+
+// ----- Includes -----
+
 #include <Lib/kinetis.h>
 
 
@@ -80,7 +175,7 @@ const char *ChipVersion_familyid[] = {
 // Can be updated as long as it doesn't conflict with older versions
 // Mark reserved as 0xFFFF
 // NVMSIZE
-uint16_t ChipVersion_nvmsize[] = {
+const uint16_t ChipVersion_nvmsize[] = {
 	0,      // 0000 -   0 kB FlexNVM
 	0xFFFF, // 0001
 	0xFFFF, // 0010
@@ -102,7 +197,7 @@ uint16_t ChipVersion_nvmsize[] = {
 // Can be updated as long as it doesn't conflict with older versions
 // Mark reserved as 0xFFFF
 // PFSIZE
-uint16_t ChipVersion_pflashsize[] = {
+const uint16_t ChipVersion_pflashsize[] = {
 	0xFFFF, // 0000
 	0xFFFF, // 0001
 	0xFFFF, // 0010
@@ -125,7 +220,7 @@ uint16_t ChipVersion_pflashsize[] = {
 // Can be updated as long as it doesn't conflict with older versions
 // Mark reserved as 0xFFFF
 // EESIZE
-uint16_t ChipVersion_eepromsize[] = {
+const uint16_t ChipVersion_eepromsize[] = {
 	16384,  // 0000 -  16 kB EEPROM
 	8192,   // 0001 -   8 kB EEPROM
 	4096,   // 0010 -   4 kB EEPROM
@@ -148,7 +243,7 @@ uint16_t ChipVersion_eepromsize[] = {
 // Can be updated as long as it doesn't conflict with older versions
 // Mark reserved as 0xFFFF
 // RAMSIZE
-uint16_t ChipVersion_ramsize[] = {
+const uint16_t ChipVersion_ramsize[] = {
 	0xFFFF, // 0000
 	8,      // 0001 -   8 kB RAM
 	0xFFFF, // 0010
