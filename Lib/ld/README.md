@@ -16,6 +16,22 @@ These are necessary for all but host-specific (Windows/Linux/macOS) builds.
 * [mk22fx512avlh12.ld](mk22fx512avlh12.ld) - Firmware for QFP-64 mk22fx512a 120 MHz
 
 
+## SAM
+
+Sam-specific linker scripts.
+
+* [sam4s8b.ld](sam4s8b.ld) - Firmware for QFP/BGA-64 sam4s8 120 MHz
+* [sam4s8c.ld](sam4s8c.ld) - Firmware for QFP/BGA-100 sam4s8 120 MHz
+* [sam4s16b.ld](sam4s16b.ld) - Firmware for QFP/BGA-64 sam4s16 120 MHz
+* [sam4s16c.ld](sam4s16c.ld) - Firmware for QFP/BGA-100 sam4s16 120 MHz
+* [sam4sa16b.ld](sam4sa16b.ld) - Firmware for QFP/BGA-64 sam4s16 120Hz
+* [sam4sa16c.ld](sam4sa16c.ld) - Firmware for QFP/BGA-100 sam4s16 120 MHz
+* [sam4sd16b.ld](sam4sd16b.ld) - Firmware for QFP/BGA-64 sam4s16 120 MHz
+* [sam4sd16c.ld](sam4sd16c.ld) - Firmware for QFP/BGA-100 sam4s16 120 MHz
+* [sam4sd32b.ld](sam4sd32b.ld) - Firmware for QFP/BGA-64 sam4s32 120 MHz
+* [sam4sd32c.ld](sam4sd32c.ld) - Firmware for QFP/BGA-100 sam4s32 120 MHz
+
+
 ## Teensy
 
 Teensy-specific linker scripts.
