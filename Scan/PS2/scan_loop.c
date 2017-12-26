@@ -49,12 +49,20 @@ static uint8_t verbose_state = 0;
 // ----- Functions -----
 
 uint8_t ps2data_read() {
+#if defined(_teensy_3_)
 	return (PS2_PORT_PDIR & (1 << PS2_DATA_PIN)) != 0;
+#else
+#warning "Not implemented"
+#endif
 }
 
 void portb_isr() {
+#if defined(_teensy_3_)
 	PS2_PORT_ISFR = 0xFFFFFFFF;  // reset the interrupt flags.
 	ps2interrupt();  // call the PS2 interrupt function.
+#else
+#warning "Not implemented"
+#endif
 }
 
 
@@ -108,6 +116,7 @@ inline void Scan_setup() {
 	// Register Scan CLI dictionary
 	CLI_registerDictionary(scanCLIDict, scanCLIDictName);
 
+#if defined(_teensy_3_)
 	// Enable interrupts for port B.
 	NVIC_ENABLE_IRQ(IRQ_PORTB);
 
@@ -124,6 +133,9 @@ inline void Scan_setup() {
 	__disable_irq();
 	PS2_CLOCK_PCR |= mask;
 	__enable_irq();
+#else
+#warning "Not implemented"
+#endif
 }
 
 

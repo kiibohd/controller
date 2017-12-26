@@ -29,7 +29,7 @@
 // USB Includes
 #if defined(_avr_at_)
 #include <avr/usb_keyboard_serial.h>
-#elif defined(_kinetis_)
+#elif defined(_kinetis_) || defined(_sam_) //AVR
 #include <arm/usb_dev.h>
 #endif
 
@@ -86,7 +86,11 @@ void Port_usb_swap()
 	info_print("USB Port Swap");
 
 	// PTA4 - USB Swap
+#if defined(_kinetis_)
 	GPIOA_PTOR |= (1<<4);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 
 	// Re-initialize usb
 	// Call usb_configured() to check if usb is ready
@@ -98,7 +102,11 @@ void Port_uart_swap()
 	info_print("Interconnect Line Swap");
 
 	// PTA13 - UART Swap
+#if defined(_kinetis_)
 	GPIOA_PTOR |= (1<<13);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 }
 
 void Port_cross()
@@ -106,7 +114,11 @@ void Port_cross()
 	info_print("Interconnect Line Cross");
 
 	// PTA12 - UART Tx/Rx cross-over
+#if defined(_kinetis_)
 	GPIOA_PTOR |= (1<<12);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 
 	// Reset interconnects
 	Connect_reset();
@@ -118,6 +130,7 @@ inline void Port_setup()
 	// Register Scan CLI dictionary
 	CLI_registerDictionary( portCLIDict, portCLIDictName );
 
+#if defined(_kinetis_)
 	// PTA4 - USB Swap
 	// Start, disabled
 	GPIOA_PDDR |= (1<<4);
@@ -135,6 +148,9 @@ inline void Port_setup()
 	GPIOA_PDDR |= (1<<13);
 	PORTA_PCR13 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOA_PCOR |= (1<<13);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 
 	// Starting point for automatic port swapping
 	Port_lastcheck_ms = systick_millis_count;

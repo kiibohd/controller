@@ -94,10 +94,38 @@ void pit0_isr()
 	// Clear the interrupt
 	PIT_TFLG0 = PIT_TFLG_TIF;
 }
-#endif
 
 
-#if defined(_host_)
+#elif defined(_sam_)
+void Periodic_init( uint32_t cycles )
+{
+	//SAM TODO
+}
+
+void Periodic_function( void *func )
+{
+	// Set function pointer
+	periodic_func = func;
+}
+
+void Periodic_enable()
+{
+	//SAM TODO
+}
+
+void Periodic_disable()
+{
+	//SAM TODO
+}
+
+uint32_t Periodic_cycles()
+{
+	//SAM TODO
+	return 0;
+}
+
+
+#elif defined(_host_)
 void Periodic_init( uint32_t cycles )
 {
 }

@@ -71,4 +71,3 @@ uint32_t ms_now();
 // - Misc Functions -
 
 void yield() __attribute__ ((weak));
-

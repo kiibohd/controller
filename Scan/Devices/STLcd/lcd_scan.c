@@ -107,6 +107,7 @@ static uint8_t stlcdLatencyResource;
 
 void SPI_setup()
 {
+#if defined(_kinetis_)
 	// Enable SPI internal clock
 	SIM_SCGC6 |= SIM_SCGC6_SPI0;
 
@@ -129,6 +130,9 @@ void SPI_setup()
 		| SPI_CTAR_DT(7)
 		| SPI_CTAR_CSSCK(7)
 		| SPI_CTAR_PBR(0) | SPI_CTAR_BR(7);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 }
 
 // Write buffer to SPI FIFO
@@ -137,6 +141,7 @@ void SPI_write( uint8_t *buffer, uint8_t len )
 
 	for ( uint8_t byte = 0; byte < len; byte++ )
 	{
+#if defined(_kinetis_)
 		// Wait for SPI TxFIFO to have 4 or fewer entries
 		while ( !( SPI0_SR & SPI_SR_TFFF ) )
 			delay_us(10);
@@ -148,12 +153,16 @@ void SPI_write( uint8_t *buffer, uint8_t len )
 		// Indicate transfer has completed
 		while ( !( SPI0_SR & SPI_SR_TCF ) );
 		SPI0_SR |= SPI_SR_TCF;
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 	}
 }
 
 // Write to a control register
 void LCD_writeControlReg( uint8_t byte )
 {
+#if defined(_kinetis_)
 	// Wait for TxFIFO to be empt
 	while ( SPI0_TxFIFO_CNT != 0 );
 
@@ -171,11 +180,15 @@ void LCD_writeControlReg( uint8_t byte )
 
 	// Set A0 high to go back to display register mode
 	GPIOC_PSOR |= (1<<7);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 }
 
 // Write to a data register with a0 bit high
 void LCD_writeDataReg( uint8_t byte )
 {
+#if defined(_kinetis_)
 	// Wait for TxFIFO to be empt
 	while ( SPI0_TxFIFO_CNT != 0 );
 
@@ -190,6 +203,9 @@ void LCD_writeDataReg( uint8_t byte )
 
 	// Make sure data has transferred
 	delay_us(10); // XXX Adjust if SPI speed changes
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 
 }
 
@@ -233,7 +249,11 @@ void LCD_clearPage( uint8_t page )
 	}
 
 	// Wait for TxFIFO to be empty
+#if defined(_kinetis_)
 	while ( SPI0_TxFIFO_CNT != 0 );
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 }
 
 // Clear Display
@@ -301,6 +321,7 @@ inline void LCD_setup()
 	// Initialize SPI
 	SPI_setup();
 
+#if defined(_kinetis_)
 	// Setup Register Control Signal (A0)
 	// Start in display register mode (1)
 	GPIOC_PDDR |= (1<<7);
@@ -363,6 +384,9 @@ inline void LCD_setup()
 	// Blue
 	FTM0_C2V = STLcdBacklightBlue_define;
 	PORTC_PCR3 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(4);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 
 	// Allocate Latency resource
 	stlcdLatencyResource = Latency_add_resource("STLcd", LatencyOption_Ticks);
@@ -372,6 +396,7 @@ inline void LCD_setup()
 // LCD State processing loop
 static inline void check_caps_lock()
 {
+#if defined(_kinetis_)
 	static uint16_t hold_color[3];
 	static uint8_t was_capslock = 0;
 
@@ -401,6 +426,9 @@ static inline void check_caps_lock()
 		FTM0_C1V = 0x1394;
 		FTM0_C2V = 0xb9f9;
 	}
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 }
 
 inline uint8_t LCD_scan()
@@ -481,9 +509,13 @@ void LCD_layerStackExact_capability( TriggerMacro *trigger, uint8_t state, uint8
 	{
 		// Set the color according to the "top-of-stack" layer
 		uint16_t layerIndex = stack_args->layers[0];
+#if defined(_kinetis_)
 		FTM0_C0V = colors[ layerIndex ][0];
 		FTM0_C1V = colors[ layerIndex ][1];
 		FTM0_C2V = colors[ layerIndex ][2];
+#elif defined(_sam_)
+		//SAM TODO
+#endif
 
 		// Iterate through each of the pages
 		// XXX Many of the values here are hard-coded
@@ -526,9 +558,13 @@ void LCD_layerStackExact_capability( TriggerMacro *trigger, uint8_t state, uint8
 	else
 	{
 		// Set default backlight
+#if defined(_kinetis_)
 		FTM0_C0V = STLcdBacklightRed_define;
 		FTM0_C1V = STLcdBacklightGreen_define;
 		FTM0_C2V = STLcdBacklightBlue_define;
+#elif defined(_sam_)
+		//SAM TODO
+#endif
 
 		// Write default image
 		for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
@@ -677,9 +713,13 @@ void cliFunc_lcdColor( char* args )
 	}
 
 	// Set PWM channels
+#if defined(_kinetis_)
 	FTM0_C0V = rgb[0];
 	FTM0_C1V = rgb[1];
 	FTM0_C2V = rgb[2];
+#elif defined(_sam_)
+		//SAM TODO
+#endif
 }
 
 void cliFunc_lcdDisp( char* args )

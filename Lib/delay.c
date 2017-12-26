@@ -117,16 +117,31 @@ uint32_t us_now()
 
 	// Snapshot both the cycle count and ms counter
 	__disable_irq();
+#if defined(_kinetis_)
 	current = SYST_CVR;
 	count = systick_millis_count;
 	istatus = SCB_ICSR; // bit 26 indicates if systick exception pending
+#elif defined(_sam_)
+	//SAM TODO
+	current = 0;
+	count = 0;
+	istatus = 0;
+#endif
 	__enable_irq();
 
 	// Check for pending systick, and increment if one is it was
+#if defined(_kinetis_)
 	if ( ( istatus & SCB_ICSR_PENDSTSET ) && current > ( ( F_CPU / 1000 ) - 50 ) )
 	{
 		count++;
 	}
+#elif defined(_sam_)
+	//SAM TODO
+	if ( current > ( ( F_CPU / 1000 ) - 50 ) )
+	{
+		count++
+	}
+#endif
 
 	// Determine cycles since systick (approx.)
 	current = ( ( F_CPU / 1000 ) - 1 ) - current;

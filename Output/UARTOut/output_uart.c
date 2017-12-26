@@ -125,7 +125,7 @@ inline int UART_putstr( char* str )
 inline void UART_softReset()
 {
 #if defined(_avr_at_) // AVR
-#elif defined(_kinetis_) // ARM
+#elif defined(_kinetis_) || defined(_sam_) // ARM
 	SOFTWARE_RESET();
 #endif
 }

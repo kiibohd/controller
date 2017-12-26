@@ -105,10 +105,11 @@ static volatile uint8_t strobeDelayTime;
 // ----- Functions -----
 
 // Pin action (Strobe, Sense, Strobe Setup, Sense Setup)
-// NOTE: This function is highly dependent upon the organization of the register map
-//       Only guaranteed to work with Freescale Kinetis MCUs
 uint8_t Matrix_pin( GPIO_Pin gpio, Type type )
 {
+#if defined(_kinetis_)
+	// NOTE: This function is highly dependent upon the organization of the register map
+	//       Only guaranteed to work with Freescale Kinetis MCUs
 	// Register width is defined as size of a pointer
 	unsigned int gpio_offset = gpio.port * 0x40   / sizeof(unsigned int*);
 	unsigned int port_offset = gpio.port * 0x1000 / sizeof(unsigned int*) + gpio.pin;
@@ -179,6 +180,9 @@ uint8_t Matrix_pin( GPIO_Pin gpio, Type type )
 		}
 		break;
 	}
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 
 	return 0;
 }
