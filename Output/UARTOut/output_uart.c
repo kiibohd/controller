@@ -29,7 +29,7 @@
 
 // UART Includes
 #if defined(_avr_at_)
-#elif defined(_kinetis_)
+#elif defined(_kinetis_) || defined(_sam_)
 #include "arm/uart_serial.h"
 #endif
 
@@ -110,7 +110,7 @@ inline int UART_putstr( char* str )
 {
 #if defined(_avr_at_) // AVR
 	uint16_t count = 0;
-#elif defined(_kinetis_) // ARM
+#elif defined(_kinetis_) || defined(_sam_) // ARM
 	uint32_t count = 0;
 #endif
 	// Count characters until NULL character, then send the amount counted

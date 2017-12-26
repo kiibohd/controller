@@ -64,7 +64,7 @@ void _print( const char* s )
 	{
 		Output_putchar( c );
 	}
-#elif defined(_kinetis_) // ARM
+#elif defined(_kinetis_) || defined(_sam_) // ARM
 	Output_putstr( (char*)s );
 #elif defined(_host_) // Host
 	Output_putstr( (char*)s );

@@ -22,8 +22,13 @@
 
 // ----- Includes -----
 
-#include "kinetis.h"
 #include "mcu_compat.h"
+
+#if defined(_kinetis_)
+#include "kinetis.h"
+#elif defined(_sam_)
+#include "sam.h"
+#endif
 
 
 

@@ -32,10 +32,20 @@
 
 
 
-// ARM
+// Kinetis (ARM)
 #if defined(_kinetis_)
 
 #include <Lib/kinetis.h>
+#include <Lib/time.h>
+
+#endif
+
+
+
+// SAM (ARM)
+#if defined(_sam_)
+
+#include <Lib/sam.h>
 #include <Lib/time.h>
 
 #endif

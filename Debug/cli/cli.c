@@ -790,6 +790,7 @@ void cliFunc_version( char* args )
 	printHex32_op( SIM_UIDMH, 8 );
 	printHex32_op( SIM_UIDML, 8 );
 	printHex32_op( SIM_UIDL, 8 );
+#elif defined(_sam_)
 #elif defined(_avr_at_)
 #elif defined(_host_)
 #else

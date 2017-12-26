@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 #include <Lib/mcu_compat.h>
+#include <stdint.h>
 
 
 

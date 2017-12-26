@@ -74,7 +74,12 @@ uint32_t rand_value32()
 
 #include "atomic.h"
 #include "entropy.h"
+
+#if defined(_kinetis_)
 #include "kinetis.h"
+#elif defined(_sam_)
+#include "sam.h"
+#endif
 
 
 

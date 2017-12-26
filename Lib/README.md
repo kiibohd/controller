@@ -39,6 +39,8 @@ Linker scripts can be found in the [ld](ld) directory.
 
 * [kinetis.c](kinetis.c) - Kinetis-based MCU initialization and IRQ setup.
 * [kinetis.h](kinetis.h) - Register definitions for Kinetis-based MCUs.
+* [sam.c](sam.c) - SAM-based MCU initialization and IRQ setup.
+* [sam.h](sam.c) - Register definitions for Sam-based MCUs.
 
 
 ## Misc

@@ -31,10 +31,21 @@
 
 
 
-// ARM
+// Kinetis (ARM)
 #if defined(_kinetis_)
 
 #include "kinetis.h"
+#include "delay.h"
+#include "time.h"
+
+#endif
+
+
+
+// SAM (ARM)
+#if defined(_sam_)
+
+#include "sam.h"
 #include "delay.h"
 #include "time.h"
 

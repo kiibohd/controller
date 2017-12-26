@@ -35,7 +35,7 @@
 // USB Includes
 #if defined(_avr_at_)
 #include "avr/usb_keyboard_serial.h"
-#elif defined(_kinetis_)
+#elif defined(_kinetis_) || defined(_sam_)
 #include "arm/usb_dev.h"
 #include "arm/usb_keyboard.h"
 #include "arm/usb_mouse.h"
@@ -774,7 +774,7 @@ inline int USB_putstr( char* str )
 #if enableVirtualSerialPort_define == 1
 #if defined(_avr_at_) // AVR
 	uint16_t count = 0;
-#elif defined(_kinetis_) // ARM
+#elif defined(_kinetis_) || defined(_sam_) // ARM
 	uint32_t count = 0;
 #endif
 	// Count characters until NULL character, then send the amount counted

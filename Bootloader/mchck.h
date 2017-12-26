@@ -27,7 +27,13 @@
 
 // ----- Project Includes -----
 
+#if defined(_kinetis_)
 #include <kinetis.h>
+
+#elif defined(_sam_)
+#include <sam.h>
+
+#endif
 
 
 
