@@ -417,7 +417,7 @@ i2c_isr_stop:
 	{
 		// Delay 10 microseconds before starting linked function
 		// TODO, is this chip dependent? -HaaTa
-		delayMicroseconds(10);
+		delay_us(10);
 		( *channel->callback_fn )( channel->user_data );
 	}
 	return;

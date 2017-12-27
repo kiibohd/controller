@@ -793,7 +793,7 @@ void cliFunc_version( char* args )
 #elif defined(_avr_at_)
 #elif defined(_host_)
 #else
-#error "No unique id defined."
+#warning "No unique id defined."
 #endif
 }
 

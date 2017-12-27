@@ -204,7 +204,7 @@ void usb_reinit()
 {
 	usb_configuration = 0; // Clear USB configuration if we have one
 	USB0_CONTROL = 0; // Disable D+ Pullup to simulate disconnect
-	delay(10); // Delay is necessary to simulate disconnect
+	delay_ms(10); // Delay is necessary to simulate disconnect
 	usb_init();
 }
 
@@ -1157,9 +1157,9 @@ uint8_t usb_resume()
 		// Force wake-up for 10 ms
 		// According to the USB Spec a device must hold resume for at least 1 ms but no more than 15 ms
 		USB0_CTL |= USB_CTL_RESUME;
-		delay(10);
+		delay_ms(10);
 		USB0_CTL &= ~(USB_CTL_RESUME);
-		delay(50); // Wait for at least 50 ms to make sure the bus is clear
+		delay_ms(50); // Wait for at least 50 ms to make sure the bus is clear
 		usb_dev_sleep = 0; // Make sure we don't call this again, may crash system
 		#else
 		warn_print("Host Resume Disabled");

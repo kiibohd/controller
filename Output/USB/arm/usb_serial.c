@@ -58,16 +58,6 @@
 // software.  If it's too long, we stall the user's program when no software is running.
 #define TX_TIMEOUT_MSEC 70
 
-#if F_CPU == 96000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 596)
-#elif F_CPU == 72000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 512) // XXX Correct?
-#elif F_CPU == 48000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 428)
-#elif F_CPU == 24000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 262)
-#endif
-
 
 
 // ----- Variables -----
@@ -220,7 +210,7 @@ int usb_serial_putchar( uint8_t c )
 int usb_serial_write( const void *buffer, uint32_t size )
 {
 	uint32_t len;
-	uint32_t wait_count;
+	Time start;
 	const uint8_t *src = (const uint8_t *)buffer;
 	uint8_t *dest;
 
@@ -229,7 +219,7 @@ int usb_serial_write( const void *buffer, uint32_t size )
 	{
 		if ( !tx_packet )
 		{
-			wait_count = 0;
+			start = Time_now();
 			while ( 1 )
 			{
 				if ( !usb_configuration )
@@ -245,7 +235,7 @@ int usb_serial_write( const void *buffer, uint32_t size )
 						break;
 					tx_noautoflush = 0;
 				}
-				if ( ++wait_count > TX_TIMEOUT || transmit_previous_timeout )
+				if ( Time_duration_ms( start ) > TX_TIMEOUT_MSEC || transmit_previous_timeout )
 				{
 					transmit_previous_timeout = 1;
 					return -1;

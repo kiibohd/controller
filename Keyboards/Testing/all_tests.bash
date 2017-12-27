@@ -32,6 +32,8 @@ cmd ./mk20test.bash
 cmd ./mk22test.bash
 cmd ./mk64test.bash
 cmd ./mk66test.bash
+cmd ./none.bash
+cmd ./sam4sd32c.bash
 cmd ./template.bash
 cmd ./uartout.bash
 cmd ./usbxuart.bash

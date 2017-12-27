@@ -92,6 +92,10 @@ foreach ( MAP ${MAP_LIST} )
 		message ( FATAL " Could not find '${MAP}.kll' BaseMap in Scan module directory" )
 	endif ()
 endforeach ()
+if ( NOT "${BaseMap_Args}" STREQUAL "" )
+	# Prepend --base flag if there are BaseMap args
+	set ( BaseMap_Args --base ${BaseMap_Args} )
+endif ()
 
 #| Configure DefaultMap if specified
 if ( NOT "${DefaultMap}" STREQUAL "" )
@@ -111,6 +115,10 @@ if ( NOT "${DefaultMap}" STREQUAL "" )
 			message ( FATAL " Could not find '${MAP}.kll' DefaultMap" )
 		endif ()
 	endforeach ()
+endif ()
+if ( NOT "${DefaultMap_Args}" STREQUAL "" )
+	# Prepend --default flag if there are DefaultMap args
+	set ( DefaultMap_Args --default ${DefaultMap_Args} )
 endif ()
 
 #| Configure PartialMaps if specified
@@ -181,8 +189,8 @@ set ( kll_cmd
 	${PROJECT_SOURCE_DIR}/kll/kll
 	--kiibohd-debug
 	--config ${Config_Args}
-	--base ${BaseMap_Args}
-	--default ${DefaultMap_Args}
+	${BaseMap_Args}
+	${DefaultMap_Args}
 	${PartialMap_Args}
 	--emitter ${kll_emitter}
 	--def-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdDefs.h

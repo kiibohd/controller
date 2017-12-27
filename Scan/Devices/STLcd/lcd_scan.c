@@ -139,7 +139,7 @@ void SPI_write( uint8_t *buffer, uint8_t len )
 	{
 		// Wait for SPI TxFIFO to have 4 or fewer entries
 		while ( !( SPI0_SR & SPI_SR_TFFF ) )
-			delayMicroseconds(10);
+			delay_us(10);
 
 		// Write byte to TxFIFO
 		// CS0, CTAR0
@@ -167,7 +167,7 @@ void LCD_writeControlReg( uint8_t byte )
 	while ( SPI0_TxFIFO_CNT != 0 );
 
 	// Make sure data has transferred
-	delayMicroseconds(10); // XXX Adjust if SPI speed changes
+	delay_us(10); // XXX Adjust if SPI speed changes
 
 	// Set A0 high to go back to display register mode
 	GPIOC_PSOR |= (1<<7);
@@ -189,7 +189,7 @@ void LCD_writeDataReg( uint8_t byte )
 	while ( SPI0_TxFIFO_CNT != 0 );
 
 	// Make sure data has transferred
-	delayMicroseconds(10); // XXX Adjust if SPI speed changes
+	delay_us(10); // XXX Adjust if SPI speed changes
 
 }
 

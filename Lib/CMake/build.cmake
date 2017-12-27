@@ -85,23 +85,29 @@ if ( DEFINED DFU )
 			COMMAND ${DFU_SUFFIX_EXECUTABLE} --add ${TARGET_BIN} --vid ${BOOT_VENDOR_ID} --pid ${BOOT_PRODUCT_ID} 1> /dev/null
 			COMMENT "Create and sign dfu bin file: ${TARGET_BIN}"
 		)
-		add_custom_command( TARGET ${TARGET} POST_BUILD
-			COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_OUT} ${TARGET_SECURE_BIN}
-			COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/prependKey ${TARGET_SECURE_BIN}
-			COMMAND ${DFU_SUFFIX_EXECUTABLE} --add ${TARGET_SECURE_BIN} --vid ${BOOT_VENDOR_ID} --pid ${BOOT_PRODUCT_ID} 1> /dev/null
-			COMMENT "Create and sign secure dfu bin file: ${TARGET_SECURE_BIN}"
-		)
+		# XXX (HaaTa) prependKey disabled currently for sam MCU
+		if ( NOT "${CHIP_SUPPORT}" STREQUAL "sam" )
+			add_custom_command( TARGET ${TARGET} POST_BUILD
+				COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_OUT} ${TARGET_SECURE_BIN}
+				COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/prependKey ${TARGET_SECURE_BIN}
+				COMMAND ${DFU_SUFFIX_EXECUTABLE} --add ${TARGET_SECURE_BIN} --vid ${BOOT_VENDOR_ID} --pid ${BOOT_PRODUCT_ID} 1> /dev/null
+				COMMENT "Create and sign secure dfu bin file: ${TARGET_SECURE_BIN}"
+			)
+		endif ()
 	else ()
 		message ( WARNING "DFU Binary has not been signed, requires dfu-suffix..." )
 		add_custom_command( TARGET ${TARGET} POST_BUILD
 			COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_OUT} ${TARGET_BIN}
 			COMMENT "Creating dfu binary file: ${TARGET_BIN}"
 		)
-		add_custom_command( TARGET ${TARGET} POST_BUILD
-			COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_OUT} ${TARGET_SECURE_BIN}
-			COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/prependKey ${TARGET_SECURE_BIN}
-			COMMENT "Creating secure dfu binary file: ${TARGET_BIN}"
-		)
+		# XXX (HaaTa) prependKey disabled currently for sam MCU
+		if ( NOT "${CHIP_SUPPORT}" STREQUAL "sam" )
+			add_custom_command( TARGET ${TARGET} POST_BUILD
+				COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_OUT} ${TARGET_SECURE_BIN}
+				COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/prependKey ${TARGET_SECURE_BIN}
+				COMMENT "Creating secure dfu binary file: ${TARGET_BIN}"
+			)
+		endif ()
 	endif ()
 endif ()
 

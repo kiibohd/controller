@@ -53,7 +53,7 @@ if ( "${CHIP}" MATCHES "^at90usb.*$" OR "${CHIP}" MATCHES "^atmega.*$" )
 	set( COMPILER_FAMILY "avr" )
 
 #| arm match
-elseif ( "${CHIP}" MATCHES "^mk2.*$" OR "${CHIP}" MATCHES "^mk6.*$" )
+elseif ( "${CHIP}" MATCHES "^mk2.*$" OR "${CHIP}" MATCHES "^mk6.*$" OR "${CHIP}" MATCHES "^sam.*$" )
 	set( COMPILER_FAMILY "arm" )
 
 #| Host compiler match

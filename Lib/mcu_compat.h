@@ -215,7 +215,7 @@
 #endif
 
 // sam4sd32c (HCache) (2 x 1028 kB) 100-pin
-#if defined(_sam4sd32b_)
+#if defined(_sam4sd32c_)
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_c_ 1

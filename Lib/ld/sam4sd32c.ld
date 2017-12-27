@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2013-2017
+ * Modifications by Jacob Alexander 2014-2017 for use with McHCK
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -29,46 +29,79 @@
  * SOFTWARE.
  */
 
-#pragma once
+/* XXX XXX XXX (HaaTa) XXX XXX XXX
+ * This is a placeholder, needs to be replaced with a proper sam4sd32c.ld file
+ */
 
-// ----- System Includes -----
+MEMORY
+{
+	FLASH (rx) : ORIGIN = 8K,                   LENGTH = 128K - 8K
+	RAM  (rwx) : ORIGIN = 0x20000000 - 32K / 2, LENGTH = 32K
+}
 
-#include <stdint.h>
+/* Starting Address of the application ROM */
+_app_rom     = ORIGIN( FLASH );
+_app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
 
+/* Section Definitions */
+SECTIONS
+{
+	.text :
+	{
+		. = 0;
+		KEEP(* (.vectors))
+		*(.startup*)
+		*(.text*)
+		*(.rodata*)
+		. = ALIGN(4);
+		KEEP(*(.init))
+	} > FLASH
 
+	.ARM.exidx :
+	{
+		__exidx_start = .;
+		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
+		__exidx_end = .;
+	} > FLASH
+	_etext = .;
 
-// ----- Macros -----
+	.usbdescriptortable (NOLOAD) : {
+		. = ALIGN(512);
+		*(.usbdescriptortable*)
+	} > RAM
 
-// Convenience Macros, for delay compatibility with AVR-GCC
-#define _delay_ms(val) delay_ms( val )
-#define _delay_us(val) delay_us( val )
+	.dmabuffers (NOLOAD) : {
+		. = ALIGN(4);
+		*(.dmabuffers*)
+	} > RAM
 
+	.usbbuffers (NOLOAD) : {
+		. = ALIGN(4);
+		*(.usbbuffers*)
+	} > RAM
 
+	.data : AT (_etext) {
+		. = ALIGN(4);
+		_sdata = .;
+		*(.data*)
+		. = ALIGN(4);
+		_edata = .;
+	} > RAM
 
-// ----- Variables -----
+	.noinit (NOLOAD) : {
+		*(.noinit*)
+	} > RAM
 
-// The systick interrupt is supposed to increment this at 1 kHz rate
-extern volatile uint32_t systick_millis_count;
+	.bss : {
+		. = ALIGN(4);
+		_sbss = .;
+		*(.bss*)
+		*(COMMON)
+		. = ALIGN(4);
+		_ebss = .;
+		__bss_end = .;
+	} > RAM
 
-
-
-// ----- Functions -----
-
-// - Delay Functions -
-
-void delay_cycles( uint32_t cycles );
-void delay_us( uint32_t us );
-void delay_ms( uint32_t ms );
-
-
-// - Current Count Functions -
-
-uint32_t cycle_now();
-uint32_t us_now();
-uint32_t ms_now();
-
-
-// - Misc Functions -
-
-void yield() __attribute__ ((weak));
+	_estack = ORIGIN(RAM) + LENGTH(RAM);
+}
 

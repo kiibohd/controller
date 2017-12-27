@@ -1,0 +1,13 @@
+# Blank / None Scan Module (does nothing)
+
+Name = "None";
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2017";
+KLL = 0.5;
+
+# Modified Date
+Date = 2017-12-26;
+
+
+# N/A - Nothing needed in this file (for now)
+

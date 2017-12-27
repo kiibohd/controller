@@ -265,17 +265,17 @@ void LED_setupPage( uint8_t bus, uint8_t addr, uint8_t page )
 	// See http://www.issi.com/WW/pdf/31FL3733.pdf Table 3 Page 12
 	uint16_t pageEnable[] = { addr, 0xFE, 0xC5 };
 	while ( i2c_send( bus, pageEnable, sizeof( pageEnable ) / 2 ) == -1 )
-		delayMicroseconds( ISSI_SendDelay );
+		delay_us( ISSI_SendDelay );
 #endif
 
 	// Setup page
 	uint16_t pageSetup[] = { addr, 0xFD, page };
 	while ( i2c_send( bus, pageSetup, sizeof( pageSetup ) / 2 ) == -1 )
-		delayMicroseconds( ISSI_SendDelay );
+		delay_us( ISSI_SendDelay );
 
 	// Delay until written
 	while ( i2c_busy( bus ) )
-		delayMicroseconds( ISSI_SendDelay );
+		delay_us( ISSI_SendDelay );
 }
 
 // Zero out given ISSI page
@@ -295,12 +295,12 @@ void LED_zeroPages( uint8_t bus, uint8_t addr, uint8_t startPage, uint8_t numPag
 
 		// Zero out page
 		while ( i2c_send( bus, clearPage, 2 + endReg - startReg ) == -1 )
-			delayMicroseconds( ISSI_SendDelay );
+			delay_us( ISSI_SendDelay );
 	}
 
 	// Wait until finished zero'ing
 	while ( i2c_busy( bus ) )
-		delayMicroseconds( ISSI_SendDelay );
+		delay_us( ISSI_SendDelay );
 }
 
 // Zero control ISSI pages
@@ -340,7 +340,7 @@ void LED_sendPage( uint8_t bus, uint8_t addr, uint16_t *buffer, uint32_t len, ui
 
 	// Write page to I2C Tx Buffer
 	while ( i2c_send( bus, buffer, len ) == -1 )
-		delayMicroseconds( ISSI_SendDelay );
+		delay_us( ISSI_SendDelay );
 }
 
 // Write register on all ISSI chips
@@ -368,12 +368,12 @@ void LED_syncReg( uint8_t reg, uint8_t val, uint8_t page )
 
 		// Delay very little to help with synchronization
 		while ( i2c_send( bus, writeData, sizeof( writeData ) / 2 ) == -1 )
-			delayMicroseconds(10);
+			delay_us(10);
 	}
 
 	// Delay until written
 	while ( i2c_any_busy() )
-		delayMicroseconds( ISSI_SendDelay );
+		delay_us( ISSI_SendDelay );
 }
 
 // Write address
@@ -401,11 +401,11 @@ void LED_writeReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t val, uint8_t 
 
 	// Write register
 	while ( i2c_send( bus, writeData, sizeof( writeData ) / 2 ) == -1 )
-		delayMicroseconds( ISSI_SendDelay );
+		delay_us( ISSI_SendDelay );
 
 	// Delay until written
 	while ( i2c_busy( bus ) )
-		delayMicroseconds( ISSI_SendDelay );
+		delay_us( ISSI_SendDelay );
 }
 
 // Read address
@@ -437,7 +437,7 @@ uint8_t LED_readReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t page )
 
 	// Request single register byte
 	while ( i2c_read( bus, regReadCmd, sizeof( regReadCmd ) / 2, &recv_data ) == -1 )
-		delayMicroseconds( ISSI_SendDelay );
+		delay_us( ISSI_SendDelay );
 
 #if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
 	// Disable software shutdown
@@ -458,7 +458,7 @@ void LED_reset()
 #if ISSI_Chip_31FL3733_define == 1
 	// Reset I2C bus
 	GPIOC_PSOR |= (1<<5);
-	delayMicroseconds(200);
+	delay_us(200);
 	GPIOC_PCOR |= (1<<5);
 #endif
 
@@ -590,7 +590,7 @@ void LED_shortOpenDetect()
 
 		// Wait for 3.3 ms before reading the value
 		// Needs at least 3.264 ms to query the information
-		delayMicroseconds(3300);
+		delay_us(3300);
 
 		// Read registers
 		info_msg("Bus: ");
@@ -694,7 +694,7 @@ inline void LED_setup()
 	GPIOA_PDDR |= (1<<5);
 	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOC_PSOR |= (1<<5);
-	delayMicroseconds(50);
+	delay_us(50);
 	GPIOC_PCOR |= (1<<5);
 #endif
 
@@ -760,7 +760,7 @@ void LED_linkedSend()
 
 	// Artificial delay to assist i2c bus
 	const uint32_t delay_tm = ISSI_SendDelay;
-	//delayMicroseconds( delay_tm );
+	//delay_us( delay_tm );
 
 	// Send, and recursively call this function when finished
 	while ( i2c_send_sequence(
@@ -776,7 +776,7 @@ void LED_linkedSend()
 		LED_linkedSend,
 		0
 	) == -1 )
-		delayMicroseconds( delay_tm );
+		delay_us( delay_tm );
 
 	// Increment chip position
 	LED_chipSend++;
@@ -909,7 +909,7 @@ inline void LED_scan()
 		//     To get around this, just re-set the enable mask before each send
 		// XXX Might be sufficient to do this every N frames though
 		while ( i2c_send( bus, (uint16_t*)&LED_ledEnableMask[ ch ], sizeof( LED_EnableBuffer ) / 2 ) == -1 )
-			delayMicroseconds( ISSI_SendDelay );
+			delay_us( ISSI_SendDelay );
 #endif
 	}
 
@@ -1072,7 +1072,7 @@ void cliFunc_ledReset( char* args )
 
 	// Reset I2C bus
 	GPIOC_PSOR |= (1<<5);
-	delayMicroseconds(50);
+	delay_us(50);
 	GPIOC_PCOR |= (1<<5);
 	i2c_reset();
 

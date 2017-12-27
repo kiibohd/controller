@@ -291,8 +291,7 @@ uint8_t Matrix_single_scan()
 	// Used to allow the strobe signal to propagate, generally not required
 	if ( strobeDelayTime > 0 )
 	{
-		uint32_t start = micros();
-		while ( (micros() - start ) < strobeDelayTime );
+		delay_us( strobeDelayTime );
 	}
 
 	// Scan each of the sense pins

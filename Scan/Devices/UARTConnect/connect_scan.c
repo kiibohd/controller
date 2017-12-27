@@ -222,7 +222,7 @@ void Connect_addBytes( uint8_t *buffer, uint8_t count, uint8_t uart )
 		warn_msg("Too much data to send on UART");
 		printInt8( uart );
 		print( ", waiting..." NL );
-		delay( 1 );
+		delay_ms( 1 );
 		// FIXME Buffer will not drain here....
 	}
 
