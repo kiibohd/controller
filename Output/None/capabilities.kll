@@ -1,0 +1,32 @@
+# None Module Capabilities (no functionality)
+
+Name = NoneCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2017";
+KLL = 0.5;
+
+# Modified Date
+Date = 2017-12-26;
+
+
+# Capabilties available to the uartOut output module
+consCtrlOut => Output_consCtrlSend_capability( consCode : 2 );
+noneOut     => Output_noneSend_capability();
+sysCtrlOut  => Output_sysCtrlSend_capability( sysCode : 1 );
+usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
+mouseOut    => Output_usbMouse_capability( mouseCode : 2, relative_x : 2, relative_y : 2 );
+
+# Configuration capabilities
+kbdProtocolBoot => Output_kbdProtocolBoot_capability();
+kbdProtocolNKRO => Output_kbdProtocolNKRO_capability();
+toggleKbdProtocol => Output_toggleKbdProtocol_capability();
+
+# Bootloader Mode capability
+# XXX
+# By default this is disabled on purpose
+# It is a large security hazard
+flashModeEnabled => flashModeEnabled_define;
+flashModeEnabled = 0;
+
+flashMode => Output_flashMode_capability();
+
