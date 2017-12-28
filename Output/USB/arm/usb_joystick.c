@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2015-2016)
+ * Modified by Jacob Alexander (2015-2017)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -52,23 +52,7 @@
 #define TX_PACKET_LIMIT 3
 
 // When the PC isn't listening, how long do we wait before discarding data?
-#define TX_TIMEOUT_MSEC 30
-
-#if F_CPU == 168000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 1100)
-#elif F_CPU == 144000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 932)
-#elif F_CPU == 120000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 764)
-#elif F_CPU == 96000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 596)
-#elif F_CPU == 72000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 512)
-#elif F_CPU == 48000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 428)
-#elif F_CPU == 24000000
-	#define TX_TIMEOUT (TX_TIMEOUT_MSEC * 262)
-#endif
+#define TX_TIMEOUT_MS 30
 
 
 
@@ -85,33 +69,40 @@ static uint8_t transmit_previous_timeout = 0;
 
 int usb_joystick_send()
 {
-        uint32_t wait_count=0;
-        usb_packet_t *tx_packet;
+	uint32_t wait_count=0;
+	usb_packet_t *tx_packet;
 
 	//serial_print("send");
 	//serial_print("\n");
-        while (1) {
-                if (!usb_configuration) {
+	while ( 1 )
+	{
+		if ( !usb_configuration )
+		{
 			//serial_print("error1\n");
-                        return -1;
-                }
-                if (usb_tx_packet_count(JOYSTICK_ENDPOINT) < TX_PACKET_LIMIT) {
-                        tx_packet = usb_malloc();
-                        if (tx_packet) break;
-                }
-                if (++wait_count > TX_TIMEOUT || transmit_previous_timeout) {
-                        transmit_previous_timeout = 1;
+			return -1;
+		}
+		if ( usb_tx_packet_count( JOYSTICK_ENDPOINT ) < TX_PACKET_LIMIT )
+		{
+			tx_packet = usb_malloc();
+			if ( tx_packet )
+			{
+				break;
+			}
+		}
+		if ( Time_duration_ms( start ) > TX_TIMEOUT_MS || transmit_previous_timeout )
+		{
+			transmit_previous_timeout = 1;
 			//serial_print("error2\n");
-                        return -1;
-                }
-                yield();
-        }
+			return -1;
+		}
+		yield();
+	}
 	transmit_previous_timeout = 0;
-	memcpy(tx_packet->buf, usb_joystick_data, 12);
-        tx_packet->len = 12;
-        usb_tx(JOYSTICK_ENDPOINT, tx_packet);
+	memcpy( tx_packet->buf, usb_joystick_data, 12 );
+	tx_packet->len = 12;
+	usb_tx( JOYSTICK_ENDPOINT, tx_packet );
 	//serial_print("ok\n");
-        return 0;
+	return 0;
 }
 
 #endif

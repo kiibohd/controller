@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander 2013-2016
+ * Modified by Jacob Alexander 2013-2017
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -56,7 +56,7 @@
 // When the PC isn't listening, how long do we wait before discarding data?  If this is
 // too short, we risk losing data during the stalls that are common with ordinary desktop
 // software.  If it's too long, we stall the user's program when no software is running.
-#define TX_TIMEOUT_MSEC 70
+#define TX_TIMEOUT_MS 70
 
 
 
@@ -235,7 +235,7 @@ int usb_serial_write( const void *buffer, uint32_t size )
 						break;
 					tx_noautoflush = 0;
 				}
-				if ( Time_duration_ms( start ) > TX_TIMEOUT_MSEC || transmit_previous_timeout )
+				if ( Time_duration_ms( start ) > TX_TIMEOUT_MS || transmit_previous_timeout )
 				{
 					transmit_previous_timeout = 1;
 					return -1;
