@@ -4,6 +4,7 @@
 
 SERIAL_PORT=""
 AUTO_SCREEN_SESSION=""
+NOSCREEN=0
 PROG_NAME=$(basename $0)
 
 # Parse all the command line arguments
@@ -19,6 +20,10 @@ while (( "$#" >= "1" )); do
 		SERIAL_PORT="$2"
 		shift
 		;;
+	-n|--noscreen)
+		NOSCREEN=1
+		shift
+		;;
 	-h|--help)
 		echo "Usage: $PROG_NAME [options...]"
 		echo ""
@@ -31,6 +36,7 @@ while (( "$#" >= "1" )); do
 		echo " -f, --fastload SERIAL_PORT    Send the reload command to the debug terminal."
 		echo "                               e.g. /dev/ttyACM0"
 		echo "                               NOTE: May not work due to non-functional terminal, or disable remote flashing"
+		echo " -n, --noscreen                Don't automatically connect to the serial port"
 		echo " -h, --help                    This message."
 		exit 1
 		;;
@@ -67,7 +73,7 @@ teensy-loader-cli/teensy-loader-cli -mmcu=@MCU@ -w @TARGET_HEX@
 EXIT_STATUS=$?
 
 # Load Screen Session if specified
-if (( "$EXIT_STATUS" == "0" )) && [[ "$AUTO_SCREEN_SESSION" != "" ]]; then
+if (( "$EXIT_STATUS" == "0" )) && [[ "$AUTO_SCREEN_SESSION" != "" ]] && [[ $NOSCREEN -ne 1 ]]; then
 	if type screen &>/dev/null; then
 		sleep 2
 		screen $AUTO_SCREEN_SESSION

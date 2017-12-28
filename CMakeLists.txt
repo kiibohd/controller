@@ -34,6 +34,29 @@ set( CHIP
 
 
 ###
+# Debug
+#
+
+# Use a JLink programmer (no bootloader required)
+set( JLINK
+	0
+	CACHE STRING "Enable JLINK Programming/Debugging"
+)
+
+#| swd or jtag
+set( JLINK_INTERFACE
+	"swd"
+	CACHE STRING "JLink Interface"
+)
+
+#| Speed in kHz or auto
+set( JLINK_SPEED
+	"auto"
+	CACHE STRING "JLink Speed"
+)
+
+
+###
 # Compiler Selection
 #
 
