@@ -69,7 +69,7 @@ static uint8_t transmit_previous_timeout = 0;
 
 int usb_joystick_send()
 {
-	uint32_t wait_count=0;
+	Time start = Time_now();
 	usb_packet_t *tx_packet;
 
 	//serial_print("send");
