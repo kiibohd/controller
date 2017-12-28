@@ -36,6 +36,7 @@ while (( "$#" >= "1" )); do
 		echo " -f, --fastload SERIAL_PORT    Send the reload command to the debug terminal."
 		echo "                               e.g. /dev/ttyACM0"
 		echo "                               NOTE: May not work due to non-functional terminal, or disable remote flashing"
+		echo " -n, --noscreen                Don't automatically connect to the serial port"
 		echo " -h, --help                    This message."
 		exit 1
 		;;
