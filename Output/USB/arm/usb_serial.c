@@ -59,6 +59,7 @@
 #define TX_TIMEOUT_MS 70
 
 
+
 // ----- Variables -----
 
 // Serial port settings (baud rate, control signals, etc) set by the host
