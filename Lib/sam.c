@@ -22,6 +22,7 @@
 // ----- Includes -----
 
 // Debug Includes
+#include "led.h"
 #if defined(_bootloader_)
 #include <inttypes.h>
 #include <debug.h>
@@ -369,6 +370,9 @@ void ResetHandler()
 
 	// Intialize entropy for random numbers
 	rand_initialize();
+
+	init_errorLED();
+	errorLED(1);
 
 	// Start main
 	main();

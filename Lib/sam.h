@@ -70,11 +70,89 @@
 #define     __O     volatile             /*!< Defines 'write only' permissions                */
 #define     __IO    volatile             /*!< Defines 'read / write' permissions              */
 
+
 /* ************************************************************************** */
 /*   PERIPHERAL ID DEFINITIONS FOR SAM4SD32C */
 /* ************************************************************************** */
 /** \addtogroup SAM4SD32C_id Peripheral Ids Definitions */
 /*@{*/
+
+typedef struct {
+  __O  uint32_t PIO_PER;        /**< \brief (Pio Offset: 0x0000) PIO Enable Register */
+  __O  uint32_t PIO_PDR;        /**< \brief (Pio Offset: 0x0004) PIO Disable Register */
+  __I  uint32_t PIO_PSR;        /**< \brief (Pio Offset: 0x0008) PIO Status Register */
+  __I  uint32_t Reserved1[1];
+  __O  uint32_t PIO_OER;        /**< \brief (Pio Offset: 0x0010) Output Enable Register */
+  __O  uint32_t PIO_ODR;        /**< \brief (Pio Offset: 0x0014) Output Disable Register */
+  __I  uint32_t PIO_OSR;        /**< \brief (Pio Offset: 0x0018) Output Status Register */
+  __I  uint32_t Reserved2[1];
+  __O  uint32_t PIO_IFER;       /**< \brief (Pio Offset: 0x0020) Glitch Input Filter Enable Register */
+  __O  uint32_t PIO_IFDR;       /**< \brief (Pio Offset: 0x0024) Glitch Input Filter Disable Register */
+  __I  uint32_t PIO_IFSR;       /**< \brief (Pio Offset: 0x0028) Glitch Input Filter Status Register */
+  __I  uint32_t Reserved3[1];
+  __O  uint32_t PIO_SODR;       /**< \brief (Pio Offset: 0x0030) Set Output Data Register */
+  __O  uint32_t PIO_CODR;       /**< \brief (Pio Offset: 0x0034) Clear Output Data Register */
+  __IO uint32_t PIO_ODSR;       /**< \brief (Pio Offset: 0x0038) Output Data Status Register */
+  __I  uint32_t PIO_PDSR;       /**< \brief (Pio Offset: 0x003C) Pin Data Status Register */
+  __O  uint32_t PIO_IER;        /**< \brief (Pio Offset: 0x0040) Interrupt Enable Register */
+  __O  uint32_t PIO_IDR;        /**< \brief (Pio Offset: 0x0044) Interrupt Disable Register */
+  __I  uint32_t PIO_IMR;        /**< \brief (Pio Offset: 0x0048) Interrupt Mask Register */
+  __I  uint32_t PIO_ISR;        /**< \brief (Pio Offset: 0x004C) Interrupt Status Register */
+  __O  uint32_t PIO_MDER;       /**< \brief (Pio Offset: 0x0050) Multi-driver Enable Register */
+  __O  uint32_t PIO_MDDR;       /**< \brief (Pio Offset: 0x0054) Multi-driver Disable Register */
+  __I  uint32_t PIO_MDSR;       /**< \brief (Pio Offset: 0x0058) Multi-driver Status Register */
+  __I  uint32_t Reserved4[1];
+  __O  uint32_t PIO_PUDR;       /**< \brief (Pio Offset: 0x0060) Pull-up Disable Register */
+  __O  uint32_t PIO_PUER;       /**< \brief (Pio Offset: 0x0064) Pull-up Enable Register */
+  __I  uint32_t PIO_PUSR;       /**< \brief (Pio Offset: 0x0068) Pad Pull-up Status Register */
+  __I  uint32_t Reserved5[1];
+  __IO uint32_t PIO_ABCDSR[2];  /**< \brief (Pio Offset: 0x0070) Peripheral Select Register */
+  __I  uint32_t Reserved6[2];
+  __O  uint32_t PIO_IFSCDR;     /**< \brief (Pio Offset: 0x0080) Input Filter Slow Clock Disable Register */
+  __O  uint32_t PIO_IFSCER;     /**< \brief (Pio Offset: 0x0084) Input Filter Slow Clock Enable Register */
+  __I  uint32_t PIO_IFSCSR;     /**< \brief (Pio Offset: 0x0088) Input Filter Slow Clock Status Register */
+  __IO uint32_t PIO_SCDR;       /**< \brief (Pio Offset: 0x008C) Slow Clock Divider Debouncing Register */
+  __O  uint32_t PIO_PPDDR;      /**< \brief (Pio Offset: 0x0090) Pad Pull-down Disable Register */
+  __O  uint32_t PIO_PPDER;      /**< \brief (Pio Offset: 0x0094) Pad Pull-down Enable Register */
+  __I  uint32_t PIO_PPDSR;      /**< \brief (Pio Offset: 0x0098) Pad Pull-down Status Register */
+  __I  uint32_t Reserved7[1];
+  __O  uint32_t PIO_OWER;       /**< \brief (Pio Offset: 0x00A0) Output Write Enable */
+  __O  uint32_t PIO_OWDR;       /**< \brief (Pio Offset: 0x00A4) Output Write Disable */
+  __I  uint32_t PIO_OWSR;       /**< \brief (Pio Offset: 0x00A8) Output Write Status Register */
+  __I  uint32_t Reserved8[1];
+  __O  uint32_t PIO_AIMER;      /**< \brief (Pio Offset: 0x00B0) Additional Interrupt Modes Enable Register */
+  __O  uint32_t PIO_AIMDR;      /**< \brief (Pio Offset: 0x00B4) Additional Interrupt Modes Disable Register */
+  __I  uint32_t PIO_AIMMR;      /**< \brief (Pio Offset: 0x00B8) Additional Interrupt Modes Mask Register */
+  __I  uint32_t Reserved9[1];
+  __O  uint32_t PIO_ESR;        /**< \brief (Pio Offset: 0x00C0) Edge Select Register */
+  __O  uint32_t PIO_LSR;        /**< \brief (Pio Offset: 0x00C4) Level Select Register */
+  __I  uint32_t PIO_ELSR;       /**< \brief (Pio Offset: 0x00C8) Edge/Level Status Register */
+  __I  uint32_t Reserved10[1];
+  __O  uint32_t PIO_FELLSR;     /**< \brief (Pio Offset: 0x00D0) Falling Edge/Low-Level Select Register */
+  __O  uint32_t PIO_REHLSR;     /**< \brief (Pio Offset: 0x00D4) Rising Edge/ High-Level Select Register */
+  __I  uint32_t PIO_FRLHSR;     /**< \brief (Pio Offset: 0x00D8) Fall/Rise - Low/High Status Register */
+  __I  uint32_t Reserved11[1];
+  __I  uint32_t PIO_LOCKSR;     /**< \brief (Pio Offset: 0x00E0) Lock Status */
+  __IO uint32_t PIO_WPMR;       /**< \brief (Pio Offset: 0x00E4) Write Protection Mode Register */
+  __I  uint32_t PIO_WPSR;       /**< \brief (Pio Offset: 0x00E8) Write Protection Status Register */
+  __I  uint32_t Reserved12[5];
+  __IO uint32_t PIO_SCHMITT;    /**< \brief (Pio Offset: 0x0100) Schmitt Trigger Register */
+  __I  uint32_t Reserved13[19];
+  __IO uint32_t PIO_PCMR;       /**< \brief (Pio Offset: 0x150) Parallel Capture Mode Register */
+  __O  uint32_t PIO_PCIER;      /**< \brief (Pio Offset: 0x154) Parallel Capture Interrupt Enable Register */
+  __O  uint32_t PIO_PCIDR;      /**< \brief (Pio Offset: 0x158) Parallel Capture Interrupt Disable Register */
+  __I  uint32_t PIO_PCIMR;      /**< \brief (Pio Offset: 0x15C) Parallel Capture Interrupt Mask Register */
+  __I  uint32_t PIO_PCISR;      /**< \brief (Pio Offset: 0x160) Parallel Capture Interrupt Status Register */
+  __I  uint32_t PIO_PCRHR;      /**< \brief (Pio Offset: 0x164) Parallel Capture Reception Holding Register */
+  __IO uint32_t PIO_RPR;        /**< \brief (Pio Offset: 0x168) Receive Pointer Register */
+  __IO uint32_t PIO_RCR;        /**< \brief (Pio Offset: 0x16C) Receive Counter Register */
+  __I  uint32_t Reserved14[2];
+  __IO uint32_t PIO_RNPR;       /**< \brief (Pio Offset: 0x178) Receive Next Pointer Register */
+  __IO uint32_t PIO_RNCR;       /**< \brief (Pio Offset: 0x17C) Receive Next Counter Register */
+  __I  uint32_t Reserved15[2];
+  __O  uint32_t PIO_PTCR;       /**< \brief (Pio Offset: 0x188) Transfer Control Register */
+  __I  uint32_t PIO_PTSR;       /**< \brief (Pio Offset: 0x18C) Transfer Status Register */
+} Pio;
 
 #define ID_SUPC   ( 0) /**< \brief Supply Controller (SUPC) */
 #define ID_RSTC   ( 1) /**< \brief Reset Controller (RSTC) */

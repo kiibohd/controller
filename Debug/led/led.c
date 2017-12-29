@@ -75,6 +75,12 @@ inline void init_errorLED()
 
 	// Setup pin - A5 - See Lib/pin_map.mchck for more details on pins
 	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+
+#elif defined(_kii_v3_)
+	//SAM dev kit
+
+	//Enable output
+	PIOC->PIO_OER = (1<<23);
 #endif
 }
 
@@ -138,6 +144,17 @@ inline void errorLED( uint8_t on )
 	// Error LED Off
 	else {
 		GPIOA_PCOR |= (1<<5);
+	}
+
+#elif defined(_kii_v3_)
+	// SAM dev kit
+	// Error LED On (A5)
+	if (on) {
+		PIOC->PIO_CODR = (1<<23);
+	}
+	// Error LED Off
+	else {
+		PIOC->PIO_SODR = (1<<23);
 	}
 
 #endif
