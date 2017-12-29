@@ -16,7 +16,21 @@
  1) Flip your K-Type over.
  2) With the keys down you should see a small hole on the left side in the middle of the board.
  3) While the keyboard is plugged in, use a paperclip or other small object to press the button inside the case.
+    - TIP: you can also configure a key combination to enter flash mode. On the default layout it's Fn-ESC.
  4) If the LEDs turn off and you see the amber light in the diffuser on the lower right (when looking at the top) it is now in flash mode.
+    - Note: on some keyboards there is no amber light indication (there are no leds at all in flash mode)
+
+#### Failsafe mode
+
+In case the keyboard cannot load the flashed firmware it will go into failsafe mode. In this state the keyboard is unresponsive, but can still enter flash mode:
+1) Unplug an replug the USB cable
+2) Press the flash button (as described above) twice in a row
+
+### Exiting Flash Mode
+
+Press ESC or unplug the keyboard.
+
+The keyboard exists flash mode automatically after a successful flash.
  
 #### [K-Type Flashing Video Tutorial](https://youtu.be/i5wFVnEJcok)
 
@@ -34,9 +48,14 @@
  
 ### Flashing - linux
 
- 1) Using your system package manager install [dfu-util](http://dfu-util.sourceforge.net/releases/) (e.g. on arch linux `pacman -S dfu-util`)
+ 1) Using your system package manager install [dfu-util](http://dfu-util.sourceforge.net/releases/), e.g.:
+    - on Debian, Ubuntu and Mint: `sudo apt-get install dfu-util`
+    - on Arch Linux `pacman -S dfu-util`
+    - on Fedora `sudo dnf install dfu-util`
  2) Navigate to the directory you unzipped the firmware to
  3) With the K-Type in flash mode enter the command `dfu-util -D kiibohd.dfu.bin`
+    - If the above fails, try running the command with `sudo` (i.e. `sudo dfu-util -D kiibohd.dfu.bin`)
+    
  4) You're done, enjoy your keyboard
  
 ### Flashing - Windows
