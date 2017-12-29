@@ -191,6 +191,7 @@ endif ()
 #| First check for JLink based dev kits
 if ( JLINK )
 	configure_file( LoadFile/load.jlink load NEWLINE_STYLE UNIX )
+	configure_file( LoadFile/debug.jlink debug NEWLINE_STYLE UNIX )
 
 #| Next check for DFU based controllers
 elseif( DEFINED DFU )

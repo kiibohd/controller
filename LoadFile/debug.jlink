@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Convenience script for debugging firmware on a jlink type device
+
+MODE="client"
+REMOTE="localhost:2331"
+
+# Parse all the command line arguments
+while (( "$#" >= "1" )); do
+	# Scan each argument
+	key="$1"
+	case $key in
+	-s|--server)
+		MODE="server"
+		shift
+		;;
+	-c|--client)
+		MODE="client"
+		shift
+		;;
+	-r|--remote)
+		REMOTE="$2"
+		shift
+		;;
+	-h|--help)
+		echo "Usage: $PROG_NAME [options...]"
+		echo ""
+		echo "Debugs the firmware (@TARGET_OUT@) currently running on the device."
+		echo "  (debug.dfu)"
+		echo ""
+		echo "Arguments:"
+		echo " -s, --server                  Launches a JLink GDB server"
+		echo " -c, --client                  Launches a GDB client"
+		echo " -r, --remote REMOTE           Connect to a server running at REMOTE"
+		echo " -h, --help                    This message."
+		exit 1
+		;;
+	*)
+		echo "INVALID ARG: '$1'"
+		exit 2
+		;;
+	esac
+
+	# Shift to the next argument
+	shift
+done
+
+case "$MODE" in
+	"server")
+		echo "Launching GDB Server"
+		JLinkGDBServer -device @CHIP@ -if @JLINK_INTERFACE@ -speed @JLINK_SPEED@ -AutoConnect 1
+		;;
+	"client"|*)
+		echo "Launching GDB Client"
+		arm-none-eabi-gdb -q -se @TARGET_OUT@ -ex "target remote $REMOTE"
+		;;
+esac
