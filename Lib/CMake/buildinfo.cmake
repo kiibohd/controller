@@ -151,7 +151,7 @@ if ( "${DETECTED_BUILD_KERNEL}" MATCHES "Darwin" )
 elseif ( "${DETECTED_BUILD_KERNEL}" MATCHES "CYGWIN" )
 	set( Build_OS ${CMAKE_SYSTEM} )
 
-else () # Linux
+elseif ( "${DETECTED_BUILD_KERNEL}" MATCHES "Linux" )
 	find_program( LSB_RELEASE lsb_release )
 	execute_process( COMMAND ${LSB_RELEASE} -dcs
 		OUTPUT_VARIABLE Build_OS
@@ -162,6 +162,8 @@ else () # Linux
 	# Replace quotes to be compatible with C
 	string( REPLACE "\"" "'" Build_OS ${Build_OS} )
 	string( REPLACE "\n" " " Build_OS ${Build_OS} )
+else () # Unknown
+	set( Build_OS ${CMAKE_SYSTEM} )
 endif ()
 message( "${Build_OS}" )
 
