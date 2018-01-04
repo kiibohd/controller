@@ -60,7 +60,7 @@ void i2c_setup()
 
 		switch ( ch )
 		{
-			case 0:
+		case 0:
 			// Enable I2C internal clock
 			SIM_SCGC4 |= SIM_SCGC4_I2C0; // Bus 0
 
