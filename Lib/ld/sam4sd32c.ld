@@ -38,9 +38,13 @@ SEARCH_DIR(.)
 /* Memory Spaces Definitions */
 MEMORY
 {
-  rom (rx)  : ORIGIN = 0x00400000, LENGTH = 0x00200000
-  ram (rwx) : ORIGIN = 0x20000000, LENGTH = 0x00028000
+  FLASH (rx) : ORIGIN = 0x00400000, LENGTH = 256K - 8K
+  RAM  (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
 }
+
+/* Starting Address of the application ROM */
+_app_rom     = ORIGIN( FLASH );
+_app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
 
 /* The stack size used by the application. NOTE: you need to adjust according to your application. */
 STACK_SIZE = DEFINED(STACK_SIZE) ? STACK_SIZE : 0x400;
@@ -98,14 +102,14 @@ SECTIONS
 
         . = ALIGN(4);
         _efixed = .;            /* End of text section */
-    } > rom
+    } > ROM
 
     /* .ARM.exidx is sorted, so has to go in its own output section.  */
     PROVIDE_HIDDEN (__exidx_start = .);
     .ARM.exidx :
     {
       *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-    } > rom
+    } > ROM
     PROVIDE_HIDDEN (__exidx_end = .);
 
     . = ALIGN(4);
@@ -119,7 +123,7 @@ SECTIONS
         *(.data .data.*);
         . = ALIGN(4);
         _erelocate = .;
-    } > ram
+    } > RAM
 
     /* .bss section which is used for uninitialized data */
     .bss (NOLOAD) :
@@ -132,7 +136,7 @@ SECTIONS
         . = ALIGN(4);
         _ebss = . ;
         _ezero = .;
-    } > ram
+    } > RAM
 
     /* stack section */
     .stack (NOLOAD):
@@ -142,7 +146,7 @@ SECTIONS
         . = . + STACK_SIZE;
         . = ALIGN(8);
         _estack = .;
-    } > ram
+    } > RAM
 
     /* heap section */
     .heap (NOLOAD):
@@ -152,9 +156,9 @@ SECTIONS
         . = . + HEAP_SIZE;
         . = ALIGN(8);
         _eheap = .;
-    } > ram
+    } > RAM
 
     . = ALIGN(4);
     _end = . ;
-    _ram_end_ = ORIGIN(ram) + LENGTH(ram) -1 ;
+    _ram_end_ = ORIGIN(RAM) + LENGTH(RAM) -1 ;
 }
