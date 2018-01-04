@@ -75,30 +75,33 @@
 #define UART_SFIFO  UART2_SFIFO
 #define UART_TWFIFO UART2_TWFIFO
 
+#define SIM_SCGC4_UART  SIM_SCGC4_UART2
+#define IRQ_UART_STATUS IRQ_UART2_STATUS
+
 #elif defined(_kii_v3_)
 // SAM TODO
-#define UART_BDH    NULL
-#define UART_BDL    NULL
-#define UART_C1     NULL
-#define UART_C2     NULL
-#define UART_C3     NULL
-#define UART_C4     NULL
-#define UART_CFIFO  NULL
-#define UART_D      NULL
-#define UART_PFIFO  NULL
-#define UART_RCFIFO NULL
-#define UART_RWFIFO NULL
-#define UART_S1     NULL
-#define UART_S2     NULL
-#define UART_SFIFO  NULL
-#define UART_TWFIFO NULL
+#define UART_BDH    0
+#define UART_BDL    0
+#define UART_C1     0
+#define UART_C2     0
+#define UART_C3     0
+#define UART_C4     0
+#define UART_CFIFO  0
+#define UART_D      0
+#define UART_PFIFO  0
+#define UART_RCFIFO 0
+#define UART_RWFIFO 0
+#define UART_S1     0
+#define UART_S2     0
+#define UART_SFIFO  0
+#define UART_TWFIFO 0
 
-#define UART_S1_RDRF       NULL
-#define UART_S1_IDLE       NULL
-#define UART_CFIFO_RXFLUSH NULL
+#define UART_S1_RDRF       0
+#define UART_S1_IDLE       0
+#define UART_CFIFO_RXFLUSH 0
 
-#define SIM_SCGC4_UART  NULL
-#define IRQ_UART_STATUS NULL
+#define SIM_SCGC4_UART  0
+#define IRQ_UART_STATUS 0
 
 #endif
 

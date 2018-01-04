@@ -27,6 +27,8 @@
 
 // ----- Project Includes -----
 
+#include <mcu_compat.h>
+
 #if defined(_kinetis_)
 #include <kinetis.h>
 

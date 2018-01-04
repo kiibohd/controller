@@ -26,8 +26,13 @@
 
 #if defined(_kinetis_)
 #include "kinetis.h"
+
 #elif defined(_sam_)
 #include "sam.h"
+
+#elif defined(_host_)
+#include <stdint.h>
+
 #endif
 
 
