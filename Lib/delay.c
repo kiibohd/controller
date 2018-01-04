@@ -98,6 +98,8 @@ inline uint32_t cycle_now()
 {
 #if defined(_kinetis_)
 	return SYST_CVR;
+#elif defined(_sam_)
+	return SCB->SHCSR & SCB_SHCSR_SYSTICKACT_Msk;
 #else
 #warning "cycle_now not implemented"
 	return 0;
@@ -110,39 +112,30 @@ inline uint32_t cycle_now()
 //                Possibly using a table of supported frequencies?
 uint32_t us_now()
 {
-#if defined(_kinetis_)
+#if defined(_kinetis_) || defined(_sam_)
 	uint32_t count;
 	uint32_t current;
-	uint32_t istatus;
+	uint32_t pending;
 
 	// Snapshot both the cycle count and ms counter
 	__disable_irq();
-#if defined(_kinetis_)
-	current = SYST_CVR;
+
 	count = systick_millis_count;
-	istatus = SCB_ICSR; // bit 26 indicates if systick exception pending
-#elif defined(_sam_)
-	//SAM TODO
-	current = 0;
-	count = 0;
-	istatus = 0;
-#endif
+	current  = cycle_now();
+
+	#if defined(_kinetis_)
+	pending = SCB_ICSR & SCB_ICSR_PENDSTSET; // bit 26 indicates if systick exception pending
+	#elif defined(_sam_)
+	pending = SCB->ICSR & SCB_ICSR_PENDSTSET_Msk;
+	#endif
+
 	__enable_irq();
 
 	// Check for pending systick, and increment if one is it was
-#if defined(_kinetis_)
-	if ( ( istatus & SCB_ICSR_PENDSTSET ) && current > ( ( F_CPU / 1000 ) - 50 ) )
+	if ( pending && current > ( ( F_CPU / 1000 ) - 50 ) )
 	{
 		count++;
 	}
-#elif defined(_sam_)
-	//SAM TODO
-	if ( current > ( ( F_CPU / 1000 ) - 50 ) )
-	{
-		count++
-	}
-#endif
-
 	// Determine cycles since systick (approx.)
 	current = ( ( F_CPU / 1000 ) - 1 ) - current;
 
