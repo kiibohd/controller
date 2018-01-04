@@ -1,11 +1,11 @@
 # The module defines the following variables:
-#   DFU_SUFFIX_EXECUTABLE - path to ctags command line client
+#   DFU_SUFFIX_EXECUTABLE - path to dfu-suffix command line client
 #   DFU_SUFFIX_FOUND - true if the command line client was found
 #   DFU_SUFFIX_VERSION_STRING - the version of dfu-suffix found (since CMake 2.8.8)
 # Example usage:
 #   find_package( DFUSuffix )
 #   if( DFU_SUFFIX_FOUND )
-#     message("ctags found: ${DFU_SUFFIX_EXECUTABLE}")
+#     message("dfu-suffix found: ${DFU_SUFFIX_EXECUTABLE}")
 #   endif()
 
 find_program ( DFU_SUFFIX_EXECUTABLE
