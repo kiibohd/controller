@@ -104,7 +104,20 @@ void pit0_isr()
 #elif defined(_sam_)
 void Periodic_init( uint32_t cycles )
 {
-	//SAM TODO
+	// Setup TC (Timer Counter)
+	// SAM TODO: which clock should be used?
+	TC0->TC_BMR |= TC_BMR_TC2XC2S_Msk;
+	TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_Msk;
+
+	// Timer Count-down value
+	// Number of cycles to count from CPU clock before calling interrupt
+	TC0->TC_CHANNEL[0].TC_RA = TC_RA_RA(cycles);
+
+	// Enable Timer, Enable interrupt
+	TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN;
+	TC0->TC_CHANNEL[0].TC_IER = TC_IER_CPAS;
+
+	// SAM TODO: Handle interrupts
 }
 
 void Periodic_function( void *func )
