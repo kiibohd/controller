@@ -207,15 +207,19 @@ void uart_serial_setup()
 	PORTD_PCR2 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(3); // RX Pin
 	PORTD_PCR3 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
 
-// ???
+// SAM dev kit
 #elif defined(_kii_v3_)
-
+	// Pin Setup for UART0
+	//PIOA->PIO_ODR = (1<<9); //RX Pin
+	//PIOA->PIO_OER = (1<<10); //TX Pin
 
 // Teensy
-#else
+#elif defined(_teensy_)
 	// Pin Setup for UART0
 	PORTB_PCR16 = PORT_PCR_PE | PORT_PCR_PS | PORT_PCR_PFE | PORT_PCR_MUX(3); // RX Pin
 	PORTB_PCR17 = PORT_PCR_DSE | PORT_PCR_SRE | PORT_PCR_MUX(3); // TX Pin
+#else
+#warning "Unknown chip"
 #endif
 
 
@@ -243,14 +247,15 @@ void uart_serial_setup()
 	UART_C4 = 0x11;
 
 #elif defined(_kii_v3_)
-
+	uint16_t div = 65; // clock / (16*baud)
+	UART0->UART_BRGR = UART_BRGR_CD(div);
 #endif
 
 #if defined(_kinetis_)
 	// 8 bit, No Parity, Idle Character bit after stop
 	UART_C1 = UART_C1_ILT;
 #elif defined(_sam_)
-	//SAM TOOD
+	UART0->UART_MR = UART_MR_PAR_NO | UART_MR_CHMODE_NORMAL;
 #endif
 
 	// Interrupt notification watermarks
@@ -297,7 +302,8 @@ void uart_serial_setup()
 #if defined(_kinetis_)
 	UART_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE | UART_C2_ILIE;
 #elif defined(_sam_)
-	//SAM TOOD
+	UART0->UART_CR = UART_CR_RXEN | UART_CR_TXEN;
+	//UART0->UART_IER = UART_IER_RXRDY | UART_IER_TXRDY;
 #endif
 
 	// Add interrupt to the vector table (slightly higher than USB)
@@ -364,7 +370,9 @@ int uart_serial_putchar( uint8_t c )
 	while ( !( UART_SFIFO & UART_SFIFO_TXEMPT ) ); // Wait till there is room to send
 	UART_D = c;
 #elif defined(_sam_)
-	//SAM TOOD
+	//while ( !(UART0->UART_SR & UART_SR_TXRDY) ); // Wait till tx ready
+	while ( !(UART0->UART_SR & UART_SR_TXEMPTY) ); // Wait till tx empty
+	UART0->UART_THR = c;
 #endif
 
 	return 0;
@@ -386,8 +394,9 @@ int uart_serial_write( const void *buffer, uint32_t size )
 		while ( !( UART_SFIFO & UART_SFIFO_TXEMPT ) ); // Wait till there is room to send
 		UART_D = data[position++];
 #elif defined(_sam_)
-	//SAM TOOD
-	data[position++];
+		//while ( !( UART0->UART_SR & UART_SR_TXRDY ) ); //Wait till tx ready
+		while ( !(UART0->UART_SR & UART_SR_TXEMPTY) ); // Wait till tx empty
+		UART0->UART_THR = data[position++];
 #endif
 	}
 
@@ -401,7 +410,7 @@ void uart_serial_flush_output()
 #if defined(_kinetis_)
 	while ( !( UART_SFIFO & UART_SFIFO_TXEMPT ) ); // Wait till there is room to send
 #elif defined(_sam_)
-	//SAM TOOD
+	while ( !( UART0->UART_SR & UART_SR_TXEMPTY ) );
 #endif
 }
 
@@ -448,7 +457,7 @@ void uart_device_reload()
 	SOFTWARE_RESET();
 
 #elif defined(_kii_v3_)
-	//SAM TODO
+	SOFTWARE_RESET();
 
 // Teensy 3.0 and 3.1
 #else
