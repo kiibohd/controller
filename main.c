@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2017 by Jacob Alexander
+/* Copyright (C) 2011-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -60,7 +60,10 @@ static volatile PeriodicStage stage_tracker;
 // Run periodically at a consistent time rate
 // Used to process events that need to be run at regular intervals
 // And have negative effect being delayed or stretched too much
-void main_periodic()
+//
+// Returns 1 if full rotation has completed
+// Returns 0 otherwise
+int main_periodic()
 {
 	// Scan module periodic routines
 	switch ( stage_tracker )
@@ -83,8 +86,12 @@ void main_periodic()
 		// Send periodic USB results
 		Output_periodic();
 		stage_tracker = PeriodicStage_Scan;
-		break;
+
+		// Full rotation
+		return 1;
 	}
+
+	return 0;
 }
 
 // ----- MCU-only Functions -----
@@ -152,6 +159,9 @@ int Host_init()
 	Macro_setup();
 	Scan_setup();
 
+	// Start scanning on first periodic loop
+	stage_tracker = PeriodicStage_Scan;
+
 	return 1;
 }
 
@@ -163,9 +173,7 @@ int Host_cli_process()
 
 int Host_periodic()
 {
-	main_periodic();
-
-	return 1;
+	return main_periodic();
 }
 
 int Host_poll()
@@ -193,8 +201,8 @@ int Host_poll()
 
 int Host_process()
 {
-	// Run a single periodic loop
-	Host_periodic();
+	// Run periodic loop for a full rotation
+	while ( !Host_periodic() );
 
 	// Then a single poll loop
 	Host_poll();
