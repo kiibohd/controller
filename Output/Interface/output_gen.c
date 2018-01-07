@@ -83,6 +83,7 @@ uint16_t Output_USBCurrent_Available;
 // Ignored capabilities
 void Output_ignored_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args ) {}
 
+#if !defined(_APPLE_)
 void Output_kbdProtocolBoot_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 	__attribute__ ((weak, alias("Output_ignored_capability")));
 void Output_kbdProtocolNKRO_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
@@ -99,6 +100,7 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 	__attribute__ ((weak, alias("Output_ignored_capability")));
 void Output_usbMouse_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 	__attribute__ ((weak, alias("Output_ignored_capability")));
+#endif
 
 // Jump to bootloader capability
 void Output_flashMode_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
