@@ -22,6 +22,7 @@ Common functions for Host-side KLL tests
 import inspect
 import json
 import linecache
+import logging
 import sys
 
 import kiilogger
@@ -574,6 +575,15 @@ def check( condition ):
     Checks whether the function passed
     Adds to global pass/fail counters
     '''
+    # Only print stack (show full calling function) info if in debug mode
+    if logger.isEnabledFor(logging.DEBUG):
+        parentstack_info = inspect.stack()[-1]
+        logger.debug("{} {}:{}",
+            parentstack_info.code_context[0][:-1],
+            parentstack_info.filename,
+            parentstack_info.lineno
+        )
+
     if condition:
         global test_pass
         test_pass += 1
@@ -587,7 +597,7 @@ def check( condition ):
         line_no = inspect.getlineno( frame )
         line_info = linecache.getline( line_file, line_no )
 
-        logger.error("Test failed! \033[1;m{}:\033[1;34m{}\033[0m {}", line_file, line_no, line_info, end='')
+        logger.error("Test failed! {}:{} {}", header(line_file), blued(line_no), line_info[:-1])
 
         # Store info for final report
         test_fail_info.append( (frame, line_file, line_no, line_info) )
@@ -611,7 +621,7 @@ def result():
         # Print report
         logger.error(header("----Failed Tests----"))
         for (frame, line_file, line_no, line_info) in test_fail_info:
-            logger.error( "\033[1;m{0}:\033[1;34m{1}\033[0m {2}", line_file, line_no, line_info, end='' )
+            logger.error( "{0}:{1} {2}", header(line_file), blued(line_no), line_info[:-1])
 
         sys.exit( 1 )
 
@@ -621,5 +631,12 @@ def header( val ):
     Emboldens a string for stdout
     '''
     val = "\033[1m{0}\033[0m".format( val )
+    return val
+
+def blued( val ):
+    '''
+    Emboldens a string blue for stdout
+    '''
+    val = "\033[1;34m{0}\033[0m".format( val )
     return val
 

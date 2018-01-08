@@ -34,7 +34,7 @@ from common import (check, result, header)
 
 # Logger (current file and parent directory only)
 logger = kiilogger.get_logger(os.path.join(os.path.split(__file__)[0], os.path.basename(__file__)))
-#logging.root.setLevel(logging.INFO)
+logging.root.setLevel(logging.INFO)
 
 
 # Reference to callback datastructure
@@ -50,23 +50,24 @@ i.control.cmd('setVoteDebugMode')( 1 )
 
 ### Test ###
 
-logging.info(header("-- 1 key test --"))
+logger.info(header("-- 1 key test --"))
 
 # Drop to cli, type exit in the displayed terminal to continue
 #i.control.cli()
 
 # Read current keyboard state
-logging.info(data.usb_keyboard())
+logger.info(data.usb_keyboard())
 
 
 # Press key 0x00
 i.control.cmd('addScanCode')( 0x01 )
 
-# Run processing loop twice, needs to run twice in order to reach the Hold state
-i.control.loop(2)
+# Run processing loop
+i.control.loop(1)
 
-logging.info(data.usb_keyboard())
-logging.info(data.usb_keyboard_data)
+logger.info(" TPending {}", data.pending_trigger_list())
+logger.info(data.usb_keyboard())
+logger.info(data.usb_keyboard_data)
 check( set( data.usb_keyboard()[1] ) >= set([ 41 ]) ) # Check if [41] is a subset of the usb keyboard data
 
 # Release key 0x00
@@ -75,12 +76,13 @@ i.control.cmd('removeScanCode')( 0x01 )
 # Run processing loop once, only needs to transition from hold to release
 i.control.loop(1)
 
-logging.info(data.usb_keyboard())
+logger.info(data.usb_keyboard())
+
 
 
 ### Test 3 keys at same time ###
 
-logging.info(header("-- 3 key test --"))
+logger.info(header("-- 3 key test --"))
 
 # press keys
 i.control.cmd('addScanCode')( 0x01 )
@@ -88,22 +90,19 @@ i.control.cmd('addScanCode')( 0x06 )
 i.control.cmd('addScanCode')( 0x04 )
 
 # Run processing loop
-logging.info("Press State")
+logger.info("Press State")
 i.control.loop(1)
-logging.info(data.usb_keyboard())
-logging.info(" Triggers {}", data.trigger_list_buffer())
-logging.info(" TPending {}", data.pending_trigger_list())
+logger.info(data.usb_keyboard())
+logger.info(" TPending {}", data.pending_trigger_list())
 check( len( data.pending_trigger_list() ) == 3 )
-#logging.info(" RPending", data.pending_result_list() )
 
 
 
 # Run processing loop
-logging.info("Hold State")
+logger.info("Hold State")
 i.control.loop(1)
-logging.info(data.usb_keyboard())
-logging.info(" Triggers {}", data.trigger_list_buffer())
-logging.info(" TPending {}", data.pending_trigger_list())
+logger.info(data.usb_keyboard())
+logger.info(" TPending {}", data.pending_trigger_list())
 check( len( data.pending_trigger_list() ) == 0 )
 
 
@@ -115,14 +114,16 @@ i.control.cmd('removeScanCode')( 0x04 )
 i.control.cmd('removeScanCode')( 0x05 ) # Extra key (purposefully not pressed earlier to simulate bug)
 
 # Run processing loop
-logging.info("Release State")
+logger.info("Release State")
 i.control.loop(1)
-logging.info(data.usb_keyboard())
+logger.info(data.usb_keyboard())
+logger.info(" TPending {}", data.pending_trigger_list())
+check( len( data.pending_trigger_list() ) == 0 )
 
 
 ### Combo Test ###
 
-logging.info(header("-- 2 key combo test --"))
+logger.info(header("-- 2 key combo test --"))
 # TODO
 # - Combo
 # - Delayed combo

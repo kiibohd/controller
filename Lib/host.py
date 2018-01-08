@@ -65,6 +65,17 @@ callback_ptrs = []
 
 ### Structs ###
 
+class TriggerEvent( Structure ):
+    '''
+    TriggerEvent struct
+    See kll.h in Macro/PartialMap
+    '''
+    _fields_ = [
+        ( 'type',  c_uint8 ),
+        ( 'state', c_uint8 ),
+        ( 'index', c_uint8 ),
+    ]
+
 class TriggerGuide( Structure ):
     '''
     TriggerGuide struct
@@ -138,8 +149,8 @@ class Data:
         Returns trigger list buffer
         '''
         # TODO Dynamically select var_uint_t size
-        triggers_len = cast( control.kiibohd.macroTriggerListBufferSize, POINTER( c_uint8 ) )[0]
-        triggers = cast( control.kiibohd.macroTriggerListBuffer, POINTER( TriggerGuide * triggers_len ) )[0]
+        triggers_len = cast( control.kiibohd.macroTriggerEventBufferSize, POINTER( c_uint8 ) )[0]
+        triggers = cast( control.kiibohd.macroTriggerEventBuffer, POINTER( TriggerEvent * triggers_len ) )[0]
         output = []
         for index in range( 0, triggers_len ):
             output.append( triggers[ index ] )
