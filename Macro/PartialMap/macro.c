@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -560,6 +560,16 @@ void Macro_showTriggerGuide( TriggerGuide *guide )
 
 
 // ----- Functions -----
+
+// Clears the current layer state
+void Macro_clearLayers()
+{
+	// Clear layer stack
+	macroLayerIndexStackSize = 0;
+
+	// Clear layer states
+	memset( &LayerState, 0, sizeof(LayerStateType) * LayerNum );
+}
 
 // Looks up the trigger list for the given scan code (from the active layer)
 // NOTE: Calling function must handle the NULL pointer case

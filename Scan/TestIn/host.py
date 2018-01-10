@@ -19,9 +19,23 @@ Host-Side Python Commands for TestIn Scan Module
 
 ### Imports ###
 
+import copy
 import sys
+import time
 
-from ctypes import (Structure, POINTER, cast, c_uint32, c_uint16, c_uint8, c_void_p, create_string_buffer)
+from collections import namedtuple
+from ctypes import (
+    byref,
+    c_char_p,
+    c_uint8,
+    c_uint16,
+    c_uint32,
+    c_void_p,
+    cast,
+    create_string_buffer,
+    POINTER,
+    Structure,
+)
 
 import kiilogger
 
@@ -54,6 +68,111 @@ class TriggerMacro( Structure ):
         ( "result", c_uint8 ),
     ]
 
+    def __repr__(self):
+        val = "(guide={}, result={})".format(
+            self.guide,
+            self.result,
+        )
+        return val
+
+
+class ResultCapabilityStackItem( Structure ):
+    '''
+    C-Struct for ResultCapabilityStackItem
+    See Macro/PartialMap/result.c
+    '''
+    _fields_ = [
+        ( "trigger",         POINTER( TriggerMacro ) ),
+        ( "state",           c_uint8 ),
+        ( "stateType",       c_uint8 ),
+        ( "capabilityIndex", c_uint8 ),
+        ( "args",            POINTER( c_uint8 ) ),
+    ]
+
+    def copy(self):
+        '''
+        @returns: Copy of object
+        '''
+        val = ResultCapabilityStackItem()
+        val.trigger = self.trigger
+        val.state = copy.copy(self.state)
+        val.stateType = copy.copy(self.stateType)
+        val.capabilityIndex = copy.copy(self.capabilityIndex)
+        val.args = self.args
+        return val
+
+    def read_capability(self):
+        '''
+        Using kll.json, determine capability
+
+        @returns: Name of capability, Arguments
+        '''
+        capability_dict = control.json_input['Capabilities']
+
+        # Retrieve capability information using index
+        arg_definitions = None
+        name = None
+        for key, cap in capability_dict.items():
+            if cap['index'] == self.capabilityIndex:
+                name = key
+                arg_definitions = cap['args']
+                break
+
+        assert name is not None, "Could not find capability index {}".format(self.capabilityIndex)
+
+        return name, arg_definitions
+
+    def read_args(self):
+        '''
+        Using kll.json, read the arguments from the args pointer.
+
+        @returns: List of arguments
+        '''
+        name, arg_definitions = self.read_capability()
+
+        # Build of args for namedtuple
+        arg_names = [arg['name'] for arg in arg_definitions]
+        ntuple = namedtuple(name, arg_names)
+
+        # Build list of extracted arguments
+        arg_values = []
+        position = 0
+        for arg in arg_definitions:
+            value = None
+
+            # Cast based on the width
+            if arg['width'] == 1:
+                value = cast(byref(self.args.contents, position), POINTER(c_uint8)).contents
+                position += 1
+            elif arg['width'] == 2:
+                value = cast(byref(self.args.contents, position), POINTER(c_uint16)).contents
+                position += 2
+            elif arg['width'] == 4:
+                value = cast(byref(self.args.contents, position), POINTER(c_uint32)).contents
+                position += 4
+            else:
+                logger.error("Unknown width: {}", arg['width'])
+
+            arg_values.append(value)
+
+        # Build namedtuple with read values
+        arg_values = tuple(arg_values)
+        return ntuple(*arg_values)
+
+    def __repr__(self):
+        '''
+        Representation of ResultCapabilityStackItem
+        '''
+        val = "(trigger={}, state={}, stateType={}, capabilityIndex={}, capabilityName={}, args={})".format(
+            self.trigger.contents,
+            self.state,
+            self.stateType,
+            self.capabilityIndex,
+            self.read_capability()[0],
+            self.read_args(),
+        )
+        return val
+
 
 class AnimationStackElement( Structure ):
     '''
@@ -72,6 +191,21 @@ class AnimationStackElement( Structure ):
         ( "pfunc",       c_uint8 ),
     ]
 
+    def __repr__(self):
+        val = "(trigger={}, index={}, pos={}, subpos={}, loops={}, framedelay={}, frameoption={}, ffunc={}, pfunc={})".format(
+            self.trigger.contents,
+            self.index,
+            self.pos,
+            self.subpos,
+            self.loops,
+            self.framedelay,
+            self.frameoption,
+            self.ffunc,
+            self.pfunc,
+        )
+        return val
+
+
 class PixelBuf( Structure ):
     '''
     C-Struct for PixelBuf
@@ -83,6 +217,15 @@ class PixelBuf( Structure ):
         ( "offset", c_uint16 ),
         ( "data",   c_void_p ),
     ]
+
+    def __repr__(self):
+        val = "(size={}, width={}, offset={}, data={})".format(
+            self.size,
+            self.width,
+            self.offset,
+            self.data,
+        )
+        return val
 
 
 
@@ -133,6 +276,25 @@ class Commands:
         1 - Show result of each vote
         '''
         cast( control.kiibohd.voteDebugMode, POINTER( c_uint8 ) )[0] = debugmode
+
+    def lockLayer( self, layer ):
+        '''
+        Lock specified layer
+
+        @param layer: Layer index to lock
+        '''
+        trigger = 0
+        state = 1
+        stateType = 0
+        layerState = 0x04
+        control.kiibohd.Macro_layerState(int(trigger), int(state), int(stateType), int(layer), int(layerState))
+
+    def clearLayers( self ):
+        '''
+        Clears all layer state
+        i.e. Sets to default layer state
+        '''
+        control.kiibohd.Macro_clearLayers()
 
     def addAnimation( self, name=None, index=0, pos=0, loops=1, divmask=0x0, divshift=0x0, ffunc=0, pfunc=0 ):
         '''
@@ -280,6 +442,19 @@ class Callbacks:
     '''
     Container class of commands required by the host-side KLL implementation
     '''
+    def capabilityCallback( self, args ):
+        '''
+        Called whenever a capability is called.
+        Argument defines if it's an immediate capability or delayed.
+
+        Capability is executed after this method returns.
+
+        This callback indicates that the resultCapabilityCallbackData variable is ready.
+        '''
+        arg = cast( args, c_char_p ).value
+        item = cast( control.kiibohd.resultCapabilityCallbackData, POINTER( ResultCapabilityStackItem ) ).contents
+        cbhistory = namedtuple('CallbackHistoryItem', ['callbackdata', 'type', 'time'])
+        data.capability_history.new_callback(cbhistory(item.copy(), arg, time.time()))
 
 
 

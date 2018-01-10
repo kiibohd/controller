@@ -20,7 +20,6 @@ Host-Side Setup Routines for KLL
 ### Imports ###
 
 import argparse
-import ctypes
 import inspect
 import json
 import logging
@@ -29,7 +28,18 @@ import pty
 import sys
 import termios
 
-from ctypes import CFUNCTYPE, POINTER, cast, c_int, c_char_p, c_void_p, c_uint8, c_uint16, c_uint32, Structure
+from ctypes import (
+    c_char_p,
+    c_int,
+    c_uint8,
+    c_uint16,
+    c_void_p,
+    cast,
+    CDLL,
+    CFUNCTYPE,
+    POINTER,
+    Structure,
+)
 
 import kiilogger
 
@@ -76,6 +86,15 @@ class TriggerEvent( Structure ):
         ( 'index', c_uint8 ),
     ]
 
+    def __repr__(self):
+        val = "(type={}, state={}, index={})".format(
+            self.type,
+            self.state,
+            self.index,
+        )
+        return val
+
+
 class TriggerGuide( Structure ):
     '''
     TriggerGuide struct
@@ -87,6 +106,15 @@ class TriggerGuide( Structure ):
         ( 'scanCode', c_uint8 ),
     ]
 
+    def __repr__(self):
+        val = "(type={}, state={}, scanCode={})".format(
+            self.type,
+            self.state,
+            self.scanCode,
+        )
+        return val
+
+
 class TriggerMacro( Structure ):
     '''
     TriggerMacro struct
@@ -97,6 +125,13 @@ class TriggerMacro( Structure ):
         ( 'guide',  POINTER( c_uint8 ) ),
         ( 'result', c_uint8 ),
     ]
+
+    def __repr__(self):
+        val = "(guide={}, result={})".format(
+            self.guide,
+            self.result,
+        )
+        return val
 
 
 class ResultsPendingElem( Structure ):
@@ -110,6 +145,14 @@ class ResultsPendingElem( Structure ):
         ( 'index',   c_uint16 ),
     ]
 
+    def __repr__(self):
+        val = "(trigger={}, index={})".format(
+            self.trigger,
+            self.index,
+        )
+        return val
+
+
 class ResultsPending( Structure ):
     '''
     ResultsPending struct
@@ -121,9 +164,63 @@ class ResultsPending( Structure ):
         ( 'size', c_uint16 ),
     ]
 
+    def __repr__(self):
+        val = "(data={}, size={})".format(
+            self.data,
+            self.size,
+        )
+        return val
+
 
 
 ### Classes ###
+
+class CapabilityHistory:
+    '''
+    Class that keeps track of the capability calls and maintains a history of calls.
+    '''
+    def __init__(self):
+        self.history = []
+        self.last_read = 0
+
+    def new_callback(self, cbhistory):
+        '''
+        Add a callback to the history (append only).
+        Expects a CallbackHistoryItem namedtuple.
+        '''
+        logger.debug("{}", cbhistory)
+        self.history.append(cbhistory)
+
+    def all(self):
+        '''
+        All callbacks in history.
+        Does not adjust unread callback position.
+        '''
+        return self.history
+
+    def prune(self, items=None):
+        '''
+        Prune read callback history.
+
+        @param items: Max number of items to prune
+        '''
+        to_prune = self.last_read
+        if items is not None:
+            to_prune = min(items, to_prune)
+
+        logger.debug("Pruning {}", to_prune)
+
+        self.history = self.history[to_prune:]
+        self.last_read -= to_prune
+
+    def unread(self):
+        '''
+        Returns list of unread callbacks
+        '''
+        var = self.history[self.last_read:]
+        self.last_read = len(self.history)
+        return var
+
 
 class Data:
     '''
@@ -131,6 +228,9 @@ class Data:
     '''
     def __init__( self ):
         self.usb_keyboard_data = None
+
+        # List of capability callbacks
+        self.capability_history = CapabilityHistory()
 
         self.rawio_loopback = False
         self.rawio_incoming_buffer = []
@@ -237,7 +337,7 @@ class Control:
         # Import libkiibohd
         global kiibohd
         try:
-            kiibohd = ctypes.CDLL( libkiibohd_path )
+            kiibohd = CDLL( libkiibohd_path )
         except Exception as err:
             logger.error("Could not open -> {}\n{}", libkiibohd_path, err )
             sys.exit( 1 )

@@ -70,12 +70,12 @@ class KLLTestRunner:
         for test in self.tests:
             testname = test.__class__.__name__
             passed = True
-            logger.info("Running: {}", testname)
+            logger.info("{}: {}", header("Running"), testname)
             if not test.run():
                 logger.error("'{}' failed.", testname)
                 self.overall = False
                 passed = False
-            logger.info("{} has finished", testname)
+            logger.info("{} has finished", header(testname))
             self.test_results.append((testname, passed, test.results()))
 
         return self.overall
@@ -141,14 +141,21 @@ class KLLTest:
 
     Derive all tests from this class
     '''
-    def __init__(self):
+    def __init__(self, tests=None):
+        '''
+        KLLTest base class constructor
+
+        @param tests: Specify number of sub-tests to run, None if all of them.
+        '''
         import interface
         # kll.json helper file
-        with open(interface.jsonInput, 'r') as jsoninput:
-            self.klljson = json.load(jsoninput)
+        self.klljson = interface.control.json_input
 
         # Reference to callback datastructure
         self.data = interface.control.data
+
+        # Artificial limit for sub-tests
+        self.tests = tests
 
         # Test Results
         self.testresults = []
@@ -173,16 +180,36 @@ class KLLTest:
 
         @return: Result of the test
         '''
+        import interface
+
         overall = True
-        for test in self.testresults:
-            logger.info("Sub-test: {} {}", test.unit.__class__.__name__, test.unit.key)
+        curtest = 0
+        for index, test in enumerate(self.testresults):
+            logger.info("{}:{} Layer({}) {} {}",
+                header("Sub-test"),
+                index,
+                test.layer,
+                blued(test.unit.__class__.__name__),
+                test.unit.key
+            )
+
+            # Prepare layer setting
+            interface.control.cmd('lockLayer')(test.layer)
 
             # Run test, and record result
             test.result = test.unit.run()
 
+            # Cleanup layer manipulations
+            interface.control.cmd('clearLayers')()
+
             # Check if test has failed
             if not test.result:
                 overall = False
+
+            curtest += 1
+            if self.tests is not None and curtest >= self.tests:
+                logger.warning("Stopping at test #{}", curtest)
+                break
 
         return overall
 
@@ -235,6 +262,8 @@ class TriggerResultEval:
 
         @return: True if successful/valid execution, False for a failure
         '''
+        import interface as i
+
         # Check for positionstep
         if positionstep is not None:
             self.positionstep = positionstep
@@ -262,10 +291,16 @@ class TriggerResultEval:
             if self.result.done():
                 logger.debug("{} Result Complete", self.__class__.__name__)
                 self.done = True
-                return True
 
-        # Increment step position
+        # Increment step position within libkiibohd
+        i.control.loop(1)
         self.positionstep += 1
+
+        # Cleanup step, if necessary
+        self.trigger.cleanup()
+        if not self.result.monitor_cleanup():
+            logger.error("{} Cleanup Monitor failure", self.__class__.__name__)
+            return False
 
         return True
 
@@ -279,9 +314,26 @@ class TriggerResultEval:
             logger.debug("{}:Step {}:{}", self.__class__.__name__, self.positionstep, self.key)
 
             if not self.step():
+                self.clean()
                 return False
 
+        # Cleanup after test
+        self.clean()
         return True
+
+    def clean(self):
+        '''
+        Cleanup between tests
+
+        Capability history needs to be cleared between tests.
+        '''
+        import interface as i
+
+        # Read all callbacks
+        i.control.data.capability_history.unread()
+
+        # Prune callback history
+        i.control.data.capability_history.prune()
 
 
 class Schedule:
@@ -344,6 +396,8 @@ class TriggerEval:
 
         # Step determines which part of the sequence we are trying to evaluate
         self.step = 0
+        self.clean = -1
+        self.cleaned = -1
 
         # Build sequence of combos
         self.trigger = []
@@ -366,6 +420,10 @@ class TriggerEval:
 
         @return: True on valid execution, False if something unexpected ocurred
         '''
+        # Fail test if we have incremented too many steps
+        if self.step > len(self.trigger):
+            return False
+
         # Attempt to evaluate each element in the current combo
         finished = True
         for elem in self.trigger[self.step]:
@@ -375,10 +433,33 @@ class TriggerEval:
         # Increment step if finished
         if finished:
             self.step += 1
+            self.clean += 1
 
         # Always return True (even if not finished)
         # Only return False on an unexpected error
         return True
+
+    def cleanup(self):
+        '''
+        Cleanup previously evaluated step
+
+        Uses the previous step to determine what to cleanup.
+        Does not cleanup if it's not necessary (i.e. no "double frees")
+        '''
+        # Don't bother doing double cleanup
+        if self.cleaned == self.clean:
+            return
+
+        # Clean for the given step
+        for elem in self.trigger[self.clean]:
+            elem.cleanup()
+
+        self.cleaned += 1
+
+        # Reset the cleaning state
+        if self.clean >= len(self.trigger):
+            self.clean = -1
+            self.cleaned = -1
 
     def reset(self):
         '''
@@ -393,8 +474,7 @@ class TriggerEval:
 
         @return: True if complete, False otherwise
         '''
-        # TODO
-        return False
+        return self.step >= len(self.trigger)
 
 
 class ResultMonitor:
@@ -411,6 +491,8 @@ class ResultMonitor:
 
         # Step determines which part of the sequence we are trying to monitor
         self.step = 0
+        self.clean = -1
+        self.cleaned = -1
 
         # Build sequence of combos
         self.result = []
@@ -428,21 +510,51 @@ class ResultMonitor:
 
         @return: True if step has completed, False if schedule is out of bounds (failed).
         '''
+        # Fail test if we have incremented too many steps
+        if self.step > len(self.result):
+            return False
+
         # Monitor current step in the Result
         finished = True
         for elem in self.result[self.step]:
             if not elem.monitor():
-                finished = False
+                return False
 
         # Increment step if finished
         if finished:
             self.step += 1
+            self.clean += 1
 
         # TODO Determine if we are outside the bounds of the schedule
         # i.e. when to return False
 
         # Return true even if not finished
         return True
+
+    def monitor_cleanup(self):
+        '''
+        Monitors the cleanup of the previous monitor step
+
+        @return: True if cleanup was successful, False otherwise.
+        '''
+        # Don't bother doing double cleanup
+        if self.cleaned == self.clean:
+            return True
+
+        # Clean for the given step
+        clean_result = True
+        for elem in self.result[self.clean]:
+            if not elem.monitor_cleanup():
+                clean_result = False
+
+        self.cleaned += 1
+
+        # Reset the cleaning state
+        if self.clean >= len(self.result):
+            self.clean = -1
+            self.cleaned = -1
+
+        return clean_result
 
     def reset(self):
         '''
@@ -457,8 +569,7 @@ class ResultMonitor:
 
         @return: True if complete, False otherwise
         '''
-        # TODO
-        return True
+        return self.step >= len(self.result)
 
 
 class TriggerElem:
@@ -537,6 +648,64 @@ class ResultElem:
         self.elem = elem
         self.schedule = schedule
 
+    def monitor_state(self, state):
+        '''
+        Monitors result state
+
+        @param state: Value of state to monitor
+
+        @returns: True if valid, False if not
+        '''
+        # TODO (HaaTa) Handle scheduling
+        import interface as i
+
+        # Lookup Capability (if necessary)
+        name = i.control.json_input['CodeLookup'][self.elem['type']]
+        expected_args = None
+        if name is None:
+            # Capability type has the name and arg fields
+            if self.elem['type'] == 'Capability':
+                name = self.elem['name']
+                expected_args = self.elem['args']
+        elif self.elem['type'] == 'Animation':
+            # Expected arg needs to be looked up for Animations
+            value = i.control.json_input['AnimationSettings'][self.elem['setting']]
+            expected_args = [value]
+        else:
+            # Otherwise uid is used for the arg
+            expected_args = [self.elem['uid']]
+
+        logger.debug("ResultElem monitor {} {} {} {}", self.elem, self.schedule, name, expected_args)
+        assert name is not None, "Invalid Result type {}".format(self.elem)
+
+        # Lookup capability history, success if any capabilities match
+        match = None
+        for cap in i.control.data.capability_history.all():
+            data = cap.callbackdata
+            # Validate state and capability name
+            if data.state == state and data.read_capability()[0] == name:
+                # Validate args
+                match_args = True
+                for index in range(len(expected_args)):
+                    if data.args[index] != expected_args[index]:
+                        match_args = False
+                        break
+
+                # Determine if we've found a match
+                if match_args:
+                    match = data
+                    logger.debug("Matched History {}", match)
+                    break
+
+        # Increment test count with pass/fail
+        result = True
+        if match is None:
+            result = False
+            # Print out capability history
+            for cap in i.control.data.capability_history.all():
+                logger.warning(cap)
+        return check(result, "expected:{}({}) state({}) - found:{}".format(name, expected_args, state, match))
+
     def monitor(self):
         '''
         Monitors for ResultElem
@@ -544,8 +713,19 @@ class ResultElem:
 
         @return: True if found, False if not.
         '''
-        # TODO 
-        return True
+        # TODO (HaaTa) Handle scheduling
+        result = self.monitor_state(1)
+        return result
+
+    def monitor_cleanup(self):
+        '''
+        Cleanup monitor for ResultElem
+
+        @return: True if expected cleanup occured, False if not.
+        '''
+        # TODO (HaaTa) Handle scheduling
+        result = self.monitor_state(3)
+        return result
 
 
 
@@ -570,18 +750,29 @@ def pass_tests( number ):
     global test_pass
     test_pass += number
 
-def check( condition ):
+def check(condition, info=None):
     '''
     Checks whether the function passed
     Adds to global pass/fail counters
+
+    @param condition: Boolean condition
+    @param info: Additional debugging information
+
+    @returns: Result of boolean condition
     '''
+    # Prepare info
+    info_str = ""
+    if info is not None:
+        info_str = " - {}".format(info)
+
     # Only print stack (show full calling function) info if in debug mode
     if logger.isEnabledFor(logging.DEBUG):
         parentstack_info = inspect.stack()[-1]
-        logger.debug("{} {}:{}",
+        logger.debug("{} {}:{}{}",
             parentstack_info.code_context[0][:-1],
             parentstack_info.filename,
-            parentstack_info.lineno
+            parentstack_info.lineno,
+            info_str,
         )
 
     if condition:
@@ -597,10 +788,17 @@ def check( condition ):
         line_no = inspect.getlineno( frame )
         line_info = linecache.getline( line_file, line_no )
 
-        logger.error("Test failed! {}:{} {}", header(line_file), blued(line_no), line_info[:-1])
+        logger.error("Test failed! {}:{} {}{}",
+            header(line_file),
+            blued(line_no),
+            line_info[:-1],
+            info_str,
+        )
 
         # Store info for final report
-        test_fail_info.append( (frame, line_file, line_no, line_info) )
+        test_fail_info.append( (frame, line_file, line_no, line_info, info_str) )
+
+    return condition
 
 
 def result():
@@ -620,8 +818,8 @@ def result():
     else:
         # Print report
         logger.error(header("----Failed Tests----"))
-        for (frame, line_file, line_no, line_info) in test_fail_info:
-            logger.error( "{0}:{1} {2}", header(line_file), blued(line_no), line_info[:-1])
+        for (frame, line_file, line_no, line_info, info_str) in test_fail_info:
+            logger.error( "{0}:{1} {2}{3}", header(line_file), blued(line_no), line_info[:-1], info_str)
 
         sys.exit( 1 )
 
