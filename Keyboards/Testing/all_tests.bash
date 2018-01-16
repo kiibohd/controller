@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This script runs each of the firmware build scripts
 # Input Club produced keyboard targets
-# Jacob Alexander 2017
+# Jacob Alexander 2017-2018
 
 
 
@@ -28,6 +28,7 @@ source "../common.bash"
 
 # Run builds
 cmd ./macrotest.bash
+cmd ./klltest.bash
 cmd ./mk20test.bash
 cmd ./mk22test.bash
 cmd ./mk64test.bash
