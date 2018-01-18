@@ -96,6 +96,10 @@ execute_process ( COMMAND ${GIT_EXECUTABLE} rev-list -n 1 ${Git_Recent_Tag}
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 	RESULT_VARIABLE res_var
 )
+#| If no tags set, just use HEAD
+if ( Git_Recent_Tag STREQUAL "" )
+	set ( Git_Recent_Tag_Revision "${Git_Commit_Revision}" )
+endif ()
 
 #| Most Recent Tag Commit Number (on branch)
 execute_process ( COMMAND ${GIT_EXECUTABLE} rev-list --count ${Git_Recent_Tag_Revision}
