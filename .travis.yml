@@ -19,7 +19,7 @@ compiler:
 env:
   # Keyboard Tests
   - DIR=Keyboards SCRIPT=ic_keyboards.bash # Input Club Keyboards
-  - DIR=Keyboards SCRIPT=ic_keyboards.bash EnableHostOnlyBuild=true # Input Club Keyboards - Host-Side Build
+  - DIR=Keyboards SCRIPT=ic_keyboards.bash EnableHostOnlyBuild=true HostTest=kll.py # Input Club Keyboards - Host-Side Build
   - DIR=Keyboards SCRIPT=others.bash
 
   # Debug Build Tests
