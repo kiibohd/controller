@@ -118,6 +118,9 @@ uint8_t macroDebugMode;
 // Vote debug flag - If set show the result of each
 uint8_t voteDebugMode;
 
+// Trigger pending debug flag - If set show pending triggers before evaluating
+uint8_t triggerPendingDebugMode;
+
 // Macro pause flag - If set, the macro module pauses processing, unless unset, or the step counter is non-zero
 uint8_t macroPauseMode;
 
@@ -130,9 +133,9 @@ static uint8_t macroLatencyResource;
 
 
 // Incoming Trigger Event Buffer
-TriggerEvent macroTriggerEventBuffer[ MaxScanCode ];
+TriggerEvent macroTriggerEventBuffer[ MaxScanCode + 1 ];
 var_uint_t macroTriggerEventBufferSize;
-var_uint_t macroTriggerEventLayerCache[ MaxScanCode ];
+var_uint_t macroTriggerEventLayerCache[ MaxScanCode + 1 ];
 
 // Layer Index Stack
 //  * When modifying layer state and the state is non-0x0, the stack must be adjusted
@@ -147,7 +150,7 @@ extern index_uint_t macroTriggerMacroPendingListSize;
 // Interconnect ScanCode Cache
 #if defined(ConnectEnabled_define) || defined(PressReleaseCache_define)
 // TODO This can be shrunk by the size of the max node 0 ScanCode
-TriggerEvent macroInterconnectCache[ MaxScanCode ];
+TriggerEvent macroInterconnectCache[ MaxScanCode + 1 ];
 uint8_t macroInterconnectCacheSize = 0;
 #endif
 
@@ -214,7 +217,7 @@ void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, 
 	// Layer Debug Mode
 	if ( layerDebugMode )
 	{
-		dbug_msg("Layer ");
+		print("\033[1;36mL\033[0m ");
 
 		// Iterate over each of the layers displaying the state as a hex value
 		for ( index_uint_t index = 0; index < LayerNum; index++ )
@@ -1225,6 +1228,9 @@ inline void Macro_setup()
 
 	// Disable Macro Vote debug mode
 	voteDebugMode = 0;
+
+	// Disable Trigger Pending debug mode
+	triggerPendingDebugMode = 0;
 
 	// Make sure macro trigger event buffer is empty
 	macroTriggerEventBufferSize = 0;

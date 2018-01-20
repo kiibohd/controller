@@ -191,12 +191,13 @@ class KLLTest:
             if index < self.test:
                 continue
 
-            logger.info("{}:{} Layer({}) {} {}",
+            logger.info("{}:{} Layer({}) {} {} -> {}",
                 header("Sub-test"),
                 index,
                 test.layer,
                 blued(test.unit.__class__.__name__),
-                test.unit.key
+                test.unit.key,
+                test.unit.entry['kll'],
             )
 
             # Prepare layer setting

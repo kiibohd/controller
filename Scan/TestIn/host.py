@@ -277,6 +277,24 @@ class Commands:
         '''
         cast( control.kiibohd.voteDebugMode, POINTER( c_uint8 ) )[0] = debugmode
 
+    def setLayerDebugMode( self, debugmode ):
+        '''
+        Sets layerDebugMode
+
+        0 - Disable (default)
+        1 - Show result of layer change
+        '''
+        cast( control.kiibohd.layerDebugMode, POINTER( c_uint8 ) )[0] = debugmode
+
+    def setTriggerPendingDebugMode( self, debugmode ):
+        '''
+        Sets triggerPendingDebugMode
+
+        0 - Disable (default)
+        1 - Show pending triggers before evaluating
+        '''
+        cast( control.kiibohd.triggerPendingDebugMode, POINTER( c_uint8 ) )[0] = debugmode
+
     def lockLayer( self, layer ):
         '''
         Lock specified layer

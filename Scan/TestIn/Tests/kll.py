@@ -52,10 +52,16 @@ logging.root.setLevel(logging.INFO)
 data = i.control.data
 
 # Enabled macro debug mode - Enabled USB Output, show debug
-i.control.cmd('setMacroDebugMode')( 2 )
+i.control.cmd('setMacroDebugMode')(2)
 
 # Enabled vote debug mode
-i.control.cmd('setVoteDebugMode')( 1 )
+i.control.cmd('setVoteDebugMode')(1)
+
+# Enable layer debug mode
+i.control.cmd('setLayerDebugMode')(1)
+
+# Enable pending trigger debug mode
+i.control.cmd('setTriggerPendingDebugMode')(1)
 
 
 
@@ -96,7 +102,8 @@ class SimpleLayerTest(KLLTest):
 
 testrunner = KLLTestRunner([
     SimpleLayerTest(),
-    #SimpleLayerTest(tests=1, test=59),
+    #SimpleLayerTest(tests=3, test=86),
+    #SimpleLayerTest(tests=20, test=92),
 ])
 testrunner.run()
 
