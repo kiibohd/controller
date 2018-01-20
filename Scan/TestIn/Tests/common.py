@@ -673,6 +673,16 @@ class ResultElem:
             if self.elem['type'] == 'Capability':
                 name = self.elem['name']
                 expected_args = self.elem['args']
+                new_args = []
+
+                # Some args have types
+                for arg in expected_args:
+                    if isinstance(arg, dict):
+                        new_args.append(arg['value'])
+
+                # If any processing of args was necessary
+                if len(new_args) > 0:
+                    expected_args = new_args
         elif self.elem['type'] == 'Animation':
             # Expected arg needs to be looked up for Animations
             value = i.control.json_input['AnimationSettings'][self.elem['setting']]

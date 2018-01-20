@@ -96,6 +96,7 @@ class SimpleLayerTest(KLLTest):
 
 testrunner = KLLTestRunner([
     SimpleLayerTest(),
+    #SimpleLayerTest(tests=1, test=59),
 ])
 testrunner.run()
 
