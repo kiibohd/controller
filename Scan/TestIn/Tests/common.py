@@ -141,11 +141,12 @@ class KLLTest:
 
     Derive all tests from this class
     '''
-    def __init__(self, tests=None):
+    def __init__(self, tests=None, test=0):
         '''
         KLLTest base class constructor
 
         @param tests: Specify number of sub-tests to run, None if all of them.
+        @param test:  Specify a specific test to start from
         '''
         import interface
         # kll.json helper file
@@ -155,6 +156,7 @@ class KLLTest:
         self.data = interface.control.data
 
         # Artificial limit for sub-tests
+        self.test = test
         self.tests = tests
 
         # Test Results
@@ -185,6 +187,10 @@ class KLLTest:
         overall = True
         curtest = 0
         for index, test in enumerate(self.testresults):
+            # Skip tests before specified index
+            if index < self.test:
+                continue
+
             logger.info("{}:{} Layer({}) {} {}",
                 header("Sub-test"),
                 index,
