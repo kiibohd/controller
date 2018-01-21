@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,7 +37,8 @@
 #include <kll.h>
 
 // Local Includes
-#include "output_com.h"
+#include <output_com.h>
+#include "output_uart.h"
 
 
 

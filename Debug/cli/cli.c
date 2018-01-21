@@ -711,7 +711,9 @@ void cliFunc_version( char* args )
 	print( " \033[1mRevision:\033[0m      " CLI_Revision          NL );
 	print( " \033[1mRevision #:\033[0m    " CLI_RevisionNumberStr NL );
 	print( " \033[1mVersion:\033[0m       " CLI_Version " (+" );
+#if CLI_RevisionNumber && CLI_VersionRevNumber
 	printInt16( CLI_RevisionNumber - CLI_VersionRevNumber );
+#endif
 	print( ":" CLI_VersionRevNumberStr ")" NL );
 	print( " \033[1mBranch:\033[0m        " CLI_Branch            NL );
 	print( " \033[1mTree Status:\033[0m   " CLI_ModifiedStatus CLI_ModifiedFiles NL );

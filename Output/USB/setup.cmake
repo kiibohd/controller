@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Output Module |###
 #
-# Written by Jacob Alexander in 2011-2017 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2018 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -44,14 +44,25 @@ elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 		arm/usb_serial.c
 	)
 
-endif ( ${COMPILER_FAMILY} MATCHES "avr" )
+#| Host Mode
+elseif ( ${COMPILER_FAMILY} MATCHES "host" )
+
+	set ( Module_SRCS
+		output_com.c
+		output_usb.c
+	)
+
+endif ()
 
 
 ###
 # Compiler Family Compatibility
 #
-set( ModuleCompatibility
+
+# XXX (HaaTa) USB module only supports host family used as a TestOut submodule
+set ( ModuleCompatibility
 	arm
 	avr
+	host
 )
 

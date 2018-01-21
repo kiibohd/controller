@@ -1,9 +1,8 @@
-#!/usr/bin/env python3
 '''
 Host-Side Setup Routines for KLL
 '''
 
-# Copyright (C) 2016-2017 by Jacob Alexander
+# Copyright (C) 2016-2018 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,24 +20,38 @@ Host-Side Setup Routines for KLL
 ### Imports ###
 
 import argparse
-import ctypes
 import inspect
 import json
+import logging
 import os
 import pty
 import sys
 import termios
 
-from ctypes import CFUNCTYPE, POINTER, cast, c_int, c_char_p, c_void_p, c_uint8, c_uint16, c_uint32, Structure
+from ctypes import (
+    c_char_p,
+    c_int,
+    c_uint8,
+    c_uint16,
+    c_void_p,
+    cast,
+    CDLL,
+    CFUNCTYPE,
+    POINTER,
+    Structure,
+)
+
+import kiilogger
+
+
+
+### Logger ###
+
+logger = kiilogger.get_logger('Lib/host.py')
 
 
 
 ### Decorators ###
-
-## Print Decorator Variables
-ERROR = '\033[5;1;31mERROR\033[0m:'
-WARNING = '\033[5;1;33mWARNING\033[0m:'
-
 
 ## Python Text Formatting Fixer...
 ##  Because the creators of Python are averse to proper capitalization.
@@ -62,6 +75,26 @@ callback_ptrs = []
 
 ### Structs ###
 
+class TriggerEvent( Structure ):
+    '''
+    TriggerEvent struct
+    See kll.h in Macro/PartialMap
+    '''
+    _fields_ = [
+        ( 'type',  c_uint8 ),
+        ( 'state', c_uint8 ),
+        ( 'index', c_uint8 ),
+    ]
+
+    def __repr__(self):
+        val = "(type={}, state={}, index={})".format(
+            self.type,
+            self.state,
+            self.index,
+        )
+        return val
+
+
 class TriggerGuide( Structure ):
     '''
     TriggerGuide struct
@@ -73,6 +106,15 @@ class TriggerGuide( Structure ):
         ( 'scanCode', c_uint8 ),
     ]
 
+    def __repr__(self):
+        val = "(type={}, state={}, scanCode={})".format(
+            self.type,
+            self.state,
+            self.scanCode,
+        )
+        return val
+
+
 class TriggerMacro( Structure ):
     '''
     TriggerMacro struct
@@ -83,6 +125,13 @@ class TriggerMacro( Structure ):
         ( 'guide',  POINTER( c_uint8 ) ),
         ( 'result', c_uint8 ),
     ]
+
+    def __repr__(self):
+        val = "(guide={}, result={})".format(
+            self.guide,
+            self.result,
+        )
+        return val
 
 
 class ResultsPendingElem( Structure ):
@@ -96,6 +145,14 @@ class ResultsPendingElem( Structure ):
         ( 'index',   c_uint16 ),
     ]
 
+    def __repr__(self):
+        val = "(trigger={}, index={})".format(
+            self.trigger,
+            self.index,
+        )
+        return val
+
+
 class ResultsPending( Structure ):
     '''
     ResultsPending struct
@@ -107,9 +164,63 @@ class ResultsPending( Structure ):
         ( 'size', c_uint16 ),
     ]
 
+    def __repr__(self):
+        val = "(data={}, size={})".format(
+            self.data,
+            self.size,
+        )
+        return val
+
 
 
 ### Classes ###
+
+class CapabilityHistory:
+    '''
+    Class that keeps track of the capability calls and maintains a history of calls.
+    '''
+    def __init__(self):
+        self.history = []
+        self.last_read = 0
+
+    def new_callback(self, cbhistory):
+        '''
+        Add a callback to the history (append only).
+        Expects a CallbackHistoryItem namedtuple.
+        '''
+        logger.debug("{}", cbhistory)
+        self.history.append(cbhistory)
+
+    def all(self):
+        '''
+        All callbacks in history.
+        Does not adjust unread callback position.
+        '''
+        return self.history
+
+    def prune(self, items=None):
+        '''
+        Prune read callback history.
+
+        @param items: Max number of items to prune
+        '''
+        to_prune = self.last_read
+        if items is not None:
+            to_prune = min(items, to_prune)
+
+        logger.debug("Pruning {}", to_prune)
+
+        self.history = self.history[to_prune:]
+        self.last_read -= to_prune
+
+    def unread(self):
+        '''
+        Returns list of unread callbacks
+        '''
+        var = self.history[self.last_read:]
+        self.last_read = len(self.history)
+        return var
+
 
 class Data:
     '''
@@ -117,6 +228,9 @@ class Data:
     '''
     def __init__( self ):
         self.usb_keyboard_data = None
+
+        # List of capability callbacks
+        self.capability_history = CapabilityHistory()
 
         self.rawio_loopback = False
         self.rawio_incoming_buffer = []
@@ -135,8 +249,8 @@ class Data:
         Returns trigger list buffer
         '''
         # TODO Dynamically select var_uint_t size
-        triggers_len = cast( control.kiibohd.macroTriggerListBufferSize, POINTER( c_uint8 ) )[0]
-        triggers = cast( control.kiibohd.macroTriggerListBuffer, POINTER( TriggerGuide * triggers_len ) )[0]
+        triggers_len = cast( control.kiibohd.macroTriggerEventBufferSize, POINTER( c_uint8 ) )[0]
+        triggers = cast( control.kiibohd.macroTriggerEventBuffer, POINTER( TriggerEvent * triggers_len ) )[0]
         output = []
         for index in range( 0, triggers_len ):
             output.append( triggers[ index ] )
@@ -223,10 +337,9 @@ class Control:
         # Import libkiibohd
         global kiibohd
         try:
-            kiibohd = ctypes.CDLL( libkiibohd_path )
+            kiibohd = CDLL( libkiibohd_path )
         except Exception as err:
-            print( "{0} Could not open -> {1}".format( ERROR, libkiibohd_path ) )
-            print( err )
+            logger.error("Could not open -> {}\n{}", libkiibohd_path, err )
             sys.exit( 1 )
         self.kiibohd = kiibohd
 
@@ -257,8 +370,7 @@ class Control:
         try:
             refresh_callback()
         except Exception as err:
-            print( "{0} Could not register libkiibohd callback function".format( ERROR ) )
-            print( err )
+            logger.error("Could not register libkiibohd callback function\n{}", err)
             sys.exit( 1 )
 
     def process_args( self ):
@@ -302,14 +414,14 @@ class Control:
 
         # Enable virtual serial port
         if args.cli:
-            print("Enabling Virtual Serial Port")
+            logger.info("Enabling Virtual Serial Port")
             self.virtual_serialport_setup()
 
         # Run test if requested, then exit
         if args.test:
-            print("libkiibohd.so - Callback Test")
+            logger.info("libkiibohd.so - Callback Test")
             val = self.kiibohd.Host_callback_test()
-            print("Return Value:", val )
+            logger.info("Return Value:", val )
             sys.exit( 0 )
 
         return args
@@ -319,14 +431,14 @@ class Control:
         Run main commands
         '''
         # Initialize kiibohd
-        print(">Host_init")
+        logger.info("Host_init")
         self.kiibohd.Host_init()
         print("")
 
         # Run cli if enabled
         self.virtual_serialport_process()
 
-    def loop( self, number_of_loops=1, quiet=False ):
+    def loop( self, number_of_loops=1 ):
         '''
         Run Host-side KLL main processing loop N number of times
 
@@ -337,8 +449,7 @@ class Control:
             # Refresh callback interface
             refresh_callback()
 
-            if not quiet:
-                print( ">Host_process ({0})".format( loop ) )
+            logger.debug("Host_process ({})", loop)
             self.kiibohd.Host_process()
             loop += 1
 
@@ -360,6 +471,15 @@ class Control:
         '''
         # Refresh callback interface
         refresh_callback()
+
+        # Only print stack (show full calling function) info if in debug mode
+        if logger.isEnabledFor(logging.DEBUG):
+            parentstack_info = inspect.stack()[-1]
+            logger.debug("cmd - {} {}:{}",
+                parentstack_info.code_context[0][:-1],
+                parentstack_info.filename,
+                parentstack_info.lineno
+            )
 
         return self.command_dict[ command_name ]
 
@@ -407,7 +527,7 @@ class Control:
 
         # Setup ttyname
         self.serial_name = os.ttyname( self.serial_slave )
-        print( self.serial_name )
+        logger.info( self.serial_name )
 
         # Setup serial interface
         self.serial = self.serial_master
@@ -428,11 +548,12 @@ def get_method_dict( obj ):
 
 def refresh_callback():
     '''
-    XXX
     Refresh callback pointer
+
+    XXX (HaaTa)
     For some reason, either garbage collection, or something else, the pointer becomes stale in certain situations
     Usually when calling different library functions
-    This just refreshes the pointer (shouldn't be necessary, but it works...) -Jacob
+    This just refreshes the pointer (shouldn't be necessary, but it works...)
     '''
     # Prevent garbage collection
     global callback_func
@@ -446,7 +567,7 @@ def callback( command, args ):
     libkiibohd callback function
     '''
     if control.debug:
-        print( "Callback:", command, args )
+        logger.debug("Callback: {} {}", command, args)
 
     # Lookup function in callback dictionary
     # Every function must taken a single argument
@@ -464,6 +585,6 @@ def callback( command, args ):
 ### Main Entry Point ###
 
 if __name__ == '__main__':
-    print( "{0} Do not call directly.".format( ERROR ) )
+    logger.error("Do not call directly.")
     sys.exit( 1 )
 

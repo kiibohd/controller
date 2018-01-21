@@ -71,14 +71,17 @@ Projects
 
 **Tests**
 
+* [Testing/klltest.bash](Testing/klltest.bash)       (Automated KLL Trigger:Result test, uses input KLL files to build test)
 * [Testing/macrotest.bash](Testing/macrotest.bash)   (Basic host-side unit-tests)
 * [Testing/mk20test.bash](Testing/mk20test.bash)     (mk20dx128vlh7 test build)
 * [Testing/mk22test.bash](Testing/mk22test.bash)     (mk22fx512avlh12 test build)
 * [Testing/mk64test.bash](Testing/mk64test.bash)     (mk64fx512 Teensy 3.5 test build)
 * [Testing/mk66test.bash](Testing/mk66test.bash)     (mk66fx1m0 Teensy 3.6 test build)
+* [Testing/none.bash](Testing/none.bash)             (Sanity build using mk20dx128vlf5, useful base for MCU porting)
+* [Testing/sam4sd32c.bash](Testing/sam4sd32c.bash)   (sam4sd32c test build)
 * [Testing/template.bash](Testing/template.bash)     (Example test template)
 * [Testing/uartout.bash](Testing/uartout.bash)       (Test mk20dx128vlf5 with uartOut Output Module)
-* [Testing/usbmuxuart.bash](Testing/usbmuxuart.bash) (Test mk20dx128vlf5 with usbMuxUart Output Module)
+* [Testing/usbxuart.bash](Testing/usbxuart.bash)     (Test mk20dx128vlf5 with USBxUART Output Module)
 
 
 Example Usage

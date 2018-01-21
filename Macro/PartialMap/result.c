@@ -75,9 +75,19 @@ ResultsPending macroResultMacroPendingList;
 // Delayed capabilities stack
 volatile ResultCapabilityStack macroResultDelayedCapabilities;
 
+#if defined(_host_)
+// Host-side KLL capability callback data
+ResultCapabilityStackItem resultCapabilityCallbackData;
+#endif
+
 
 
 // ----- Functions -----
+
+#if defined(_host_)
+// Callback for host-side kll
+extern int Output_callback( char* command, char* args );
+#endif
 
 // Evaluate/Update ResultMacro
 ResultMacroEval Macro_evalResultMacro( ResultPendingElem resultElem )
@@ -110,6 +120,17 @@ ResultMacroEval Macro_evalResultMacro( ResultPendingElem resultElem )
 			// Do lookup on capability function
 			void (*capability)(TriggerMacro*, uint8_t, uint8_t, uint8_t*) = \
 				(void(*)(TriggerMacro*, uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
+
+#if defined(_host_)
+			// Callback to indicate a capability has been called
+			resultCapabilityCallbackData.trigger         = resultElem.trigger;
+			resultCapabilityCallbackData.state           = record->state;
+			resultCapabilityCallbackData.stateType       = record->stateType;
+			resultCapabilityCallbackData.capabilityIndex = guide->index;
+			resultCapabilityCallbackData.args            = &guide->args;
+
+			Output_callback( "capabilityCallback", "immediate" );
+#endif
 
 			// Call capability
 			capability( resultElem.trigger, record->state, record->stateType, &guide->args );
@@ -183,6 +204,17 @@ void Result_process_delayed()
 		// Do lookup on capability function
 		void (*capability)(TriggerMacro*, uint8_t, uint8_t, uint8_t*) = \
 			(void(*)(TriggerMacro*, uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ item->capabilityIndex ].func);
+
+#if defined(_host_)
+		// Callback to indicate a capability has been called
+		resultCapabilityCallbackData.trigger         = item->trigger;
+		resultCapabilityCallbackData.state           = item->state;
+		resultCapabilityCallbackData.stateType       = item->stateType;
+		resultCapabilityCallbackData.capabilityIndex = item->capabilityIndex;
+		resultCapabilityCallbackData.args            = item->args;
+
+		Output_callback( "capabilityCallback", "delayed" );
+#endif
 
 		// Call capability
 		capability( item->trigger, item->state, item->stateType, item->args );

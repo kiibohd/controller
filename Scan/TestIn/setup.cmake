@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Scan Module |###
 #
-# Written by Jacob Alexander in 2016-2017 for the Kiibohd Controller
+# Written by Jacob Alexander in 2016-2018 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -40,8 +40,10 @@ configure_file ( Scan/TestIn/gdb          Tests/gdb          COPYONLY )
 # Test cases
 #
 configure_file ( Scan/TestIn/Tests/common.py     Tests/common.py     COPYONLY )
+configure_file ( Scan/TestIn/Tests/kiilogger.py  Tests/kiilogger.py  COPYONLY )
 
 configure_file ( Scan/TestIn/Tests/test.py       Tests/test.py       COPYONLY )
+configure_file ( Scan/TestIn/Tests/kll.py        Tests/kll.py        COPYONLY )
 configure_file ( Scan/TestIn/Tests/animation.py  Tests/animation.py  COPYONLY )
 configure_file ( Scan/TestIn/Tests/animation2.py Tests/animation2.py COPYONLY )
 configure_file ( Scan/TestIn/Tests/hidio.py      Tests/hidio.py      COPYONLY )

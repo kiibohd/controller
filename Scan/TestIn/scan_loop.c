@@ -114,8 +114,8 @@ int Scan_addScanCode( uint8_t scanCode )
 {
 	// Add key event to macro key buffer
 	TriggerGuide guide = {
-		.type     = 0x00,
-		.state    = 0x01, // Press
+		.type     = TriggerType_Switch1,
+		.state    = ScheduleType_P, // Press
 		.scanCode = scanCode,
 	};
 
@@ -131,8 +131,8 @@ int Scan_removeScanCode( uint8_t scanCode )
 {
 	// Add key event to macro key buffer
 	TriggerGuide guide = {
-		.type     = 0x00,
-		.state    = 0x03, // Release
+		.type     = TriggerType_Switch1,
+		.state    = ScheduleType_R, // Release
 		.scanCode = scanCode,
 	};
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is bash lib file for the convenience build scripts
 # Don't call this script directly
-# Jacob Alexander 2015-2017
+# Jacob Alexander 2015-2018
 
 # Check if compiler has been overridden by the environment
 Compiler=${COMPILER:-${Compiler}}
@@ -12,6 +12,7 @@ BuildPath=${BuildPath}.${Compiler}
 # Default to not using HostBuild
 EnableHostBuild=${EnableHostBuild:-false}
 EnableHostOnlyBuild=${EnableHostOnlyBuild:-false}
+HostTest=${HostTest:-""}
 
 # Make sure all of the relevant variables have been set
 # NOTE: PartialMaps and DefaultMap do not have to be set
@@ -272,12 +273,31 @@ if ${EnableHostBuild}; then
 		cmake --build . ${CMakeExtraBuildArgs}
 		return_code=$?
 	fi
-
 	if [[ "$return_code" -ne "0" ]] ; then
 		echo "Error in host build. Exiting..."
 		exit $return_code
 	fi
 	echo "Host-Build has been compiled into: '${HostPath}'"
+
+	# Determine if we are running any tests
+	if [[ "$HostTest" != "" ]]; then
+		TestPath="Tests/${HostTest}"
+		# Make sure test exists
+		if [[ -e "$TestPath" ]]; then
+			# Run test
+			echo "Running '$TestPath'..."
+			./${TestPath}
+			return_code=$?
+
+			# Results
+			if [[ "$return_code" -ne "0" ]] ; then
+				echo "Error in running '$TestPath'. Exiting..."
+				exit $return_code
+			fi
+		fi
+	fi
+
+	# Only host build
 	if ${EnableHostOnlyBuild}; then
 		exit $return_code
 	fi

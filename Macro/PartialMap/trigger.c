@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,6 +70,7 @@ extern var_uint_t macroTriggerEventBufferSize;
 extern var_uint_t macroTriggerEventLayerCache[];
 
 // Debug Variables
+extern uint8_t triggerPendingDebugMode;
 extern uint8_t voteDebugMode;
 
 // Pending Trigger Macro Index List
@@ -572,6 +573,18 @@ void Trigger_process()
 	// Tail pointer for macroTriggerMacroPendingList
 	// Macros must be explicitly re-added
 	var_uint_t macroTriggerMacroPendingListTail = 0;
+
+	// Display trigger information before processing
+	if ( triggerPendingDebugMode )
+	{
+		print("\033[1;30mTPe\033[0m");
+		for ( var_uint_t macro = 0; macro < macroTriggerMacroPendingListSize; macro++ )
+		{
+			print(" ");
+			printInt8( macroTriggerMacroPendingList[ macro ] );
+		}
+		print(NL);
+	}
 
 	// Iterate through the pending TriggerMacros, processing each of them
 	for ( var_uint_t macro = 0; macro < macroTriggerMacroPendingListSize; macro++ )

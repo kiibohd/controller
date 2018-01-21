@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2017 by Jacob Alexander
+/* Copyright (C) 2011-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -774,7 +774,7 @@ inline int USB_putstr( char* str )
 #if enableVirtualSerialPort_define == 1
 #if defined(_avr_at_) // AVR
 	uint16_t count = 0;
-#elif defined(_kinetis_) || defined(_sam_) // ARM
+#else
 	uint32_t count = 0;
 #endif
 	// Count characters until NULL character, then send the amount counted

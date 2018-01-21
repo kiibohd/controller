@@ -1,67 +1,15 @@
 # TestOut
 
 Name = TestOutCapabilities;
-Version = 0.2;
-Author = "HaaTa (Jacob Alexander) 2014-2017";
+Version = 0.3;
+Author = "HaaTa (Jacob Alexander) 2014-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-04-02;
+Date = 2018-01-07;
 
 
-# Output capabilities
-consCtrlOut => Output_consCtrlSend_capability( consCode : 2 );
-noneOut     => Output_noneSend_capability();
-sysCtrlOut  => Output_sysCtrlSend_capability( sysCode : 1 );
-usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
-mouseOut    => Output_usbMouse_capability( mouseCode : 2, relative_x : 2, relative_y : 2 );
-
-# Configuration capabilities
-kbdProtocolBoot => Output_kbdProtocolBoot_capability();
-kbdProtocolNKRO => Output_kbdProtocolNKRO_capability();
-toggleKbdProtocol => Output_toggleKbdProtocol_capability();
-
-# Default KRO Mode
-# Set to 0 for Boot Mode (6KRO)
-# Set to 1 for NKRO Mode (default)
-usbProtocol => USBProtocol_define;
-usbProtocol = 1;
-
-# Bootloader Mode capability
-# XXX
-# By default this is disabled on purpose
-# It is a large security hazard
-flashModeEnabled => flashModeEnabled_define;
-flashModeEnabled = 0;
-
-flashMode => Output_flashMode_capability();
-
-
-## USB Endpoint Configuration ##
-# 1 - Enable endpoint
-# 0 - Disable endpoint
-# Any/all endpoints can be disabled
-# But you'll lose functionality for that feature
-# Disabling endpoints will save RAM and Flash on the target MCU
-
-# Joystick Endpoint
-# *Currently Unused*
-enableJoystick => enableJoystick_define;
-enableJoystick = 0;
-
-# Mouse Endpoint
-enableMouse => enableMouse_define;
-enableMouse = 1;
-
-# Keyboard Endpoint
-enableKeyboard => enableKeyboard_define;
-enableKeyboard = 1;
-
-# CDC / Serial Port Endpoint
-enableVirtualSerialPort => enableVirtualSerialPort_define;
-enableVirtualSerialPort = 1;
-
-# Raw I/O Endpoint
-enableRawIO => enableRawIO_define;
-enableRawIO = 1;
+# Enable define
+Output_TestOutEnabled = "1";
+Output_TestOutEnabled => Output_TestOutEnabled_define;
 
