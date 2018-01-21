@@ -83,6 +83,9 @@ Time Time_now()
 		.ms    = systick_millis_count,
 		.ticks = ARM_DWT_CYCCNT,
 	};
+#elif defined(_sam_)
+	//SAM TODO
+	Time time = Time_init();
 #elif defined(_host_)
 	Time time = {
 		.ms    = systick_millis_count,

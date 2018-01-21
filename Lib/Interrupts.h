@@ -29,10 +29,15 @@
 
 #include <Lib/mcu_compat.h>
 
-// ARM
+// Kinetis (ARM)
 #if defined(_kinetis_)
 
 #include <Lib/kinetis.h>
+
+// SAM (ARM)
+#elif defined(_sam_)
+
+#include <Lib/sam.h>
 
 // AVR
 #elif defined(_avr_at_)
@@ -51,7 +56,7 @@
 // ----- Defines -----
 
 // ARM
-#if defined(_kinetis_)
+#if defined(_kinetis_) || defined(_sam_)
 
 // Map the Interrupt Enable/Disable to the AVR names
 #define cli() __disable_irq()

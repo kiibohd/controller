@@ -35,7 +35,7 @@
 // USB Includes
 #if defined(_avr_at_)
 #include "avr/usb_keyboard_serial.h"
-#elif defined(_kinetis_)
+#elif defined(_kinetis_) || defined(_sam_)
 #include "arm/usb_dev.h"
 #include "arm/usb_keyboard.h"
 #include "arm/usb_mouse.h"

@@ -457,9 +457,13 @@ void LED_reset()
 
 #if ISSI_Chip_31FL3733_define == 1
 	// Reset I2C bus
+#if defined(_kinetis_)
 	GPIOC_PSOR |= (1<<5);
 	delay_us(200);
 	GPIOC_PCOR |= (1<<5);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 #endif
 
 	// Clear LED Pages
@@ -684,18 +688,26 @@ inline void LED_setup()
 	LED_enable = ISSI_Enable_define;
 
 	// Enable Hardware shutdown (pull low)
+#if defined(_kinetis_)
 	GPIOB_PDDR |= (1<<16);
 	PORTB_PCR16 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOB_PCOR |= (1<<16);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 
 #if ISSI_Chip_31FL3733_define == 1
 	// Reset I2C bus (pull high, then low)
 	// NOTE: This GPIO may be shared with the debug LED
+#if defined(_kinetis_)
 	GPIOA_PDDR |= (1<<5);
 	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOC_PSOR |= (1<<5);
 	delay_us(50);
 	GPIOC_PCOR |= (1<<5);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 #endif
 
 	// Zero out Frame Registers
@@ -705,7 +717,11 @@ inline void LED_setup()
 	// Disable Hardware shutdown of ISSI chips (pull high)
 	if ( LED_enable )
 	{
+#if defined(_kinetis_)
 		GPIOB_PSOR |= (1<<16);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 	}
 
 	// Reset LED sequencing
@@ -821,13 +837,21 @@ inline void LED_scan()
 	if ( LED_enable )
 	{
 		// Disable Hardware shutdown of ISSI chips (pull high)
+#if defined(_kinetis_)
 		GPIOB_PSOR |= (1<<16);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 	}
 	// Only write pages to I2C if chip is enabled (i.e. Hardware shutdown is disabled)
 	else
 	{
 		// Enable hardware shutdown
+#if defined(_kinetis_)
 		GPIOB_PCOR |= (1<<16);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 		goto led_finish_scan;
 	}
 
@@ -1071,9 +1095,13 @@ void cliFunc_ledReset( char* args )
 	print( NL ); // No \r\n by default after the command is entered
 
 	// Reset I2C bus
+#if defined(_kinetis_)
 	GPIOC_PSOR |= (1<<5);
 	delay_us(50);
 	GPIOC_PCOR |= (1<<5);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 	i2c_reset();
 
 	// Clear control registers

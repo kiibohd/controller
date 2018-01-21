@@ -52,6 +52,7 @@ void i2c_setup()
 {
 	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
 	{
+#if defined(_kinetis_)
 		volatile uint8_t *I2C_F   = (uint8_t*)(&I2C0_F) + i2c_offset[ch];
 		volatile uint8_t *I2C_FLT = (uint8_t*)(&I2C0_FLT) + i2c_offset[ch];
 		volatile uint8_t *I2C_C1  = (uint8_t*)(&I2C0_C1) + i2c_offset[ch];
@@ -69,7 +70,7 @@ void i2c_setup()
 
 			break;
 
-#if defined(_kii_v2_)
+	#if defined(_kii_v2_)
 		case 1:
 			// Enable I2C internal clock
 			SIM_SCGC4 |= SIM_SCGC4_I2C1; // Bus 1
@@ -79,23 +80,23 @@ void i2c_setup()
 			PORTC_PCR11 = PORT_PCR_ODE | PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(2);
 
 			break;
-#endif
+	#endif
 		}
 
 		// SCL Frequency Divider
-#if ISSI_Chip_31FL3731_define == 1 && defined(_kii_v1_)
+	#if ISSI_Chip_31FL3731_define == 1 && defined(_kii_v1_)
 		// 0x85 -> 48 MHz / (4 * 28) = 400 kBaud
 		// 0x80 => mul(4)
 		// 0x05 => ICR(30)
 		*I2C_F = 0x85;
 		*I2C_FLT = 0x04;
-#elif ISSI_Chip_31FL3731_define == 1 && defined(_kii_v2_)
+	#elif ISSI_Chip_31FL3731_define == 1 && defined(_kii_v2_)
 		// 0x84 -> 36 MHz / (4 * 28) = 321.428 kBaud
 		// 0x80 => mul(4)
 		// 0x04 => ICR(28)
 		*I2C_F = 0x84;
 		*I2C_FLT = 0x03;
-#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define == 1
+	#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define == 1
 		/*
 		// Works
 		// 0x84 -> 36 MHz / (4 * 28) = 321.428 kBaud
@@ -118,7 +119,7 @@ void i2c_setup()
 		// 0x00 => ICR(20)
 		*I2C_F = 0x40;
 		*I2C_FLT = 0x02;
-#endif
+	#endif
 		*I2C_C1 = I2C_C1_IICEN;
 		*I2C_C2 = I2C_C2_HDRS; // High drive select
 
@@ -132,7 +133,7 @@ void i2c_setup()
 			NVIC_SET_PRIORITY( IRQ_PIT_CH0, 150 );
 			break;
 
-#if defined(_kii_v2_)
+	#if defined(_kii_v2_)
 		case 1:
 
 			// Enable I2C Interrupt
@@ -141,8 +142,11 @@ void i2c_setup()
 			// Set priority below USB, but not too low to maintain performance
 			NVIC_SET_PRIORITY( IRQ_PIT_CH1, 150 );
 			break;
-#endif
+	#endif
 		}
+#elif defined(_sam_)
+		//SAM TODO
+#endif
 	}
 }
 
@@ -192,14 +196,15 @@ int32_t i2c_send_sequence(
 	void ( *callback_fn )( void* ),
 	void *user_data
 ) {
+	int32_t result = 0;
+
+#if defined(_kinetis_)
 	volatile I2C_Channel *channel = &( i2c_channels[ch] );
+	uint8_t status;
 
 	volatile uint8_t *I2C_C1  = (uint8_t*)(&I2C0_C1) + i2c_offset[ch];
 	volatile uint8_t *I2C_S   = (uint8_t*)(&I2C0_S) + i2c_offset[ch];
 	volatile uint8_t *I2C_D   = (uint8_t*)(&I2C0_D) + i2c_offset[ch];
-
-	int32_t result = 0;
-	uint8_t status;
 
 	if ( channel->status == I2C_BUSY )
 	{
@@ -250,14 +255,18 @@ int32_t i2c_send_sequence(
 i2c_send_sequence_cleanup:
 	*I2C_C1 &= ~( I2C_C1_IICIE | I2C_C1_MST | I2C_C1_TX );
 	channel->status = I2C_ERROR;
+#elif defined(_sam_)
+	//SAM TODO
+#endif
+
 	return result;
 }
 
 
 void i2c_isr( uint8_t ch )
 {
+#if defined(_kinetis_)
 	volatile I2C_Channel* channel = &i2c_channels[ch];
-
 	volatile uint8_t *I2C_C1  = (uint8_t*)(&I2C0_C1) + i2c_offset[ch];
 	volatile uint8_t *I2C_S   = (uint8_t*)(&I2C0_S) + i2c_offset[ch];
 	volatile uint8_t *I2C_D   = (uint8_t*)(&I2C0_D) + i2c_offset[ch];
@@ -427,6 +436,9 @@ i2c_isr_error:
 	*I2C_C1 &= ~( I2C_C1_MST | I2C_C1_IICIE );
 	channel->status = I2C_ERROR;
 	return;
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 }
 
 void i2c0_isr()

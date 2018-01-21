@@ -903,6 +903,7 @@ void Connect_setup( uint8_t master, uint8_t first )
 	if ( Connect_master )
 		Connect_id = 0; // 0x00 is always the master Id
 
+#if defined(_kinetis_)
 	// UART0 setup
 	// UART1 setup
 	// Setup the the UART interface for keyboard data input
@@ -1011,6 +1012,9 @@ void Connect_setup( uint8_t master, uint8_t first )
 	// Add interrupts to the vector table
 	NVIC_ENABLE_IRQ( IRQ_UART0_STATUS );
 	NVIC_ENABLE_IRQ( IRQ_UART1_STATUS );
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 
 	// UARTs are now ready to go
 	uarts_configured = 1;
@@ -1033,8 +1037,12 @@ void Connect_rx_process( uint8_t uartNum )
 	uint16_t bufpos = 0;
 	switch ( uartNum )
 	{
+#if defined(_kinetis_)
 	DMA_BUF_POS( 0, bufpos );
 	DMA_BUF_POS( 1, bufpos );
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 	}
 
 	// Process each of the new bytes
@@ -1204,10 +1212,14 @@ void Connect_scan()
 	{
 		// Check if Tx Buffers are empty and the Tx Ring buffers have data to send
 		// This happens if there was previously nothing to send
+#if defined(_kinetis_)
 		if ( uart_tx_buf[ 0 ].items > 0 && UART0_TCFIFO == 0 )
 			uart_fillTxFifo( 0 );
 		if ( uart_tx_buf[ 1 ].items > 0 && UART1_TCFIFO == 0 )
 			uart_fillTxFifo( 1 );
+#elif defined(_sam_)
+		//SAM TODO
+#endif
 
 		// Process Rx Buffers
 		Connect_rx_process( 0 );

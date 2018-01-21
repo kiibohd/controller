@@ -19,6 +19,12 @@
  * THE SOFTWARE.
  */
 
+
+/*
+ * NOTE! This has been depricated in favor of the MatrixARMPeriodic implementation.
+ */
+
+
 // ----- Includes -----
 
 // Compiler Includes

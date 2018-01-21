@@ -74,6 +74,7 @@ uint32_t rand_value32()
 
 #include "atomic.h"
 #include "entropy.h"
+
 #include "kinetis.h"
 
 
@@ -114,19 +115,27 @@ void rand_initialize()
 	gWDT_pool_end = 0;
 	gWDT_pool_count = 0;
 
+#if defined(_kinetis_)
 	SIM_SCGC5 |= SIM_SCGC5_LPTIMER;
 	LPTMR0_CSR = 0b10000100;
 	LPTMR0_PSR = 0b00000101; // PCS=01 : 1 kHz clock
 	LPTMR0_CMR = 0x0006;     // smaller number = faster random numbers...
 	LPTMR0_CSR = 0b01000101;
 	NVIC_ENABLE_IRQ( IRQ_LPTMR );
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 }
 
 
 // Disables interrupt, thus stopping CPU usage generating entropy
 void rand_disable()
 {
+#if defined(_kinetis_)
 	NVIC_DISABLE_IRQ( IRQ_LPTMR );
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 }
 
 
@@ -216,9 +225,13 @@ static void isr_hardware_neutral( uint8_t val )
 
 void lptmr_isr()
 {
+#if defined(_kinetis_)
 	LPTMR0_CSR = 0b10000100;
 	LPTMR0_CSR = 0b01000101;
 	isr_hardware_neutral(SYST_CVR);
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 }
 
 
@@ -228,8 +241,9 @@ void lptmr_isr()
 // ----- Includes -----
 
 #include <stdlib.h>
-
 #include "entropy.h"
+
+#include "sam.h"
 
 
 

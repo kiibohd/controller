@@ -111,6 +111,9 @@ void jumpToBootloader(void)
 	PORTA = 0; PORTB = 0; PORTC = 0; PORTD = 0; PORTE = 0; PORTF = 0;
 	asm volatile("jmp 0x1FC00");
 #endif
+
+#else
+#warning "unsuported platform"
 #endif
 }
 

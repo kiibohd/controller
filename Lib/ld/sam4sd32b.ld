@@ -28,7 +28,7 @@
 /* ---------------------------------------------------------------------------- */
 
 /*------------------------------------------------------------------------------
- *      Linker script for running in internal FLASH on the ATSAM4SD32C
+ *      Linker script for running in internal FLASH on the ATSAM4SD32B
  *----------------------------------------------------------------------------*/
 
 OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
@@ -51,6 +51,7 @@ STACK_SIZE = DEFINED(STACK_SIZE) ? STACK_SIZE : 0x400;
 
 /* The heapsize used by the application. NOTE: you need to adjust according to your application. */
 HEAP_SIZE = DEFINED(HEAP_SIZE) ? HEAP_SIZE : 0x200;
+
 
 /* Section Definitions */
 SECTIONS
