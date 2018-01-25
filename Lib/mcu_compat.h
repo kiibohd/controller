@@ -34,6 +34,8 @@
 //
 // _sam_      - SAM MCU
 // _sam4s_    - SAM 4s    MCU
+// _sam4s2_   - SAM 4s2   MCU
+// _sam4s4_   - SAM 4s4   MCU
 // _sam4s8_   - SAM 4s8   MCU
 // _sam4s16_  - SAM 4s16  MCU
 // _sam4sa16_ - SAM 4sa16 MCU
@@ -122,6 +124,60 @@
 
 
 // - SAM ARM MCUs -
+
+// sam4s2a (128 kB) 48-pin
+#if defined(_sam4s2a_)
+	#define _sam_ 1
+	#define _sam4s_ 1
+	#define _sam4s_a_ 1
+	#define _sam4s2_ 1
+	#define _kii_v3_ 1
+#endif
+
+// sam4s2b (128 kB) 64-pin
+#if defined(_sam4s2b_)
+	#define _sam_ 1
+	#define _sam4s_ 1
+	#define _sam4s_b_ 1
+	#define _sam4s2_ 1
+	#define _kii_v3_ 1
+#endif
+
+// sam4s2c (128 kB) 100-pin
+#if defined(_sam4s2c_)
+	#define _sam_ 1
+	#define _sam4s_ 1
+	#define _sam4s_c_ 1
+	#define _sam4s2_ 1
+	#define _kii_v3_ 1
+#endif
+
+// sam4s4a (256 kB) 48-pin
+#if defined(_sam4s4a_)
+	#define _sam_ 1
+	#define _sam4s_ 1
+	#define _sam4s_a_ 1
+	#define _sam4s4_ 1
+	#define _kii_v3_ 1
+#endif
+
+// sam4s4b (256 kB) 64-pin
+#if defined(_sam4s4b_)
+	#define _sam_ 1
+	#define _sam4s_ 1
+	#define _sam4s_b_ 1
+	#define _sam4s4_ 1
+	#define _kii_v3_ 1
+#endif
+
+// sam4s4c (256 kB) 100-pin
+#if defined(_sam4s4c_)
+	#define _sam_ 1
+	#define _sam4s_ 1
+	#define _sam4s_c_ 1
+	#define _sam4s4_ 1
+	#define _kii_v3_ 1
+#endif
 
 // sam4s8b (512 kB) 64-pin
 #if defined(_sam4s8b_)
