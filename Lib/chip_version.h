@@ -123,6 +123,84 @@ const char *ChipVersion_nvmtype[] = {
 
 // ----- Functions -----
 
+#elif defined(_nrf_)
+
+// ----- Includes -----
+
+
+
+// ----- Variables -----
+
+// See FICR | INFO.PART
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52810.ps%2Fficr.html&cp=2_2_0_3_3_0_15&anchor=register.INFO.PART
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fficr.html&cp=2_1_0_12_0_15&anchor=register.INFO.PART
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52840.ps%2Fficr.html&anchor=register.INFO.PART
+// Hex encoding of partnumber string (e.g. 0x52810, 0x52832, 0x52840
+
+// See FICR | INFO.VARIANT | Part Variant, Hardware version and Production configuration
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52810.ps%2Fficr.html&cp=2_2_0_3_3_0_15&anchor=register.INFO.VARIANT
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fficr.html&cp=2_1_0_12_0_15&anchor=register.INFO.VARIANT
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52840.ps%2Fficr.html&anchor=register.INFO.VARIANT
+// ASCII encoding variant
+// AAAA 0x41414141
+// AAA0 0x41414130
+// AABA 0x41414241
+// AABB 0x41414242
+// AAB0 0x41414230
+// AACA 0x41414341
+// AACB 0x41414342
+// AAC0 0x41414330
+// Unspecified 0xFFFFFFFF
+
+// See FICR | INFO.PACKAGE | Package option
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52810.ps%2Fficr.html&cp=2_2_0_3_3_0_15&anchor=register.INFO.PACKAGE
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fficr.html&cp=2_1_0_12_0_15&anchor=register.INFO.PACKAGE
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52840.ps%2Fficr.html&anchor=register.INFO.PACKAGE
+const char *ChipVersion_package[] = {
+	"QF", // 0x2000     - QFxx - 48-pin QFN
+	"CH", // 0x2001     - CHxx - 56-pin WLCSP
+	"CI", // 0x2002     - CIxx - 56-pin WLCSP
+	"QC", // 0x2003     - QCxx - 32-pin QFN
+	"QI", // 0x2004     - QIxx - 73-pin AQFN
+	"CK", // 0x2005     - CKxx - 56-pin WLCSP
+	"--", // 0xFFFFFFFF - Unspecified
+};
+
+// See FICR | INFO.RAM | RAM variant
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52810.ps%2Fficr.html&cp=2_2_0_3_3_0_15&anchor=register.INFO.RAM
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fficr.html&cp=2_1_0_12_0_15&anchor=register.INFO.RAM
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52840.ps%2Fficr.html&anchor=register.INFO.RAM
+// Mark reserved as --
+const char *ChipVersion_ramsize[] = {
+	"K16",  // 0x010      -  16 kB RAM
+	"K32",  // 0x020      -  32 kB RAM
+	"K64",  // 0x040      -  64 kB RAM
+	"K128", // 0x080      - 128 kB RAM
+	"K256", // 0x100      - 256 kB RAM
+	"--",   // 0xFFFFFFFF - Unspecified
+};
+
+// See FICR | INFO.FLASH | Flash variant
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52810.ps%2Fficr.html&cp=2_2_0_3_3_0_15&anchor=register.INFO.FLASH
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52832.ps.v1.1%2Fficr.html&cp=2_1_0_12_0_15&anchor=register.INFO.FLASH
+// http://infocenter.nordicsemi.com/index.jsp?topic=%2Fcom.nordic.infocenter.nrf52840.ps%2Fficr.html&anchor=register.INFO.FLASH
+// Mark reserved as --
+const char *ChipVersion_flashsize[] = {
+	"K128",  // 0x080      -  128 kByte Flash
+	"K256",  // 0x100      -  256 kByte Flash
+	"K512",  // 0x200      -  512 kByte Flash
+	"K1024", // 0x400      - 1024 kByte Flash
+	"K2048", // 0x800      - 2048 kByte Flash
+	"--",    // 0xFFFFFFFF - Unspecified
+};
+
+
+
+
+// ----- Function Declarations -----
+
+// ----- Functions -----
+
 #elif defined(_kinetis_)
 
 // ----- Includes -----
