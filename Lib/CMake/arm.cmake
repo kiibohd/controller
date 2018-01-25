@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2017
+# Jacob Alexander 2011-2018
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -77,6 +77,10 @@ if ( "${CHIP}" MATCHES "^mk.*$" )
 #| SAM
 elseif ( "${CHIP}" MATCHES "^sam.*$" )
 	include( sam )
+
+#| nRF
+elseif ( "${CHIP}" MATCHES "^nrf.*$" )
+	include( nrf )
 
 #| Unknown
 else ()
