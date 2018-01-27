@@ -79,8 +79,8 @@ elseif ( "${CHIP}" MATCHES "^sam.*$" )
 	include( sam )
 
 #| nRF
-elseif ( "${CHIP}" MATCHES "^nrf.*$" )
-	include( nrf )
+elseif ( "${CHIP}" MATCHES "^nrf5.*$" )
+	include( nrf5 )
 
 #| Unknown
 else ()

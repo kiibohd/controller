@@ -11,12 +11,12 @@
 
 #| Chip Name (Linker)
 #|
-#| "nRF52810-QCAA" # 32-pin Kiibohd-dfu
-#| "nRF52810-QFAA" # 48-pin Kiibohd-dfu
-#| "nRF52832-QFAA" # 48-pin Kiibohd-dfu
-#| "nRF52832-QFAB" # 48-pin Kiibohd-dfu
-#| "nRF52832-CIAA" # 50-pin Kiibohd-dfu
-#| "nRF52840-QIAA" # 73-pin Kiibohd-dfu
+#| "nrf52810_QCAA" # 32-pin Kiibohd-dfu
+#| "nrf52810_QFAA" # 48-pin Kiibohd-dfu
+#| "nrf52832_QFAA" # 48-pin Kiibohd-dfu
+#| "nrf52832_QFAB" # 48-pin Kiibohd-dfu
+#| "nrf52832_CIAA" # 50-pin Kiibohd-dfu
+#| "nrf52840_QIAA" # 73-pin Kiibohd-dfu
 
 
 #| Chip Size and CPU Frequency Database
@@ -28,7 +28,7 @@
 
 #| Kiibohd-dfu
 #| https://www.nordicsemi.com/eng/Products/nRF52810
-if ( "${CHIP}" MATCHES "nrf52810-qcaa" OR "${CHIP}" MATCHES "nrf52810-qfaa" )
+if ( "${CHIP}" MATCHES "nrf52810_qcaa" OR "${CHIP}" MATCHES "nrf52810_qfaa" )
 	set( SIZE_RAM     24576 )
 	set( SIZE_FLASH  196608 )
 	set( F_CPU     64000000 )
@@ -44,7 +44,7 @@ if ( "${CHIP}" MATCHES "nrf52810-qcaa" OR "${CHIP}" MATCHES "nrf52810-qfaa" )
 
 #| Kiibohd-dfu
 #| https://www.nordicsemi.com/eng/Products/Bluetooth-low-energy/nRF52832
-elseif ( "${CHIP}" MATCHES "nrf52832-qfaa" OR "${CHIP}" MATCHES "nrf52832-ciaa" )
+elseif ( "${CHIP}" MATCHES "nrf52832_qfaa" OR "${CHIP}" MATCHES "nrf52832_ciaa" )
 	set( SIZE_RAM     65536 )
 	set( SIZE_FLASH  524288 )
 	set( F_CPU     64000000 )
@@ -60,7 +60,7 @@ elseif ( "${CHIP}" MATCHES "nrf52832-qfaa" OR "${CHIP}" MATCHES "nrf52832-ciaa" 
 
 #| Kiibohd-dfu
 #| https://www.nordicsemi.com/eng/Products/Bluetooth-low-energy/nRF52832
-elseif ( "${CHIP}" MATCHES "nrf52832-qfab" )
+elseif ( "${CHIP}" MATCHES "nrf52832_qfab" )
 	set( SIZE_RAM     32768 )
 	set( SIZE_FLASH  262144 )
 	set( F_CPU     64000000 )
@@ -76,7 +76,7 @@ elseif ( "${CHIP}" MATCHES "nrf52832-qfab" )
 
 #| Kiibohd-dfu
 #| https://www.nordicsemi.com/eng/Products/nRF52840
-elseif ( "${CHIP}" MATCHES "nrf52840-qiaa" )
+elseif ( "${CHIP}" MATCHES "nrf52840_qiaa" )
 	set( SIZE_RAM    262144 )
 	set( SIZE_FLASH 1048576 )
 	set( F_CPU     64000000 )

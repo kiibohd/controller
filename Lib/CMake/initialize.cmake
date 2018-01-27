@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Initialization |###
 #
-# Written by Jacob Alexander in 2011-2017 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2018 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -49,11 +49,19 @@ message( "${DETECTED_BUILD_KERNEL}" )
 #
 
 #| avr match
-if ( "${CHIP}" MATCHES "^at90usb.*$" OR "${CHIP}" MATCHES "^atmega.*$" )
+if (
+	"${CHIP}" MATCHES "^at90usb.*$" OR
+	"${CHIP}" MATCHES "^atmega.*$"
+)
 	set( COMPILER_FAMILY "avr" )
 
 #| arm match
-elseif ( "${CHIP}" MATCHES "^mk2.*$" OR "${CHIP}" MATCHES "^mk6.*$" OR "${CHIP}" MATCHES "^sam.*$" )
+elseif (
+	"${CHIP}" MATCHES "^mk2.*$" OR
+	"${CHIP}" MATCHES "^mk6.*$" OR
+	"${CHIP}" MATCHES "^sam.*$" OR
+	"${CHIP}" MATCHES "^nrf.*$"
+)
 	set( COMPILER_FAMILY "arm" )
 
 #| Host compiler match

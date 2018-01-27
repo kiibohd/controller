@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 by Jacob Alexander
+/* Copyright (C) 2017-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,6 +29,9 @@
 
 #elif defined(_sam_)
 #include "sam.h"
+
+#elif defined(_nrf_)
+#include "nrf5.h"
 
 #elif defined(_host_)
 #include <stdint.h>
@@ -139,6 +142,35 @@ void Periodic_disable()
 uint32_t Periodic_cycles()
 {
 	//SAM TODO
+	return 0;
+}
+
+
+#elif defined(_nrf_)
+void Periodic_init( uint32_t cycles )
+{
+	// NRF5 TODO
+}
+
+void Periodic_function( void *func )
+{
+	// Set function pointer
+	periodic_func = func;
+}
+
+void Periodic_enable()
+{
+	// NRF5 TODO
+}
+
+void Periodic_disable()
+{
+	// NRF5 TODO
+}
+
+uint32_t Periodic_cycles()
+{
+	// NRF5 TODO
 	return 0;
 }
 

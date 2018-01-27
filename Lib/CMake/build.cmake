@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Source Configurator |###
 #
-# Written by Jacob Alexander in 2011-2015 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2018 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -99,8 +99,8 @@ if ( DEFINED DFU )
 			COMMAND ${DFU_SUFFIX_EXECUTABLE} --add ${TARGET_BIN} --vid ${BOOT_VENDOR_ID} --pid ${BOOT_PRODUCT_ID} 1> /dev/null
 			COMMENT "Create and sign dfu bin file: ${TARGET_BIN}"
 		)
-		# XXX (HaaTa) prependKey disabled currently for sam MCU
-		if ( NOT "${CHIP_SUPPORT}" STREQUAL "sam" )
+		# XXX (HaaTa) prependKey disabled currently for sam and nrf5 MCUs
+		if ( NOT "${CHIP_SUPPORT}" STREQUAL "sam" AND NOT "${CHIP_SUPPORT}" STREQUAL "nrf5"  )
 			add_custom_command( TARGET ${TARGET} POST_BUILD
 				COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_OUT} ${TARGET_SECURE_BIN}
 				COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/prependKey ${TARGET_SECURE_BIN}
@@ -114,8 +114,8 @@ if ( DEFINED DFU )
 			COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_OUT} ${TARGET_BIN}
 			COMMENT "Creating dfu binary file: ${TARGET_BIN}"
 		)
-		# XXX (HaaTa) prependKey disabled currently for sam MCU
-		if ( NOT "${CHIP_SUPPORT}" STREQUAL "sam" )
+		# XXX (HaaTa) prependKey disabled currently for sam and nrf5 MCUs
+		if ( NOT "${CHIP_SUPPORT}" STREQUAL "sam" AND NOT "${CHIP_SUPPORT}" STREQUAL "nrf5" )
 			add_custom_command( TARGET ${TARGET} POST_BUILD
 				COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_OUT} ${TARGET_SECURE_BIN}
 				COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/prependKey ${TARGET_SECURE_BIN}

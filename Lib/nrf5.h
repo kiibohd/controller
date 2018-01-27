@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2018 by Jacob Alexander
+/* Copyright (C) 2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -19,62 +19,43 @@
  * THE SOFTWARE.
  */
 
+#pragma once
 
-// This include file unifies some of the nomenclature between the AVR and ARM compilers
+// ----- Defines -----
+
+#ifndef NULL
+#define NULL ((void *)0)
+#endif
+
+#define NOP() do {} while ( 0 )
+
 
 
 // ----- Includes -----
 
-#pragma once
-
-#include <Lib/mcu_compat.h>
-
-// Kinetis (ARM)
-#if defined(_kinetis_)
-
-#include <Lib/kinetis.h>
-
-// SAM (ARM)
-#elif defined(_sam_)
-
-#include <Lib/sam.h>
-
-// NRF5 (ARM)
-#elif defined(_nrf_)
-
-#include <Lib/nrf5.h>
-
-// AVR
-#elif defined(_avr_at_)
-
-#include <avr/interrupt.h>
-
-// Host
-#elif defined(_host_)
-
-#include <Lib/host.h>
-
-#endif
+#include <stdint.h>
 
 
 
-// ----- Defines -----
+// ----- Registers -----
 
-// ARM
-#if defined(_kinetis_) || defined(_sam_) || defined(_nrf_)
+// ----- Macros -----
 
-// Map the Interrupt Enable/Disable to the AVR names
-#define cli() __disable_irq()
-#define sei() __enable_irq()
-
-
-// AVR
-#elif defined(_avr_at_)
+#define SOFTWARE_RESET NOP //TODO: Lookup macro
+#define __disable_irq() asm volatile("CPSID i":::"memory");
+#define __enable_irq()  asm volatile("CPSIE i":::"memory");
 
 
-// Host
-#elif defined(_host_)
+
+// ----- Variables -----
+
+// ----- Functions -----
+
+void *memset( void *addr, int val, unsigned int len );
+void *memcpy( void *dst, const void *src, unsigned int len );
+int memcmp( const void *a, const void *b, unsigned int len );
 
 
-#endif
+
+// ----- Interrupts -----
 

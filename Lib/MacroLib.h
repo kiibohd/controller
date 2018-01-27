@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2017 by Jacob Alexander
+/* Copyright (C) 2013-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,6 +47,17 @@
 #if defined(_sam_)
 
 #include "sam.h"
+#include "delay.h"
+#include "time.h"
+
+#endif
+
+
+
+// NRF5 (ARM)
+#if defined(_nrf_)
+
+#include "nrf5.h"
 #include "delay.h"
 #include "time.h"
 
