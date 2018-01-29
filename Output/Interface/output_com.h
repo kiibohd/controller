@@ -53,7 +53,7 @@
 
 extern volatile uint8_t  Output_Available; // 0 - Output module not fully functional, 1 - Output module working
 
-extern          uint8_t  Output_DebugMode; // 0 - Debug disabled, 1 - Debug enabled
+extern          uint8_t  Output_DebugMode; // 0 - Debug disabled, 1 - Debug enabled, 2 - Extra debug
 
 extern          uint16_t Output_ExtCurrent_Available; // mA - Set by outside module if not using USB (i.e. Interconnect)
 

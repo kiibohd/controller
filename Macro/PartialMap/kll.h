@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 #include <kll_defs.h>
 
 // Project Includes
+#include <Lib/mcu_compat.h>
 #include <Lib/time.h>
 #include <print.h>
 #include <scan_loop.h>
@@ -69,7 +70,7 @@ typedef uint8_t index_uint_t;
 // e.g. mk20s  -> 32 bit
 //      atmega -> 16 bit
 // Default to whatever is detected
-#if defined(_kinetis_)
+#if defined(_kinetis_) || defined(_sam_)
 typedef uint32_t nat_ptr_t;
 #elif defined(_avr_at_)
 typedef uint16_t nat_ptr_t;
@@ -170,6 +171,7 @@ typedef struct ScheduleLookup {
 // ResultMacro.guide -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
 //
 // ResultMacroRecord.pos       -> <current combo position>
+// ResultMacroRecord.prevPos   -> <previous combo position>
 // ResultMacroRecord.state     -> <last key state>
 // ResultMacroRecord.stateType -> <last key state type>
 
@@ -180,6 +182,7 @@ typedef struct ResultMacro {
 
 typedef struct ResultMacroRecord {
 	var_uint_t pos;
+	var_uint_t prevPos;
 	uint8_t  state;
 	uint8_t  stateType;
 } ResultMacroRecord;
@@ -225,8 +228,9 @@ typedef struct ResultGuide {
 // TriggerMacro.guide  -> [<combo length>|<key1 type>|<key1 state>|<key1>...<keyn type>|<keyn state>|<keyn>|<combo length>...|0]
 // TriggerMacro.result -> <index to result macro>
 //
-// TriggerMacroRecord.pos   -> <current combo position>
-// TriggerMacroRecord.state -> <status of the macro pos>
+// TriggerMacroRecord.pos    -> <current combo position>
+// TriggerMacroRecord.prePos -> <previous combo position>
+// TriggerMacroRecord.state  -> <status of the macro pos>
 
 // TriggerType
 typedef enum TriggerType {
@@ -255,9 +259,11 @@ typedef enum TriggerType {
 
 // TriggerMacro states
 typedef enum TriggerMacroState {
-	TriggerMacro_Press,   // Combo in sequence is passing
-	TriggerMacro_Release, // Move to next combo in sequence (or finish if at end of sequence)
-	TriggerMacro_Waiting, // Awaiting user input
+	TriggerMacro_Waiting      = 0x0, // Awaiting user input
+	TriggerMacro_Press        = 0x1, // Combo in sequence is passing
+	TriggerMacro_Release      = 0x2, // Move to next combo in sequence (or finish if at end of sequence)
+	TriggerMacro_PressRelease = 0x3, // Both Press and Release votes in the same process loop
+	                                 // Used during sequence macros
 } TriggerMacroState;
 
 // TriggerMacro struct, one is created per TriggerMacro, no duplicates
@@ -268,6 +274,7 @@ typedef struct TriggerMacro {
 
 typedef struct TriggerMacroRecord {
 	var_uint_t pos;
+	var_uint_t prevPos;
 	TriggerMacroState state;
 } TriggerMacroRecord;
 

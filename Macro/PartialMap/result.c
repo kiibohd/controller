@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,30 +89,25 @@ ResultCapabilityStackItem resultCapabilityCallbackData;
 extern int Output_callback( char* command, char* args );
 #endif
 
-// Evaluate/Update ResultMacro
-ResultMacroEval Macro_evalResultMacro( ResultPendingElem resultElem )
+void Result_evalResultMacroCombo(
+	ResultPendingElem *resultElem,
+	const ResultMacro *macro,
+	ResultMacroRecord *record,
+	var_uint_t *comboItem
+)
 {
-	// Lookup ResultMacro
-	const ResultMacro *macro = &ResultMacroList[ resultElem.index ];
-	ResultMacroRecord *record = &ResultMacroRecordList[ resultElem.index ];
-
-	// Current Macro position
-	var_uint_t pos = record->pos;
-
-	// Length of combo being processed
-	uint8_t comboLength = macro->guide[ pos ];
-
 	// Function Counter, used to keep track of the combo items processed
 	var_uint_t funcCount = 0;
 
-	// Combo Item Position within the guide
-	var_uint_t comboItem = pos + 1;
+	// Length of combo being processed
+	uint8_t pos = *comboItem - 1;
+	uint8_t comboLength = macro->guide[ pos ];
 
 	// Iterate through the Result Combo
 	while ( funcCount < comboLength )
 	{
 		// Assign TriggerGuide element (key type, state and scancode)
-		ResultGuide *guide = (ResultGuide*)(&macro->guide[ comboItem ]);
+		ResultGuide *guide = (ResultGuide*)(&macro->guide[ *comboItem ]);
 
 		// Determine if this is a safe capability (i.e. can be execute it immediately)
 		if ( CapabilitiesList[ guide->index ].features & CapabilityFeature_Safe )
@@ -123,7 +118,7 @@ ResultMacroEval Macro_evalResultMacro( ResultPendingElem resultElem )
 
 #if defined(_host_)
 			// Callback to indicate a capability has been called
-			resultCapabilityCallbackData.trigger         = resultElem.trigger;
+			resultCapabilityCallbackData.trigger         = resultElem->trigger;
 			resultCapabilityCallbackData.state           = record->state;
 			resultCapabilityCallbackData.stateType       = record->stateType;
 			resultCapabilityCallbackData.capabilityIndex = guide->index;
@@ -133,13 +128,13 @@ ResultMacroEval Macro_evalResultMacro( ResultPendingElem resultElem )
 #endif
 
 			// Call capability
-			capability( resultElem.trigger, record->state, record->stateType, &guide->args );
+			capability( resultElem->trigger, record->state, record->stateType, &guide->args );
 		}
 		// Otherwise, queue up the capability for later
 		else if ( macroResultDelayedCapabilities.size < ResultCapabilityStackSize_define )
 		{
 			uint8_t size = macroResultDelayedCapabilities.size;
-			macroResultDelayedCapabilities.stack[ size ].trigger         = resultElem.trigger;
+			macroResultDelayedCapabilities.stack[ size ].trigger         = resultElem->trigger;
 			macroResultDelayedCapabilities.stack[ size ].state           = record->state;
 			macroResultDelayedCapabilities.stack[ size ].stateType       = record->stateType;
 			macroResultDelayedCapabilities.stack[ size ].capabilityIndex = guide->index;
@@ -153,15 +148,50 @@ ResultMacroEval Macro_evalResultMacro( ResultPendingElem resultElem )
 
 		// Increment counters
 		funcCount++;
-		comboItem += ResultGuideSize( (ResultGuide*)(&macro->guide[ comboItem ]) );
+		*comboItem += ResultGuideSize( (ResultGuide*)(&macro->guide[ *comboItem ]) );
+	}
+}
+
+// Evaluate/Update ResultMacro
+ResultMacroEval Result_evalResultMacro( ResultPendingElem resultElem )
+{
+	// Lookup ResultMacro
+	const ResultMacro *macro = &ResultMacroList[ resultElem.index ];
+	ResultMacroRecord *record = &ResultMacroRecordList[ resultElem.index ];
+
+	// Current Macro position
+	var_uint_t pos = record->pos;
+
+	// Combo Item Position within the guide
+	var_uint_t comboItem = pos + 1;
+
+	// Process opposing event for previous item in sequence (if necessary)
+	if ( record->prevPos != pos )
+	{
+		// Previous comboItem position
+		var_uint_t oComboItem = record->prevPos + 1;
+
+		// TODO (HaaTa) Calculate opposing state and stateType
+		ResultMacroRecord oRecord = {
+			record->pos,
+			record->prevPos,
+			ScheduleType_R,
+			record->stateType,
+		};
+		Result_evalResultMacroCombo( &resultElem, macro, &oRecord, &oComboItem );
 	}
 
+	// Evaluate Combo
+	Result_evalResultMacroCombo( &resultElem, macro, record, &comboItem );
+
 	// Move to next item in the sequence
+	record->prevPos = record->pos;
 	record->pos = comboItem;
 
 	// If the ResultMacro is finished, remove
 	if ( macro->guide[ comboItem ] == 0 )
 	{
+		record->prevPos = 0;
 		record->pos = 0;
 		return ResultMacroEval_Remove;
 	}
@@ -180,6 +210,7 @@ void Result_setup()
 	for ( var_uint_t macro = 0; macro < ResultMacroNum; macro++ )
 	{
 		ResultMacroRecordList[ macro ].pos       = 0;
+		ResultMacroRecordList[ macro ].prevPos   = 0;
 		ResultMacroRecordList[ macro ].state     = 0;
 		ResultMacroRecordList[ macro ].stateType = 0;
 	}
@@ -237,7 +268,7 @@ void Result_process()
 	// Iterate through the pending ResultMacros, processing each of them
 	for ( index_uint_t macro = 0; macro < macroResultMacroPendingList.size; macro++ )
 	{
-		switch ( Macro_evalResultMacro( macroResultMacroPendingList.data[ macro ] ) )
+		switch ( Result_evalResultMacro( macroResultMacroPendingList.data[ macro ] ) )
 		{
 		// Re-add macros to pending list
 		case ResultMacroEval_DoNothing:

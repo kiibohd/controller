@@ -327,6 +327,23 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 	// Get the keycode from arguments
 	uint8_t key = args[0];
 
+	// Extra USB Debug
+	if ( Output_DebugMode > 1 )
+	{
+		print("\033[1;34mUSB\033[0m ");
+		printInt8( key );
+		print(" ");
+		if ( state == 0x01 )
+		{
+			print("\033[1;33mP\033[0m");
+		}
+		else if ( state == 0x03 )
+		{
+			print("\033[1;35mR\033[0m");
+		}
+		print( NL );
+	}
+
 	// Depending on which mode the keyboard is in, USBKeys_Keys array is used differently
 	// Boot mode - Maximum of 6 byte codes
 	// NKRO mode - Each bit of the 26 byte corresponds to a key
@@ -495,9 +512,6 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 		else if ( key == 0x00 )
 		{
 			USBKeys_primary.changed |= USBKeyChangeState_MainKeys;
-
-			// Also flush out buffers just in case
-			USB_flushBuffers();
 			break;
 		}
 		// Invalid key
@@ -717,6 +731,62 @@ inline void USB_periodic()
 
 	// End latency measurement
 	Latency_end_time( outputPeriodicLatencyResource );
+}
+
+
+// Packet buffer debug for System Control codes
+void USB_SysCtrlDebug( USBKeys *buffer )
+{
+	print("\033[1;34mSysCtrl\033[0m[");
+	printHex_op( buffer->sys_ctrl, 2 );
+	print( "] " NL );
+}
+
+
+// Packet buffer debug for Consumer Control codes
+void USB_ConsCtrlDebug( USBKeys *buffer )
+{
+	print("\033[1;34mConsCtrl\033[0m[");
+	printHex_op( buffer->cons_ctrl, 2 );
+	print( "] " NL );
+}
+
+
+// Packet buffer debug for 6kro/boot mode USB Keyboard codes
+void USB_6KRODebug( USBKeys *buffer )
+{
+	print("\033[1;34m6KRO\033[0m ");
+	printHex_op( buffer->modifiers, 2 );
+	print(" ");
+	printHex( 0 );
+	print(" ");
+	printHex_op( buffer->keys[0], 2 );
+	printHex_op( buffer->keys[1], 2 );
+	printHex_op( buffer->keys[2], 2 );
+	printHex_op( buffer->keys[3], 2 );
+	printHex_op( buffer->keys[4], 2 );
+	printHex_op( buffer->keys[5], 2 );
+	print( NL );
+}
+
+
+// Packet buffer debug for nkro USB Keyboard codes
+void USB_NKRODebug( USBKeys *buffer )
+{
+	print("\033[1;34mNKRO\033[0m ");
+	printHex_op( buffer->modifiers, 2 );
+	print(" ");
+	for ( uint8_t c = 0; c < 6; c++ )
+		printHex_op( buffer->keys[ c ], 2 );
+	print(" ");
+	for ( uint8_t c = 6; c < 20; c++ )
+		printHex_op( buffer->keys[ c ], 2 );
+	print(" ");
+	printHex_op( buffer->keys[20], 2 );
+	print(" ");
+	for ( uint8_t c = 21; c < 27; c++ )
+		printHex_op( buffer->keys[ c ], 2 );
+	print( NL );
 }
 
 

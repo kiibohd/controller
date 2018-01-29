@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2013-2017
+ * Modifications by Jacob Alexander 2013-2018
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -186,9 +186,7 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 	{
 		if ( Output_DebugMode )
 		{
-			print("SysCtrl[");
-			printHex_op( buffer->sys_ctrl, 2 );
-			print( "] " NL );
+			USB_SysCtrlDebug( buffer );
 		}
 
 		// Store update for idle packet
@@ -209,9 +207,7 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 	{
 		if ( Output_DebugMode )
 		{
-			print("ConsCtrl[");
-			printHex_op( buffer->cons_ctrl, 2 );
-			print( "] " NL );
+			USB_ConsCtrlDebug( buffer );
 		}
 
 		// Store update for idle packet
@@ -235,18 +231,7 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 		// USB Boot Mode debug output
 		if ( Output_DebugMode )
 		{
-			dbug_msg("Boot USB: ");
-			printHex_op( buffer->modifiers, 2 );
-			print(" ");
-			printHex( 0 );
-			print(" ");
-			printHex_op( buffer->keys[0], 2 );
-			printHex_op( buffer->keys[1], 2 );
-			printHex_op( buffer->keys[2], 2 );
-			printHex_op( buffer->keys[3], 2 );
-			printHex_op( buffer->keys[4], 2 );
-			printHex_op( buffer->keys[5], 2 );
-			print( NL );
+			USB_6KRODebug( buffer );
 		}
 
 		// Store update for idle packet
@@ -277,19 +262,7 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 			// USB NKRO Debug output
 			if ( Output_DebugMode )
 			{
-				printHex_op( buffer->modifiers, 2 );
-				print(" ");
-				for ( uint8_t c = 0; c < 6; c++ )
-					printHex_op( buffer->keys[ c ], 2 );
-				print(" ");
-				for ( uint8_t c = 6; c < 20; c++ )
-					printHex_op( buffer->keys[ c ], 2 );
-				print(" ");
-				printHex_op( buffer->keys[20], 2 );
-				print(" ");
-				for ( uint8_t c = 21; c < 27; c++ )
-					printHex_op( buffer->keys[ c ], 2 );
-				print( NL );
+				USB_NKRODebug( buffer );
 			}
 
 			// Store update for idle packet

@@ -103,7 +103,7 @@ logger.info("Hold State")
 i.control.loop(1)
 logger.info(data.usb_keyboard())
 logger.info(" TPending {}", data.pending_trigger_list())
-check( len( data.pending_trigger_list() ) == 0 )
+check( len( data.pending_trigger_list() ) == 3 )
 
 
 

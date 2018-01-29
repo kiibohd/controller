@@ -154,6 +154,13 @@ TriggerEvent macroInterconnectCache[ MaxScanCode + 1 ];
 uint8_t macroInterconnectCacheSize = 0;
 #endif
 
+// Dynamically Sized Type Widths
+#if defined(_host_)
+const uint8_t StateWordSize = StateWordSize_define;
+const uint8_t IndexWordSize = IndexWordSize_define;
+const uint8_t ScheduleStateSize = ScheduleStateSize_define;
+#endif
+
 
 
 // ----- Capabilities -----
@@ -563,6 +570,12 @@ void Macro_showTriggerGuide( TriggerGuide *guide )
 
 
 // ----- Functions -----
+
+#if defined(_host_)
+// Callback for host-side kll
+extern int Output_callback( char* command, char* args );
+const uint32_t LayerNum_host = LayerNum;
+#endif
 
 // Clears the current layer state
 void Macro_clearLayers()
@@ -1057,6 +1070,7 @@ void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 	}
 
 	// Reset the macro position
+	ResultMacroRecordList[ resultMacroIndex ].prevPos = 0;
 	ResultMacroRecordList[ resultMacroIndex ].pos = 0;
 }
 
@@ -1198,6 +1212,11 @@ void Macro_periodic()
 
 	// Reset TriggerList buffer
 	macroTriggerEventBufferSize = 0;
+
+#if defined(_host_)
+	// Signal host to read layer state
+	Output_callback( "layerState", "" );
+#endif
 
 	// Latency measurement
 	Latency_end_time( macroLatencyResource );
@@ -1452,7 +1471,7 @@ void cliFunc_layerList( char* args )
 	info_msg("Layer List");
 
 	// Iterate through all of the layers and display them
-	for ( uint16_t layer = 0; layer < LayerNum; layer++ )
+	for ( index_uint_t layer = 0; layer < LayerNum; layer++ )
 	{
 		print( NL "\t" );
 		printHex( layer );
@@ -1686,6 +1705,8 @@ void macroDebugShowTrigger( var_uint_t index )
 	// Display current position
 	print( NL "Position: " );
 	printInt16( (uint16_t)record->pos ); // Hopefully large enough :P (can't assume 32-bit)
+	print(" ");
+	printInt16( (uint16_t)record->prevPos );
 
 	// Display result macro index
 	print( NL "Result Macro Index: " );
@@ -1695,9 +1716,10 @@ void macroDebugShowTrigger( var_uint_t index )
 	print( NL "Trigger Macro State: " );
 	switch ( record->state )
 	{
-	case TriggerMacro_Press:   print("Press");   break;
-	case TriggerMacro_Release: print("Release"); break;
-	case TriggerMacro_Waiting: print("Waiting"); break;
+	case TriggerMacro_Press:        print("Press");   break;
+	case TriggerMacro_Release:      print("Release"); break;
+	case TriggerMacro_PressRelease: print("Press|Release"); break;
+	case TriggerMacro_Waiting:      print("Waiting"); break;
 	}
 }
 
@@ -1780,6 +1802,8 @@ void macroDebugShowResult( var_uint_t index )
 	// Display current position
 	print( NL "Position: " );
 	printInt16( (uint16_t)record->pos ); // Hopefully large enough :P (can't assume 32-bit)
+	print(" ");
+	printInt16( (uint16_t)record->prevPos );
 
 	// Display final trigger state/type
 	print( NL "Final Trigger State (State/Type): " );

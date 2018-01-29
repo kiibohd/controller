@@ -32,6 +32,7 @@ import kiilogger
 from common import (
     check,
     fail_tests,
+    header,
     pass_tests,
     result,
     KLLTest,
@@ -63,6 +64,9 @@ i.control.cmd('setLayerDebugMode')(1)
 # Enable pending trigger debug mode
 i.control.cmd('setTriggerPendingDebugMode')(1)
 
+# Enable output module debug mode
+i.control.cmd('setOutputDebugMode')(2)
+
 
 
 class SimpleLayerTest(KLLTest):
@@ -84,11 +88,11 @@ class SimpleLayerTest(KLLTest):
         '''
         # Iterate over each layer
         for layer, layerdata in sorted(self.klljson['Layers'].items()):
-            logger.debug("Layer {}", layer)
+            logger.debug(header("Layer {}".format(layer)))
             for trigger, triggerdata in sorted(layerdata.items()):
                 logger.debug("Trigger: {}", trigger)
                 # Prepare a TriggerResultEval
-                evalpair = TriggerResultEval(trigger, triggerdata)
+                evalpair = TriggerResultEval(self, trigger, triggerdata)
 
                 # Prepare TestResult
                 testresult = KLLTestUnitResult(self, None, evalpair, layer)
@@ -102,7 +106,7 @@ class SimpleLayerTest(KLLTest):
 
 testrunner = KLLTestRunner([
     SimpleLayerTest(),
-    #SimpleLayerTest(tests=3, test=86),
+    #SimpleLayerTest(tests=1, test=154),
     #SimpleLayerTest(tests=20, test=92),
 ])
 testrunner.run()

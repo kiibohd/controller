@@ -19,6 +19,7 @@ Host-Side Python Commands for TestOut Output Module
 
 ### Imports ###
 
+import builtins
 import copy
 import os
 import sys
@@ -37,9 +38,9 @@ logger = kiilogger.get_logger('Output/TestOut/host.py')
 
 ### Variables ###
 
-data = None
+data = builtins.kiibohd_data
 debug = False
-control = None
+control = builtins.kiibohd_control
 
 
 
@@ -108,6 +109,7 @@ class USBKeys( Structure ):
     _fields_ = [
         ( 'modifiers', c_uint8 ),
         ( 'keys',      c_uint8 * 27 ), # XXX (HaaTa) There should be a way to make this dynamic
+                                       # XXX (HaaTa) Use builtins to parse this value early from the libray
         ( 'sys_ctrl',  c_uint8 ),
         ( 'cons_ctrl', c_uint16 ),
         ( 'changed',   c_uint8 ),
@@ -161,7 +163,7 @@ class USBKeyboard:
         # Calculate modifiers
         for bit in range( 0, 8 ):
             if self.modifiers & (1<<bit):
-                keys.append( 0xE0 | (1<<bit) )
+                keys.append( 0xE0 + bit )
 
         # 6 keys for boot mode
         if self.protocol == 0:
@@ -220,6 +222,16 @@ class Commands:
     '''
     Container class of commands available to control the host-side KLL implementation
     '''
+
+    def setOutputDebugMode(self, debug):
+        '''
+        Set Output Module debug mode
+
+        0 - Disable (default)
+        1 - Show output packet
+        2 - Extra debug output
+        '''
+        cast(control.kiibohd.Output_DebugMode, POINTER(c_uint8))[0] = debug
 
     def setRawIOLoopback( self, enable=True ):
         '''

@@ -130,6 +130,7 @@ inline void TestOut_periodic()
 	// Send keypresses while there are pending changes
 	while ( USBKeys_primary.changed )
 	{
+		usb_keyboard_send( (USBKeys*)&USBKeys_primary, USBKeys_Protocol );
 		Output_callback( "keyboard_send", "" );
 	}
 
@@ -253,7 +254,48 @@ void usb_device_software_reset() {}
 
 void usb_keyboard_clear( uint8_t protocol ) {}
 void usb_keyboard_idle_update() {}
-void usb_keyboard_send( USBKeys *buffer, uint8_t protocol ) {}
+void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
+{
+	// Only show debug information
+	if ( Output_DebugMode )
+	{
+		// SysCtrl
+		if ( buffer->changed & USBKeyChangeState_System )
+		{
+			USB_SysCtrlDebug( buffer );
+			buffer->changed &= ~USBKeyChangeState_System; // Mark sent
+		}
+
+		// ConsCtrl
+		if ( buffer->changed & USBKeyChangeState_Consumer )
+		{
+			USB_ConsCtrlDebug( buffer );
+			buffer->changed &= ~USBKeyChangeState_Consumer; // Mark sent
+		}
+
+		// USB
+		switch ( protocol )
+		{
+		// Send boot keyboard interrupt packet(s)
+		case 0:
+			if ( buffer->changed )
+			{
+				USB_6KRODebug( buffer );
+			}
+			break;
+
+		// Send nkro keyboard interrupt packets(s)
+		case 1:
+			if ( buffer->changed )
+			{
+				USB_NKRODebug( buffer );
+			}
+			break;
+		}
+	}
+
+	buffer->changed = USBKeyChangeState_None;
+}
 
 void usb_mouse_send() {}
 

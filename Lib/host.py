@@ -20,6 +20,7 @@ Host-Side Setup Routines for KLL
 ### Imports ###
 
 import argparse
+import builtins
 import inspect
 import json
 import logging
@@ -28,11 +29,13 @@ import pty
 import sys
 import termios
 
+from collections import namedtuple
 from ctypes import (
     c_char_p,
     c_int,
     c_uint8,
     c_uint16,
+    c_uint32,
     c_void_p,
     cast,
     CDLL,
@@ -222,6 +225,44 @@ class CapabilityHistory:
         return var
 
 
+class LayerHistory:
+    '''
+    Class that keeps track of the layer state for each processing loop.
+    To prevent memory leaks, only so many state transitions are kept.
+    '''
+    def __init__(self, history_len=10):
+        '''
+        @param history_len: Number of layer states to retain
+        '''
+        self.history_len = history_len
+        self.history = []
+
+    def add(self, layerstate):
+        '''
+        Adds LayerStateInstance to history, truncating oldest state if necessary
+
+        @param layerstate: NamedTuple (LayerStateInstance) of layer state and stack information
+        '''
+        self.history.append(layerstate)
+
+        # Truncate first element if necessary
+        if len(self.history) > self.history_len:
+            self.history = self.history[1:]
+
+    def last(self, num=1):
+        '''
+        Returns an array with the last x number of LayerStateInstance objects
+
+        @param num: Number of LayerStateInstance objects to return
+
+        @return: Array of LayerStateInstance objects (if there are any available)
+        '''
+        total = min(num,len(self.history))
+        start = len(self.history) - total
+
+        return list(reversed(self.history[start:]))
+
+
 class Data:
     '''
     Generic class used to hold data retrieved from libkiibohd callbacks
@@ -232,6 +273,9 @@ class Data:
         # List of capability callbacks
         self.capability_history = CapabilityHistory()
 
+        # History of layer states - Last 10 state changes
+        self.layer_history = LayerHistory(10)
+
         self.rawio_loopback = False
         self.rawio_incoming_buffer = []
         self.rawio_outgoing_buffer = []
@@ -240,16 +284,17 @@ class Data:
         '''
         Returns a tuple of USB Keyboard output
         '''
+        ntuple = namedtuple('USBKeyboardData', ['protocol', 'keyboardcodes', 'consumercode', 'systemcode'])
         if self.usb_keyboard_data is not None:
-            return self.usb_keyboard_data.protocol, self.usb_keyboard_data.codes(), self.usb_keyboard_data.consumer_ctrl, self.usb_keyboard_data.system_ctrl
+            return ntuple(self.usb_keyboard_data.protocol, self.usb_keyboard_data.codes(), self.usb_keyboard_data.consumer_ctrl, self.usb_keyboard_data.system_ctrl)
         return None
 
     def trigger_list_buffer( self ):
         '''
         Returns trigger list buffer
         '''
-        # TODO Dynamically select var_uint_t size
-        triggers_len = cast( control.kiibohd.macroTriggerEventBufferSize, POINTER( c_uint8 ) )[0]
+        size_width = control.var_uint_t
+        triggers_len = cast( control.kiibohd.macroTriggerEventBufferSize, POINTER( size_width ) )[0]
         triggers = cast( control.kiibohd.macroTriggerEventBuffer, POINTER( TriggerEvent * triggers_len ) )[0]
         output = []
         for index in range( 0, triggers_len ):
@@ -260,8 +305,7 @@ class Data:
         '''
         Returns list of pending triggers
         '''
-        # TODO Dynamically select index_uint_t size
-        size_width = c_uint16
+        size_width = control.index_uint_t
         triggers_len = cast( control.kiibohd.macroTriggerMacroPendingListSize, POINTER( size_width ) )[0]
         triggers = cast( control.kiibohd.macroTriggerMacroPendingList, POINTER( size_width * triggers_len ) )[0]
         output = []
@@ -313,26 +357,7 @@ class Control:
         # or event a factory function (my experiments failed miserably on multiple calls)
         global control
         control = self
-
-        # Import Scan and Output modules
-        global scan
-        global output
-        scan = CustomLoader( "Scan", scan_module ).load_module("Scan")
-        output = CustomLoader( "Output", output_module ).load_module("Output")
-
-        # Container for any libkiibohd callback data storage
-        global data
-        self.data = Data()
-        scan.data = self.data
-        output.data = self.data
-
-        # Build command and callback dictionaries
-        self.build_command_list()
-        self.build_callback_list()
-
-        # Set references in Scan and Output modules
-        scan.control = self
-        output.control = self
+        builtins.kiibohd_control = self
 
         # Import libkiibohd
         global kiibohd
@@ -342,9 +367,50 @@ class Control:
             logger.error("Could not open -> {}\n{}", libkiibohd_path, err )
             sys.exit( 1 )
         self.kiibohd = kiibohd
+        builtins.kiibohd_library = kiibohd
+
+        # Query Dynamically Sized Types
+        self.var_uint_t = self.ctype_lookup(cast(kiibohd.StateWordSize, POINTER(c_uint8)).contents.value)
+        self.index_uint_t = self.ctype_lookup(cast(kiibohd.IndexWordSize, POINTER(c_uint8)).contents.value)
+        self.state_uint_t = self.ctype_lookup(cast(kiibohd.ScheduleStateSize, POINTER(c_uint8)).contents.value)
+
+        # Container for any libkiibohd callback data storage
+        global data
+        self.data = Data()
+        builtins.kiibohd_data = self.data
+
+        # Import Scan and Output modules
+        global scan
+        global output
+        scan = CustomLoader( "Scan", scan_module ).load_module("Scan")
+        builtins.kiibohd_scan = scan
+        output = CustomLoader( "Output", output_module ).load_module("Output")
+        builtins.kiibohd_output = output
+
+        # Build command and callback dictionaries
+        self.build_command_list()
+        self.build_callback_list()
 
         # Register Callback
         self.callback_setup()
+
+    def ctype_lookup(self, size):
+        '''
+        Returns associated ctype struct from a given size
+
+        @param size: Integer width of type
+
+        @return: ctype object
+        '''
+        if size == 8:
+            return c_uint8
+        elif size == 16:
+            return c_uint16
+        elif size == 32:
+            return c_uint32
+        else:
+            logger.error("Invalid ctype width {}", size)
+            return None
 
     def build_command_list( self ):
         '''

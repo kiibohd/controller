@@ -25,6 +25,8 @@ import linecache
 import logging
 import sys
 
+from collections import namedtuple
+
 import kiilogger
 
 
@@ -163,6 +165,9 @@ class KLLTest:
         self.testresults = []
         self.overall = None
 
+        # Used by sub-test children for debugging
+        self.cur_test = None
+
     def prepare(self):
         '''
         Prepare to run test
@@ -200,7 +205,11 @@ class KLLTest:
                 test.unit.entry['kll'],
             )
 
+            # Set current test, used by sub-test children for debugging
+            self.cur_test = index
+
             # Prepare layer setting
+            # Run loop, to make sure layer is engaged already
             interface.control.cmd('lockLayer')(test.layer)
 
             # Run test, and record result
@@ -234,14 +243,16 @@ class TriggerResultEval:
 
     Given a pair, it can be specified to do correct *or* incorrect scheduling.
     '''
-    def __init__(self, json_key, json_entry, schedule=None):
+    def __init__(self, parent, json_key, json_entry, schedule=None):
         '''
         Constructor
 
+        @param parent:     Parent object
         @param json_key:   String name for trigger:result pair (unique id for layer)
         @param json_entry: Dictionary describing trigger:result pair
         @param schedule:   Alternate Trigger schedule (Defaults to None), used in destructive testing
         '''
+        self.parent = parent
         self.key = json_key
         self.entry = json_entry
         self.schedule = schedule
@@ -256,10 +267,10 @@ class TriggerResultEval:
         self.done = False
 
         # Prepare trigger
-        self.trigger = TriggerEval(self.entry['trigger'], self.schedule)
+        self.trigger = TriggerEval(self, self.entry['trigger'], self.schedule)
 
         # Prepare result
-        self.result = ResultMonitor(self.entry['result'])
+        self.result = ResultMonitor(self, self.entry['result'])
 
     def step(self, positionstep=None):
         '''
@@ -298,6 +309,10 @@ class TriggerResultEval:
             if self.result.done():
                 logger.debug("{} Result Complete", self.__class__.__name__)
                 self.done = True
+
+            # Clear callback history, in case this is a sequence
+            i.control.data.capability_history.unread()
+            i.control.data.capability_history.prune()
 
         # Increment step position within libkiibohd
         i.control.loop(1)
@@ -391,13 +406,15 @@ class TriggerEval:
     '''
     Evaluates a KLL trigger from a trigger:result pair
     '''
-    def __init__(self, json_entry, schedule=None):
+    def __init__(self, parent, json_entry, schedule=None):
         '''
         Constructor
 
+        @param parent:     Parent object
         @param json_entry: Trigger json entry
         @param schedule:   Alternate Trigger schedule, if set to None will be determined from json_entry
         '''
+        self.parent = parent
         self.entry = json_entry
         self.schedule = schedule
 
@@ -417,7 +434,7 @@ class TriggerEval:
                     elemschedule = self.schedule[comboindex][elemindex]
 
                 # Append element to combo
-                ncombo.append(TriggerElem(elem, elemschedule))
+                ncombo.append(TriggerElem(self, elem, elemschedule))
             self.trigger.append(ncombo)
 
     def eval(self):
@@ -488,12 +505,14 @@ class ResultMonitor:
     '''
     Monitors a KLL result from a trigger:result pair
     '''
-    def __init__(self, json_entry):
+    def __init__(self, parent, json_entry):
         '''
         Constructor
 
+        @param parent:     Parent object
         @param json_entry: Result json entry
         '''
+        self.parent = parent
         self.entry = json_entry
 
         # Step determines which part of the sequence we are trying to monitor
@@ -508,7 +527,7 @@ class ResultMonitor:
             for elemindex, elem in enumerate(combo):
                 elemschedule = ScheduleElem(elem)
                 # Append element to combo
-                ncombo.append(ResultElem(elem, elemschedule))
+                ncombo.append(ResultElem(self, elem, elemschedule))
             self.result.append(ncombo)
 
     def monitor(self):
@@ -583,13 +602,15 @@ class TriggerElem:
     '''
     Handles individual trigger elements and how to interface with libkiibohd
     '''
-    def __init__(self, elem, schedule):
+    def __init__(self, parent, elem, schedule):
         '''
         Intializer
 
+        @param parent:   Parent object
         @param elem:     Trigger element
         @param schedule: Trigger element conditions
         '''
+        self.parent = parent
         self.elem = elem
         self.schedule = schedule
 
@@ -640,20 +661,80 @@ class TriggerElem:
 
         return True
 
+    def __repr__(self):
+        '''
+        String representation of TriggerElem
+        '''
+        output = "{} {}".format(
+            self.elem,
+            self.schedule,
+        )
+        return output
+
 
 class ResultElem:
     '''
     Handles individual result elements and how to monitor libkiibohd
     '''
-    def __init__(self, elem, schedule):
+    def __init__(self, parent, elem, schedule):
         '''
         Intializer
 
+        @param parent:   Parent object
         @param elem:     Result element
         @param schedule: Result element conditions
         '''
+        self.parent = parent
         self.elem = elem
         self.schedule = schedule
+        self.validation = NoVerification(self)
+
+        import interface as i
+
+        # Lookup Capability (if necessary)
+        elemtype = self.elem['type']
+        self.name = i.control.json_input['CodeLookup'][elemtype]
+        self.expected_args = None
+        if self.name is None:
+            # Capability type has the name and arg fields
+            if elemtype == 'Capability':
+                self.name = self.elem['name']
+                self.expected_args = self.elem['args']
+                new_args = []
+
+                # Some args have types
+                for arg in self.expected_args:
+                    if isinstance(arg, dict):
+                        new_args.append(arg['value'])
+
+                # If any processing of args was necessary
+                if len(new_args) > 0:
+                    self.expected_args = new_args
+        elif elemtype == 'Animation':
+            # Expected arg needs to be looked up for Animations
+            value = i.control.json_input['AnimationSettings'][self.elem['setting']]
+            self.expected_args = [value]
+        else:
+            # Otherwise uid is used for the arg
+            self.expected_args = [self.elem['uid']]
+
+        logger.debug("ResultElem monitor {} {} {} {}", self.elem, self.schedule, self.name, self.expected_args)
+        assert self.name is not None, "Invalid Result type {}".format(self.elem)
+
+        # Determine if there is capability verification available
+        if elemtype == 'Animation':
+            self.validation = AnimationVerification(self)
+        elif elemtype == 'USBCode':
+            self.validation = USBCodeVerification(self)
+        elif elemtype == 'ConsCode':
+            self.validation = ConsumerCodeVerification(self)
+        elif elemtype == 'SysCode':
+            self.validation = SystemCodeVerification(self)
+        elif elemtype == 'Capability':
+            # Determine if general capability has verification available
+            # Layer Verification
+            if self.name in ['layerShift', 'layerLock', 'layerLatch']:
+                self.validation = LayerVerification(self)
 
     def monitor_state(self, state):
         '''
@@ -666,45 +747,16 @@ class ResultElem:
         # TODO (HaaTa) Handle scheduling
         import interface as i
 
-        # Lookup Capability (if necessary)
-        name = i.control.json_input['CodeLookup'][self.elem['type']]
-        expected_args = None
-        if name is None:
-            # Capability type has the name and arg fields
-            if self.elem['type'] == 'Capability':
-                name = self.elem['name']
-                expected_args = self.elem['args']
-                new_args = []
-
-                # Some args have types
-                for arg in expected_args:
-                    if isinstance(arg, dict):
-                        new_args.append(arg['value'])
-
-                # If any processing of args was necessary
-                if len(new_args) > 0:
-                    expected_args = new_args
-        elif self.elem['type'] == 'Animation':
-            # Expected arg needs to be looked up for Animations
-            value = i.control.json_input['AnimationSettings'][self.elem['setting']]
-            expected_args = [value]
-        else:
-            # Otherwise uid is used for the arg
-            expected_args = [self.elem['uid']]
-
-        logger.debug("ResultElem monitor {} {} {} {}", self.elem, self.schedule, name, expected_args)
-        assert name is not None, "Invalid Result type {}".format(self.elem)
-
         # Lookup capability history, success if any capabilities match
         match = None
         for cap in i.control.data.capability_history.all():
             data = cap.callbackdata
             # Validate state and capability name
-            if data.state == state and data.read_capability()[0] == name:
+            if data.state == state and data.read_capability()[0] == self.name:
                 # Validate args
                 match_args = True
-                for index in range(len(expected_args)):
-                    if data.args[index] != expected_args[index]:
+                for index in range(len(self.expected_args)):
+                    if data.args[index] != self.expected_args[index]:
                         match_args = False
                         break
 
@@ -721,7 +773,14 @@ class ResultElem:
             # Print out capability history
             for cap in i.control.data.capability_history.all():
                 logger.warning(cap)
-        return check(result, "expected:{}({}) state({}) - found:{}".format(name, expected_args, state, match))
+
+        return check(result, "test:{} expected:{}({}) state({}) - found:{}".format(
+            self.parent.parent.parent.cur_test,
+            self.name,
+            self.expected_args,
+            state,
+            match,
+        ))
 
     def monitor(self):
         '''
@@ -731,7 +790,13 @@ class ResultElem:
         @return: True if found, False if not.
         '''
         # TODO (HaaTa) Handle scheduling
+
+        # Check capability state
         result = self.monitor_state(1)
+
+        # Validate capability result
+        result = result and self.validation.verify(1)
+
         return result
 
     def monitor_cleanup(self):
@@ -741,8 +806,386 @@ class ResultElem:
         @return: True if expected cleanup occured, False if not.
         '''
         # TODO (HaaTa) Handle scheduling
+
+        # Check capability state
         result = self.monitor_state(3)
+
+        # Validate capability result cleanup
+        result = result and self.validation.verify(3)
+
         return result
+
+    def __repr__(self):
+        '''
+        String representation of ResultElem
+        '''
+        output = "{} {} {}".format(self.elem, self.schedule, self.validation)
+        return output
+
+
+class CapabilityVerification:
+    '''
+    Base class for capability functional verification
+    '''
+    def __init__(self, parent):
+        '''
+        @param parent: ResultElem object used for introspection
+        '''
+        self.parent = parent
+
+    def verify(self, state):
+        '''
+        Verify result capability
+
+        @param: State of result
+
+        @return: True if verification is successful, False otherwise
+        '''
+        logger.warning("verify not implemented for {}", self.__class__.__name__)
+        return True
+
+
+class NoVerification(CapabilityVerification):
+    '''
+    No verification implemented
+    '''
+    def verify(self, state):
+        '''
+        Ignore verification
+
+        @param: State of result
+
+        @return: Always True
+        '''
+        return True
+
+
+class LayerVerification(CapabilityVerification):
+    '''
+    Layer capability verification
+
+    Validates that a specified capability behaved as expected
+    '''
+    def verify(self, state):
+        '''
+        Verify Layer Function
+
+        Depending on the layer function used, validate that the expected behaviour occured.
+
+        @param: State of result
+
+        @return: True if verification is successful, False otherwise
+        '''
+        import interface as i
+
+        # Get current and previous layer states
+        states = i.control.data.layer_history.last(3)
+        cur = states[0]
+        last = states[1]
+
+        # Get expected layer manipulation
+        type_lookup = {
+            'layerShift': 1,
+            'layerLatch': 2,
+            'layerLock': 3,
+        }
+        expected_type = self.parent.name
+        expected_layer = self.parent.expected_args[0]
+
+        # Ignore release for lock
+        if expected_type == 'layerLock' and state == 3:
+            return True
+
+        # Ignore press for latch
+        if expected_type == 'layerLatch' and state == 1:
+            return True
+
+        # Ignore layer if invalid
+        if expected_layer > len(cur.state):
+            logger.info("Ignoring {}:{} - Invalid layer", expected_type, expected_layer)
+            return True
+
+        # Determine expected layer result, XOR last with type function layer
+        # XXX This may get confused in some situations
+        #     i.e. Two shift capabilities activated at the same time for the same layer
+        computed = last.state[expected_layer] ^ (1 << type_lookup[expected_type] - 1)
+
+        # Determine if layer should be in the stack or not
+        in_stack = False
+        if computed != 0:
+            in_stack = True
+
+        # Match expected with actual
+        result = True
+        if cur.state[expected_layer] != computed:
+            result = False
+
+        # Determine if in stack or not
+        if in_stack:
+            if expected_layer not in cur.stack:
+                result = False
+        else:
+            if expected_layer in cur.stack:
+                result = False
+
+        # Debug if failed
+        if not result:
+            logger.warning("Prev Layer {}", last)
+            logger.warning("Cur  Layer {}", cur)
+
+        return check(result, "test:{} expectedlayer:{} expectedtype:{} expectedstate:{} instack:{} state:{} - foundstate:{}".format(
+            self.parent.parent.parent.parent.cur_test,
+            expected_layer,
+            expected_type,
+            computed,
+            in_stack,
+            state,
+            cur.state[expected_layer],
+
+        ))
+
+
+class USBCodeVerification(CapabilityVerification):
+    '''
+    USBCode capability verification
+
+    Validates that a specified capability behaved as expected
+    '''
+    def verify(self, state):
+        '''
+        Verify USB Code
+
+        @param: State of result
+
+        @return: True if verification is successful, False otherwise
+        '''
+        import interface as i
+
+        # Get expected data (only one argument)
+        expected = self.parent.expected_args[0]
+
+        # Get USB Keyboard data
+        data = i.control.data.usb_keyboard()
+
+        logger.debug("Data: {}  Expected: {}", data, expected)
+
+        # Check for expected data
+        result = False
+        match = False
+        if expected in data.keyboardcodes:
+            match = True
+
+        # If the keycode is 0, return true regardless
+        # There may not be any keycodes in this case (but there may be some due to other macros)
+        if expected == 0:
+            result = True
+
+        # Off or Release
+        if state == 0 or state == 3:
+            if not match:
+                result = True
+
+        # Press or Hold
+        elif state == 1 or state == 2:
+            if match:
+                result = True
+
+        return check(result, "test:{} expectedusb:{} state({}) - found:{}".format(
+            self.parent.parent.parent.parent.cur_test,
+            expected,
+            state,
+            data,
+        ))
+
+
+class ConsumerCodeVerification(CapabilityVerification):
+    '''
+    ConsCode capability verification
+
+    Validates that a specified capability behaved as expected
+    '''
+    def verify(self, state):
+        '''
+        Verify Consumer Code
+
+        @param: State of result
+
+        @return: True if verification is successful, False otherwise
+        '''
+        import interface as i
+
+        # Get expected data (only one argument)
+        expected = self.parent.expected_args[0]
+
+        # Get USB Keyboard data
+        data = i.control.data.usb_keyboard()
+
+        logger.debug("Data: {}  Expected: {}", data, expected)
+
+        # Check for expected data
+        result = False
+        match = False
+        if expected == data.consumercode:
+            match = True
+
+        # Off or Release
+        if state == 0 or state == 3:
+            if not match:
+                result = True
+
+        # Press or Hold
+        elif state == 1 or state == 2:
+            if match:
+                result = True
+
+        return check(result, "test:{} expectedconsumer:{} state({}) - found:{}".format(
+            self.parent.parent.parent.parent.cur_test,
+            expected,
+            state,
+            data,
+        ))
+
+
+class SystemCodeVerification(CapabilityVerification):
+    '''
+    SysCode capability verification
+
+    Validates that a specified capability behaved as expected
+    '''
+    def verify(self, state):
+        '''
+        Verify System Code
+
+        @param: State of result
+
+        @return: True if verification is successful, False otherwise
+        '''
+        import interface as i
+
+        # Get expected data (only one argument)
+        expected = self.parent.expected_args[0]
+
+        # Get USB Keyboard data
+        data = i.control.data.usb_keyboard()
+
+        logger.debug("Data: {}  Expected: {}", data, expected)
+
+        # Check for expected data
+        result = False
+        match = False
+        if expected == data.systemcode:
+            match = True
+
+        # Off or Release
+        if state == 0 or state == 3:
+            if not match:
+                result = True
+
+        # Press or Hold
+        elif state == 1 or state == 2:
+            if match:
+                result = True
+
+        return check(result, "test:{} expectedsystem:{} state({}) - found:{}".format(
+            self.parent.parent.parent.parent.cur_test,
+            expected,
+            state,
+            data
+        ))
+
+
+class AnimationVerification(CapabilityVerification):
+    '''
+    Animation capability verification
+
+    Validates that a specified capability behaved as expected
+    '''
+    def get_modifier_setting(self, animation, name):
+        '''
+        Retrieve modifier setting using the setting name
+
+        @param animation: Json representation of the animation setting
+        @param name:      Name of the animation setting modifier
+
+        @return: NamedTuple of (arg, subarg), if not found will be (None, None)
+        '''
+        ntuple = namedtuple('AnimationSettingModifierArg', ['arg', 'subarg'])
+        output = ntuple(None, None)
+        for modifier in animation['modifiers']:
+            if modifier['name'] == name:
+                output = ntuple(modifier['value']['arg'], modifier['value']['subarg'])
+                break
+
+        return output
+
+    def verify(self, state):
+        '''
+        Verify animation was added to the stack
+
+        @param: State of result
+        '''
+        # No need to validate, other than during press
+        if state != 1:
+            return True
+
+        import interface as i
+
+        # Get expected index
+        expected_index = self.parent.expected_args[0]
+
+        # Determine settings from index
+        animation = i.control.json_input['AnimationSettingsIndex'][expected_index]
+        animation_id = i.control.json_input['AnimationIds'][animation['name']]
+        framedelay = self.get_modifier_setting(animation, 'framedelay').arg
+        frameoptions = animation['frameoptions']
+        ffunc = self.get_modifier_setting(animation, 'ffunc').arg
+        if ffunc is None:
+            ffunc = 'off'
+        pfunc = self.get_modifier_setting(animation, 'pfunc').arg
+        if pfunc is None:
+            pfunc = 'off'
+
+        # Get animation stack
+        stack_obj = i.control.cmd('animationStackInfo')()
+        size = stack_obj.size
+        stack = stack_obj.stack.contents
+
+        # Search animation stack for animation
+        # Match
+        # - Animation index
+        # - framedelay
+        # - frameoptions
+        # - ffunc
+        # - pfunc
+        result = False
+        for index in range(size):
+            elem = stack[index]
+            if elem.index != animation_id:
+                continue
+            if elem.framedelay != framedelay:
+                continue
+            if elem.ffunc_lookup() != ffunc:
+                continue
+            if elem.pfunc_lookup() != pfunc:
+                continue
+            if set(elem.frameoption_lookup()) != set(frameoptions):
+                continue
+
+            # Matched
+            result = True
+            break
+
+        # Print out stack if no match was found
+        if not result:
+            logger.warning("Animation not found, printing stack")
+            for index in range(size):
+                logger.warning(stack[index])
+
+        return check(result, "test:{} expected:{}:{}".format(
+            self.parent.parent.parent.parent.cur_test,
+            animation_id,
+            animation
+        ))
 
 
 

@@ -19,6 +19,7 @@ Host-Side Python Commands for TestIn Scan Module
 
 ### Imports ###
 
+import builtins
 import copy
 import sys
 import time
@@ -49,9 +50,9 @@ logger = kiilogger.get_logger('Scan/TestIn/host.py')
 
 ### Variables ###
 
-data = None
+data = builtins.kiibohd_data
 debug = False
-control = None
+control = builtins.kiibohd_control
 
 
 
@@ -62,9 +63,8 @@ class TriggerMacro( Structure ):
     C-Struct for TriggerMacro
     See Macro/PartialMap/kll.h
     '''
-    # TODO result is var_uint_t (dynamically sized)
     _fields_ = [
-        ( "guide",  POINTER( c_uint8 ) ),
+        ( "guide",  POINTER( control.var_uint_t ) ),
         ( "result", c_uint8 ),
     ]
 
@@ -191,6 +191,43 @@ class AnimationStackElement( Structure ):
         ( "pfunc",       c_uint8 ),
     ]
 
+    def frameoption_lookup(self):
+        '''
+        Do lookup on frameoption
+
+        Options are set using each bit
+
+        @returns: String name of frameoption index
+        '''
+        output = []
+        if self.frameoption & 1:
+            output.append('framestretch')
+
+        return output
+
+    def ffunc_lookup(self):
+        '''
+        Do lookup on ffunc (Frame Function)
+
+        @returns: String name of ffunc index
+        '''
+        lookup = {
+            0: 'off',
+        }
+        return lookup[self.ffunc]
+
+    def pfunc_lookup(self):
+        '''
+        Do lookup on pfunc (Pixel Function)
+
+        @returns: String name of pfunc index
+        '''
+        lookup = {
+            0: 'off',
+            1: 'interp',
+        }
+        return lookup[self.pfunc]
+
     def __repr__(self):
         val = "(trigger={}, index={}, pos={}, subpos={}, loops={}, framedelay={}, frameoption={}, ffunc={}, pfunc={})".format(
             self.trigger.contents,
@@ -199,9 +236,9 @@ class AnimationStackElement( Structure ):
             self.subpos,
             self.loops,
             self.framedelay,
-            self.frameoption,
-            self.ffunc,
-            self.pfunc,
+            self.frameoption_lookup(),
+            self.ffunc_lookup(),
+            self.pfunc_lookup(),
         )
         return val
 
@@ -306,6 +343,7 @@ class Commands:
         stateType = 0
         layerState = 0x04
         control.kiibohd.Macro_layerState(int(trigger), int(state), int(stateType), int(layer), int(layerState))
+        self.recordLayerState()
 
     def clearLayers( self ):
         '''
@@ -313,6 +351,38 @@ class Commands:
         i.e. Sets to default layer state
         '''
         control.kiibohd.Macro_clearLayers()
+        self.recordLayerState()
+
+    def getLayerState( self ):
+        '''
+        Retrieves current layer state
+
+        @return: LayerStateInstance namedtuple of state and stack
+        '''
+        # Gather layer state data
+        layerStateData = []
+        layerNum = cast(control.kiibohd.LayerNum_host, POINTER(c_uint32)).contents.value
+        layerState = cast(control.kiibohd.LayerState, POINTER(c_uint8 * layerNum)).contents
+        for layer in layerState:
+            layerStateData.append(layer)
+
+        # Gather layer stack data
+        layerStackData = []
+        layerStackSize = cast(control.kiibohd.macroLayerIndexStackSize, POINTER(control.index_uint_t)).contents.value
+        layerStack = cast(control.kiibohd.macroLayerIndexStack, POINTER(control.index_uint_t * layerStackSize)).contents
+        for layer in layerStack:
+            layerStackData.append(layer)
+
+        ntuple = namedtuple('LayerStateInstance', ['state', 'stack', 'time'])
+        value = ntuple(layerStateData, layerStackData, time.time())
+        return value
+
+    def recordLayerState( self ):
+        '''
+        Used to record layer state when using Python API to modify the layers
+        Necessary to maintain proper layer history
+        '''
+        data.layer_history.add(self.getLayerState())
 
     def addAnimation( self, name=None, index=0, pos=0, loops=1, divmask=0x0, divshift=0x0, ffunc=0, pfunc=0 ):
         '''
@@ -473,6 +543,15 @@ class Callbacks:
         item = cast( control.kiibohd.resultCapabilityCallbackData, POINTER( ResultCapabilityStackItem ) ).contents
         cbhistory = namedtuple('CallbackHistoryItem', ['callbackdata', 'type', 'time'])
         data.capability_history.new_callback(cbhistory(item.copy(), arg, time.time()))
+
+    def layerState(self, args):
+        '''
+        Called on each processing loop to record the current layer state
+
+        Used to determine what the previous layer state was
+        Argument is unused
+        '''
+        control.cmd('recordLayerState')()
 
 
 
