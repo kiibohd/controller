@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller KLL Configurator |###
 #
-# Written by Jacob Alexander in 2014-2017 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2018 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -19,12 +19,12 @@ if ( "${MacroModule}" STREQUAL "PartialMap" OR "${MacroModule}" STREQUAL "PixelM
 # Check disabled for Win32 as it can't detect version correctly (we don't use Python directly through CMake anyways)
 #
 
+set ( PYTHON_EXECUTABLE
+	python3
+	CACHE STRING "Python 3 Executable Path"
+)
 if ( NOT CMAKE_HOST_WIN32 )
 	# Required on systems where python is 2, not 3
-	set ( PYTHON_EXECUTABLE
-		python3
-		CACHE STRING "Python 3 Executable Path"
-	)
 	find_package ( PythonInterp 3 REQUIRED )
 endif ()
 
@@ -172,7 +172,7 @@ set ( kll_outputname ${kll_keymap} ${kll_defs} ${kll_pixelmap} )
 
 #| KLL Version
 set ( kll_version_cmd
-	${PROJECT_SOURCE_DIR}/kll/kll
+	${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll
 	--version
 )
 
@@ -189,7 +189,7 @@ endif ()
 
 #| KLL Cmd
 set ( kll_cmd
-	${PROJECT_SOURCE_DIR}/kll/kll
+	${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll
 	--kiibohd-debug
 	--config ${Config_Args}
 	${BaseMap_Args}

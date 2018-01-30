@@ -358,7 +358,7 @@ fi
 # Automatically determines the build system and initiates it
 # Cygwin
 if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
-	PATH="$wincmake_path":"${PATH}"	VERBOSE=1 cmake --build . ${CMakeExtraBuildArgs}
+	PATH="$wincmake_path":"${PATH}"	cmake --build . ${CMakeExtraBuildArgs}
 	return_code=$?
 
 # Linux / Mac (and everything else)
