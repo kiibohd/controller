@@ -323,6 +323,35 @@ void Macro_layerLock_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	Macro_layerState( trigger, state, stateType, layer, 0x04 );
 }
 
+uint32_t layerDelayedLock_timer = 0;
+uint8_t layerDelayedLock_alreadySwitched = 0;
+// Locks given layer after it's been pressed for 500 milliseconds
+// Argument #1: Layer Index -> uint16_t
+void Macro_layerDelayedLock_capability( uint8_t state, uint8_t stateType, uint8_t *args ) {
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF ) {
+		print("Macro_layerDelayedLock_capability(layerIndex)");
+		return;
+	}
+
+	uint32_t currentTime = systick_millis_count;
+	if ( stateType == 0x00 && state == 0x01 ) { // Pressed
+		layerDelayedLock_timer = currentTime; // Set start timestamp
+		layerDelayedLock_alreadySwitched = 0;
+	} else if ( stateType == 0x00 && state == 0x02 && !layerDelayedLock_alreadySwitched) { // Hold
+		int32_t diff = (int32_t)(currentTime - layerDelayedLock_timer);
+		if (diff > 500) { // TODO: Make customizable
+			// We reached the threshold
+			// Get layer index from arguments
+			// Cast pointer to uint8_t to uint16_t then access that memory location
+			uint16_t layer = *(uint16_t*)(&args[0]);
+			Macro_layerState( state, stateType, layer, 0x04 );
+			layerDelayedLock_alreadySwitched = 1;
+			layerDelayedLock_timer = 0;
+		}
+	}
+}
+
 
 // Shifts given layer
 // Argument #1: Layer Index -> uint16_t
