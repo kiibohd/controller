@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is a build and test script used to test KLL functionality
 # It runs on the host system and doesn't require a device to flash onto
-# Jacob Alexander 2016-2018
+# Jacob Alexander 2016-2017
 
 
 
@@ -81,6 +81,12 @@ source "../common.bash"
 
 # Run tests
 cd "${BuildPath}"
+
+# Not Supported on Cygwin
+if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
+	echo "macrotest.bash is unsupported on Cygwin. As are any host-side kll tests."
+	exit 0
+fi
 
 cmd python3 Tests/kll.py
 
