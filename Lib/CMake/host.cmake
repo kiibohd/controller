@@ -99,7 +99,11 @@ if ( "${COMPILER}" MATCHES "clang" )
 
 #| GCC Compiler
 else()
-	set( TUNING "-nostdlib -fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
+	if ( "${DETECTED_BUILD_KERNEL}" MATCHES "CYGWIN" )
+		set( TUNING "-fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
+	else ()
+		set( TUNING "-nostdlib -fshort-enums -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
+	endif ()
 endif()
 
 

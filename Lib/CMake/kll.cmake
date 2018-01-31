@@ -23,9 +23,11 @@ set ( PYTHON_EXECUTABLE
 	python3
 	CACHE STRING "Python 3 Executable Path"
 )
-if ( NOT CMAKE_HOST_WIN32 )
+if ( NOT "${DETECTED_BUILD_KERNEL}" MATCHES "CYGWIN" )
 	# Required on systems where python is 2, not 3
 	find_package ( PythonInterp 3 REQUIRED )
+else ()
+	message ( STATUS "Python Executable: ${PYTHON_EXECUTABLE}" )
 endif ()
 
 
