@@ -199,7 +199,73 @@ uint8_t Matrix_pin( GPIO_Pin gpio, Type type )
 		break;
 	}
 #elif defined(_sam_)
-	//SAM TODO
+	Pio *ports[] = {PIOA, PIOB, PIOC};
+	Pio *pio = ports[gpio.port];
+
+	//TODO: Parallel capture seems cool
+
+	// Operation depends on Type
+	switch ( type )
+	{
+	case Type_StrobeOn:
+		pio->PIO_SODR = (1 << gpio.pin);
+		break;
+
+	case Type_StrobeOff:
+		pio->PIO_SODR = (1 << gpio.pin);
+		break;
+
+	case Type_StrobeSetup:
+		// Set as output pin
+		pio->PIO_PER = (1 << gpio.pin);
+		pio->PIO_OER = (1 << gpio.pin);
+
+		// Configure pin with slow slew, high drive strength and GPIO mux
+		//*PORT_PCR = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
+		//TODO: Glitch fnilter, Debounce???
+
+		// Enabling open-drain if specified
+		switch ( Matrix_type )
+		{
+		case Config_Opendrain:
+			pio->PIO_MDER = (1 << gpio.pin);
+			break;
+
+		// Do nothing otherwise
+		default:
+			break;
+		}
+		break;
+
+	case Type_Sense:
+		return pio->PIO_PDSR & (1 << gpio.pin) ? 1 : 0;
+
+	case Type_SenseSetup:
+		// Set as input pin
+		pio->PIO_PER = (1 << gpio.pin);
+		pio->PIO_ODR = (1 << gpio.pin);
+
+		// Configure pin with passive filter and GPIO mux
+		// TODO?
+
+		// Pull resistor config
+		switch ( Matrix_type )
+		{
+		case Config_Pullup:
+			pio->PIO_PUER = (1 << gpio.pin);
+			break;
+
+		case Config_Pulldown:
+			pio->PIO_PPDER = (1 << gpio.pin);
+			break;
+
+		// Do nothing otherwise
+		default:
+			break;
+		}
+		break;
+	}
+
 #endif
 
 	return 0;
