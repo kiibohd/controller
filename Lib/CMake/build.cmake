@@ -192,6 +192,7 @@ endif ()
 if ( JLINK )
 	configure_file( LoadFile/load.jlink load NEWLINE_STYLE UNIX )
 	configure_file( LoadFile/debug.jlink debug NEWLINE_STYLE UNIX )
+	configure_file( LoadFile/reset.jlink reset NEWLINE_STYLE UNIX )
 
 #| Next check for DFU based controllers
 elseif( DEFINED DFU )

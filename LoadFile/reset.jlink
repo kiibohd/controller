@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Convenience script for resetting a jlink type device
+
+echo "r" >> reset.jlink
+echo "g" >> reset.jlink
+echo "exit" >> reset.jlink
+JLinkExe -device @CHIP@ -if @JLINK_INTERFACE@ -speed @JLINK_SPEED@ -CommanderScript reset.jlink
