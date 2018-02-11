@@ -62,6 +62,9 @@ void ResetHandler();
 void fault_isr()
 {
 	print("Fault!" NL );
+#if defined(DEBUG) && defined(JLINK)
+asm volatile("BKPT #01");
+#else
 	while ( 1 )
 	{
 		// keep polling some communication while in fault
@@ -71,6 +74,7 @@ void fault_isr()
 		if ( SIM_SCGC4 & SIM_SCGC4_UART1 )  uart1_status_isr();
 		if ( SIM_SCGC4 & SIM_SCGC4_UART2 )  uart2_status_isr();*/
 	}
+#endif
 }
 
 void unused_isr()
