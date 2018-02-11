@@ -699,7 +699,7 @@ static void usb_setup()
 		}
 
 		// Request protocol update
-		USBKeys_Protocol_New = 1;
+		USBKeys_Protocol_Change = 1;
 
 		goto send;
 
