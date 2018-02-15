@@ -294,6 +294,8 @@ typedef struct TriggerEvent {
 	uint8_t       index;
 } TriggerEvent;
 
+extern var_uint_t KLL_TriggerIndex_loopkup( TriggerType type, uint8_t index );
+
 
 
 // -- List Structs

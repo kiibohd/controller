@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Macro Module |###
 #
-# Written by Jacob Alexander in 2014-2016 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2018 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -12,6 +12,7 @@
 #
 
 set ( Module_SRCS
+	kll.c
 	macro.c
 	result.c
 	trigger.c

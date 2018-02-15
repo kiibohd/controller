@@ -551,9 +551,13 @@ TriggerMacroEval Trigger_evalTriggerMacro( var_uint_t triggerMacroIndex )
 		// Otherwise, just remove the macro on key release
 		else if ( overallVote & TriggerMacroVote_Release )
 		{
-			record->state = TriggerMacro_Release;
+			// Long result macro (more than 1 combo) are ignored (only on press)
+			if ( !Trigger_isLongResultMacro( &ResultMacroList[ macro->result ] ) )
+			{
+				record->state = TriggerMacro_Release;
 
-			return TriggerMacroEval_DoResultAndRemove;
+				return TriggerMacroEval_DoResultAndRemove;
+			}
 		}
 
 		// This is a short macro, just remove it

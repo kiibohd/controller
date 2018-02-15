@@ -65,6 +65,9 @@ void cliFunc_macroStep ( char* args );
 void cliFunc_posList   ( char* args );
 void cliFunc_voteDebug ( char* args );
 
+void Macro_showScheduleType( ScheduleState state );
+void Macro_showTriggerType( TriggerType type );
+
 
 
 // ----- Variables -----
@@ -405,6 +408,50 @@ void Macro_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 
 	// Toggle the computed layer rotation
 	Macro_layerState( trigger, state, stateType, Macro_rotationLayer, 0x04 );
+}
+
+
+// Test Thread-safe Capability
+// Capability used to test a thread-safe result
+void Macro_testThreadSafe( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Macro_testThreadSafe()");
+		return;
+	}
+
+	// Show trigger information
+	print("ThreadSafe: ");
+	Macro_showTriggerType( (TriggerType)stateType );
+	print(" ");
+	Macro_showScheduleType( (ScheduleState)state );
+	print(" - ");
+	printHex32( (intptr_t)trigger );
+	print(NL);
+}
+
+
+// Test Thread-unsafe Capability
+// Capability used to test a thread-unsafe result
+void Macro_testThreadUnsafe( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	// Display capability name
+	if ( stateType == 0xFF && state == 0xFF )
+	{
+		print("Macro_testThreadUnsafe()");
+		return;
+	}
+
+	// Show trigger information
+	print("ThreadUnsafe: ");
+	Macro_showTriggerType( (TriggerType)stateType );
+	print(" ");
+	Macro_showScheduleType( (ScheduleState)state );
+	print(" - ");
+	printHex32( (intptr_t)trigger );
+	print(NL);
 }
 
 
@@ -1037,15 +1084,9 @@ void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 	// Lookup result macro index
 	var_uint_t resultMacroIndex = triggerMacro->result;
 
-	// Iterate through result macro pending list, making sure this macro hasn't been added yet
-	for ( var_uint_t macro = 0; macro < macroResultMacroPendingList.size; macro++ )
-	{
-		// If duplicate found, do nothing
-		if ( macroResultMacroPendingList.data[ macro ].index == resultMacroIndex )
-			return;
-	}
-
-	// No duplicates found, add to pending list
+	// Add, even if there's a duplicate
+	// There may be multiple triggers that specify the capability
+	// Different triggers may result in different final results
 	macroResultMacroPendingList.data[ macroResultMacroPendingList.size ].trigger = (TriggerMacro*)triggerMacro;
 	macroResultMacroPendingList.data[ macroResultMacroPendingList.size++ ].index = resultMacroIndex;
 

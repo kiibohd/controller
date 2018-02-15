@@ -225,6 +225,9 @@ void Result_setup()
 // are processed with this function
 void Result_process_delayed()
 {
+	// Disable periodic interrupts if we have delayed capabilities
+	Periodic_disable();
+
 	// Process stack until empty
 	// For each empty, make sure interrupts are disabled
 	while ( macroResultDelayedCapabilities.size > 0 )
@@ -287,8 +290,5 @@ void Result_process()
 
 	// Update the macroResultMacroPendingListSize with the tail pointer
 	macroResultMacroPendingList.size = macroResultMacroPendingListTail;
-
-	// Disable periodic interrupts if we have delayed capabilities
-	Periodic_disable();
 }
 

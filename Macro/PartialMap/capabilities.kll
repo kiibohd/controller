@@ -1,11 +1,11 @@
 # PartialMap
 Name = PartialMapCapabilities;
-Version = 0.5;
-Author = "HaaTa (Jacob Alexander) 2014-2017";
+Version = 0.6;
+Author = "HaaTa (Jacob Alexander) 2014-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-12-02;
+Date = 2018-02-13;
 
 
 # Capabilties available to the PartialMap module
@@ -18,6 +18,11 @@ layerShift  => Macro_layerShift_capability( layer : 2 );
 # But still sets the layer stack using the layerLock/unlock mechanism
 # Argument 0 -> Next, 1 -> Previous
 layerRotate => Macro_layerRotate_capability( previous : 1 );
+
+# Test Capabilities
+testThreadSafe   => Macro_testThreadSafe();
+testThreadUnsafe => Macro_testThreadUnsafe();
+
 
 # Defines available to the PartialMap module
 stateWordSize => StateWordSize_define;
