@@ -10,7 +10,8 @@ WORKDIR /controller/Keyboards
 CMD /bin/bash
 
 # 1. Build the image after the initial cloning of this repo
-# docker build -t controller . # notice the dot at the end
+# docker build -t controller .. # notice the dots at the end
+# cd ..
 
 # 2. Run the image from within the repository root
 # docker run -it --rm -v "$(pwd):/controller" controller

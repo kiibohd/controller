@@ -1,9 +1,9 @@
 FROM base/archlinux
 
 RUN pacman -Sy --noconfirm \
-	git cmake ctags tmux libusb python python-pillow ninja dfu-util awk gcc gdb \
+	git cmake ctags tmux libusb python python-pillow ninja dfu-util gcc gdb \
 	arm-none-eabi-binutils arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib \
-	clang && \
+	clang lsb-release && \
 	rm -rf /var/cache/pacman/pkg
 
 VOLUME /controller
@@ -11,7 +11,8 @@ WORKDIR /controller/Keyboards
 CMD /bin/bash
 
 # 1. Build the image after the initial cloning of this repo
-# docker build -f Dockerfile.archlinux -t controller.archlinux . # notice the dot at the end
+# docker build -f Dockerfile.archlinux -t controller.archlinux .. # notice the dots at the end
+# cd ..
 
 # 2. Run the image from within the repository root
 # docker run -it --rm -v "$(pwd):/controller" controller.archlinux

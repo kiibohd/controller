@@ -1,5 +1,6 @@
 # appveyor file for kiibohd/controller
 # Used to test out the Cygwin builds
+# Jacob Alexander 2016-2018
 
 # System Build Architecture
 platform:

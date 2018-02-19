@@ -33,12 +33,12 @@ The Kiibohd firmware supports a lot of other keyboards, but these are more obscu
 Compilation
 -----------
 
-Compilation is possible and tested on Windows/Linux/Mac.
-Linux is the easiest using this [VM](https://s3.amazonaws.com/configurator-assets/ArchLinux_kiibohd_2015-02-13.tar.gz).
+Compilation is possible and tested on Windows/Linux/macOS.
+However, the recommended method is using a [Dockerfile](Dockerfiles).
 
-For most people refer [here](https://github.com/kiibohd/controller/tree/master/Keyboards).
+Then, once you have a docker environment, you can select a build script [here](https://github.com/kiibohd/controller/tree/master/Keyboards).
 
-For the full compilation details, please refer to the [wiki](https://github.com/kiibohd/controller/wiki).
+To compile natively for your platform, refer to the [wiki](https://github.com/kiibohd/controller/wiki).
 
 
 
