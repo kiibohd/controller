@@ -14,6 +14,7 @@ They are useful in testing a broad range of features quickly.
 
 * [animation.py](animation.py) - Basic animation tests. Best used with a 32-bit color terminal (e.g. iterm2, Konsole, etc.).
 * [animation2.py](animation2.py) - Quick animation tests, less comprehensive.
+* [cli.py](cli.py) - CLI functionality test.
 * [hidio.py](hidio.py) - HID-IO functionality and protocol tests.
 * [kll.py](kll.py) - KLL functionality testing. Utilizes the input KLL layout configuration to build test cases automatically.
 * [test.py](test.py) - Very simple sanity check for TestIn module.
