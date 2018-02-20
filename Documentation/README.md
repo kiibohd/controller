@@ -11,7 +11,7 @@ The main exception to this is dealing with KLL itself.
 * [Test Architecture](TestArchitecture.md) - Description of the host-side kll test architecture.
 
 
-## [Keyboards](Keyboards).
+## [Keyboards](Keyboards)
 
 For each keyboard [Input Club](https://input.club) design, a manual is created [here](Keyboards).
 

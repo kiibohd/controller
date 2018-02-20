@@ -14,10 +14,10 @@ The goal of this document is to describe how code is constructed from the variou
 1. Construct a CMake build expression (generally by calling a [build script](../Keyboards)).
 1. Scan selected modules using `setup.cmake` files.
 
-    2. Each module may define multiple sub-modules.
-    2. Sub-modules may have KLL files that are overridden by the overall KLL layout files.
-    2. Some modules override weak symbols in sub-modules, this is common with [Output Modules](../Output).
-    2. Some modules define additional files to be generated (e.g. Python files for host builds).
+    1. Each module may define multiple sub-modules.
+    1. Sub-modules may have KLL files that are overridden by the overall KLL layout files.
+    1. Some modules override weak symbols in sub-modules, this is common with [Output Modules](../Output).
+    1. Some modules define additional files to be generated (e.g. Python files for host builds).
 
 1. Run [KLL compiler](https://github.com/kiibohd/kll) on all the scanned KLL files.
 1. Compile source files into binary.

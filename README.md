@@ -9,7 +9,6 @@ Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](
 
 [![Travis Status](https://travis-ci.org/kiibohd/controller.svg?branch=master)](https://travis-ci.org/kiibohd/controller) [![Appveyor Status](https://ci.appveyor.com/api/projects/status/67yk8tiyt88xmd15?svg=true)](https://ci.appveyor.com/project/kiibohd/controller/branch/master)
 
-
 [![Visit our IRC channel](https://kiwiirc.com/buttons/irc.freenode.net/input.club.png)](https://kiwiirc.com/client/irc.freenode.net/#input.club)
 
 [Visit our Discord Channel](https://discord.gg/GACJa4f)
@@ -19,11 +18,11 @@ Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](
 Official Keyboards
 ------------------
 
-* Infinity 60%
-* Infinity 60% LED
-* Infinity Ergodox
-* K-Type
-* WhiteFox
+* [Infinity 60%](https://input.club/devices/infinity-keyboard/)
+* [Infinity 60% LED](https://input.club/devices/infinity-keyboard/)
+* [Infinity Ergodox](https://input.club/devices/infinity-ergodox/)
+* [K-Type](https://input.club/k-type/)
+* [WhiteFox](https://input.club/whitefox/)
 
 
 The Kiibohd firmware supports a lot of other keyboards, but these are more obscure/custom/lesser known.
@@ -45,19 +44,19 @@ To compile natively for your platform, refer to the [wiki](../../wiki).
 Supported Microcontrollers
 --------------------------
 
-* Teensy 2.0 (Deprecated)
-* Teensy 2.0++ (Deprecated)
-* Teensy 3.0
-* Teensy 3.1/3.2
-* mk20dx128vlf5
-* mk20dx256vlh7
+* [Teensy 2.0](https://www.pjrc.com/store/teensy.html) (Deprecated)
+* [Teensy 2.0++](https://www.pjrc.com/store/teensypp.html) (Deprecated)
+* [Teensy 3.0](https://www.pjrc.com/store/teensy3.html)
+* Teensy [3.1](https://www.pjrc.com/store/teensy31.html)/[3.2](https://www.pjrc.com/store/teensy32.html)
+* [mk20dx128vlf5](https://www.nxp.com/part/MK20DX128VLF5)
+* [mk20dx256vlh7](https://www.nxp.com/part/MK20DX256VLH7)
 
 
 Adding support for more microcontrollers is possible.
 Some considerations for minimum specs:
 
-* ~8  kB of SRAM
-* ~25 kB of Flash
+* ~16 kB of SRAM
+* ~64 kB of Flash
 
 It's possible to port chips with lower specs, but will be more effort and have fewer features.
 

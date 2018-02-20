@@ -122,12 +122,12 @@ An example of how to use these scripts to compile KLL files from the [Ergodox co
 1. move *.kll files from firmware download into `controller/kll/layouts/mine`
 1. update the `BuildPath`s and `DefaultMap` and `PartialMaps` in `ergodox-l.bash` and `ergodox-r.bash`
 
-    2. `BuildPath="my_layout-l"`
-    2. `DefaultMap="mine/MDErgo1-Default-0 lcdFuncMap"`
-    2. `PartialMaps[1]="mine/MDErgo1-Default-1 lcdFuncMap"`
-    2. Repeat `PartialMaps[]` with a sequential number for each layer you have
-    2. `BuildPath="my_layout-r"`
-    2. Take note that all layouts will need the `lcdFuncMap` added for ErgoDox
+    1. `BuildPath="my_layout-l"`
+    1. `DefaultMap="mine/MDErgo1-Default-0 lcdFuncMap"`
+    1. `PartialMaps[1]="mine/MDErgo1-Default-1 lcdFuncMap"`
+    1. Repeat `PartialMaps[]` with a sequential number for each layer you have
+    1. `BuildPath="my_layout-r"`
+    1. Take note that all layouts will need the `lcdFuncMap` added for ErgoDox
 
 1. cd into `controller/Keyboards `
 1. run `./ergodox.bash`
