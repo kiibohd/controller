@@ -121,13 +121,7 @@ logger.info(" TPending {}", data.pending_trigger_list())
 check( len( data.pending_trigger_list() ) == 0 )
 
 
-### Combo Test ###
-
-logger.info(header("-- 2 key combo test --"))
-# TODO
-# - Combo
-# - Delayed combo
-# - Sequence
+### Results ###
 
 result()
 

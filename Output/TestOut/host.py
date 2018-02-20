@@ -413,14 +413,17 @@ class Callbacks:
         '''
         output = cast( args, c_char_p ).value
         try:
-            print( output.decode("utf-8"), end='' )
+            decoded = output.decode("utf-8")
+            print( decoded, end='' )
         except UnicodeDecodeError:
             print( output, end='' )
 
         # If serial is enabled, duplicate output to stdout and serial interface
         # Must re-encode back to bytes from utf-8
+        # When using serial mode, record all output contents in case validation is necessary
         if control.serial is not None and len( output ) > 0:
             os.write( control.serial, output )
+            control.serial_output_buf.append(decoded)
 
 
 

@@ -90,6 +90,7 @@ fi
 cmd python3 Tests/test.py
 cmd python3 Tests/animation.py
 cmd python3 Tests/hidio.py
+cmd python3 Tests/cli.py
 
 # Tally results
 result

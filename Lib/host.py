@@ -351,6 +351,7 @@ class Control:
         self.CTYPE_callback_ref = None
         self.serial = None
         self.serial_buf = ""
+        self.serial_output_buf = []
 
         # Provide reference to this class when running callback
         # Due to memory schemes, we have to use a standard Python function and not a method
@@ -549,7 +550,7 @@ class Control:
 
         return self.command_dict[ command_name ]
 
-    def cli( self ):
+    def cli(self):
         '''
         Setup and process cli commands
         Convenience function for test cases
@@ -557,18 +558,39 @@ class Control:
         self.virtual_serialport_setup()
         self.virtual_serialport_process()
 
-    def virtual_serialport_process( self ):
+    def cli_status(self):
+        '''
+        Check if serial port is active and running
+
+        @return: True if active
+        '''
+        if self.serial is not None:
+            return True
+
+    def cli_name(self):
+        '''
+        Returns the path to the cli interface
+        '''
+        return self.serial_name
+
+    def cli_buffer(self):
+        '''
+        Returns list of all output lines printed to serial console
+        '''
+        return self.serial_output_buf
+
+    def virtual_serialport_process(self):
         '''
         Process virtual serial port commands
         '''
         # Run cli loop if available
         while self.serial is not None:
-            value = os.read( self.serial_master, 1 ).decode('utf-8')
+            value = os.read(self.serial_master, 1).decode('utf-8')
             self.serial_buf += value
 
             # Debug output
             if self.debug:
-                print( value, end='' )
+                print(value, end='')
                 sys.stdout.flush()
 
             # Check if any cli commands need to be processed
@@ -577,23 +599,24 @@ class Control:
             # If non-zero return, break out of processing loop
             if ret != 0:
                 # Cleanup virtual serialport
-                os.close( self.serial_master )
-                os.close( self.serial_slave )
+                os.close(self.serial_master)
+                os.close(self.serial_slave)
+                self.serial = None
                 break
 
-    def virtual_serialport_setup( self ):
+    def virtual_serialport_setup(self):
         '''
         Setup virtual serial port
         '''
         # Open pty device, and disable echo (to simulate microcontroller virtual serial port)
         self.serial_master, self.serial_slave = pty.openpty()
-        settings = termios.tcgetattr( self.serial_master )
+        settings = termios.tcgetattr(self.serial_master)
         settings[3] = settings[3] & ~termios.ECHO
-        termios.tcsetattr( self.serial_master, termios.TCSADRAIN, settings )
+        termios.tcsetattr(self.serial_master, termios.TCSADRAIN, settings)
 
         # Setup ttyname
-        self.serial_name = os.ttyname( self.serial_slave )
-        logger.info( self.serial_name )
+        self.serial_name = os.ttyname(self.serial_slave)
+        logger.info(self.serial_name)
 
         # Setup serial interface
         self.serial = self.serial_master

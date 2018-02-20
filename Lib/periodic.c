@@ -44,6 +44,10 @@
 
 static void (*periodic_func)(void);
 
+#if defined(_host_)
+uint32_t Periodic_cycles_store = 0;
+#endif
+
 
 
 // ----- Functions -----
@@ -178,6 +182,7 @@ uint32_t Periodic_cycles()
 #elif defined(_host_)
 void Periodic_init( uint32_t cycles )
 {
+	Periodic_cycles_store = cycles;
 }
 
 void Periodic_function( void *func )
@@ -196,7 +201,7 @@ void Periodic_disable()
 
 uint32_t Periodic_cycles()
 {
-	return 0;
+	return Periodic_cycles_store;
 }
 #endif
 

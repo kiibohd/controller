@@ -525,6 +525,22 @@ class Commands:
         '''
         control.kiibohd.Pixel_dispBuffer()
 
+    def setPeriodic(self, value):
+        '''
+        Set interval period
+
+        @param value: Clock cycles between scans
+        '''
+        control.kiibohd.Periodic_init(int(value))
+
+    def getPeriodic(self):
+        '''
+        Retrieve currently set interval period
+
+        @return: Clock cycles between scans
+        '''
+        return int(control.kiibohd.Periodic_cycles())
+
 
 class Callbacks:
     '''
