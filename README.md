@@ -36,9 +36,9 @@ Compilation
 Compilation is possible and tested on Windows/Linux/macOS.
 However, the recommended method is using a [Dockerfile](Dockerfiles).
 
-Then, once you have a docker environment, you can select a build script [here](https://github.com/kiibohd/controller/tree/master/Keyboards).
+Then, once you have a docker environment, you can select a build script [here](Keyboards).
 
-To compile natively for your platform, refer to the [wiki](https://github.com/kiibohd/controller/wiki).
+To compile natively for your platform, refer to the [wiki](../../wiki).
 
 
 
@@ -66,7 +66,24 @@ It's possible to port chips with lower specs, but will be more effort and have f
 Modules
 -------
 
-Scan <-> Macro <-> Output
+```
+           +------------------------------------------------+
+           |     Lib                              Debug     |
+           +------------------------------------------------+
+
+           +-------------+  +-------------+  +--------------+
+Input +---->    Scan     +--+    Macro    +--+    Output    +----> Output
+Data       | +---------+ |  | +--------+  |  |              |      Data
+           | | Devices +------+ Pixels |  |  |              |
+           | +----+----+ |  | +--------+  |  |              |
+           +------|------+  +-------------+  +--------------+
+                  |
+                  v
+
+               Hardware
+               Control
+
+```
 
 * [Debug Modules](Debug) - Debug support modules (e.g. cli)
 * [Scan Modules](Scan) - Defines keyboard behaviour (e.g. K-Type)

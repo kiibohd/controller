@@ -420,7 +420,7 @@ class Callbacks:
         # If serial is enabled, duplicate output to stdout and serial interface
         # Must re-encode back to bytes from utf-8
         if control.serial is not None and len( output ) > 0:
-            os.write( control.serial, output.encode("ascii", "ignore") )
+            os.write( control.serial, output )
 
 
 
