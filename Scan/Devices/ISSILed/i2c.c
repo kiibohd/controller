@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Jan Rychter
- * Modifications (C) 2015-2017 Jacob Alexander
+ * Modifications (C) 2015-2018 Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files ( the "Software" ), to deal
@@ -85,17 +85,17 @@ void i2c_setup()
 
 		// SCL Frequency Divider
 	#if ISSI_Chip_31FL3731_define == 1 && defined(_kii_v1_)
-		// 0x85 -> 48 MHz / (4 * 28) = 400 kBaud
-		// 0x80 => mul(4)
-		// 0x05 => ICR(30)
-		*I2C_F = 0x85;
-		*I2C_FLT = 0x04;
+		// 0x53 -> 48 MHz / (2 * 72) = 333.333 kBaud
+		// 0x40 => mul(2)
+		// 0x13 => ICR(30)
+		*I2C_F = 0x53;
+		*I2C_FLT = 0x06;
 	#elif ISSI_Chip_31FL3731_define == 1 && defined(_kii_v2_)
-		// 0x84 -> 36 MHz / (4 * 28) = 321.428 kBaud
-		// 0x80 => mul(4)
-		// 0x04 => ICR(28)
-		*I2C_F = 0x84;
-		*I2C_FLT = 0x03;
+		// 0x4E -> 36 MHz / (2 * 56) = 321.428 kBaud
+		// 0x40 => mul(2)
+		// 0x0E => ICR(56)
+		*I2C_F = 0x4E;
+		*I2C_FLT = 0x05;
 	#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define == 1
 		/*
 		// Works
@@ -148,6 +148,21 @@ void i2c_setup()
 		//SAM TODO
 #endif
 	}
+}
+
+// Checks if any bus has errored
+uint8_t i2c_error()
+{
+	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
+	{
+		volatile I2C_Channel *channel = &( i2c_channels[ch] );
+		if ( channel->status == I2C_ERROR )
+		{
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
 void i2c_reset()
@@ -424,9 +439,12 @@ i2c_isr_stop:
 	// Call the user-supplied callback function upon successful completion (if it exists).
 	if ( channel->callback_fn )
 	{
-		// Delay 10 microseconds before starting linked function
-		// TODO, is this chip dependent? -HaaTa
+		// Delay before starting linked function
+#if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
+		delay_us(25);
+#elif ISSI_Chip_31FL3733_define == 1
 		delay_us(10);
+#endif
 		( *channel->callback_fn )( channel->user_data );
 	}
 	return;

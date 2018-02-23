@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Jan Rychter
- * Modifications (C) 2015-2016 Jacob Alexander
+ * Modifications (C) 2015-2018 Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -113,4 +113,9 @@ uint8_t i2c_any_busy();
  * Reset i2c buses after an error
  */
 void i2c_reset();
+
+/*
+ * Check to see if there was an error on any bus
+ */
+uint8_t i2c_error();
 

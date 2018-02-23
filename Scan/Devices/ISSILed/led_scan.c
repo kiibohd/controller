@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,7 +55,7 @@
 #define ISSI_LEDPwmPage        0x00
 #define ISSI_LEDPwmRegStart    0x24
 #define ISSI_PageLength        0xB4
-#define ISSI_SendDelay          50
+#define ISSI_SendDelay          200
 #define ISSI_LEDPages            8
 
 #define ISSI_Ch1 0xE8
@@ -74,7 +74,7 @@
 #define ISSI_LEDPwmPage        0x00
 #define ISSI_LEDPwmRegStart    0x24
 #define ISSI_PageLength        0xB4
-#define ISSI_SendDelay          50
+#define ISSI_SendDelay          200
 #define ISSI_LEDPages            8
 
 #define ISSI_Ch1  0xA0
@@ -855,6 +855,14 @@ inline void LED_scan()
 		goto led_finish_scan;
 	}
 
+	// Check if any I2C buses have errored
+	// Reset the buses and restart the Frame State
+	if ( i2c_error() )
+	{
+		i2c_reset();
+		Pixel_FrameState = FrameState_Update;
+	}
+
 	// Only start if we haven't already
 	// And if we've finished updating the buffers
 	if ( Pixel_FrameState == FrameState_Sending )
@@ -1095,12 +1103,14 @@ void cliFunc_ledReset( char* args )
 	print( NL ); // No \r\n by default after the command is entered
 
 	// Reset I2C bus
+#if ISSI_Chip_31FL3733_define == 1
 #if defined(_kinetis_)
 	GPIOC_PSOR |= (1<<5);
 	delay_us(50);
 	GPIOC_PCOR |= (1<<5);
 #elif defined(_sam_)
 	//SAM TODO
+#endif
 #endif
 	i2c_reset();
 
