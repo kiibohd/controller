@@ -646,6 +646,9 @@ inline void LED_setup()
 	// Global brightness setting
 	LED_brightness = ISSI_Global_Brightness_define;
 
+	// Initialize I2C error counters
+	i2c_initial();
+
 	// Initialize I2C
 	i2c_setup();
 
@@ -900,22 +903,20 @@ inline void LED_scan()
 	// Emulated brightness control
 	// Lower brightness by LED_brightness
 #if ISSI_Chip_31FL3731_define == 1
-	uint8_t inverse_brightness = 0xFF - LED_brightness;
 	for ( uint8_t chip = 0; chip < ISSI_Chips_define; chip++ )
 	{
 		for ( uint8_t ch = 0; ch < LED_BufferLength; ch++ )
 		{
 			// Don't modify is 0
-			if ( LED_pageBuffer[ chip ].buffer[ ch ] == 0 )
+			if ( LED_pageBuffer[ chip ].buffer[ ch ] == 0 || LED_brightness == 0 )
 			{
 				LED_pageBuffer_brightness[ chip ].buffer[ ch ] = 0;
 				continue;
 			}
 
+			// XXX (HaaTa) Yes, this is a bit slow, but it's pretty accurate
 			LED_pageBuffer_brightness[ chip ].buffer[ ch ] =
-				LED_pageBuffer[ chip ].buffer[ ch ] - inverse_brightness < 0
-				? 0x0
-				: LED_pageBuffer[ chip ].buffer[ ch ] - inverse_brightness;
+				(LED_pageBuffer[ chip ].buffer[ ch ] * LED_brightness) / 0xFF;
 		}
 	}
 #endif
@@ -1005,11 +1006,7 @@ void LED_control( LedControl control, uint8_t arg )
 
 	case LedControl_brightness_set_all:
 		LED_enable = 1;
-#if ISSI_Chip_31FL3731_define == 1
-		LED_brightness = ISSI_Global_Brightness_define;
-#else
 		LED_brightness = arg;
-#endif
 		break;
 
 	case LedControl_off:
@@ -1036,10 +1033,10 @@ void LED_control( LedControl control, uint8_t arg )
 		LED_writeReg( bus, addr, 0x01, LED_brightness, ISSI_ConfigPage );
 #elif ISSI_Chip_31FL3732_define == 1
 		LED_writeReg( bus, addr, 0x04, LED_brightness, ISSI_ConfigPage );
-#elif ISSI_Chip_31FL3731_define == 1
-		// XXX (HaaTa) - This is emulated, see LED_scan for implementation
 #endif
 	}
+#elif ISSI_Chip_31FL3731_define == 1
+	// XXX (HaaTa) - Brightness is emulated
 #endif
 }
 
@@ -1208,10 +1205,10 @@ void cliFunc_ledSet( char* args )
 		LED_writeReg( bus, addr, 0x01, LED_brightness, ISSI_ConfigPage );
 #elif ISSI_Chip_31FL3732_define == 1
 		LED_writeReg( bus, addr, 0x04, LED_brightness, ISSI_ConfigPage );
-#elif ISSI_Chip_31FL3731_define == 1
-		// XXX (HaaTa) - This is emulated, see LED_scan and LED_linkedSend for implementation
 #endif
 	}
+#elif ISSI_Chip_31FL3731_define == 1
+	// XXX (HaaTa) - Brightness is emulated
 #endif
 }
 

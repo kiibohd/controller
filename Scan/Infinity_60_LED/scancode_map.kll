@@ -1,12 +1,12 @@
 # Infinity 60% LED
 
 Name = "Infinity 60% LED";
-Version = 0.7;
-Author = "HaaTa (Jacob Alexander) 2014-2017";
+Version = 0.8;
+Author = "HaaTa (Jacob Alexander) 2014-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-11-26;
+Date = 2018-02-24;
 
 
 # Defines available to the MD1_1 Scan Module
@@ -38,7 +38,7 @@ volatile LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
 # So the framerate will not go above this amount.
 # If the framerate goes below, ledFPS cli will issue warnings when enabled.
 ISSI_FrameRate_ms => ISSI_FrameRate_ms_define;
-ISSI_FrameRate_ms = 10; # 1000 / <ISSI_FrameRate_ms> = 100 fps
+ISSI_FrameRate_ms = 11; # 1000 / <ISSI_FrameRate_ms> = 90.9 fps
 
 
 # LED Default Enable Mask Override

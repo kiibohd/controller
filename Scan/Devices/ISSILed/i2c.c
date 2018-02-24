@@ -48,6 +48,17 @@ uint32_t i2c_offset[] = {
 
 // ----- Functions -----
 
+// Initialize error counters
+void i2c_initial()
+{
+	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
+	{
+		volatile I2C_Channel *channel = &( i2c_channels[ch] );
+		channel->error_count = 0;
+		channel->last_error = 0; // No error to begin with (resets on successful transaction)
+	}
+}
+
 void i2c_setup()
 {
 	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
@@ -89,13 +100,13 @@ void i2c_setup()
 		// 0x40 => mul(2)
 		// 0x13 => ICR(30)
 		*I2C_F = 0x53;
-		*I2C_FLT = 0x06;
+		*I2C_FLT = 0x05;
 	#elif ISSI_Chip_31FL3731_define == 1 && defined(_kii_v2_)
 		// 0x4E -> 36 MHz / (2 * 56) = 321.428 kBaud
 		// 0x40 => mul(2)
 		// 0x0E => ICR(56)
 		*I2C_F = 0x4E;
-		*I2C_FLT = 0x05;
+		*I2C_FLT = 0x04;
 	#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define == 1
 		/*
 		// Works
@@ -226,6 +237,17 @@ int32_t i2c_send_sequence(
 		return -1;
 	}
 
+	// Check if there are back-to-back errors
+	// in succession
+	if ( channel->last_error > 5 )
+	{
+		warn_msg("I2C Bus Error: ");
+		printInt8( ch );
+		print(" errors: ");
+		printInt32( channel->error_count );
+		print( NL );
+	}
+
 	// Debug
 	/*
 	for ( uint8_t c = 0; c < sequence_length; c++ )
@@ -268,6 +290,11 @@ int32_t i2c_send_sequence(
 	return result;
 
 i2c_send_sequence_cleanup:
+	// Record error, and reset last error counter
+	channel->error_count++;
+	channel->last_error++;
+
+	// Generate STOP and disable further interrupts.
 	*I2C_C1 &= ~( I2C_C1_IICIE | I2C_C1_MST | I2C_C1_TX );
 	channel->status = I2C_ERROR;
 #elif defined(_sam_)
@@ -297,9 +324,11 @@ void i2c_isr( uint8_t ch )
 	// Arbitration problem
 	if ( status & I2C_S_ARBL )
 	{
+		/* XXX (HaaTa) I2C Debugging
 		warn_msg("Arbitration error. Bus: ");
 		printHex( ch );
 		print(NL);
+		*/
 
 		*I2C_S |= I2C_S_ARBL;
 		goto i2c_isr_error;
@@ -429,6 +458,7 @@ void i2c_isr( uint8_t ch )
 	}
 
 	channel->sequence++;
+	channel->last_error = 0; // No error
 	return;
 
 i2c_isr_stop:
@@ -450,6 +480,10 @@ i2c_isr_stop:
 	return;
 
 i2c_isr_error:
+	// Record error, and reset last error counter
+	channel->error_count++;
+	channel->last_error++;
+
 	// Generate STOP and disable further interrupts.
 	*I2C_C1 &= ~( I2C_C1_MST | I2C_C1_IICIE );
 	channel->status = I2C_ERROR;

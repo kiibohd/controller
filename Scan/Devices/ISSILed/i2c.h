@@ -54,11 +54,18 @@ typedef struct {
 	uint8_t reads_ahead;
 	uint8_t status;
 	uint8_t txrx;
+	uint32_t error_count;
+	uint32_t last_error;
 } I2C_Channel;
 
 
 
 // ----- Functions -----
+
+/*
+ * I2C Error Counter Initialization
+ */
+void i2c_initial();
 
 /*
  * I2C Module Setup
