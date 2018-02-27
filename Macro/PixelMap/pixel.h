@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 by Jacob Alexander
+/* Copyright (C) 2015-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -202,7 +202,7 @@ typedef struct AnimationStackElement {
 } AnimationStackElement;
 
 // Animation stack
-#define Pixel_AnimationStackSize 20
+#define Pixel_AnimationStackSize Pixel_AnimationStackSize_define
 typedef struct AnimationStack {
 	uint16_t size;
 	AnimationStackElement *stack[Pixel_AnimationStackSize];

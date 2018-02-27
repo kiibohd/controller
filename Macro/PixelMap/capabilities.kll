@@ -48,3 +48,7 @@ Pixel_HardCode_Channels => Pixel_HardCode_Channels_define;
 Pixel_HardCode_ChanWidth = 0;
 Pixel_HardCode_Channels = 0;
 
+# Animation Stack Size
+Pixel_AnimationStackSize => Pixel_AnimationStackSize_define;
+Pixel_AnimationStackSize = 20;
+

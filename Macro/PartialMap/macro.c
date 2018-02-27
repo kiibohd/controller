@@ -145,7 +145,6 @@ var_uint_t macroTriggerEventLayerCache[ MaxScanCode + 1 ];
 index_uint_t macroLayerIndexStack[ LayerNum + 1 ] = { 0 };
 index_uint_t macroLayerIndexStackSize = 0;
 
-// TODO REMOVE when dependency no longer exists
 extern ResultsPending macroResultMacroPendingList;
 extern index_uint_t macroTriggerMacroPendingList[];
 extern index_uint_t macroTriggerMacroPendingListSize;
@@ -1077,45 +1076,6 @@ void Macro_layerState( uint16_t layerIndex, uint8_t state )
 */
 
 
-// Append result macro to pending list, checking for duplicates
-// Do nothing if duplicate
-void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
-{
-	// Lookup result macro index
-	var_uint_t resultMacroIndex = triggerMacro->result;
-
-	// Add, even if there's a duplicate
-	// There may be multiple triggers that specify the capability
-	// Different triggers may result in different final results
-	macroResultMacroPendingList.data[ macroResultMacroPendingList.size ].trigger = (TriggerMacro*)triggerMacro;
-	macroResultMacroPendingList.data[ macroResultMacroPendingList.size++ ].index = resultMacroIndex;
-
-	// Lookup scanCode of the last key in the last combo
-	var_uint_t pos = 0;
-	for ( uint8_t comboLength = triggerMacro->guide[0]; comboLength > 0; )
-	{
-		pos += TriggerGuideSize * comboLength + 1;
-		comboLength = triggerMacro->guide[ pos ];
-	}
-
-	uint8_t scanCode = ((TriggerGuide*)&triggerMacro->guide[ pos - TriggerGuideSize ])->scanCode;
-
-	// Lookup scanCode in buffer list for the current state and stateType
-	for ( var_uint_t keyIndex = 0; keyIndex < macroTriggerEventBufferSize; keyIndex++ )
-	{
-		if ( macroTriggerEventBuffer[ keyIndex ].index == scanCode )
-		{
-			ResultMacroRecordList[ resultMacroIndex ].state     = macroTriggerEventBuffer[ keyIndex ].state;
-			ResultMacroRecordList[ resultMacroIndex ].stateType = macroTriggerEventBuffer[ keyIndex ].type;
-		}
-	}
-
-	// Reset the macro position
-	ResultMacroRecordList[ resultMacroIndex ].prevPos = 0;
-	ResultMacroRecordList[ resultMacroIndex ].pos = 0;
-}
-
-
 // Macro Processing Loop, called often
 // Generally takes care of thread-unsafe calls to capabilities that must be synchronized
 void Macro_poll()
@@ -1772,7 +1732,6 @@ void macroDebugShowResult( var_uint_t index )
 
 	// Trigger Macro Show
 	const ResultMacro *macro = &ResultMacroList[ index ];
-	ResultMacroRecord *record = &ResultMacroRecordList[ index ];
 
 	print( NL );
 	info_msg("Result Macro Index: ");
@@ -1840,6 +1799,9 @@ void macroDebugShowResult( var_uint_t index )
 			print(";");
 	}
 
+	/* XXX (HaaTa) Fix for ring-buffer record list
+	ResultMacroRecord *record = &ResultMacroRecordList[ index ];
+
 	// Display current position
 	print( NL "Position: " );
 	printInt16( (uint16_t)record->pos ); // Hopefully large enough :P (can't assume 32-bit)
@@ -1851,6 +1813,7 @@ void macroDebugShowResult( var_uint_t index )
 	printHex( record->state );
 	print("/");
 	printHex( record->stateType );
+	*/
 }
 
 void cliFunc_macroShow( char* args )

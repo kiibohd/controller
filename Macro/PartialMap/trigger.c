@@ -91,7 +91,7 @@ index_uint_t macroTriggerMacroPendingListSize = 0;
 
 extern nat_ptr_t *Macro_layerLookup( TriggerEvent *event, uint8_t latch_expire );
 
-extern void Macro_appendResultMacroToPendingList( const TriggerMacro *triggerMacro );
+extern void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro );
 
 
 
@@ -575,18 +575,20 @@ void Trigger_updateTriggerMacroPendingList()
 	// Iterate over the macroTriggerEventBuffer to add any new Trigger Macros to the pending list
 	for ( var_uint_t key = 0; key < macroTriggerEventBufferSize; key++ )
 	{
+		TriggerEvent *event = &macroTriggerEventBuffer[ key ];
+
 		// TODO LED States
 		// TODO Analog Switches
 		// Only add TriggerMacro to pending list if key was pressed (not held, released or off)
-		if ( macroTriggerEventBuffer[ key ].state == 0x00 && macroTriggerEventBuffer[ key ].state != 0x01 )
+		if ( event->state == 0x00 && event->state != 0x01 )
 			continue;
 
 		// TODO Analog
 		// If this is a release case, indicate to layer lookup for possible latch expiry
-		uint8_t latch_expire = macroTriggerEventBuffer[ key ].state == 0x03;
+		uint8_t latch_expire = event->state == 0x03;
 
 		// Lookup Trigger List
-		nat_ptr_t *triggerList = Macro_layerLookup( &macroTriggerEventBuffer[ key ], latch_expire );
+		nat_ptr_t *triggerList = Macro_layerLookup( event, latch_expire );
 
 		// If there was an error during lookup, skip
 		if ( triggerList == 0 )
@@ -676,21 +678,26 @@ void Trigger_process()
 	// Iterate through the pending TriggerMacros, processing each of them
 	for ( var_uint_t macro = 0; macro < macroTriggerMacroPendingListSize; macro++ )
 	{
-		switch ( Trigger_evalTriggerMacro( macroTriggerMacroPendingList[ macro ] ) )
+		index_uint_t cur_macro = macroTriggerMacroPendingList[ macro ];
+		switch ( Trigger_evalTriggerMacro( cur_macro ) )
 		{
 		// Trigger Result Macro (purposely falling through)
 		case TriggerMacroEval_DoResult:
 			// Append ResultMacro to PendingList
-			Macro_appendResultMacroToPendingList( &TriggerMacroList[ macroTriggerMacroPendingList[ macro ] ] );
+			Result_appendResultMacroToPendingList(
+				&TriggerMacroList[ cur_macro ]
+			);
 
 		default:
-			macroTriggerMacroPendingList[ macroTriggerMacroPendingListTail++ ] = macroTriggerMacroPendingList[ macro ];
+			macroTriggerMacroPendingList[ macroTriggerMacroPendingListTail++ ] = cur_macro;
 			break;
 
 		// Trigger Result Macro and Remove (purposely falling through)
 		case TriggerMacroEval_DoResultAndRemove:
 			// Append ResultMacro to PendingList
-			Macro_appendResultMacroToPendingList( &TriggerMacroList[ macroTriggerMacroPendingList[ macro ] ] );
+			Result_appendResultMacroToPendingList(
+				&TriggerMacroList[ cur_macro ]
+			);
 
 		// Remove Macro from Pending List, nothing to do, removing by default
 		case TriggerMacroEval_Remove:

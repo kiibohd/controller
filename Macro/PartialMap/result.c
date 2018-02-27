@@ -64,6 +64,9 @@ extern const Capability CapabilitiesList[];
 extern const ResultMacro ResultMacroList[];
 extern ResultMacroRecord ResultMacroRecordList[];
 
+extern var_uint_t macroTriggerEventBufferSize;
+extern TriggerEvent macroTriggerEventBuffer[];
+
 
 
 // ----- Variables -----
@@ -88,6 +91,7 @@ ResultCapabilityStackItem resultCapabilityCallbackData;
 // Callback for host-side kll
 extern int Output_callback( char* command, char* args );
 #endif
+
 
 void Result_evalResultMacroCombo(
 	ResultPendingElem *resultElem,
@@ -133,13 +137,35 @@ void Result_evalResultMacroCombo(
 		// Otherwise, queue up the capability for later
 		else if ( macroResultDelayedCapabilities.size < ResultCapabilityStackSize_define )
 		{
+			// Make sure we haven't already added this exact capability (with same state)
 			uint8_t size = macroResultDelayedCapabilities.size;
-			macroResultDelayedCapabilities.stack[ size ].trigger         = resultElem->trigger;
-			macroResultDelayedCapabilities.stack[ size ].state           = record->state;
-			macroResultDelayedCapabilities.stack[ size ].stateType       = record->stateType;
-			macroResultDelayedCapabilities.stack[ size ].capabilityIndex = guide->index;
-			macroResultDelayedCapabilities.stack[ size ].args            = &guide->args;
-			macroResultDelayedCapabilities.size++;
+			uint8_t pos = 0;
+			for ( ; pos < size; pos++ )
+			{
+				volatile ResultCapabilityStackItem *item = &macroResultDelayedCapabilities.stack[ pos ];
+				// Check each of the conditions
+				if (
+					item->trigger == resultElem->trigger &&
+					item->state == record->state &&
+					item->stateType == record->stateType &&
+					item->capabilityIndex == guide->index
+				)
+				{
+					// Don't add
+					break;
+				}
+			}
+
+			// Only add if we've gone through the entire list and not found a match
+			if ( pos >= size )
+			{
+				macroResultDelayedCapabilities.stack[ size ].trigger         = resultElem->trigger;
+				macroResultDelayedCapabilities.stack[ size ].state           = record->state;
+				macroResultDelayedCapabilities.stack[ size ].stateType       = record->stateType;
+				macroResultDelayedCapabilities.stack[ size ].capabilityIndex = guide->index;
+				macroResultDelayedCapabilities.stack[ size ].args            = &guide->args;
+				macroResultDelayedCapabilities.size++;
+			}
 		}
 		else
 		{
@@ -152,12 +178,55 @@ void Result_evalResultMacroCombo(
 	}
 }
 
+
+// Append result macro to pending list, duplicates are ok
+void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
+{
+	// Lookup result macro index
+	var_uint_t resultMacroIndex = triggerMacro->result;
+
+	// Add, even if there's a duplicate
+	// There may be multiple triggers that specify the capability
+	// Different triggers may result in different final results
+	ResultPendingElem *elem = &macroResultMacroPendingList.data[ macroResultMacroPendingList.size++ ];
+	elem->trigger = (TriggerMacro*)triggerMacro;
+	elem->index = resultMacroIndex;
+
+	// Lookup scanCode of the last key in the last combo
+	var_uint_t pos = 0;
+	for ( uint8_t comboLength = triggerMacro->guide[0]; comboLength > 0; )
+	{
+		pos += TriggerGuideSize * comboLength + 1;
+		comboLength = triggerMacro->guide[ pos ];
+	}
+
+	uint8_t scanCode = ((TriggerGuide*)&triggerMacro->guide[ pos - TriggerGuideSize ])->scanCode;
+
+	// Lookup scanCode in buffer list for the current state and stateType
+	for ( var_uint_t keyIndex = 0; keyIndex < macroTriggerEventBufferSize; keyIndex++ )
+	{
+		if ( macroTriggerEventBuffer[ keyIndex ].index == scanCode )
+		{
+			elem->record.state     = macroTriggerEventBuffer[ keyIndex ].state;
+			elem->record.stateType = macroTriggerEventBuffer[ keyIndex ].type;
+			break;
+		}
+	}
+
+	// Reset the macro position
+	elem->record.prevPos = 0;
+	elem->record.pos = 0;
+}
+
+
 // Evaluate/Update ResultMacro
-ResultMacroEval Result_evalResultMacro( ResultPendingElem resultElem )
+ResultMacroEval Result_evalResultMacro( ResultPendingElem *resultElem )
 {
 	// Lookup ResultMacro
-	const ResultMacro *macro = &ResultMacroList[ resultElem.index ];
-	ResultMacroRecord *record = &ResultMacroRecordList[ resultElem.index ];
+	const ResultMacro *macro = &ResultMacroList[ resultElem->index ];
+
+	// Lookup ResultMacroRecord
+	ResultMacroRecord *record = &resultElem->record;
 
 	// Current Macro position
 	var_uint_t pos = record->pos;
@@ -178,11 +247,11 @@ ResultMacroEval Result_evalResultMacro( ResultPendingElem resultElem )
 			ScheduleType_R,
 			record->stateType,
 		};
-		Result_evalResultMacroCombo( &resultElem, macro, &oRecord, &oComboItem );
+		Result_evalResultMacroCombo( resultElem, macro, &oRecord, &oComboItem );
 	}
 
 	// Evaluate Combo
-	Result_evalResultMacroCombo( &resultElem, macro, record, &comboItem );
+	Result_evalResultMacroCombo( resultElem, macro, record, &comboItem );
 
 	// Move to next item in the sequence
 	record->prevPos = record->pos;
@@ -205,15 +274,6 @@ void Result_setup()
 {
 	// Initialize macroResultMacroPendingList
 	macroResultMacroPendingList.size = 0;
-
-	// Initialize ResultMacro states
-	for ( var_uint_t macro = 0; macro < ResultMacroNum; macro++ )
-	{
-		ResultMacroRecordList[ macro ].pos       = 0;
-		ResultMacroRecordList[ macro ].prevPos   = 0;
-		ResultMacroRecordList[ macro ].state     = 0;
-		ResultMacroRecordList[ macro ].stateType = 0;
-	}
 
 	// Reset delayed capabilities stack
 	macroResultDelayedCapabilities.size = 0;
@@ -271,7 +331,7 @@ void Result_process()
 	// Iterate through the pending ResultMacros, processing each of them
 	for ( index_uint_t macro = 0; macro < macroResultMacroPendingList.size; macro++ )
 	{
-		switch ( Result_evalResultMacro( macroResultMacroPendingList.data[ macro ] ) )
+		switch ( Result_evalResultMacro( &macroResultMacroPendingList.data[ macro ] ) )
 		{
 		// Re-add macros to pending list
 		case ResultMacroEval_DoNothing:

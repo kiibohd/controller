@@ -1,11 +1,11 @@
 # PartialMap
 Name = PartialMapCapabilities;
-Version = 0.6;
+Version = 0.7;
 Author = "HaaTa (Jacob Alexander) 2014-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-02-13;
+Date = 2018-02-26;
 
 
 # Capabilties available to the PartialMap module
@@ -38,4 +38,10 @@ PressReleaseCache = 1;
 # Delayed Capabilities Stack Size
 DelayedCapabilitiesStackSize => ResultCapabilityStackSize_define;
 DelayedCapabilitiesStackSize = 10;
+
+# Simultaneous Result Macro Buffer
+# Ring-buffer size for result macro processing
+# 1 unit per macro instance output
+ResultMacroBufferSize => ResultMacroBufferSize_define;
+ResultMacroBufferSize = 50;
 

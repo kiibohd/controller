@@ -302,13 +302,14 @@ extern var_uint_t KLL_TriggerIndex_loopkup( TriggerType type, uint8_t index );
 
 // Result pending list struct
 typedef struct ResultPendingElem {
-	TriggerMacro *trigger;
-	index_uint_t  index;
+	TriggerMacro     *trigger;
+	index_uint_t      index;
+	ResultMacroRecord record;
 } ResultPendingElem;
 
 // Results Pending - Ring-buffer definition
 typedef struct ResultsPending {
-	ResultPendingElem data[ ResultMacroNum_KLL ];
+	ResultPendingElem data[ ResultMacroBufferSize_define ];
 	index_uint_t      size;
 } ResultsPending;
 

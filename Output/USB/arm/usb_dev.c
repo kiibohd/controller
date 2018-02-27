@@ -1286,7 +1286,7 @@ void usb_device_reload()
 {
 // MCHCK
 // Kiibohd mk20dx256vlh7
-#if defined(_kii_v2_)
+#if defined(_kii_v1_) || defined(_kii_v2_)
 	// Copies variable into the VBAT register, must be identical to the variable in the bootloader to jump to the bootloader flash mode
 	for ( int pos = 0; pos < sizeof(sys_reset_to_loader_magic); pos++ )
 		(&VBAT)[ pos ] = sys_reset_to_loader_magic[ pos ];
