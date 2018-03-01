@@ -1145,6 +1145,9 @@ class AnimationVerification(CapabilityVerification):
         animation = i.control.json_input['AnimationSettingsIndex'][expected_index]
         animation_id = i.control.json_input['AnimationIds'][animation['name']]
         framedelay = self.get_modifier_setting(animation, 'framedelay').arg
+        # If not set, framedelay is 0
+        if framedelay is None:
+            framedelay = 0
         frameoptions = animation['frameoptions']
         ffunc = self.get_modifier_setting(animation, 'ffunc').arg
         if ffunc is None:

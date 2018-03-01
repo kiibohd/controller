@@ -151,19 +151,29 @@ void Result_evalResultMacroCombo(
 					item->capabilityIndex == guide->index
 				)
 				{
-					// Don't add
-					break;
+					// Check args to make sure it's not a NULL pointer first
+					if ( guide->args != 0 && item->args == &guide->args )
+					{
+						// Don't add
+						break;
+					}
+					else if ( guide->args == 0 )
+					{
+						// Don't add
+						break;
+					}
 				}
 			}
 
 			// Only add if we've gone through the entire list and not found a match
 			if ( pos >= size )
 			{
-				macroResultDelayedCapabilities.stack[ size ].trigger         = resultElem->trigger;
-				macroResultDelayedCapabilities.stack[ size ].state           = record->state;
-				macroResultDelayedCapabilities.stack[ size ].stateType       = record->stateType;
-				macroResultDelayedCapabilities.stack[ size ].capabilityIndex = guide->index;
-				macroResultDelayedCapabilities.stack[ size ].args            = &guide->args;
+				volatile ResultCapabilityStackItem *item = &macroResultDelayedCapabilities.stack[ size ];
+				item->trigger         = resultElem->trigger;
+				item->state           = record->state;
+				item->stateType       = record->stateType;
+				item->capabilityIndex = guide->index;
+				item->args            = guide->args == 0 ? 0 : &guide->args;
 				macroResultDelayedCapabilities.size++;
 			}
 		}
