@@ -63,11 +63,17 @@
 #define TX_STATE_NONE_FREE_EVEN_FIRST   4
 #define TX_STATE_NONE_FREE_ODD_FIRST    5
 
+#if defined(_kinetis_)
 #define BDT_OWN         0x80
 #define BDT_DATA1       0x40
 #define BDT_DATA0       0x00
 #define BDT_DTS         0x08
 #define BDT_STALL       0x04
+
+#define PID_SETUP 0x0D
+#define PID_OUT   0x01
+#define PID_IN    0x09
+#endif
 
 #define TX    1
 #define RX    0
@@ -76,28 +82,63 @@
 #define DATA0 0
 #define DATA1 1
 
-
-#define GET_STATUS              0
-#define CLEAR_FEATURE           1
-#define SET_FEATURE             3
-#define SET_ADDRESS             5
-#define GET_DESCRIPTOR          6
-#define SET_DESCRIPTOR          7
-#define GET_CONFIGURATION       8
-#define SET_CONFIGURATION       9
-#define GET_INTERFACE           10
-#define SET_INTERFACE           11
-#define SYNCH_FRAME             12
-
 #define TX_STATE_BOTH_FREE_EVEN_FIRST   0
 #define TX_STATE_BOTH_FREE_ODD_FIRST    1
 #define TX_STATE_EVEN_FREE              2
 #define TX_STATE_ODD_FREE               3
 #define TX_STATE_NONE_FREE              4
 
+#if defined(_kinetis_)
+#define INTERRUPT_SOF     USB_INTEN_SOFTOKEN /* 04 */
+#define INTERRUPT_RESET   USB_ISTAT_USBRST   /* 01 */
+#define INTERRUPT_SUSPEND USB_ISTAT_SLEEP    /* 10 */
+#define INTERRUPT_RESUME  USB_ISTAT_RESUME   /* 20 */
+#endif
 
 
 
+// Device requests
+#define DEVICE_GET_STATUS        0x0080
+#define DEVICE_CLEAR_FEATURE     0x0100
+#define DEVICE_SET_FEATURE       0x0300
+#define DEVICE_SET_ADDRESS       0x0500
+#define DEVICE_GET_DESCRIPTOR    0x0680
+#define DEVICE_SET_DESCRIPTOR    0x0700
+#define DEVICE_GET_CONFIGURATION 0x0880
+#define DEVICE_SET_CONFIGURATION 0x0900
+
+// Interface requests
+#define INTERFACE_GET_STATUS    0x0081
+#define INTERFACE_CLEAR_FEATURE 0x0101
+#define INTERFACE_SET_FEATURE   0x0301
+#define INTERFACE_GET_ALT       0x0A81
+#define INTERFACE_SET_ALT       0x1101
+
+// Endpoint requests
+#define ENDPOINT_GET_STATUS    0x0082
+#define ENDPOINT_CLEAR_FEATURE 0x0102
+#define ENDPOINT_SET_FEATURE   0x0302
+#define ENDPOINT_SYNCH_FRAME   0x1282
+
+// CDC requests
+#define CDC_SET_CONTROL_LINE_STATE 0x2221
+#define CDC_GET_LINE_CODING        0x21A1
+#define CDC_SET_LINE_CODING        0x2021
+
+// Hid requests
+#define HID_SET_REPORT   0x0921
+#define HID_GET_REPORT   0x01A1
+#define HID_SET_IDLE     0x0A21
+#define HID_GET_IDLE     0x02A1
+#define HID_SET_PROTOCOL 0x0B21
+#define HID_GET_PROTOCOL 0x03A1
+
+// Device features
+#define DEVICE_REMOTE_WAKEUP 0x02
+#define DEVICE_SELF_POWERED  0x01
+
+// Endpoint features
+#define ENDPOINT_HALT 0x00
 
 // ----- Macros -----
 
@@ -282,10 +323,10 @@ static void usb_setup()
 
 	switch ( setup.wRequestAndType )
 	{
-	case 0x0500: // SET_ADDRESS
+	case DEVICE_SET_ADDRESS:
 		goto send;
 
-	case 0x0900: // SET_CONFIGURATION
+	case DEVICE_SET_CONFIGURATION:
 		#ifdef UART_DEBUG
 		print("CONFIGURE - ");
 		#endif
@@ -388,29 +429,32 @@ static void usb_setup()
 		}
 		goto send;
 
-	case 0x0880: // GET_CONFIGURATION
+	case DEVICE_GET_CONFIGURATION;
 		reply_buffer[0] = usb_configuration;
 		datalen = 1;
 		data = reply_buffer;
 		goto send;
 
-	case 0x0080: // GET_STATUS (device)
+	case DEVICE_GET_STATUS:
 		reply_buffer[0] = 0;
 		reply_buffer[1] = 0;
 		datalen = 2;
 		data = reply_buffer;
 		goto send;
 
-	case 0x0082: // GET_STATUS (endpoint)
+	case ENDPOINT_GET_STATUS:
 		if ( setup.wIndex > NUM_ENDPOINTS )
 		{
 			// TODO: do we need to handle IN vs OUT here?
 			endpoint0_stall();
 			return;
 		}
+
+		// returns two bytes indicating the status (Halted/Stalled) of a endpoint
 		reply_buffer[0] = 0;
 		reply_buffer[1] = 0;
 #if defined(_kinetis_)
+		// USB0_ENDPT[wIndex] & EPTXEN
 		if ( *(uint8_t *)(&USB0_ENDPT0 + setup.wIndex * 4) & 0x02 )
 			reply_buffer[0] = 1;
 #elif defined(_sam_)
@@ -420,12 +464,15 @@ static void usb_setup()
 		datalen = 2;
 		goto send;
 
-	case 0x0100: // CLEAR_FEATURE (device)
+
+	case DEVICE_CLEAR_FEATURE:
 		switch ( setup.wValue )
 		{
-		// CLEAR_FEATURE(DEVICE_REMOTE_WAKEUP)
-		// See SET_FEATURE(DEVICE_REMOTE_WAKEUP) for details
-		case 0x1:
+		/*
+		 case DEVICE_REMOTE_WAKEUP:
+			// See SET_FEATURE(DEVICE_REMOTE_WAKEUP) for details
+		*/
+		case DEVICE_SELF_POWERED:
 			goto send;
 		}
 
@@ -435,7 +482,7 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-	case 0x0101: // CLEAR_FEATURE (interface)
+	case INTERFACE_CLEAR_FEATURE:
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
 		warn_msg("CLEAR_FEATURE - Interface wValue(");
 		printHex( setup.wValue );
@@ -445,7 +492,8 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-	case 0x0102: // CLEAR_FEATURE (endpoint)
+	case ENDPOINT_CLEAR_FEATURE:
+		// ENDPOINT_HALT is the only standard feature
 		i = setup.wIndex & 0x7F;
 		if ( i > NUM_ENDPOINTS || setup.wValue != 0 )
 		{
@@ -453,6 +501,7 @@ static void usb_setup()
 			return;
 		}
 #if defined(_kinetis_)
+		// USB0_ENDPT[wIndex] &= ~EPTXEN
 		(*(uint8_t *)(&USB0_ENDPT0 + setup.wIndex * 4)) &= ~0x02;
 #elif defined(_sam_)
 		//SAM TODO
@@ -460,7 +509,7 @@ static void usb_setup()
 		// TODO: do we need to clear the data toggle here?
 		goto send;
 
-	case 0x0300: // SET_FEATURE (device)
+	case DEVICE_SET_FEATURE:
 		switch ( setup.wValue )
 		{
 		// SET_FEATURE(DEVICE_REMOTE_WAKEUP)
@@ -478,7 +527,7 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-	case 0x0301: // SET_FEATURE (interface)
+	case INTERFACE_SET_FEATURE:
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
 		warn_msg("SET_FEATURE - Interface wValue(");
 		printHex( setup.wValue );
@@ -488,7 +537,7 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-	case 0x0302: // SET_FEATURE (endpoint)
+	case ENDPOINT_SET_FEATURE:
 		i = setup.wIndex & 0x7F;
 		if ( i > NUM_ENDPOINTS || setup.wValue != 0 )
 		{
@@ -504,8 +553,8 @@ static void usb_setup()
 		// TODO: do we need to clear the data toggle here?
 		goto send;
 
-	case 0x0680: // GET_DESCRIPTOR
-	case 0x0681:
+	case DEVICE_GET_DESCRIPTOR:
+	case 0x0681: //GET_DESCRIPTOR (interface)
 		#ifdef UART_DEBUG
 		print("desc:");
 		printHex( setup.wValue );
@@ -574,23 +623,23 @@ static void usb_setup()
 		return;
 
 #if enableVirtualSerialPort_define == 1
-	case 0x2221: // CDC_SET_CONTROL_LINE_STATE
+	case CDC_SET_CONTROL_LINE_STATE:
 		usb_cdc_line_rtsdtr = setup.wValue;
 		//info_print("set control line state");
 		goto send;
 
-	case 0x21A1: // CDC_GET_LINE_CODING
+	case CDC_GET_LINE_CODING:
 		data = (uint8_t*)&usb_cdc_line_coding;
 		datalen = sizeof( usb_cdc_line_coding );
 		goto send;
 
-	case 0x2021: // CDC_SET_LINE_CODING
+	case CDC_SET_LINE_CODING:
 		// ZLP Reply
 		// Settings are applied in PID=OUT
 		goto send;
 #endif
 
-	case 0x0921: // HID SET_REPORT
+	case HID_SET_REPORT:
 		// ZLP Reply
 		// Settings are applied in PID=OUT
 
@@ -626,7 +675,7 @@ static void usb_setup()
 
 		goto send;
 
-	case 0x01A1: // HID GET_REPORT
+	case HID_GET_REPORT:
 		#ifdef UART_DEBUG
 		print("GET_REPORT - ");
 		printHex( setup.wIndex );
@@ -649,7 +698,7 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-	case 0x0A21: // HID SET_IDLE
+	case HID_SET_IDLE:
 		#ifdef UART_DEBUG
 		print("SET_IDLE - ");
 		printHex( setup.wValue );
@@ -667,7 +716,7 @@ static void usb_setup()
 		}
 		goto send;
 
-	case 0x02A1: // HID GET_IDLE
+	case HID_GET_IDLE:
 		#ifdef UART_DEBUG
 		print("SET_IDLE - ");
 		printHex( setup.wValue );
@@ -680,8 +729,7 @@ static void usb_setup()
 		datalen = 1;
 		goto send;
 
-
-	case 0x0B21: // HID SET_PROTOCOL
+	case HID_SET_PROTOCOL:
 		#ifdef UART_DEBUG
 		print("SET_PROTOCOL - ");
 		printHex( setup.wValue );
@@ -703,7 +751,7 @@ static void usb_setup()
 
 		goto send;
 
-	case 0x03A1: /// HID GET_PROTOCOL
+	case HID_GET_PROTOCOL:
 		#ifdef UART_DEBUG
 		print("GET_PROTOCOL - ");
 		printHex( setup.wValue );
@@ -717,6 +765,11 @@ static void usb_setup()
 		goto send;
 
 	// case 0xC940:
+	case INTERFACE_GET_STATUS:
+	case DEVICE_SET_DESCRIPTOR:
+	case INTERFACE_GET_ALT:
+	case INTERFACE_SET_ALT:
+	case ENDPOINT_SYNCH_FRAME:
 	default:
 		#ifdef UART_DEBUG_UNKNOWN
 		print("UNKNOWN: ");
@@ -811,7 +864,7 @@ static void usb_control( uint32_t stat )
 
 	switch ( pid )
 	{
-	case 0x0D: // Setup received from host
+	case PID_SETUP: // Setup received from host
 		// grab the 8 byte setup info
 		setup.word1 = *(uint32_t *)(buf);
 		setup.word2 = *(uint32_t *)(buf + 4);
@@ -868,8 +921,8 @@ static void usb_control( uint32_t stat )
 #endif
 		break;
 
-	case 0x01:  // OUT transaction received from host
-	case 0x02:
+	case PID_OUT+0:  // OUT transaction received from host
+	case PID_OUT+1:
 		#ifdef UART_DEBUG_UNKNOWN
 		printHex( stat );
 		print(" PID=OUT   wRequestAndType:");
@@ -894,7 +947,7 @@ static void usb_control( uint32_t stat )
 		#if enableVirtualSerialPort_define == 1
 		// CDC_SET_LINE_CODING - PID=OUT
 		// XXX - Getting lots of NAKs in Linux
-		if ( setup.wRequestAndType == 0x2021 )
+		if ( setup.wRequestAndType == CDC_SET_LINE_CODING )
 		{
 			// Copy over new line coding
 			memcpy( (void*)&usb_cdc_line_coding, buf, 7 );
@@ -921,7 +974,7 @@ static void usb_control( uint32_t stat )
 		// Keyboard HID SET_REPORT - PID=OUT
 		#if enableKeyboard_define == 1
 		// XXX - Getting lots of NAKs in Linux
-		if ( setup.wRequestAndType == 0x0921 && setup.wValue & 0x200 )
+		if ( setup.wRequestAndType == HID_SET_REPORT && setup.wValue & 0x200 )
 		{
 			#ifdef UART_DEBUG
 			print("report_type(");
@@ -974,7 +1027,7 @@ static void usb_control( uint32_t stat )
 		b->desc = BDT_DESC( EP0_SIZE, DATA1 );
 		break;
 
-	case 0x09: // IN transaction completed to host
+	case PID_IN: // IN transaction completed to host
 		data = ep0_tx_ptr;
 
 		#ifdef UART_DEBUG_UNKNOWN
@@ -1029,7 +1082,7 @@ static void usb_control( uint32_t stat )
 
 		// CDC_SET_LINE_CODING - PID=IN
 		#if enableVirtualSerialPort_define == 1
-		if ( setup.wRequestAndType == 0x2021 )
+		if ( setup.wRequestAndType == CDC_SET_LINE_CODING )
 		{
 			// XXX ZLP causes timeout/delay, why? -HaaTa
 			//endpoint0_transmit( NULL, 0 );
@@ -1039,7 +1092,7 @@ static void usb_control( uint32_t stat )
 		// Keyboard HID SET_REPORT - PID=IN
 		#if enableKeyboard_define == 1
 		// XXX - Getting lots of NAKs in Linux
-		if ( setup.wRequestAndType == 0x0921 && setup.wValue & 0x200 )
+		if ( setup.wRequestAndType == HID_SET_REPORT && setup.wValue & 0x0200 )
 		{
 			// XXX ZLP causes timeout/delay, why? -HaaTa
 			//endpoint0_transmit( NULL, 0 );
@@ -1312,7 +1365,7 @@ restart:
 	print(") ");
 	*/
 
-	if ( (status & USB_INTEN_SOFTOKEN /* 04 */ ) )
+	if ( (status & INTERRUPT_SOF ) )
 	{
 		if ( usb_configuration )
 		{
@@ -1486,7 +1539,7 @@ restart:
 	}
 
 
-	if ( status & USB_ISTAT_USBRST /* 01 */ )
+	if ( status & INTERRUPT_RESET )
 	{
 		//serial_print("reset\n");
 
@@ -1546,7 +1599,7 @@ restart:
 
 	// USB Host signalling device to enter 'sleep' state
 	// The USB Module triggers this interrupt when it detects the bus has been idle for 3 ms
-	if ( (status & USB_ISTAT_SLEEP /* 10 */ ) )
+	if ( (status & INTERRUPT_SUSPEND) )
 	{
 		#if enableUSBSuspend_define == 1
 			// Can cause issues with the virtual serial port
@@ -1562,7 +1615,7 @@ restart:
 	}
 
 	// On USB Resume, unset the usb_dev_sleep so we don't keep sending resume signals
-	if ( (status & USB_ISTAT_RESUME /* 20 */ ) )
+	if ( (status & INTERRUPT_RESUME) )
 	{
 		// Can cause issues with the virtual serial port
 		#if enableVirtualSerialPort_define != 1
