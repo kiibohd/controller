@@ -40,7 +40,6 @@ matrix:
   # TODO - Still some travis clang issues
   allow_failures:
     - compiler: clang
-    - env: DIR=Keyboards SCRIPT=ic_keyboards.bash EnableHostOnlyBuild=true HostTest=kll.py # Not entirely passing yet
 
   exclude:
     # Bootloader doesn't support clang yet
