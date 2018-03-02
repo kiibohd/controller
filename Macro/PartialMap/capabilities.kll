@@ -1,11 +1,11 @@
 # PartialMap
 Name = PartialMapCapabilities;
-Version = 0.7;
+Version = 0.8;
 Author = "HaaTa (Jacob Alexander) 2014-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-02-26;
+Date = 2018-02-28;
 
 
 # Capabilties available to the PartialMap module
@@ -26,7 +26,7 @@ testThreadUnsafe => Macro_testThreadUnsafe();
 
 # Defines available to the PartialMap module
 stateWordSize => StateWordSize_define;
-stateWordSize = 8; # Default for now, increase to 16 or 32 for higher limits
+stateWordSize = 16; # Default for now, increase to 32 for higher limits (8 for less resource usage)
 
 indexWordSize => IndexWordSize_define;
 indexWordSize = 16; # Default for now, increase to 32 for higher limits (8 for less resource usage)

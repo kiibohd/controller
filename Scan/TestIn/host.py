@@ -189,6 +189,8 @@ class AnimationStackElement( Structure ):
         ( "frameoption", c_uint8 ),
         ( "ffunc",       c_uint8 ),
         ( "pfunc",       c_uint8 ),
+        ( "replace",     c_uint8 ),
+        ( "state",       c_uint8 ),
     ]
 
     def frameoption_lookup(self):
@@ -441,6 +443,20 @@ class Commands:
         stack = cast( control.kiibohd.Pixel_AnimationStack, POINTER( AnimationStack ) )[0]
 
         return stack
+
+    def setAnimationControl( self, state ):
+        '''
+        Set the PixelMap AnimationState
+        NOTE: You must do one processing cycle in order for this setting to take hold.
+
+        0 - AnimationControl_Forward (Default state)
+        1 - AnimationControl_ForwardOne
+        2 - AnimationControl_Pause
+        3 - AnimationControl_Stop (Very useful in cleaning up the current PixelMap state)
+        4 - AnimationControl_Reset
+        5 - AnimationControl_WipePause
+        '''
+        cast( control.kiibohd.Pixel_animationControl, POINTER( c_uint8 ) )[0] = state
 
     def animationDisplayBuffers( self ):
         '''

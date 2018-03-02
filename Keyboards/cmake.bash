@@ -109,6 +109,8 @@ BuildPath="${BuildPath}.${MAKE}"
 BuildPath="${OSTYPE}.${BuildPath}"
 # Append Extra Name if necessary
 BuildPath="${BuildPath}${ExtraBuildPath}"
+# Path prepend (sometimes used)
+BuildPath="${BuildPathPrepend}${BuildPath}"
 # Path used for host builds
 HostPath="${BuildPath}.host"
 

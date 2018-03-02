@@ -215,6 +215,9 @@ class KLLTest:
             # Run test, and record result
             test.result = test.unit.run()
 
+            # Check if the animation stack is not empty
+            self.clean_animation_stack()
+
             # Cleanup layer manipulations
             interface.control.cmd('clearLayers')()
 
@@ -228,6 +231,33 @@ class KLLTest:
                 break
 
         return overall
+
+    def clean_animation_stack(self):
+        '''
+        Clean animation stack (if necessary)
+
+        Only runs if PixelMap module is compiled in.
+        '''
+        import interface
+
+        if 'Pixel_MapEnabled' in self.klljson['Defines'] and int(self.klljson['Defines']['Pixel_MapEnabled']['value']) == 1:
+            animation_stack = interface.control.cmd('animationStackInfo')()
+            if animation_stack.size > 0:
+                # Print out info on the current state of the stack
+                logger.warning("Animation Stack is not empty! Cleaning... {} animations", animation_stack.size)
+                for index in range(animation_stack.size):
+                    elem = animation_stack.stack[0][index]
+                    logger.warning("{} >> index={}, pos={}, subpos={}",
+                        self.klljson['AnimationSettingsIndex'][elem.index]['name'],
+                        elem.index,
+                        elem.pos,
+                        elem.subpos,
+                    )
+
+                # Set AnimationControl_Stop, update FrameState then run one loop to reset PixelMap state
+                interface.control.cmd('setAnimationControl')(3) # AnimationControl_Stop
+                interface.control.cmd('setFrameState')(2) # FrameState_Update
+                interface.control.loop(1)
 
     def results(self):
         '''
@@ -909,48 +939,55 @@ class LayerVerification(CapabilityVerification):
             return True
 
         # Ignore layer if invalid
-        if expected_layer > len(cur.state):
+        if expected_layer >= len(cur.state):
             logger.info("Ignoring {}:{} - Invalid layer", expected_type, expected_layer)
             return True
 
         # Determine expected layer result, XOR last with type function layer
         # XXX This may get confused in some situations
         #     i.e. Two shift capabilities activated at the same time for the same layer
-        computed = last.state[expected_layer] ^ (1 << type_lookup[expected_type] - 1)
+        try:
+            computed = last.state[expected_layer] ^ (1 << type_lookup[expected_type] - 1)
 
-        # Determine if layer should be in the stack or not
-        in_stack = False
-        if computed != 0:
-            in_stack = True
+            # Determine if layer should be in the stack or not
+            in_stack = False
+            if computed != 0:
+                in_stack = True
 
-        # Match expected with actual
-        result = True
-        if cur.state[expected_layer] != computed:
-            result = False
-
-        # Determine if in stack or not
-        if in_stack:
-            if expected_layer not in cur.stack:
-                result = False
-        else:
-            if expected_layer in cur.stack:
+            # Match expected with actual
+            result = True
+            if cur.state[expected_layer] != computed:
                 result = False
 
-        # Debug if failed
-        if not result:
-            logger.warning("Prev Layer {}", last)
-            logger.warning("Cur  Layer {}", cur)
+            # Determine if in stack or not
+            if in_stack:
+                if expected_layer not in cur.stack:
+                    result = False
+            else:
+                if expected_layer in cur.stack:
+                    result = False
 
-        return check(result, "test:{} expectedlayer:{} expectedtype:{} expectedstate:{} instack:{} state:{} - foundstate:{}".format(
-            self.parent.parent.parent.parent.cur_test,
-            expected_layer,
-            expected_type,
-            computed,
-            in_stack,
-            state,
-            cur.state[expected_layer],
+            # Debug if failed
+            if not result:
+                logger.warning("Prev Layer {}", last)
+                logger.warning("Cur  Layer {}", cur)
 
-        ))
+            return check(result, "test:{} expectedlayer:{} expectedtype:{} expectedstate:{} instack:{} state:{} - foundstate:{}".format(
+                self.parent.parent.parent.parent.cur_test,
+                expected_layer,
+                expected_type,
+                computed,
+                in_stack,
+                state,
+                cur.state[expected_layer],
+            ))
+        except:
+            return check(False, "test:{} expectedlayer:{} expectedtype:{} state:{}".format(
+                self.parent.parent.parent.parent.cur_test,
+                expected_layer,
+                expected_type,
+                state,
+            ))
 
 
 class USBCodeVerification(CapabilityVerification):

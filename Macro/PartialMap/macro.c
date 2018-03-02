@@ -142,7 +142,7 @@ var_uint_t macroTriggerEventLayerCache[ MaxScanCode + 1 ];
 
 // Layer Index Stack
 //  * When modifying layer state and the state is non-0x0, the stack must be adjusted
-index_uint_t macroLayerIndexStack[ LayerNum + 1 ] = { 0 };
+index_uint_t macroLayerIndexStack[ LayerNum ] = { 0 };
 index_uint_t macroLayerIndexStackSize = 0;
 
 extern ResultsPending macroResultMacroPendingList;
