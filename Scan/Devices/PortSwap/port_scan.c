@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 by Jacob Alexander
+/* Copyright (C) 2015-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -195,51 +195,60 @@ inline uint8_t Port_scan()
 
 void Port_uart_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Last:
+		// Only use capability on release
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Port_uart_capability()");
 		return;
-	}
-
-	// Only only release
-	// TODO Analog
-	if ( state != 0x03 )
+	default:
 		return;
+	}
 
 	Port_uart_swap();
 }
 
 void Port_usb_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Last:
+		// Only use capability on release
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Port_usb_capability()");
 		return;
-	}
-
-	// Only only release
-	// TODO Analog
-	if ( state != 0x03 )
+	default:
 		return;
+	}
 
 	Port_usb_swap();
 }
 
 void Port_cross_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Last:
+		// Only use capability on release
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Port_cross_capability()");
 		return;
-	}
-
-	// Only only release
-	// TODO Analog
-	if ( state != 0x03 )
+	default:
 		return;
+	}
 
 	Port_cross();
 }

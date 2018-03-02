@@ -106,7 +106,7 @@ typedef uint8_t state_uint_t;
 //   * Press/Hold/Release/Off - PHRO
 //   * Start/On/Stop/Off      - AODO
 //   * Done/Repeat/Off        - DRO
-//   * Threshold (Range)      - 0x01 (Released), 0x10 (Light press), 0xFF (Max press) (Threashold)
+//   * Threshold (Range)      - 0x01 (Released), 0x02 (Pressed), 0x10 (Light press), 0xFF (Max press) (Threashold)
 //   * Debug                  - 0xFF (Print capability name)
 //
 // States with the same numerical value have same/similar function, but is called something else in that case.
@@ -129,6 +129,23 @@ typedef enum ScheduleState {
 
 	ScheduleType_Debug  = 0xFF, // Print capability name
 } ScheduleState;
+
+// -- Capability State
+// CapabilityStates are used by capabilities to determine how to handle an incoming event.
+// In most case there are only a few variations of capability activation that are useful.
+// For example:
+//  - First event (e.g. press)
+//  - Last event (e.g. release)
+//  - Any activation
+// It is still useful for capabilities to have full access to the trigger ScheduleState (e.g. analog).
+// But this makes it much simpler to work with capabilities in a generic way.
+typedef enum CapabilityState {
+	CapabilityState_None    = 0x00, // Invalid, ignore this event.
+	CapabilityState_Initial = 0x01, // Initial state
+	CapabilityState_Last    = 0x02, // Last state
+	CapabilityState_Any     = 0x03, // Any activation (Initial+Last)
+	CapabilityState_Debug   = 0xFF, // Debug trigger
+} CapabilityState;
 
 // Schedule parameter container
 // time   - Time constraints for parameter
@@ -256,6 +273,8 @@ typedef enum TriggerType {
 
 	TriggerType_Debug   = 0xFF,
 } TriggerType;
+
+extern CapabilityState KLL_CapabilityState( ScheduleState state, TriggerType type );
 
 // TriggerMacro states
 typedef enum TriggerMacroState {

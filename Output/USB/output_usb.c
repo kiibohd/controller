@@ -147,20 +147,23 @@ static uint8_t outputPollLatencyResource;
 void Output_kbdProtocolBoot_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Output_kbdProtocolBoot()");
+		return;
+	default:
 		return;
 	}
 
 	// Only set if necessary
 	if ( USBKeys_Protocol == 0 )
-		return;
-
-	// TODO Analog inputs
-	// Only set on key press
-	if ( stateType != 0x01 )
 		return;
 
 	// Flush the key buffers
@@ -177,20 +180,23 @@ void Output_kbdProtocolBoot_capability( TriggerMacro *trigger, uint8_t state, ui
 void Output_kbdProtocolNKRO_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Output_kbdProtocolNKRO()");
+		return;
+	default:
 		return;
 	}
 
 	// Only set if necessary
 	if ( USBKeys_Protocol == 1 )
-		return;
-
-	// TODO Analog inputs
-	// Only set on key press
-	if ( stateType != 0x01 )
 		return;
 
 	// Flush the key buffers
@@ -207,23 +213,27 @@ void Output_kbdProtocolNKRO_capability( TriggerMacro *trigger, uint8_t state, ui
 void Output_toggleKbdProtocol_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Last:
+		// Only use capability on release
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Output_toggleKbdProtocol()");
+		return;
+	default:
 		return;
 	}
 
-	// Only toggle protocol if release state
-	if ( stateType == 0x00 && state == 0x03 )
-	{
-		// Flush the key buffers
-		USB_flushBuffers();
+	// Flush the key buffers
+	USB_flushBuffers();
 
-		// Toggle the keyboard protocol Mode
-		USBKeys_Protocol_New = !USBKeys_Protocol;
-		USBKeys_Protocol_Change = 1;
-	}
+	// Toggle the keyboard protocol Mode
+	USBKeys_Protocol_New = !USBKeys_Protocol;
+	USBKeys_Protocol_Change = 1;
 #endif
 }
 
@@ -232,22 +242,27 @@ void Output_toggleKbdProtocol_capability( TriggerMacro *trigger, uint8_t state, 
 void Output_consCtrlSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+		// Indicate changed
+		USBKeys_primary.changed |= USBKeyChangeState_Consumer;
+		break;
+	case CapabilityState_Any:
+		// Only set consumer code
+		break;
+	case CapabilityState_Last:
+		// Clear consumer code
+		USBKeys_primary.changed |= USBKeyChangeState_Consumer;
+		USBKeys_primary.cons_ctrl = 0;
+		return;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Output_consCtrlSend(consCode)");
 		return;
-	}
-
-	// TODO Analog inputs
-	// Only indicate USB has changed if either a press or release has occured
-	if ( state == 0x01 || state == 0x03 )
-		USBKeys_primary.changed |= USBKeyChangeState_Consumer;
-
-	// Only send keypresses if press or hold state
-	if ( stateType == 0x00 && state == 0x03 ) // Release state
-	{
-		USBKeys_primary.cons_ctrl = 0;
+	default:
 		return;
 	}
 
@@ -261,10 +276,15 @@ void Output_consCtrlSend_capability( TriggerMacro *trigger, uint8_t state, uint8
 // Used to prevent fall-through, this is the None keyword in KLL
 void Output_noneSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Output_noneSend()");
+		return;
+	default:
 		return;
 	}
 
@@ -276,22 +296,27 @@ void Output_noneSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 void Output_sysCtrlSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+		// Indicate changed
+		USBKeys_primary.changed |= USBKeyChangeState_System;
+		break;
+	case CapabilityState_Any:
+		// Only set consumer code
+		break;
+	case CapabilityState_Last:
+		// Clear system code
+		USBKeys_primary.changed |= USBKeyChangeState_System;
+		USBKeys_primary.sys_ctrl = 0;
+		return;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Output_sysCtrlSend(sysCode)");
 		return;
-	}
-
-	// TODO Analog inputs
-	// Only indicate USB has changed if either a press or release has occured
-	if ( state == 0x01 || state == 0x03 )
-		USBKeys_primary.changed |= USBKeyChangeState_System;
-
-	// Only send keypresses if press or hold state
-	if ( stateType == 0x00 && state == 0x03 ) // Release state
-	{
-		USBKeys_primary.sys_ctrl = 0;
+	default:
 		return;
 	}
 
@@ -306,23 +331,26 @@ void Output_sysCtrlSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 #if enableKeyboard_define == 1
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
-	{
-		print("Output_usbCodeSend(usbCode)");
-		return;
-	}
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
 
 	// Depending on which mode the keyboard is in the USB needs Press/Hold/Release events
 	uint8_t keyPress = 0; // Default to key release
 
-	// Only send press and release events
-	if ( stateType == 0x00 && state == 0x02 ) // Hold state
-		return;
-
-	// If press, send bit (NKRO) or byte (6KRO)
-	if ( stateType == 0x00 && state == 0x01 ) // Press state
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Indicate changed
 		keyPress = 1;
+		break;
+	case CapabilityState_Last:
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Output_usbCodeSend(usbCode)");
+		return;
+	default:
+		return;
+	}
 
 	// Get the keycode from arguments
 	uint8_t key = args[0];
@@ -333,13 +361,16 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 		print("\033[1;34mUSB\033[0m ");
 		printInt8( key );
 		print(" ");
-		if ( state == 0x01 )
+		switch ( cstate )
 		{
+		case CapabilityState_Initial:
 			print("\033[1;33mP\033[0m");
-		}
-		else if ( state == 0x03 )
-		{
+			break;
+		case CapabilityState_Last:
 			print("\033[1;35mR\033[0m");
+			break;
+		default:
+			break;
 		}
 		print( NL );
 	}
@@ -549,12 +580,7 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 // Argument #3: USB Y Axis (16 bit) relative
 void Output_usbMouse_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
-	{
-		print("Output_usbMouse(mouseButton,relX,relY)");
-		return;
-	}
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
 
 	// Determine which mouse button was sent
 	// The USB spec defines up to a max of 0xFFFF buttons
@@ -571,31 +597,50 @@ void Output_usbMouse_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	// Adjust for bit shift
 	uint16_t mouse_button_shift = mouse_button - 1;
 
-	// Only send mouse button if in press or hold state
-	if ( stateType == 0x00 && state == 0x03 ) // Release state
+	switch ( cstate )
 	{
-		// Release
+	case CapabilityState_Initial:
+	case CapabilityState_Any:
+		// Press/Hold
 		if ( mouse_button )
-			USBMouse_Buttons &= ~(1 << mouse_button_shift);
-	}
-	else
-	{
-		// Press or hold
-		if ( mouse_button )
+		{
 			USBMouse_Buttons |= (1 << mouse_button_shift);
+		}
 
 		if ( mouse_x )
+		{
 			USBMouse_Relative_x = mouse_x;
+		}
 		if ( mouse_y )
+		{
 			USBMouse_Relative_y = mouse_y;
+		}
+		break;
+	case CapabilityState_Last:
+		// Release
+		if ( mouse_button )
+		{
+			USBMouse_Buttons &= ~(1 << mouse_button_shift);
+		}
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Output_usbMouse(mouseButton,relX,relY)");
+		return;
+	default:
+		return;
 	}
 
 	// Trigger updates
 	if ( mouse_button )
+	{
 		USBMouse_Changed |= USBMouseChangeState_Buttons;
+	}
 
 	if ( mouse_x || mouse_y )
+	{
 		USBMouse_Changed |= USBMouseChangeState_Relative;
+	}
 }
 #endif
 

@@ -1042,17 +1042,20 @@ void LED_control( LedControl control, uint8_t arg )
 
 void LED_control_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("LED_control_capability(mode,amount)");
 		return;
-	}
-
-	// Only use capability on press only
-	// TODO Analog
-	if ( state != 0x01 )
+	default:
 		return;
+	}
 
 	// Set the input structure
 	LedControl control = (LedControl)args[0];

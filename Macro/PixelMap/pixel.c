@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 by Jacob Alexander
+/* Copyright (C) 2015-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -141,17 +141,20 @@ AnimationStackElement *Pixel_lookupAnimation( uint16_t index, uint16_t prev );
 
 void Pixel_AnimationIndex_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Pixel_AnimationIndex_capability(settingindex)");
 		return;
-	}
-
-	// Only use capability on press
-	// TODO Analog
-	if ( state != 0x01 )
+	default:
 		return;
+	}
 
 	// Lookup animation settings
 	uint16_t index = *(uint16_t*)(&args[0]);
@@ -173,17 +176,20 @@ void Pixel_AnimationIndex_capability( TriggerMacro *trigger, uint8_t state, uint
 
 void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Pixel_Animation_capability(index,loops,pfunc,framedelay,frameoption,replace)");
 		return;
-	}
-
-	// Only use capability on press
-	// TODO Analog
-	if ( state != 0x01 )
+	default:
 		return;
+	}
 
 	AnimationStackElement element;
 	element.trigger = trigger;
@@ -201,17 +207,20 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 
 void Pixel_Pixel_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Pixel_Pixel_capability(pixel,chan,value)");
 		return;
-	}
-
-	// Only use capability on press
-	// TODO Analog
-	if ( state != 0x01 )
+	default:
 		return;
+	}
 
 	/*
 	PixelChange change = *(PixelChange*)(&args[0]);
@@ -224,17 +233,20 @@ void Pixel_Pixel_capability( TriggerMacro *trigger, uint8_t state, uint8_t state
 
 void Pixel_AnimationControl_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Pixel_AnimationControl_capability(func)");
 		return;
-	}
-
-	// Only use capability on press
-	// TODO Analog
-	if ( state != 0x01 )
+	default:
 		return;
+	}
 
 	uint8_t arg  = *(uint8_t*)(&args[0]);
 

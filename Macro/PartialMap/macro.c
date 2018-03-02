@@ -253,18 +253,21 @@ void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, 
 // Argument #2: Layer State -> uint8_t
 void Macro_layerState_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+	case CapabilityState_Last:
+		// Only use capability on press or release
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Macro_layerState(layerIndex,layerState)");
 		return;
-	}
-
-	// Only use capability on press or release
-	// TODO Analog
-	// XXX This may cause issues, might be better to implement state table here to decide -HaaTa
-	if ( stateType == 0x00 && state == 0x02 ) // Hold condition
+	default:
 		return;
+	}
 
 	// Get layer index from arguments
 	// Cast pointer to uint8_t to uint16_t then access that memory location
@@ -281,17 +284,20 @@ void Macro_layerState_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 // Argument #1: Layer Index -> uint16_t
 void Macro_layerLatch_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Last:
+		// Only use capability on release
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Macro_layerLatch(layerIndex)");
 		return;
-	}
-
-	// Only use capability on press
-	// TODO Analog
-	if ( stateType == 0x00 && state != 0x03 ) // Only on release
+	default:
 		return;
+	}
 
 	// Get layer index from arguments
 	// Cast pointer to uint8_t to uint16_t then access that memory location
@@ -305,18 +311,20 @@ void Macro_layerLatch_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 // Argument #1: Layer Index -> uint16_t
 void Macro_layerLock_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Macro_layerLock(layerIndex)");
 		return;
-	}
-
-	// Only use capability on press
-	// TODO Analog
-	// XXX Could also be on release, but that's sorta dumb -HaaTa
-	if ( stateType == 0x00 && state != 0x01 ) // All normal key conditions except press
+	default:
 		return;
+	}
 
 	// Get layer index from arguments
 	// Cast pointer to uint8_t to uint16_t then access that memory location
@@ -330,17 +338,20 @@ void Macro_layerLock_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 // Argument #1: Layer Index -> uint16_t
 void Macro_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+	case CapabilityState_Last:
+		// Only use capability on press or release
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Macro_layerShift(layerIndex)");
+	default:
 		return;
 	}
-
-	// Only use capability on press or release
-	// TODO Analog
-	if ( stateType == 0x00 && ( state == 0x00 || state == 0x02 ) ) // Only pass press or release conditions
-		return;
 
 	// Get layer index from arguments
 	// Cast pointer to uint8_t to uint16_t then access that memory location
@@ -364,18 +375,20 @@ void Macro_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 uint16_t Macro_rotationLayer;
 void Macro_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Macro_layerRotate(previous)");
 		return;
-	}
-
-	// Only use capability on press
-	// TODO Analog
-	// XXX Could also be on release, but that's sorta dumb -HaaTa
-	if ( stateType == 0x00 && state != 0x01 ) // All normal key conditions except press
+	default:
 		return;
+	}
 
 	// Unset previous rotation layer if not 0
 	if ( Macro_rotationLayer != 0 )
@@ -412,13 +425,18 @@ void Macro_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 
 // Test Thread-safe Capability
 // Capability used to test a thread-safe result
-void Macro_testThreadSafe( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+void Macro_testThreadSafe_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Macro_testThreadSafe()");
 		return;
+	default:
+		break;
 	}
 
 	// Show trigger information
@@ -434,13 +452,18 @@ void Macro_testThreadSafe( TriggerMacro *trigger, uint8_t state, uint8_t stateTy
 
 // Test Thread-unsafe Capability
 // Capability used to test a thread-unsafe result
-void Macro_testThreadUnsafe( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+void Macro_testThreadUnsafe_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Debug:
+		// Display capability name
 		print("Macro_testThreadUnsafe()");
 		return;
+	default:
+		break;
 	}
 
 	// Show trigger information

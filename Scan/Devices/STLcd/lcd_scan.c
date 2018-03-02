@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 by Jacob Alexander
+/* Copyright (C) 2015-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -466,10 +466,20 @@ typedef struct LCD_layerStackExact_args {
 } LCD_layerStackExact_args;
 void LCD_layerStackExact_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+	case CapabilityState_Any:
+	case CapabilityState_Last:
+		// Press/Hold/Release
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("LCD_layerStackExact_capability(num,layer1,layer2,layer3,layer4)");
+		return;
+	default:
 		return;
 	}
 
@@ -578,10 +588,20 @@ uint16_t LCD_layerStack_prevSize = 0;
 uint16_t LCD_layerStack_prevTop  = 0;
 void LCD_layerStack_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
-	// Display capability name
-	if ( stateType == 0xFF && state == 0xFF )
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
 	{
+	case CapabilityState_Initial:
+	case CapabilityState_Any:
+	case CapabilityState_Last:
+		// Press/Hold/Release
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
 		print("LCD_layerStack_capability()");
+		return;
+	default:
 		return;
 	}
 
