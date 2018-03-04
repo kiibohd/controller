@@ -107,6 +107,7 @@ typedef enum AnimationReplaceType {
 	AnimationReplaceType_None  = 0, // Don't replace (add new animation to stack if not full)
 	AnimationReplaceType_Basic = 1, // Replace only if the same trigger initiated
 	AnimationReplaceType_All   = 2, // Replace no matter what trigger initiated
+	AnimationReplaceType_State = 3, // Using same trigger, start on Activate/Press, stop on Deactivate/Release
 } AnimationReplaceType;
 
 // Animation Play State

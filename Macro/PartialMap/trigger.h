@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,14 +24,6 @@
 
 
 // ----- Functions -----
-
-// Updates trigger state, but does not add event to processing queue
-void Trigger_state( uint8_t type, uint8_t state, uint8_t index );
-
-// Updates trigger state, adds event to processing queue
-// If event was already added this cycle, it will be discarded, state is not updated, and returns 0
-// Returns 1 otherwise
-uint8_t Trigger_update( uint8_t type, uint8_t state, uint8_t index );
 
 void Trigger_process();
 void Trigger_setup();

@@ -804,14 +804,6 @@ class ResultElem:
             for cap in i.control.data.capability_history.all():
                 logger.warning(cap)
 
-        check(result, "test:{} expected:{}({}) state({}) - found:{}".format(
-            self.parent.parent.parent.cur_test,
-            self.name,
-            self.expected_args,
-            state,
-            match,
-        ))
-        return True
         return check(result, "test:{} expected:{}({}) state({}) - found:{}".format(
             self.parent.parent.parent.cur_test,
             self.name,

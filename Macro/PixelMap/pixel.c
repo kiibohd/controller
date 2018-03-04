@@ -126,7 +126,7 @@ static uint8_t pixelLatencyResource;
 // ----- Function Declarations -----
 
 uint8_t Pixel_animationProcess( AnimationStackElement *elem );
-uint8_t Pixel_addAnimation( AnimationStackElement *element );
+uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState cstate );
 uint8_t Pixel_determineLastTriggerScanCode( TriggerMacro *trigger );
 
 void Pixel_pixelSet( PixelElement *elem, uint32_t value );
@@ -146,7 +146,9 @@ void Pixel_AnimationIndex_capability( TriggerMacro *trigger, uint8_t state, uint
 	switch ( cstate )
 	{
 	case CapabilityState_Initial:
-		// Only use capability on press
+	case CapabilityState_Last:
+		// Mainly used on press
+		// Except some configurations may also use release
 		break;
 	case CapabilityState_Debug:
 		// Display capability name
@@ -171,7 +173,7 @@ void Pixel_AnimationIndex_capability( TriggerMacro *trigger, uint8_t state, uint
 	AnimationStackElement element = Pixel_AnimationSettings[ index ];
 	element.trigger = trigger;
 
-	Pixel_addAnimation( &element );
+	Pixel_addAnimation( &element, cstate );
 }
 
 void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
@@ -202,7 +204,7 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	element.frameoption = *(uint8_t*)(&args[5]);
 	element.replace = *(uint8_t*)(&args[6]);
 
-	Pixel_addAnimation( &element );
+	Pixel_addAnimation( &element, cstate );
 }
 
 void Pixel_Pixel_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
@@ -349,17 +351,20 @@ uint8_t Pixel_addDefaultAnimation( uint32_t index )
 		return 0;
 	}
 
-	return Pixel_addAnimation( (AnimationStackElement*)&Pixel_AnimationSettings[ index ] );
+	return Pixel_addAnimation( (AnimationStackElement*)&Pixel_AnimationSettings[ index ], CapabilityState_None );
 }
 
 // Allocates animaton memory slot
 // Initiates animation to process on the next cycle
 // Returns 1 on success, 0 on failure to allocate
-uint8_t Pixel_addAnimation( AnimationStackElement *element )
+uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState cstate )
 {
-	if ( element->replace )
+	AnimationStackElement *found;
+	switch ( element->replace )
 	{
-		AnimationStackElement *found = Pixel_lookupAnimation( element->index, 0 );
+	case AnimationReplaceType_Basic:
+	case AnimationReplaceType_All:
+		found = Pixel_lookupAnimation( element->index, 0 );
 
 		// If found, modify stack element
 		if ( found != NULL && ( found->trigger == element->trigger || element->replace == AnimationReplaceType_All ) )
@@ -375,6 +380,48 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element )
 			found->state = element->state;
 			return 0;
 		}
+
+	// Replace on press and release
+	// Press starts the animation
+	// Release stops the animation
+	case AnimationReplaceType_State:
+		found = Pixel_lookupAnimation( element->index, 0 );
+
+		switch ( cstate )
+		{
+		// Press
+		case CapabilityState_Initial:
+			// If found, modify stack element
+			if ( found )
+			{
+				found->pos = element->pos;
+				found->subpos = element->subpos;
+				found->loops = element->loops;
+				found->pfunc = element->pfunc;
+				found->ffunc = element->ffunc;
+				found->framedelay = element->framedelay;
+				found->frameoption = element->frameoption;
+				found->replace = element->replace;
+				found->state = element->state;
+				return 0;
+			}
+			break;
+
+		// Release
+		case CapabilityState_Last:
+			// Only need to do something if the animation was found (which is stop)
+			if ( found )
+			{
+				found->state = AnimationPlayState_Stop;
+			}
+			return 0;
+
+		default:
+			break;
+		}
+
+	default:
+		break;
 	}
 
 	// Make sure there is room left on the stack

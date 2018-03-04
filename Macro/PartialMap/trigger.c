@@ -348,10 +348,7 @@ TriggerMacroVote Trigger_overallVote(
 	// Once all keys have been pressed/held (only those keys), entered TriggerMacro_Press state (passing)
 	// Transition to the next combo (if it exists) when a single key is released (TriggerMacro_Release state)
 	// On scan after position increment, change to TriggerMacro_Waiting state
-	// TODO Add support for system LED states (NumLock, CapsLock, etc.)
-	// TODO Add support for analog key states
 	// TODO Add support for 0x00 Key state (not pressing a key, not all that useful in general)
-	// TODO Add support for Press/Hold/Release differentiation when evaluating (not sure if useful)
 	TriggerMacroVote overallVote = TriggerMacroVote_Invalid;
 	for ( uint8_t comboItem = pos + 1; comboItem < pos + comboLength + 1; comboItem += TriggerGuideSize )
 	{
@@ -577,15 +574,8 @@ void Trigger_updateTriggerMacroPendingList()
 	{
 		TriggerEvent *event = &macroTriggerEventBuffer[ key ];
 
-		// TODO LED States
-		// TODO Analog Switches
-		// Only add TriggerMacro to pending list if key was pressed (not held, released or off)
-		if ( event->state == 0x00 && event->state != 0x01 )
-			continue;
-
-		// TODO Analog
 		// If this is a release case, indicate to layer lookup for possible latch expiry
-		uint8_t latch_expire = event->state == 0x03;
+		uint8_t latch_expire = event->state == ScheduleType_R;
 
 		// Lookup Trigger List
 		nat_ptr_t *triggerList = Macro_layerLookup( event, latch_expire );
@@ -593,6 +583,16 @@ void Trigger_updateTriggerMacroPendingList()
 		// If there was an error during lookup, skip
 		if ( triggerList == 0 )
 			continue;
+
+		// Only add TriggerMacro to pending list if key was pressed (not held, released or off)
+		CapabilityState cstate = KLL_CapabilityState( event->state, event->type );
+		switch ( cstate )
+		{
+		case CapabilityState_Initial:
+			break;
+		default:
+			continue;
+		}
 
 		// Number of Triggers in list
 		nat_ptr_t triggerListSize = triggerList[0];
@@ -627,18 +627,6 @@ void Trigger_updateTriggerMacroPendingList()
 			}
 		}
 	}
-}
-
-
-
-void Trigger_state( uint8_t type, uint8_t state, uint8_t index )
-{
-}
-
-
-uint8_t Trigger_update( uint8_t type, uint8_t state, uint8_t index )
-{
-	return 0;
 }
 
 

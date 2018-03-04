@@ -344,7 +344,7 @@ class Commands:
         state = 1
         stateType = 0
         layerState = 0x04
-        control.kiibohd.Macro_layerState(int(trigger), int(state), int(stateType), int(layer), int(layerState))
+        control.kiibohd.Macro_layerStateSet(int(trigger), int(state), int(stateType), int(layer), int(layerState))
         self.recordLayerState()
 
     def clearLayers( self ):

@@ -168,11 +168,14 @@ const uint8_t ScheduleStateSize = ScheduleStateSize_define;
 // ----- Capabilities -----
 
 // Sets the given layer with the specified layerState
-void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint16_t layer, uint8_t layerState )
+void Macro_layerStateSet( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint16_t layer, uint8_t layerState )
 {
 	// Ignore if layer does not exist or trying to manipulate layer 0/Default layer
 	if ( layer >= LayerNum || layer == 0 )
 		return;
+
+	// Check current layer state
+	uint8_t oldState = LayerState[ layer ];
 
 	// Is layer in the LayerIndexStack?
 	uint8_t inLayerIndexStack = 0;
@@ -209,7 +212,8 @@ void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, 
 	}
 
 	// If the layer is in the LayerIndexStack and the state is 0x00, remove
-	if ( LayerState[ layer ] == 0x00 && inLayerIndexStack )
+	uint8_t newState = LayerState[ layer ];
+	if ( newState == LayerStateType_Off && inLayerIndexStack )
 	{
 		// Remove the layer from the LayerIndexStack
 		// Using the already positioned stackItem variable from the loop above
@@ -221,6 +225,23 @@ void Macro_layerState( TriggerMacro *trigger, uint8_t state, uint8_t stateType, 
 
 		// Reduce LayerIndexStack size
 		macroLayerIndexStackSize--;
+	}
+
+	// Determine what signal to send about layer
+	if ( oldState && newState )
+	{
+		// On -> On (Layer still active)
+		Macro_layerState( layer, ScheduleType_On );
+	}
+	else if ( !oldState && newState )
+	{
+		// Off -> On (Activate)
+		Macro_layerState( layer, ScheduleType_A );
+	}
+	else if ( oldState && !newState )
+	{
+		// On -> Off (Deactivate)
+		Macro_layerState( layer, ScheduleType_D );
 	}
 
 	// Layer Debug Mode
@@ -276,7 +297,7 @@ void Macro_layerState_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	// Get layer toggle byte
 	uint8_t layerState = args[ sizeof(uint16_t) ];
 
-	Macro_layerState( trigger, state, stateType, layer, layerState );
+	Macro_layerStateSet( trigger, state, stateType, layer, layerState );
 }
 
 
@@ -303,7 +324,7 @@ void Macro_layerLatch_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
-	Macro_layerState( trigger, state, stateType, layer, 0x02 );
+	Macro_layerStateSet( trigger, state, stateType, layer, LayerStateType_Latch );
 }
 
 
@@ -330,7 +351,7 @@ void Macro_layerLock_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	// Cast pointer to uint8_t to uint16_t then access that memory location
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
-	Macro_layerState( trigger, state, stateType, layer, 0x04 );
+	Macro_layerStateSet( trigger, state, stateType, layer, LayerStateType_Lock );
 }
 
 
@@ -338,13 +359,29 @@ void Macro_layerLock_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 // Argument #1: Layer Index -> uint16_t
 void Macro_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
+	// Get layer index from arguments
+	// Cast pointer to uint8_t to uint16_t then access that memory location
+	uint16_t layer = *(uint16_t*)(&args[0]);
+
 	CapabilityState cstate = KLL_CapabilityState( state, stateType );
 
 	switch ( cstate )
 	{
 	case CapabilityState_Initial:
+		// Press
+		// Only set the layer if it is disabled
+		if ( LayerState[ layer ] != LayerStateType_Off )
+		{
+			return;
+		}
+		break;
 	case CapabilityState_Last:
-		// Only use capability on press or release
+		// Release
+		// Only unset the layer if it is enabled
+		if ( LayerState[ layer ] == LayerStateType_Off )
+		{
+			return;
+		}
 		break;
 	case CapabilityState_Debug:
 		// Display capability name
@@ -353,19 +390,7 @@ void Macro_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 		return;
 	}
 
-	// Get layer index from arguments
-	// Cast pointer to uint8_t to uint16_t then access that memory location
-	uint16_t layer = *(uint16_t*)(&args[0]);
-
-	// Only set the layer if it is disabled
-	if ( LayerState[ layer ] != 0x00 && state == 0x01 )
-		return;
-
-	// Only unset the layer if it is enabled
-	if ( LayerState[ layer ] == 0x00 && state == 0x03 )
-		return;
-
-	Macro_layerState( trigger, state, stateType, layer, 0x01 );
+	Macro_layerStateSet( trigger, state, stateType, layer, LayerStateType_Shift );
 }
 
 
@@ -393,7 +418,7 @@ void Macro_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 	// Unset previous rotation layer if not 0
 	if ( Macro_rotationLayer != 0 )
 	{
-		Macro_layerState( trigger, state, stateType, Macro_rotationLayer, 0x04 );
+		Macro_layerStateSet( trigger, state, stateType, Macro_rotationLayer, LayerStateType_Lock );
 	}
 
 	// Get direction of rotation, 0, next, non-zero previous
@@ -419,7 +444,7 @@ void Macro_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 	}
 
 	// Toggle the computed layer rotation
-	Macro_layerState( trigger, state, stateType, Macro_rotationLayer, 0x04 );
+	Macro_layerStateSet( trigger, state, stateType, Macro_rotationLayer, LayerStateType_Lock );
 }
 
 
@@ -662,9 +687,23 @@ nat_ptr_t *Macro_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 {
 	uint8_t index = event->index;
 
-	// TODO Analog, LED, Layer, Animation
-	// If a normal key, and not pressed, do a layer cache lookup
-	if ( event->type == 0x00 && event->state != 0x01 )
+	// Cached Lookup (for handling layer latches)
+	uint8_t cache_lookup = 0;
+	CapabilityState cstate = KLL_CapabilityState( event->state, event->type );
+	switch ( cstate )
+	{
+	case CapabilityState_Any:
+	case CapabilityState_Last:
+		// Ignore press, off and debug
+		cache_lookup = 1;
+
+	case CapabilityState_Initial:
+	default:
+		break;
+	}
+
+	// Do a cached lookup if necessary
+	if ( cache_lookup )
 	{
 		// Cached layer
 		var_uint_t cachedLayer = macroTriggerEventLayerCache[ index ];
@@ -677,10 +716,10 @@ nat_ptr_t *Macro_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 		nat_ptr_t *trigger_list = map[ index - layer->first ];
 
 		// Check if latch has been pressed for this layer
-		uint8_t latch = LayerState[ cachedLayer ] & 0x02;
+		uint8_t latch = LayerState[ cachedLayer ] & LayerStateType_Latch;
 		if ( latch && latch_expire )
 		{
-			Macro_layerState( 0, 0, 0, cachedLayer, 0x02 );
+			Macro_layerStateSet( 0, 0, 0, cachedLayer, LayerStateType_Latch );
 #if defined(ConnectEnabled_define) && defined(LCDEnabled_define)
 			// Evaluate the layerStack capability if available (LCD + Interconnect)
 			extern void LCD_layerStack_capability(
@@ -702,18 +741,22 @@ nat_ptr_t *Macro_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 		// Lookup Layer
 		const Layer *layer = &LayerIndex[ macroLayerIndexStack[ layerIndex ] ];
 
+		// Lookup each of the states
+		uint8_t shift = LayerState[ macroLayerIndexStack[ layerIndex ] ] & LayerStateType_Shift;
+		uint8_t latch = LayerState[ macroLayerIndexStack[ layerIndex ] ] & LayerStateType_Latch;
+		uint8_t lock = LayerState[ macroLayerIndexStack[ layerIndex ] ] & LayerStateType_Lock;
+
 		// Check if latch has been pressed for this layer
 		// XXX Regardless of whether a key is found, the latch is removed on first lookup
-		uint8_t latch = LayerState[ macroLayerIndexStack[ layerIndex ] ] & 0x02;
 		if ( latch && latch_expire )
 		{
-			Macro_layerState( 0, 0, 0, macroLayerIndexStack[ layerIndex ], 0x02 );
+			Macro_layerStateSet( 0, 0, 0, macroLayerIndexStack[ layerIndex ], LayerStateType_Latch );
 		}
 
 		// Only use layer, if state is valid
 		// XOR each of the state bits
 		// If only two are enabled, do not use this state
-		if ( (LayerState[ macroLayerIndexStack[ layerIndex ] ] & 0x01) ^ (latch>>1) ^ ((LayerState[ macroLayerIndexStack[ layerIndex ] ] & 0x04)>>2) )
+		if ( (shift) ^ (latch>>1) ^ (lock>>2) )
 		{
 			// Lookup layer
 			nat_ptr_t **map = (nat_ptr_t**)layer->triggerMap;
@@ -772,13 +815,16 @@ uint8_t Macro_pressReleaseAdd( void *trigger_ptr )
 	uint8_t error = 0;
 	switch ( trigger->type )
 	{
-	case 0x00: // Normal key
+	case TriggerType_Switch1:
+	case TriggerType_Switch2:
+	case TriggerType_Switch3:
+	case TriggerType_Switch4:
 		switch ( trigger->state )
 		{
-		case 0x00:
-		case 0x01:
-		case 0x02:
-		case 0x03:
+		case ScheduleType_P:
+		case ScheduleType_H:
+		case ScheduleType_R:
+		case ScheduleType_O:
 			break;
 		default:
 			erro_msg("Invalid key state - ");
@@ -787,7 +833,13 @@ uint8_t Macro_pressReleaseAdd( void *trigger_ptr )
 		}
 		break;
 
-	// Invalid TriggerGuide type
+	case TriggerType_Analog1:
+	case TriggerType_Analog2:
+	case TriggerType_Analog3:
+	case TriggerType_Analog4:
+		break;
+
+	// Invalid TriggerGuide type for Interconnect
 	default:
 		erro_msg("Invalid type - ");
 		error = 1;
@@ -957,8 +1009,6 @@ void Macro_analogState( uint16_t scanCode, uint8_t state )
 //   * 0x03 - Deactivate
 void Macro_ledState( uint16_t ledCode, uint8_t state )
 {
-	// TODO Handle change for interconnect
-
 	// Lookup done based on size of scanCode
 	uint8_t index = ledCode;
 	TriggerType type = TriggerType_LED1;
@@ -985,8 +1035,6 @@ void Macro_ledState( uint16_t ledCode, uint8_t state )
 //   * 0x07 - Repeat
 void Macro_animationState( uint16_t animationIndex, uint8_t state )
 {
-	// TODO Handle change for interconnect
-
 	// Lookup done based on size of layerIndex
 	uint8_t index = 0;
 	TriggerType type = TriggerType_Animation1;
@@ -996,9 +1044,7 @@ void Macro_animationState( uint16_t animationIndex, uint8_t state )
 	{
 	case ScheduleType_Done:   // Activate
 	case ScheduleType_Repeat: // On
-		// Check if layer is out of range
-		// TODO check total animatinos
-		/*
+		// Check if animation index is out of range
 		if ( animationIndex > AnimationNum_KLL )
 		{
 			warn_msg("AnimationIndex is out of range/not defined: ");
@@ -1006,7 +1052,6 @@ void Macro_animationState( uint16_t animationIndex, uint8_t state )
 			print( NL );
 			return;
 		}
-		*/
 
 		// Determine which type
 		if ( animationIndex < 256 )
@@ -1038,7 +1083,6 @@ void Macro_animationState( uint16_t animationIndex, uint8_t state )
 }
 
 
-/* TODO Merge with Macro_layerState
 // Update layer state
 // States:
 //   * 0x00 - Off
@@ -1047,8 +1091,6 @@ void Macro_animationState( uint16_t animationIndex, uint8_t state )
 //   * 0x03 - Deactivate
 void Macro_layerState( uint16_t layerIndex, uint8_t state )
 {
-	// TODO Handle change for interconnect
-
 	// Lookup done based on size of layerIndex
 	uint8_t index = 0;
 	TriggerType type = TriggerType_Layer1;
@@ -1096,7 +1138,6 @@ void Macro_layerState( uint16_t layerIndex, uint8_t state )
 		break;
 	}
 }
-*/
 
 
 // Macro Processing Loop, called often
@@ -1154,7 +1195,7 @@ void Macro_periodic()
 				// Re-add to interconnect cache in hold state
 				case ScheduleType_P: // Press
 				//case ScheduleType_H: // Hold // XXX Why does this not work? -HaaTa
-					macroInterconnectCache[ c ].state = 0x02;
+					macroInterconnectCache[ c ].state = ScheduleType_H;
 					macroInterconnectCache[ macroInterconnectCacheSize++ ] = macroInterconnectCache[ c ];
 					break;
 
