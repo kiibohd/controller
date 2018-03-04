@@ -173,7 +173,7 @@ void Result_evalResultMacroCombo(
 				item->state           = record->state;
 				item->stateType       = record->stateType;
 				item->capabilityIndex = guide->index;
-				item->args            = guide->args == 0 ? 0 : &guide->args;
+				item->args            = &guide->args;
 				macroResultDelayedCapabilities.size++;
 			}
 		}

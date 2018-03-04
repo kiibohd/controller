@@ -973,13 +973,13 @@ void LED_currentChange( unsigned int current )
 // Basic LED Control Capability
 typedef enum LedControl {
 	// Set all LEDs - with argument
-	LedControl_brightness_decrease_all,
-	LedControl_brightness_increase_all,
-	LedControl_brightness_set_all,
+	LedControl_brightness_decrease_all = 0,
+	LedControl_brightness_increase_all = 1,
+	LedControl_brightness_set_all      = 2,
 	// Set all LEDs - no argument
-	LedControl_off,
-	LedControl_on,
-	LedControl_toggle,
+	LedControl_off                     = 3,
+	LedControl_on                      = 4,
+	LedControl_toggle                  = 5,
 } LedControl;
 
 void LED_control( LedControl control, uint8_t arg )
@@ -990,18 +990,26 @@ void LED_control( LedControl control, uint8_t arg )
 		LED_enable = 1;
 		// Only decrease to zero
 		if ( LED_brightness - arg < 0 )
+		{
 			LED_brightness = 0;
+		}
 		else
+		{
 			LED_brightness -= arg;
+		}
 		break;
 
 	case LedControl_brightness_increase_all:
 		LED_enable = 1;
 		// Only increase to max
 		if ( LED_brightness + arg > 0xFF )
+		{
 			LED_brightness = 0xFF;
+		}
 		else
+		{
 			LED_brightness += arg;
+		}
 		break;
 
 	case LedControl_brightness_set_all:
