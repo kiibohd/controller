@@ -231,7 +231,7 @@ const DeviceVectors exception_table = {
         .pfnPWM_Handler    = (void*) PWM_Handler,    /* 31 Pulse Width Modulation */
         .pfnCRCCU_Handler  = (void*) CRCCU_Handler,  /* 32 CRC Calculation Unit */
         .pfnACC_Handler    = (void*) ACC_Handler,    /* 33 Analog Comparator */
-        //.pfnUDP_Handler    = (void*) UDP_Handler     /* 34 USB Device Port */ //FIXME
+        .pfnUSBDEV_Handler    = (void*) USBDEV_Handler     /* 34 USB Device Port */
 };
 
 

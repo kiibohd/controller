@@ -51,7 +51,7 @@
 // DEBUG Mode
 // XXX - Only use when using usbMuxUart Module
 // Delay causes issues initializing more than 1 hid device (i.e. NKRO keyboard)
-//#define UART_DEBUG 1
+#define UART_DEBUG 1
 // Debug Unknown USB requests, usually what you want to debug USB issues
 //#define UART_DEBUG_UNKNOWN 1
 
@@ -218,6 +218,9 @@ static const uint8_t *ep0_tx_ptr = NULL;
 static uint16_t ep0_tx_len;
 static uint8_t ep0_tx_bdt_bank = 0;
 static uint8_t ep0_tx_data_toggle = 0;
+#elif defined(_sam_)
+static uint16_t address = 0;
+static uint8_t received_address = 0;
 #endif
 
 uint8_t usb_rx_memory_needed = 0;
@@ -261,12 +264,16 @@ static void endpoint0_transmit( const void *data, uint32_t len )
 	ep0_tx_bdt_bank ^= 1;
 #elif defined(_sam_)
 	uint8_t i;
+	print("Writing...");
+	while ((USBDEV->USBDEV_CSR[0] & USBDEV_CSR_TXPKTRDY)); // wait for bit to be cleared
 	for (i = 0; i < len; i++)
 	{
 		USBDEV->USBDEV_FDR[0] = USBDEV_FDR_FIFO_DATA(((char*)data)[i]);
 	}
-	USBDEV->USBDEV_CSR[0] |= USBDEV_CSR_TXPKTRDY;
+	USBDEV->USBDEV_CSR[0] |= USBDEV_CSR_TXPKTRDY; // notify ready
 	USBDEV->USBDEV_CSR[0] &= ~USBDEV_CSR_TXCOMP;
+	print(NL);
+	// TXCOMP will be set in the isr after the data has been received
 #endif
 }
 
@@ -352,6 +359,17 @@ static void usb_setup()
 	switch ( setup.wRequestAndType )
 	{
 	case DEVICE_SET_ADDRESS:
+#if defined(_sam_)
+		address = setup.wValue;
+		if (address) {
+			info_msg("Address: ");
+			printHex(address);
+			print(NL);
+			received_address = 1;
+
+			//USBDEV->USBDEV_FADDR = USBDEV_FADDR_FEN | USBDEV_FADDR_FADD(address);
+		}
+#endif
 		goto send;
 
 	case DEVICE_SET_CONFIGURATION:
@@ -375,6 +393,9 @@ static void usb_setup()
 				usb_free( (usb_packet_t *)((uint8_t *)(table[ i ].addr) - 8) );
 			}
 		}
+#elif defined(_sam_)
+		info_msg("State=configured");
+		USBDEV->USBDEV_GLB_STAT |= USBDEV_GLB_STAT_CONFG;
 #endif
 
 		// free all queued packets
@@ -547,7 +568,7 @@ static void usb_setup()
 		//      Used on Mac OSX and Windows not on Linux
 		// Good post on the behaviour:
 		// http://community.silabs.com/t5/8-bit-MCU/Remote-wakeup-HID/m-p/74957#M30802
-		case 0x1:
+		case DEVICE_SELF_POWERED:
 			goto send;
 		}
 
@@ -1262,7 +1283,7 @@ void usb_rx_memory( usb_packet_t *packet )
 				packet->buf[i] = USBDEV_FDR_FIFO_DATA(USBDEV->USBDEV_FDR[i-1]);
 				usb_rx_memory_needed--;
 			}
-			USBDEV->USBDEV_CSR[i] |= USBDEV_CSR_RX_DATA_BK0;
+			USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_RX_DATA_BK0;
 			__enable_irq();
 			return;
 
@@ -1401,17 +1422,96 @@ void usb_device_reload()
 #endif
 }
 
-
-void usb_isr()
+#if defined(_sam_)
+void endpoint_isr(uint8_t i)
 {
-	uint8_t status, t;
+	info_msg("Endpoint interrupt: ");
+	printInt8(i);
+	print(NL);
+
+	uint32_t ep_status = USBDEV->USBDEV_CSR[i];
+
+	/* IN sent */
+	if ( ep_status & USBDEV_CSR_TXCOMP )
+	{
+		info_print("TXCOMP (received ACK)");
+		USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_TXCOMP;
+
+		if (received_address)
+		{
+			info_print("State=address");
+			USBDEV->USBDEV_FADDR = USBDEV_FADDR_FEN | USBDEV_FADDR_FADD(address);
+			USBDEV->USBDEV_GLB_STAT |= USBDEV_GLB_STAT_FADDEN;
+			received_address = 0;
+		}
+	}
+
+	/* OUT received */
+	if ( ep_status & USBDEV_CSR_RX_DATA_BK0 )
+	{
+		info_msg("RX_DATA_BK0 - ");
+		uint16_t n = USBDEV_CSR_RXBYTECNT(USBDEV->USBDEV_CSR[i]);
+		printInt8(n);
+		print(": ");
+
+		for ( uint8_t j = 0; j < n; j++)
+		{
+			uint8_t x = USBDEV_FDR_FIFO_DATA(USBDEV->USBDEV_FDR[i]);
+			printHex(x);
+		}
+		print(NL);
+
+		USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_RX_DATA_BK0;
+	}
+	if ( ep_status & USBDEV_CSR_RX_DATA_BK1 )
+	{
+		info_print("RX_DATA_BK1");
+		USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_RX_DATA_BK1;
+	}
+
+	if ( ep_status & USBDEV_CSR_RXSETUP )
+	{
+		info_print("Setup!");
+		// grab the 8 byte setup info
+		for (uint8_t j = 0; j < 8; j++)
+		{
+			setup.bytes[j] = USBDEV_FDR_FIFO_DATA(USBDEV->USBDEV_FDR[i]);
+		}
+
+		if (setup.bmRequestType & 0x80)
+		{
+			USBDEV->USBDEV_CSR[i] |= USBDEV_CSR_DIR;
+		}
+
+		// aknowledge interrupt
+		USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_RXSETUP;
+
+		// actually "do" the setup request
+		usb_setup();
+	}
+	if ( ep_status & USBDEV_CSR_STALLSENT )
+	{
+		info_print("STALLSENT");
+		USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_STALLSENT;
+	}
+}
+#endif
+
 #if defined(_kinetis_)
+void usb_isr()
+#elif defined(_sam_)
+void USBDEV_Handler()
+#endif
+{
+#if defined(_kinetis_)
+	uint8_t status, t;
 	uint8_t stat;
 
 restart:
 	status = USB0_ISTAT;
 
 #elif defined(_sam_)
+	uint32_t status, t;
 	status = USBDEV->USBDEV_ISR;
 #endif
 
@@ -1423,6 +1523,7 @@ restart:
 
 	if ( (status & INTERRUPT_SOF ) )
 	{
+		//info_print("SOF");
 		if ( usb_configuration )
 		{
 			t = usb_reboot_timer;
@@ -1444,6 +1545,9 @@ restart:
 			}
 			#endif
 
+			#if defined(_sam_)
+			USBDEV->USBDEV_ICR |= USBDEV_IER_SOFINT;
+			#endif
 		}
 
 		// SOF tokens are used for keepalive, consider the system awake when we're receiving them
@@ -1656,16 +1760,25 @@ restart:
 		USB0_CTL = USB_CTL_USBENSOFEN;
 
 #elif defined(_sam_)
+		print( NL NL );
+		info_print(" --- RESET --- ");
+
 		// reset all endpoints
 		USBDEV->USBDEV_RST_EP = ~0;
 		USBDEV->USBDEV_RST_EP = 0;
 
-		// enable Transceiver
-		USBDEV->USBDEV_FADDR = USBDEV_FADDR_FEN;
-		USBDEV->USBDEV_TXVC &= ~USBDEV_TXVC_TXVDIS;
+		info_print("State=default");
+		received_address = 0;
 
 		// activate endpoint 0
 		USBDEV->USBDEV_CSR[0] = USBDEV_CSR_EPTYPE_CTRL | USBDEV_CSR_EPEDS;
+
+		// enable interrupts
+		USBDEV->USBDEV_IER = 0xFFFFFFFF;
+
+		// enable Transceiver
+		//USBDEV->USBDEV_FADDR = USBDEV_FADDR_FEN;
+		USBDEV->USBDEV_TXVC &= ~USBDEV_TXVC_TXVDIS;
 
 		// aknowledge interrupt
 		USBDEV->USBDEV_ICR |= USBDEV_ISR_ENDBUSRES;
@@ -1713,29 +1826,10 @@ restart:
 
 
 #if defined(_sam_)
-	uint8_t ep_status;
+	// TODO: handle other endpoints
 	if (status & USBDEV_ISR_EP0INT )
 	{
-		ep_status = USBDEV->USBDEV_CSR[0];
-		if ( ep_status & USBDEV_CSR_RXSETUP )
-		{
-			// grab the 8 byte setup info
-			for (uint8_t i = 0; i < 8; i++)
-			{
-				setup.bytes[i] = USBDEV_FDR_FIFO_DATA(USBDEV->USBDEV_FDR[0]);
-			}
-
-			if (setup.bmRequestType & 0x80)
-			{
-				USBDEV->USBDEV_CSR[0] |= USBDEV_CSR_DIR;
-			}
-
-			// aknowledge interrupt
-			USBDEV->USBDEV_CSR[0] = USBDEV_CSR_RXSETUP;
-
-			// actually "do" the setup request
-			usb_setup();
-		}
+		endpoint_isr(0);
 	}
 #endif
 }
@@ -1812,10 +1906,10 @@ uint8_t usb_init()
 	USB0_CONTROL = USB_CONTROL_DPPULLUPNONOTG;
 
 #elif defined(_sam_)
-	PMC->CKGR_PLLBR = (CKGR_PLLBR_MULB(0x7ul) | CKGR_PLLBR_DIVB(1ul) | CKGR_PLLBR_PLLBCOUNT(0x2ful));
+	PMC->CKGR_PLLBR = (CKGR_PLLBR_MULB(0x7ul) | CKGR_PLLBR_DIVB(2ul) | CKGR_PLLBR_PLLBCOUNT(0x3ful)); // 12*8 / 2 = 48 MHz
 	for ( ; (PMC->PMC_SR & PMC_SR_LOCKB) != PMC_SR_LOCKB ; );
 
-	PMC->PMC_USB |= PMC_USB_USBS | PMC_USB_USBDIV(0);
+	PMC->PMC_USB |= PMC_USB_USBS | PMC_USB_USBDIV(0); // 4=many errors
 
 	// enable the 48MHz USB clock USBDEVCK and System Peripheral USB clock
 	PMC->PMC_SCER |= PMC_SCER_UDP;
@@ -1825,13 +1919,14 @@ uint8_t usb_init()
 	USBDEV->USBDEV_ICR = 0;
 
 	// enable reset interrupt
-	USBDEV->USBDEV_IER = USBDEV_ISR_ENDBUSRES; // | USBDEV_IER_WAKEUP | USBDEV_IER_RXSUSP;
+	USBDEV->USBDEV_IER = USBDEV_ISR_ENDBUSRES;
 
 	// enable interrupt in NVIC...
 	NVIC_SetPriority( USBDEV_IRQn, 112 );
 	NVIC_EnableIRQ( USBDEV_IRQn );
 	
 	// enable d+ pullup
+	info_print("State=powered");
 	USBDEV->USBDEV_TXVC |= USBDEV_TXVC_PUON;
 #endif
 
