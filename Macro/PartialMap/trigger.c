@@ -584,16 +584,6 @@ void Trigger_updateTriggerMacroPendingList()
 		if ( triggerList == 0 )
 			continue;
 
-		// Only add TriggerMacro to pending list if key was pressed (not held, released or off)
-		CapabilityState cstate = KLL_CapabilityState( event->state, event->type );
-		switch ( cstate )
-		{
-		case CapabilityState_Initial:
-			break;
-		default:
-			continue;
-		}
-
 		// Number of Triggers in list
 		nat_ptr_t triggerListSize = triggerList[0];
 
