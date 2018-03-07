@@ -24,7 +24,7 @@
 #include <delay.h>
 
 // Local Includes
-#include "../mchck.h"
+#include "../device.h"
 #include "../debug.h"
 #include "../usb-internal.h"
 
