@@ -31,7 +31,6 @@
 
 // ----- Variables -----
 
-#if defined(_kinetis_)
 /**
  * Unfortunately we can't DMA directly to FlexRAM, so we'll have to stage here.
  */
@@ -40,27 +39,26 @@ static char staging[ USB_DFU_TRANSFER_SIZE ];
 // DFU State
 static struct dfu_ctx dfu_ctx;
 
-#elif defined(_sam_)
-//SAM TODO
-#endif
-
-
 
 // ----- Functions -----
 
-#if defined(_kinetis_)
 int sector_print( void* buf, size_t sector, size_t chunks )
 {
 	uint8_t* start = (uint8_t*)buf + sector * USB_DFU_TRANSFER_SIZE;
 	uint8_t* end = (uint8_t*)buf + (sector + 1) * USB_DFU_TRANSFER_SIZE;
 	uint8_t* pos = start;
+	int retval = 0;
 
 	// Verify if sector erased
+#if defined(_kinetis_)
 	FTFL.fccob.read_1s_section.fcmd = FTFL_FCMD_READ_1s_SECTION;
 	FTFL.fccob.read_1s_section.addr = (uintptr_t)start;
 	FTFL.fccob.read_1s_section.margin = FTFL_MARGIN_NORMAL;
 	FTFL.fccob.read_1s_section.num_words = 250; // 2000 kB / 64 bits
-	int retval = ftfl_submit_cmd();
+	retval = ftfl_submit_cmd();
+#elif defined(_sam_)
+	// SAM TODO
+#endif
 
 #ifdef FLASH_DEBUG
 	print( NL );
@@ -225,7 +223,11 @@ void init_usb_bootloader( int config )
 	dfu_init( setup_read, setup_write, finish_write, &dfu_ctx );
 
 	// Make sure SysTick counter is disabled (dfu has issues otherwise)
+#if defined(_kinetis_)
 	SYST_CSR = 0;
+#elif defined(_sam_)
+	SysTick->CTRL = ~SysTick_CTRL_ENABLE_Msk;
+#endif
 
 	// Clear verified status
 	dfu_ctx.verified = DFU_VALIDATION_UNKNOWN;
@@ -258,6 +260,7 @@ void main()
 	// Bootloader Section
 	extern uint32_t _app_rom;
 
+#if defined(_kinetis_)
 	// We treat _app_rom as pointer to directly read the stack
 	// pointer and check for valid app code.  This is no fool
 	// proof method, but it should help for the first flash.
@@ -298,6 +301,9 @@ void main()
 		SCB_VTOR = addr; // relocate vector table
 		jump_to_app( addr );
 	}
+#elif defined(_sam_)
+//SAM TODO
+#endif
 
 	// Detected CPU
 	print("CPU Id: ");
@@ -345,44 +351,3 @@ void main()
 		Device_process();
 	}
 }
-
-
-#elif defined(_sam_)
-//SAM TODO
-
-int sector_print( void* buf, size_t sector, size_t chunks )
-{
-	return (0);
-}
-
-/*static enum dfu_status setup_read( size_t off, size_t *len, void **buf )
-{
-}
-
-static enum dfu_status setup_write( size_t off, size_t len, void **buf )
-{
-}
-
-static enum dfu_status finish_write( void *buf, size_t off, size_t len )
-{
-}*/
-
-void init_usb_bootloader( int config )
-{
-}
-
-// Code jump routine
-__attribute__((noreturn))
-static inline void jump_to_app( uintptr_t addr )
-{
-	// NOTREACHED
-	__builtin_unreachable();
-}
-
-// Main entry point
-// NOTE: Code does not start here, see Lib/sam.c
-void main()
-{
-}
-
-#endif
