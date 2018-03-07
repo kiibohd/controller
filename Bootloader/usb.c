@@ -606,16 +606,31 @@ void int32ToHex16( uint32_t num, uint16_t* str )
 
 void usb_init(const struct usbd_device *identity)
 {
-#if defined(_kinetis_)
 	// Set the device serial number to the reserved iSerial string memory
+#if defined(_kinetis_)
 	int32ToHex16( SIM_UIDH, &(dfu_device_str_desc[3]->bString[8]) );
 	int32ToHex16( SIM_UIDMH, &(dfu_device_str_desc[3]->bString[16]) );
 	int32ToHex16( SIM_UIDML, &(dfu_device_str_desc[3]->bString[24]) );
 	int32ToHex16( SIM_UIDL, &(dfu_device_str_desc[3]->bString[32]) );
+#elif defined(_sam_)
+	// Read unique identifier
+	EFC0->EEFC_FMR |= EEFC_FMR_SCOD;
+	EFC0->EEFC_FCR = EEFC_FCR_FCMD_STUI | EEFC_FCR_FARG(0) | EEFC_FCR_FKEY_PASSWD;
+	while ((EFC0->EEFC_FMR & EEFC_FMR_FRDY)); // wait for FRDY to fall
+	
+	// Copy to iSerial	
+	int32ToHex16( ((uint32_t*)IFLASH0_ADDR)[0], &(dfu_device_str_desc[3]->bString[8]) );
+	int32ToHex16( ((uint32_t*)IFLASH0_ADDR)[1], &(dfu_device_str_desc[3]->bString[16]) );
+	int32ToHex16( ((uint32_t*)IFLASH0_ADDR)[2], &(dfu_device_str_desc[3]->bString[24]) );
+	int32ToHex16( ((uint32_t*)IFLASH0_ADDR)[3], &(dfu_device_str_desc[3]->bString[32]) );
+
+	// Stop read
+	while (!(EFC0->EEFC_FMR & EEFC_FMR_FRDY)); // wait for FRDY to rise
+	EFC0->EEFC_FCR = EEFC_FCR_FCMD_SPUI | EEFC_FCR_FARG(0) | EEFC_FCR_FKEY_PASSWD;
+	EFC0->EEFC_FMR &= ~EEFC_FMR_SCOD;
+#endif
 
 	usb.identity = identity;
 	usb_enable();
-#elif defined(_sam_)
-#endif
 }
 
