@@ -49,7 +49,7 @@
 
 // XXX Determine sector size for sam4sd32c
 #elif defined(_sam4sd32_)
-#define USB_DFU_TRANSFER_SIZE FLASH_SECTOR_SIZE
+#define USB_DFU_TRANSFER_SIZE FLASH_SECTOR_SIZE / 2
 
 #endif
 #endif

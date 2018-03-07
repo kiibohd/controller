@@ -26,15 +26,21 @@
 #elif defined(_mk22fx512avlh12_)
 #define FLASH_SECTOR_SIZE 4096
 #elif defined(_sam4sd32_)
-#define FLASH_SECTOR_SIZE 4096 // SAM TODO
+#define FLASH_SECTOR_SIZE 65536ul
+#define FLASH_PAGE_SIZE 512
 #endif
 
 
 
 // ----- Functions -----
 
+#if defined(_kinetis_)
 __attribute__((section(".ramtext.ftfl_submit_cmd"), long_call))
 int ftfl_submit_cmd(void);
+#elif defined(_sam_)
+int ftfl_submit_cmd(uint8_t cmd, uint16_t args);
+#endif
+
 int flash_prepare_flashing(void);
 int flash_erase_sector(uintptr_t);
 int flash_program_sector(uintptr_t, size_t);

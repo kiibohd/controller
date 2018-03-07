@@ -51,6 +51,7 @@ void Chip_reset()
 // Called during bootloader initialization
 void Chip_setup()
 {
+	//EFC0->EEFC_FMR = EEFC_FMR_FWS(0x#);
 }
 
 // Called during each loop of the main bootloader sequence

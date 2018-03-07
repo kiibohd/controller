@@ -65,6 +65,7 @@ int flash_prepare_flashing()
 
 int flash_read_1s_sector( uintptr_t addr, size_t num )
 {
+	// Verifies num sectors starting at addr are erased
 	FTFL.fccob.read_1s_section.fcmd = FTFL_FCMD_READ_1s_SECTION;
 	FTFL.fccob.read_1s_section.addr = addr;
 	FTFL.fccob.read_1s_section.margin = FTFL_MARGIN_NORMAL;
@@ -167,36 +168,59 @@ void *flash_get_staging_area( uintptr_t addr, size_t len )
 
 
 #elif defined(_sam_)
-//SAM TODO
 
-int ftfl_submit_cmd()
+int ftfl_submit_cmd(uint8_t cmd, uint16_t args)
 {
-	return (0);
+	// Wait for flash to be ready
+	while ((EFC0->EEFC_FMR & EEFC_FMR_FRDY));
+
+	EFC0->EEFC_FCR = EEFC_FCR_FCMD(cmd) | EEFC_FCR_FARG(args) | EEFC_FCR_FKEY_PASSWD;
+
+	// Wait for the operation to complete
+	while ((EFC0->EEFC_FMR & EEFC_FMR_FRDY));
+
+	// Mask error bits
+	return EFC0->EEFC_FSR & (EEFC_FSR_FCMDE | EEFC_FSR_FLOCKE | EEFC_FSR_FLERR);
 }
 
 int flash_prepare_flashing()
 {
-	return (0);
-}
-
-int flash_read_1s_sector( uintptr_t addr, size_t num )
-{
+	// Nothing to do?
 	return (0);
 }
 
 int flash_erase_sector( uintptr_t addr )
 {
-	return (0);
+#ifdef FLASH_DEBUG
+	// Debug
+	print("Erasing Sector: address(");
+	printHex( addr );
+	printNL(")");
+#endif
+
+	int page = addr / FLASH_PAGE_SIZE;
+	return ftfl_submit_cmd(EEFC_FCR_FCMD_ES, page);
 }
 
 int flash_program_section( uintptr_t addr, size_t num )
 {
-	return (0);
+#ifdef FLASH_DEBUG
+	// Debug
+	print("Programming Sector: address(");
+	printHex( addr );
+	print(") units (");
+	printHex( num );
+	printNL(")");
+#endif
+
+	int page = addr / FLASH_PAGE_SIZE;
+	return ftfl_submit_cmd(EEFC_FCR_FCMD_WP, page);
 }
 
 int flash_program_sector( uintptr_t addr, size_t len )
 {
-	return (0);
+	int page = addr / FLASH_PAGE_SIZE;
+	return ftfl_submit_cmd(EEFC_FCR_FCMD_WP, page);
 }
 
 int flash_prepare_reading()
@@ -211,7 +235,9 @@ int flash_read_sector( uintptr_t addr, size_t len )
 
 void *flash_get_staging_area( uintptr_t addr, size_t len )
 {
-	return NULL;
+	if ( (addr & (USB_DFU_TRANSFER_SIZE - 1)) != 0 || len != USB_DFU_TRANSFER_SIZE )
+		return (NULL);
+	return (void*)(IFLASH0_ADDR);
 }
 
 #endif
