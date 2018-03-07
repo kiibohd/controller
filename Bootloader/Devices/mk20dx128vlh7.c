@@ -26,7 +26,7 @@
 
 // Local Includes
 #include "../weak.h"
-#include "../mchck.h"
+#include "../device.h"
 #include "../debug.h"
 #include "../dfu.desc.h"
 

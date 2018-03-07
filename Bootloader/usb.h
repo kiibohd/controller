@@ -25,7 +25,7 @@
 
 // ----- Local Includes -----
 
-#include "mchck.h"
+#include "device.h"
 #include "usb-common.h"
 
 
