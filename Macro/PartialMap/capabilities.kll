@@ -9,15 +9,15 @@ Date = 2018-03-01;
 
 
 # Capabilties available to the PartialMap module
-layerState  => Macro_layerState_capability( layer : 2, state : 1 );
-layerLatch  => Macro_layerLatch_capability( layer : 2 );
-layerLock   => Macro_layerLock_capability( layer : 2 );
-layerShift  => Macro_layerShift_capability( layer : 2 );
+layerState  => Layer_layerState_capability( layer : 2, state : 1 );
+layerLatch  => Layer_layerLatch_capability( layer : 2 );
+layerLock   => Layer_layerLock_capability( layer : 2 );
+layerShift  => Layer_layerShift_capability( layer : 2 );
 # By default, rotate to the next layer
 # The current rotating layer is stored separately to the layer stack
 # But still sets the layer stack using the layerLock/unlock mechanism
 # Argument 0 -> Next, 1 -> Previous
-layerRotate => Macro_layerRotate_capability( previous : 1 );
+layerRotate => Layer_layerRotate_capability( previous : 1 );
 
 # Test Capabilities
 testThreadSafe   => Macro_testThreadSafe_capability();

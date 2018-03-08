@@ -13,6 +13,7 @@
 
 set ( Module_SRCS
 	kll.c
+	layer.c
 	macro.c
 	result.c
 	trigger.c

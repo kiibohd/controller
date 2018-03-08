@@ -25,6 +25,7 @@
 
 // Local Includes
 #include "trigger.h"
+#include "layer.h"
 #include "kll.h"
 
 
@@ -88,8 +89,6 @@ index_uint_t macroTriggerMacroPendingListSize = 0;
 
 
 // ----- Protected Macro Functions -----
-
-extern nat_ptr_t *Macro_layerLookup( TriggerEvent *event, uint8_t latch_expire );
 
 extern void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro );
 
@@ -578,7 +577,7 @@ void Trigger_updateTriggerMacroPendingList()
 		uint8_t latch_expire = event->state == ScheduleType_R;
 
 		// Lookup Trigger List
-		nat_ptr_t *triggerList = Macro_layerLookup( event, latch_expire );
+		nat_ptr_t *triggerList = Layer_layerLookup( event, latch_expire );
 
 		// If there was an error during lookup, skip
 		if ( triggerList == 0 )
