@@ -44,6 +44,7 @@ configure_file ( Scan/TestIn/Tests/kiilogger.py  Tests/kiilogger.py  COPYONLY )
 
 configure_file ( Scan/TestIn/Tests/test.py       Tests/test.py       COPYONLY )
 configure_file ( Scan/TestIn/Tests/kll.py        Tests/kll.py        COPYONLY )
+configure_file ( Scan/TestIn/Tests/layers.py     Tests/layers.py     COPYONLY )
 configure_file ( Scan/TestIn/Tests/animation.py  Tests/animation.py  COPYONLY )
 configure_file ( Scan/TestIn/Tests/animation2.py Tests/animation2.py COPYONLY )
 configure_file ( Scan/TestIn/Tests/cli.py        Tests/cli.py        COPYONLY )

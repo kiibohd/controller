@@ -46,6 +46,15 @@ i.control.cmd('setMacroDebugMode')( 2 )
 # Enabled vote debug mode
 i.control.cmd('setVoteDebugMode')( 1 )
 
+# Enable layer debug mode
+i.control.cmd('setLayerDebugMode')(1)
+
+# Enable pending trigger debug mode
+i.control.cmd('setTriggerPendingDebugMode')(1)
+
+# Enable output module debug mode
+i.control.cmd('setOutputDebugMode')(2)
+
 
 
 ### Test ###

@@ -196,14 +196,23 @@ class KLLTest:
             if index < self.test:
                 continue
 
-            logger.info("{}:{} Layer({}) {} {} -> {}",
-                header("Sub-test"),
-                index,
-                test.layer,
-                blued(test.unit.__class__.__name__),
-                test.unit.key,
-                test.unit.entry['kll'],
-            )
+            if test.unit.key is not None:
+                logger.info("{}:{} Layer({}) {} {} -> {}",
+                    header("Sub-test"),
+                    index,
+                    test.layer,
+                    blued(test.unit.__class__.__name__),
+                    test.unit.key,
+                    test.unit.entry['kll'],
+                )
+            else:
+                logger.info("{}:{} Layer({}) {} {}",
+                    header("Sub-test"),
+                    index,
+                    test.layer,
+                    blued(test.unit.__class__.__name__),
+                    test.unit.info,
+                )
 
             # Set current test, used by sub-test children for debugging
             self.cur_test = index
@@ -267,7 +276,23 @@ class KLLTest:
         return self.testresults
 
 
-class TriggerResultEval:
+class EvalBase:
+    '''
+    Base Eval class
+    '''
+    def __init__(self, parent):
+        '''
+        Constructor
+
+        @param parent:     Parent object
+        '''
+        self.parent = parent
+        self.key = None
+        self.info = ""
+
+
+
+class TriggerResultEval(EvalBase):
     '''
     Takes a trigger:result pair and processes it.
 
@@ -282,7 +307,7 @@ class TriggerResultEval:
         @param json_entry: Dictionary describing trigger:result pair
         @param schedule:   Alternate Trigger schedule (Defaults to None), used in destructive testing
         '''
-        self.parent = parent
+        EvalBase.__init__(self, parent)
         self.key = json_key
         self.entry = json_entry
         self.schedule = schedule
