@@ -61,9 +61,9 @@ The keyboard exists flash mode automatically after a successful flash.
 	4) Click the large button that says "Install Driver", "Reinstall Driver", or "Replace Driver" (this depends on the devices you have used with this computer)
 	Note: The above steps are to guarantee that this process works on all Windows machines. 
 	
-	After you have installed libusbK on the API Interface, we are also going to install it onto the K-Type. This is also only to be done the first time you use a computer with an Input Club keyboard.
-	1) Put the K-Type in flash mode by pressing the button on the back of the keyboard. 
-    2) With your K-Type in Flash mode you should see an entry in the Zadig dropdown entitled simply "K-Type"
+	After you have installed libusbK on the API Interface, we are also going to install it onto the WhiteFox. This is also only to be done the first time you use a computer with an Input Club keyboard.
+	1) Put the WhiteFox in flash mode by pressing the button on the back of the keyboard. 
+    2) With your WhiteFox in Flash mode you should see an entry in the Zadig dropdown entitled simply "WhiteFox"
     3) Select the same libusbK driver from the available options and press either "Install Driver", "Reinstall Driver", or "Replace Driver". 
 	
  2) Download [dfu-util](http://dfu-util.sourceforge.net/releases/) and unzip to a folder that you know the location of.
