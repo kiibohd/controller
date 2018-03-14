@@ -59,7 +59,7 @@ class LayerRotationEval(EvalBase):
         self.layers = layers
 
         # Prepare info line
-        self.info = "0 -> {}".format(len(self.layers))
+        self.info = "0 -> {}".format(len(self.layers) - 1)
 
     def run(self):
         '''
@@ -67,18 +67,54 @@ class LayerRotationEval(EvalBase):
 
         @return: True if successful, False if not
         '''
+        # Make sure the current layer is layer 0
+        state = i.control.cmd('getLayerState')()
+        check(len(state.stack) == 0)
+
         # Rotate right from 0 to max, then to 0
         # Making sure we hit each layer
-        # TODO
-        print('right')
+        for layer in range(1, len(self.layers)):
+            # Press, Switch1, Next
+            i.control.cmd('capability')('layerRotate', None, 0x1, 0x0, [0])
+
+            # Check layer state
+            state = i.control.cmd('getLayerState')()
+            check(len(state.stack) == 1)
+            check(state.stack[0] == layer)
+
+        # Final rotation back to 0
+        # Press, Switch1, Next
+        i.control.cmd('capability')('layerRotate', None, 0x1, 0x0, [0])
+
+        # Check layer state
+        state = i.control.cmd('getLayerState')()
+        check(len(state.stack) == 0)
 
         # Cleanup
         self.clean()
 
+        # Make sure the current layer is layer 0
+        state = i.control.cmd('getLayerState')()
+        check(len(state.stack) == 0)
+
         # Rotate left from max to 0, starting at 0
         # Making sure we hit each layer
-        # TODO
-        print('left')
+        for layer in range(len(self.layers) - 1, 0, -1):
+            # Press, Switch1, Previous
+            i.control.cmd('capability')('layerRotate', None, 0x1, 0x0, [1])
+
+            # Check layer state
+            state = i.control.cmd('getLayerState')()
+            check(len(state.stack) == 1)
+            check(state.stack[0] == layer)
+
+        # Final rotation back to 0
+        # Press, Switch1, Next
+        i.control.cmd('capability')('layerRotate', None, 0x1, 0x0, [1])
+
+        # Check layer state
+        state = i.control.cmd('getLayerState')()
+        check(len(state.stack) == 0)
 
         # Cleanup
         self.clean()

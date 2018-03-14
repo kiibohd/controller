@@ -34,6 +34,7 @@ from ctypes import (
     c_void_p,
     cast,
     create_string_buffer,
+    CFUNCTYPE,
     POINTER,
     Structure,
 )
@@ -263,6 +264,26 @@ class PixelBuf( Structure ):
             self.width,
             self.offset,
             self.data,
+        )
+        return val
+
+
+class Capability(Structure):
+    '''
+    C-Struct for Capability
+    See Macro/PartialMap/kll.h
+    '''
+    _fields_ = [
+        ("func",     c_void_p),
+        ("argCount", c_uint8),
+        ("features", c_uint8),
+    ]
+
+    def __repr__(self):
+        val = "(func={}, argCount={} features={})".format(
+            self.func,
+            self.argCount,
+            self.features,
         )
         return val
 
@@ -556,6 +577,59 @@ class Commands:
         @return: Clock cycles between scans
         '''
         return int(control.kiibohd.Periodic_cycles())
+
+    def capability(self, name, trigger, state, state_type, args):
+        '''
+        Call KLL capability
+
+        @param name:       Name of capability
+        @param trigger:    TriggerMacro* trigger
+        @param state:      (uint8_t) ScheduleState
+        @param state_type: (uint8_t) TriggerType
+        @param args:       List of arguments
+                           Uses KLL json to determine type of each arg (and it's width).
+        '''
+        klljson = control.json_input['Capabilities']
+
+        # Do a lookup on the capability name
+        # Make sure it exists
+        if name not in klljson.keys():
+            logger.error("Could not find capability '{}:{}'", name, args)
+            return
+        elem = klljson[name]
+
+        # Make sure there are enough arguments
+        if len(args) != elem['args_count']:
+            logger.error("Arg count does not match '{}:{}' {} -> {}", name, args, len(args), elem['args_count'])
+            return
+
+        # Construct args pointer
+        # Each argument must be split into byte sized elements
+        arg_list = []
+        for arg, info in zip(args, elem['args']):
+            byte_form = arg.to_bytes(
+                info['width'],
+                byteorder='little',
+            )
+            byte_vals = [int(byte) for byte in byte_form]
+            arg_list.extend(byte_vals)
+
+        # Next convert the list of bytes to a pointer
+        arg_ptr = (c_uint8 * len(arg_list))(*arg_list)
+
+        # Lookup capability
+        caplist = cast(control.kiibohd.CapabilitiesList, POINTER(Capability * len(klljson.keys()))).contents
+        capfunc = cast(
+            caplist[elem['index']].func,
+            CFUNCTYPE(
+                None,
+                POINTER(TriggerMacro), c_uint8, c_uint8, POINTER(c_uint8)
+            )
+        )
+
+        # Call Capability Function
+        capfunc(trigger, state, state_type, arg_ptr)
+        return
 
 
 class Callbacks:
