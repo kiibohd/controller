@@ -6,6 +6,8 @@
     + [Flashing - Windows](#flashing---windows)
       - [Command Prompt Flashing](#command-prompt-flashing)
 
+![Whitefox](https://cdn.shopify.com/s/files/1/1994/3097/products/WhiteFox_Product_Image_2048x2048.png?v=1517883254)
+
 # Flashing the WhiteFox (or NightFox)
 
 ### Entering Flash Mode.
