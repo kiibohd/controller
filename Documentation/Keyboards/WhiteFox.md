@@ -6,7 +6,7 @@
     + [Flashing - Windows](#flashing---windows)
       - [Command Prompt Flashing](#command-prompt-flashing)
 
-# Flashing the WhiteFox
+# Flashing the WhiteFox (or NightFox)
 
 ### Entering Flash Mode.
 
@@ -27,7 +27,7 @@ Press ESC or unplug the keyboard.
 
 The keyboard exists flash mode automatically after a successful flash.
  
-#### [WhiteFox Video Flashing Tutorial](https://youtu.be/i5wFVnEJcok)
+#### [WhiteFox Video Flashing Tutorial](https://www.youtube.com/watch?v=okFwGmpq70Y)
 
 ### Configure Your Layout
  1) Configure your layout as you see fit using the configurator - [web version](https://configurator.input.club) or [client side](https://github.com/kiibohd/configurator/releases/latest)
