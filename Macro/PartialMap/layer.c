@@ -269,7 +269,7 @@ void Layer_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	case CapabilityState_Initial:
 		// Press
 		// Only set the layer if it is disabled
-		if ( LayerState[ layer ] != LayerStateType_Off )
+		if ( (LayerState[ layer ] & LayerStateType_Shift) != LayerStateType_Off )
 		{
 			return;
 		}
@@ -277,7 +277,7 @@ void Layer_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	case CapabilityState_Last:
 		// Release
 		// Only unset the layer if it is enabled
-		if ( LayerState[ layer ] == LayerStateType_Off )
+		if ( (LayerState[ layer ] & LayerStateType_Shift) == LayerStateType_Off )
 		{
 			return;
 		}

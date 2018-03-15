@@ -137,14 +137,16 @@ class LayerActionEval(EvalBase):
     shift, lock -> shift, lock
     shift, lock -> lock, shift
     '''
-    def __init__(self, parent, action):
+    def __init__(self, parent, layer, action):
         '''
         Constructor
 
         @param parent:     Parent object
+        @param layer:      Layer argument to use in tests
         @param action:     List of layer actions
         '''
         EvalBase.__init__(self, parent)
+        self.layer = layer
         self.action = action
 
         # Prepare info line
@@ -154,10 +156,46 @@ class LayerActionEval(EvalBase):
         '''
         Process and monitor action
 
+        Compares the layer state bit of each action to make sure the action resulted in the opposite reaction.
+
         @param action: Commands to run
         '''
-        # TODO
-        pass
+        for act in action:
+            # Get current state
+            prev_state = i.control.cmd('getLayerState')()
+
+            if act == 'shift':
+                # Determine if press or release for shift
+                input_state = 0x1 # Press
+                if prev_state.state[self.layer] & 0x1:
+                    input_state = 0x3 # Release
+
+                # Press/Release, Switch1
+                i.control.cmd('capability')('layerShift', None, input_state, 0x0, [self.layer])
+
+                # Make sure action ocurred
+                new_state = i.control.cmd('getLayerState')()
+                check(prev_state.state[self.layer] & 0x1 != new_state.state[self.layer] & 0x1)
+
+            elif act == 'latch':
+                # Release, Switch1
+                i.control.cmd('capability')('layerLatch', None, 0x3, 0x0, [self.layer])
+
+                # Make sure action ocurred
+                new_state = i.control.cmd('getLayerState')()
+                check(prev_state.state[self.layer] & 0x2 != new_state.state[self.layer] & 0x2)
+
+            elif act == 'lock':
+                # Press, Switch1
+                i.control.cmd('capability')('layerLock', None, 0x1, 0x0, [self.layer])
+
+                # Make sure action ocurred
+                new_state = i.control.cmd('getLayerState')()
+                check(prev_state.state[self.layer] & 0x4 != new_state.state[self.layer] & 0x4)
+
+            else:
+                logger.warning("'{}' is an invalid layer action", act)
+                break
 
     def run(self):
         '''
@@ -169,17 +207,25 @@ class LayerActionEval(EvalBase):
 
         @return: True if successful, False otherwise.
         '''
+        # Make sure the current layer is layer 0
+        state = i.control.cmd('getLayerState')()
+        check(len(state.stack) == 0)
+
         # Permutate action
         for permuation in itertools.permutations(self.action):
             # Process action
-            # TODO handle return
             self.run_action(self.action)
 
-            # TODO handle return
+            # Process opposing action
             self.run_action(permuation)
 
             # Cleanup after test
             self.clean()
+
+        # Make sure the current layer is layer 0
+        state = i.control.cmd('getLayerState')()
+        check(len(state.stack) == 0)
+
         return True
 
     def clean(self):
@@ -214,6 +260,15 @@ class LayerTest(KLLTest):
 
         @return: True if ready to run test, False otherwise
         '''
+        # Layer Rotation Test
+        testresult = KLLTestUnitResult(self, None, LayerRotationEval(self, self.klljson['Layers']), 0)
+        self.testresults.append(testresult)
+
+        # Make sure there are multiple layers for the other tests
+        if len(self.klljson['Layers']) <= 1:
+            logger.warning("Only a single layer, skipping other tests")
+            return True
+
         # Prepare layer action permutations
         layer_actions3 = ['shift', 'latch', 'lock']
         layer_actions2a = ['shift', 'latch']
@@ -230,12 +285,8 @@ class LayerTest(KLLTest):
 
         # Per layer action, add a LayerActionEval
         for action in layer_permutations:
-            testresult = KLLTestUnitResult(self, None, LayerActionEval(self, action), 0)
+            testresult = KLLTestUnitResult(self, None, LayerActionEval(self, 1, action), 0)
             self.testresults.append(testresult)
-
-        # Layer Rotation Test
-        testresult = KLLTestUnitResult(self, None, LayerRotationEval(self, self.klljson['Layers']), 0)
-        self.testresults.append(testresult)
 
         return True
 
@@ -272,7 +323,7 @@ i.control.cmd('setOutputDebugMode')(2)
 
 testrunner = KLLTestRunner([
     LayerTest(),
-    #LayerTest(tests=1, test=3),
+    #LayerTest(tests=1, test=13),
 ])
 testrunner.run()
 
