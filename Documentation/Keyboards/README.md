@@ -7,7 +7,7 @@ So if you find any typos, or potential areas for improvement, please submit a [p
 
 ## MK20DX256-Based Keyboards
 
-* [NightFox](NightFox.md) - [NightFox Keyboard](https://kono.store/products/nightfox-mechanical-keyboard)
+* [NightFox](WhiteFox.md) - [NightFox Keyboard](https://kono.store/products/nightfox-mechanical-keyboard)
 * [K-Type](K-Type.md) - [K-Type Keyboard](https://kono.store/products/k-type-mechanical-keyboard)
 * [WhiteFox](WhiteFox.md) - [WhiteFox Keyboard](https://kono.store/products/whitefox-mechanical-keyboard)
 
