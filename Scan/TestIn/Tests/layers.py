@@ -116,6 +116,10 @@ class LayerRotationEval(EvalBase):
         state = i.control.cmd('getLayerState')()
         check(len(state.stack) == 0)
 
+        # Make sure to loop or the shared library interface may get cranky
+        # macOS Python interface with brew Python 3
+        i.control.loop(1)
+
         # Cleanup
         self.clean()
         return True
@@ -196,6 +200,10 @@ class LayerActionEval(EvalBase):
             else:
                 logger.warning("'{}' is an invalid layer action", act)
                 break
+
+            # Make sure to loop or the shared library interface may get cranky
+            # macOS Python interface with brew Python 3
+            i.control.loop(1)
 
     def run(self):
         '''
@@ -323,7 +331,7 @@ i.control.cmd('setOutputDebugMode')(2)
 
 testrunner = KLLTestRunner([
     LayerTest(),
-    #LayerTest(tests=1, test=13),
+    #LayerTest(tests=20, test=1),
 ])
 testrunner.run()
 

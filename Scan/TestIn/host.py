@@ -454,7 +454,20 @@ class Commands:
         size = cast( control.kiibohd.Pixel_AnimationStack_HostSize, POINTER( c_uint16 ) )[0]
 
         # Update struct to use read size in order to determine size of stack
-        class AnimationStack( Structure ): pass
+        class AnimationStack( Structure ):
+            '''
+            C-Struct for AnimationStack
+            See Macro/PixelMap/pixel.h
+            '''
+
+            def __repr__(self):
+                val = "(size={}, stack={})".format(
+                    self.size,
+                    self.stack,
+                )
+                return val
+
+        # Dynamic size for stack
         AnimationStack._fields_ = [
             ( "size",  c_uint16 ),
             ( "stack", POINTER( AnimationStackElement * size ) ),

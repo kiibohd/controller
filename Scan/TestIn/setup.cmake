@@ -34,6 +34,7 @@ set ( ModuleCompatibility
 #
 configure_file ( Scan/TestIn/interface.py Tests/interface.py NEWLINE_STYLE UNIX )
 configure_file ( Scan/TestIn/gdb          Tests/gdb          COPYONLY )
+configure_file ( Scan/TestIn/lldb         Tests/lldb         COPYONLY )
 
 
 ###

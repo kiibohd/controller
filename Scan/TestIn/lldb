@@ -1,0 +1,18 @@
+#!/bin/bash
+# Convenience setup for lldb
+# Jacob Alexander 2018
+#
+# Example:
+#  ./lldb test.py --debug
+#
+
+# Determine path to gdb
+if type lldb &> /dev/null; then
+	LLDB=lldb
+elif [ ! -z ${LLDB+x} ]; then
+	echo "Please set LLDB environment variable to lldb path."
+	exit 1
+fi
+
+${LLDB} -o run -o continue python3 ${@}
+
