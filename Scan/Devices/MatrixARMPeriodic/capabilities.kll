@@ -1,20 +1,21 @@
 # MatrixARMPeriodic
 Name = MatrixARMPeriodicCapabilities;
-Version = 0.1;
-Author = "HaaTa (Jacob Alexander) 2017";
+Version = 0.2;
+Author = "HaaTa (Jacob Alexander) 2017-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-11-28;
+Date = 2018-03-18;
 
 # Defines available to the MatrixArmPeriodic sub-module
 
 # This defines the minimum amount of time after a transition until allowing another transition
 # Generally switches require a minimum 5 ms debounce period
+# Giving an additional 1 ms for misc switches
 # Since a decision can usually be made quite quickly, there is little latency on each press
 # However, this defines the latency at which the switch state can change
 MinDebounceTime => MinDebounceTime_define;
-MinDebounceTime = 5; # 5 ms
+MinDebounceTime = 6; # 6 ms
 
 # This defines the number of clock cycles between periodic scans
 # i.e. Between each strobe of the matrix there is a delay to allow for other system processing
