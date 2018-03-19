@@ -492,6 +492,9 @@ void LED_reset()
 		);
 	}
 
+	// Reset global brightness
+	LED_brightness = ISSI_Global_Brightness_define;
+
 #if ISSI_Chip_31FL3733_define == 1
 	// Enable pull-up and pull-down anti-ghosting resistors
 	// Set global brightness control
