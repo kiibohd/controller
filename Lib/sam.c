@@ -139,7 +139,7 @@ void DACC_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
 void PWM_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 void CRCCU_Handler  ( void ) __attribute__ ((weak, alias("unused_isr")));
 void ACC_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
-void UDP_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
+void USBDEV_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 
 /* Exception Table */
 __attribute__ ((section(".vectors")))

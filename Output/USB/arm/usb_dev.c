@@ -1566,7 +1566,7 @@ restart:
 	if ( (status & USB_ISTAT_TOKDNE /* 08 */ ) )
 	{
 		uint8_t endpoint;
-		stat = USBDEV->USBDEV_STAT;
+		stat = USB0_STAT;
 		//serial_print("token: ep=");
 		//serial_phex(stat >> 4);
 		//serial_print(stat & 0x08 ? ",tx" : ",rx");
