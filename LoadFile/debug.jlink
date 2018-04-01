@@ -47,10 +47,11 @@ done
 case "$MODE" in
 	"server")
 		echo "Launching GDB Server"
-		JLinkGDBServer -device @CHIP@ -if @JLINK_INTERFACE@ -speed @JLINK_SPEED@ -AutoConnect 1
+		JLinkGDBServerCLExe -device @CHIP@ -if @JLINK_INTERFACE@ -speed @JLINK_SPEED@ -AutoConnect 1
 		;;
 	"client"|*)
 		echo "Launching GDB Client"
-		arm-none-eabi-gdb -q -se @TARGET_OUT@ -ex "target remote $REMOTE"
+		echo -e "define reconnect\ntarget remote $REMOTE\nend" > .gdb
+		arm-none-eabi-gdb -q -se @TARGET_OUT@ -x .gdb -ex "reconnect"
 		;;
 esac
