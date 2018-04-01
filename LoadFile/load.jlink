@@ -3,7 +3,8 @@
 # By default, initiates JLinkExe
 
 AUTO_SCREEN_SESSION="/dev/kiibohd"
-NOSCREEN=0
+NOSCREEN=1
+NOCONNECT=0
 PROG_NAME=$(basename $0)
 
 # Parse all the command line arguments
@@ -12,11 +13,14 @@ while (( "$#" >= "1" )); do
 	key="$1"
 	case $key in
 	-a|--autoscreen)
-		AUTO_SCREEN_SESSION="$2"
+		NOSCREEN=0
+		if [ ! -e "$2" ]; then
+			AUTO_SCREEN_SESSION="$2"
+		fi
 		shift
 		;;
-	-n|--noscreen)
-		NOSCREEN=1
+	-n|--noconnect)
+		NOCONNECT=1
 		shift
 		;;
 	-h|--help)
@@ -26,10 +30,10 @@ while (( "$#" >= "1" )); do
 		echo "  (load.dfu)"
 		echo ""
 		echo "Arguments:"
-		echo " -a, --autoscreen SERIAL_PORT  Use screen on the specified serial port after loading."
-		echo "                               e.g. /dev/ttyACM0"
-		echo " -n, --noscreen                Don't automatically connect to the serial port"
-		echo " -h, --help                    This message."
+		echo " -a, --autoscreen <SERIAL_PORT>  Use screen on the specified serial port after loading."
+		echo "                                 e.g. /dev/ttyACM0"
+		echo " -n, --noconnect                 Don't automatically connect with JLinkExe"
+		echo " -h, --help                      This message."
 		exit 1
 		;;
 	*)
@@ -49,8 +53,12 @@ if type JLinkExe &>/dev/null; then
 	echo "verifybin @TARGET_BIN@ @TARGET_ADDRESS@" >> flash.jlink
 	echo "r" >> flash.jlink
 	echo "g" >> flash.jlink
-	echo "exit" >> flash.jlink
-	JLinkExe -device @CHIP@ -if @JLINK_INTERFACE@ -speed @JLINK_SPEED@ -CommanderScript flash.jlink
+	if [[ $NOCONNECT -ne 1 ]]; then
+		JLinkExe -device @CHIP@ -if @JLINK_INTERFACE@ -speed @JLINK_SPEED@ -CommanderScript flash.jlink -AutoConnect 1
+	else
+		echo "exit" >> flash.jlink
+		JLinkExe -device @CHIP@ -if @JLINK_INTERFACE@ -speed @JLINK_SPEED@ -CommanderScript flash.jlink
+	fi
 	EXIT_STATUS=$?
 else
 	echo "JLinkExe is required to reprogram the device"

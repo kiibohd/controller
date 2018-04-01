@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Convenience script for opening a RTT terminal without echo
+
+ORIG=`stty -g`
+stty -echo
+JLinkRTTClient
+stty $ORIG

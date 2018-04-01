@@ -33,6 +33,10 @@
 #include <output_uart.h>
 #endif
 
+#if defined(Output_RTTEnabled_define)
+#include <output_rtt.h>
+#endif
+
 #if defined(Output_USBEnabled_define)
 #include <output_usb.h>
 #endif
