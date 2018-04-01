@@ -35,9 +35,11 @@ cmd ./mk64test.bash
 cmd ./mk66test.bash
 cmd ./none.bash
 cmd ./nrf52832.bash
+cmd ./rttout.bash
 cmd ./sam4sd32c.bash
 cmd ./template.bash
 cmd ./uartout.bash
+cmd ./usbxrtt.bash
 cmd ./usbxuart.bash
 
 # Tally results

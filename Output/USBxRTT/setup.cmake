@@ -25,8 +25,8 @@ set ( Module_SRCS
 
 # Remove duplicate output_com.c files from USB and UARTOut
 list ( REMOVE_ITEM Output_SRCS
-	${CMAKE_SOURCE_DIR}/Output/USB/output_com.c
-	${CMAKE_SOURCE_DIR}/Output/SeggerRTT/output_com.c
+	Output/USB/output_com.c
+	Output/SeggerRTT/output_com.c
 )
 
 
