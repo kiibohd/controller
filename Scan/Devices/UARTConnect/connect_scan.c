@@ -259,14 +259,14 @@ void Connect_send_CableCheck( uint8_t patternLen )
 	uart_lockBothTx( UART_Master, UART_Slave );
 
 	// Prepare header
-	uint8_t header[] = { 0x16, 0x01, CableCheck, patternLen };
+	uint8_t header[] = { Command_SYN, SOH, CableCheck, patternLen };
 
 	// Send header
 	Connect_addBytes( header, sizeof( header ), UART_Master );
 	Connect_addBytes( header, sizeof( header ), UART_Slave );
 
 	// Send 0xD2 (11010010) for each argument
-	uint8_t value = 0xD2;
+	uint8_t value = CABLE_CHECK_ARG;
 	for ( uint8_t c = 0; c < patternLen; c++ )
 	{
 		Connect_addBytes( &value, 1, UART_Master );
@@ -284,7 +284,7 @@ void Connect_send_IdRequest()
 	uart_lockTx( UART_Master );
 
 	// Prepare header
-	uint8_t header[] = { 0x16, 0x01, IdRequest };
+	uint8_t header[] = { Command_SYN, SOH, IdRequest };
 
 	// Send header
 	Connect_addBytes( header, sizeof( header ), UART_Master );
@@ -300,7 +300,7 @@ void Connect_send_IdEnumeration( uint8_t id )
 	uart_lockTx( UART_Slave );
 
 	// Prepare header
-	uint8_t header[] = { 0x16, 0x01, IdEnumeration, id };
+	uint8_t header[] = { Command_SYN, SOH, IdEnumeration, id };
 
 	// Send header
 	Connect_addBytes( header, sizeof( header ), UART_Slave );
@@ -316,7 +316,7 @@ void Connect_send_IdReport( uint8_t id )
 	uart_lockTx( UART_Master );
 
 	// Prepare header
-	uint8_t header[] = { 0x16, 0x01, IdReport, id };
+	uint8_t header[] = { Command_SYN, SOH, IdReport, id };
 
 	// Send header
 	Connect_addBytes( header, sizeof( header ), UART_Master );
@@ -334,7 +334,7 @@ void Connect_send_ScanCode( uint8_t id, TriggerEvent *scanCodeStateList, uint8_t
 	uart_lockTx( UART_Master );
 
 	// Prepare header
-	uint8_t header[] = { 0x16, 0x01, ScanCode, id, numScanCodes };
+	uint8_t header[] = { Command_SYN, SOH, ScanCode, id, numScanCodes };
 
 	// Send header
 	Connect_addBytes( header, sizeof( header ), UART_Master );
@@ -355,7 +355,7 @@ void Connect_send_Animation( uint8_t id, uint8_t *paramList, uint8_t numParams )
 	uart_lockTx( UART_Slave );
 
 	// Prepare header
-	uint8_t header[] = { 0x16, 0x01, Animation, id, numParams };
+	uint8_t header[] = { Command_SYN, SOH, Animation, id, numParams };
 
 	// Send header
 	Connect_addBytes( header, sizeof( header ), UART_Slave );
@@ -373,7 +373,7 @@ void Connect_send_Animation( uint8_t id, uint8_t *paramList, uint8_t numParams )
 void Connect_send_RemoteCapability( uint8_t id, uint8_t capabilityIndex, uint8_t state, uint8_t stateType, uint8_t numArgs, uint8_t *args )
 {
 	// Prepare header
-	uint8_t header[] = { 0x16, 0x01, RemoteCapability, id, capabilityIndex, state, stateType, numArgs };
+	uint8_t header[] = { Command_SYN, SOH, RemoteCapability, id, capabilityIndex, state, stateType, numArgs };
 
 	// Ignore current id
 	if ( id == Connect_id )
@@ -418,7 +418,7 @@ void Connect_send_Idle( uint8_t num )
 	uart_lockBothTx( UART_Slave, UART_Master );
 
 	// Send n number of idles to reset link status (if in a bad state)
-	uint8_t value = 0x16;
+	uint8_t value = Command_SYN;
 	for ( uint8_t c = 0; c < num; c++ )
 	{
 		Connect_addBytes( &value, 1, UART_Master );
@@ -459,7 +459,7 @@ uint8_t  Connect_cableOkSlave  = 0;
 uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8_t uart_num )
 {
 	// Check if this is the first byte
-	if ( *pending_bytes == 0xFFFF )
+	if ( *pending_bytes == BYTE_COUNT_START )
 	{
 		*pending_bytes = byte;
 
@@ -478,7 +478,7 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 		(*pending_bytes)--;
 
 		// The argument bytes are always 0xD2 (11010010)
-		if ( byte != 0xD2 )
+		if ( byte != CABLE_CHECK_ARG )
 		{
 			warn_print("Cable Fault!");
 
@@ -662,12 +662,11 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 	// Master node, trigger scan codes
 	if ( Connect_master ) switch ( (*pending_bytes)-- )
 	{
-	// Byte count always starts at 0xFFFF
-	case 0xFFFF: // Device Id
+	case BYTE_COUNT_START - 0: // Device Id
 		Connect_receive_ScanCodeDeviceId = byte;
 		break;
 
-	case 0xFFFE: // Number of TriggerGuides in bytes (byte * 3)
+	case BYTE_COUNT_START - 1: // Number of TriggerGuides in bytes (byte * 3)
 		*pending_bytes = byte * sizeof( TriggerGuide );
 		Connect_receive_ScanCodeBufferPos = 0;
 		break;
@@ -722,8 +721,7 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 	//     The current method is the more efficient/aggressive, but could cause issues if there were errors during transmission
 	else switch ( (*pending_bytes)-- )
 	{
-	// Byte count always starts at 0xFFFF
-	case 0xFFFF: // Device Id
+	case BYTE_COUNT_START - 0: // Device Id
 	{
 		Connect_receive_ScanCodeDeviceId = byte;
 
@@ -731,11 +729,11 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 		uart_lockTx( UART_Master );
 
 		// Send header + Id byte
-		uint8_t header[] = { 0x16, 0x01, ScanCode, byte };
+		uint8_t header[] = { Command_SYN, SOH, ScanCode, byte };
 		Connect_addBytes( header, sizeof( header ), UART_Master );
 		break;
 	}
-	case 0xFFFE: // Number of TriggerGuides in bytes
+	case BYTE_COUNT_START - 1: // Number of TriggerGuides in bytes
 		*pending_bytes = byte * sizeof( TriggerGuide );
 		Connect_receive_ScanCodeBufferPos = 0;
 
@@ -773,24 +771,23 @@ uint8_t Connect_receive_RemoteCapability( uint8_t byte, uint16_t *pending_bytes,
 	// Check which byte in the packet we are at
 	switch ( (*pending_bytes)-- )
 	{
-	// Byte count always starts at 0xFFFF
-	case 0xFFFF: // Device Id
+	case BYTE_COUNT_START - 0: // Device Id
 		Connect_receive_RemoteCapabilityBuffer.id = byte;
 		break;
 
-	case 0xFFFE: // Capability Index
+	case BYTE_COUNT_START - 1: // Capability Index
 		Connect_receive_RemoteCapabilityBuffer.capabilityIndex = byte;
 		break;
 
-	case 0xFFFD: // State
+	case BYTE_COUNT_START - 2: // State
 		Connect_receive_RemoteCapabilityBuffer.state = byte;
 		break;
 
-	case 0xFFFC: // StateType
+	case BYTE_COUNT_START - 3: // StateType
 		Connect_receive_RemoteCapabilityBuffer.stateType = byte;
 		break;
 
-	case 0xFFFB: // Number of args
+	case BYTE_COUNT_START - 4: // Number of args
 		Connect_receive_RemoteCapabilityBuffer.numArgs = byte;
 		*pending_bytes = byte;
 		break;
@@ -805,7 +802,7 @@ uint8_t Connect_receive_RemoteCapability( uint8_t byte, uint16_t *pending_bytes,
 		{
 			// Determine if this is the node to run the capability on
 			// Conditions: Matches or broadcast (0xFF)
-			if ( Connect_receive_RemoteCapabilityBuffer.id == 0xFF
+			if ( Connect_receive_RemoteCapabilityBuffer.id == BROADCAST_ID
 				|| Connect_receive_RemoteCapabilityBuffer.id == Connect_id )
 			{
 				extern const Capability CapabilitiesList[]; // See generatedKeymap.h
@@ -826,7 +823,7 @@ uint8_t Connect_receive_RemoteCapability( uint8_t byte, uint16_t *pending_bytes,
 
 			// If this is not the correct node, keep sending it in the same direction (doesn't matter if more nodes exist)
 			// or if this is a broadcast
-			if ( Connect_receive_RemoteCapabilityBuffer.id == 0xFF
+			if ( Connect_receive_RemoteCapabilityBuffer.id == BROADCAST_ID
 				|| Connect_receive_RemoteCapabilityBuffer.id != Connect_id )
 			{
 				// Prepare outgoing packet
@@ -843,7 +840,7 @@ uint8_t Connect_receive_RemoteCapability( uint8_t byte, uint16_t *pending_bytes,
 				}
 
 				// Send header
-				uint8_t header[] = { 0x16, 0x01 };
+				uint8_t header[] = { Command_SYN, SOH };
 				Connect_addBytes( header, sizeof( header ), uart_direction );
 
 				// Send Remote Capability and arguments
@@ -981,7 +978,7 @@ void Connect_setup( uint8_t master, uint8_t first )
 	Connect_master = master;
 	if ( Connect_master )
 	{
-		Connect_id = 0; // 0x00 is always the master Id
+		Connect_id = MASTER_ID; // 0x00 is always the master Id
 	}
 
 #if defined(_kinetis_)
@@ -1159,7 +1156,7 @@ void Connect_rx_process( uint8_t uartNum )
 			{
 				print(" Wait ");
 			}
-			uart_rx_status[ uartNum ].status = byte == 0x16 ? UARTStatus_SYN : UARTStatus_Wait;
+			uart_rx_status[ uartNum ].status = byte == Command_SYN ? UARTStatus_SYN : UARTStatus_Wait;
 			break;
 
 		// After a SYN, there must be a SOH / 0x01
@@ -1168,7 +1165,7 @@ void Connect_rx_process( uint8_t uartNum )
 			{
 				print(" SYN ");
 			}
-			uart_rx_status[ uartNum ].status = byte == 0x01 ? UARTStatus_SOH : UARTStatus_Wait;
+			uart_rx_status[ uartNum ].status = byte == SOH ? UARTStatus_SOH : UARTStatus_Wait;
 			break;
 
 		// After a SOH the packet structure may diverge a bit
@@ -1193,7 +1190,7 @@ void Connect_rx_process( uint8_t uartNum )
 			{
 				uart_rx_status[ uartNum ].status = UARTStatus_Command;
 				uart_rx_status[ uartNum ].command = byte;
-				uart_rx_status[ uartNum ].bytes_waiting = 0xFFFF;
+				uart_rx_status[ uartNum ].bytes_waiting = BYTE_COUNT_START;
 			}
 			// Invalid packet type, ignore
 			else
@@ -1285,7 +1282,7 @@ void Connect_scan()
 
 		// If this is a slave, and we don't have an id yeth
 		// Don't bother sending if there are cable issues
-		if ( !Connect_master && Connect_id == 0xFF && Connect_cableOkMaster )
+		if ( !Connect_master && Connect_id == DEFAULT_SLAVE_ID && Connect_cableOkMaster )
 		{
 			Connect_send_IdRequest();
 		}
@@ -1475,7 +1472,7 @@ void cliFunc_connectMst( char* args )
 	case 'S':
 		info_msg("Setting device as slave.");
 		Connect_master = 0;
-		Connect_id = 0xFF;
+		Connect_id = DEFAULT_SLAVE_ID;
 		break;
 
 	case 'm':
@@ -1495,7 +1492,7 @@ void cliFunc_connectRst( char* args )
 	Connect_reset();
 
 	// Reset node id
-	Connect_id = 0xFF;
+	Connect_id = DEFAULT_SLAVE_ID;
 }
 
 void cliFunc_connectSts( char* args )
