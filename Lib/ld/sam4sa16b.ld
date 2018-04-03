@@ -38,8 +38,8 @@ SEARCH_DIR(.)
 /* Memory Spaces Definitions */
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x00400000, LENGTH = 128K - 8K
-  RAM  (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
+  FLASH (rx) : ORIGIN = 0x00400000, LENGTH = 1024K - 8K
+  RAM  (rwx) : ORIGIN = 0x20000000, LENGTH = 160K
 }
 
 /* Starting Address of the application ROM */
