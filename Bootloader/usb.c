@@ -606,6 +606,7 @@ void int32ToHex16( uint32_t num, uint16_t* str )
 
 void usb_init(const struct usbd_device *identity)
 {
+#if defined(_kinetis_)
 	// Set the device serial number to the reserved iSerial string memory
 	int32ToHex16( SIM_UIDH, &(dfu_device_str_desc[3]->bString[8]) );
 	int32ToHex16( SIM_UIDMH, &(dfu_device_str_desc[3]->bString[16]) );
@@ -614,5 +615,7 @@ void usb_init(const struct usbd_device *identity)
 
 	usb.identity = identity;
 	usb_enable();
+#elif defined(_sam_)
+#endif
 }
 

@@ -32,7 +32,27 @@
 // ----- Defines -----
 
 // UART Configuration
-#if defined(_kii_v2_) // UART2 Debug
+#if defined(_kii_v3_) // USART0 Debug
+#define UART_BDH    0
+#define UART_BDL    0
+#define UART_C1     0
+#define UART_C2     0
+#define UART_C3     0
+#define UART_C4     0
+#define UART_CFIFO  0
+#define UART_D      0
+#define UART_PFIFO  0
+#define UART_RCFIFO 0
+#define UART_RWFIFO 0
+#define UART_S1     0
+#define UART_S2     0
+#define UART_SFIFO  0
+#define UART_TWFIFO 0
+
+#define SIM_SCGC4_UART  0
+#define IRQ_UART_STATUS 0
+
+#elif defined(_kii_v2_) // UART2 Debug
 #define UART_BDH    UART2_BDH
 #define UART_BDL    UART2_BDL
 #define UART_C1     UART2_C1
@@ -82,6 +102,7 @@
 
 void uart_serial_setup()
 {
+#if defined(_kinetis_)
 	// Setup the the UART interface for keyboard data input
 	SIM_SCGC4 |= SIM_SCGC4_UART; // Disable clock gating
 
@@ -133,6 +154,10 @@ void uart_serial_setup()
 	// TX Enabled, RX Enabled, RX Interrupt Enabled, Generate idles
 	// UART_C2_TE UART_C2_RE UART_C2_RIE UART_C2_ILIE
 	UART_C2 = UART_C2_TE | UART_C2_ILIE;
+
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 }
 
 
@@ -144,8 +169,12 @@ int uart_serial_write( const void *buffer, uint32_t size )
 	// While buffer is not empty and transmit buffer is
 	while ( position < size )
 	{
+#if defined(_kinetis_)
 		while ( !( UART_SFIFO & UART_SFIFO_TXEMPT ) ); // Wait till there is room to send
 		UART_D = data[position++];
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 	}
 
 	return 0;

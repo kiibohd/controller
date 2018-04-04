@@ -25,6 +25,8 @@
 #define FLASH_SECTOR_SIZE 2048
 #elif defined(_mk22fx512avlh12_)
 #define FLASH_SECTOR_SIZE 4096
+#elif defined(_sam4sd32_)
+#define FLASH_SECTOR_SIZE 4096 // SAM TODO
 #endif
 
 

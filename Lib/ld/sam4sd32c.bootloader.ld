@@ -38,12 +38,14 @@ SEARCH_DIR(.)
 /* Memory Spaces Definitions */
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x00400000, LENGTH = 256K - 8K
-  RAM  (rwx) : ORIGIN = 0x20000000, LENGTH = 20K
+  FLASH     (rx) : ORIGIN = 0x00400000, LENGTH = 1024K
+  FLASH_APP (rx) : ORIGIN = 0x00400000, LENGTH = 1024K - 8K
+  RAM      (rwx) : ORIGIN = 0x20000000, LENGTH = 150K
 }
 
 /* Starting Address of the application ROM */
-_app_rom     = ORIGIN( FLASH );
+_bootloader  = ORIGIN( FLASH );
+_app_rom     = ORIGIN( FLASH_APP );
 _app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
 
 /* The stack size used by the application. NOTE: you need to adjust according to your application. */
@@ -102,14 +104,14 @@ SECTIONS
 
         . = ALIGN(4);
         _efixed = .;            /* End of text section */
-    } > FLASH
+    } > FLASH_APP
 
     /* .ARM.exidx is sorted, so has to go in its own output section.  */
     PROVIDE_HIDDEN (__exidx_start = .);
     .ARM.exidx :
     {
       *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-    } > FLASH
+    } > FLASH_APP
     PROVIDE_HIDDEN (__exidx_end = .);
 
     . = ALIGN(4);
