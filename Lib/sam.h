@@ -48,9 +48,10 @@
 
 // ----- Macros -----
 
-#define SOFTWARE_RESET NOP //TODO: Lookup macro
+#define SOFTWARE_RESET NVIC_SystemReset
 #define __disable_irq() asm volatile("CPSID i":::"memory");
 #define __enable_irq()  asm volatile("CPSIE i":::"memory");
+#define __DSB()         asm volatile("DSB 0xF":::"memory");
 
 
 // ----- Variables -----
@@ -69,6 +70,100 @@
 #endif
 #define     __O     volatile             /*!< Defines 'write only' permissions                */
 #define     __IO    volatile             /*!< Defines 'read / write' permissions              */
+
+#define __NVIC_PRIO_BITS 4
+
+/** \brief  Union type to access the Interrupt Program Status Register (IPSR).
+ */
+typedef union
+{
+  struct
+  {
+    uint32_t ISR:9;                      /*!< bit:  0.. 8  Exception number                   */
+    uint32_t _reserved0:23;              /*!< bit:  9..31  Reserved                           */
+  } b;                                   /*!< Structure used for bit  access                  */
+  uint32_t w;                            /*!< Type      used for word access                  */
+} IPSR_Type;
+
+/* IPSR Register Definitions */
+#define IPSR_ISR_Pos                        0                                             /*!< IPSR: ISR Position */
+#define IPSR_ISR_Msk (0x1FFUL /*<< IPSR_ISR_Pos*/) /*!< IPSR: ISR Mask */
+
+
+/** \brief  Structure type to access the Nested Vectored Interrupt Controller (NVIC).
+ */
+typedef struct
+{
+  __IO uint32_t ISER[8];                 /*!< Offset: 0x000 (R/W)  Interrupt Set Enable Register           */
+       uint32_t RESERVED0[24];
+  __IO uint32_t ICER[8];                 /*!< Offset: 0x080 (R/W)  Interrupt Clear Enable Register         */
+       uint32_t RSERVED1[24];
+  __IO uint32_t ISPR[8];                 /*!< Offset: 0x100 (R/W)  Interrupt Set Pending Register          */
+       uint32_t RESERVED2[24];
+  __IO uint32_t ICPR[8];                 /*!< Offset: 0x180 (R/W)  Interrupt Clear Pending Register        */
+       uint32_t RESERVED3[24];
+  __IO uint32_t IABR[8];                 /*!< Offset: 0x200 (R/W)  Interrupt Active bit Register           */
+       uint32_t RESERVED4[56];
+  __IO uint8_t  IP[240];                 /*!< Offset: 0x300 (R/W)  Interrupt Priority Register (8Bit wide) */
+       uint32_t RESERVED5[644];
+  __O  uint32_t STIR;                    /*!< Offset: 0xE00 ( /W)  Software Trigger Interrupt Register     */
+}  NVIC_Type;
+
+/* Software Triggered Interrupt Register Definitions */
+#define NVIC_STIR_INTID_Pos                 0                                          /*!< STIR: INTLINESNUM Position */
+#define NVIC_STIR_INTID_Msk                (0x1FFUL /*<< NVIC_STIR_INTID_Pos*/)        /*!< STIR: INTLINESNUM Mask */
+
+
+/**< Interrupt Number Definition */
+typedef enum IRQn
+{
+/******  Cortex-M4 Processor Exceptions Numbers ******************************/
+  NonMaskableInt_IRQn   = -14, /**<  2 Non Maskable Interrupt                */
+  HardFault_IRQn        = -13, /**<  3 HardFault Interrupt                   */
+  MemoryManagement_IRQn = -12, /**<  4 Cortex-M4 Memory Management Interrupt */
+  BusFault_IRQn         = -11, /**<  5 Cortex-M4 Bus Fault Interrupt         */
+  UsageFault_IRQn       = -10, /**<  6 Cortex-M4 Usage Fault Interrupt       */
+  SVCall_IRQn           = -5,  /**< 11 Cortex-M4 SV Call Interrupt           */
+  DebugMonitor_IRQn     = -4,  /**< 12 Cortex-M4 Debug Monitor Interrupt     */
+  PendSV_IRQn           = -2,  /**< 14 Cortex-M4 Pend SV Interrupt           */
+  SysTick_IRQn          = -1,  /**< 15 Cortex-M4 System Tick Interrupt       */
+/******  SAM4SD32C specific Interrupt Numbers *********************************/
+
+  SUPC_IRQn            =  0, /**<  0 SAM4SD32C Supply Controller (SUPC) */
+  RSTC_IRQn            =  1, /**<  1 SAM4SD32C Reset Controller (RSTC) */
+  RTC_IRQn             =  2, /**<  2 SAM4SD32C Real Time Clock (RTC) */
+  RTT_IRQn             =  3, /**<  3 SAM4SD32C Real Time Timer (RTT) */
+  WDT_IRQn             =  4, /**<  4 SAM4SD32C Watchdog Timer (WDT) */
+  PMC_IRQn             =  5, /**<  5 SAM4SD32C Power Management Controller (PMC) */
+  EFC0_IRQn            =  6, /**<  6 SAM4SD32C Enhanced Embedded Flash Controller 0 (EFC0) */
+  EFC1_IRQn            =  7, /**<  7 SAM4SD32C Enhanced Embedded Flash Controller 1 (EFC1) */
+  UART0_IRQn           =  8, /**<  8 SAM4SD32C UART 0 (UART0) */
+  UART1_IRQn           =  9, /**<  9 SAM4SD32C UART 1 (UART1) */
+  PIOA_IRQn            = 11, /**< 11 SAM4SD32C Parallel I/O Controller A (PIOA) */
+  PIOB_IRQn            = 12, /**< 12 SAM4SD32C Parallel I/O Controller B (PIOB) */
+  PIOC_IRQn            = 13, /**< 13 SAM4SD32C Parallel I/O Controller C (PIOC) */
+  USART0_IRQn          = 14, /**< 14 SAM4SD32C USART 0 (USART0) */
+  USART1_IRQn          = 15, /**< 15 SAM4SD32C USART 1 (USART1) */
+  HSMCI_IRQn           = 18, /**< 18 SAM4SD32C Multimedia Card Interface (HSMCI) */
+  TWI0_IRQn            = 19, /**< 19 SAM4SD32C Two Wire Interface 0 (TWI0) */
+  TWI1_IRQn            = 20, /**< 20 SAM4SD32C Two Wire Interface 1 (TWI1) */
+  SPI0_IRQn            = 21, /**< 21 SAM4SD32C Serial Peripheral Interface (SPI0) */
+  SSC_IRQn             = 22, /**< 22 SAM4SD32C Synchronous Serial Controller (SSC) */
+  TC0_IRQn             = 23, /**< 23 SAM4SD32C Timer/Counter 0 (TC0) */
+  TC1_IRQn             = 24, /**< 24 SAM4SD32C Timer/Counter 1 (TC1) */
+  TC2_IRQn             = 25, /**< 25 SAM4SD32C Timer/Counter 2 (TC2) */
+  TC3_IRQn             = 26, /**< 26 SAM4SD32C Timer/Counter 3 (TC3) */
+  TC4_IRQn             = 27, /**< 27 SAM4SD32C Timer/Counter 4 (TC4) */
+  TC5_IRQn             = 28, /**< 28 SAM4SD32C Timer/Counter 5 (TC5) */
+  ADC_IRQn             = 29, /**< 29 SAM4SD32C Analog To Digital Converter (ADC) */
+  DACC_IRQn            = 30, /**< 30 SAM4SD32C Digital To Analog Converter (DACC) */
+  PWM_IRQn             = 31, /**< 31 SAM4SD32C Pulse Width Modulation (PWM) */
+  CRCCU_IRQn           = 32, /**< 32 SAM4SD32C CRC Calculation Unit (CRCCU) */
+  ACC_IRQn             = 33, /**< 33 SAM4SD32C Analog Comparator (ACC) */
+  USBDEV_IRQn          = 34, /**< 34 SAM4SD32C USB Device Port (USBDEV) */
+
+  PERIPH_COUNT_IRQn    = 35  /**< Number of peripheral IDs */
+} IRQn_Type;
 
 
 /* ************************************************************************** */
@@ -638,6 +733,7 @@ typedef struct {
 #define PMC_WPMR_WPKEY_Pos 8
 #define PMC_WPMR_WPKEY_Msk (0xffffffu << PMC_WPMR_WPKEY_Pos) /**< \brief (PMC_WPMR) Write Protection Key */
 #define   PMC_WPMR_WPKEY_PASSWD (0x504D43u << 8) /**< \brief (PMC_WPMR) Writing any other value in this field aborts the write operation of the WPEN bit. Always reads as 0. */
+#define PMC_WPMR_WPKEY(value) ((PMC_WPMR_WPKEY_Msk & ((value) << PMC_WPMR_WPKEY_Pos)))
 /* -------- PMC_WPSR : (PMC Offset: 0x00E8) Write Protection Status Register -------- */
 #define PMC_WPSR_WPVS (0x1u << 0) /**< \brief (PMC_WPSR) Write Protection Violation Status */
 #define PMC_WPSR_WPVSRC_Pos 8
@@ -1444,59 +1540,208 @@ void *memset( void *addr, int val, unsigned int len );
 void *memcpy( void *dst, const void *src, unsigned int len );
 int memcmp( const void *a, const void *b, unsigned int len );
 
+/** \brief  Set Priority Grouping
+  The function sets the priority grouping field using the required unlock sequence.
+  The parameter PriorityGroup is assigned to the field SCB->AIRCR [10:8] PRIGROUP field.
+  Only values from 0..7 are used.
+  In case of a conflict between priority grouping and available
+  priority bits (__NVIC_PRIO_BITS), the smallest possible priority group is set.
+    \param [in]      PriorityGroup  Priority grouping field.
+ */
+static inline void NVIC_SetPriorityGrouping(uint32_t PriorityGroup)
+{
+  uint32_t reg_value;
+  uint32_t PriorityGroupTmp = (PriorityGroup & (uint32_t)0x07UL);             /* only values 0..7 are used          */
+
+  reg_value  =  SCB->AIRCR;                                                   /* read old register configuration    */
+  reg_value &= ~((uint32_t)(SCB_AIRCR_VECTKEY_Msk | SCB_AIRCR_PRIGROUP_Msk));             /* clear bits to change               */
+  reg_value  =  (reg_value                                   |
+                ((uint32_t)0x5FAUL << SCB_AIRCR_VECTKEY_Pos) |
+                (PriorityGroupTmp << 8)                       );              /* Insert write key and priorty group */
+  SCB->AIRCR =  reg_value;
+}
+
+
+/** \brief  Get Priority Grouping
+  The function reads the priority grouping field from the NVIC Interrupt Controller.
+    \return                Priority grouping field (SCB->AIRCR [10:8] PRIGROUP field).
+ */
+static inline uint32_t NVIC_GetPriorityGrouping(void)
+{
+  return ((uint32_t)((SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) >> SCB_AIRCR_PRIGROUP_Pos));
+}
+
+
+/** \brief  Enable External Interrupt
+    The function enables a device-specific interrupt in the NVIC interrupt controller.
+    \param [in]      IRQn  External interrupt number. Value cannot be negative.
+ */
+static inline void NVIC_EnableIRQ(IRQn_Type IRQn)
+{
+  NVIC->ISER[(((uint32_t)(int32_t)IRQn) >> 5UL)] = (uint32_t)(1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL));
+}
+
+
+/** \brief  Disable External Interrupt
+    The function disables a device-specific interrupt in the NVIC interrupt controller.
+    \param [in]      IRQn  External interrupt number. Value cannot be negative.
+ */
+static inline void NVIC_DisableIRQ(IRQn_Type IRQn)
+{
+  NVIC->ICER[(((uint32_t)(int32_t)IRQn) >> 5UL)] = (uint32_t)(1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL));
+}
+
+
+/** \brief  Get Pending Interrupt
+    The function reads the pending register in the NVIC and returns the pending bit
+    for the specified interrupt.
+    \param [in]      IRQn  Interrupt number.
+    \return             0  Interrupt status is not pending.
+    \return             1  Interrupt status is pending.
+ */
+static inline uint32_t NVIC_GetPendingIRQ(IRQn_Type IRQn)
+{
+  return((uint32_t)(((NVIC->ISPR[(((uint32_t)(int32_t)IRQn) >> 5UL)] & (1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL))) != 0UL) ? 1UL : 0UL));
+}
+
+
+/** \brief  Set Pending Interrupt
+    The function sets the pending bit of an external interrupt.
+    \param [in]      IRQn  Interrupt number. Value cannot be negative.
+ */
+static inline void NVIC_SetPendingIRQ(IRQn_Type IRQn)
+{
+  NVIC->ISPR[(((uint32_t)(int32_t)IRQn) >> 5UL)] = (uint32_t)(1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL));
+}
+
+
+/** \brief  Clear Pending Interrupt
+    The function clears the pending bit of an external interrupt.
+    \param [in]      IRQn  External interrupt number. Value cannot be negative.
+ */
+static inline void NVIC_ClearPendingIRQ(IRQn_Type IRQn)
+{
+  NVIC->ICPR[(((uint32_t)(int32_t)IRQn) >> 5UL)] = (uint32_t)(1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL));
+}
+
+
+/** \brief  Get Active Interrupt
+    The function reads the active register in NVIC and returns the active bit.
+    \param [in]      IRQn  Interrupt number.
+    \return             0  Interrupt status is not active.
+    \return             1  Interrupt status is active.
+ */
+static inline uint32_t NVIC_GetActive(IRQn_Type IRQn)
+{
+  return((uint32_t)(((NVIC->IABR[(((uint32_t)(int32_t)IRQn) >> 5UL)] & (1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL))) != 0UL) ? 1UL : 0UL));
+}
+
+
+/** \brief  Set Interrupt Priority
+    The function sets the priority of an interrupt.
+    \note The priority cannot be set for every core interrupt.
+    \param [in]      IRQn  Interrupt number.
+    \param [in]  priority  Priority to set.
+ */
+static inline void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority)
+{
+  if((int32_t)IRQn < 0) {
+    SCB->SHP[(((uint32_t)(int32_t)IRQn) & 0xFUL)-4UL] = (uint8_t)((priority << (8 - __NVIC_PRIO_BITS)) & (uint32_t)0xFFUL);
+  }
+  else {
+    NVIC->IP[((uint32_t)(int32_t)IRQn)]               = (uint8_t)((priority << (8 - __NVIC_PRIO_BITS)) & (uint32_t)0xFFUL);
+  }
+}
+
+
+/** \brief  Get Interrupt Priority
+    The function reads the priority of an interrupt. The interrupt
+    number can be positive to specify an external (device specific)
+    interrupt, or negative to specify an internal (core) interrupt.
+    \param [in]   IRQn  Interrupt number.
+    \return             Interrupt Priority. Value is aligned automatically to the implemented
+                        priority bits of the microcontroller.
+ */
+static inline uint32_t NVIC_GetPriority(IRQn_Type IRQn)
+{
+
+  if((int32_t)IRQn < 0) {
+    return(((uint32_t)SCB->SHP[(((uint32_t)(int32_t)IRQn) & 0xFUL)-4UL] >> (8 - __NVIC_PRIO_BITS)));
+  }
+  else {
+    return(((uint32_t)NVIC->IP[((uint32_t)(int32_t)IRQn)]               >> (8 - __NVIC_PRIO_BITS)));
+  }
+}
+
+
+/** \brief  Encode Priority
+    The function encodes the priority for an interrupt with the given priority group,
+    preemptive priority value, and subpriority value.
+    In case of a conflict between priority grouping and available
+    priority bits (__NVIC_PRIO_BITS), the smallest possible priority group is set.
+    \param [in]     PriorityGroup  Used priority group.
+    \param [in]   PreemptPriority  Preemptive priority value (starting from 0).
+    \param [in]       SubPriority  Subpriority value (starting from 0).
+    \return                        Encoded priority. Value can be used in the function \ref NVIC_SetPriority().
+ */
+static inline uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t PreemptPriority, uint32_t SubPriority)
+{
+  uint32_t PriorityGroupTmp = (PriorityGroup & (uint32_t)0x07UL);   /* only values 0..7 are used          */
+  uint32_t PreemptPriorityBits;
+  uint32_t SubPriorityBits;
+
+  PreemptPriorityBits = ((7UL - PriorityGroupTmp) > (uint32_t)(__NVIC_PRIO_BITS)) ? (uint32_t)(__NVIC_PRIO_BITS) : (uint32_t)(7UL - PriorityGroupTmp);
+  SubPriorityBits     = ((PriorityGroupTmp + (uint32_t)(__NVIC_PRIO_BITS)) < (uint32_t)7UL) ? (uint32_t)0UL : (uint32_t)((PriorityGroupTmp - 7UL) + (uint32_t)(__NVIC_PRIO_BITS));
+
+  return (
+           ((PreemptPriority & (uint32_t)((1UL << (PreemptPriorityBits)) - 1UL)) << SubPriorityBits) |
+           ((SubPriority     & (uint32_t)((1UL << (SubPriorityBits    )) - 1UL)))
+         );
+}
+
+
+/** \brief  Decode Priority
+    The function decodes an interrupt priority value with a given priority group to
+    preemptive priority value and subpriority value.
+    In case of a conflict between priority grouping and available
+    priority bits (__NVIC_PRIO_BITS) the smallest possible priority group is set.
+    \param [in]         Priority   Priority value, which can be retrieved with the function \ref NVIC_GetPriority().
+    \param [in]     PriorityGroup  Used priority group.
+    \param [out] pPreemptPriority  Preemptive priority value (starting from 0).
+    \param [out]     pSubPriority  Subpriority value (starting from 0).
+ */
+static inline void NVIC_DecodePriority (uint32_t Priority, uint32_t PriorityGroup, uint32_t* pPreemptPriority, uint32_t* pSubPriority)
+{
+  uint32_t PriorityGroupTmp = (PriorityGroup & (uint32_t)0x07UL);   /* only values 0..7 are used          */
+  uint32_t PreemptPriorityBits;
+  uint32_t SubPriorityBits;
+
+  PreemptPriorityBits = ((7UL - PriorityGroupTmp) > (uint32_t)(__NVIC_PRIO_BITS)) ? (uint32_t)(__NVIC_PRIO_BITS) : (uint32_t)(7UL - PriorityGroupTmp);
+  SubPriorityBits     = ((PriorityGroupTmp + (uint32_t)(__NVIC_PRIO_BITS)) < (uint32_t)7UL) ? (uint32_t)0UL : (uint32_t)((PriorityGroupTmp - 7UL) + (uint32_t)(__NVIC_PRIO_BITS));
+
+  *pPreemptPriority = (Priority >> SubPriorityBits) & (uint32_t)((1UL << (PreemptPriorityBits)) - 1UL);
+  *pSubPriority     = (Priority                   ) & (uint32_t)((1UL << (SubPriorityBits    )) - 1UL);
+}
+
+
+/** \brief  System Reset
+    The function initiates a system reset request to reset the MCU.
+ */
+static inline void NVIC_SystemReset(void)
+{
+  __DSB();                                                          /* Ensure all outstanding memory accesses included
+                                                                       buffered write are completed before reset */
+  SCB->AIRCR  = (uint32_t)((0x5FAUL << SCB_AIRCR_VECTKEY_Pos)    |
+                           (SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) |
+                            SCB_AIRCR_SYSRESETREQ_Msk    );         /* Keep priority group unchanged */
+  __DSB();                                                          /* Ensure completion of memory access */
+  while(1) { NOP(); }                                             /* wait until reset */
+}
+
+/*@} end of CMSIS_Core_NVICFunctions */
+
 
 // ----- Interrupts -----
-
-/**< Interrupt Number Definition */
-typedef enum IRQn
-{
-/******  Cortex-M4 Processor Exceptions Numbers ******************************/
-  NonMaskableInt_IRQn   = -14, /**<  2 Non Maskable Interrupt                */
-  HardFault_IRQn        = -13, /**<  3 HardFault Interrupt                   */
-  MemoryManagement_IRQn = -12, /**<  4 Cortex-M4 Memory Management Interrupt */
-  BusFault_IRQn         = -11, /**<  5 Cortex-M4 Bus Fault Interrupt         */
-  UsageFault_IRQn       = -10, /**<  6 Cortex-M4 Usage Fault Interrupt       */
-  SVCall_IRQn           = -5,  /**< 11 Cortex-M4 SV Call Interrupt           */
-  DebugMonitor_IRQn     = -4,  /**< 12 Cortex-M4 Debug Monitor Interrupt     */
-  PendSV_IRQn           = -2,  /**< 14 Cortex-M4 Pend SV Interrupt           */
-  SysTick_IRQn          = -1,  /**< 15 Cortex-M4 System Tick Interrupt       */
-/******  SAM4SD32C specific Interrupt Numbers *********************************/
-
-  SUPC_IRQn            =  0, /**<  0 SAM4SD32C Supply Controller (SUPC) */
-  RSTC_IRQn            =  1, /**<  1 SAM4SD32C Reset Controller (RSTC) */
-  RTC_IRQn             =  2, /**<  2 SAM4SD32C Real Time Clock (RTC) */
-  RTT_IRQn             =  3, /**<  3 SAM4SD32C Real Time Timer (RTT) */
-  WDT_IRQn             =  4, /**<  4 SAM4SD32C Watchdog Timer (WDT) */
-  PMC_IRQn             =  5, /**<  5 SAM4SD32C Power Management Controller (PMC) */
-  EFC0_IRQn            =  6, /**<  6 SAM4SD32C Enhanced Embedded Flash Controller 0 (EFC0) */
-  EFC1_IRQn            =  7, /**<  7 SAM4SD32C Enhanced Embedded Flash Controller 1 (EFC1) */
-  UART0_IRQn           =  8, /**<  8 SAM4SD32C UART 0 (UART0) */
-  UART1_IRQn           =  9, /**<  9 SAM4SD32C UART 1 (UART1) */
-  PIOA_IRQn            = 11, /**< 11 SAM4SD32C Parallel I/O Controller A (PIOA) */
-  PIOB_IRQn            = 12, /**< 12 SAM4SD32C Parallel I/O Controller B (PIOB) */
-  PIOC_IRQn            = 13, /**< 13 SAM4SD32C Parallel I/O Controller C (PIOC) */
-  USART0_IRQn          = 14, /**< 14 SAM4SD32C USART 0 (USART0) */
-  USART1_IRQn          = 15, /**< 15 SAM4SD32C USART 1 (USART1) */
-  HSMCI_IRQn           = 18, /**< 18 SAM4SD32C Multimedia Card Interface (HSMCI) */
-  TWI0_IRQn            = 19, /**< 19 SAM4SD32C Two Wire Interface 0 (TWI0) */
-  TWI1_IRQn            = 20, /**< 20 SAM4SD32C Two Wire Interface 1 (TWI1) */
-  SPI0_IRQn            = 21, /**< 21 SAM4SD32C Serial Peripheral Interface (SPI0) */
-  SSC_IRQn             = 22, /**< 22 SAM4SD32C Synchronous Serial Controller (SSC) */
-  TC0_IRQn             = 23, /**< 23 SAM4SD32C Timer/Counter 0 (TC0) */
-  TC1_IRQn             = 24, /**< 24 SAM4SD32C Timer/Counter 1 (TC1) */
-  TC2_IRQn             = 25, /**< 25 SAM4SD32C Timer/Counter 2 (TC2) */
-  TC3_IRQn             = 26, /**< 26 SAM4SD32C Timer/Counter 3 (TC3) */
-  TC4_IRQn             = 27, /**< 27 SAM4SD32C Timer/Counter 4 (TC4) */
-  TC5_IRQn             = 28, /**< 28 SAM4SD32C Timer/Counter 5 (TC5) */
-  ADC_IRQn             = 29, /**< 29 SAM4SD32C Analog To Digital Converter (ADC) */
-  DACC_IRQn            = 30, /**< 30 SAM4SD32C Digital To Analog Converter (DACC) */
-  PWM_IRQn             = 31, /**< 31 SAM4SD32C Pulse Width Modulation (PWM) */
-  CRCCU_IRQn           = 32, /**< 32 SAM4SD32C CRC Calculation Unit (CRCCU) */
-  ACC_IRQn             = 33, /**< 33 SAM4SD32C Analog Comparator (ACC) */
-  USBDEV_IRQn          = 34, /**< 34 SAM4SD32C USB Device Port (USBDEV) */
-
-  PERIPH_COUNT_IRQn    = 35  /**< Number of peripheral IDs */
-} IRQn_Type;
 
 typedef struct _DeviceVectors
 {
