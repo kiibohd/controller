@@ -139,7 +139,7 @@ void DACC_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
 void PWM_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 void CRCCU_Handler  ( void ) __attribute__ ((weak, alias("unused_isr")));
 void ACC_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
-void UDP_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
+void USBDEV_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 
 /* Exception Table */
 __attribute__ ((section(".vectors")))
@@ -231,7 +231,7 @@ const DeviceVectors exception_table = {
         .pfnPWM_Handler    = (void*) PWM_Handler,    /* 31 Pulse Width Modulation */
         .pfnCRCCU_Handler  = (void*) CRCCU_Handler,  /* 32 CRC Calculation Unit */
         .pfnACC_Handler    = (void*) ACC_Handler,    /* 33 Analog Comparator */
-        //.pfnUDP_Handler    = (void*) UDP_Handler     /* 34 USB Device Port */ //FIXME
+        .pfnUSBDEV_Handler    = (void*) USBDEV_Handler     /* 34 USB Device Port */
 };
 
 

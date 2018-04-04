@@ -51,7 +51,7 @@
 // DEBUG Mode
 // XXX - Only use when using usbMuxUart Module
 // Delay causes issues initializing more than 1 hid device (i.e. NKRO keyboard)
-//#define UART_DEBUG 1
+#define UART_DEBUG 1
 // Debug Unknown USB requests, usually what you want to debug USB issues
 //#define UART_DEBUG_UNKNOWN 1
 
@@ -63,11 +63,17 @@
 #define TX_STATE_NONE_FREE_EVEN_FIRST   4
 #define TX_STATE_NONE_FREE_ODD_FIRST    5
 
+#if defined(_kinetis_)
 #define BDT_OWN         0x80
 #define BDT_DATA1       0x40
 #define BDT_DATA0       0x00
 #define BDT_DTS         0x08
 #define BDT_STALL       0x04
+
+#define PID_SETUP 0x0D
+#define PID_OUT   0x01
+#define PID_IN    0x09
+#endif
 
 #define TX    1
 #define RX    0
@@ -76,31 +82,72 @@
 #define DATA0 0
 #define DATA1 1
 
-
-#define GET_STATUS              0
-#define CLEAR_FEATURE           1
-#define SET_FEATURE             3
-#define SET_ADDRESS             5
-#define GET_DESCRIPTOR          6
-#define SET_DESCRIPTOR          7
-#define GET_CONFIGURATION       8
-#define SET_CONFIGURATION       9
-#define GET_INTERFACE           10
-#define SET_INTERFACE           11
-#define SYNCH_FRAME             12
-
 #define TX_STATE_BOTH_FREE_EVEN_FIRST   0
 #define TX_STATE_BOTH_FREE_ODD_FIRST    1
 #define TX_STATE_EVEN_FREE              2
 #define TX_STATE_ODD_FREE               3
 #define TX_STATE_NONE_FREE              4
 
+#if defined(_kinetis_)
+#define INTERRUPT_SOF     USB_INTEN_SOFTOKEN /* 04 */
+#define INTERRUPT_RESET   USB_ISTAT_USBRST   /* 01 */
+#define INTERRUPT_SUSPEND USB_ISTAT_SLEEP    /* 10 */
+#define INTERRUPT_RESUME  USB_ISTAT_RESUME   /* 20 */
 
+#elif defined(_sam_)
+#define INTERRUPT_SOF     USBDEV_IER_SOFINT
+#define INTERRUPT_RESET   USBDEV_ISR_ENDBUSRES
+#define INTERRUPT_SUSPEND USBDEV_IER_RXSUSP
+#define INTERRUPT_RESUME  (USBDEV_IER_RXRSM | USBDEV_IER_WAKEUP)
+#define INTERRUPT_ENDPOINT 0xF // lower 8 bits are endpoint interrupts
+#endif
 
+// Device requests
+#define DEVICE_GET_STATUS        0x0080
+#define DEVICE_CLEAR_FEATURE     0x0100
+#define DEVICE_SET_FEATURE       0x0300
+#define DEVICE_SET_ADDRESS       0x0500
+#define DEVICE_GET_DESCRIPTOR    0x0680
+#define DEVICE_SET_DESCRIPTOR    0x0700
+#define DEVICE_GET_CONFIGURATION 0x0880
+#define DEVICE_SET_CONFIGURATION 0x0900
 
+// Interface requests
+#define INTERFACE_GET_STATUS    0x0081
+#define INTERFACE_CLEAR_FEATURE 0x0101
+#define INTERFACE_SET_FEATURE   0x0301
+#define INTERFACE_GET_ALT       0x0A81
+#define INTERFACE_SET_ALT       0x1101
+
+// Endpoint requests
+#define ENDPOINT_GET_STATUS    0x0082
+#define ENDPOINT_CLEAR_FEATURE 0x0102
+#define ENDPOINT_SET_FEATURE   0x0302
+#define ENDPOINT_SYNCH_FRAME   0x1282
+
+// CDC requests
+#define CDC_SET_CONTROL_LINE_STATE 0x2221
+#define CDC_GET_LINE_CODING        0x21A1
+#define CDC_SET_LINE_CODING        0x2021
+
+// Hid requests
+#define HID_SET_REPORT   0x0921
+#define HID_GET_REPORT   0x01A1
+#define HID_SET_IDLE     0x0A21
+#define HID_GET_IDLE     0x02A1
+#define HID_SET_PROTOCOL 0x0B21
+#define HID_GET_PROTOCOL 0x03A1
+
+// Device features
+#define DEVICE_REMOTE_WAKEUP 0x02
+#define DEVICE_SELF_POWERED  0x01
+
+// Endpoint features
+#define ENDPOINT_HALT 0x00
 
 // ----- Macros -----
 
+#if defined(_kinetis_)
 #define BDT_PID(n)      (((n) >> 2) & 15)
 
 #define BDT_DESC(count, data)   (BDT_OWN | BDT_DTS \
@@ -109,6 +156,7 @@
 
 #define index(endpoint, tx, odd) (((endpoint) << 2) | ((tx) << 1) | (odd))
 #define stat2bufferdescriptor(stat) (table + ((stat) >> 2))
+#endif
 
 
 
@@ -138,14 +186,17 @@ static union {
 		uint32_t word1;
 		uint32_t word2;
 	};
+	uint8_t bytes[8];
 } setup;
 
 
 
 // ----- Variables -----
 
+#if defined(_kinetis_)
 __attribute__ ((section(".usbdescriptortable"), used))
 static bdt_t table[ (NUM_ENDPOINTS + 1) * 4 ];
+#endif
 
 static usb_packet_t *rx_first  [ NUM_ENDPOINTS ];
 static usb_packet_t *rx_last   [ NUM_ENDPOINTS ];
@@ -153,20 +204,25 @@ static usb_packet_t *tx_first  [ NUM_ENDPOINTS ];
 static usb_packet_t *tx_last   [ NUM_ENDPOINTS ];
 uint16_t usb_rx_byte_count_data[ NUM_ENDPOINTS ];
 
-static uint8_t tx_state[NUM_ENDPOINTS];
 
 // SETUP always uses a DATA0 PID for the data field of the SETUP transaction.
 // transactions in the data phase start with DATA1 and toggle (figure 8-12, USB1.1)
 // Status stage uses a DATA1 PID.
 
 #if defined(_kinetis_)
+static uint8_t tx_state[NUM_ENDPOINTS];
 static uint8_t ep0_rx0_buf[EP0_SIZE] __attribute__ ((aligned (4)));
 static uint8_t ep0_rx1_buf[EP0_SIZE] __attribute__ ((aligned (4)));
-#endif
+
 static const uint8_t *ep0_tx_ptr = NULL;
 static uint16_t ep0_tx_len;
 static uint8_t ep0_tx_bdt_bank = 0;
 static uint8_t ep0_tx_data_toggle = 0;
+#elif defined(_sam_)
+static uint16_t address = 0;
+static uint8_t received_address = 0;
+#endif
+
 uint8_t usb_rx_memory_needed = 0;
 
 volatile uint8_t usb_configuration = 0;
@@ -195,26 +251,43 @@ static void endpoint0_stall()
 #if defined(_kinetis_)
 	USB0_ENDPT0 = USB_ENDPT_EPSTALL | USB_ENDPT_EPRXEN | USB_ENDPT_EPTXEN | USB_ENDPT_EPHSHK;
 #elif defined(_sam_)
-	//SAM TODO
+	USBDEV->USBDEV_CSR[0] = USBDEV_CSR_FORCESTALL;
 #endif
 }
 
 static void endpoint0_transmit( const void *data, uint32_t len )
 {
+#if defined(_kinetis_)
 	table[index(0, TX, ep0_tx_bdt_bank)].addr = (void *)data;
 	table[index(0, TX, ep0_tx_bdt_bank)].desc = BDT_DESC(len, ep0_tx_data_toggle);
 	ep0_tx_data_toggle ^= 1;
 	ep0_tx_bdt_bank ^= 1;
+#elif defined(_sam_)
+	uint8_t i;
+	print("Writing...");
+	while ((USBDEV->USBDEV_CSR[0] & USBDEV_CSR_TXPKTRDY)); // wait for bit to be cleared
+	for (i = 0; i < len; i++)
+	{
+		USBDEV->USBDEV_FDR[0] = USBDEV_FDR_FIFO_DATA(((char*)data)[i]);
+	}
+	USBDEV->USBDEV_CSR[0] |= USBDEV_CSR_TXPKTRDY; // notify ready
+	USBDEV->USBDEV_CSR[0] &= ~USBDEV_CSR_TXCOMP;
+	print(NL);
+	// TXCOMP will be set in the isr after the data has been received
+#endif
 }
 
 void usb_reinit()
 {
 	usb_configuration = 0; // Clear USB configuration if we have one
+
+// Disable D+ Pullup to simulate disconnect
 #if defined(_kinetis_)
-	USB0_CONTROL = 0; // Disable D+ Pullup to simulate disconnect
+	USB0_CONTROL = 0;
 #elif defined(_sam_)
-	//SAM TODO
+	USBDEV->USBDEV_TXVC &= ~USBDEV_TXVC_PUON;
 #endif
+
 	delay_ms(10); // Delay is necessary to simulate disconnect
 	usb_init();
 }
@@ -264,10 +337,13 @@ static void usb_setup()
 	uint32_t datalen = 0;
 	const usb_descriptor_list_t *list;
 	uint32_t size;
+	int i;
+
+#if defined(_kinetis_)
+	const uint8_t *cfg;
 	volatile uint8_t *reg;
 	uint8_t epconf;
-	const uint8_t *cfg;
-	int i;
+#endif
 
 	// Reset USB Init timer
 	USBInit_TimeEnd = systick_millis_count;
@@ -282,24 +358,32 @@ static void usb_setup()
 
 	switch ( setup.wRequestAndType )
 	{
-	case 0x0500: // SET_ADDRESS
+	case DEVICE_SET_ADDRESS:
+#if defined(_sam_)
+		address = setup.wValue;
+		if (address) {
+			info_msg("Address: ");
+			printHex(address);
+			print(NL);
+			received_address = 1;
+
+			//USBDEV->USBDEV_FADDR = USBDEV_FADDR_FEN | USBDEV_FADDR_FADD(address);
+		}
+#endif
 		goto send;
 
-	case 0x0900: // SET_CONFIGURATION
+	case DEVICE_SET_CONFIGURATION:
 		#ifdef UART_DEBUG
 		print("CONFIGURE - ");
 		#endif
 		usb_configuration = setup.wValue;
 		Output_Available = usb_configuration;
-#if defined(_kinetis_)
-		reg = &USB0_ENDPT1;
-#elif defined(_sam_)
-		//SAM TODO
-#endif
-		cfg = usb_endpoint_config_table;
 
 		// Now configured so we can utilize bMaxPower now
 		Output_update_usb_current( *usb_bMaxPower * 2 );
+
+#if defined(_kinetis_)
+		cfg = usb_endpoint_config_table;
 
 		// clear all BDT entries, free any allocated memory...
 		for ( i = 4; i < ( NUM_ENDPOINTS + 1) * 4; i++ )
@@ -309,6 +393,11 @@ static void usb_setup()
 				usb_free( (usb_packet_t *)((uint8_t *)(table[ i ].addr) - 8) );
 			}
 		}
+#elif defined(_sam_)
+		info_msg("State=configured");
+		USBDEV->USBDEV_GLB_STAT |= USBDEV_GLB_STAT_CONFG;
+#endif
+
 		// free all queued packets
 		for ( i = 0; i < NUM_ENDPOINTS; i++ )
 		{
@@ -333,6 +422,7 @@ static void usb_setup()
 			tx_last[ i ] = NULL;
 			usb_rx_byte_count_data[i] = 0;
 
+#if defined(_kinetis_)
 			switch ( tx_state[ i ] )
 			{
 			case TX_STATE_EVEN_FREE:
@@ -346,14 +436,18 @@ static void usb_setup()
 			default:
 				break;
 			}
+#endif
 		}
 		usb_rx_memory_needed = 0;
+
+#if defined(_kinetis_)
+		reg = &USB0_ENDPT1;
 		for ( i = 1; i <= NUM_ENDPOINTS; i++ )
 		{
 			epconf = *cfg++;
 			*reg = epconf;
 			reg += 4;
-#if defined(_kinetis_)
+
 			if ( epconf & USB_ENDPT_EPRXEN )
 			{
 				usb_packet_t *p;
@@ -382,35 +476,36 @@ static void usb_setup()
 			}
 			table[ index( i, TX, EVEN ) ].desc = 0;
 			table[ index( i, TX, ODD ) ].desc = 0;
-#elif defined(_sam_)
-		//SAM TODO
-#endif
 		}
+#endif
 		goto send;
 
-	case 0x0880: // GET_CONFIGURATION
+	case DEVICE_GET_CONFIGURATION:
 		reply_buffer[0] = usb_configuration;
 		datalen = 1;
 		data = reply_buffer;
 		goto send;
 
-	case 0x0080: // GET_STATUS (device)
+	case DEVICE_GET_STATUS:
 		reply_buffer[0] = 0;
 		reply_buffer[1] = 0;
 		datalen = 2;
 		data = reply_buffer;
 		goto send;
 
-	case 0x0082: // GET_STATUS (endpoint)
+	case ENDPOINT_GET_STATUS:
 		if ( setup.wIndex > NUM_ENDPOINTS )
 		{
 			// TODO: do we need to handle IN vs OUT here?
 			endpoint0_stall();
 			return;
 		}
+
+		// returns two bytes indicating the status (Halted/Stalled) of a endpoint
 		reply_buffer[0] = 0;
 		reply_buffer[1] = 0;
 #if defined(_kinetis_)
+		// USB0_ENDPT[wIndex] & EPTXEN
 		if ( *(uint8_t *)(&USB0_ENDPT0 + setup.wIndex * 4) & 0x02 )
 			reply_buffer[0] = 1;
 #elif defined(_sam_)
@@ -420,12 +515,15 @@ static void usb_setup()
 		datalen = 2;
 		goto send;
 
-	case 0x0100: // CLEAR_FEATURE (device)
+
+	case DEVICE_CLEAR_FEATURE:
 		switch ( setup.wValue )
 		{
-		// CLEAR_FEATURE(DEVICE_REMOTE_WAKEUP)
-		// See SET_FEATURE(DEVICE_REMOTE_WAKEUP) for details
-		case 0x1:
+		/*
+		 case DEVICE_REMOTE_WAKEUP:
+			// See SET_FEATURE(DEVICE_REMOTE_WAKEUP) for details
+		*/
+		case DEVICE_SELF_POWERED:
 			goto send;
 		}
 
@@ -435,7 +533,7 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-	case 0x0101: // CLEAR_FEATURE (interface)
+	case INTERFACE_CLEAR_FEATURE:
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
 		warn_msg("CLEAR_FEATURE - Interface wValue(");
 		printHex( setup.wValue );
@@ -445,7 +543,8 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-	case 0x0102: // CLEAR_FEATURE (endpoint)
+	case ENDPOINT_CLEAR_FEATURE:
+		// ENDPOINT_HALT is the only standard feature
 		i = setup.wIndex & 0x7F;
 		if ( i > NUM_ENDPOINTS || setup.wValue != 0 )
 		{
@@ -453,6 +552,7 @@ static void usb_setup()
 			return;
 		}
 #if defined(_kinetis_)
+		// USB0_ENDPT[wIndex] &= ~EPTXEN
 		(*(uint8_t *)(&USB0_ENDPT0 + setup.wIndex * 4)) &= ~0x02;
 #elif defined(_sam_)
 		//SAM TODO
@@ -460,7 +560,7 @@ static void usb_setup()
 		// TODO: do we need to clear the data toggle here?
 		goto send;
 
-	case 0x0300: // SET_FEATURE (device)
+	case DEVICE_SET_FEATURE:
 		switch ( setup.wValue )
 		{
 		// SET_FEATURE(DEVICE_REMOTE_WAKEUP)
@@ -468,7 +568,7 @@ static void usb_setup()
 		//      Used on Mac OSX and Windows not on Linux
 		// Good post on the behaviour:
 		// http://community.silabs.com/t5/8-bit-MCU/Remote-wakeup-HID/m-p/74957#M30802
-		case 0x1:
+		case DEVICE_SELF_POWERED:
 			goto send;
 		}
 
@@ -478,7 +578,7 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-	case 0x0301: // SET_FEATURE (interface)
+	case INTERFACE_SET_FEATURE:
 		// TODO: Currently ignoring, perhaps useful? -HaaTa
 		warn_msg("SET_FEATURE - Interface wValue(");
 		printHex( setup.wValue );
@@ -488,7 +588,7 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-	case 0x0302: // SET_FEATURE (endpoint)
+	case ENDPOINT_SET_FEATURE:
 		i = setup.wIndex & 0x7F;
 		if ( i > NUM_ENDPOINTS || setup.wValue != 0 )
 		{
@@ -504,8 +604,8 @@ static void usb_setup()
 		// TODO: do we need to clear the data toggle here?
 		goto send;
 
-	case 0x0680: // GET_DESCRIPTOR
-	case 0x0681:
+	case DEVICE_GET_DESCRIPTOR:
+	case 0x0681: //GET_DESCRIPTOR (interface)
 		#ifdef UART_DEBUG
 		print("desc:");
 		printHex( setup.wValue );
@@ -574,23 +674,23 @@ static void usb_setup()
 		return;
 
 #if enableVirtualSerialPort_define == 1
-	case 0x2221: // CDC_SET_CONTROL_LINE_STATE
+	case CDC_SET_CONTROL_LINE_STATE:
 		usb_cdc_line_rtsdtr = setup.wValue;
 		//info_print("set control line state");
 		goto send;
 
-	case 0x21A1: // CDC_GET_LINE_CODING
+	case CDC_GET_LINE_CODING:
 		data = (uint8_t*)&usb_cdc_line_coding;
 		datalen = sizeof( usb_cdc_line_coding );
 		goto send;
 
-	case 0x2021: // CDC_SET_LINE_CODING
+	case CDC_SET_LINE_CODING:
 		// ZLP Reply
 		// Settings are applied in PID=OUT
 		goto send;
 #endif
 
-	case 0x0921: // HID SET_REPORT
+	case HID_SET_REPORT:
 		// ZLP Reply
 		// Settings are applied in PID=OUT
 
@@ -626,7 +726,7 @@ static void usb_setup()
 
 		goto send;
 
-	case 0x01A1: // HID GET_REPORT
+	case HID_GET_REPORT:
 		#ifdef UART_DEBUG
 		print("GET_REPORT - ");
 		printHex( setup.wIndex );
@@ -649,7 +749,7 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-	case 0x0A21: // HID SET_IDLE
+	case HID_SET_IDLE:
 		#ifdef UART_DEBUG
 		print("SET_IDLE - ");
 		printHex( setup.wValue );
@@ -667,7 +767,7 @@ static void usb_setup()
 		}
 		goto send;
 
-	case 0x02A1: // HID GET_IDLE
+	case HID_GET_IDLE:
 		#ifdef UART_DEBUG
 		print("SET_IDLE - ");
 		printHex( setup.wValue );
@@ -680,8 +780,7 @@ static void usb_setup()
 		datalen = 1;
 		goto send;
 
-
-	case 0x0B21: // HID SET_PROTOCOL
+	case HID_SET_PROTOCOL:
 		#ifdef UART_DEBUG
 		print("SET_PROTOCOL - ");
 		printHex( setup.wValue );
@@ -703,7 +802,7 @@ static void usb_setup()
 
 		goto send;
 
-	case 0x03A1: /// HID GET_PROTOCOL
+	case HID_GET_PROTOCOL:
 		#ifdef UART_DEBUG
 		print("GET_PROTOCOL - ");
 		printHex( setup.wValue );
@@ -717,6 +816,11 @@ static void usb_setup()
 		goto send;
 
 	// case 0xC940:
+	case INTERFACE_GET_STATUS:
+	case DEVICE_SET_DESCRIPTOR:
+	case INTERFACE_GET_ALT:
+	case INTERFACE_SET_ALT:
+	case ENDPOINT_SYNCH_FRAME:
 	default:
 		#ifdef UART_DEBUG_UNKNOWN
 		print("UNKNOWN: ");
@@ -770,8 +874,10 @@ send:
 		return;
 
 	// Save rest of transfer for later? XXX
+#if defined(_kinetis_)
 	ep0_tx_ptr = data;
 	ep0_tx_len = datalen;
+#endif
 }
 
 
@@ -788,11 +894,14 @@ send:
 // Halt feature set, a ClearFeature(ENDPOINT_HALT) request always results in the
 // data toggle being reinitialized to DATA0.
 
+// TODO TODO TODO -> SAM USBDEV_CSRx -> pid switch (IN, OUT - BK0, SETUP)
+#if defined(_kinetis_)
 static void usb_control( uint32_t stat )
 {
 	#ifdef UART_DEBUG
 	print("CONTROL - ");
 	#endif
+
 	bdt_t *b;
 	uint32_t pid, size;
 	uint8_t *buf;
@@ -811,7 +920,7 @@ static void usb_control( uint32_t stat )
 
 	switch ( pid )
 	{
-	case 0x0D: // Setup received from host
+	case PID_SETUP: // Setup received from host
 		// grab the 8 byte setup info
 		setup.word1 = *(uint32_t *)(buf);
 		setup.word2 = *(uint32_t *)(buf + 4);
@@ -861,15 +970,11 @@ static void usb_control( uint32_t stat )
 		// actually "do" the setup request
 		usb_setup();
 		// unfreeze the USB, now that we're ready
-#if defined(_kinetis_)
 		USB0_CTL = USB_CTL_USBENSOFEN; // clear TXSUSPENDTOKENBUSY bit
-#elif defined(_sam_)
-		//SAM TODO
-#endif
 		break;
 
-	case 0x01:  // OUT transaction received from host
-	case 0x02:
+	case PID_OUT+0:  // OUT transaction received from host
+	case PID_OUT+1:
 		#ifdef UART_DEBUG_UNKNOWN
 		printHex( stat );
 		print(" PID=OUT   wRequestAndType:");
@@ -892,9 +997,8 @@ static void usb_control( uint32_t stat )
 
 		// CDC Interface
 		#if enableVirtualSerialPort_define == 1
-		// CDC_SET_LINE_CODING - PID=OUT
 		// XXX - Getting lots of NAKs in Linux
-		if ( setup.wRequestAndType == 0x2021 )
+		if ( setup.wRequestAndType == CDC_SET_LINE_CODING )
 		{
 			// Copy over new line coding
 			memcpy( (void*)&usb_cdc_line_coding, buf, 7 );
@@ -921,7 +1025,7 @@ static void usb_control( uint32_t stat )
 		// Keyboard HID SET_REPORT - PID=OUT
 		#if enableKeyboard_define == 1
 		// XXX - Getting lots of NAKs in Linux
-		if ( setup.wRequestAndType == 0x0921 && setup.wValue & 0x200 )
+		if ( setup.wRequestAndType == HID_SET_REPORT && setup.wValue & 0x200 )
 		{
 			#ifdef UART_DEBUG
 			print("report_type(");
@@ -974,7 +1078,7 @@ static void usb_control( uint32_t stat )
 		b->desc = BDT_DESC( EP0_SIZE, DATA1 );
 		break;
 
-	case 0x09: // IN transaction completed to host
+	case PID_IN: // IN transaction completed to host
 		data = ep0_tx_ptr;
 
 		#ifdef UART_DEBUG_UNKNOWN
@@ -1020,16 +1124,11 @@ static void usb_control( uint32_t stat )
 			printHex(setup.wValue);
 			print(NL);
 			#endif
-#if defined(_kinetis_)
 			USB0_ADDR = setup.wValue;
-#elif defined(_sam_)
-			//SAM TODO
-#endif
 		}
 
-		// CDC_SET_LINE_CODING - PID=IN
 		#if enableVirtualSerialPort_define == 1
-		if ( setup.wRequestAndType == 0x2021 )
+		if ( setup.wRequestAndType == CDC_SET_LINE_CODING )
 		{
 			// XXX ZLP causes timeout/delay, why? -HaaTa
 			//endpoint0_transmit( NULL, 0 );
@@ -1039,7 +1138,7 @@ static void usb_control( uint32_t stat )
 		// Keyboard HID SET_REPORT - PID=IN
 		#if enableKeyboard_define == 1
 		// XXX - Getting lots of NAKs in Linux
-		if ( setup.wRequestAndType == 0x0921 && setup.wValue & 0x200 )
+		if ( setup.wRequestAndType == HID_SET_REPORT && setup.wValue & 0x0200 )
 		{
 			// XXX ZLP causes timeout/delay, why? -HaaTa
 			//endpoint0_transmit( NULL, 0 );
@@ -1059,12 +1158,9 @@ static void usb_control( uint32_t stat )
 		#endif
 		break;
 	}
-#if defined(_kinetis_)
 	USB0_CTL = USB_CTL_USBENSOFEN; // clear TXSUSPENDTOKENBUSY bit
-#elif defined(_sam_)
-	//SAM TODO
-#endif
 }
+#endif
 
 usb_packet_t *usb_rx( uint32_t endpoint )
 {
@@ -1147,9 +1243,10 @@ void usb_rx_memory( usb_packet_t *packet )
 {
 	//print("USB RX MEMORY");
 	unsigned int i;
-	const uint8_t *cfg;
+#if defined(_kinetis_)
+	const uint8_t *cfg = usb_endpoint_config_table;
+#endif
 
-	cfg = usb_endpoint_config_table;
 	//serial_print("rx_mem:");
 	__disable_irq();
 	for ( i = 1; i <= NUM_ENDPOINTS; i++ )
@@ -1177,13 +1274,21 @@ void usb_rx_memory( usb_packet_t *packet )
 				//serial_print(",odd\n");
 				return;
 			}
-		}
 #elif defined(_sam_)
-	//SAM TODO
-	if ( *cfg++ & 0 )
-	{
-	}
+		if (0)
+		{
+			uint16_t n = USBDEV_CSR_RXBYTECNT(USBDEV->USBDEV_CSR[i-1]);
+			for ( uint8_t j = 0; j < n; j++)
+			{
+				packet->buf[i] = USBDEV_FDR_FIFO_DATA(USBDEV->USBDEV_FDR[i-1]);
+				usb_rx_memory_needed--;
+			}
+			USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_RX_DATA_BK0;
+			__enable_irq();
+			return;
+
 #endif
+		}
 	}
 	__enable_irq();
 	// we should never reach this point.  If we get here, it means
@@ -1212,7 +1317,11 @@ uint8_t usb_resume()
 		USB0_CTL &= ~(USB_CTL_RESUME);
 		delay_ms(50); // Wait for at least 50 ms to make sure the bus is clear
 #elif defined(_sam_)
-		//SAM TODO
+		USBDEV->USBDEV_GLB_STAT |= USBDEV_GLB_STAT_RMWUPE;
+		USBDEV->USBDEV_GLB_STAT &= ~USBDEV_GLB_STAT_ESR;
+		delay_ms(10);
+		USBDEV->USBDEV_GLB_STAT |= USBDEV_GLB_STAT_ESR;
+		delay_ms(50); // Wait for at least 50 ms to make sure the bus is clear
 #endif
 		usb_dev_sleep = 0; // Make sure we don't call this again, may crash system
 		#else
@@ -1235,9 +1344,6 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 	// Use the currently set descriptor value
 	Output_update_usb_current( *usb_bMaxPower * 2 );
 
-	bdt_t *b = &table[ index( endpoint, TX, EVEN ) ];
-	uint8_t next;
-
 	endpoint--;
 	if ( endpoint >= NUM_ENDPOINTS )
 		return;
@@ -1245,6 +1351,11 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 	//serial_print("txstate=");
 	//serial_phex(tx_state[ endpoint ]);
 	//serial_print("\n");
+	
+#if defined(_kinetis_)
+	bdt_t *b = &table[ index( endpoint, TX, EVEN ) ];
+	uint8_t next;
+
 	switch ( tx_state[ endpoint ] )
 	{
 	case TX_STATE_BOTH_FREE_EVEN_FIRST:
@@ -1278,6 +1389,14 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 	tx_state[ endpoint ] = next;
 	b->addr = packet->buf;
 	b->desc = BDT_DESC( packet->len, ((uint32_t)b & 8) ? DATA1 : DATA0 );
+
+#elif defined(_sam_)
+	uint8_t i;
+	for (i = 0; i < packet->len; i++)
+	{
+		USBDEV->USBDEV_FDR[endpoint] = USBDEV_FDR_FIFO_DATA(packet->buf[i]);
+	}
+#endif
 	__enable_irq();
 }
 
@@ -1292,28 +1411,119 @@ void usb_device_reload()
 		(&VBAT)[ pos ] = sys_reset_to_loader_magic[ pos ];
 	SOFTWARE_RESET();
 
+// Sam4
+#elif defined(_kii_v3_)
+	// SAM TODO: Magic
+	SOFTWARE_RESET();
+
 // Teensy 3.0 and 3.1
 #else
 	asm volatile("bkpt");
 #endif
 }
 
+#if defined(_sam_)
+void endpoint_isr(uint8_t i)
+{
+	info_msg("Endpoint interrupt: ");
+	printInt8(i);
+	print(NL);
 
+	uint32_t ep_status = USBDEV->USBDEV_CSR[i];
+
+	/* IN sent */
+	if ( ep_status & USBDEV_CSR_TXCOMP )
+	{
+		info_print("TXCOMP (received ACK)");
+		USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_TXCOMP;
+
+		if (received_address)
+		{
+			info_print("State=address");
+			USBDEV->USBDEV_FADDR = USBDEV_FADDR_FEN | USBDEV_FADDR_FADD(address);
+			USBDEV->USBDEV_GLB_STAT |= USBDEV_GLB_STAT_FADDEN;
+			received_address = 0;
+		}
+	}
+
+	/* OUT received */
+	if ( ep_status & USBDEV_CSR_RX_DATA_BK0 )
+	{
+		info_msg("RX_DATA_BK0 - ");
+		uint16_t n = USBDEV_CSR_RXBYTECNT(USBDEV->USBDEV_CSR[i]);
+		printInt8(n);
+		print(": ");
+
+		for ( uint8_t j = 0; j < n; j++)
+		{
+			uint8_t x = USBDEV_FDR_FIFO_DATA(USBDEV->USBDEV_FDR[i]);
+			printHex(x);
+		}
+		print(NL);
+
+		USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_RX_DATA_BK0;
+	}
+	if ( ep_status & USBDEV_CSR_RX_DATA_BK1 )
+	{
+		info_print("RX_DATA_BK1");
+		USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_RX_DATA_BK1;
+	}
+
+	if ( ep_status & USBDEV_CSR_RXSETUP )
+	{
+		info_print("Setup!");
+		// grab the 8 byte setup info
+		for (uint8_t j = 0; j < 8; j++)
+		{
+			setup.bytes[j] = USBDEV_FDR_FIFO_DATA(USBDEV->USBDEV_FDR[i]);
+		}
+
+		if (setup.bmRequestType & 0x80)
+		{
+			USBDEV->USBDEV_CSR[i] |= USBDEV_CSR_DIR;
+		}
+
+		// aknowledge interrupt
+		USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_RXSETUP;
+
+		// actually "do" the setup request
+		usb_setup();
+	}
+	if ( ep_status & USBDEV_CSR_STALLSENT )
+	{
+		info_print("STALLSENT");
+		USBDEV->USBDEV_CSR[i] &= ~USBDEV_CSR_STALLSENT;
+	}
+}
+#endif
+
+#if defined(_kinetis_)
 void usb_isr()
+#elif defined(_sam_)
+void USBDEV_Handler()
+#endif
 {
 #if defined(_kinetis_)
-	uint8_t status, stat, t;
+	uint8_t status, t;
+	uint8_t stat;
 
 restart:
 	status = USB0_ISTAT;
+
+#elif defined(_sam_)
+	uint32_t status, t;
+	status = USBDEV->USBDEV_ISR;
+#endif
+
 	/*
 	print(" ISR(");
 	printHex( status );
 	print(") ");
 	*/
 
-	if ( (status & USB_INTEN_SOFTOKEN /* 04 */ ) )
+	if ( (status & INTERRUPT_SOF ) )
 	{
+		//info_print("SOF");
 		if ( usb_configuration )
 		{
 			t = usb_reboot_timer;
@@ -1335,6 +1545,9 @@ restart:
 			}
 			#endif
 
+			#if defined(_sam_)
+			USBDEV->USBDEV_ICR |= USBDEV_IER_SOFINT;
+			#endif
 		}
 
 		// SOF tokens are used for keepalive, consider the system awake when we're receiving them
@@ -1344,9 +1557,12 @@ restart:
 			usb_dev_sleep = 0;
 		}
 
+#if defined(_kinetis_)
 		USB0_ISTAT = USB_INTEN_SOFTOKEN;
+#endif
 	}
 
+#if defined(_kinetis_)
 	if ( (status & USB_ISTAT_TOKDNE /* 08 */ ) )
 	{
 		uint8_t endpoint;
@@ -1485,9 +1701,27 @@ restart:
 		goto restart;
 	}
 
-
-	if ( status & USB_ISTAT_USBRST /* 01 */ )
+	if ( (status & USB_ISTAT_STALL /* 80 */ ) )
 	{
+		//serial_print("stall:\n");
+		USB0_ENDPT0 = USB_ENDPT_EPRXEN | USB_ENDPT_EPTXEN | USB_ENDPT_EPHSHK;
+		USB0_ISTAT = USB_ISTAT_STALL;
+	}
+	if ( (status & USB_ISTAT_ERROR /* 02 */ ) )
+	{
+		uint8_t err = USB0_ERRSTAT;
+		USB0_ERRSTAT = err;
+		//serial_print("err:");
+		//serial_phex(err);
+		//serial_print("\n");
+		USB0_ISTAT = USB_ISTAT_ERROR;
+	}
+#endif
+
+
+	if ( status & INTERRUPT_RESET )
+	{
+#if defined(_kinetis_)
 		//serial_print("reset\n");
 
 		// initialize BDT toggle bits
@@ -1524,29 +1758,37 @@ restart:
 
 		// is this necessary?
 		USB0_CTL = USB_CTL_USBENSOFEN;
+
+#elif defined(_sam_)
+		print( NL NL );
+		info_print(" --- RESET --- ");
+
+		// reset all endpoints
+		USBDEV->USBDEV_RST_EP = ~0;
+		USBDEV->USBDEV_RST_EP = 0;
+
+		info_print("State=default");
+		received_address = 0;
+
+		// activate endpoint 0
+		USBDEV->USBDEV_CSR[0] = USBDEV_CSR_EPTYPE_CTRL | USBDEV_CSR_EPEDS;
+
+		// enable interrupts
+		USBDEV->USBDEV_IER = 0xFFFFFFFF;
+
+		// enable Transceiver
+		//USBDEV->USBDEV_FADDR = USBDEV_FADDR_FEN;
+		USBDEV->USBDEV_TXVC &= ~USBDEV_TXVC_TXVDIS;
+
+		// aknowledge interrupt
+		USBDEV->USBDEV_ICR |= USBDEV_ISR_ENDBUSRES;
+#endif
 		return;
-	}
-
-
-	if ( (status & USB_ISTAT_STALL /* 80 */ ) )
-	{
-		//serial_print("stall:\n");
-		USB0_ENDPT0 = USB_ENDPT_EPRXEN | USB_ENDPT_EPTXEN | USB_ENDPT_EPHSHK;
-		USB0_ISTAT = USB_ISTAT_STALL;
-	}
-	if ( (status & USB_ISTAT_ERROR /* 02 */ ) )
-	{
-		uint8_t err = USB0_ERRSTAT;
-		USB0_ERRSTAT = err;
-		//serial_print("err:");
-		//serial_phex(err);
-		//serial_print("\n");
-		USB0_ISTAT = USB_ISTAT_ERROR;
 	}
 
 	// USB Host signalling device to enter 'sleep' state
 	// The USB Module triggers this interrupt when it detects the bus has been idle for 3 ms
-	if ( (status & USB_ISTAT_SLEEP /* 10 */ ) )
+	if ( (status & INTERRUPT_SUSPEND) )
 	{
 		#if enableUSBSuspend_define == 1
 			// Can cause issues with the virtual serial port
@@ -1555,14 +1797,19 @@ restart:
 			#endif
 			Output_update_usb_current( 100 ); // Set to 100 mA
 			usb_dev_sleep = 1;
-			#else
+		#else
 			info_print("USB Suspend Detected - Firmware USB Suspend Disabled");
 		#endif
+#if defined(_kinetis_)
 		USB0_ISTAT |= USB_ISTAT_SLEEP;
+#elif defined(_sam_)
+		// TODO: Can disable transceiver if we enable wakeup interrupt
+		USBDEV->USBDEV_ICR |= USBDEV_IER_WAKEUP | USBDEV_IER_RXRSM;
+#endif
 	}
 
 	// On USB Resume, unset the usb_dev_sleep so we don't keep sending resume signals
-	if ( (status & USB_ISTAT_RESUME /* 20 */ ) )
+	if ( (status & INTERRUPT_RESUME) )
 	{
 		// Can cause issues with the virtual serial port
 		#if enableVirtualSerialPort_define != 1
@@ -1570,13 +1817,19 @@ restart:
 		#endif
 		Output_update_usb_current( *usb_bMaxPower * 2 );
 		usb_dev_sleep = 0;
+#if defined(_kinetis_)
 		USB0_ISTAT |= USB_ISTAT_RESUME;
-	}
 #elif defined(_sam_)
-	//SAM TODO
-	if (0)
+		USBDEV->USBDEV_ICR |= USBDEV_IER_RXRSM | USBDEV_IER_WAKEUP;
+#endif
+	}
+
+
+#if defined(_sam_)
+	// TODO: handle other endpoints
+	if (status & USBDEV_ISR_EP0INT )
 	{
-		usb_control(0); //avoid unused warning
+		endpoint_isr(0);
 	}
 #endif
 }
@@ -1607,7 +1860,6 @@ uint8_t usb_init()
 	hex32ToStr16( SIM_UIDMH, &(usb_string_serial_number_default.wString[8]), 8 );
 	hex32ToStr16( SIM_UIDML, &(usb_string_serial_number_default.wString[16]), 8 );
 	hex32ToStr16( SIM_UIDL,  &(usb_string_serial_number_default.wString[24]), 8 );
-#endif
 
 	// Clear out endpoints table
 	for ( int i = 0; i <= NUM_ENDPOINTS * 4; i++ )
@@ -1616,7 +1868,6 @@ uint8_t usb_init()
 		table[i].addr = 0;
 	}
 
-#if defined(_kinetis_)
 	// this basically follows the flowchart in the Kinetis
 	// Quick Reference User Guide, Rev. 1, 03/2012, page 141
 
@@ -1653,8 +1904,30 @@ uint8_t usb_init()
 
 	// enable d+ pullup
 	USB0_CONTROL = USB_CONTROL_DPPULLUPNONOTG;
+
 #elif defined(_sam_)
-	//SAM TODO
+	PMC->CKGR_PLLBR = (CKGR_PLLBR_MULB(0x7ul) | CKGR_PLLBR_DIVB(2ul) | CKGR_PLLBR_PLLBCOUNT(0x3ful)); // 12*8 / 2 = 48 MHz
+	for ( ; (PMC->PMC_SR & PMC_SR_LOCKB) != PMC_SR_LOCKB ; );
+
+	PMC->PMC_USB |= PMC_USB_USBS | PMC_USB_USBDIV(0); // 4=many errors
+
+	// enable the 48MHz USB clock USBDEVCK and System Peripheral USB clock
+	PMC->PMC_SCER |= PMC_SCER_UDP;
+	PMC->PMC_PCER1 = PMC_PCER1_PID34; // ID_USBDEV=34
+
+	// clear all ISR flags
+	USBDEV->USBDEV_ICR = 0;
+
+	// enable reset interrupt
+	USBDEV->USBDEV_IER = USBDEV_ISR_ENDBUSRES;
+
+	// enable interrupt in NVIC...
+	NVIC_SetPriority( USBDEV_IRQn, 112 );
+	NVIC_EnableIRQ( USBDEV_IRQn );
+	
+	// enable d+ pullup
+	info_print("State=powered");
+	USBDEV->USBDEV_TXVC |= USBDEV_TXVC_PUON;
 #endif
 
 	// Do not check for power negotiation delay until Get Configuration Descriptor

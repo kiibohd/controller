@@ -37,6 +37,9 @@
 #include <stdint.h>
 #include <stddef.h>
 
+// Project Includes
+#include <Lib/mcu_compat.h>
+
 // Local Includes
 #include <output_usb.h>
 
@@ -54,8 +57,16 @@
 #define DEVICE_SUBCLASS         0x00
 #define DEVICE_PROTOCOL         0x00
 #define EP0_SIZE                64
-#define NUM_ENDPOINTS           10 // XXX Can save some space if this can be calculated using KLL
 #define NUM_USB_BUFFERS         30
+
+// XXX Can save some space if this can be calculated using KLL
+#if defined(_kinetis_)
+#define NUM_ENDPOINTS           10
+#elif defined(_sam_)
+#define NUM_ENDPOINTS           8
+#else
+#error NUM_ENDPOINTS undefined
+#endif
 
 // XXX Remember to update total interface count, if it isn't correct some OSs will not initialize USB
 //     Linux warns in dmesg
