@@ -22,12 +22,12 @@
 // ----- Includes -----
 
 // Debug Includes
-#include "led.h"
 #if defined(_bootloader_)
 #include <inttypes.h>
 #include <debug.h>
 #else
 #include <print.h>
+#include <led.h>
 #endif
 
 // Local Includes
@@ -442,7 +442,9 @@ void ResetHandler()
 	// Start USB stack
 	udc_start();
 
+#if !defined(_bootloader_)
 	init_errorLED();
+#endif
 
 	// Start USB stack to authorize VBus monitoring
 	udc_start();

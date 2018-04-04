@@ -31,6 +31,7 @@
 
 // ----- Variables -----
 
+#if defined(_kinetis_)
 /**
  * Unfortunately we can't DMA directly to FlexRAM, so we'll have to stage here.
  */
@@ -39,10 +40,15 @@ static char staging[ USB_DFU_TRANSFER_SIZE ];
 // DFU State
 static struct dfu_ctx dfu_ctx;
 
+#elif defined(_sam_)
+//SAM TODO
+#endif
+
 
 
 // ----- Functions -----
 
+#if defined(_kinetis_)
 int sector_print( void* buf, size_t sector, size_t chunks )
 {
 	uint8_t* start = (uint8_t*)buf + sector * USB_DFU_TRANSFER_SIZE;
@@ -340,3 +346,43 @@ void main()
 	}
 }
 
+
+#elif defined(_sam_)
+//SAM TODO
+
+int sector_print( void* buf, size_t sector, size_t chunks )
+{
+	return (0);
+}
+
+/*static enum dfu_status setup_read( size_t off, size_t *len, void **buf )
+{
+}
+
+static enum dfu_status setup_write( size_t off, size_t len, void **buf )
+{
+}
+
+static enum dfu_status finish_write( void *buf, size_t off, size_t len )
+{
+}*/
+
+void init_usb_bootloader( int config )
+{
+}
+
+// Code jump routine
+__attribute__((noreturn))
+static inline void jump_to_app( uintptr_t addr )
+{
+	// NOTREACHED
+	__builtin_unreachable();
+}
+
+// Main entry point
+// NOTE: Code does not start here, see Lib/sam.c
+void main()
+{
+}
+
+#endif

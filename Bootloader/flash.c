@@ -30,6 +30,7 @@ uint32_t flash_ALLOW_BRICKABLE_ADDRESSES;
 
 // ----- Functions -----
 
+#if defined(_kinetis_)
 /* This will have to live in SRAM. */
 __attribute__((section(".ramtext.ftfl_submit_cmd"), long_call))
 int ftfl_submit_cmd()
@@ -164,3 +165,53 @@ void *flash_get_staging_area( uintptr_t addr, size_t len )
 	return (FlexRAM);
 }
 
+
+#elif defined(_sam_)
+//SAM TODO
+
+int ftfl_submit_cmd()
+{
+	return (0);
+}
+
+int flash_prepare_flashing()
+{
+	return (0);
+}
+
+int flash_read_1s_sector( uintptr_t addr, size_t num )
+{
+	return (0);
+}
+
+int flash_erase_sector( uintptr_t addr )
+{
+	return (0);
+}
+
+int flash_program_section( uintptr_t addr, size_t num )
+{
+	return (0);
+}
+
+int flash_program_sector( uintptr_t addr, size_t len )
+{
+	return (0);
+}
+
+int flash_prepare_reading()
+{
+	return (0);
+}
+
+int flash_read_sector( uintptr_t addr, size_t len )
+{
+	return (0);
+}
+
+void *flash_get_staging_area( uintptr_t addr, size_t len )
+{
+	return NULL;
+}
+
+#endif
