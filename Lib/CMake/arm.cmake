@@ -188,8 +188,16 @@ endif ()
 #|     (Note: 3 is not always the best optimization level.)
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 set( OPT "0" )
+add_definitions("-DDEBUG")
 else ()
 set( OPT "s" )
+endif ()
+
+#| JLink support
+#| Used to drop to a breakpoint hardfault handler
+#| This isn't something most people would want
+if ( JLINK )
+add_definitions("-DJLINK")
 endif ()
 
 

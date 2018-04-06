@@ -48,9 +48,10 @@
 
 // ----- Macros -----
 
-#define SOFTWARE_RESET NOP //TODO: Lookup macro
+#define SOFTWARE_RESET NVIC_SystemReset
 #define __disable_irq() asm volatile("CPSID i":::"memory");
 #define __enable_irq()  asm volatile("CPSIE i":::"memory");
+#define __DSB()         asm volatile("DSB 0xF":::"memory");
 
 
 // ----- Variables -----
@@ -69,6 +70,100 @@
 #endif
 #define     __O     volatile             /*!< Defines 'write only' permissions                */
 #define     __IO    volatile             /*!< Defines 'read / write' permissions              */
+
+#define __NVIC_PRIO_BITS 4
+
+/** \brief  Union type to access the Interrupt Program Status Register (IPSR).
+ */
+typedef union
+{
+  struct
+  {
+    uint32_t ISR:9;                      /*!< bit:  0.. 8  Exception number                   */
+    uint32_t _reserved0:23;              /*!< bit:  9..31  Reserved                           */
+  } b;                                   /*!< Structure used for bit  access                  */
+  uint32_t w;                            /*!< Type      used for word access                  */
+} IPSR_Type;
+
+/* IPSR Register Definitions */
+#define IPSR_ISR_Pos                        0                                             /*!< IPSR: ISR Position */
+#define IPSR_ISR_Msk (0x1FFUL /*<< IPSR_ISR_Pos*/) /*!< IPSR: ISR Mask */
+
+
+/** \brief  Structure type to access the Nested Vectored Interrupt Controller (NVIC).
+ */
+typedef struct
+{
+  __IO uint32_t ISER[8];                 /*!< Offset: 0x000 (R/W)  Interrupt Set Enable Register           */
+       uint32_t RESERVED0[24];
+  __IO uint32_t ICER[8];                 /*!< Offset: 0x080 (R/W)  Interrupt Clear Enable Register         */
+       uint32_t RSERVED1[24];
+  __IO uint32_t ISPR[8];                 /*!< Offset: 0x100 (R/W)  Interrupt Set Pending Register          */
+       uint32_t RESERVED2[24];
+  __IO uint32_t ICPR[8];                 /*!< Offset: 0x180 (R/W)  Interrupt Clear Pending Register        */
+       uint32_t RESERVED3[24];
+  __IO uint32_t IABR[8];                 /*!< Offset: 0x200 (R/W)  Interrupt Active bit Register           */
+       uint32_t RESERVED4[56];
+  __IO uint8_t  IP[240];                 /*!< Offset: 0x300 (R/W)  Interrupt Priority Register (8Bit wide) */
+       uint32_t RESERVED5[644];
+  __O  uint32_t STIR;                    /*!< Offset: 0xE00 ( /W)  Software Trigger Interrupt Register     */
+}  NVIC_Type;
+
+/* Software Triggered Interrupt Register Definitions */
+#define NVIC_STIR_INTID_Pos                 0                                          /*!< STIR: INTLINESNUM Position */
+#define NVIC_STIR_INTID_Msk                (0x1FFUL /*<< NVIC_STIR_INTID_Pos*/)        /*!< STIR: INTLINESNUM Mask */
+
+
+/**< Interrupt Number Definition */
+typedef enum IRQn
+{
+/******  Cortex-M4 Processor Exceptions Numbers ******************************/
+  NonMaskableInt_IRQn   = -14, /**<  2 Non Maskable Interrupt                */
+  HardFault_IRQn        = -13, /**<  3 HardFault Interrupt                   */
+  MemoryManagement_IRQn = -12, /**<  4 Cortex-M4 Memory Management Interrupt */
+  BusFault_IRQn         = -11, /**<  5 Cortex-M4 Bus Fault Interrupt         */
+  UsageFault_IRQn       = -10, /**<  6 Cortex-M4 Usage Fault Interrupt       */
+  SVCall_IRQn           = -5,  /**< 11 Cortex-M4 SV Call Interrupt           */
+  DebugMonitor_IRQn     = -4,  /**< 12 Cortex-M4 Debug Monitor Interrupt     */
+  PendSV_IRQn           = -2,  /**< 14 Cortex-M4 Pend SV Interrupt           */
+  SysTick_IRQn          = -1,  /**< 15 Cortex-M4 System Tick Interrupt       */
+/******  SAM4SD32C specific Interrupt Numbers *********************************/
+
+  SUPC_IRQn            =  0, /**<  0 SAM4SD32C Supply Controller (SUPC) */
+  RSTC_IRQn            =  1, /**<  1 SAM4SD32C Reset Controller (RSTC) */
+  RTC_IRQn             =  2, /**<  2 SAM4SD32C Real Time Clock (RTC) */
+  RTT_IRQn             =  3, /**<  3 SAM4SD32C Real Time Timer (RTT) */
+  WDT_IRQn             =  4, /**<  4 SAM4SD32C Watchdog Timer (WDT) */
+  PMC_IRQn             =  5, /**<  5 SAM4SD32C Power Management Controller (PMC) */
+  EFC0_IRQn            =  6, /**<  6 SAM4SD32C Enhanced Embedded Flash Controller 0 (EFC0) */
+  EFC1_IRQn            =  7, /**<  7 SAM4SD32C Enhanced Embedded Flash Controller 1 (EFC1) */
+  UART0_IRQn           =  8, /**<  8 SAM4SD32C UART 0 (UART0) */
+  UART1_IRQn           =  9, /**<  9 SAM4SD32C UART 1 (UART1) */
+  PIOA_IRQn            = 11, /**< 11 SAM4SD32C Parallel I/O Controller A (PIOA) */
+  PIOB_IRQn            = 12, /**< 12 SAM4SD32C Parallel I/O Controller B (PIOB) */
+  PIOC_IRQn            = 13, /**< 13 SAM4SD32C Parallel I/O Controller C (PIOC) */
+  USART0_IRQn          = 14, /**< 14 SAM4SD32C USART 0 (USART0) */
+  USART1_IRQn          = 15, /**< 15 SAM4SD32C USART 1 (USART1) */
+  HSMCI_IRQn           = 18, /**< 18 SAM4SD32C Multimedia Card Interface (HSMCI) */
+  TWI0_IRQn            = 19, /**< 19 SAM4SD32C Two Wire Interface 0 (TWI0) */
+  TWI1_IRQn            = 20, /**< 20 SAM4SD32C Two Wire Interface 1 (TWI1) */
+  SPI0_IRQn            = 21, /**< 21 SAM4SD32C Serial Peripheral Interface (SPI0) */
+  SSC_IRQn             = 22, /**< 22 SAM4SD32C Synchronous Serial Controller (SSC) */
+  TC0_IRQn             = 23, /**< 23 SAM4SD32C Timer/Counter 0 (TC0) */
+  TC1_IRQn             = 24, /**< 24 SAM4SD32C Timer/Counter 1 (TC1) */
+  TC2_IRQn             = 25, /**< 25 SAM4SD32C Timer/Counter 2 (TC2) */
+  TC3_IRQn             = 26, /**< 26 SAM4SD32C Timer/Counter 3 (TC3) */
+  TC4_IRQn             = 27, /**< 27 SAM4SD32C Timer/Counter 4 (TC4) */
+  TC5_IRQn             = 28, /**< 28 SAM4SD32C Timer/Counter 5 (TC5) */
+  ADC_IRQn             = 29, /**< 29 SAM4SD32C Analog To Digital Converter (ADC) */
+  DACC_IRQn            = 30, /**< 30 SAM4SD32C Digital To Analog Converter (DACC) */
+  PWM_IRQn             = 31, /**< 31 SAM4SD32C Pulse Width Modulation (PWM) */
+  CRCCU_IRQn           = 32, /**< 32 SAM4SD32C CRC Calculation Unit (CRCCU) */
+  ACC_IRQn             = 33, /**< 33 SAM4SD32C Analog Comparator (ACC) */
+  USBDEV_IRQn          = 34, /**< 34 SAM4SD32C USB Device Port (USBDEV) */
+
+  PERIPH_COUNT_IRQn    = 35  /**< Number of peripheral IDs */
+} IRQn_Type;
 
 
 /* ************************************************************************** */
@@ -638,6 +733,7 @@ typedef struct {
 #define PMC_WPMR_WPKEY_Pos 8
 #define PMC_WPMR_WPKEY_Msk (0xffffffu << PMC_WPMR_WPKEY_Pos) /**< \brief (PMC_WPMR) Write Protection Key */
 #define   PMC_WPMR_WPKEY_PASSWD (0x504D43u << 8) /**< \brief (PMC_WPMR) Writing any other value in this field aborts the write operation of the WPEN bit. Always reads as 0. */
+#define PMC_WPMR_WPKEY(value) ((PMC_WPMR_WPKEY_Msk & ((value) << PMC_WPMR_WPKEY_Pos)))
 /* -------- PMC_WPSR : (PMC Offset: 0x00E8) Write Protection Status Register -------- */
 #define PMC_WPSR_WPVS (0x1u << 0) /**< \brief (PMC_WPSR) Write Protection Violation Status */
 #define PMC_WPSR_WPVSRC_Pos 8
@@ -933,6 +1029,311 @@ typedef struct
 
 /*@} end of group CMSIS_SCB */
 
+
+/** \ingroup  CMSIS_core_register
+    \defgroup CMSIS_SysTick     System Tick Timer (SysTick)
+    \brief      Type definitions for the System Timer Registers.
+  @{
+ */
+
+/** \brief  Structure type to access the System Timer (SysTick).
+ */
+typedef struct
+{
+  __IO uint32_t CTRL;                    /*!< Offset: 0x000 (R/W)  SysTick Control and Status Register */
+  __IO uint32_t LOAD;                    /*!< Offset: 0x004 (R/W)  SysTick Reload Value Register       */
+  __IO uint32_t VAL;                     /*!< Offset: 0x008 (R/W)  SysTick Current Value Register      */
+  __I  uint32_t CALIB;                   /*!< Offset: 0x00C (R/ )  SysTick Calibration Register        */
+} SysTick_Type;
+
+/* SysTick Control / Status Register Definitions */
+#define SysTick_CTRL_COUNTFLAG_Pos         16                                             /*!< SysTick CTRL: COUNTFLAG Position */
+#define SysTick_CTRL_COUNTFLAG_Msk         (1UL << SysTick_CTRL_COUNTFLAG_Pos)            /*!< SysTick CTRL: COUNTFLAG Mask */
+
+#define SysTick_CTRL_CLKSOURCE_Pos          2                                             /*!< SysTick CTRL: CLKSOURCE Position */
+#define SysTick_CTRL_CLKSOURCE_Msk         (1UL << SysTick_CTRL_CLKSOURCE_Pos)            /*!< SysTick CTRL: CLKSOURCE Mask */
+
+#define SysTick_CTRL_TICKINT_Pos            1                                             /*!< SysTick CTRL: TICKINT Position */
+#define SysTick_CTRL_TICKINT_Msk           (1UL << SysTick_CTRL_TICKINT_Pos)              /*!< SysTick CTRL: TICKINT Mask */
+
+#define SysTick_CTRL_ENABLE_Pos             0                                             /*!< SysTick CTRL: ENABLE Position */
+#define SysTick_CTRL_ENABLE_Msk            (1UL /*<< SysTick_CTRL_ENABLE_Pos*/)           /*!< SysTick CTRL: ENABLE Mask */
+
+/* SysTick Reload Register Definitions */
+#define SysTick_LOAD_RELOAD_Pos             0                                             /*!< SysTick LOAD: RELOAD Position */
+#define SysTick_LOAD_RELOAD_Msk            (0xFFFFFFUL /*<< SysTick_LOAD_RELOAD_Pos*/)    /*!< SysTick LOAD: RELOAD Mask */
+
+/* SysTick Current Register Definitions */
+#define SysTick_VAL_CURRENT_Pos             0                                             /*!< SysTick VAL: CURRENT Position */
+#define SysTick_VAL_CURRENT_Msk            (0xFFFFFFUL /*<< SysTick_VAL_CURRENT_Pos*/)    /*!< SysTick VAL: CURRENT Mask */
+
+/* SysTick Calibration Register Definitions */
+#define SysTick_CALIB_NOREF_Pos            31                                             /*!< SysTick CALIB: NOREF Position */
+#define SysTick_CALIB_NOREF_Msk            (1UL << SysTick_CALIB_NOREF_Pos)               /*!< SysTick CALIB: NOREF Mask */
+
+#define SysTick_CALIB_SKEW_Pos             30                                             /*!< SysTick CALIB: SKEW Position */
+#define SysTick_CALIB_SKEW_Msk             (1UL << SysTick_CALIB_SKEW_Pos)                /*!< SysTick CALIB: SKEW Mask */
+
+#define SysTick_CALIB_TENMS_Pos             0                                             /*!< SysTick CALIB: TENMS Position */
+#define SysTick_CALIB_TENMS_Msk            (0xFFFFFFUL /*<< SysTick_CALIB_TENMS_Pos*/)    /*!< SysTick CALIB: TENMS Mask */
+
+/*@} end of group CMSIS_SysTick */
+
+
+/** \ingroup  CMSIS_core_register
+    \defgroup CMSIS_DWT     Data Watchpoint and Trace (DWT)
+    \brief      Type definitions for the Data Watchpoint and Trace (DWT)
+  @{
+ */
+
+/** \brief  Structure type to access the Data Watchpoint and Trace Register (DWT).
+ */
+typedef struct
+{
+  __IO uint32_t CTRL;                    /*!< Offset: 0x000 (R/W)  Control Register                          */
+  __IO uint32_t CYCCNT;                  /*!< Offset: 0x004 (R/W)  Cycle Count Register                      */
+  __IO uint32_t CPICNT;                  /*!< Offset: 0x008 (R/W)  CPI Count Register                        */
+  __IO uint32_t EXCCNT;                  /*!< Offset: 0x00C (R/W)  Exception Overhead Count Register         */
+  __IO uint32_t SLEEPCNT;                /*!< Offset: 0x010 (R/W)  Sleep Count Register                      */
+  __IO uint32_t LSUCNT;                  /*!< Offset: 0x014 (R/W)  LSU Count Register                        */
+  __IO uint32_t FOLDCNT;                 /*!< Offset: 0x018 (R/W)  Folded-instruction Count Register         */
+  __I  uint32_t PCSR;                    /*!< Offset: 0x01C (R/ )  Program Counter Sample Register           */
+  __IO uint32_t COMP0;                   /*!< Offset: 0x020 (R/W)  Comparator Register 0                     */
+  __IO uint32_t MASK0;                   /*!< Offset: 0x024 (R/W)  Mask Register 0                           */
+  __IO uint32_t FUNCTION0;               /*!< Offset: 0x028 (R/W)  Function Register 0                       */
+       uint32_t RESERVED0[1];
+  __IO uint32_t COMP1;                   /*!< Offset: 0x030 (R/W)  Comparator Register 1                     */
+  __IO uint32_t MASK1;                   /*!< Offset: 0x034 (R/W)  Mask Register 1                           */
+  __IO uint32_t FUNCTION1;               /*!< Offset: 0x038 (R/W)  Function Register 1                       */
+       uint32_t RESERVED1[1];
+  __IO uint32_t COMP2;                   /*!< Offset: 0x040 (R/W)  Comparator Register 2                     */
+  __IO uint32_t MASK2;                   /*!< Offset: 0x044 (R/W)  Mask Register 2                           */
+  __IO uint32_t FUNCTION2;               /*!< Offset: 0x048 (R/W)  Function Register 2                       */
+       uint32_t RESERVED2[1];
+  __IO uint32_t COMP3;                   /*!< Offset: 0x050 (R/W)  Comparator Register 3                     */
+  __IO uint32_t MASK3;                   /*!< Offset: 0x054 (R/W)  Mask Register 3                           */
+  __IO uint32_t FUNCTION3;               /*!< Offset: 0x058 (R/W)  Function Register 3                       */
+} DWT_Type;
+
+/* DWT Control Register Definitions */
+#define DWT_CTRL_NUMCOMP_Pos               28                                          /*!< DWT CTRL: NUMCOMP Position */
+#define DWT_CTRL_NUMCOMP_Msk               (0xFUL << DWT_CTRL_NUMCOMP_Pos)             /*!< DWT CTRL: NUMCOMP Mask */
+
+#define DWT_CTRL_NOTRCPKT_Pos              27                                          /*!< DWT CTRL: NOTRCPKT Position */
+#define DWT_CTRL_NOTRCPKT_Msk              (0x1UL << DWT_CTRL_NOTRCPKT_Pos)            /*!< DWT CTRL: NOTRCPKT Mask */
+
+#define DWT_CTRL_NOEXTTRIG_Pos             26                                          /*!< DWT CTRL: NOEXTTRIG Position */
+#define DWT_CTRL_NOEXTTRIG_Msk             (0x1UL << DWT_CTRL_NOEXTTRIG_Pos)           /*!< DWT CTRL: NOEXTTRIG Mask */
+
+#define DWT_CTRL_NOCYCCNT_Pos              25                                          /*!< DWT CTRL: NOCYCCNT Position */
+#define DWT_CTRL_NOCYCCNT_Msk              (0x1UL << DWT_CTRL_NOCYCCNT_Pos)            /*!< DWT CTRL: NOCYCCNT Mask */
+
+#define DWT_CTRL_NOPRFCNT_Pos              24                                          /*!< DWT CTRL: NOPRFCNT Position */
+#define DWT_CTRL_NOPRFCNT_Msk              (0x1UL << DWT_CTRL_NOPRFCNT_Pos)            /*!< DWT CTRL: NOPRFCNT Mask */
+
+#define DWT_CTRL_CYCEVTENA_Pos             22                                          /*!< DWT CTRL: CYCEVTENA Position */
+#define DWT_CTRL_CYCEVTENA_Msk             (0x1UL << DWT_CTRL_CYCEVTENA_Pos)           /*!< DWT CTRL: CYCEVTENA Mask */
+
+#define DWT_CTRL_FOLDEVTENA_Pos            21                                          /*!< DWT CTRL: FOLDEVTENA Position */
+#define DWT_CTRL_FOLDEVTENA_Msk            (0x1UL << DWT_CTRL_FOLDEVTENA_Pos)          /*!< DWT CTRL: FOLDEVTENA Mask */
+
+#define DWT_CTRL_LSUEVTENA_Pos             20                                          /*!< DWT CTRL: LSUEVTENA Position */
+#define DWT_CTRL_LSUEVTENA_Msk             (0x1UL << DWT_CTRL_LSUEVTENA_Pos)           /*!< DWT CTRL: LSUEVTENA Mask */
+
+#define DWT_CTRL_SLEEPEVTENA_Pos           19                                          /*!< DWT CTRL: SLEEPEVTENA Position */
+#define DWT_CTRL_SLEEPEVTENA_Msk           (0x1UL << DWT_CTRL_SLEEPEVTENA_Pos)         /*!< DWT CTRL: SLEEPEVTENA Mask */
+
+#define DWT_CTRL_EXCEVTENA_Pos             18                                          /*!< DWT CTRL: EXCEVTENA Position */
+#define DWT_CTRL_EXCEVTENA_Msk             (0x1UL << DWT_CTRL_EXCEVTENA_Pos)           /*!< DWT CTRL: EXCEVTENA Mask */
+
+#define DWT_CTRL_CPIEVTENA_Pos             17                                          /*!< DWT CTRL: CPIEVTENA Position */
+#define DWT_CTRL_CPIEVTENA_Msk             (0x1UL << DWT_CTRL_CPIEVTENA_Pos)           /*!< DWT CTRL: CPIEVTENA Mask */
+
+#define DWT_CTRL_EXCTRCENA_Pos             16                                          /*!< DWT CTRL: EXCTRCENA Position */
+#define DWT_CTRL_EXCTRCENA_Msk             (0x1UL << DWT_CTRL_EXCTRCENA_Pos)           /*!< DWT CTRL: EXCTRCENA Mask */
+
+#define DWT_CTRL_PCSAMPLENA_Pos            12                                          /*!< DWT CTRL: PCSAMPLENA Position */
+#define DWT_CTRL_PCSAMPLENA_Msk            (0x1UL << DWT_CTRL_PCSAMPLENA_Pos)          /*!< DWT CTRL: PCSAMPLENA Mask */
+
+#define DWT_CTRL_SYNCTAP_Pos               10                                          /*!< DWT CTRL: SYNCTAP Position */
+#define DWT_CTRL_SYNCTAP_Msk               (0x3UL << DWT_CTRL_SYNCTAP_Pos)             /*!< DWT CTRL: SYNCTAP Mask */
+
+#define DWT_CTRL_CYCTAP_Pos                 9                                          /*!< DWT CTRL: CYCTAP Position */
+#define DWT_CTRL_CYCTAP_Msk                (0x1UL << DWT_CTRL_CYCTAP_Pos)              /*!< DWT CTRL: CYCTAP Mask */
+
+#define DWT_CTRL_POSTINIT_Pos               5                                          /*!< DWT CTRL: POSTINIT Position */
+#define DWT_CTRL_POSTINIT_Msk              (0xFUL << DWT_CTRL_POSTINIT_Pos)            /*!< DWT CTRL: POSTINIT Mask */
+
+#define DWT_CTRL_POSTPRESET_Pos             1                                          /*!< DWT CTRL: POSTPRESET Position */
+#define DWT_CTRL_POSTPRESET_Msk            (0xFUL << DWT_CTRL_POSTPRESET_Pos)          /*!< DWT CTRL: POSTPRESET Mask */
+
+#define DWT_CTRL_CYCCNTENA_Pos              0                                          /*!< DWT CTRL: CYCCNTENA Position */
+#define DWT_CTRL_CYCCNTENA_Msk             (0x1UL /*<< DWT_CTRL_CYCCNTENA_Pos*/)       /*!< DWT CTRL: CYCCNTENA Mask */
+
+/* DWT CPI Count Register Definitions */
+#define DWT_CPICNT_CPICNT_Pos               0                                          /*!< DWT CPICNT: CPICNT Position */
+#define DWT_CPICNT_CPICNT_Msk              (0xFFUL /*<< DWT_CPICNT_CPICNT_Pos*/)       /*!< DWT CPICNT: CPICNT Mask */
+
+/* DWT Exception Overhead Count Register Definitions */
+#define DWT_EXCCNT_EXCCNT_Pos               0                                          /*!< DWT EXCCNT: EXCCNT Position */
+#define DWT_EXCCNT_EXCCNT_Msk              (0xFFUL /*<< DWT_EXCCNT_EXCCNT_Pos*/)       /*!< DWT EXCCNT: EXCCNT Mask */
+
+/* DWT Sleep Count Register Definitions */
+#define DWT_SLEEPCNT_SLEEPCNT_Pos           0                                          /*!< DWT SLEEPCNT: SLEEPCNT Position */
+#define DWT_SLEEPCNT_SLEEPCNT_Msk          (0xFFUL /*<< DWT_SLEEPCNT_SLEEPCNT_Pos*/)   /*!< DWT SLEEPCNT: SLEEPCNT Mask */
+
+/* DWT LSU Count Register Definitions */
+#define DWT_LSUCNT_LSUCNT_Pos               0                                          /*!< DWT LSUCNT: LSUCNT Position */
+#define DWT_LSUCNT_LSUCNT_Msk              (0xFFUL /*<< DWT_LSUCNT_LSUCNT_Pos*/)       /*!< DWT LSUCNT: LSUCNT Mask */
+
+/* DWT Folded-instruction Count Register Definitions */
+#define DWT_FOLDCNT_FOLDCNT_Pos             0                                          /*!< DWT FOLDCNT: FOLDCNT Position */
+#define DWT_FOLDCNT_FOLDCNT_Msk            (0xFFUL /*<< DWT_FOLDCNT_FOLDCNT_Pos*/)     /*!< DWT FOLDCNT: FOLDCNT Mask */
+
+/* DWT Comparator Mask Register Definitions */
+#define DWT_MASK_MASK_Pos                   0                                          /*!< DWT MASK: MASK Position */
+#define DWT_MASK_MASK_Msk                  (0x1FUL /*<< DWT_MASK_MASK_Pos*/)           /*!< DWT MASK: MASK Mask */
+
+/* DWT Comparator Function Register Definitions */
+#define DWT_FUNCTION_MATCHED_Pos           24                                          /*!< DWT FUNCTION: MATCHED Position */
+#define DWT_FUNCTION_MATCHED_Msk           (0x1UL << DWT_FUNCTION_MATCHED_Pos)         /*!< DWT FUNCTION: MATCHED Mask */
+
+#define DWT_FUNCTION_DATAVADDR1_Pos        16                                          /*!< DWT FUNCTION: DATAVADDR1 Position */
+#define DWT_FUNCTION_DATAVADDR1_Msk        (0xFUL << DWT_FUNCTION_DATAVADDR1_Pos)      /*!< DWT FUNCTION: DATAVADDR1 Mask */
+
+#define DWT_FUNCTION_DATAVADDR0_Pos        12                                          /*!< DWT FUNCTION: DATAVADDR0 Position */
+#define DWT_FUNCTION_DATAVADDR0_Msk        (0xFUL << DWT_FUNCTION_DATAVADDR0_Pos)      /*!< DWT FUNCTION: DATAVADDR0 Mask */
+
+#define DWT_FUNCTION_DATAVSIZE_Pos         10                                          /*!< DWT FUNCTION: DATAVSIZE Position */
+#define DWT_FUNCTION_DATAVSIZE_Msk         (0x3UL << DWT_FUNCTION_DATAVSIZE_Pos)       /*!< DWT FUNCTION: DATAVSIZE Mask */
+
+#define DWT_FUNCTION_LNK1ENA_Pos            9                                          /*!< DWT FUNCTION: LNK1ENA Position */
+#define DWT_FUNCTION_LNK1ENA_Msk           (0x1UL << DWT_FUNCTION_LNK1ENA_Pos)         /*!< DWT FUNCTION: LNK1ENA Mask */
+
+#define DWT_FUNCTION_DATAVMATCH_Pos         8                                          /*!< DWT FUNCTION: DATAVMATCH Position */
+#define DWT_FUNCTION_DATAVMATCH_Msk        (0x1UL << DWT_FUNCTION_DATAVMATCH_Pos)      /*!< DWT FUNCTION: DATAVMATCH Mask */
+
+#define DWT_FUNCTION_CYCMATCH_Pos           7                                          /*!< DWT FUNCTION: CYCMATCH Position */
+#define DWT_FUNCTION_CYCMATCH_Msk          (0x1UL << DWT_FUNCTION_CYCMATCH_Pos)        /*!< DWT FUNCTION: CYCMATCH Mask */
+
+#define DWT_FUNCTION_EMITRANGE_Pos          5                                          /*!< DWT FUNCTION: EMITRANGE Position */
+#define DWT_FUNCTION_EMITRANGE_Msk         (0x1UL << DWT_FUNCTION_EMITRANGE_Pos)       /*!< DWT FUNCTION: EMITRANGE Mask */
+
+#define DWT_FUNCTION_FUNCTION_Pos           0                                          /*!< DWT FUNCTION: FUNCTION Position */
+#define DWT_FUNCTION_FUNCTION_Msk          (0xFUL /*<< DWT_FUNCTION_FUNCTION_Pos*/)    /*!< DWT FUNCTION: FUNCTION Mask */
+
+/*@}*/ /* end of group CMSIS_DWT */
+
+
+/** \ingroup  CMSIS_core_register
+    \defgroup CMSIS_CoreDebug       Core Debug Registers (CoreDebug)
+    \brief      Type definitions for the Core Debug Registers
+  @{
+ */
+
+/** \brief  Structure type to access the Core Debug Register (CoreDebug).
+ */
+typedef struct
+{
+  __IO uint32_t DHCSR;                   /*!< Offset: 0x000 (R/W)  Debug Halting Control and Status Register    */
+  __O  uint32_t DCRSR;                   /*!< Offset: 0x004 ( /W)  Debug Core Register Selector Register        */
+  __IO uint32_t DCRDR;                   /*!< Offset: 0x008 (R/W)  Debug Core Register Data Register            */
+  __IO uint32_t DEMCR;                   /*!< Offset: 0x00C (R/W)  Debug Exception and Monitor Control Register */
+} CoreDebug_Type;
+
+/* Debug Halting Control and Status Register */
+#define CoreDebug_DHCSR_DBGKEY_Pos         16                                             /*!< CoreDebug DHCSR: DBGKEY Position */
+#define CoreDebug_DHCSR_DBGKEY_Msk         (0xFFFFUL << CoreDebug_DHCSR_DBGKEY_Pos)       /*!< CoreDebug DHCSR: DBGKEY Mask */
+
+#define CoreDebug_DHCSR_S_RESET_ST_Pos     25                                             /*!< CoreDebug DHCSR: S_RESET_ST Position */
+#define CoreDebug_DHCSR_S_RESET_ST_Msk     (1UL << CoreDebug_DHCSR_S_RESET_ST_Pos)        /*!< CoreDebug DHCSR: S_RESET_ST Mask */
+
+#define CoreDebug_DHCSR_S_RETIRE_ST_Pos    24                                             /*!< CoreDebug DHCSR: S_RETIRE_ST Position */
+#define CoreDebug_DHCSR_S_RETIRE_ST_Msk    (1UL << CoreDebug_DHCSR_S_RETIRE_ST_Pos)       /*!< CoreDebug DHCSR: S_RETIRE_ST Mask */
+
+#define CoreDebug_DHCSR_S_LOCKUP_Pos       19                                             /*!< CoreDebug DHCSR: S_LOCKUP Position */
+#define CoreDebug_DHCSR_S_LOCKUP_Msk       (1UL << CoreDebug_DHCSR_S_LOCKUP_Pos)          /*!< CoreDebug DHCSR: S_LOCKUP Mask */
+
+#define CoreDebug_DHCSR_S_SLEEP_Pos        18                                             /*!< CoreDebug DHCSR: S_SLEEP Position */
+#define CoreDebug_DHCSR_S_SLEEP_Msk        (1UL << CoreDebug_DHCSR_S_SLEEP_Pos)           /*!< CoreDebug DHCSR: S_SLEEP Mask */
+
+#define CoreDebug_DHCSR_S_HALT_Pos         17                                             /*!< CoreDebug DHCSR: S_HALT Position */
+#define CoreDebug_DHCSR_S_HALT_Msk         (1UL << CoreDebug_DHCSR_S_HALT_Pos)            /*!< CoreDebug DHCSR: S_HALT Mask */
+
+#define CoreDebug_DHCSR_S_REGRDY_Pos       16                                             /*!< CoreDebug DHCSR: S_REGRDY Position */
+#define CoreDebug_DHCSR_S_REGRDY_Msk       (1UL << CoreDebug_DHCSR_S_REGRDY_Pos)          /*!< CoreDebug DHCSR: S_REGRDY Mask */
+
+#define CoreDebug_DHCSR_C_SNAPSTALL_Pos     5                                             /*!< CoreDebug DHCSR: C_SNAPSTALL Position */
+#define CoreDebug_DHCSR_C_SNAPSTALL_Msk    (1UL << CoreDebug_DHCSR_C_SNAPSTALL_Pos)       /*!< CoreDebug DHCSR: C_SNAPSTALL Mask */
+
+#define CoreDebug_DHCSR_C_MASKINTS_Pos      3                                             /*!< CoreDebug DHCSR: C_MASKINTS Position */
+#define CoreDebug_DHCSR_C_MASKINTS_Msk     (1UL << CoreDebug_DHCSR_C_MASKINTS_Pos)        /*!< CoreDebug DHCSR: C_MASKINTS Mask */
+
+#define CoreDebug_DHCSR_C_STEP_Pos          2                                             /*!< CoreDebug DHCSR: C_STEP Position */
+#define CoreDebug_DHCSR_C_STEP_Msk         (1UL << CoreDebug_DHCSR_C_STEP_Pos)            /*!< CoreDebug DHCSR: C_STEP Mask */
+
+#define CoreDebug_DHCSR_C_HALT_Pos          1                                             /*!< CoreDebug DHCSR: C_HALT Position */
+#define CoreDebug_DHCSR_C_HALT_Msk         (1UL << CoreDebug_DHCSR_C_HALT_Pos)            /*!< CoreDebug DHCSR: C_HALT Mask */
+
+#define CoreDebug_DHCSR_C_DEBUGEN_Pos       0                                             /*!< CoreDebug DHCSR: C_DEBUGEN Position */
+#define CoreDebug_DHCSR_C_DEBUGEN_Msk      (1UL /*<< CoreDebug_DHCSR_C_DEBUGEN_Pos*/)     /*!< CoreDebug DHCSR: C_DEBUGEN Mask */
+
+/* Debug Core Register Selector Register */
+#define CoreDebug_DCRSR_REGWnR_Pos         16                                             /*!< CoreDebug DCRSR: REGWnR Position */
+#define CoreDebug_DCRSR_REGWnR_Msk         (1UL << CoreDebug_DCRSR_REGWnR_Pos)            /*!< CoreDebug DCRSR: REGWnR Mask */
+
+#define CoreDebug_DCRSR_REGSEL_Pos          0                                             /*!< CoreDebug DCRSR: REGSEL Position */
+#define CoreDebug_DCRSR_REGSEL_Msk         (0x1FUL /*<< CoreDebug_DCRSR_REGSEL_Pos*/)     /*!< CoreDebug DCRSR: REGSEL Mask */
+
+/* Debug Exception and Monitor Control Register */
+#define CoreDebug_DEMCR_TRCENA_Pos         24                                             /*!< CoreDebug DEMCR: TRCENA Position */
+#define CoreDebug_DEMCR_TRCENA_Msk         (1UL << CoreDebug_DEMCR_TRCENA_Pos)            /*!< CoreDebug DEMCR: TRCENA Mask */
+
+#define CoreDebug_DEMCR_MON_REQ_Pos        19                                             /*!< CoreDebug DEMCR: MON_REQ Position */
+#define CoreDebug_DEMCR_MON_REQ_Msk        (1UL << CoreDebug_DEMCR_MON_REQ_Pos)           /*!< CoreDebug DEMCR: MON_REQ Mask */
+
+#define CoreDebug_DEMCR_MON_STEP_Pos       18                                             /*!< CoreDebug DEMCR: MON_STEP Position */
+#define CoreDebug_DEMCR_MON_STEP_Msk       (1UL << CoreDebug_DEMCR_MON_STEP_Pos)          /*!< CoreDebug DEMCR: MON_STEP Mask */
+
+#define CoreDebug_DEMCR_MON_PEND_Pos       17                                             /*!< CoreDebug DEMCR: MON_PEND Position */
+#define CoreDebug_DEMCR_MON_PEND_Msk       (1UL << CoreDebug_DEMCR_MON_PEND_Pos)          /*!< CoreDebug DEMCR: MON_PEND Mask */
+
+#define CoreDebug_DEMCR_MON_EN_Pos         16                                             /*!< CoreDebug DEMCR: MON_EN Position */
+#define CoreDebug_DEMCR_MON_EN_Msk         (1UL << CoreDebug_DEMCR_MON_EN_Pos)            /*!< CoreDebug DEMCR: MON_EN Mask */
+
+#define CoreDebug_DEMCR_VC_HARDERR_Pos     10                                             /*!< CoreDebug DEMCR: VC_HARDERR Position */
+#define CoreDebug_DEMCR_VC_HARDERR_Msk     (1UL << CoreDebug_DEMCR_VC_HARDERR_Pos)        /*!< CoreDebug DEMCR: VC_HARDERR Mask */
+
+#define CoreDebug_DEMCR_VC_INTERR_Pos       9                                             /*!< CoreDebug DEMCR: VC_INTERR Position */
+#define CoreDebug_DEMCR_VC_INTERR_Msk      (1UL << CoreDebug_DEMCR_VC_INTERR_Pos)         /*!< CoreDebug DEMCR: VC_INTERR Mask */
+
+#define CoreDebug_DEMCR_VC_BUSERR_Pos       8                                             /*!< CoreDebug DEMCR: VC_BUSERR Position */
+#define CoreDebug_DEMCR_VC_BUSERR_Msk      (1UL << CoreDebug_DEMCR_VC_BUSERR_Pos)         /*!< CoreDebug DEMCR: VC_BUSERR Mask */
+
+#define CoreDebug_DEMCR_VC_STATERR_Pos      7                                             /*!< CoreDebug DEMCR: VC_STATERR Position */
+#define CoreDebug_DEMCR_VC_STATERR_Msk     (1UL << CoreDebug_DEMCR_VC_STATERR_Pos)        /*!< CoreDebug DEMCR: VC_STATERR Mask */
+
+#define CoreDebug_DEMCR_VC_CHKERR_Pos       6                                             /*!< CoreDebug DEMCR: VC_CHKERR Position */
+#define CoreDebug_DEMCR_VC_CHKERR_Msk      (1UL << CoreDebug_DEMCR_VC_CHKERR_Pos)         /*!< CoreDebug DEMCR: VC_CHKERR Mask */
+
+#define CoreDebug_DEMCR_VC_NOCPERR_Pos      5                                             /*!< CoreDebug DEMCR: VC_NOCPERR Position */
+#define CoreDebug_DEMCR_VC_NOCPERR_Msk     (1UL << CoreDebug_DEMCR_VC_NOCPERR_Pos)        /*!< CoreDebug DEMCR: VC_NOCPERR Mask */
+
+#define CoreDebug_DEMCR_VC_MMERR_Pos        4                                             /*!< CoreDebug DEMCR: VC_MMERR Position */
+#define CoreDebug_DEMCR_VC_MMERR_Msk       (1UL << CoreDebug_DEMCR_VC_MMERR_Pos)          /*!< CoreDebug DEMCR: VC_MMERR Mask */
+
+#define CoreDebug_DEMCR_VC_CORERESET_Pos    0                                             /*!< CoreDebug DEMCR: VC_CORERESET Position */
+#define CoreDebug_DEMCR_VC_CORERESET_Msk   (1UL /*<< CoreDebug_DEMCR_VC_CORERESET_Pos*/)  /*!< CoreDebug DEMCR: VC_CORERESET Mask */
+
+/*@} end of group CMSIS_CoreDebug */
+
+
+/** \ingroup    CMSIS_core_register
+    \defgroup   CMSIS_core_base     Core Definitions
+    \brief      Definitions for base addresses, unions, and structures.
+  @{
+ */
+
 /* Memory mapping of Cortex-M4 Hardware */
 #define SCS_BASE            (0xE000E000UL)                            /*!< System Control Space Base Address  */
 #define ITM_BASE            (0xE0000000UL)                            /*!< ITM Base Address                   */
@@ -962,63 +1363,6 @@ typedef struct
   #define FPU               ((FPU_Type       *)     FPU_BASE      )   /*!< Floating Point Unit                */
 #endif
 
-/* Memory mapping of Cortex-M4 Hardware */
-#define SCS_BASE            (0xE000E000UL)                            /*!< System Control Space Base Address  */
-#define ITM_BASE            (0xE0000000UL)                            /*!< ITM Base Address                   */
-#define DWT_BASE            (0xE0001000UL)                            /*!< DWT Base Address                   */
-#define TPI_BASE            (0xE0040000UL)                            /*!< TPI Base Address                   */
-#define CoreDebug_BASE      (0xE000EDF0UL)                            /*!< Core Debug Base Address            */
-#define SysTick_BASE        (SCS_BASE +  0x0010UL)                    /*!< SysTick Base Address               */
-#define NVIC_BASE           (SCS_BASE +  0x0100UL)                    /*!< NVIC Base Address                  */
-#define SCB_BASE            (SCS_BASE +  0x0D00UL)                    /*!< System Control Block Base Address  */
-
-#define SCnSCB              ((SCnSCB_Type    *)     SCS_BASE      )   /*!< System control Register not in SCB */
-#define SCB                 ((SCB_Type       *)     SCB_BASE      )   /*!< SCB configuration struct           */
-#define SysTick             ((SysTick_Type   *)     SysTick_BASE  )   /*!< SysTick configuration struct       */
-#define NVIC                ((NVIC_Type      *)     NVIC_BASE     )   /*!< NVIC configuration struct          */
-#define ITM                 ((ITM_Type       *)     ITM_BASE      )   /*!< ITM configuration struct           */
-#define DWT                 ((DWT_Type       *)     DWT_BASE      )   /*!< DWT configuration struct           */
-#define TPI                 ((TPI_Type       *)     TPI_BASE      )   /*!< TPI configuration struct           */
-#define CoreDebug           ((CoreDebug_Type *)     CoreDebug_BASE)   /*!< Core Debug configuration struct    */
-
-#if (__MPU_PRESENT == 1)
-  #define MPU_BASE          (SCS_BASE +  0x0D90UL)                    /*!< Memory Protection Unit             */
-  #define MPU               ((MPU_Type       *)     MPU_BASE      )   /*!< Memory Protection Unit             */
-#endif
-
-#if (__FPU_PRESENT == 1)
-  #define FPU_BASE          (SCS_BASE +  0x0F30UL)                    /*!< Floating Point Unit                */
-  #define FPU               ((FPU_Type       *)     FPU_BASE      )   /*!< Floating Point Unit                */
-#endif
-
-/* Memory mapping of Cortex-M4 Hardware */
-#define SCS_BASE            (0xE000E000UL)                            /*!< System Control Space Base Address  */
-#define ITM_BASE            (0xE0000000UL)                            /*!< ITM Base Address                   */
-#define DWT_BASE            (0xE0001000UL)                            /*!< DWT Base Address                   */
-#define TPI_BASE            (0xE0040000UL)                            /*!< TPI Base Address                   */
-#define CoreDebug_BASE      (0xE000EDF0UL)                            /*!< Core Debug Base Address            */
-#define SysTick_BASE        (SCS_BASE +  0x0010UL)                    /*!< SysTick Base Address               */
-#define NVIC_BASE           (SCS_BASE +  0x0100UL)                    /*!< NVIC Base Address                  */
-#define SCB_BASE            (SCS_BASE +  0x0D00UL)                    /*!< System Control Block Base Address  */
-
-#define SCnSCB              ((SCnSCB_Type    *)     SCS_BASE      )   /*!< System control Register not in SCB */
-#define SCB                 ((SCB_Type       *)     SCB_BASE      )   /*!< SCB configuration struct           */
-#define SysTick             ((SysTick_Type   *)     SysTick_BASE  )   /*!< SysTick configuration struct       */
-#define NVIC                ((NVIC_Type      *)     NVIC_BASE     )   /*!< NVIC configuration struct          */
-#define ITM                 ((ITM_Type       *)     ITM_BASE      )   /*!< ITM configuration struct           */
-#define DWT                 ((DWT_Type       *)     DWT_BASE      )   /*!< DWT configuration struct           */
-#define TPI                 ((TPI_Type       *)     TPI_BASE      )   /*!< TPI configuration struct           */
-#define CoreDebug           ((CoreDebug_Type *)     CoreDebug_BASE)   /*!< Core Debug configuration struct    */
-
-#if (__MPU_PRESENT == 1)
-  #define MPU_BASE          (SCS_BASE +  0x0D90UL)                    /*!< Memory Protection Unit             */
-  #define MPU               ((MPU_Type       *)     MPU_BASE      )   /*!< Memory Protection Unit             */
-#endif
-
-#if (__FPU_PRESENT == 1)
-  #define FPU_BASE          (SCS_BASE +  0x0F30UL)                    /*!< Floating Point Unit                */
-  #define FPU               ((FPU_Type       *)     FPU_BASE      )   /*!< Floating Point Unit                */
-#endif
 
 /* ============================================================================= */
 /**  SOFTWARE API DEFINITION FOR Universal Asynchronous Receiver Transmitter */
@@ -1444,59 +1788,208 @@ void *memset( void *addr, int val, unsigned int len );
 void *memcpy( void *dst, const void *src, unsigned int len );
 int memcmp( const void *a, const void *b, unsigned int len );
 
+/** \brief  Set Priority Grouping
+  The function sets the priority grouping field using the required unlock sequence.
+  The parameter PriorityGroup is assigned to the field SCB->AIRCR [10:8] PRIGROUP field.
+  Only values from 0..7 are used.
+  In case of a conflict between priority grouping and available
+  priority bits (__NVIC_PRIO_BITS), the smallest possible priority group is set.
+    \param [in]      PriorityGroup  Priority grouping field.
+ */
+static inline void NVIC_SetPriorityGrouping(uint32_t PriorityGroup)
+{
+  uint32_t reg_value;
+  uint32_t PriorityGroupTmp = (PriorityGroup & (uint32_t)0x07UL);             /* only values 0..7 are used          */
+
+  reg_value  =  SCB->AIRCR;                                                   /* read old register configuration    */
+  reg_value &= ~((uint32_t)(SCB_AIRCR_VECTKEY_Msk | SCB_AIRCR_PRIGROUP_Msk));             /* clear bits to change               */
+  reg_value  =  (reg_value                                   |
+                ((uint32_t)0x5FAUL << SCB_AIRCR_VECTKEY_Pos) |
+                (PriorityGroupTmp << 8)                       );              /* Insert write key and priorty group */
+  SCB->AIRCR =  reg_value;
+}
+
+
+/** \brief  Get Priority Grouping
+  The function reads the priority grouping field from the NVIC Interrupt Controller.
+    \return                Priority grouping field (SCB->AIRCR [10:8] PRIGROUP field).
+ */
+static inline uint32_t NVIC_GetPriorityGrouping(void)
+{
+  return ((uint32_t)((SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) >> SCB_AIRCR_PRIGROUP_Pos));
+}
+
+
+/** \brief  Enable External Interrupt
+    The function enables a device-specific interrupt in the NVIC interrupt controller.
+    \param [in]      IRQn  External interrupt number. Value cannot be negative.
+ */
+static inline void NVIC_EnableIRQ(IRQn_Type IRQn)
+{
+  NVIC->ISER[(((uint32_t)(int32_t)IRQn) >> 5UL)] = (uint32_t)(1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL));
+}
+
+
+/** \brief  Disable External Interrupt
+    The function disables a device-specific interrupt in the NVIC interrupt controller.
+    \param [in]      IRQn  External interrupt number. Value cannot be negative.
+ */
+static inline void NVIC_DisableIRQ(IRQn_Type IRQn)
+{
+  NVIC->ICER[(((uint32_t)(int32_t)IRQn) >> 5UL)] = (uint32_t)(1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL));
+}
+
+
+/** \brief  Get Pending Interrupt
+    The function reads the pending register in the NVIC and returns the pending bit
+    for the specified interrupt.
+    \param [in]      IRQn  Interrupt number.
+    \return             0  Interrupt status is not pending.
+    \return             1  Interrupt status is pending.
+ */
+static inline uint32_t NVIC_GetPendingIRQ(IRQn_Type IRQn)
+{
+  return((uint32_t)(((NVIC->ISPR[(((uint32_t)(int32_t)IRQn) >> 5UL)] & (1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL))) != 0UL) ? 1UL : 0UL));
+}
+
+
+/** \brief  Set Pending Interrupt
+    The function sets the pending bit of an external interrupt.
+    \param [in]      IRQn  Interrupt number. Value cannot be negative.
+ */
+static inline void NVIC_SetPendingIRQ(IRQn_Type IRQn)
+{
+  NVIC->ISPR[(((uint32_t)(int32_t)IRQn) >> 5UL)] = (uint32_t)(1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL));
+}
+
+
+/** \brief  Clear Pending Interrupt
+    The function clears the pending bit of an external interrupt.
+    \param [in]      IRQn  External interrupt number. Value cannot be negative.
+ */
+static inline void NVIC_ClearPendingIRQ(IRQn_Type IRQn)
+{
+  NVIC->ICPR[(((uint32_t)(int32_t)IRQn) >> 5UL)] = (uint32_t)(1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL));
+}
+
+
+/** \brief  Get Active Interrupt
+    The function reads the active register in NVIC and returns the active bit.
+    \param [in]      IRQn  Interrupt number.
+    \return             0  Interrupt status is not active.
+    \return             1  Interrupt status is active.
+ */
+static inline uint32_t NVIC_GetActive(IRQn_Type IRQn)
+{
+  return((uint32_t)(((NVIC->IABR[(((uint32_t)(int32_t)IRQn) >> 5UL)] & (1UL << (((uint32_t)(int32_t)IRQn) & 0x1FUL))) != 0UL) ? 1UL : 0UL));
+}
+
+
+/** \brief  Set Interrupt Priority
+    The function sets the priority of an interrupt.
+    \note The priority cannot be set for every core interrupt.
+    \param [in]      IRQn  Interrupt number.
+    \param [in]  priority  Priority to set.
+ */
+static inline void NVIC_SetPriority(IRQn_Type IRQn, uint32_t priority)
+{
+  if((int32_t)IRQn < 0) {
+    SCB->SHP[(((uint32_t)(int32_t)IRQn) & 0xFUL)-4UL] = (uint8_t)((priority << (8 - __NVIC_PRIO_BITS)) & (uint32_t)0xFFUL);
+  }
+  else {
+    NVIC->IP[((uint32_t)(int32_t)IRQn)]               = (uint8_t)((priority << (8 - __NVIC_PRIO_BITS)) & (uint32_t)0xFFUL);
+  }
+}
+
+
+/** \brief  Get Interrupt Priority
+    The function reads the priority of an interrupt. The interrupt
+    number can be positive to specify an external (device specific)
+    interrupt, or negative to specify an internal (core) interrupt.
+    \param [in]   IRQn  Interrupt number.
+    \return             Interrupt Priority. Value is aligned automatically to the implemented
+                        priority bits of the microcontroller.
+ */
+static inline uint32_t NVIC_GetPriority(IRQn_Type IRQn)
+{
+
+  if((int32_t)IRQn < 0) {
+    return(((uint32_t)SCB->SHP[(((uint32_t)(int32_t)IRQn) & 0xFUL)-4UL] >> (8 - __NVIC_PRIO_BITS)));
+  }
+  else {
+    return(((uint32_t)NVIC->IP[((uint32_t)(int32_t)IRQn)]               >> (8 - __NVIC_PRIO_BITS)));
+  }
+}
+
+
+/** \brief  Encode Priority
+    The function encodes the priority for an interrupt with the given priority group,
+    preemptive priority value, and subpriority value.
+    In case of a conflict between priority grouping and available
+    priority bits (__NVIC_PRIO_BITS), the smallest possible priority group is set.
+    \param [in]     PriorityGroup  Used priority group.
+    \param [in]   PreemptPriority  Preemptive priority value (starting from 0).
+    \param [in]       SubPriority  Subpriority value (starting from 0).
+    \return                        Encoded priority. Value can be used in the function \ref NVIC_SetPriority().
+ */
+static inline uint32_t NVIC_EncodePriority (uint32_t PriorityGroup, uint32_t PreemptPriority, uint32_t SubPriority)
+{
+  uint32_t PriorityGroupTmp = (PriorityGroup & (uint32_t)0x07UL);   /* only values 0..7 are used          */
+  uint32_t PreemptPriorityBits;
+  uint32_t SubPriorityBits;
+
+  PreemptPriorityBits = ((7UL - PriorityGroupTmp) > (uint32_t)(__NVIC_PRIO_BITS)) ? (uint32_t)(__NVIC_PRIO_BITS) : (uint32_t)(7UL - PriorityGroupTmp);
+  SubPriorityBits     = ((PriorityGroupTmp + (uint32_t)(__NVIC_PRIO_BITS)) < (uint32_t)7UL) ? (uint32_t)0UL : (uint32_t)((PriorityGroupTmp - 7UL) + (uint32_t)(__NVIC_PRIO_BITS));
+
+  return (
+           ((PreemptPriority & (uint32_t)((1UL << (PreemptPriorityBits)) - 1UL)) << SubPriorityBits) |
+           ((SubPriority     & (uint32_t)((1UL << (SubPriorityBits    )) - 1UL)))
+         );
+}
+
+
+/** \brief  Decode Priority
+    The function decodes an interrupt priority value with a given priority group to
+    preemptive priority value and subpriority value.
+    In case of a conflict between priority grouping and available
+    priority bits (__NVIC_PRIO_BITS) the smallest possible priority group is set.
+    \param [in]         Priority   Priority value, which can be retrieved with the function \ref NVIC_GetPriority().
+    \param [in]     PriorityGroup  Used priority group.
+    \param [out] pPreemptPriority  Preemptive priority value (starting from 0).
+    \param [out]     pSubPriority  Subpriority value (starting from 0).
+ */
+static inline void NVIC_DecodePriority (uint32_t Priority, uint32_t PriorityGroup, uint32_t* pPreemptPriority, uint32_t* pSubPriority)
+{
+  uint32_t PriorityGroupTmp = (PriorityGroup & (uint32_t)0x07UL);   /* only values 0..7 are used          */
+  uint32_t PreemptPriorityBits;
+  uint32_t SubPriorityBits;
+
+  PreemptPriorityBits = ((7UL - PriorityGroupTmp) > (uint32_t)(__NVIC_PRIO_BITS)) ? (uint32_t)(__NVIC_PRIO_BITS) : (uint32_t)(7UL - PriorityGroupTmp);
+  SubPriorityBits     = ((PriorityGroupTmp + (uint32_t)(__NVIC_PRIO_BITS)) < (uint32_t)7UL) ? (uint32_t)0UL : (uint32_t)((PriorityGroupTmp - 7UL) + (uint32_t)(__NVIC_PRIO_BITS));
+
+  *pPreemptPriority = (Priority >> SubPriorityBits) & (uint32_t)((1UL << (PreemptPriorityBits)) - 1UL);
+  *pSubPriority     = (Priority                   ) & (uint32_t)((1UL << (SubPriorityBits    )) - 1UL);
+}
+
+
+/** \brief  System Reset
+    The function initiates a system reset request to reset the MCU.
+ */
+static inline void NVIC_SystemReset(void)
+{
+  __DSB();                                                          /* Ensure all outstanding memory accesses included
+                                                                       buffered write are completed before reset */
+  SCB->AIRCR  = (uint32_t)((0x5FAUL << SCB_AIRCR_VECTKEY_Pos)    |
+                           (SCB->AIRCR & SCB_AIRCR_PRIGROUP_Msk) |
+                            SCB_AIRCR_SYSRESETREQ_Msk    );         /* Keep priority group unchanged */
+  __DSB();                                                          /* Ensure completion of memory access */
+  while(1) { NOP(); }                                             /* wait until reset */
+}
+
+/*@} end of CMSIS_Core_NVICFunctions */
+
 
 // ----- Interrupts -----
-
-/**< Interrupt Number Definition */
-typedef enum IRQn
-{
-/******  Cortex-M4 Processor Exceptions Numbers ******************************/
-  NonMaskableInt_IRQn   = -14, /**<  2 Non Maskable Interrupt                */
-  HardFault_IRQn        = -13, /**<  3 HardFault Interrupt                   */
-  MemoryManagement_IRQn = -12, /**<  4 Cortex-M4 Memory Management Interrupt */
-  BusFault_IRQn         = -11, /**<  5 Cortex-M4 Bus Fault Interrupt         */
-  UsageFault_IRQn       = -10, /**<  6 Cortex-M4 Usage Fault Interrupt       */
-  SVCall_IRQn           = -5,  /**< 11 Cortex-M4 SV Call Interrupt           */
-  DebugMonitor_IRQn     = -4,  /**< 12 Cortex-M4 Debug Monitor Interrupt     */
-  PendSV_IRQn           = -2,  /**< 14 Cortex-M4 Pend SV Interrupt           */
-  SysTick_IRQn          = -1,  /**< 15 Cortex-M4 System Tick Interrupt       */
-/******  SAM4SD32C specific Interrupt Numbers *********************************/
-
-  SUPC_IRQn            =  0, /**<  0 SAM4SD32C Supply Controller (SUPC) */
-  RSTC_IRQn            =  1, /**<  1 SAM4SD32C Reset Controller (RSTC) */
-  RTC_IRQn             =  2, /**<  2 SAM4SD32C Real Time Clock (RTC) */
-  RTT_IRQn             =  3, /**<  3 SAM4SD32C Real Time Timer (RTT) */
-  WDT_IRQn             =  4, /**<  4 SAM4SD32C Watchdog Timer (WDT) */
-  PMC_IRQn             =  5, /**<  5 SAM4SD32C Power Management Controller (PMC) */
-  EFC0_IRQn            =  6, /**<  6 SAM4SD32C Enhanced Embedded Flash Controller 0 (EFC0) */
-  EFC1_IRQn            =  7, /**<  7 SAM4SD32C Enhanced Embedded Flash Controller 1 (EFC1) */
-  UART0_IRQn           =  8, /**<  8 SAM4SD32C UART 0 (UART0) */
-  UART1_IRQn           =  9, /**<  9 SAM4SD32C UART 1 (UART1) */
-  PIOA_IRQn            = 11, /**< 11 SAM4SD32C Parallel I/O Controller A (PIOA) */
-  PIOB_IRQn            = 12, /**< 12 SAM4SD32C Parallel I/O Controller B (PIOB) */
-  PIOC_IRQn            = 13, /**< 13 SAM4SD32C Parallel I/O Controller C (PIOC) */
-  USART0_IRQn          = 14, /**< 14 SAM4SD32C USART 0 (USART0) */
-  USART1_IRQn          = 15, /**< 15 SAM4SD32C USART 1 (USART1) */
-  HSMCI_IRQn           = 18, /**< 18 SAM4SD32C Multimedia Card Interface (HSMCI) */
-  TWI0_IRQn            = 19, /**< 19 SAM4SD32C Two Wire Interface 0 (TWI0) */
-  TWI1_IRQn            = 20, /**< 20 SAM4SD32C Two Wire Interface 1 (TWI1) */
-  SPI0_IRQn            = 21, /**< 21 SAM4SD32C Serial Peripheral Interface (SPI0) */
-  SSC_IRQn             = 22, /**< 22 SAM4SD32C Synchronous Serial Controller (SSC) */
-  TC0_IRQn             = 23, /**< 23 SAM4SD32C Timer/Counter 0 (TC0) */
-  TC1_IRQn             = 24, /**< 24 SAM4SD32C Timer/Counter 1 (TC1) */
-  TC2_IRQn             = 25, /**< 25 SAM4SD32C Timer/Counter 2 (TC2) */
-  TC3_IRQn             = 26, /**< 26 SAM4SD32C Timer/Counter 3 (TC3) */
-  TC4_IRQn             = 27, /**< 27 SAM4SD32C Timer/Counter 4 (TC4) */
-  TC5_IRQn             = 28, /**< 28 SAM4SD32C Timer/Counter 5 (TC5) */
-  ADC_IRQn             = 29, /**< 29 SAM4SD32C Analog To Digital Converter (ADC) */
-  DACC_IRQn            = 30, /**< 30 SAM4SD32C Digital To Analog Converter (DACC) */
-  PWM_IRQn             = 31, /**< 31 SAM4SD32C Pulse Width Modulation (PWM) */
-  CRCCU_IRQn           = 32, /**< 32 SAM4SD32C CRC Calculation Unit (CRCCU) */
-  ACC_IRQn             = 33, /**< 33 SAM4SD32C Analog Comparator (ACC) */
-  USBDEV_IRQn          = 34, /**< 34 SAM4SD32C USB Device Port (USBDEV) */
-
-  PERIPH_COUNT_IRQn    = 35  /**< Number of peripheral IDs */
-} IRQn_Type;
 
 typedef struct _DeviceVectors
 {

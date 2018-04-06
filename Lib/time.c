@@ -59,7 +59,9 @@ const uint32_t Time_maxTicks = 1;
 const uint32_t Time_maxTicks_ms = 1;
 #endif
 
-#if F_CPU == 72000000
+#if F_CPU == 120000000
+const char* Time_ticksPer_ns_str = "8.3333 ns";
+#elif F_CPU == 72000000
 const char* Time_ticksPer_ns_str = "13.889 ns";
 #elif F_CPU == 48000000
 const char* Time_ticksPer_ns_str = "20.833 ns";
@@ -84,8 +86,10 @@ Time Time_now()
 		.ticks = ARM_DWT_CYCCNT,
 	};
 #elif defined(_sam_)
-	//SAM TODO
-	Time time = Time_init();
+	Time time = {
+		.ms    = systick_millis_count,
+		.ticks = DWT->CYCCNT,
+	};
 #elif defined(_host_)
 	Time time = {
 		.ms    = systick_millis_count,

@@ -218,7 +218,7 @@
 #endif
 
 // sam4s16c (1028 kB) 100-pin
-#if defined(_sam4s16b_)
+#if defined(_sam4s16c_)
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_c_ 1
@@ -238,7 +238,7 @@
 #endif
 
 // sam4sa16c (sam4s16b /w HCache) (1024 kB) 100-pin
-#if defined(_sam4sa16b_)
+#if defined(_sam4sa16c_)
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_c_ 1
@@ -260,7 +260,7 @@
 #endif
 
 // sam4sd16c (HCache) (2 x 512 kB) 100-pin
-#if defined(_sam4sd16b_)
+#if defined(_sam4sd16c_)
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_c_ 1

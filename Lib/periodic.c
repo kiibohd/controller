@@ -111,20 +111,25 @@ void pit0_isr()
 #elif defined(_sam_)
 void Periodic_init( uint32_t cycles )
 {
-	// Setup TC (Timer Counter)
-	// SAM TODO: which clock should be used?
-	TC0->TC_BMR |= TC_BMR_TC2XC2S_Msk;
-	TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_Msk;
+	// Enable clock for timer
+	PMC->PMC_PCER0 |= (1 << ID_TC0);
+
+	// Setup Timer Counter to MCK/2 (highest frequency)
+	TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_CPCTRG;
 
 	// Timer Count-down value
 	// Number of cycles to count from CPU clock before calling interrupt
-	TC0->TC_CHANNEL[0].TC_RA = TC_RA_RA(cycles);
+	TC0->TC_CHANNEL[0].TC_RC = TC_RA_RA(cycles/2);
 
 	// Enable Timer, Enable interrupt
-	TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN;
-	TC0->TC_CHANNEL[0].TC_IER = TC_IER_CPAS;
+	TC0->TC_CHANNEL[0].TC_IER = TC_IER_CPCS;
+	TC0->TC_CHANNEL[0].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
 
-	// SAM TODO: Handle interrupts
+	// Enable TC0 interrupt
+	NVIC_EnableIRQ( TC0_IRQn );
+
+	// Set TC0 interrupt to a low priority
+	NVIC_SetPriority( TC0_IRQn, 200 );
 }
 
 void Periodic_function( void *func )
@@ -135,18 +140,27 @@ void Periodic_function( void *func )
 
 void Periodic_enable()
 {
-	//SAM TODO
+	// Used to re-enable IRQ
+	NVIC_EnableIRQ( TC0_IRQn );
 }
 
 void Periodic_disable()
 {
-	//SAM TODO
+	// Used to disable IRQ
+	NVIC_DisableIRQ( TC0_IRQn );
 }
 
 uint32_t Periodic_cycles()
 {
-	//SAM TODO
-	return 0;
+	return TC0->TC_CHANNEL[0].TC_CV;
+}
+
+void TC0_Handler()
+{
+	if ( TC0->TC_CHANNEL[0].TC_SR & TC_SR_CPCS )
+	{
+		(*periodic_func)();
+	}
 }
 
 

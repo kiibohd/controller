@@ -62,6 +62,9 @@ void ResetHandler();
 void fault_isr()
 {
 	print("Fault!" NL );
+#if defined(DEBUG) && defined(JLINK)
+asm volatile("BKPT #01");
+#else
 	while ( 1 )
 	{
 		// keep polling some communication while in fault
@@ -71,11 +74,28 @@ void fault_isr()
 		if ( SIM_SCGC4 & SIM_SCGC4_UART1 )  uart1_status_isr();
 		if ( SIM_SCGC4 & SIM_SCGC4_UART2 )  uart2_status_isr();*/
 	}
+#endif
 }
 
 void unused_isr()
 {
 	fault_isr();
+}
+
+
+// NVIC - SysTick ISR
+extern volatile uint32_t systick_millis_count;
+void systick_default_isr()
+{
+	systick_millis_count++;
+
+	// Not necessary in bootloader
+#if !defined(_bootloader_)
+	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+	DWT->CTRL &= DWT_CTRL_CYCCNTENA_Msk;
+	DWT->CYCCNT = 0;
+	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+#endif
 }
 
 // NVIC - Default ISR/Vector Linking
@@ -89,7 +109,7 @@ void UsageFault_Handler ( void ) __attribute__ ((weak, alias("unused_isr")));
 void SVC_Handler        ( void ) __attribute__ ((weak, alias("unused_isr")));
 void DebugMon_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
 void PendSV_Handler     ( void ) __attribute__ ((weak, alias("unused_isr")));
-void SysTick_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
+void SysTick_Handler    ( void ) __attribute__ ((weak, alias("systick_default_isr")));
 
 /* Peripherals handlers */
 void SUPC_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
@@ -273,8 +293,6 @@ void *memcpy( void *dst, const void *src, unsigned int len )
 
 void ResetHandler()
 {
-	// TODO (HaaTa) - Add initialization code, this should be the firmware entry point
-	
 	uint32_t *pSrc, *pDest;
 	/* Initialize the relocate segment */
 	pSrc = &_etext;
@@ -364,6 +382,12 @@ void ResetHandler()
 	pSrc = (uint32_t *) & _sfixed;
 	SCB->VTOR = ((uint32_t) pSrc & SCB_VTOR_TBLOFF_Msk);
 
+	/* Disable PMC write protection */
+	//PMC->PMC_WPMR = PMC_WPMR_WPKEY(0x504D43ul) & ~PMC_WPMR_WPEN;
+
+	// Initialize the SysTick counter
+	SysTick->LOAD = (F_CPU / 1000) - 1;
+	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 
 	// Enable IRQs
 	__enable_irq();
