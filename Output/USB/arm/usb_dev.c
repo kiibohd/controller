@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander (2013-2017)
+ * Modifications by Jacob Alexander (2013-2018)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -1200,24 +1200,25 @@ uint8_t usb_resume()
 	// If we have been sleeping, try to wake up host
 	if ( usb_dev_sleep && usb_configured() )
 	{
-		#if enableUSBResume_define == 1
-		#if enableVirtualSerialPort_define != 1
+#if enableUSBResume_define == 1
+#if enableVirtualSerialPort_define != 1
 		info_print("Attempting to resume the host");
-		#endif
-		// Force wake-up for 10 ms
+#endif
 		// According to the USB Spec a device must hold resume for at least 1 ms but no more than 15 ms
+		// After setting to RESUME, send a packet, delay then unset RESUME
 #if defined(_kinetis_)
 		USB0_CTL |= USB_CTL_RESUME;
+		usb_packet_t *tx_packet = usb_malloc();
+		usb_tx( KEYBOARD_ENDPOINT, tx_packet );
 		delay_ms(10);
 		USB0_CTL &= ~(USB_CTL_RESUME);
-		delay_ms(50); // Wait for at least 50 ms to make sure the bus is clear
 #elif defined(_sam_)
 		//SAM TODO
 #endif
 		usb_dev_sleep = 0; // Make sure we don't call this again, may crash system
-		#else
+#else
 		warn_print("Host Resume Disabled");
-		#endif
+#endif
 
 		return 1;
 	}
@@ -1325,7 +1326,7 @@ restart:
 			}
 
 			// CDC Interface
-			#if enableVirtualSerialPort_define == 1
+#if enableVirtualSerialPort_define == 1
 			t = usb_cdc_transmit_flush_timer;
 			if ( t )
 			{
@@ -1333,7 +1334,7 @@ restart:
 				if ( t == 0 )
 					usb_serial_flush_callback();
 			}
-			#endif
+#endif
 
 		}
 
@@ -1512,14 +1513,13 @@ restart:
 		// set the address to zero during enumeration
 		USB0_ADDR = 0;
 
-		// enable other interrupts
+		// enable other interrupts (except USB Resume)
 		USB0_ERREN = 0xFF;
 		USB0_INTEN = USB_INTEN_TOKDNEEN |
 			USB_INTEN_SOFTOKEN |
 			USB_INTEN_STALLEN |
 			USB_INTEN_ERROREN |
 			USB_INTEN_USBRSTEN |
-			USB_INTEN_RESUMEEN |
 			USB_INTEN_SLEEPEN;
 
 		// is this necessary?
@@ -1548,16 +1548,24 @@ restart:
 	// The USB Module triggers this interrupt when it detects the bus has been idle for 3 ms
 	if ( (status & USB_ISTAT_SLEEP /* 10 */ ) )
 	{
-		#if enableUSBSuspend_define == 1
-			// Can cause issues with the virtual serial port
-			#if enableVirtualSerialPort_define != 1
-			info_print("Host has requested USB sleep/suspend state");
-			#endif
+#if enableUSBSuspend_define == 1
+		// Can cause issues with the virtual serial port
+#if enableVirtualSerialPort_define != 1
+		info_print("Host has requested USB sleep/suspend state");
+#endif
+		if ( !usb_dev_sleep )
+		{
 			Output_update_usb_current( 100 ); // Set to 100 mA
 			usb_dev_sleep = 1;
-			#else
-			info_print("USB Suspend Detected - Firmware USB Suspend Disabled");
-		#endif
+		}
+#else
+		info_print("USB Suspend Detected - Firmware USB Suspend Disabled");
+#endif
+		// Enable USB resume interrupt
+		// Only allowed to be enabled while suspended
+		USB0_INTEN |= USB_INTEN_RESUMEEN;
+		USB0_INTEN &= ~(USB_INTEN_SLEEPEN);
+
 		USB0_ISTAT |= USB_ISTAT_SLEEP;
 	}
 
@@ -1565,11 +1573,17 @@ restart:
 	if ( (status & USB_ISTAT_RESUME /* 20 */ ) )
 	{
 		// Can cause issues with the virtual serial port
-		#if enableVirtualSerialPort_define != 1
+#if enableVirtualSerialPort_define != 1
 		info_print("Host has woken-up/resumed from sleep/suspend state");
-		#endif
+#endif
 		Output_update_usb_current( *usb_bMaxPower * 2 );
 		usb_dev_sleep = 0;
+
+		// Disable USB resume interrupt
+		// Only allowed to be enabled while suspended
+		USB0_INTEN &= ~(USB_INTEN_RESUMEEN);
+		USB0_INTEN |= USB_INTEN_SLEEPEN;
+
 		USB0_ISTAT |= USB_ISTAT_RESUME;
 	}
 #elif defined(_sam_)

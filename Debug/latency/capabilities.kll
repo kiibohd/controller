@@ -1,14 +1,14 @@
 # latency
 Name = latency;
-Version = 0.1;
-Author = "HaaTa (Jacob Alexander) 2017";
+Version = 0.2;
+Author = "HaaTa (Jacob Alexander) 2017-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-11-05;
+Date = 2018-04-04;
 
 
 # Number of resource allocations for latency measurements
 latencyResources => LatencyMeasurementCount_define;
-latencyResources = 8;
+latencyResources = 10;
 
