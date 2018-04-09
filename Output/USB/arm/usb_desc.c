@@ -123,7 +123,7 @@ static uint8_t keyboard_report_desc[] = {
 	// Reserved Byte
 	0x75, 0x08,          //   Report Size (8),
 	0x95, 0x01,          //   Report Count (1),
-	0x81, 0x01,          //   Input (Constant),
+	0x81, 0x03,          //   Input (Constant, Variable, Absolute),
 
 	// LED Report
 	0x75, 0x01,          //   Report Size (1),
@@ -138,7 +138,7 @@ static uint8_t keyboard_report_desc[] = {
 	// LED Report Padding
 	0x75, 0x03,          //   Report Size (3),
 	0x95, 0x01,          //   Report Count (1),
-	0x81, 0x03,          //   Output (Constant),
+	0x91, 0x03,          //   Output (Constant, Variable, Absolute),
 
 	// Normal Keys
 	0x75, 0x08,          //   Report Size (8),
@@ -173,7 +173,7 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	// LED Report Padding
 	0x75, 0x03,          //   Report Size (3),
 	0x95, 0x01,          //   Report Count (1),
-	0x81, 0x03,          //   Output (Constant),
+	0x91, 0x03,          //   Output (Constant, Variable, Absolute),
 
 	// Normal Keys - Using an NKRO Bitmap
 	//
