@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2015-2017)
+ * Modified by Jacob Alexander (2015-2018)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -45,9 +45,4 @@
 
 // Proces pending mouse commands
 void usb_mouse_send();
-
-// TODO - More generic
-int usb_mouse_move( int8_t x, int8_t y, int8_t wheel );
-int usb_mouse_position( uint16_t x, uint16_t y );
-void usb_mouse_screen_size( uint16_t width, uint16_t height, uint8_t mac );
 

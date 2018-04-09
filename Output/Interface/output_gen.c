@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2017 by Jacob Alexander
+/* Copyright (C) 2011-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -99,6 +99,8 @@ void Output_sysCtrlSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 	__attribute__ ((weak, alias("Output_ignored_capability")));
 void Output_usbMouse_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+	__attribute__ ((weak, alias("Output_ignored_capability")));
+void Output_usbMouseWheel_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 	__attribute__ ((weak, alias("Output_ignored_capability")));
 #endif
 

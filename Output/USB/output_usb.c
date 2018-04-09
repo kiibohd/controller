@@ -72,6 +72,7 @@
 void cliFunc_idle       ( char* args );
 void cliFunc_kbdProtocol( char* args );
 void cliFunc_readLEDs   ( char* args );
+void cliFunc_usbAddr    ( char* args );
 void cliFunc_usbInitTime( char* args );
 
 
@@ -82,12 +83,14 @@ void cliFunc_usbInitTime( char* args );
 CLIDict_Entry( idle,        "Show/set the HID Idle time (multiples of 4 ms)." );
 CLIDict_Entry( kbdProtocol, "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode." );
 CLIDict_Entry( readLEDs,    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc." );
+CLIDict_Entry( usbAddr,     "Shows the negotiated USB unique Id, given to device by host." );
 CLIDict_Entry( usbInitTime, "Displays the time in ms from usb_init() till the last setup call." );
 
 CLIDict_Def( usbCLIDict, "USB Module Commands" ) = {
 	CLIDict_Item( idle ),
 	CLIDict_Item( kbdProtocol ),
 	CLIDict_Item( readLEDs ),
+	CLIDict_Item( usbAddr ),
 	CLIDict_Item( usbInitTime ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
@@ -101,15 +104,19 @@ volatile USBKeys USBKeys_idle;    // Idle timeout send buffer
 volatile uint8_t  USBKeys_Sent;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
-volatile uint8_t  USBKeys_LEDs = 0;
+volatile uint8_t  USBKeys_LEDs;
 volatile uint8_t  USBKeys_LEDs_Changed;
 
 // Currently pressed mouse buttons, bitmask, 0 represents no buttons pressed
-volatile uint16_t USBMouse_Buttons = 0;
+volatile uint16_t USBMouse_Buttons;
 
 // Relative mouse axis movement, stores pending movement
-volatile uint16_t USBMouse_Relative_x = 0;
-volatile uint16_t USBMouse_Relative_y = 0;
+volatile int16_t USBMouse_Relative_x;
+volatile int16_t USBMouse_Relative_y;
+
+// Mouse wheel pending action
+volatile int8_t USBMouse_VertWheel;
+volatile int8_t USBMouse_HoriWheel;
 
 // Protocol setting from the host.
 // 0 - Boot Mode
@@ -119,7 +126,7 @@ volatile uint8_t  USBKeys_Protocol_New = USBProtocol_define;
 volatile uint8_t  USBKeys_Protocol_Change; // New value to set to USBKeys_Protocol if _Change is set
 
 // Indicate if USB should send update
-USBMouseChangeState USBMouse_Changed = 0;
+USBMouseChangeState USBMouse_Changed;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
@@ -127,13 +134,16 @@ USBMouseChangeState USBMouse_Changed = 0;
 volatile uint8_t  USBKeys_Idle_Config = USBIdle_define;
 
 // Count until idle timeout
-volatile uint32_t USBKeys_Idle_Expiry = 0;
-volatile uint8_t  USBKeys_Idle_Count = 0;
+volatile uint32_t USBKeys_Idle_Expiry;
+volatile uint8_t  USBKeys_Idle_Count;
 
 // USB Init Time (ms) - usb_init()
 volatile uint32_t USBInit_TimeStart;
 volatile uint32_t USBInit_TimeEnd;
 volatile uint16_t USBInit_Ticks;
+
+// USB Address - Set by host, unique to the bus
+volatile uint8_t USBDev_Address;
 
 // Latency measurement resource
 static uint8_t outputPeriodicLatencyResource;
@@ -591,8 +601,8 @@ void Output_usbMouse_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	uint16_t mouse_button = *(uint16_t*)(&args[0]);
 
 	// X/Y Relative Axis
-	uint16_t mouse_x = *(uint16_t*)(&args[2]);
-	uint16_t mouse_y = *(uint16_t*)(&args[4]);
+	int16_t mouse_x = *(int16_t*)(&args[2]);
+	int16_t mouse_y = *(int16_t*)(&args[4]);
 
 	// Adjust for bit shift
 	uint16_t mouse_button_shift = mouse_button - 1;
@@ -642,6 +652,45 @@ void Output_usbMouse_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 		USBMouse_Changed |= USBMouseChangeState_Relative;
 	}
 }
+
+// Sends a mouse wheel command over USB Output buffer
+// XXX This function *will* be changing in the future
+//     If you use it, be prepared that your .kll files will break in the future (post KLL 0.5)
+// Argument #1: USB Vertical Wheel (8 bit)
+// Argument #2: USB Horizontal Wheel (8 bit)
+void Output_usbMouseWheel_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	// Vertical and horizontal mouse wheels
+	int8_t wheel_vert = *(int8_t*)(&args[0]);
+	int8_t wheel_hori = *(int8_t*)(&args[2]);
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+	case CapabilityState_Any:
+		// Press/Hold
+		if ( wheel_vert )
+		{
+			USBMouse_VertWheel = wheel_vert;
+			USBMouse_Changed |= USBMouseChangeState_WheelVert;
+		}
+
+		if ( wheel_hori )
+		{
+			USBMouse_HoriWheel = wheel_hori;
+			USBMouse_Changed |= USBMouseChangeState_WheelHori;
+		}
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Output_usbMouseWheel(vert,hori)");
+		return;
+	default:
+		return;
+	}
+}
 #endif
 
 
@@ -654,6 +703,10 @@ void USB_flushBuffers()
 	// Zero out USBKeys buffers
 	memset( (void*)&USBKeys_primary, 0, sizeof( USBKeys ) );
 	memset( (void*)&USBKeys_idle, 0, sizeof( USBKeys ) );
+
+	// Clear idle timeout state
+	USBKeys_Idle_Expiry = 0;
+	USBKeys_Idle_Count = 0;
 
 	// Reset USBKeys_Keys size
 	USBKeys_Sent = 0;
@@ -677,6 +730,20 @@ inline void USB_setup()
 
 	// USB Protocol Transition variable
 	USBKeys_Protocol_Change = 0;
+
+	// Clear USB LEDs (may be set by the OS rather quickly)
+	USBKeys_LEDs = 0;
+
+	// Clear mouse state
+	USBMouse_Buttons = 0;
+	USBMouse_Relative_x = 0;
+	USBMouse_Relative_y = 0;
+	USBMouse_VertWheel = 0;
+	USBMouse_HoriWheel = 0;
+	USBMouse_Changed = 0;
+
+	// Clear USB address
+	USBDev_Address = 0;
 
 	// Flush key buffers
 	USB_flushBuffers();
@@ -1004,6 +1071,14 @@ void cliFunc_readLEDs( char* args )
 	print( NL );
 	info_msg("LED State: ");
 	printInt8( USBKeys_LEDs );
+}
+
+
+void cliFunc_usbAddr( char* args )
+{
+	print(NL);
+	info_msg("USB Address: ");
+	printInt8( USBDev_Address );
 }
 
 

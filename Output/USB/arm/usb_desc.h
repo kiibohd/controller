@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2013-2017)
+ * Modified by Jacob Alexander (2013-2018)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -55,6 +55,7 @@
 #define DEVICE_PROTOCOL         0x00
 #define EP0_SIZE                64
 #define NUM_ENDPOINTS           10 // XXX Can save some space if this can be calculated using KLL
+#define NUM_INTERFACES          8 // XXX Should be calculated at build time
 #define NUM_USB_BUFFERS         30
 
 // XXX Remember to update total interface count, if it isn't correct some OSs will not initialize USB
@@ -151,12 +152,14 @@
 	BASE_DESC_SIZE + \
 	KEYBOARD_DESC_TOTAL_OFFSET + \
 	SERIAL_CDC_DESC_TOTAL_OFFSET + \
+	RAWIO_DESC_TOTAL_OFFSET + \
 	9 \
 )
 #define JOYSTICK_DESC_BASE_OFFSET ( \
 	BASE_DESC_SIZE + \
 	KEYBOARD_DESC_TOTAL_OFFSET + \
 	SERIAL_CDC_DESC_TOTAL_OFFSET + \
+	RAWIO_DESC_TOTAL_OFFSET + \
 	MOUSE_DESC_TOTAL_OFFSET + \
 	9 \
 )

@@ -10,11 +10,12 @@ Date = 2017-12-26;
 
 
 # Capabilties available to the uartOut output module
-consCtrlOut => Output_consCtrlSend_capability( consCode : 2 );
-noneOut     => Output_noneSend_capability();
-sysCtrlOut  => Output_sysCtrlSend_capability( sysCode : 1 );
-usbKeyOut   => Output_usbCodeSend_capability( usbCode : 1 );
-mouseOut    => Output_usbMouse_capability( mouseCode : 2, relative_x : 2, relative_y : 2 );
+consCtrlOut   => Output_consCtrlSend_capability( consCode : 2 );
+noneOut       => Output_noneSend_capability();
+sysCtrlOut    => Output_sysCtrlSend_capability( sysCode : 1 );
+usbKeyOut     => Output_usbCodeSend_capability( usbCode : 1 );
+mouseOut      => Output_usbMouse_capability( mouseCode : 2, relative_x : 2, relative_y : 2 );
+mouseWheelOut => Output_usbMouseWheel_capability( vertWheel : 1, horiWheel : 1 );
 
 # Configuration capabilities
 kbdProtocolBoot => Output_kbdProtocolBoot_capability();

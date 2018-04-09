@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2013-2017)
+ * Modified by Jacob Alexander (2013-2018)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -123,7 +123,7 @@ static uint8_t keyboard_report_desc[] = {
 	// Reserved Byte
 	0x75, 0x08,          //   Report Size (8),
 	0x95, 0x01,          //   Report Count (1),
-	0x81, 0x03,          //   Output (Constant),
+	0x81, 0x01,          //   Input (Constant),
 
 	// LED Report
 	0x75, 0x01,          //   Report Size (1),
@@ -131,18 +131,20 @@ static uint8_t keyboard_report_desc[] = {
 	0x05, 0x08,          //   Usage Page (LEDs),
 	0x19, 0x01,          //   Usage Minimum (1),
 	0x29, 0x05,          //   Usage Maximum (5),
+	0x15, 0x00,          //   Logical Minimum (0),
+	0x25, 0x01,          //   Logical Maximum (1),
 	0x91, 0x02,          //   Output (Data, Variable, Absolute),
 
 	// LED Report Padding
 	0x75, 0x03,          //   Report Size (3),
 	0x95, 0x01,          //   Report Count (1),
-	0x91, 0x03,          //   Output (Constant),
+	0x81, 0x03,          //   Output (Constant),
 
 	// Normal Keys
 	0x75, 0x08,          //   Report Size (8),
 	0x95, 0x06,          //   Report Count (6),
 	0x15, 0x00,          //   Logical Minimum (0),
-	0x25, 0x7F,          //   Logical Maximum(104),
+	0x25, 0x7F,          //   Logical Maximum (104),
 	0x05, 0x07,          //   Usage Page (Key Codes),
 	0x19, 0x00,          //   Usage Minimum (0),
 	0x29, 0x7F,          //   Usage Maximum (104),
@@ -164,12 +166,14 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	0x05, 0x08,          //   Usage Page (LEDs),
 	0x19, 0x01,          //   Usage Minimum (1),
 	0x29, 0x05,          //   Usage Maximum (5),
+	0x15, 0x00,          //   Logical Minimum (0),
+	0x25, 0x01,          //   Logical Maximum (1),
 	0x91, 0x02,          //   Output (Data, Variable, Absolute),
 
 	// LED Report Padding
 	0x75, 0x03,          //   Report Size (3),
 	0x95, 0x01,          //   Report Count (1),
-	0x91, 0x03,          //   Output (Constant),
+	0x81, 0x03,          //   Output (Constant),
 
 	// Normal Keys - Using an NKRO Bitmap
 	//
@@ -263,7 +267,7 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	0x75, 0x02,          //   Report Size (2),
 	0x95, 0x01,          //   Report Count (1),
 	0x81, 0x03,          //   Input (Constant),
-	0xc0,                // End Collection - Keyboard
+	0xC0,                // End Collection - Keyboard
 };
 
 // System Control and Consumer Control
@@ -284,7 +288,7 @@ static uint8_t sys_ctrl_report_desc[] = {
 	0x19, 0x81,          //   Usage Minimum (129),
 	0x29, 0xB7,          //   Usage Maximum (183),
 	0x81, 0x00,          //   Input (Data, Array),
-	0xc0,                // End Collection - System Control
+	0xC0,                // End Collection - System Control
 
 	// Consumer Control Collection - Media Keys (16 bits)
 	//
@@ -303,7 +307,7 @@ static uint8_t sys_ctrl_report_desc[] = {
 	0x19, 0x01,          //   Usage Minimum (1),
 	0x2A, 0x9D, 0x02,    //   Usage Maximum (669),
 	0x81, 0x00,          //   Input (Data, Array),
-	0xc0,                // End Collection - Consumer Control
+	0xC0,                // End Collection - Consumer Control
 };
 #endif
 
@@ -312,13 +316,13 @@ static uint8_t sys_ctrl_report_desc[] = {
 #if enableRawIO_define == 1
 static uint8_t rawio_report_desc[] = {
 	0x06,                // Usage Page (Vendor Defined)
-	LSB(RAWIO_USAGE_PAGE), MSB(RAWIO_USAGE_PAGE),
-	0x0A,                // Usage (Mouse)
-	LSB(RAWIO_USAGE), MSB(RAWIO_USAGE),
+		LSB(RAWIO_USAGE_PAGE), MSB(RAWIO_USAGE_PAGE),
+	0x0A,                // Usage
+		LSB(RAWIO_USAGE), MSB(RAWIO_USAGE),
 	0xA1, 0x01,          // Collection (Application)
 	0x75, 0x08,          //   Report Size (8)
 	0x15, 0x00,          //   Logical Minimum (0)
-	0x25, 0xFF,          //   Logical Maximum (255)
+	0x26, 0xFF, 0x00,    //   Logical Maximum (255)
 
 	0x95, RAWIO_TX_SIZE, //     Report Count
 	0x09, 0x01,          //     Usage (Input)
@@ -328,7 +332,7 @@ static uint8_t rawio_report_desc[] = {
 	0x09, 0x02,          //     Usage (Output)
 	0x91, 0x02,          //     Output (Data,Var,Abs)
 
-	0xC0,                // End Collection - Consumer Control
+	0xC0,                // End Collection
 };
 #endif
 
@@ -339,78 +343,73 @@ static uint8_t mouse_report_desc[] = {
 	0x05, 0x01,        // Usage Page (Generic Desktop)
 	0x09, 0x02,        // Usage (Mouse)
 	0xA1, 0x01,        // Collection (Application)
-	0x09, 0x02,        //   Usage (Mouse)
-	0xA1, 0x02,        //   Collection (Logical)
-	0x09, 0x01,        //     Usage (Pointer)
+	0x09, 0x01,        //   Usage (Pointer)
+	0xA1, 0x00,        //   Collection (Physical)
 
 	// Buttons (16 bits)
-	0xA1, 0x00,        //     Collection (Physical) - Buttons
-	0x05, 0x09,        //       Usage Page (Button)
-	0x19, 0x01,        //       Usage Minimum (Button 1)
-	0x29, 0x10,        //       Usage Maximum (Button 16)
-	0x15, 0x00,        //       Logical Minimum (0)
-	0x25, 0x01,        //       Logical Maximum (1)
-	0x75, 0x01,        //       Report Size (1)
-	0x95, 0x10,        //       Report Count (16)
-	0x81, 0x02,        //       Input (Data,Var,Abs)
+	0x05, 0x09,        //     Usage Page (Button)
+	0x19, 0x01,        //     Usage Minimum (Button 1)
+	0x29, 0x10,        //     Usage Maximum (Button 16)
+	0x15, 0x00,        //     Logical Minimum (0)
+	0x25, 0x01,        //     Logical Maximum (1)
+	0x75, 0x01,        //     Report Size (1)
+	0x95, 0x10,        //     Report Count (16)
+	0x81, 0x02,        //     Input (Data,Var,Abs)
 
 	// Pointer (32 bits)
-	0x05, 0x01,        //       Usage PAGE (Generic Desktop)
-	0x09, 0x30,        //       Usage (X)
-	0x09, 0x31,        //       Usage (Y)
-	0x16, 0x01, 0x80,  //       Logical Minimum (-32 767)
-	0x26, 0xFF, 0x7F,  //       Logical Maximum (32 767)
-	0x75, 0x10,        //       Report Size (16)
-	0x95, 0x02,        //       Report Count (2)
-	0x81, 0x06,        //       Input (Data,Var,Rel)
+	0x05, 0x01,        //     Usage PAGE (Generic Desktop)
+	0x09, 0x30,        //     Usage (X)
+	0x09, 0x31,        //     Usage (Y)
+	0x16, 0x01, 0x80,  //     Logical Minimum (-32 767)
+	0x26, 0xFF, 0x7F,  //     Logical Maximum (32 767)
+	0x75, 0x10,        //     Report Size (16)
+	0x95, 0x02,        //     Report Count (2)
+	0x81, 0x06,        //     Input (Data,Var,Rel)
 
-	/*
 	// Vertical Wheel
 	// - Multiplier (2 bits)
-	0xa1, 0x02,        //       Collection (Logical)
-	0x09, 0x48,        //         Usage (Resolution Multiplier)
-	0x15, 0x00,        //         Logical Minimum (0)
-	0x25, 0x01,        //         Logical Maximum (1)
-	0x35, 0x01,        //         Physical Minimum (1)
-	0x45, 0x04,        //         Physical Maximum (4)
-	0x75, 0x02,        //         Report Size (2)
-	0x95, 0x01,        //         Report Count (1)
-	0xa4,              //         Push
-	0xb1, 0x02,        //         Feature (Data,Var,Abs)
+	0xA1, 0x02,        //     Collection (Logical)
+	0x09, 0x48,        //       Usage (Resolution Multiplier)
+	0x15, 0x00,        //       Logical Minimum (0)
+	0x25, 0x01,        //       Logical Maximum (1)
+	0x35, 0x01,        //       Physical Minimum (1)
+	0x45, 0x04,        //       Physical Maximum (4)
+	0x75, 0x02,        //       Report Size (2)
+	0x95, 0x01,        //       Report Count (1)
+	0xA4,              //       Push
+	0xB1, 0x02,        //       Feature (Data,Var,Abs)
 	// - Device (8 bits)
-	0x09, 0x38,        //         Usage (Wheel)
-	0x15, 0x81,        //         Logical Minimum (-127)
-	0x25, 0x7f,        //         Logical Maximum (127)
-	0x35, 0x00,        //         Physical Minimum (0)        - reset physical
-	0x45, 0x00,        //         Physical Maximum (0)
-	0x75, 0x08,        //         Report Size (8)
-	0x81, 0x06,        //         Input (Data,Var,Rel)
-	0xc0,              //       End Collection - Vertical Wheel
+	0x09, 0x38,        //       Usage (Wheel)
+	0x15, 0x81,        //       Logical Minimum (-127)
+	0x25, 0x7F,        //       Logical Maximum (127)
+	0x35, 0x00,        //       Physical Minimum (0)        - reset physical
+	0x45, 0x00,        //       Physical Maximum (0)
+	0x75, 0x08,        //       Report Size (8)
+	0x81, 0x06,        //       Input (Data,Var,Rel)
+	0xC0,              //     End Collection - Vertical Wheel
 
 	// Horizontal Wheel
 	// - Multiplier (2 bits)
-	0xa1, 0x02,        //       Collection (Logical)
-	0x09, 0x48,        //         Usage (Resolution Multiplier)
-	0xb4,              //         Pop
-	0xb1, 0x02,        //         Feature (Data,Var,Abs)
+	0xA1, 0x02,        //     Collection (Logical)
+	0x09, 0x48,        //       Usage (Resolution Multiplier)
+	0xB4,              //       Pop
+	0xB1, 0x02,        //       Feature (Data,Var,Abs)
 	// - Padding (4 bits)
-	0x35, 0x00,        //         Physical Minimum (0)        - reset physical
-	0x45, 0x00,        //         Physical Maximum (0)
-	0x75, 0x04,        //         Report Size (4)
-	0xb1, 0x03,        //         Feature (Cnst,Var,Abs)
+	0x35, 0x00,        //       Physical Minimum (0)        - reset physical
+	0x45, 0x00,        //       Physical Maximum (0)
+	0x75, 0x04,        //       Report Size (4)
+	0xB1, 0x03,        //       Feature (Cnst,Var,Abs)
 	// - Device (8 bits)
-	0x05, 0x0c,        //         Usage Page (Consumer Devices)
-	0x0a, 0x38, 0x02,  //         Usage (AC Pan)
-	0x15, 0x81,        //         Logical Minimum (-127)
-	0x25, 0x7f,        //         Logical Maximum (127)
-	0x75, 0x08,        //         Report Size (8)
-	0x81, 0x06,        //         Input (Data,Var,Rel)
-	0xc0,              //       End Collection - Horizontal Wheel
+	0x05, 0x0C,        //       Usage Page (Consumer Devices)
+	0x0A, 0x38, 0x02,  //       Usage (AC Pan)
+	0x15, 0x81,        //       Logical Minimum (-127)
+	0x25, 0x7F,        //       Logical Maximum (127)
+	0x75, 0x08,        //       Report Size (8)
+	0x81, 0x06,        //       Input (Data,Var,Rel)
+	0xC0,              //     End Collection - Horizontal Wheel
 
-	*/
-	0xc0,              //     End Collection - Buttons
-	0xc0,              //   End Collection - Mouse Logical
-	0xc0               // End Collection - Mouse Application
+	0xC0,              //   End Collection - Mouse Physical
+	0xC0,              // End Collection - Mouse Application
 };
 #endif
 
@@ -594,7 +593,7 @@ static uint8_t config_descriptor[] = {
 	0,                                      // bAlternateSetting
 	1,                                      // bNumEndpoints
 	0x03,                                   // bInterfaceClass (0x03 = HID)
-	0x01,                                   // bInterfaceSubClass (0x00 = Non-Boot, 0x01 = Boot)
+	0x00,                                   // bInterfaceSubClass (0x00 = Non-Boot, 0x01 = Boot)
 	0x00,                                   // bInterfaceProtocol (0x00 = None)
 	SYS_CTRL_INTERFACE + 5,                 // iInterface
 // - 9 bytes -
