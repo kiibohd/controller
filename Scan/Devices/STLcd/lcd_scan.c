@@ -340,7 +340,9 @@ inline void LCD_setup()
 
 	// Write default image to LCD
 	for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
+	{
 		LCD_writeDisplayReg( page, (uint8_t*)&STLcdDefaultImage[page * LCD_PAGE_LEN], LCD_PAGE_LEN );
+	}
 
 	// Setup Backlight
 	SIM_SCGC6 |= SIM_SCGC6_FTM0;
@@ -448,7 +450,15 @@ inline uint8_t LCD_scan()
 // current - mA
 void LCD_currentChange( unsigned int current )
 {
-	// TODO - Power savings?
+	// Since we are only disabling the PWM module, we can just do this immediately
+	if ( current < 150 )
+	{
+		SIM_SCGC6 &= ~(SIM_SCGC6_FTM0);
+	}
+	else
+	{
+		SIM_SCGC6 |= SIM_SCGC6_FTM0;
+	}
 }
 
 
@@ -664,7 +674,9 @@ void cliFunc_lcdTest( char* args )
 {
 	// Write default image
 	for ( uint8_t page = 0; page < LCD_TOTAL_VISIBLE_PAGES; page++ )
+	{
 		LCD_writeDisplayReg( page, (uint8_t *)&STLcdDefaultImage[page * LCD_PAGE_LEN], LCD_PAGE_LEN );
+	}
 }
 
 void cliFunc_lcdCmd( char* args )
@@ -698,7 +710,7 @@ void cliFunc_lcdCmd( char* args )
 		return;
 	}
 
-	if ( *arg2Ptr != '\0' ) 
+	if ( *arg2Ptr != '\0' )
 	{
 		info_msg("Sending WITH A0 FLAG SET- ");
 		printHex( cmd );
@@ -782,7 +794,7 @@ void cliFunc_lcdDisp( char* args )
 		if ( *arg1Ptr == '\0' )
 			break;
 
-		uint8_t value = numToInt( arg1Ptr ); 
+		uint8_t value = numToInt( arg1Ptr );
 		// Write buffer to SPI
 		SPI_write( &value, 1 );
 	}
