@@ -31,6 +31,7 @@ After you're finished, make sure you're able to run `docker info` in your termin
 ### Windows
 
 * [Installation](https://docs.docker.com/docker-for-windows/install/)
+   - You may need to use the [legacy toolkit](https://docs.docker.com/toolbox/toolbox_install_windows/) if your version of Windows doesn't support Hyper-V
 * [Getting Started](https://docs.docker.com/docker-for-windows/)
 
 After you're finished, make sure you're able to run `docker info` in your terminal window.
