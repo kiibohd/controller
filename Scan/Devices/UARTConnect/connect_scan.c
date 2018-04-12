@@ -170,6 +170,7 @@ CLIDict_Def( uartConnectCLIDict, "UARTConnect Module Commands" ) = {
 
 // Latency measurement resource
 static uint8_t connectLatencyResource;
+static uint16_t Connect_LastCurrentValue;
 
 
 // -- Connect Device Id Variables --
@@ -429,6 +430,21 @@ void Connect_send_Idle( uint8_t num )
 	uart_unlockTx( UART_Slave );
 }
 
+void Connect_send_CurrentEvent( uint16_t current )
+{
+	// Lock master bound Tx
+	uart_lockTx( UART_Slave );
+
+	// Prepare header
+	uint8_t header[] = { 0x16, 0x01, CurrentEvent, current & 0xFF, (current >> 8) & 0xFF };
+
+	// Send header
+	Connect_addBytes( header, sizeof( header ), UART_Slave );
+
+	// Unlock Tx
+	uart_unlockTx( UART_Slave );
+}
+
 
 // -- Connect receive functions --
 
@@ -476,11 +492,11 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 			else
 			{
 				// Lower current requirement during errors
-				// USB minimum
+				// Half of USB negotiation minimum (50 mA)
 				// Only if this is not the master node
 				if ( Connect_id != 0 )
 				{
-					Output_update_external_current( 100 );
+					Output_update_external_current( 50 );
 				}
 
 				Connect_cableFaultsMaster++;
@@ -505,8 +521,7 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 				// If we already have an Id, then set max current again
 				if ( Connect_id != 255 && Connect_id != 0 )
 				{
-					// TODO reset to original negotiated current
-					Output_update_external_current( 500 );
+					Output_update_external_current( Output_current_available() );
 				}
 				Connect_cableChecksMaster++;
 			}
@@ -579,12 +594,11 @@ uint8_t Connect_receive_IdEnumeration( uint8_t id, uint16_t *pending_bytes, uint
 	// Send reponse back to master
 	Connect_send_IdReport( id );
 
-	// Node now enumerated, set external power to USB Max
+	// Node now enumerated, set current to last received current setting
 	// Only set if this is not the master node
-	// TODO Determine power slice for each node as part of protocol
 	if ( Connect_id != 0 )
 	{
-		Output_update_external_current( 500 );
+		Output_update_external_current( Connect_LastCurrentValue );
 	}
 
 	// Propogate next Id if the connection is ok
@@ -614,7 +628,13 @@ uint8_t Connect_receive_IdReport( uint8_t id, uint16_t *pending_bytes, uint8_t u
 
 		// Check if this is the highest ID
 		if ( id > Connect_maxId )
+		{
 			Connect_maxId = id;
+		}
+
+		// Send available current
+		Connect_currentChange( Output_current_available() );
+
 		return 1;
 	}
 	// Propagate id if yet another slave
@@ -627,9 +647,9 @@ uint8_t Connect_receive_IdReport( uint8_t id, uint16_t *pending_bytes, uint8_t u
 }
 
 // - Scan Code Variables -
-TriggerGuide Connect_receive_ScanCodeBuffer;
-uint8_t Connect_receive_ScanCodeBufferPos;
-uint8_t Connect_receive_ScanCodeDeviceId;
+static TriggerGuide Connect_receive_ScanCodeBuffer;
+static uint8_t Connect_receive_ScanCodeBufferPos;
+static uint8_t Connect_receive_ScanCodeDeviceId;
 
 uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t uart_num )
 {
@@ -846,6 +866,60 @@ uint8_t Connect_receive_RemoteCapability( uint8_t byte, uint16_t *pending_bytes,
 }
 
 
+uint8_t Connect_receive_RemoteOutput( uint8_t byte, uint16_t *pending_bytes, uint8_t uart_num )
+{
+	// TODO
+	(*pending_bytes)--;
+	*pending_bytes = 0;
+
+	// Check whether the scan codes have finished sending
+	return *pending_bytes == 0 ? 1 : 0;
+}
+
+
+uint8_t Connect_receive_RemoteInput( uint8_t byte, uint16_t *pending_bytes, uint8_t uart_num )
+{
+	// TODO
+	(*pending_bytes)--;
+	*pending_bytes = 0;
+
+	// Check whether the scan codes have finished sending
+	return *pending_bytes == 0 ? 1 : 0;
+}
+
+
+static uint16_t Connect_receive_CurrentEvent_current;
+uint8_t Connect_receive_CurrentEvent( uint8_t byte, uint16_t *pending_bytes, uint8_t uart_num )
+{
+	// Check the directionality
+	if ( uart_num == UART_Slave )
+	{
+		erro_print("Invalid CurrentEvent direction...");
+	}
+
+	switch ( (*pending_bytes)-- )
+	{
+	// Byte count always starts at 0xFFFF
+	case 0xFFFF: // Current (LSB)
+		Connect_receive_CurrentEvent_current = byte;
+		break;
+
+	case 0xFFFE: // Current (MSB)
+		Connect_receive_CurrentEvent_current |= (byte << 8);
+
+		// We now have all the necessary arguments (this will update all current monitors)
+		Output_update_external_current( Connect_receive_CurrentEvent_current );
+
+		// All done
+		*pending_bytes = 0;
+		break;
+	}
+
+	// Check whether the scan codes have finished sending
+	return *pending_bytes == 0 ? 1 : 0;
+}
+
+
 // Baud Rate
 // NOTE: If finer baud adjustment is needed see UARTx_C4 -> BRFA in the datasheet
 uint16_t Connect_baud = UARTConnectBaud_define; // Max setting of 8191
@@ -860,6 +934,9 @@ void *Connect_receiveFunctions[] = {
 	Connect_receive_ScanCode,
 	Connect_receive_Animation,
 	Connect_receive_RemoteCapability,
+	Connect_receive_RemoteOutput,
+	Connect_receive_RemoteInput,
+	Connect_receive_CurrentEvent,
 };
 
 
@@ -896,12 +973,16 @@ void Connect_setup( uint8_t master, uint8_t first )
 
 	// Register Connect CLI dictionary
 	if ( first )
+	{
 		CLI_registerDictionary( uartConnectCLIDict, uartConnectCLIDictName );
+	}
 
 	// Check if master
 	Connect_master = master;
 	if ( Connect_master )
+	{
 		Connect_id = 0; // 0x00 is always the master Id
+	}
 
 #if defined(_kinetis_)
 	// UART0 setup
@@ -1015,6 +1096,7 @@ void Connect_setup( uint8_t master, uint8_t first )
 #elif defined(_sam_)
 	//SAM TODO
 #endif
+	Connect_LastCurrentValue = 50; // Default to 50 mA
 
 	// UARTs are now ready to go
 	uarts_configured = 1;
@@ -1149,7 +1231,9 @@ void Connect_rx_process( uint8_t uartNum )
 			/* Call specific UARTConnect command receive function */
 			uint8_t (*rcvFunc)(uint8_t, uint16_t(*), uint8_t) = (uint8_t(*)(uint8_t, uint16_t(*), uint8_t))(Connect_receiveFunctions[ uart_rx_status[ uartNum ].command ]);
 			if ( rcvFunc( byte, (uint16_t*)&uart_rx_status[ uartNum ].bytes_waiting, uartNum ) )
+			{
 				uart_rx_status[ uartNum ].status = UARTStatus_Wait;
+			}
 			break;
 		}
 
@@ -1231,10 +1315,26 @@ void Connect_scan()
 }
 
 
-// Called by parent Scan module whenever the available current changes
+// Called by parent Scan module (or by master node) whenever the available current changes
 void Connect_currentChange( unsigned int current )
 {
-	// TODO - Any potential power saving here?
+	// Send notice to slave devices that the current available has changed
+	uint16_t current_left = current;
+	Connect_LastCurrentValue = current;
+
+	// Only subtract 125 mA (Infinity Ergodox max usage) if there's at least 250 mA available
+	// We should always have at least 50 mA of current (as USB guarantees at least 100 mA)
+	if ( current >= 250 )
+	{
+		current_left -= 125; // mA
+	}
+	else
+	{
+		current_left -= 50; // mA
+	}
+
+	// Send leftover current
+	Connect_send_CurrentEvent( current_left );
 }
 
 
@@ -1290,6 +1390,11 @@ void cliFunc_connectCmd( char* args )
 		// TODO
 		break;
 
+	case CurrentEvent:
+		dbug_print("Sending current event");
+		Connect_send_CurrentEvent( 250 );
+		break;
+
 	default:
 		break;
 	}
@@ -1333,6 +1438,7 @@ void cliFunc_connectLst( char* args )
 		"RemoteCapability",
 		"RemoteOutput",
 		"RemoteInput",
+		"CurrentEvent",
 	};
 
 	print( NL );

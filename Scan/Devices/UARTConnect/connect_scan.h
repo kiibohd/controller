@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,6 +39,8 @@ typedef enum Command {
 	RemoteCapability, // Activate a capability on the given node
 	RemoteOutput,     // Remote debug output from a given node
 	RemoteInput,      // Remote command to send to a given node's debug cli
+
+	CurrentEvent,     // Signals a current usage event
 
 	Command_TOP,      // Enum bounds
 	Command_SYN = 0x16, // Reserved for error handling
@@ -149,6 +151,15 @@ typedef struct RemoteInputCommand {
 	uint8_t length;
 	uint8_t firstChar[0];
 } RemoteInputCommand;
+
+// Current Event
+// Initiated by the master whenever the bus has a change in available power
+// Usually occurs when USB goes into suspend (or wakes)
+// Each device in the chain must subtract it's own usage first before sending to the next device
+typedef struct CurrentEventCommand {
+	Command command;
+	uint16_t current; // Current usable on the bus
+} CurrentEventCommand;
 
 
 

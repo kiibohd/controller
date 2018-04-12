@@ -208,6 +208,17 @@ unsigned int Output_current_available()
 
 void cliFunc_current( char* args )
 {
+	// Parse number from argument
+	//  NOTE: Only first argument is used
+	char* arg1Ptr;
+	char* arg2Ptr;
+	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
+
+	if ( arg1Ptr[0] != '\0' )
+	{
+		Output_update_external_current( (unsigned int)numToInt( arg1Ptr ) );
+	}
+
 	print( NL );
 	info_msg("Current available: ");
 	printInt16( Output_current_available() );
