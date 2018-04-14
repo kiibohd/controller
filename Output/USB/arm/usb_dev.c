@@ -588,6 +588,7 @@ static void usb_setup()
 		//uint8_t direction = setup.wIndex & 0x80; // D7 Direction
 		uint8_t endpoint = setup.wIndex & 0x0F; // D0..D3 Endpoint Number
 
+#if defined(_kinetis_)
 		// Valid endpoint
 		if ( endpoint <= NUM_ENDPOINTS )
 		{
@@ -602,6 +603,9 @@ static void usb_setup()
 				goto send;
 			}
 		}
+#elif defined(_sam_)
+		// SAM TODO
+#endif
 
 		// Invalid request
 		endpoint0_stall();
