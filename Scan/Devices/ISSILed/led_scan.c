@@ -463,9 +463,9 @@ void LED_reset()
 	delay_us(200);
 	GPIOC_PCOR |= (1<<5);
 #elif defined(_sam_)
-	PIOC->PIO_SODR = (1<<5);
+	PIOA->PIO_SODR = (1<<17);
 	delay_us(200);
-	PIOC->PIO_CODR = (1<<5);
+	PIOA->PIO_CODR = (1<<17);
 #endif
 #endif
 
@@ -703,8 +703,8 @@ inline void LED_setup()
 	PORTB_PCR16 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
 	GPIOB_PCOR |= (1<<16);
 #elif defined(_sam_)
-	PIOB->PIO_OER = (1<<16);
-	PIOB->PIO_CODR = (1<<16);
+	PIOA->PIO_OER = (1<<15);
+	PIOA->PIO_CODR = (1<<15);
 #endif
 
 #if ISSI_Chip_31FL3733_define == 1
@@ -717,12 +717,16 @@ inline void LED_setup()
 	delay_us(50);
 	GPIOC_PCOR |= (1<<5);
 #elif defined(_sam_)
-	PIOC->PIO_OER = (1<<5);
-	PIOC->PIO_SODR = (1<<5);
+	PIOA->PIO_OER = (1<<17);
+	PIOA->PIO_SODR = (1<<17);
 	delay_us(50);
-	PIOC->PIO_CODR = (1<<5);
+	PIOA->PIO_CODR = (1<<17);
 #endif
 #endif
+
+	PIOA->PIO_PER = (1<<15);
+	PIOA->PIO_OER = (1<<15);
+	PIOA->PIO_SODR = (1<<15);
 
 	// Zero out Frame Registers
 	// This needs to be done before disabling the hardware shutdown (or the leds will do undefined things)
@@ -734,7 +738,7 @@ inline void LED_setup()
 #if defined(_kinetis_)
 		GPIOB_PSOR |= (1<<16);
 #elif defined(_sam_)
-		PIOB->PIO_SODR = (1<<16);
+		PIOA->PIO_SODR = (1<<15);
 #endif
 	}
 
@@ -854,7 +858,7 @@ inline void LED_scan()
 #if defined(_kinetis_)
 		GPIOB_PSOR |= (1<<16);
 #elif defined(_sam_)
-		PIOB->PIO_SODR = (1<<16);
+		PIOA->PIO_SODR = (1<<15);
 #endif
 	}
 	// Only write pages to I2C if chip is enabled (i.e. Hardware shutdown is disabled)
@@ -864,7 +868,7 @@ inline void LED_scan()
 #if defined(_kinetis_)
 		GPIOB_PCOR |= (1<<16);
 #elif defined(_sam_)
-		PIOB->PIO_CODR = (1<<16);
+		PIOA->PIO_CODR = (1<<17);
 #endif
 		goto led_finish_scan;
 	}
@@ -1128,9 +1132,9 @@ void cliFunc_ledReset( char* args )
 	delay_us(50);
 	GPIOC_PCOR |= (1<<5);
 #elif defined(_sam_)
-	PIOC->PIO_SODR = (1<<5);
+	PIOA->PIO_SODR = (1<<17);
 	delay_us(50);
-	PIOC->PIO_CODR = (1<<5);
+	PIOA->PIO_CODR = (1<<17);
 #endif
 #endif
 	i2c_reset();
