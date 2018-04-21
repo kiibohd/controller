@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,12 +27,14 @@
 // Project Includes
 #include <cli.h>
 #include <kll_defs.h>
+#include <kll.h>
 #include <latency.h>
 #include <led.h>
 #include <print.h>
 #include <macro.h>
 #include <Lib/delay.h>
 #include <Lib/periodic.h>
+#include <Lib/time.h>
 
 // Local Includes
 #include "matrix_scan.h"
@@ -43,6 +45,10 @@
 
 
 // ----- Defines -----
+
+#define TickStore_MaxTicks 255
+
+
 
 // ----- Function Declarations -----
 
@@ -99,6 +105,18 @@ static volatile uint8_t debounceExpiryTime;
 
 // Strobe delay setting
 static volatile uint8_t strobeDelayTime;
+
+// Activity/Inactivity Tick Stores
+static TickStore activity_tickstore;
+static TickStore inactivity_tickstore;
+static Time activity_tick_duration;
+
+// Activity counter - Keeps track of state changes (used to determine Activity/Inactivity)
+// Press count is for inactivity reset
+// Release count is for activity reset
+static volatile uint16_t matrixStateActiveCount;
+static volatile uint16_t matrixStatePressCount;
+static volatile uint16_t matrixStateReleaseCount;
 
 
 
@@ -230,6 +248,19 @@ void Matrix_setup()
 
 	// Strobe delay setting
 	strobeDelayTime = StrobeDelay_define;
+
+	// Setup tick duration (multiples of 1 second)
+	activity_tick_duration = Time_init();
+	activity_tick_duration.ms = 1000 * ActivityTimerMultiplier_define;
+
+	// Setup Activity and Inactivity tick resources
+	Time_tick_start( &activity_tickstore, activity_tick_duration, TickStore_MaxTicks );
+	Time_tick_start( &inactivity_tickstore, activity_tick_duration, TickStore_MaxTicks );
+
+	// Clear matrixStateActiveCount for activity check
+	matrixStateActiveCount = 0;
+	matrixStatePressCount = 0;
+	matrixStateReleaseCount = 0;
 
 	// Setup latency module
 	matrixLatencyResource = Latency_add_resource("MatrixARMPeri", LatencyOption_Ticks);
@@ -407,6 +438,25 @@ uint8_t Matrix_single_scan()
 		// Send keystate to macro module
 		Macro_keyState( key_disp, state->curState );
 
+		// Check for activity and inactivity
+		if ( state->curState != KeyState_Off )
+		{
+			matrixStateActiveCount++;
+		}
+		switch ( state->curState )
+		{
+		case KeyState_Press:
+			matrixStatePressCount++;
+			break;
+
+		case KeyState_Release:
+			matrixStateReleaseCount++;
+			break;
+
+		default:
+			break;
+		}
+
 		// Matrix Debug, only if there is a state change
 		if ( matrixDebugMode && state->curState != state->prevState )
 		{
@@ -487,6 +537,47 @@ uint8_t Matrix_single_scan()
 	if ( ++matrixCurrentStrobe >= Matrix_colsNum )
 	{
 		matrixCurrentStrobe = 0;
+
+		// Reset activity counter on a press
+		// TODO (HaaTa) Extra 0 id signals may occur (active and inactive)
+		if ( matrixStatePressCount > 0 && matrixStateReleaseCount == 0 )
+		{
+			Time_tick_reset( &inactivity_tickstore );
+		}
+
+		// Reset inactivity counter on a release
+		if ( matrixStateReleaseCount > 0 && matrixStatePressCount == 0 )
+		{
+			Time_tick_reset( &activity_tickstore );
+		}
+
+		// Do Activity/Inactivity checking now that a full set of strobes has completed
+		if ( matrixStateActiveCount > 0 )
+		{
+			if ( activity_tickstore.fresh_store )
+			{
+				Time_tick_reset( &inactivity_tickstore );
+			}
+
+			// Activity detected
+			Macro_tick_update( &activity_tickstore, TriggerType_Active1 );
+		}
+		else
+		{
+			if ( inactivity_tickstore.fresh_store )
+			{
+				Time_tick_reset( &activity_tickstore );
+			}
+
+			// Inactivity detected
+			Macro_tick_update( &inactivity_tickstore, TriggerType_Inactive1 );
+		}
+
+		// Finally reset the state change count
+		matrixStateActiveCount = 0;
+		matrixStatePressCount = 0;
+		matrixStateReleaseCount = 0;
+
 		return 1;
 	}
 

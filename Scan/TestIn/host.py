@@ -57,6 +57,64 @@ control = builtins.kiibohd_control
 
 
 
+### Enums ###
+
+class ScheduleState:
+    '''
+    See kll.h ScheduleState
+    '''
+    P      = 0x01 # Press
+    H      = 0x02 # Hold
+    R      = 0x03 # Release
+    O      = 0x00 # Off
+    UP     = 0x04 # Unique Press
+    UR     = 0x05 # Unique Release
+
+    A      = 0x01 # Activate
+    On     = 0x02 # On
+    D      = 0x03 # Deactivate
+    Off    = 0x00 # Off
+
+    Done   = 0x06 # Done
+    Repeat = 0x07 # Repeat
+
+    Shift  = 0x10 # Shift
+    Latch  = 0x20 # Latch
+    Lock   = 0x40 # Lock
+
+    Debug  = 0xFF # Print capability name
+
+
+class TriggerType:
+    '''
+    See kll.h TriggerType
+    '''
+    Switch1    = 0x00
+    Switch2    = 0x01
+    Switch3    = 0x02
+    Switch4    = 0x03
+    LED1       = 0x04
+    Analog1    = 0x05
+    Analog2    = 0x06
+    Analog3    = 0x07
+    Analog4    = 0x08
+    Layer1     = 0x09
+    Layer2     = 0x0A
+    Layer3     = 0x0B
+    Layer4     = 0x0C
+    Animation1 = 0x0D
+    Animation2 = 0x0E
+    Animation3 = 0x0F
+    Animation4 = 0x10
+    Sleep1     = 0x11
+    Resume1    = 0x12
+    Inactive1  = 0x13
+    Active1    = 0x14
+
+    Debug      = 0xFF
+
+
+
 ### Structures ###
 
 class TriggerMacro( Structure ):
@@ -296,7 +354,7 @@ class Commands:
     Container class of commands available to controll the host-side KLL implementation
     '''
 
-    def addScanCode( self, scan_code ):
+    def addScanCode( self, index, index_type=TriggerType.Switch1 ):
         '''
         Adds a Scan Code to the internal KLL buffer
 
@@ -304,9 +362,9 @@ class Commands:
         Returns 2 if there's an error
         Generally 1 will be the return
         '''
-        return control.kiibohd.Scan_addScanCode( int( scan_code ) )
+        return control.kiibohd.Scan_addScanCode( int( index ), int( index_type ) )
 
-    def removeScanCode( self, scan_code ):
+    def removeScanCode( self, index, index_type=TriggerType.Switch1 ):
         '''
         Removes a Scan Code from the internal KLL buffer
         Ignored if the Scan Code was not in the buffer
@@ -315,7 +373,7 @@ class Commands:
         Returns 2 if there's an error
         Generally 0 will be the return
         '''
-        return control.kiibohd.Scan_removeScanCode( int( scan_code ) )
+        return control.kiibohd.Scan_removeScanCode( int( index ), int( index_type ) )
 
     def setMacroDebugMode( self, debugmode ):
         '''

@@ -105,7 +105,7 @@ volatile uint8_t  USBKeys_Sent;
 
 // 1=num lock, 2=caps lock, 4=scroll lock, 8=compose, 16=kana
 volatile uint8_t  USBKeys_LEDs;
-volatile uint8_t  USBKeys_LEDs_Changed;
+volatile uint8_t  USBKeys_LEDs_prev;
 
 // Currently pressed mouse buttons, bitmask, 0 represents no buttons pressed
 volatile uint16_t USBMouse_Buttons;
@@ -710,9 +710,6 @@ void USB_flushBuffers()
 
 	// Reset USBKeys_Keys size
 	USBKeys_Sent = 0;
-
-	// Set USBKeys_LEDs_Changed to indicate that we should update LED status
-	USBKeys_LEDs_Changed = 1;
 }
 
 
@@ -732,6 +729,7 @@ inline void USB_setup()
 	USBKeys_Protocol_Change = 0;
 
 	// Clear USB LEDs (may be set by the OS rather quickly)
+	USBKeys_LEDs_prev = 0;
 	USBKeys_LEDs = 0;
 
 	// Clear mouse state
@@ -790,6 +788,57 @@ inline void USB_poll()
 }
 
 
+// Gather USB HID LED states
+// Keeps track of previous state, and sends new state to PartialMap
+void USB_indicator_update()
+{
+	// Check each bit of the indicator byte
+	for ( uint8_t bit = 0; bit < LED_KANA; bit++ )
+	{
+		uint8_t id = bit + 1; // Conversion to USB HID Indicator code
+
+		uint8_t cur = USBKeys_LEDs & (1 << bit);
+		uint8_t prev = USBKeys_LEDs_prev & (1 << bit);
+
+		// Detect if off
+		if ( cur == 0 && cur == prev )
+		{
+			continue;
+		}
+		// Detect if on
+		else if ( cur == prev )
+		{
+			// On
+			Macro_ledState( id, ScheduleType_On );
+		}
+		// Detect if press
+		else if ( cur )
+		{
+			// Activate
+			Macro_ledState( id, ScheduleType_A );
+		}
+		// Detect if release
+		else if ( prev )
+		{
+			// Deactivate
+			Macro_ledState( id, ScheduleType_D );
+		}
+	}
+
+	// Update for next state comparison
+	USBKeys_LEDs_prev = USBKeys_LEDs;
+}
+
+
+// Gather USB Suspend/Sleep status
+// Send events accordingly to PartialMap depending on status
+void USB_suspend_status_update()
+{
+	// TODO
+	// usb_suspended() <- 1 if suspended
+}
+
+
 // USB Data Periodic
 inline void USB_periodic()
 {
@@ -839,6 +888,12 @@ inline void USB_periodic()
 		Scan_finishedWithOutput( USBKeys_Sent );
 		break;
 	}
+
+	// Update HID LED states
+	USB_indicator_update();
+
+	// Monitor USB Suspend/Sleep State
+	USB_suspend_status_update();
 #endif
 
 	// End latency measurement

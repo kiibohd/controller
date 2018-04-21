@@ -385,8 +385,10 @@ class Control:
         global output
         scan = CustomLoader( "Scan", scan_module ).load_module("Scan")
         builtins.kiibohd_scan = scan
+        self.scan = scan
         output = CustomLoader( "Output", output_module ).load_module("Output")
         builtins.kiibohd_output = output
+        self.output = output
 
         # Build command and callback dictionaries
         self.build_command_list()

@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2014-2016
+ * Modifications by Jacob Alexander 2014-2018
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -64,6 +64,7 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet );
 void usb_tx_isr( uint32_t endpoint, usb_packet_t *packet );
 
 uint8_t usb_resume();
+uint8_t usb_suspended();
 
 uint32_t usb_tx_byte_count( uint32_t endpoint );
 uint32_t usb_tx_packet_count( uint32_t endpoint );
@@ -75,7 +76,9 @@ static inline uint32_t usb_rx_byte_count(uint32_t endpoint)
 {
 	endpoint--;
 	if ( endpoint >= NUM_ENDPOINTS )
+	{
 		return 0;
+	}
 	return usb_rx_byte_count_data[ endpoint ];
 }
 

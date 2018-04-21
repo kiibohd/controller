@@ -101,7 +101,7 @@ extern volatile USBKeys  USBKeys_idle;
 
 extern volatile uint8_t  USBKeys_Sent;
 extern volatile uint8_t  USBKeys_LEDs;
-extern volatile uint8_t  USBKeys_LEDs_Changed;
+extern volatile uint8_t  USBKeys_LEDs_prev;
 
 extern volatile uint8_t  USBKeys_Protocol; // 0 - Boot Mode, 1 - NKRO Mode
 extern volatile uint8_t  USBKeys_Protocol_New;

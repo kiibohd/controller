@@ -130,17 +130,20 @@ void Layer_layerStateSet( TriggerMacro *trigger, uint8_t state, uint8_t stateTyp
 	if ( oldState && newState )
 	{
 		// On -> On (Layer still active)
-		Macro_layerState( layer, ScheduleType_On );
+		// Send current layer state
+		Macro_layerState( layer, ScheduleType_On | (LayerState[ layer ] << 4) );
 	}
 	else if ( !oldState && newState )
 	{
 		// Off -> On (Activate)
-		Macro_layerState( layer, ScheduleType_A );
+		// Send layer state that activated
+		Macro_layerState( layer, ScheduleType_A | (layerState << 4) );
 	}
 	else if ( oldState && !newState )
 	{
 		// On -> Off (Deactivate)
-		Macro_layerState( layer, ScheduleType_D );
+		// Send layer state that deactivated
+		Macro_layerState( layer, ScheduleType_D | (layerState << 4) );
 	}
 
 	// Layer Debug Mode
@@ -488,9 +491,7 @@ nat_ptr_t *Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 	}
 
 	// Otherwise no defined Trigger Macro
-	erro_msg("Index has no defined Trigger Macro: ");
-	printHex( index );
-	print( NL );
+	// Just ignore it
 	return 0;
 }
 

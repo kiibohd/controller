@@ -678,6 +678,7 @@ class TriggerElem:
         '''
         # TODO (HaaTa) Handle scheduling
         import interface as i
+        TriggerType = i.control.scan.TriggerType
 
         logger.debug("TriggerElem eval {} {}", self.elem, self.schedule)
 
@@ -685,7 +686,13 @@ class TriggerElem:
         # ScanCode
         if self.elem['type'] == 'ScanCode':
             # Press given ScanCode
-            i.control.cmd('addScanCode')(self.elem['uid'])
+            # TODO (HaaTa): Support uids greater than 255
+            i.control.cmd('addScanCode')(self.elem['uid'], TriggerType.Switch1)
+
+        # IndicatorCode
+        elif self.elem['type'] == 'IndCode':
+            # Activate Indicator
+            i.control.cmd('addScanCode')(self.elem['uid'], TriggerType.LED1)
 
         # Unknown TriggerElem
         else:
@@ -701,6 +708,7 @@ class TriggerElem:
         '''
         # TODO (HaaTa) Handle scheduling
         import interface as i
+        TriggerType = i.control.scan.TriggerType
 
         logger.debug("TriggerElem cleanup {} {}", self.elem, self.schedule)
 
@@ -708,7 +716,13 @@ class TriggerElem:
         # ScanCode
         if self.elem['type'] == 'ScanCode':
             # Press given ScanCode
-            i.control.cmd('removeScanCode')(self.elem['uid'])
+            # TODO (HaaTa): Support uids greater than 255
+            i.control.cmd('removeScanCode')(self.elem['uid'], TriggerType.Switch1)
+
+        # IndicatorCode
+        elif self.elem['type'] == 'IndCode':
+            # Activate Indicator
+            i.control.cmd('removeScanCode')(self.elem['uid'], TriggerType.LED1)
 
         # Unknown TriggerElem
         else:

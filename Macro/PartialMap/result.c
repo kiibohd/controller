@@ -202,7 +202,7 @@ void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 	elem->trigger = (TriggerMacro*)triggerMacro;
 	elem->index = resultMacroIndex;
 
-	// Lookup scanCode of the last key in the last combo
+	// Lookup index and type of the last key in the last combo
 	var_uint_t pos = 0;
 	for ( uint8_t comboLength = triggerMacro->guide[0]; comboLength > 0; )
 	{
@@ -210,12 +210,17 @@ void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 		comboLength = triggerMacro->guide[ pos ];
 	}
 
-	uint8_t scanCode = ((TriggerGuide*)&triggerMacro->guide[ pos - TriggerGuideSize ])->scanCode;
+	TriggerGuide *guide = (TriggerGuide*)&triggerMacro->guide[ pos - TriggerGuideSize ];
+	uint8_t index = guide->scanCode;
+	uint8_t type = guide->type;
 
-	// Lookup scanCode in buffer list for the current state and stateType
+	// Lookup index in buffer list for the current state and stateType
 	for ( var_uint_t keyIndex = 0; keyIndex < macroTriggerEventBufferSize; keyIndex++ )
 	{
-		if ( macroTriggerEventBuffer[ keyIndex ].index == scanCode )
+		if (
+			macroTriggerEventBuffer[ keyIndex ].index == index &&
+			macroTriggerEventBuffer[ keyIndex ].type == type
+		)
 		{
 			elem->record.state     = macroTriggerEventBuffer[ keyIndex ].state;
 			elem->record.stateType = macroTriggerEventBuffer[ keyIndex ].type;

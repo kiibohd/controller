@@ -174,8 +174,11 @@ void Macro_testThreadSafe_capability( TriggerMacro *trigger, uint8_t state, uint
 		// Display capability name
 		print("Macro_testThreadSafe()");
 		return;
-	default:
+	case CapabilityState_Initial:
+	case CapabilityState_Last:
 		break;
+	default:
+		return;
 	}
 
 	// Show trigger information
@@ -223,7 +226,7 @@ void Macro_testThreadUnsafe_capability( TriggerMacro *trigger, uint8_t state, ui
 void Macro_showScheduleType( ScheduleState state )
 {
 	// State types
-	switch ( state )
+	switch ( state & 0x0F )
 	{
 	case ScheduleType_P:
 	//case ScheduleType_A:
@@ -267,6 +270,25 @@ void Macro_showScheduleType( ScheduleState state )
 
 	default:
 		print("\033[1;31mINVALID\033[0m");
+		break;
+	}
+
+	// Check for Shift/Latch/Lock type
+	switch ( state & 0xF0 )
+	{
+	case ScheduleType_Shift:
+		print("Sh");
+		break;
+
+	case ScheduleType_Latch:
+		print("La");
+		break;
+
+	case ScheduleType_Lock:
+		print("Lo");
+		break;
+
+	default:
 		break;
 	}
 }
@@ -403,6 +425,7 @@ uint8_t Macro_pressReleaseAdd( void *trigger_ptr )
 	case TriggerType_Switch2:
 	case TriggerType_Switch3:
 	case TriggerType_Switch4:
+	case TriggerType_LED1:
 		switch ( trigger->state )
 		{
 		case ScheduleType_P:
@@ -680,7 +703,8 @@ void Macro_layerState( uint16_t layerIndex, uint8_t state )
 	TriggerType type = TriggerType_Layer1;
 
 	// Only add to macro trigger list if one of three states
-	switch ( state )
+	// Mask around Shift/Latch/Lock state
+	switch ( state & ScheduleType_D )
 	{
 	case ScheduleType_A:  // Activate
 	case ScheduleType_On: // On
@@ -721,6 +745,101 @@ void Macro_layerState( uint16_t layerIndex, uint8_t state )
 		macroTriggerEventBufferSize++;
 		break;
 	}
+}
+
+
+// Update Time State trigger
+// Only valid with Sleep/Resume and Inactive/Active triggers
+// States:
+//   * 0x00 - Off
+//   * 0x01 - Activate
+//   * 0x02 - On
+//   * 0x03 - Deactivate
+void Macro_timeState( uint8_t type, uint16_t cur_time, uint8_t state )
+{
+	// Make sure this is a valid trigger type
+	switch ( type )
+	{
+	case TriggerType_Sleep1:
+	case TriggerType_Resume1:
+	case TriggerType_Inactive1:
+	case TriggerType_Active1:
+		break;
+
+	// Ignore if not the correct type
+	default:
+		warn_msg("Invalid time state trigger update: ");
+		printHex( type );
+		print(NL);
+		return;
+	}
+
+	// cur_time is controlled by the caller
+	// When this function called the trigger is active
+	if ( cur_time > 0xFF )
+	{
+		warn_msg("Only 255 time instances are accepted for a time state trigger: ");
+		printInt16( cur_time );
+		print(NL);
+		return;
+	}
+	uint8_t index = cur_time;
+
+	// Only add to macro trigger list if one of three states
+	switch ( state )
+	{
+	case ScheduleType_A:  // Activate
+	case ScheduleType_On: // On
+	case ScheduleType_D:  // Deactivate
+		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].index = index;
+		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].state = state;
+		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].type  = type;
+		macroTriggerEventBufferSize++;
+		break;
+	}
+}
+
+
+// [In]Activity detected, do TickStore update and signal generation
+// Returns 1 if a signal is sent
+uint8_t Macro_tick_update( TickStore *store, uint8_t type )
+{
+	uint32_t ticks = Time_tick_update( store );
+	uint8_t signal_sent = 0;
+
+	// Check for a fresh store (separate signal)
+	if ( store->fresh_store )
+	{
+		Time_tick_reset( store );
+
+		// Unset fresh store
+		store->fresh_store = 0;
+
+		// Send initial activity signal
+		Macro_timeState( type, 0, ScheduleType_A );
+		signal_sent = 1;
+		store->ticks_since_start++;
+	}
+
+	// No need to update if there were no ticks
+	if ( ticks == 0 )
+	{
+		goto done;
+	}
+
+	// Check to see if we need to signal
+	for (
+		uint16_t signal = store->ticks_since_start - ticks;
+		signal < store->ticks_since_start;
+		signal++
+	)
+	{
+		// Send queued up signals
+		Macro_timeState( type, signal, ScheduleStateSize_define );
+	}
+
+done:
+	return signal_sent;
 }
 
 
@@ -773,6 +892,10 @@ void Macro_periodic()
 			{
 			// Normal (Press/Hold/Release)
 			case TriggerType_Switch1:
+			case TriggerType_Switch2:
+			case TriggerType_Switch3:
+			case TriggerType_Switch4:
+			case TriggerType_LED1:
 				// Decide what to do based on the current state
 				switch ( macroInterconnectCache[ c ].state )
 				{

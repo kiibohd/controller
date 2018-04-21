@@ -5,7 +5,7 @@ Author = "HaaTa (Jacob Alexander) 2017-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-03-18;
+Date = 2018-03-24;
 
 # Defines available to the MatrixArmPeriodic sub-module
 
@@ -31,4 +31,12 @@ PeriodicCycles = 1000; # 1000 cycles
 StrobeDelay => StrobeDelay_define;
 StrobeDelay = 0; # Disabled
 #StrobeDelay = 10; # 10 us
+
+# [In]Activity trigger settings
+# Will send a trigger once every tick (default 1 second intervals) during inactivity or activity.
+# The first tick is immediate with no wait (0th tick).
+# After 255 ticks, the ticks stop until the keyboard has activity and goes inactive again (or vice versa).
+ActivityTimerMultiplier => ActivityTimerMultiplier_define;
+ActivityTimerMultiplier = 1; # 1 second by default
+#ActivityTimerMultiplier = 60; # 60 seconds between each tick
 

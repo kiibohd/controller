@@ -107,6 +107,7 @@ typedef uint8_t state_uint_t;
 //   * Start/On/Stop/Off      - AODO
 //   * Done/Repeat/Off        - DRO
 //   * Threshold (Range)      - 0x01 (Released), 0x02 (Pressed), 0x10 (Light press), 0xFF (Max press) (Threashold)
+//   * Layer Info             - 0x10 (Shift), 0x20 (Latch), 0x40 (Lock) -> May be activated simultaneously with AODO
 //   * Debug                  - 0xFF (Print capability name)
 //
 // States with the same numerical value have same/similar function, but is called something else in that case.
@@ -126,6 +127,10 @@ typedef enum ScheduleState {
 
 	ScheduleType_Done   = 0x06, // Done
 	ScheduleType_Repeat = 0x07, // Repeat
+
+	ScheduleType_Shift  = 0x10, // Shift
+	ScheduleType_Latch  = 0x20, // Latch
+	ScheduleType_Lock   = 0x40, // Lock
 
 	ScheduleType_Debug  = 0xFF, // Print capability name
 } ScheduleState;
@@ -234,7 +239,11 @@ typedef struct ResultGuide {
 //   * 0x0E Animation Bank 2 ( 256- 511) [DRO]
 //   * 0x0F Animation Bank 3 ( 512- 767) [DRO]
 //   * 0x10 Animation Bank 4 ( 768-1023) [DRO]
-//   * 0x11-0xFE Reserved
+//   * 0x11 Sleep Bank 1     (   0- 255) [AODO]
+//   * 0x12 Resume Bank 1    (   0- 255) [AODO]
+//   * 0x13 Inactive Bank 1  (   0- 255) [AODO]
+//   * 0x14 Active Bank 1    (   0- 255) [AODO]
+//   * 0x15-0xFE Reserved
 //   * 0xFF Debug State
 //
 // States:
@@ -268,8 +277,12 @@ typedef enum TriggerType {
 	TriggerType_Animation2 = 0x0E,
 	TriggerType_Animation3 = 0x0F,
 	TriggerType_Animation4 = 0x10,
+	TriggerType_Sleep1     = 0x11,
+	TriggerType_Resume1    = 0x12,
+	TriggerType_Inactive1  = 0x13,
+	TriggerType_Active1    = 0x14,
 
-	/* Reserved 0x11-0xFE */
+	/* Reserved 0x15-0xFE */
 
 	TriggerType_Debug   = 0xFF,
 } TriggerType;

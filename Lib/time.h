@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 by Jacob Alexander
+/* Copyright (C) 2017-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -37,6 +37,14 @@ typedef struct Time {
 	uint32_t ticks;
 } Time;
 
+typedef struct TickStore {
+	Time last_tick;             // Time of last tick
+	Time tick_duration;         // Duration of a tick
+	uint32_t ticks_since_start; // How many ticks since start of tick sequence
+	uint32_t max_ticks;         // Tick limit for this TickStore
+	uint8_t fresh_store;        // Set to 1, if no updates have been attempted
+} TickStore;
+
 
 
 // ----- Variables -----
@@ -52,6 +60,9 @@ extern const char* Time_ticksPer_ns_str;
 // Get current time
 Time Time_now();
 Time Time_init();
+
+uint8_t Time_add( Time *current, Time add );
+int8_t Time_compare( Time base, Time compare );
 
 
 // Conversions
@@ -73,7 +84,8 @@ Time Time_from_ms( uint32_t ms );
 
 // Durations
 Time Time_duration( Time since );
-Time Time_duration_rollover( Time since );
+Time Time_duration_rollover( Time now, Time since );
+Time Time_duration_rollover_now( Time since );
 
 uint32_t Time_duration_ticks( Time since );
 uint32_t Time_duration_days( Time since );
@@ -83,4 +95,11 @@ uint32_t Time_duration_seconds( Time since );
 uint32_t Time_duration_ms( Time since );
 uint32_t Time_duration_us( Time since );
 uint32_t Time_duration_ns( Time since );
+
+
+// Tick Functions
+void Time_tick_start( TickStore *store, Time duration, uint32_t max_ticks );
+void Time_tick_reset( TickStore *store );
+
+uint32_t Time_tick_update( TickStore *store );
 
