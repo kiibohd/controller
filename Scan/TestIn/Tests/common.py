@@ -221,6 +221,9 @@ class KLLTest:
             # Run loop, to make sure layer is engaged already
             interface.control.cmd('lockLayer')(test.layer)
 
+            # Clear any pending trigger events
+            interface.control.cmd('clearMacroTriggerEventBuffer')()
+
             # Run test, and record result
             test.result = test.unit.run()
 
@@ -678,6 +681,8 @@ class TriggerElem:
         '''
         # TODO (HaaTa) Handle scheduling
         import interface as i
+        LayerStateType = i.control.scan.LayerStateType
+        ScheduleState = i.control.scan.ScheduleState
         TriggerType = i.control.scan.TriggerType
 
         logger.debug("TriggerElem eval {} {}", self.elem, self.schedule)
@@ -694,6 +699,18 @@ class TriggerElem:
             # Activate Indicator
             i.control.cmd('addScanCode')(self.elem['uid'], TriggerType.LED1)
 
+        # Layer
+        elif self.elem['type'] in ['Layer', 'LayerShift', 'LayerLatch', 'LayerLock']:
+            # Determine which layer type
+            layer_state = LayerStateType.Shift
+            if self.elem['type'] == 'LayerLatch':
+                layer_state = LayerStateType.Latch
+            elif self.elem['type'] == 'LayerLock':
+                layer_state = LayerStateType.Lock
+
+            # Activate layer
+            i.control.cmd('applyLayer')(ScheduleState.P, self.elem['uid'], layer_state)
+
         # Unknown TriggerElem
         else:
             logger.warning("Unknown TriggerElem {}", self.elem)
@@ -708,6 +725,8 @@ class TriggerElem:
         '''
         # TODO (HaaTa) Handle scheduling
         import interface as i
+        LayerStateType = i.control.scan.LayerStateType
+        ScheduleState = i.control.scan.ScheduleState
         TriggerType = i.control.scan.TriggerType
 
         logger.debug("TriggerElem cleanup {} {}", self.elem, self.schedule)
@@ -723,6 +742,21 @@ class TriggerElem:
         elif self.elem['type'] == 'IndCode':
             # Activate Indicator
             i.control.cmd('removeScanCode')(self.elem['uid'], TriggerType.LED1)
+
+        # Layer Trigger
+        elif self.elem['type'] in ['Layer', 'LayerShift', 'LayerLatch', 'LayerLock']:
+            # Determine which layer type
+            state = ScheduleState.R
+            layer_state = LayerStateType.Shift
+            if self.elem['type'] == 'LayerLatch':
+                state = ScheduleState.P
+                layer_state = LayerStateType.Latch
+            elif self.elem['type'] == 'LayerLock':
+                state = ScheduleState.P
+                layer_state = LayerStateType.Lock
+
+            # Deactivate layer
+            i.control.cmd('applyLayer')(state, self.elem['uid'], layer_state)
 
         # Unknown TriggerElem
         else:
@@ -821,7 +855,7 @@ class ResultElem:
         for cap in i.control.data.capability_history.all():
             data = cap.callbackdata
             # Validate state and capability name
-            if data.state == state and data.read_capability()[0] == self.name:
+            if (data.state & 0x0F) == state and data.read_capability()[0] == self.name:
                 # Validate args
                 match_args = True
                 for index in range(len(self.expected_args)):

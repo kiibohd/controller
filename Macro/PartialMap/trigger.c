@@ -182,7 +182,7 @@ uint8_t Trigger_isLongTriggerMacro( const TriggerMacro *macro )
 // Handle short trigger PHRO/AODO state transitions
 TriggerMacroVote Trigger_evalShortTriggerMacroVote_PHRO( ScheduleState state )
 {
-	switch ( state )
+	switch ( state & 0x0F )
 	{
 	// Correct key, pressed, possible passing
 	case ScheduleType_P:
@@ -220,8 +220,22 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 	case TriggerType_Switch4:
 	// LED State Type
 	case TriggerType_LED1:
+	// Layer State Type
+	case TriggerType_Layer1:
+	case TriggerType_Layer2:
+	case TriggerType_Layer3:
+	case TriggerType_Layer4:
+	// Activity State Types
+	case TriggerType_Sleep1:
+	case TriggerType_Resume1:
+	case TriggerType_Inactive1:
+	case TriggerType_Active1:
 		// For short TriggerMacros completely ignore incorrect keys
-		if ( guide_index == event_index && guide->type == event->type )
+		if (
+			guide_index == event_index &&
+			guide->type == event->type &&
+			(guide->state & 0x70) == (event->state & 0x70)
+		)
 		{
 			return Trigger_evalShortTriggerMacroVote_PHRO( event->state );
 		}
@@ -236,14 +250,6 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 		erro_print("Analog State Type - Not implemented...");
 		break;
 
-	// Layer State Type
-	case TriggerType_Layer1:
-	case TriggerType_Layer2:
-	case TriggerType_Layer3:
-	case TriggerType_Layer4:
-		erro_print("Layer State Type - Not implemented...");
-		break;
-
 	// Animation State Type
 	case TriggerType_Animation1:
 	case TriggerType_Animation2:
@@ -253,10 +259,6 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 		break;
 
 	// Invalid State Type
-	case TriggerType_Sleep1:
-	case TriggerType_Resume1:
-	case TriggerType_Inactive1:
-	case TriggerType_Active1:
 	default:
 		erro_print("Invalid State Type. This is a bug.");
 		break;
@@ -335,6 +337,16 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 	case TriggerType_Switch4:
 	// LED State Type
 	case TriggerType_LED1:
+	// Layer State Type
+	case TriggerType_Layer1:
+	case TriggerType_Layer2:
+	case TriggerType_Layer3:
+	case TriggerType_Layer4:
+	// Activity State Types
+	case TriggerType_Sleep1:
+	case TriggerType_Resume1:
+	case TriggerType_Inactive1:
+	case TriggerType_Active1:
 		// Depending on the state of the buffered key, make voting decision
 		// Correct key
 		if ( guide_index == event_index && guide->type == event->type )
@@ -357,14 +369,6 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 		erro_print("Analog State Type - Not implemented...");
 		break;
 
-	// Layer State Type
-	case TriggerType_Layer1:
-	case TriggerType_Layer2:
-	case TriggerType_Layer3:
-	case TriggerType_Layer4:
-		erro_print("Layer State Type - Not implemented...");
-		break;
-
 	// Animation State Type
 	case TriggerType_Animation1:
 	case TriggerType_Animation2:
@@ -374,10 +378,6 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 		break;
 
 	// Invalid State Type
-	case TriggerType_Sleep1:
-	case TriggerType_Resume1:
-	case TriggerType_Inactive1:
-	case TriggerType_Active1:
 	default:
 		erro_print("Invalid State Type. This is a bug.");
 		break;

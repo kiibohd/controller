@@ -114,6 +114,16 @@ class TriggerType:
     Debug      = 0xFF
 
 
+class LayerStateType:
+    '''
+    See kll.h LayerStateType
+    '''
+    Off   = 0x00
+    Shift = 0x01
+    Latch = 0x02
+    Lock  = 0x04
+
+
 
 ### Structures ###
 
@@ -413,6 +423,20 @@ class Commands:
         '''
         cast( control.kiibohd.triggerPendingDebugMode, POINTER( c_uint8 ) )[0] = debugmode
 
+    def applyLayer( self, state, layer, layer_state ):
+        '''
+        Applies a given layer with a layer_state
+        If state is already applied, it will be unset.
+
+        @param state: Input state used to apply layer (e.g. Press/Release)
+        @param layer: Layer index
+        @param layer_state: LayerStateType value
+        '''
+        trigger = 0
+        state_type = TriggerType.Switch1
+        control.kiibohd.Layer_layerStateSet(int(trigger), int(state), int(state_type), int(layer), int(layer_state))
+        self.recordLayerState()
+
     def lockLayer( self, layer ):
         '''
         Lock specified layer
@@ -420,10 +444,10 @@ class Commands:
         @param layer: Layer index to lock
         '''
         trigger = 0
-        state = 1
-        stateType = 0
-        layerState = 0x04
-        control.kiibohd.Layer_layerStateSet(int(trigger), int(state), int(stateType), int(layer), int(layerState))
+        state = ScheduleState.P
+        state_type = TriggerType.Switch1
+        layer_state = LayerStateType.Lock
+        control.kiibohd.Layer_layerStateSet(int(trigger), int(state), int(state_type), int(layer), int(layer_state))
         self.recordLayerState()
 
     def clearLayers( self ):
@@ -464,6 +488,12 @@ class Commands:
         Necessary to maintain proper layer history
         '''
         data.layer_history.add(self.getLayerState())
+
+    def clearMacroTriggerEventBuffer( self ):
+        '''
+        Clears the macroTriggerEventBuffer to make sure no old events are processed.
+        '''
+        cast( control.kiibohd.macroTriggerEventBufferSize, POINTER( control.var_uint_t ) )[0] = 0
 
     def addAnimation( self, name=None, index=0, pos=0, loops=1, divmask=0x0, divshift=0x0, ffunc=0, pfunc=0 ):
         '''

@@ -174,11 +174,8 @@ void Macro_testThreadSafe_capability( TriggerMacro *trigger, uint8_t state, uint
 		// Display capability name
 		print("Macro_testThreadSafe()");
 		return;
-	case CapabilityState_Initial:
-	case CapabilityState_Last:
-		break;
 	default:
-		return;
+		break;
 	}
 
 	// Show trigger information
