@@ -231,10 +231,15 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 	case TriggerType_Inactive1:
 	case TriggerType_Active1:
 		// For short TriggerMacros completely ignore incorrect keys
+		// Only monitor 0x70 bits if set in the guide, otherwise ensure they are 0x00
+		// Used for Layer state information
 		if (
 			guide_index == event_index &&
 			guide->type == event->type &&
-			(guide->state & 0x70) == (event->state & 0x70)
+			(
+				(guide->state & 0x70) == (event->state & 0x70) ||
+				(guide->state & 0x70) == 0x00
+			)
 		)
 		{
 			return Trigger_evalShortTriggerMacroVote_PHRO( event->state );
