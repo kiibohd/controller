@@ -353,8 +353,17 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 	case TriggerType_Inactive1:
 	case TriggerType_Active1:
 		// Depending on the state of the buffered key, make voting decision
+		// Only monitor 0x70 bits if set in the guide, otherwise ensure they are 0x00
+		// Used for Layer state information
 		// Correct key
-		if ( guide_index == event_index && guide->type == event->type )
+		if (
+			guide_index == event_index &&
+			guide->type == event->type &&
+			(
+				(guide->state & 0x70) == (event->state & 0x70) ||
+				(guide->state & 0x70) == 0x00
+			)
+		)
 		{
 			return Trigger_evalLongTriggerMacroVote_PHRO( event->state, 1 );
 		}
