@@ -124,6 +124,7 @@ typedef enum AnimationControl {
 	AnimationControl_Stop       = 3, // Clears all animations, then sets forward
 	AnimationControl_Reset      = 4, // Clears all animations, starts initial animations (sets forward)
 	AnimationControl_WipePause  = 5, // Pauses animations, clears the display
+	AnimationControl_Clear      = 6, // Clears the display, animations continue
 } AnimationControl;
 
 

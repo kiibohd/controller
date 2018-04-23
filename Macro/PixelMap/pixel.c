@@ -287,6 +287,9 @@ void Pixel_AnimationControl_capability( TriggerMacro *trigger, uint8_t state, ui
 	case 6: // Pauses animation
 		Pixel_animationControl = AnimationControl_Pause;
 		break;
+	case 7: // Clears pixels (no pause and no stop)
+		Pixel_animationControl = AnimationControl_Clear;
+		break;
 	}
 }
 
@@ -1674,6 +1677,10 @@ inline void Pixel_process()
 		Pixel_animationControl = AnimationControl_Pause; // Update one more time
 		Pixel_clearPixels();
 		goto pixel_process_done;
+	case AnimationControl_Clear: // Clears the display, animations continue
+		Pixel_FrameState = FrameState_Update;
+		Pixel_clearPixels();
+		break;
 	default: // Pause
 		Pixel_FrameState = FrameState_Pause;
 		goto pixel_process_final;

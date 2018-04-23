@@ -20,6 +20,7 @@ pixel => Pixel_Pixel_capability();
 # 4 - Reset (restarts animations)
 # 5 - Wipe Pause (pauses animations and clears display)
 # 6 - Pause
+# 7 - Clear (clears the display, animations continue)
 animation_control => Pixel_AnimationControl_capability( func : 1 );
 
 
