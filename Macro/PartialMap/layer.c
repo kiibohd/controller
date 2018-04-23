@@ -187,6 +187,14 @@ void Layer_layerState_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	case CapabilityState_Debug:
 		// Display capability name
 		print("Layer_layerState(layerIndex,layerState)");
+
+		// Read arg if not set to 0
+		if ( args != 0 )
+		{
+			uint16_t key = *(uint16_t*)(&args[0]);
+			print(" -> ");
+			printInt16( key );
+		}
 		return;
 	default:
 		return;
@@ -217,6 +225,14 @@ void Layer_layerLatch_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	case CapabilityState_Debug:
 		// Display capability name
 		print("Layer_layerLatch(layerIndex)");
+
+		// Read arg if not set to 0
+		if ( args != 0 )
+		{
+			uint16_t key = *(uint16_t*)(&args[0]);
+			print(" -> ");
+			printInt16( key );
+		}
 		return;
 	default:
 		return;
@@ -244,6 +260,14 @@ void Layer_layerLock_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	case CapabilityState_Debug:
 		// Display capability name
 		print("Layer_layerLock(layerIndex)");
+
+		// Read arg if not set to 0
+		if ( args != 0 )
+		{
+			uint16_t key = *(uint16_t*)(&args[0]);
+			print(" -> ");
+			printInt16( key );
+		}
 		return;
 	default:
 		return;
@@ -288,6 +312,14 @@ void Layer_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	case CapabilityState_Debug:
 		// Display capability name
 		print("Layer_layerShift(layerIndex)");
+
+		// Read arg if not set to 0
+		if ( args != 0 )
+		{
+			uint16_t key = *(uint16_t*)(&args[0]);
+			print(" -> ");
+			printInt16( key );
+		}
 	default:
 		return;
 	}
@@ -311,6 +343,14 @@ void Layer_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 	case CapabilityState_Debug:
 		// Display capability name
 		print("Layer_layerRotate(previous)");
+
+		// Read arg if not set to 0
+		if ( args != 0 )
+		{
+			uint8_t key = args[0];
+			print(" -> ");
+			printInt8( key );
+		}
 		return;
 	default:
 		return;

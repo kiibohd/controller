@@ -1077,6 +1077,12 @@ class USBCodeVerification(CapabilityVerification):
         # Get USB Keyboard data
         data = i.control.data.usb_keyboard()
 
+        # Could not acquire keyboard data
+        if data is None:
+            return check(False, "Could not retrieve data from usb_keyboards()  Expected: {}".format(
+                expected,
+            ))
+
         logger.debug("Data: {}  Expected: {}", data, expected)
 
         # Check for expected data

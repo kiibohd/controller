@@ -195,7 +195,7 @@ CapabilityState KLL_CapabilityState( ScheduleState state, TriggerType type )
 	// Debug
 	case TriggerType_Debug:
 		// State must also be 0xFF to trigger debug
-		if ( state == 0xFF )
+		if ( state == ScheduleType_Debug )
 		{
 			return CapabilityState_Debug;
 		}

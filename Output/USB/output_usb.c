@@ -271,6 +271,14 @@ void Output_consCtrlSend_capability( TriggerMacro *trigger, uint8_t state, uint8
 	case CapabilityState_Debug:
 		// Display capability name
 		print("Output_consCtrlSend(consCode)");
+
+		// Read arg if not set to 0
+		if ( args != 0 )
+		{
+			uint16_t key = *(uint16_t*)(&args[0]);
+			print(" -> ");
+			printInt16( key );
+		}
 		return;
 	default:
 		return;
@@ -325,6 +333,14 @@ void Output_sysCtrlSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 	case CapabilityState_Debug:
 		// Display capability name
 		print("Output_sysCtrlSend(sysCode)");
+
+		// Read arg if not set to 0
+		if ( args != 0 )
+		{
+			uint8_t key = args[0];
+			print(" -> ");
+			printInt8( key );
+		}
 		return;
 	default:
 		return;
@@ -357,6 +373,14 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 	case CapabilityState_Debug:
 		// Display capability name
 		print("Output_usbCodeSend(usbCode)");
+
+		// Read arg if not set to 0
+		if ( args != 0 )
+		{
+			uint8_t key = args[0];
+			print(" -> ");
+			printInt8( key );
+		}
 		return;
 	default:
 		return;

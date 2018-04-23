@@ -50,6 +50,7 @@
 
 // ----- Function Declarations -----
 
+void cliFunc_capDebug  ( char* args );
 void cliFunc_capList   ( char* args );
 void cliFunc_capSelect ( char* args );
 void cliFunc_keyHold   ( char* args );
@@ -74,6 +75,7 @@ void Macro_showTriggerType( TriggerType type );
 // ----- Variables -----
 
 // Macro Module command dictionary
+CLIDict_Entry( capDebug,    "Prints capability debug message before calling, with trigger conditions." );
 CLIDict_Entry( capList,     "Prints an indexed list of all non USB keycode capabilities." );
 CLIDict_Entry( capSelect,   "Triggers the specified capabilities. First two args are state and stateType." NL "\t\t\033[35mK11\033[0m Keyboard Capability 0x0B" );
 CLIDict_Entry( keyHold,     "Send key-hold events to the macro module. Duplicates have undefined behaviour." NL "\t\t\033[35mS10\033[0m Scancode 0x0A" );
@@ -91,6 +93,7 @@ CLIDict_Entry( posList,     "List physical key positions by ScanCode." );
 CLIDict_Entry( voteDebug,   "Show results of TriggerEvent voting." );
 
 CLIDict_Def( macroCLIDict, "Macro Module Commands" ) = {
+	CLIDict_Item( capDebug ),
 	CLIDict_Item( capList ),
 	CLIDict_Item( capSelect ),
 	CLIDict_Item( keyHold ),
@@ -109,6 +112,9 @@ CLIDict_Def( macroCLIDict, "Macro Module Commands" ) = {
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
+
+// Capability debug flag - If set, shows the name of the capability when before it is called
+extern uint8_t capDebugMode;
 
 // Layer debug flag - If set, displays any changes to layers and the full layer stack on change
 extern uint8_t layerDebugMode;
@@ -267,6 +273,7 @@ void Macro_showScheduleType( ScheduleState state )
 
 	default:
 		print("\033[1;31mINVALID\033[0m");
+		printInt8( state & 0x0F );
 		break;
 	}
 
@@ -358,6 +365,34 @@ void Macro_showTriggerType( TriggerType type )
 	case TriggerType_Layer3:
 	case TriggerType_Layer4:
 		print("Layer");
+		break;
+
+	// Animation
+	case TriggerType_Animation1:
+	case TriggerType_Animation2:
+	case TriggerType_Animation3:
+	case TriggerType_Animation4:
+		print("Animation");
+		break;
+
+	// Sleep
+	case TriggerType_Sleep1:
+		print("Sleep");
+		break;
+
+	// Resume
+	case TriggerType_Resume1:
+		print("Resume");
+		break;
+
+	// Inactive
+	case TriggerType_Inactive1:
+		print("Inactive");
+		break;
+
+	// Active
+	case TriggerType_Active1:
+		print("Active");
 		break;
 
 	// Invalid
@@ -973,14 +1008,18 @@ void Macro_periodic()
 	Trigger_process();
 
 
+	// Store events processed
+	var_uint_t macroTriggerEventBufferSize_processed = macroTriggerEventBufferSize;
+
+	// Reset TriggerList buffer
+	macroTriggerEventBufferSize = 0;
+
+
 	// Process result macros
 	Result_process();
 
 	// Signal buffer that we've used it
-	Scan_finishedWithMacro( macroTriggerEventBufferSize );
-
-	// Reset TriggerList buffer
-	macroTriggerEventBufferSize = 0;
+	Scan_finishedWithMacro( macroTriggerEventBufferSize_processed );
 
 #if defined(_host_)
 	// Signal host to read layer state
@@ -1038,6 +1077,16 @@ inline void Macro_setup()
 
 
 // ----- CLI Command Functions -----
+
+void cliFunc_capDebug( char* args )
+{
+	// Toggle layer debug mode
+	capDebugMode = capDebugMode ? 0 : 1;
+
+	print( NL );
+	info_msg("Capability Debug Mode: ");
+	printInt8( capDebugMode );
+}
 
 void cliFunc_capList( char* args )
 {

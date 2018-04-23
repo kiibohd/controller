@@ -83,6 +83,9 @@ volatile ResultCapabilityStack macroResultDelayedCapabilities;
 ResultCapabilityStackItem resultCapabilityCallbackData;
 #endif
 
+// Capability debug mode
+uint8_t capDebugMode;
+
 
 
 // ----- Functions -----
@@ -119,6 +122,14 @@ void Result_evalResultMacroCombo(
 			// Do lookup on capability function
 			void (*capability)(TriggerMacro*, uint8_t, uint8_t, uint8_t*) = \
 				(void(*)(TriggerMacro*, uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ guide->index ].func);
+
+			// Capability debug
+			if ( capDebugMode )
+			{
+				dbug_msg("Safe: ");
+				capability( resultElem->trigger, ScheduleType_Debug, TriggerType_Debug, &guide->args );
+				print( NL );
+			}
 
 #if defined(_host_)
 			// Callback to indicate a capability has been called
@@ -224,6 +235,22 @@ void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 		{
 			elem->record.state     = macroTriggerEventBuffer[ keyIndex ].state;
 			elem->record.stateType = macroTriggerEventBuffer[ keyIndex ].type;
+
+			// If this is a Layer stateType, mask the Shift/Latch/Lock information
+			switch ( elem->record.stateType )
+			{
+			case TriggerType_Layer1:
+			case TriggerType_Layer2:
+			case TriggerType_Layer3:
+			case TriggerType_Layer4:
+				// We don't want to mask 0xFF, which is a debug state
+				if ( elem->record.state & 0xF0 && ( elem->record.state & 0x80 ) == 0x00 )
+				{
+					// Need to mask over 0x70, allow through all the rest of the bits
+					elem->record.state &= 0x8F;
+				}
+				break;
+			}
 			break;
 		}
 	}
@@ -292,6 +319,9 @@ void Result_setup()
 
 	// Reset delayed capabilities stack
 	macroResultDelayedCapabilities.size = 0;
+
+	// Capability debug mode
+	capDebugMode = 0;
 }
 
 
@@ -313,6 +343,14 @@ void Result_process_delayed()
 		// Do lookup on capability function
 		void (*capability)(TriggerMacro*, uint8_t, uint8_t, uint8_t*) = \
 			(void(*)(TriggerMacro*, uint8_t, uint8_t, uint8_t*))(CapabilitiesList[ item->capabilityIndex ].func);
+
+		// Capability debug
+		if ( capDebugMode )
+		{
+			dbug_msg("Un-safe: ");
+			capability( item->trigger, ScheduleType_Debug, TriggerType_Debug, item->args );
+			print( NL );
+		}
 
 #if defined(_host_)
 		// Callback to indicate a capability has been called
