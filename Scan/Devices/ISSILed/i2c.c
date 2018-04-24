@@ -197,8 +197,8 @@ void i2c_setup()
 			NVIC_EnableIRQ(TWI0_IRQn);
 			break;
 		case 1:
-			NVIC_SetPriority(TWI0_IRQn, 150);
-			NVIC_EnableIRQ(TWI0_IRQn);
+			NVIC_SetPriority(TWI1_IRQn, 150);
+			NVIC_EnableIRQ(TWI1_IRQn);
 			break;
 		}
 
