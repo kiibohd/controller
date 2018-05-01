@@ -203,6 +203,23 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote_PHRO( ScheduleState state )
 }
 
 
+// Handle short trigger DRO state transitions
+TriggerMacroVote Trigger_evalShortTriggerMacroVote_DRO( ScheduleState state )
+{
+	switch ( state )
+	{
+	// Correct event, possible passing
+	case ScheduleType_Done:
+	case ScheduleType_Repeat:
+		return TriggerMacroVote_Pass;
+
+	// Invalid state, fail
+	default:
+		return TriggerMacroVote_Fail;
+	}
+}
+
+
 // Votes on the given key vs. guide, short macros
 TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, TriggerGuide *guide )
 {
@@ -260,8 +277,17 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 	case TriggerType_Animation2:
 	case TriggerType_Animation3:
 	case TriggerType_Animation4:
-		erro_print("Animation State Type - Not implement...");
-		break;
+		// For short TriggerMacros completely ignore incorrect triggers
+		if (
+			guide_index == event_index &&
+			guide->type == event->type &&
+			guide->state == event->state
+		)
+		{
+			return Trigger_evalShortTriggerMacroVote_DRO( event->state );
+		}
+
+		return TriggerMacroVote_DoNothing;
 
 	// Invalid State Type
 	default:
@@ -320,6 +346,32 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote_PHRO( ScheduleState state, uin
 		default:
 			return TriggerMacroVote_Fail;
 		}
+	}
+}
+
+
+// Handle long trigger DRO state transitions
+TriggerMacroVote Trigger_evalLongTriggerMacroVote_DRO( ScheduleState state, uint8_t correct )
+{
+	// Correct match
+	if ( correct )
+	{
+		switch ( state )
+		{
+		// Correct event, possible passing
+		case ScheduleType_Done:
+		case ScheduleType_Repeat:
+			return TriggerMacroVote_Pass;
+
+		// Invalid state, fail
+		default:
+			return TriggerMacroVote_Fail;
+		}
+	}
+	// Incorrect match
+	else
+	{
+		return TriggerMacroVote_Fail;
 	}
 }
 
@@ -388,7 +440,22 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 	case TriggerType_Animation2:
 	case TriggerType_Animation3:
 	case TriggerType_Animation4:
-		erro_print("Animation State Type - Not implement...");
+		// Depending on the state of the buffered key, make voting decision
+		// Correct trigger
+		if (
+			guide_index == event_index &&
+			guide->type == event->type &&
+			guide->state == event->state
+		)
+		{
+			return Trigger_evalLongTriggerMacroVote_DRO( event->state, 1 );
+		}
+		// Incorrect trigger
+		else
+		{
+			return Trigger_evalLongTriggerMacroVote_DRO( event->state, 0 );
+		}
+
 		break;
 
 	// Invalid State Type

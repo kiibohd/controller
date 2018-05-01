@@ -35,18 +35,21 @@ var_uint_t KLL_TriggerIndex_loopkup( TriggerType type, uint8_t index )
 	case TriggerType_Switch2:
 	case TriggerType_Analog2:
 	case TriggerType_Layer2:
+	case TriggerType_Animation2:
 		fullindex += 255;
 		break;
 
 	case TriggerType_Switch3:
 	case TriggerType_Analog3:
 	case TriggerType_Layer3:
+	case TriggerType_Animation3:
 		fullindex += 511;
 		break;
 
 	case TriggerType_Switch4:
 	case TriggerType_Analog4:
 	case TriggerType_Layer4:
+	case TriggerType_Animation4:
 		fullindex += 767;
 		break;
 
@@ -55,6 +58,11 @@ var_uint_t KLL_TriggerIndex_loopkup( TriggerType type, uint8_t index )
 	case TriggerType_Analog1:
 	case TriggerType_LED1:
 	case TriggerType_Layer1:
+	case TriggerType_Animation1:
+	case TriggerType_Sleep1:
+	case TriggerType_Resume1:
+	case TriggerType_Inactive1:
+	case TriggerType_Active1:
 	default:
 		break;
 	}
