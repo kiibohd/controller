@@ -207,12 +207,13 @@ volatile LED_Buffer LED_pageBuffer_brightness[ISSI_Chips_define];
 #endif
 extern LED_Buffer LED_pageBuffer[ISSI_Chips_define];
 
-uint8_t LED_displayFPS; // Display fps to cli
-uint8_t LED_enable;     // Enable/disable ISSI chips
-uint8_t LED_pause;      // Pause ISSI updates
-uint8_t LED_brightness; // Global brightness for LEDs
+uint8_t LED_displayFPS;     // Display fps to cli
+uint8_t LED_enable;         // Enable/disable ISSI chips
+uint8_t LED_enable_current; // Enable/disable ISSI chips (based on USB current availability)
+uint8_t LED_pause;          // Pause ISSI updates
+uint8_t LED_brightness;     // Global brightness for LEDs
 
-uint32_t LED_framerate; // Configured led framerate, given in ms per frame
+uint32_t LED_framerate;     // Configured led framerate, given in ms per frame
 
 Time LED_timePrev; // Last frame processed
 
@@ -692,6 +693,7 @@ inline void LED_setup()
 
 	// LED default setting
 	LED_enable = ISSI_Enable_define;
+	LED_enable_current = ISSI_Enable_define; // Needs a default setting, almost always unset immediately
 
 	// Enable Hardware shutdown (pull low)
 #if defined(_kinetis_)
@@ -721,7 +723,7 @@ inline void LED_setup()
 	LED_zeroControlPages();
 
 	// Disable Hardware shutdown of ISSI chips (pull high)
-	if ( LED_enable )
+	if ( LED_enable && LED_enable_current )
 	{
 #if defined(_kinetis_)
 		GPIOB_PSOR |= (1<<16);
@@ -818,14 +820,14 @@ inline void LED_scan()
 		// Turn LEDs off in low power mode
 		if ( LED_currentEvent < 150 )
 		{
-			LED_enable = 0;
+			LED_enable_current = 0;
 
 			// Pause animations and clear display
 			Pixel_setAnimationControl( AnimationControl_WipePause );
 		}
 		else
 		{
-			LED_enable = 1;
+			LED_enable_current = 1;
 
 			// Start animations
 			Pixel_setAnimationControl( AnimationControl_Forward );
@@ -840,7 +842,7 @@ inline void LED_scan()
 		goto led_finish_scan;
 
 	// Check enable state
-	if ( LED_enable )
+	if ( LED_enable && LED_enable_current )
 	{
 		// Disable Hardware shutdown of ISSI chips (pull high)
 #if defined(_kinetis_)
