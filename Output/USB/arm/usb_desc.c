@@ -183,8 +183,6 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	// See http://www.usb.org/developers/hidpage/Hut1_12v2.pdf Chapter 10
 	// Or Macros/PartialMap/usb_hid.h
 	//
-	// 50 (ISO \ due to \ bug) and 156 (Clear due to Delete bug) must be excluded
-	//  due to a Linux bug with bitmaps (not useful anyways)
 	// 165-175 are reserved/unused as well as 222-223 and 232-65535
 	//
 	// Compatibility Notes:
@@ -197,13 +195,11 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	//  - Mac OSX and Windows 8.1 are extremely picky about padding
 	//
 	// Packing of bitmaps are as follows:
-	//   4-49  :  6 bytes (0x04-0x31) ( 46 bits + 2 padding bits for 6 bytes total)
-	//  51-155 : 14 bytes (0x33-0x9B) (105 bits + 6 padding bits for 15 bytes total)
-	// 157-164 :  1 byte  (0x9D-0xA4) (  8 bits)
+	//   4-164 : 21 bytes (0x04-0xA4) (161 bits + 4 padding bits + 3 padding bits for 21 bytes total)
 	// 176-221 :  6 bytes (0xB0-0xDD) ( 46 bits + 2 padding bits for 6 bytes total)
 	// 224-231 :  1 byte  (0xE0-0xE7) (  8 bits)
 
-	// Modifier Byte
+	// 224-231 (1 byte/8 bits) - Modifier Section
 	0x75, 0x01,          //   Report Size (1),
 	0x95, 0x08,          //   Report Count (8),
 	0x15, 0x00,          //   Logical Minimum (0),
@@ -211,49 +207,30 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	0x05, 0x07,          //   Usage Page (Key Codes),
 	0x19, 0xE0,          //   Usage Minimum (224),
 	0x29, 0xE7,          //   Usage Maximum (231),
-	0x81, 0x02,          //   Input (Data, Variable, Absolute),
+	0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
 
-	// 4-49 (6 bytes/46 bits) - MainKeys
+	// Padding (4 bits)
+	// Ignores Codes 0-3 (Keyboard Status codes)
+	0x75, 0x04,          //   Report Size (4),
+	0x95, 0x01,          //   Report Count (1),
+	0x81, 0x03,          //   Input (Constant),
+
+	// 4-164 (21 bytes/161 bits + 4 bits + 3 bits) - Keyboard Section
 	0x75, 0x01,          //   Report Size (1),
-	0x95, 0x2E,          //   Report Count (46),
+	0x95, 0xA1,          //   Report Count (161),
 	0x15, 0x00,          //   Logical Minimum (0),
 	0x25, 0x01,          //   Logical Maximum (1),
 	0x05, 0x07,          //   Usage Page (Key Codes),
 	0x19, 0x04,          //   Usage Minimum (4),
-	0x29, 0x31,          //   Usage Maximum (49),
-	0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
-
-	// Padding (2 bits)
-	0x75, 0x02,          //   Report Size (2),
-	0x95, 0x01,          //   Report Count (1),
-	0x81, 0x03,          //   Input (Constant),
-
-	// 51-155 (14 bytes/105 bits) - SecondaryKeys
-	0x75, 0x01,          //   Report Size (1),
-	0x95, 0x69,          //   Report Count (105),
-	0x15, 0x00,          //   Logical Minimum (0),
-	0x25, 0x01,          //   Logical Maximum (1),
-	0x05, 0x07,          //   Usage Page (Key Codes),
-	0x19, 0x33,          //   Usage Minimum (51),
-	0x29, 0x9B,          //   Usage Maximum (155),
-	0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
-
-	// Padding (7 bits)
-	0x75, 0x07,          //   Report Size (7),
-	0x95, 0x01,          //   Report Count (1),
-	0x81, 0x03,          //   Input (Constant),
-
-	// 157-164 (1 byte/8 bits) - TertiaryKeys
-	0x75, 0x01,          //   Report Size (1),
-	0x95, 0x08,          //   Report Count (8),
-	0x15, 0x00,          //   Logical Minimum (0),
-	0x25, 0x01,          //   Logical Maximum (1),
-	0x05, 0x07,          //   Usage Page (Key Codes),
-	0x19, 0x9D,          //   Usage Minimum (157),
 	0x29, 0xA4,          //   Usage Maximum (164),
 	0x81, 0x02,          //   Input (Data, Variable, Absolute, Bitfield),
 
-	// 176-221 (6 bytes/46 bits) - QuartiaryKeys
+	// Padding (3 bits)
+	0x75, 0x03,          //   Report Size (3),
+	0x95, 0x01,          //   Report Count (1),
+	0x81, 0x03,          //   Input (Constant),
+
+	// 176-221 (6 bytes/46 bits) - Keypad Section
 	0x75, 0x01,          //   Report Size (1),
 	0x95, 0x2E,          //   Report Count (46),
 	0x15, 0x00,          //   Logical Minimum (0),

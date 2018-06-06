@@ -277,23 +277,15 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 			*tx_buf++ = buffer->modifiers;
 			tx_packet->len += 2;
 
-			// 4-49 (first 6 bytes)
-			memcpy( tx_buf, buffer->keys, 6 );
-			tx_buf += 6;
-			tx_packet->len += 6;
-
-			// 51-155 (Middle 14 bytes)
-			memcpy( tx_buf, buffer->keys + 6, 14 );
-			tx_buf += 14;
-			tx_packet->len += 14;
-
-			// 157-164 (Next byte)
-			memcpy( tx_buf, buffer->keys + 20, 1 );
-			tx_buf += 1;
-			tx_packet->len += 1;
+			// 4-164 (first 21 bytes)
+			// 0-3 and 165-168 are masked by the descriptor (padding)
+			memcpy( tx_buf, buffer->keys, 21 );
+			tx_buf += 21;
+			tx_packet->len += 21;
 
 			// 176-221 (last 6 bytes)
-			memcpy( tx_buf, buffer->keys + 21, 6 );
+			// 222-223 are masked by the descriptor (padding)
+			memcpy( tx_buf, buffer->keys + 22, 6 );
 			tx_packet->len += 6;
 
 			// Send USB Packet

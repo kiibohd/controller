@@ -35,7 +35,7 @@
 
 // Max size of key buffer needed for NKRO
 // Boot mode uses only the first 6 bytes
-#define USB_NKRO_BITFIELD_SIZE_KEYS 27
+#define USB_NKRO_BITFIELD_SIZE_KEYS 28
 #define USB_BOOT_MAX_KEYS 6
 
 
@@ -47,13 +47,10 @@
 typedef enum USBKeyChangeState {
 	USBKeyChangeState_None          = 0x00,
 	USBKeyChangeState_Modifiers     = 0x01,
-	USBKeyChangeState_MainKeys      = 0x02,
-	USBKeyChangeState_SecondaryKeys = 0x04,
-	USBKeyChangeState_TertiaryKeys  = 0x08,
-	USBKeyChangeState_QuartiaryKeys = 0x10,
-	USBKeyChangeState_System        = 0x20,
-	USBKeyChangeState_Consumer      = 0x40,
-	USBKeyChangeState_All           = 0x7F,
+	USBKeyChangeState_Keys          = 0x02,
+	USBKeyChangeState_System        = 0x04,
+	USBKeyChangeState_Consumer      = 0x08,
+	USBKeyChangeState_All           = 0x0F,
 } USBKeyChangeState;
 
 // Allows for selective USB descriptor pushes

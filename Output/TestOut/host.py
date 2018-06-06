@@ -108,8 +108,8 @@ class USBKeys( Structure ):
 
     _fields_ = [
         ( 'modifiers', c_uint8 ),
-        ( 'keys',      c_uint8 * 27 ), # XXX (HaaTa) There should be a way to make this dynamic
-                                       # XXX (HaaTa) Use builtins to parse this value early from the libray
+        ( 'keys',      c_uint8 * 28 ), # XXX (HaaTa) There should be a way to make this dynamic
+                                       # XXX (HaaTa) Use builtins to parse this value early from the library
         ( 'sys_ctrl',  c_uint8 ),
         ( 'cons_ctrl', c_uint16 ),
         ( 'changed',   c_uint8 ),
@@ -154,10 +154,11 @@ class USBKeyboard:
         Return a list of usb codes in the USB packet
         '''
         # keys array format
-        # Bits   0 -  45 (bytes  0 -  5) correspond to USB Codes   4 -  49 (Main)
-        # Bits  48 - 161 (bytes  6 - 20) correspond to USB Codes  51 - 164 (Secondary)
-        # Bits 168 - 213 (bytes 21 - 26) correspond to USB Codes 176 - 221 (Tertiary)
-        # Bits 214 - 216                 unused
+        # Bits   0 -   3                 unused
+        # Bits   4 - 164 (bytes  0 - 20) Keyboard Codes
+        # Bits 165 - 175                 unused
+        # Bits 176 - 221 (bytes 22 - 27) Keypad Codes
+        # Bits 222 - 223                 unused
         keys = []
 
         # Calculate modifiers
@@ -178,18 +179,8 @@ class USBKeyboard:
                 for pos, bit in zip( range( start, start + 8 ), range( 0, 8 ) ):
                     # Check if bit is set
                     if byte & (1<<bit):
-                        if pos <= 45:
-                            keys.append( pos + 4 )
-                        elif pos <= 47:
-                            pass
-                        elif pos <= 161:
-                            keys.append( pos + 3 )
-                        elif pos <= 167:
-                            pass
-                        elif pos <= 213:
-                            keys.append( pos + 8 )
-                        elif pos <= 216:
-                            pass
+                        if pos <= 221:
+                            keys.append( pos )
                 start += 8
 
         return keys

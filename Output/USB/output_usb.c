@@ -412,10 +412,11 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 	// Depending on which mode the keyboard is in, USBKeys_Keys array is used differently
 	// Boot mode - Maximum of 6 byte codes
 	// NKRO mode - Each bit of the 26 byte corresponds to a key
-	//  Bits   0 -  45 (bytes  0 -  5) correspond to USB Codes   4 -  49 (Main)
-	//  Bits  48 - 161 (bytes  6 - 20) correspond to USB Codes  51 - 164 (Secondary)
-	//  Bits 168 - 213 (bytes 21 - 26) correspond to USB Codes 176 - 221 (Tertiary)
-	//  Bits 214 - 216                 unused
+	//  Bits   0 -   3                 unused
+	//  Bits   4 - 164 (bytes  0 - 20) correspond to USB Codes   4 - 164 (Keyboard Section)
+	//  Bits 165 - 175                 unused
+	//  Bits 176 - 221 (bytes 22 - 27) correspond to USB Codes 176 - 221 (Keypad Section)
+	//  Bits 222 - 223                 unused
 	uint8_t bytePosition = 0;
 	uint8_t byteShift = 0;
 
@@ -461,7 +462,7 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 					}
 					USBKeys_Sent--;
 					keyFound = 1;
-					USBKeys_primary.changed = USBKeyChangeState_MainKeys;
+					USBKeys_primary.changed = USBKeyChangeState_Keys;
 					break;
 				}
 			}
@@ -477,7 +478,7 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 			if ( keyPress && !keyFound )
 			{
 				USBKeys_primary.keys[USBKeys_Sent++] = key;
-				USBKeys_primary.changed = USBKeyChangeState_MainKeys;
+				USBKeys_primary.changed = USBKeyChangeState_Keys;
 			}
 		}
 		break;
@@ -498,32 +499,20 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 			USBKeys_primary.changed |= USBKeyChangeState_Modifiers;
 			break;
 		}
-		// First 6 bytes
-		else if ( key >= 4 && key <= 49 )
+		// Handle Keyboard and Keypad Sections
+		else if ( key >= 1 && key <= 221 )
 		{
 			// Lookup (otherwise division or multiple checks are needed to do alignment)
-			// Starting at 0th position, each byte has 8 bits, starting at 4th bit
-			uint8_t keyPos = key + (0 * 8 - 4); // Starting position in array, Ignoring 4 keys
-			switch ( keyPos )
+			// Starting at 0th position, each byte has 8 bits
+			switch ( key )
 			{
+				// Keyboard Section
 				byteLookup( 0 );
 				byteLookup( 1 );
 				byteLookup( 2 );
 				byteLookup( 3 );
 				byteLookup( 4 );
 				byteLookup( 5 );
-			}
-
-			USBKeys_primary.changed |= USBKeyChangeState_MainKeys;
-		}
-		// Next 14 bytes
-		else if ( key >= 51 && key <= 155 )
-		{
-			// Lookup (otherwise division or multiple checks are needed to do alignment)
-			// Starting at 6th byte position, each byte has 8 bits, starting at 51st bit
-			uint8_t keyPos = key + (6 * 8 - 51); // Starting position in array
-			switch ( keyPos )
-			{
 				byteLookup( 6 );
 				byteLookup( 7 );
 				byteLookup( 8 );
@@ -538,51 +527,35 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 				byteLookup( 17 );
 				byteLookup( 18 );
 				byteLookup( 19 );
-			}
-
-			USBKeys_primary.changed |= USBKeyChangeState_SecondaryKeys;
-		}
-		// Next byte
-		else if ( key >= 157 && key <= 164 )
-		{
-			// Lookup (otherwise division or multiple checks are needed to do alignment)
-			uint8_t keyPos = key + (20 * 8 - 157); // Starting position in array, Ignoring 6 keys
-			switch ( keyPos )
-			{
 				byteLookup( 20 );
-			}
 
-			USBKeys_primary.changed |= USBKeyChangeState_TertiaryKeys;
-		}
-		// Last 6 bytes
-		else if ( key >= 176 && key <= 221 )
-		{
-			// Lookup (otherwise division or multiple checks are needed to do alignment)
-			uint8_t keyPos = key + (21 * 8 - 176); // Starting position in array
-			switch ( keyPos )
-			{
-				byteLookup( 21 );
+				// Padding
+				// XXX (HaaTa) Not necessary to include
+				//byteLookup( 21 );
+
+				// Keypad Section
 				byteLookup( 22 );
 				byteLookup( 23 );
 				byteLookup( 24 );
 				byteLookup( 25 );
 				byteLookup( 26 );
+				byteLookup( 27 );
 			}
 
-			USBKeys_primary.changed |= USBKeyChangeState_QuartiaryKeys;
+			USBKeys_primary.changed |= USBKeyChangeState_Keys;
 		}
 		// Received 0x00
 		// This is a special USB Code that internally indicates a "break"
 		// It is used to send "nothing" in order to break up sequences of USB Codes
 		else if ( key == 0x00 )
 		{
-			USBKeys_primary.changed |= USBKeyChangeState_MainKeys;
+			USBKeys_primary.changed |= USBKeyChangeState_Keys;
 			break;
 		}
 		// Invalid key
 		else
 		{
-			warn_msg("USB Code not within 4-49 (0x4-0x31), 51-155 (0x33-0x9B), 157-164 (0x9D-0xA4), 176-221 (0xB0-0xDD) or 224-231 (0xE0-0xE7) NKRO Mode: ");
+			warn_msg("USB Code not within 4-155 (0x4-0x9B), 157-164 (0x9D-0xA4), 176-221 (0xB0-0xDD) or 224-231 (0xE0-0xE7) NKRO Mode: ");
 			printHex( key );
 			print( NL );
 			break;
@@ -967,16 +940,17 @@ void USB_NKRODebug( USBKeys *buffer )
 	print("\033[1;34mNKRO\033[0m ");
 	printHex_op( buffer->modifiers, 2 );
 	print(" ");
-	for ( uint8_t c = 0; c < 6; c++ )
+	// Keyboard Section
+	for ( uint8_t c = 0; c < 21; c++ )
+	{
 		printHex_op( buffer->keys[ c ], 2 );
+	}
 	print(" ");
-	for ( uint8_t c = 6; c < 20; c++ )
+	// Keypad Section
+	for ( uint8_t c = 22; c < 28; c++ )
+	{
 		printHex_op( buffer->keys[ c ], 2 );
-	print(" ");
-	printHex_op( buffer->keys[20], 2 );
-	print(" ");
-	for ( uint8_t c = 21; c < 27; c++ )
-		printHex_op( buffer->keys[ c ], 2 );
+	}
 	print( NL );
 }
 
