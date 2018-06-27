@@ -28,6 +28,7 @@ set( CHIP
 #       "mk64fx512"        # Teensy   3.5 (arm)
 #       "mk66fx1m0"        # Teensy   3.6 (arm)
 #       "host"             # System compiler test environment
+#	"sam4s8c"          # Kira
 	CACHE STRING "Microcontroller Chip"
 )
 

@@ -45,6 +45,9 @@
 #include "usb_serial.h"
 #endif
 
+#if defined(_sam_)
+#include <udi_hid_kbd.h>
+#endif
 
 
 // ----- Defines -----
@@ -1797,6 +1800,7 @@ uint8_t usb_init()
 	USB0_CONTROL = USB_CONTROL_DPPULLUPNONOTG;
 #elif defined(_sam_)
 	//SAM TODO
+	udi_hid_kbd_down(HID_H);
 #endif
 
 	// Do not check for power negotiation delay until Get Configuration Descriptor

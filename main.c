@@ -36,8 +36,6 @@
 
 #include <Lib/periodic.h>
 
-
-
 // ----- Enumerations -----
 
 typedef enum PeriodicStage {
@@ -99,11 +97,6 @@ int main_periodic()
 
 int main()
 {
-	// AVR - Teensy Set Clock speed to 16 MHz
-#if defined(_avr_at_)
-	CLKPR = 0x80;
-	CLKPR = 0x00;
-#endif
 	// Setup Latency Measurements
 	Latency_init();
 
