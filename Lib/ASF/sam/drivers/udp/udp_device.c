@@ -53,6 +53,8 @@
 #include "udp_device.h"
 #include <string.h>
 
+#include <Lib/sysview.h>
+
 #ifndef UDD_NO_SLEEP_MGR
 #  include "sleep.h"
 #  include "sleepmgr.h"
@@ -444,6 +446,8 @@ static bool udd_ep_interrupt(void);
  */
 ISR(UDD_USB_INT_FUN)
 {
+	SEGGER_SYSVIEW_RecordEnterISR();
+
 	/* For fast wakeup clocks restore
 	 * In WAIT mode, clocks are switched to FASTRC.
 	 * After wakeup clocks should be restored, before that ISR should not
@@ -539,6 +543,7 @@ ISR(UDD_USB_INT_FUN)
 
 udd_interrupt_end:
 udd_interrupt_sof_end:
+	SEGGER_SYSVIEW_RecordExitISR();
 	return;
 }
 

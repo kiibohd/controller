@@ -35,6 +35,7 @@
 #include "sam.h"
 #include "osc.h"
 #include "udc.h"
+#include "sysview.h"
 
 
 #define TRACE_BUFFER_SIZE 256
@@ -99,6 +100,7 @@ void unused_isr()
 extern volatile uint32_t systick_millis_count;
 void systick_default_isr()
 {
+	SEGGER_SYSVIEW_RecordEnterISR();
 	systick_millis_count++;
 
 	// Not necessary in bootloader
@@ -108,6 +110,7 @@ void systick_default_isr()
 	DWT->CYCCNT = 0;
 	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 #endif
+	SEGGER_SYSVIEW_RecordExitISRToScheduler();
 }
 
 /* Cortex-M4 core handlers */

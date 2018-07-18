@@ -24,6 +24,8 @@ if ( ${COMPILER_FAMILY} MATCHES "arm" )
 		output_com.c
 		output_rtt.c
 		SEGGER_RTT.c
+		SEGGER_SYSVIEW.c
+		SEGGER_SYSVIEW_Config_NoOS.c
 		string.c
 	)
 endif ()
