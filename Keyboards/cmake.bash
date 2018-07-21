@@ -111,6 +111,8 @@ BuildPath="${OSTYPE}.${BuildPath}"
 BuildPath="${BuildPath}${ExtraBuildPath}"
 # Path prepend (sometimes used)
 BuildPath="${BuildPathPrepend}${BuildPath}"
+# Extra Path Prepend
+BuildPath="${ExtraBuildPathPrepend}${BuildPath}"
 # Path used for host builds
 HostPath="${BuildPath}.host"
 
