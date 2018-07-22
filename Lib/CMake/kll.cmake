@@ -30,29 +30,103 @@ else ()
 	message ( STATUS "Python Executable: ${PYTHON_EXECUTABLE}" )
 endif ()
 
+#| Make sure pip is available
+set ( PIP_EXECUTABLE
+	${PYTHON_EXECUTABLE} -m pip
+)
+execute_process ( COMMAND ${PIP_EXECUTABLE} --version
+	OUTPUT_VARIABLE pip_version
+	ERROR_QUIET
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if ( pip_version MATCHES "^pip " )
+	set ( PIP_FOUND 1 )
+else ()
+	message ( FATAL_ERROR "pip not available '${PIP_EXECUTABLE}'. pip is required to complete the build process." )
+endif ()
+unset ( pip_version )
+
+#| Make sure pipenv is installed
+message ( STATUS "Checking for pipenv" )
+set ( PIPENV_EXECUTABLE
+	${PYTHON_EXECUTABLE} -m pipenv
+)
+execute_process ( COMMAND ${PIP_EXECUTABLE} install --user pipenv
+	RESULT_VARIABLE pipenv_install_result
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if ( pipenv_install_result )
+	message ( FATAL_ERROR "pipenv is not available, and could not be installed with '${PIP_EXECUTABLE} install --user pipenv'" )
+endif ()
+unset ( pipenv_install_result )
+
+
 
 ###
-# KLL Installation (Make sure repo has been cloned)
-#
+# KLL Detection
+# Check for KLL in this order
+# 1) If KLL_EXECUTABLE is set
+# 2) If kll directory is present, check for kll/kll or kll/kll/kll
+# 3) Check/install kll using pipenv
 
-if ( NOT EXISTS "${PROJECT_SOURCE_DIR}/kll/kll" )
-	message ( STATUS "Downloading latest kll version:" )
+message ( STATUS "Checking for kll" )
 
-	# Make sure git is available
-	find_package ( Git REQUIRED )
+### XXX XXX XXX - Remember to update Pipfile as well when you change the version! ###
+set ( KLL_MIN_VERSION "0.5.5.1" )
 
-	# Clone kll git repo
-	execute_process ( COMMAND ${GIT_EXECUTABLE} clone https://github.com/kiibohd/kll.git
-		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+# 1) Check for environment variable
+if ( NOT DEFINED KLL_EXECUTABLE )
+	set ( KLL_EXECUTABLE
+		${PYTHON_EXECUTABLE} -m kll
 	)
-elseif ( REFRESH_KLL ) # Otherwise attempt to update the repo
-	message ( STATUS "Checking for latest kll version:" )
 
-	# Clone kll git repo
-	execute_process ( COMMAND ${GIT_EXECUTABLE} pull --rebase
-		WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/kll
-	)
-endif () # kll/kll.py exists
+	# 2) Check for local copy of kll compiler
+	if ( EXISTS "${PROJECT_SOURCE_DIR}/kll/kll" )
+		set ( KLL_EXECUTABLE
+			${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll
+		)
+		# Install kll dependencies using pipenv
+		execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
+			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/kll"
+		)
+
+	elseif ( EXISTS "${PROJECT_SOURCE_DIR}/kll/kll/kll" )
+		set ( KLL_EXECUTABLE
+			${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll/kll
+		)
+		# Install kll dependencies using pipenv
+		execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
+			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/kll"
+		)
+
+	# 3) Check/install kll using pipenv
+	else ()
+		execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
+			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+		)
+	endif ()
+endif ()
+
+# Make sure kll is a high enough version
+execute_process ( COMMAND ${KLL_EXECUTABLE} --version
+	OUTPUT_VARIABLE kll_version_output_display
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+if ( kll_version_output_display MATCHES "^kll " )
+	string ( REPLACE "kll " "" kll_version_output "${kll_version_output_display}" )
+	string ( REGEX REPLACE "\\..* - .*#" "" kll_version_output "${kll_version_output}" )
+	message ( STATUS "kll Version Detected: ${kll_version_output_display}" )
+
+	# Check KLL_MIN_VERSION
+	if ( kll_version_output VERSION_LESS KLL_MIN_VERSION )
+		# TODO (HaaTa) Add check in once versioning is complete
+		#message ( FATAL_ERROR "kll version '${kll_version_output}' is lower than the minimum '${KLL_MIN_VERSION}'. Please update kll." )
+	endif ()
+else ()
+	message ( FATAL_ERROR "kll compiler is not available '${KLL_EXECUTABLE}': ${kll_version_output}. You may need to set KLL_EXECUTABLE manually. Or check the Pipfile." )
+endif ()
+unset ( kll_version_output )
+unset ( kll_version_output_display )
 
 
 
@@ -172,12 +246,6 @@ set ( kll_defs       kll_defs.h )
 set ( kll_pixelmap   generatedPixelmap.c )
 set ( kll_outputname ${kll_keymap} ${kll_defs} ${kll_pixelmap} )
 
-#| KLL Version
-set ( kll_version_cmd
-	${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll
-	--version
-)
-
 #| KLL Configurator Options
 #|
 #| Applied when running a compilation using KiiConf
@@ -191,7 +259,7 @@ endif ()
 
 #| KLL Cmd
 set ( kll_cmd
-	${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll
+	${KLL_EXECUTABLE}
 	--kiibohd-debug
 	--config ${Config_Args}
 	${BaseMap_Args}
@@ -226,7 +294,6 @@ set ( kll_cmd_final_display_options
 )
 
 add_custom_command ( OUTPUT ${kll_outputname}
-	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd}
 	DEPENDS ${KLL_DEPENDS}
 	COMMENT "Generating KLL Layout"
@@ -234,42 +301,36 @@ add_custom_command ( OUTPUT ${kll_outputname}
 
 #| KLL Regen Convenience Target
 add_custom_target ( kll_regen
-	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd}
 	COMMENT "Re-generating KLL Layout"
 )
 
 #| KLL Regen Debug Target
 add_custom_target ( kll_debug
-	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd} ${kll_cmd_debug_options}
 	COMMENT "Re-generating KLL Layout in Debug Mode"
 )
 
 #| KLL Regen Display Target
 add_custom_target ( kll_display
-	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd} ${kll_cmd_display_options}
 	COMMENT "Re-generating KLL Layout in Display Mode"
 )
 
 #| KLL Regen Final Display Target
 add_custom_target ( kll_final_display
-	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd} ${kll_cmd_final_display_options}
 	COMMENT "Re-generating KLL Layout in Final Display Mode"
 )
 
 #| KLL Regen Token Debug
 add_custom_target ( kll_token
-	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd} --token-debug
 	COMMENT "Re-generating KLL Layout in Token Debug Mode"
 )
 
 #| KLL Regen Parser Debug
 add_custom_target ( kll_parser
-	COMMAND ${kll_version_cmd}
 	COMMAND ${kll_cmd} --parser-debug --parser-token-debug
 	COMMENT "Re-generating KLL Layout in Parser Debug Mode"
 )
