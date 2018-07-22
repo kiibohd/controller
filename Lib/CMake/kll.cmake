@@ -31,8 +31,10 @@ else ()
 endif ()
 
 #| Make sure pip is available
+message ( STATUS "Checking for pip" )
 set ( PIP_EXECUTABLE
 	${PYTHON_EXECUTABLE} -m pip
+	CACHE STRING "pip Executable Path"
 )
 execute_process ( COMMAND ${PIP_EXECUTABLE} --version
 	OUTPUT_VARIABLE pip_version
@@ -41,6 +43,7 @@ execute_process ( COMMAND ${PIP_EXECUTABLE} --version
 )
 if ( pip_version MATCHES "^pip " )
 	set ( PIP_FOUND 1 )
+	message ( STATUS "pip Version Detected: ${pip_version}" )
 else ()
 	message ( FATAL_ERROR "pip not available '${PIP_EXECUTABLE}'. pip is required to complete the build process." )
 endif ()
