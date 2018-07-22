@@ -79,14 +79,13 @@ set ( KLL_MIN_VERSION "0.5.5.1" )
 
 # 1) Check for environment variable
 if ( NOT DEFINED KLL_EXECUTABLE )
-	set ( KLL_EXECUTABLE
-		${PYTHON_EXECUTABLE} -m kll
-	)
-
 	# 2) Check for local copy of kll compiler
 	if ( EXISTS "${PROJECT_SOURCE_DIR}/kll/kll" )
 		set ( KLL_EXECUTABLE
-			${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll
+			pipenv run ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll
+		)
+		set ( KLL_WORKING_DIRECTORY
+			"${PROJECT_SOURCE_DIR}/kll"
 		)
 		# Install kll dependencies using pipenv
 		execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
@@ -95,7 +94,10 @@ if ( NOT DEFINED KLL_EXECUTABLE )
 
 	elseif ( EXISTS "${PROJECT_SOURCE_DIR}/kll/kll/kll" )
 		set ( KLL_EXECUTABLE
-			${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll/kll
+			pipenv run ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll/kll
+		)
+		set ( KLL_WORKING_DIRECTORY
+			"${PROJECT_SOURCE_DIR}/kll"
 		)
 		# Install kll dependencies using pipenv
 		execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
@@ -104,6 +106,12 @@ if ( NOT DEFINED KLL_EXECUTABLE )
 
 	# 3) Check/install kll using pipenv
 	else ()
+		set ( KLL_EXECUTABLE
+			pipenv run ${PYTHON_EXECUTABLE} -m kll
+		)
+		set ( KLL_WORKING_DIRECTORY
+			"${PROJECT_SOURCE_DIR}"
+		)
 		execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
 			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
 		)
@@ -114,6 +122,7 @@ endif ()
 execute_process ( COMMAND ${KLL_EXECUTABLE} --version
 	OUTPUT_VARIABLE kll_version_output_display
 	OUTPUT_STRIP_TRAILING_WHITESPACE
+	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
 )
 if ( kll_version_output_display MATCHES "^kll " )
 	string ( REPLACE "kll " "" kll_version_output "${kll_version_output_display}" )
@@ -299,42 +308,49 @@ set ( kll_cmd_final_display_options
 add_custom_command ( OUTPUT ${kll_outputname}
 	COMMAND ${kll_cmd}
 	DEPENDS ${KLL_DEPENDS}
+	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
 	COMMENT "Generating KLL Layout"
 )
 
 #| KLL Regen Convenience Target
 add_custom_target ( kll_regen
 	COMMAND ${kll_cmd}
+	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
 	COMMENT "Re-generating KLL Layout"
 )
 
 #| KLL Regen Debug Target
 add_custom_target ( kll_debug
 	COMMAND ${kll_cmd} ${kll_cmd_debug_options}
+	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
 	COMMENT "Re-generating KLL Layout in Debug Mode"
 )
 
 #| KLL Regen Display Target
 add_custom_target ( kll_display
 	COMMAND ${kll_cmd} ${kll_cmd_display_options}
+	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
 	COMMENT "Re-generating KLL Layout in Display Mode"
 )
 
 #| KLL Regen Final Display Target
 add_custom_target ( kll_final_display
 	COMMAND ${kll_cmd} ${kll_cmd_final_display_options}
+	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
 	COMMENT "Re-generating KLL Layout in Final Display Mode"
 )
 
 #| KLL Regen Token Debug
 add_custom_target ( kll_token
 	COMMAND ${kll_cmd} --token-debug
+	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
 	COMMENT "Re-generating KLL Layout in Token Debug Mode"
 )
 
 #| KLL Regen Parser Debug
 add_custom_target ( kll_parser
 	COMMAND ${kll_cmd} --parser-debug --parser-token-debug
+	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
 	COMMENT "Re-generating KLL Layout in Parser Debug Mode"
 )
 
