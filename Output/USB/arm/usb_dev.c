@@ -595,6 +595,7 @@ static void usb_setup()
 		// Valid endpoint
 		if ( endpoint <= NUM_ENDPOINTS )
 		{
+#if defined(_kinetis_)
 			// Isochronous endpoint, USB_ENDPT_EPHSHK is set to 0
 			if ( ( (*(uint8_t *)(&USB0_ENDPT0 + endpoint * 4)) & USB_ENDPT_EPHSHK ) == 0 )
 			{
@@ -605,6 +606,7 @@ static void usb_setup()
 				data = reply_buffer;
 				goto send;
 			}
+#endif
 		}
 #elif defined(_sam_)
 		// SAM TODO
@@ -1800,7 +1802,7 @@ uint8_t usb_init()
 	USB0_CONTROL = USB_CONTROL_DPPULLUPNONOTG;
 #elif defined(_sam_)
 	//SAM TODO
-	udi_hid_kbd_down(HID_H);
+	usb_configuration = 1;
 #endif
 
 	// Do not check for power negotiation delay until Get Configuration Descriptor
