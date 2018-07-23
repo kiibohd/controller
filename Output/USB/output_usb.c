@@ -790,7 +790,7 @@ inline void USB_poll()
 void USB_indicator_update()
 {
 	// Check each bit of the indicator byte
-	for ( uint8_t bit = 0; bit < LED_KANA; bit++ )
+	for ( uint8_t bit = 0; bit < LED_KANA_5; bit++ )
 	{
 		uint8_t id = bit + 1; // Conversion to USB HID Indicator code
 

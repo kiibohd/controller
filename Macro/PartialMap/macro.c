@@ -27,7 +27,7 @@
 #include <scan_loop.h>
 
 // Keymaps
-#include "usb_hid.h"
+#include <usb_hid.h> // Generated using kll (and hid-io/layouts) at compile time, in build directory
 #include <generatedKeymap.h> // Generated using kll at compile time, in build directory
 
 // Connect Includes

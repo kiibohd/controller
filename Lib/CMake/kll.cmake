@@ -7,11 +7,13 @@
 ###
 
 
+
 ###
 # Check if KLL compiler is needed
 #
 
 if ( "${MacroModule}" STREQUAL "PartialMap" OR "${MacroModule}" STREQUAL "PixelMap" )
+
 
 
 ###
@@ -80,19 +82,7 @@ if ( NOT DEFINED KLL_EXECUTABLE )
 	unset ( pipenv_install_result )
 
 	# 2) Check for local copy of kll compiler
-	if ( EXISTS "${PROJECT_SOURCE_DIR}/kll/kll" )
-		set ( KLL_EXECUTABLE
-			pipenv run ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll
-		)
-		set ( KLL_WORKING_DIRECTORY
-			"${PROJECT_SOURCE_DIR}/kll"
-		)
-		# Install kll dependencies using pipenv
-		execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
-			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/kll"
-		)
-
-	elseif ( EXISTS "${PROJECT_SOURCE_DIR}/kll/kll/kll" )
+	if ( EXISTS "${PROJECT_SOURCE_DIR}/kll/kll/kll" )
 		set ( KLL_EXECUTABLE
 			pipenv run ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll/kll
 		)
@@ -131,14 +121,24 @@ if ( kll_version_output_display MATCHES "^kll " )
 
 	# Check KLL_MIN_VERSION
 	if ( kll_version_output VERSION_LESS KLL_MIN_VERSION )
-		# TODO (HaaTa) Add check in once versioning is complete
-		#message ( FATAL_ERROR "kll version '${kll_version_output}' is lower than the minimum '${KLL_MIN_VERSION}'. Please update kll." )
+		message ( FATAL_ERROR "kll version '${kll_version_output}' is lower than the minimum '${KLL_MIN_VERSION}'. Please update kll." )
 	endif ()
 else ()
 	message ( FATAL_ERROR "kll compiler is not available '${KLL_EXECUTABLE}': ${kll_version_output}. You may need to set KLL_EXECUTABLE manually. Or check the Pipfile." )
 endif ()
 unset ( kll_version_output )
 unset ( kll_version_output_display )
+
+# Retrieve installation path for kll, needed find the default layouts
+execute_process ( COMMAND ${KLL_EXECUTABLE} --path
+	OUTPUT_VARIABLE kll_installation_path
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
+)
+message ( STATUS "kll Installation Path: ${kll_installation_path}" )
+set ( kll_layouts_path
+	"${kll_installation_path}/layouts"
+)
 
 
 
@@ -193,9 +193,9 @@ if ( NOT "${DefaultMap}" STREQUAL "" )
 		if ( EXISTS "${PROJECT_BINARY_DIR}/${MAP}.kll" )
 			set ( DefaultMap_Args ${DefaultMap_Args} ${MAP}.kll )
 			set ( KLL_DEPENDS ${KLL_DEPENDS} ${PROJECT_BINARY_DIR}/${MAP}.kll )
-		elseif ( EXISTS "${PROJECT_SOURCE_DIR}/kll/layouts/${MAP}.kll" )
-			set ( DefaultMap_Args ${DefaultMap_Args} ${PROJECT_SOURCE_DIR}/kll/layouts/${MAP}.kll )
-			set ( KLL_DEPENDS ${KLL_DEPENDS} ${PROJECT_SOURCE_DIR}/kll/layouts/${MAP}.kll )
+		elseif ( EXISTS "${kll_layouts_path}/${MAP}.kll" )
+			set ( DefaultMap_Args ${DefaultMap_Args} ${kll_layouts_path}/${MAP}.kll )
+			set ( KLL_DEPENDS ${KLL_DEPENDS} ${kll_layouts_path}/${MAP}.kll )
 		elseif ( EXISTS "${pathname}/${MAP}.kll" )
 			set ( DefaultMap_Args ${DefaultMap_Args} ${pathname}/${MAP}.kll )
 			set ( KLL_DEPENDS ${KLL_DEPENDS} ${pathname}/${MAP}.kll )
@@ -222,9 +222,9 @@ if ( NOT "${PartialMaps}" STREQUAL "" )
 			if ( EXISTS "${PROJECT_BINARY_DIR}/${MAP_PART}.kll" )
 				set ( PartialMap_Args ${PartialMap_Args} ${MAP_PART}.kll )
 				set ( KLL_DEPENDS ${KLL_DEPENDS} ${PROJECT_BINARY_DIR}/${MAP_PART}.kll )
-			elseif ( EXISTS "${PROJECT_SOURCE_DIR}/kll/layouts/${MAP_PART}.kll" )
-				set ( PartialMap_Args ${PartialMap_Args} ${PROJECT_SOURCE_DIR}/kll/layouts/${MAP_PART}.kll )
-				set ( KLL_DEPENDS ${KLL_DEPENDS} ${PROJECT_SOURCE_DIR}/kll/layouts/${MAP_PART}.kll )
+			elseif ( EXISTS "${kll_layouts_path}/${MAP_PART}.kll" )
+				set ( PartialMap_Args ${PartialMap_Args} ${kll_layouts_path}/${MAP_PART}.kll )
+				set ( KLL_DEPENDS ${KLL_DEPENDS} ${kll_layouts_path}/${MAP_PART}.kll )
 			elseif ( EXISTS "${pathname}/${MAP_PART}.kll" )
 				set ( PartialMap_Args ${PartialMap_Args} ${pathname}/${MAP_PART}.kll )
 				set ( KLL_DEPENDS ${KLL_DEPENDS} ${pathname}/${MAP_PART}.kll )
@@ -254,9 +254,10 @@ endforeach ()
 #| KLL Options
 set ( kll_emitter    kiibohd )
 set ( kll_keymap     generatedKeymap.h )
+set ( kll_hid_lookup usb_hid.h )
 set ( kll_defs       kll_defs.h )
 set ( kll_pixelmap   generatedPixelmap.c )
-set ( kll_outputname ${kll_keymap} ${kll_defs} ${kll_pixelmap} )
+set ( kll_outputname ${kll_keymap} ${kll_defs} ${kll_hid_lookup} ${kll_pixelmap} )
 
 #| KLL Configurator Options
 #|
@@ -278,11 +279,9 @@ set ( kll_cmd
 	${DefaultMap_Args}
 	${PartialMap_Args}
 	--emitter ${kll_emitter}
-	--def-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdDefs.h
-	--map-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdKeymap.h
-	--pixel-template ${PROJECT_SOURCE_DIR}/kll/templates/kiibohdPixelmap.c
 	--def-output ${kll_defs}
 	--map-output ${kll_keymap}
+	--hid-output ${kll_hid_lookup}
 	--pixel-output ${kll_pixelmap}
 	${kll_configurator_options}
 )
