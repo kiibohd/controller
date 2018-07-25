@@ -104,3 +104,9 @@ void read_stacked_fault_frame( uint32_t *faultStackedAddress )
 	__asm volatile("BKPT #01");
 	for( ;; );
 }
+
+// Causes more BusFaults to be precise (good for debugging)
+void disable_write_buffering()
+{
+	SCnSCB_ACTLR |= SCnSCB_ACTLR_DISDEFWBUF_Msk;
+}

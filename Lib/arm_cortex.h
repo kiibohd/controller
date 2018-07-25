@@ -21,6 +21,28 @@
 
 #pragma once
 
+// ----- Defines -----
+
+/* Auxiliary Control Register Definitions */
+#define SCnSCB_ACTLR                 *(volatile uint32_t *)0xE000E008 // Auxiliary control
+
+
+#define SCnSCB_ACTLR_DISOOFP_Pos            9                                          /*!< ACTLR: DISOOFP Position */
+#define SCnSCB_ACTLR_DISOOFP_Msk           (1UL << SCnSCB_ACTLR_DISOOFP_Pos)           /*!< ACTLR: DISOOFP Mask */
+
+#define SCnSCB_ACTLR_DISFPCA_Pos            8                                          /*!< ACTLR: DISFPCA Position */
+#define SCnSCB_ACTLR_DISFPCA_Msk           (1UL << SCnSCB_ACTLR_DISFPCA_Pos)           /*!< ACTLR: DISFPCA Mask */
+
+#define SCnSCB_ACTLR_DISFOLD_Pos            2                                          /*!< ACTLR: DISFOLD Position */
+#define SCnSCB_ACTLR_DISFOLD_Msk           (1UL << SCnSCB_ACTLR_DISFOLD_Pos)           /*!< ACTLR: DISFOLD Mask */
+
+#define SCnSCB_ACTLR_DISDEFWBUF_Pos         1                                          /*!< ACTLR: DISDEFWBUF Position */
+#define SCnSCB_ACTLR_DISDEFWBUF_Msk        (1UL << SCnSCB_ACTLR_DISDEFWBUF_Pos)        /*!< ACTLR: DISDEFWBUF Mask */
+
+#define SCnSCB_ACTLR_DISMCYCINT_Pos         0                                          /*!< ACTLR: DISMCYCINT Position */
+#define SCnSCB_ACTLR_DISMCYCINT_Msk        (1UL << SCnSCB_ACTLR_DISMCYCINT_Pos)        /*!< ACTLR: DISMCYCINT Mask */
+
+
 // ----- Types -----
 
 /*
@@ -126,4 +148,6 @@ typedef struct __attribute__((packed)) {
 // ----- Functions -----
 
 void __attribute__((naked)) debug_isr ( void );
+
 void read_stacked_fault_frame( uint32_t *faultStackedAddress );
+void disable_write_buffering();

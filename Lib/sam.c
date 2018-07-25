@@ -396,6 +396,10 @@ void ResetHandler()
 	/* Disable PMC write protection */
 	//PMC->PMC_WPMR = PMC_WPMR_WPKEY(0x504D43ul) & ~PMC_WPMR_WPEN;
 
+#if defined(DEBUG)
+	disable_write_buffering();
+#endif
+
 	// Initialize the SysTick counter
 	SysTick->LOAD = (F_CPU / 1000) - 1;
 	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
