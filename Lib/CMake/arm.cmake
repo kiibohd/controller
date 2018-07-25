@@ -105,6 +105,11 @@ set( COMPILER_SRCS
 	Lib/periodic.c
 	Lib/time.c
 )
+if ( "${CPU}" MATCHES "cortex-m4" )
+	list(APPEND COMPILER_SRCS
+		Lib/arm_cortex.c
+	)
+endif ()
 
 #| Clang needs a few more functions for linking
 if ( "${COMPILER}" MATCHES "clang" )
