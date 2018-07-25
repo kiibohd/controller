@@ -109,7 +109,11 @@ void systick_default_isr()
 
 /* Cortex-M4 core handlers */
 void NMI_Handler        ( void ) __attribute__ ((weak, alias("unused_isr")));
+#if defined(DEBUG)
+void HardFault_Handler  ( void ) __attribute__ ((weak, alias("debug_isr")));
+#else
 void HardFault_Handler  ( void ) __attribute__ ((weak, alias("unused_isr")));
+#endif
 void MemManage_Handler  ( void ) __attribute__ ((weak, alias("unused_isr")));
 void BusFault_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
 void UsageFault_Handler ( void ) __attribute__ ((weak, alias("unused_isr")));

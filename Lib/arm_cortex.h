@@ -21,6 +21,8 @@
 
 #pragma once
 
+// ----- Types -----
+
 /*
  * Exception type    Position       Priority       Description
  * --------------    ------------   --------       ------------------------------------
@@ -66,3 +68,62 @@ typedef enum {
 	IRQ_SysTick = 15,
 	IRQ_External = 16
 } Cortex_IRQ;
+
+
+typedef struct __attribute__((packed)) {
+	uint8_t IACCVIOL:  1;
+	uint8_t DACCVIOL:  1;
+	uint8_t: 1;
+	uint8_t MUNSTKERR: 1;
+	uint8_t MSTKERR:   1;
+	unsigned: 2;
+	uint8_t MMARVALID: 1;
+} MMFSR_t;
+
+typedef struct __attribute__((packed)) {
+	uint8_t IBUSERR: 1;
+	uint8_t PRECISERR: 1;
+	uint8_t IMPRECISERR: 1;
+	uint8_t UNSTKERR: 1;
+	uint8_t STKERR: 1;
+	uint8_t: 2;
+	uint8_t BFARVALID: 1;
+} BFSR_t;
+
+typedef struct __attribute__((packed)) {
+	uint8_t UNDEFINSTR: 1;
+	uint8_t INVSTATE: 1;
+	uint8_t INVPC: 1;
+	uint8_t NOCP: 1;
+	uint8_t: 4;
+	uint8_t UNALIGNED:  1;
+	uint8_t DIVBYZERO: 1;
+} UFSR_t;
+
+typedef struct __attribute__((packed)) {
+	MMFSR_t MMFSR;
+	BFSR_t BFSR;
+	UFSR_t UFSR;
+} CFSR_t;
+
+typedef struct __attribute__((packed)) {
+	uint8_t: 1;
+	uint8_t VECTTBL: 1;
+	uint32_t: 28;
+	uint8_t FORCED: 1;
+	uint8_t DEBUGEVT: 1;
+} HFSR_t;
+
+typedef struct __attribute__((packed)) {
+	uint8_t BKPT: 1;
+	uint8_t DWTRAP: 1;
+	uint8_t VCATCH: 1;
+	uint8_t EXTERNAL: 1;
+	uint32_t: 28;
+} DFSR_t;
+
+
+// ----- Functions -----
+
+void __attribute__((naked)) debug_isr ( void );
+void read_stacked_fault_frame( uint32_t *faultStackedAddress );
