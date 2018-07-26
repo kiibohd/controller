@@ -30,7 +30,7 @@ S17 : U"End";
 S18 : U"PageUp";
 S19 : U"PageDown";
 
-# Number Row (20-37)
+# Number Row (20-38)
 S20 : U"Backtick";
 S21 : U"1";
 S22 : U"2";
@@ -45,80 +45,95 @@ S30 : U"0";
 S31 : U"Minus";
 S32 : U"Equals";
 S33 : U"Backspace";
-S34 : U"NumLock";
-S35 : U"P/";
-S36 : U"P*";
-S37 : U"P-";
+S34 : None;
+S35 : U"NumLock";
+S36 : U"P/";
+S37 : U"P*";
+S38 : U"P-";
 
-# Top Alphabet Row (38-55)
-S38 : U"Tab";
-S39 : U"Q";
-S40 : U"W";
-S41 : U"E";
-S42 : U"R";
-S43 : U"T";
-S44 : U"Y";
-S45 : U"U";
-S46 : U"I";
-S47 : U"O";
-S48 : U"P";
-S49 : U"LBrace";
-S50 : U"RBrace";
-S51 : U"Backslash";
-S52 : U"P7";
-S53 : U"P8";
-S54 : U"P9";
-S55 : U"P+";
+# Top Alphabet Row (39-57)
+S39 : U"Tab";
+S40 : U"Q";
+S41 : U"W";
+S42 : U"E";
+S43 : U"R";
+S44 : U"T";
+S45 : U"Y";
+S46 : U"U";
+S47 : U"I";
+S48 : U"O";
+S49 : U"P";
+S50 : U"LBrace";
+S51 : U"RBrace";
+S52 : U"Backslash";
+S53 : None;
+S54 : U"P7";
+S55 : U"P8";
+S56 : U"P9";
+S57 : U"P+";
 
-# Middle Alphabet Row (56-71)
-S56 : U"CapsLock";
-S57 : U"A";
-S58 : U"S";
-S59 : U"D";
-S60 : U"F";
-S61 : U"G";
-S62 : U"H";
-S63 : U"J";
-S64 : U"K";
-S65 : U"L";
-S66 : U"Semicolon";
-S67 : U"Quote";
-S68 : U"Enter";
-S69 : U"P4";
-S70 : U"P5";
-S71 : U"P6";
+# Middle Alphabet Row (58-76)
+S58 : U"CapsLock";
+S59 : U"A";
+S60 : U"S";
+S61 : U"D";
+S62 : U"F";
+S63 : U"G";
+S64 : U"H";
+S65 : U"J";
+S66 : U"K";
+S67 : U"L";
+S68 : U"Semicolon";
+S69 : U"Quote";
+S70 : None;
+S71 : U"Enter";
+S72 : None;
+S73 : U"P4";
+S74 : U"P5";
+S75 : U"P6";
+S76 : None;
 
-# Bottom Alphabet Row (72-88)
-S72 : U"LShift";
-S73 : U"Z";
-S74 : U"X";
-S75 : U"C";
-S76 : U"V";
-S77 : U"B";
-S78 : U"N";
-S79 : U"M";
-S80 : U"Comma";
-S81 : U"Period";
-S82 : U"Slash";
-S83 : U"RShift";
-S84 : U"Up";
-S85 : U"P1";
-S86 : U"P2";
-S87 : U"P3";
-S88 : U"PEnter";
+# Bottom Alphabet Row (77-95)
+S77 : U"LShift";
+S78 : U"Z";
+S79 : U"X";
+S80 : U"C";
+S81 : U"V";
+S82 : U"B";
+S83 : U"N";
+S84 : U"M";
+S85 : U"Comma";
+S86 : U"Period";
+S87 : U"Slash";
+S88 : None;
+S89 : None;
+S90 : U"RShift";
+S91 : U"Up";
+S92 : U"P1";
+S93 : U"P2";
+S94 : U"P3";
+S95 : U"PEnter";
 
-# Modifier Row (89-99)
-S89 : U"LCtrl";
-S90 : U"LGui";
-S91 : U"LAlt";
-S92 : U"Space";
-S93 : U"RAlt";
-S94 : U"RCtrl";
-S95 : U"Left";
-S96 : U"Down";
-S97 : U"Right";
-S98 : U"P0";
-S99 : U"P.";
+# Modifier Row (96-114)
+S96 : U"LCtrl";
+S97 : U"LGui";
+S98 : U"LAlt";
+S99 : None;
+S100 : None;
+S101 : U"Space";
+S102 : None;
+S103 : None;
+S104 : None;
+S105 : U"RAlt";
+S106 : U"RCtrl";
+S107 : None;
+S108 : None;
+S109 : U"Left";
+S110 : U"Down";
+S111 : U"Right";
+S112 : U"P0";
+S113 : U"P.";
+S114 : None;
 
 
 
