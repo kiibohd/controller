@@ -147,7 +147,8 @@ typedef struct __attribute__((packed)) {
 
 // ----- Functions -----
 
-void __attribute__((naked)) debug_isr ( void );
+extern void __attribute__((naked)) debug_isr ( void );
 
+Cortex_IRQ get_current_isr();
 void read_stacked_fault_frame( uint32_t *faultStackedAddress );
 void disable_write_buffering();
