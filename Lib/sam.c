@@ -62,8 +62,9 @@ void ResetHandler();
 void fault_isr()
 {
 	print("Fault!" NL );
+
 #if defined(DEBUG) && defined(JLINK)
-asm volatile("BKPT #01");
+	asm volatile("BKPT #01");
 #else
 	while ( 1 )
 	{
@@ -79,7 +80,13 @@ asm volatile("BKPT #01");
 
 void unused_isr()
 {
+#if defined(DEBUG) && defined(JLINK)
+	/* CHECK IRQn IN GDB */
+	Cortex_IRQ IRQn __attribute__((unused)) = get_current_isr();
+	asm volatile("BKPT #01");
+#else
 	fault_isr();
+#endif
 }
 
 
@@ -170,7 +177,12 @@ const DeviceVectors exception_table = {
 
         .pfnReset_Handler      = (void*) ResetHandler,
         .pfnNMI_Handler        = (void*) NMI_Handler,
+
+#if defined(DEBUG)
+        .pfnHardFault_Handler  = (void*) debug_isr,
+#else
         .pfnHardFault_Handler  = (void*) HardFault_Handler,
+#endif
         .pfnMemManage_Handler  = (void*) MemManage_Handler,
         .pfnBusFault_Handler   = (void*) BusFault_Handler,
         .pfnUsageFault_Handler = (void*) UsageFault_Handler,
@@ -384,6 +396,10 @@ void ResetHandler()
 
 	/* Disable PMC write protection */
 	//PMC->PMC_WPMR = PMC_WPMR_WPKEY(0x504D43ul) & ~PMC_WPMR_WPEN;
+
+#if defined(DEBUG)
+	disable_write_buffering();
+#endif
 
 	// Initialize the SysTick counter
 	SysTick->LOAD = (F_CPU / 1000) - 1;

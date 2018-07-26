@@ -51,7 +51,7 @@ case "$MODE" in
 		;;
 	"client"|*)
 		echo "Launching GDB Client"
-		echo -e "define reconnect\ntarget remote $REMOTE\nend" > .gdb
+		echo -e "define reconnect\ntarget remote $REMOTE\nend\n\nset print pretty on" > .gdb
 		arm-none-eabi-gdb -q -se @TARGET_OUT@ -x .gdb -ex "reconnect"
 		;;
 esac
