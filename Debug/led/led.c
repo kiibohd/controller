@@ -80,7 +80,7 @@ inline void init_errorLED()
 	//SAM dev kit
 
 	//Enable output
-	PIOC->PIO_OER = (1<<23);
+	PIOB->PIO_OER = (1<<0);
 #endif
 }
 
@@ -150,11 +150,11 @@ inline void errorLED( uint8_t on )
 	// SAM dev kit
 	// Error LED On (A5)
 	if (on) {
-		PIOC->PIO_CODR = (1<<23);
+		PIOB->PIO_CODR = (1<<0);
 	}
 	// Error LED Off
 	else {
-		PIOC->PIO_SODR = (1<<23);
+		PIOB->PIO_SODR = (1<<0);
 	}
 
 #endif
