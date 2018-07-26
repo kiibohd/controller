@@ -47,7 +47,7 @@ OutputModule="USB"
 DebugModule="full"
 
 # Microcontroller
-Chip="mk20dx256vlh7"
+Chip="sam4s8c"
 
 # Compiler Selection
 Compiler="gcc"
