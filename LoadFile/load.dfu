@@ -60,7 +60,7 @@ fi
 # Load via dfu-util
 # Used for McHCK based uCs
 if type dfu-util &>/dev/null; then
-	# Wait for device to appear
+	echo "Waiting for device..."
 	while true; do
 		dfu-util -l | grep -q "Kiibohd DFU"
 		if [ $? -eq 0 ]; then
