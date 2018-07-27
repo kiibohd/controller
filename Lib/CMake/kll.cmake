@@ -39,7 +39,6 @@ endif ()
 # Check for KLL in this order
 # 1) If KLL_EXECUTABLE is set
 # 2) If kll directory is present, check for kll/kll or kll/kll/kll
-# 3) Check/install kll using pipenv
 
 message ( STATUS "Checking for kll" )
 
@@ -49,37 +48,37 @@ set ( KLL_MIN_VERSION "0.5.5.1" )
 # 1) Check for environment variable
 if ( NOT DEFINED KLL_EXECUTABLE )
 	#| Make sure pip is available
-	message ( STATUS "Checking for pip" )
-	set ( PIP_EXECUTABLE
-		${PYTHON_EXECUTABLE} -m pip
-		CACHE STRING "pip Executable Path"
-	)
-	execute_process ( COMMAND ${PIP_EXECUTABLE} --version
-		OUTPUT_VARIABLE pip_version
-		ERROR_QUIET
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-	if ( pip_version MATCHES "^pip " )
-		set ( PIP_FOUND 1 )
-		message ( STATUS "pip Version Detected: ${pip_version}" )
-	else ()
-		message ( FATAL_ERROR "pip not available '${PIP_EXECUTABLE}'. pip is required to complete the build process." )
-	endif ()
-	unset ( pip_version )
+	#message ( STATUS "Checking for pip" )
+	#set ( PIP_EXECUTABLE
+	#	${PYTHON_EXECUTABLE} -m pip
+	#	CACHE STRING "pip Executable Path"
+	#)
+	#execute_process ( COMMAND ${PIP_EXECUTABLE} --version
+	#	OUTPUT_VARIABLE pip_version
+	#	ERROR_QUIET
+	#	OUTPUT_STRIP_TRAILING_WHITESPACE
+	#)
+	#if ( pip_version MATCHES "^pip " )
+	#	set ( PIP_FOUND 1 )
+	#	message ( STATUS "pip Version Detected: ${pip_version}" )
+	#else ()
+	#	message ( FATAL_ERROR "pip not available '${PIP_EXECUTABLE}'. pip is required to complete the build process." )
+	#endif ()
+	#unset ( pip_version )
 
 	#| Make sure pipenv is installed
-	message ( STATUS "Checking for pipenv" )
-	set ( PIPENV_EXECUTABLE
-		${PYTHON_EXECUTABLE} -m pipenv
-	)
-	execute_process ( COMMAND ${PIP_EXECUTABLE} install --user pipenv
-		RESULT_VARIABLE pipenv_install_result
-		OUTPUT_STRIP_TRAILING_WHITESPACE
-	)
-	if ( pipenv_install_result )
-		message ( FATAL_ERROR "pipenv is not available, and could not be installed with '${PIP_EXECUTABLE} install --user pipenv'" )
-	endif ()
-	unset ( pipenv_install_result )
+	#message ( STATUS "Checking for pipenv" )
+	#set ( PIPENV_EXECUTABLE
+	#	${PYTHON_EXECUTABLE} -m pipenv
+	#)
+	#execute_process ( COMMAND ${PIP_EXECUTABLE} install --user pipenv
+	#	RESULT_VARIABLE pipenv_install_result
+	#	OUTPUT_STRIP_TRAILING_WHITESPACE
+	#)
+	#if ( pipenv_install_result )
+	#	message ( FATAL_ERROR "pipenv is not available, and could not be installed with '${PIP_EXECUTABLE} install --user pipenv'" )
+	#endif ()
+	#unset ( pipenv_install_result )
 
 	# 2) Check for local copy of kll compiler
 	if ( EXISTS "${PROJECT_SOURCE_DIR}/kll/kll/kll" )
@@ -90,21 +89,21 @@ if ( NOT DEFINED KLL_EXECUTABLE )
 			"${PROJECT_SOURCE_DIR}/kll"
 		)
 		# Install kll dependencies using pipenv
-		execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
-			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/kll"
-		)
+		#execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
+		#	WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/kll"
+		#)
 
 	# 3) Check/install kll using pipenv
-	else ()
-		set ( KLL_EXECUTABLE
-			pipenv run ${PYTHON_EXECUTABLE} -m kll
-		)
-		set ( KLL_WORKING_DIRECTORY
-			"${PROJECT_SOURCE_DIR}"
-		)
-		execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
-			WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-		)
+	#else ()
+	#	set ( KLL_EXECUTABLE
+	#		pipenv run ${PYTHON_EXECUTABLE} -m kll
+	#	)
+	#	set ( KLL_WORKING_DIRECTORY
+	#		"${PROJECT_SOURCE_DIR}"
+	#	)
+	#	execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
+	#		WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+	#	)
 	endif ()
 endif ()
 
@@ -139,6 +138,14 @@ message ( STATUS "kll Installation Path: ${kll_installation_path}" )
 set ( kll_layouts_path
 	"${kll_installation_path}/layouts"
 )
+
+# Retrieve cache path for layouts
+execute_process ( COMMAND ${KLL_EXECUTABLE} --layout-cache-path
+	OUTPUT_VARIABLE kll_cache_path
+	OUTPUT_STRIP_TRAILING_WHITESPACE
+	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
+)
+message ( STATUS "kll Layouts Cache Path: ${kll_cache_path}" )
 
 
 
