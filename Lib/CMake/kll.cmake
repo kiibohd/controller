@@ -83,7 +83,7 @@ if ( NOT DEFINED KLL_EXECUTABLE )
 	# 2) Check for local copy of kll compiler
 	if ( EXISTS "${PROJECT_SOURCE_DIR}/kll/kll/kll" )
 		set ( KLL_EXECUTABLE
-			pipenv run ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll/kll
+			${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/kll/kll/kll
 		)
 		set ( KLL_WORKING_DIRECTORY
 			"${PROJECT_SOURCE_DIR}/kll"
