@@ -260,10 +260,10 @@ endforeach ()
 
 #| KLL Options
 set ( kll_emitter    kiibohd )
-set ( kll_keymap     generatedKeymap.h )
-set ( kll_hid_lookup usb_hid.h )
-set ( kll_defs       kll_defs.h )
-set ( kll_pixelmap   generatedPixelmap.c )
+set ( kll_keymap     "${PROJECT_BINARY_DIR}/generatedKeymap.h" )
+set ( kll_hid_lookup "${PROJECT_BINARY_DIR}/usb_hid.h" )
+set ( kll_defs       "${PROJECT_BINARY_DIR}/kll_defs.h" )
+set ( kll_pixelmap   "${PROJECT_BINARY_DIR}/generatedPixelmap.c" )
 set ( kll_outputname ${kll_keymap} ${kll_defs} ${kll_hid_lookup} ${kll_pixelmap} )
 
 #| KLL Configurator Options
