@@ -43,6 +43,9 @@
 
 // ----- Defines -----
 
+#define USB_SWAP_PIN 4
+#define UART_TXRX_PIN 12
+#define UART_SWAP_PIN 13
 
 
 // ----- Structs -----
@@ -87,9 +90,13 @@ void Port_usb_swap()
 
 	// PTA4 - USB Swap
 #if defined(_kinetis_)
-	GPIOA_PTOR |= (1<<4);
+	GPIOA_PTOR |= (1<<USB_SWAP_PIN);
 #elif defined(_sam_)
-	//SAM TODO
+	if (PIOA->ODSR & (1<<USB_SWAP_PIN)) {
+		PIOA->CODR = (1<<USB_SWAP_PIN);
+	} else {
+		PIOA->SODR = (1<<USB_SWAP_PIN);
+	}
 #endif
 
 	// Re-initialize usb
@@ -103,9 +110,13 @@ void Port_uart_swap()
 
 	// PTA13 - UART Swap
 #if defined(_kinetis_)
-	GPIOA_PTOR |= (1<<13);
+	GPIOA_PTOR |= (1<<UART_SWAP_PIN);
 #elif defined(_sam_)
-	//SAM TODO
+	if (PIOA->ODSR & (1<<UART_SWAP_PIN)) {
+		PIOA->CODR = (1<<UART_SWAP_PIN);
+	} else {
+		PIOA->SODR = (1<<UART_SWAP_PIN);
+	}
 #endif
 }
 
@@ -115,9 +126,13 @@ void Port_cross()
 
 	// PTA12 - UART Tx/Rx cross-over
 #if defined(_kinetis_)
-	GPIOA_PTOR |= (1<<12);
+	GPIOA_PTOR |= (1<<UART_TXRX_PIN);
 #elif defined(_sam_)
-	//SAM TODO
+	if (PIOA->ODSR & (1<<UART_TXRX_PIN)) {
+		PIOA->CODR = (1<<UART_TXRX_PIN);
+	} else {
+		PIOA->SODR = (1<<UART_TXRX_PIN);
+	}
 #endif
 
 	// Reset interconnects
@@ -130,26 +145,37 @@ inline void Port_setup()
 	// Register Scan CLI dictionary
 	CLI_registerDictionary( portCLIDict, portCLIDictName );
 
-#if defined(_kinetis_)
 	// PTA4 - USB Swap
 	// Start, disabled
-	GPIOA_PDDR |= (1<<4);
+#if defined(_kinetis_)
+	GPIOA_PDDR |= (1<<USB_SWAP_PIN);
 	PORTA_PCR4 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PCOR |= (1<<4);
+	GPIOA_PCOR |= (1<<USB_SWAP_PIN);
+#elif defined(_sam_)
+	PIOA->PIO_OER = (1<<USB_SWAP_PIN);
+	PIOA->PIO_CODR = (1<<USB_SWAP_PIN);
+#endif
 
 	// PTA12 - UART Tx/Rx cross-over
 	// Start, disabled
-	GPIOA_PDDR |= (1<<12);
+#if defined(_kinetis_)
+	GPIOA_PDDR |= (1<<UART_TXRX_PIN);
 	PORTA_PCR12 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PCOR |= (1<<12);
+	GPIOA_PCOR |= (1<<UART_TXRX_PIN);
+#elif defined(_sam_)
+	PIOA->PIO_OER = (1<<UART_TXRX_PIN);
+	PIOA->PIO_CODR = (1<<UART_TXRX_PIN);
+#endif
 
 	// PTA13 - UART Swap
 	// Start, disabled
-	GPIOA_PDDR |= (1<<13);
+#if defined(_kinetis_)
+	GPIOA_PDDR |= (1<<UART_SWAP_PIN);
 	PORTA_PCR13 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PCOR |= (1<<13);
+	GPIOA_PCOR |= (1<<UART_SWAP_PIN);
 #elif defined(_sam_)
-	//SAM TODO
+	PIOA->PIO_OER = (1<<UART_SWAP_PIN);
+	PIOA->PIO_CODR = (1<<UART_SWAP_PIN);
 #endif
 
 	// Starting point for automatic port swapping

@@ -199,7 +199,70 @@ uint8_t Matrix_pin( GPIO_Pin gpio, Type type )
 		break;
 	}
 #elif defined(_sam_)
-	//SAM TODO
+	volatile Pio *ports[] = {PIOA, PIOB, PIOC};
+	volatile Pio *pio = ports[gpio.port];
+
+	//TODO: Parallel capture seems cool
+
+	// Operation depends on Type
+	switch ( type )
+	{
+	case Type_StrobeOn:
+		pio->PIO_SODR = (1 << gpio.pin);
+		break;
+
+	case Type_StrobeOff:
+		pio->PIO_CODR = (1 << gpio.pin);
+		break;
+
+	case Type_StrobeSetup:
+		// Enabling open-drain if specified
+		switch ( Matrix_type )
+		{
+		case Config_Opendrain:
+			pio->PIO_MDER = (1 << gpio.pin);
+			break;
+
+		// Do nothing otherwise
+		default:
+			//pio->PIO_MDDR = (1 << gpio.pin);
+			break;
+		}
+
+		// Set as output pin
+		pio->PIO_OER = (1 << gpio.pin);
+		pio->PIO_PER = (1 << gpio.pin);
+		break;
+
+	case Type_Sense:
+		return (pio->PIO_PDSR >> gpio.pin) & 1;
+
+	case Type_SenseSetup:
+		// Pull resistor config
+		switch ( Matrix_type )
+		{
+		case Config_Pullup:
+			pio->PIO_PPDDR = (1 << gpio.pin);
+			pio->PIO_PUER = (1 << gpio.pin);
+			break;
+
+		case Config_Pulldown:
+			pio->PIO_PUDR = (1 << gpio.pin);
+			pio->PIO_PPDER = (1 << gpio.pin);
+			break;
+
+		// Do nothing otherwise
+		default:
+			break;
+		}
+
+		// Set as input pin
+		pio->PIO_IFER = (1 << gpio.pin); // glitch filter
+		pio->PIO_ODR = (1 << gpio.pin);
+		pio->PIO_PER = (1 << gpio.pin);
+		break;
+	}
+
 #endif
 
 	return 0;
@@ -211,6 +274,11 @@ void Matrix_setup()
 {
 	// Register Matrix CLI dictionary
 	CLI_registerDictionary( matrixCLIDict, matrixCLIDictName );
+
+#if defined(_sam_)
+	// 31.5.8 Reading the I/O line levels requires the clock of the PIO Controller to be enabled
+	PMC->PMC_PCER0 = (1 << ID_PIOA) | (1 << ID_PIOB);
+#endif
 
 	// Setup Strobe Pins
 	for ( uint8_t pin = 0; pin < Matrix_colsNum; pin++ )

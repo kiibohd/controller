@@ -79,29 +79,13 @@
 #define IRQ_UART_STATUS IRQ_UART2_STATUS
 
 #elif defined(_kii_v3_)
-// SAM TODO
-#define UART_BDH    0
-#define UART_BDL    0
-#define UART_C1     0
-#define UART_C2     0
-#define UART_C3     0
-#define UART_C4     0
-#define UART_CFIFO  0
-#define UART_D      0
-#define UART_PFIFO  0
-#define UART_RCFIFO 0
-#define UART_RWFIFO 0
-#define UART_S1     0
-#define UART_S2     0
-#define UART_SFIFO  0
-#define UART_TWFIFO 0
-
-#define UART_S1_RDRF       0
-#define UART_S1_IDLE       0
-#define UART_CFIFO_RXFLUSH 0
-
-#define SIM_SCGC4_UART  0
-#define IRQ_UART_STATUS 0
+#define UART_BAUD   115200
+#define UART_PERIPH UART0
+#define UART_IRQ    UART0_IRQn
+#define UART_PMC    ID_UART0
+#define UART_PIO    PIOA
+#define UART_RX_PIN 9
+#define UART_TX_PIN 10
 
 #endif
 
@@ -121,16 +105,19 @@ volatile uint8_t uart_configured = 0;
 
 // ----- Interrupt Functions -----
 
+void uart_buffer_append(char c);
+
 #if defined(_kii_v1_) || defined(_teensy_3_) // UART0 Debug
 void uart0_status_isr()
 #elif defined(_kii_v2_) // UART2 Debug
 void uart2_status_isr()
-#elif defined(_kii_v3_) //UART? Debug
-void uart0_status_isr()
+#elif defined(_kii_v3_)
+void UART0_Handler()
 #endif
 {
 	cli(); // Disable Interrupts
 
+#if defined(_kinetis_)
 	// UART0_S1 must be read for the interrupt to be cleared
 	if ( UART_S1 & ( UART_S1_RDRF | UART_S1_IDLE ) )
 	{
@@ -140,42 +127,27 @@ void uart0_status_isr()
 		if ( available == 0 )
 		{
 			// Cleanup
-#if defined(_kinetis_)
 			available = UART_D;
 			UART_CFIFO = UART_CFIFO_RXFLUSH;
-#elif defined(_sam_)
-			//SAM TODO
-#endif
 			goto done;
 		}
 
 		// Read UART0 into buffer until FIFO is empty
 		while ( available-- > 0 )
 		{
-			uart_buffer[uart_buffer_tail++] = UART_D;
-			uart_buffer_items++;
-
-			// Wrap-around of tail pointer
-			if ( uart_buffer_tail >= uart_buffer_size )
-			{
-				uart_buffer_tail = 0;
-			}
-
-			// Make sure the head pointer also moves if circular buffer is overwritten
-			if ( uart_buffer_head == uart_buffer_tail )
-			{
-				uart_buffer_head++;
-			}
-
-			// Wrap-around of head pointer
-			if ( uart_buffer_head >= uart_buffer_size )
-			{
-				uart_buffer_head = 0;
-			}
+			uart_buffer_append(UART_D);
 		}
 	}
-
 done:
+
+#elif defined(_sam_)
+	// UART_SR must be read for the interrupt to be cleared
+	if ( UART_PERIPH->UART_SR & UART_SR_RXRDY )
+	{
+		uart_buffer_append(UART_PERIPH->UART_RHR);
+	}
+#endif
+
 	sei(); // Re-enable Interrupts
 }
 
@@ -191,8 +163,6 @@ void uart_serial_setup()
 	// Setup the the UART interface for keyboard data input
 #if defined(_kinetis_)
 	SIM_SCGC4 |= SIM_SCGC4_UART; // Disable clock gating
-#elif defined(_sam_)
-	//SAM TODO
 #endif
 
 // MCHCK / Kiibohd-dfu
@@ -209,9 +179,13 @@ void uart_serial_setup()
 
 // SAM dev kit
 #elif defined(_kii_v3_)
-	// Pin Setup for UART0
-	//PIOA->PIO_ODR = (1<<9); //RX Pin
-	//PIOA->PIO_OER = (1<<10); //TX Pin
+	//Select Peripheral A for UART pins
+	UART_PIO->PIO_ABCDSR[0] &= ~((1 << UART_RX_PIN) | (1 << UART_TX_PIN));
+	UART_PIO->PIO_ABCDSR[1] &= ~((1 << UART_RX_PIN) | (1 << UART_TX_PIN));
+	UART_PIO->PIO_PDR = (1 << UART_RX_PIN) | (1 << UART_TX_PIN);
+
+	//Enable UART peripheral clock
+	PMC->PMC_PCER0 = (1 << UART_PMC);
 
 // Teensy
 #elif defined(_teensy_)
@@ -247,15 +221,16 @@ void uart_serial_setup()
 	UART_C4 = 0x11;
 
 #elif defined(_kii_v3_)
-	uint16_t div = 65; // clock / (16*baud)
-	UART0->UART_BRGR = UART_BRGR_CD(div);
+	uint16_t div = F_CPU / (UART_BAUD*16);
+	UART_PERIPH->UART_BRGR = UART_BRGR_CD(div);
 #endif
 
 #if defined(_kinetis_)
 	// 8 bit, No Parity, Idle Character bit after stop
 	UART_C1 = UART_C1_ILT;
 #elif defined(_sam_)
-	UART0->UART_MR = UART_MR_PAR_NO | UART_MR_CHMODE_NORMAL;
+	// 8 bit, No Parity, 1 stop bit
+	UART_PERIPH->UART_MR = UART_MR_PAR_NO | UART_MR_CHMODE_NORMAL;
 #endif
 
 	// Interrupt notification watermarks
@@ -266,8 +241,6 @@ void uart_serial_setup()
 	// UART2 has a single byte FIFO
 	UART_TWFIFO = 1;
 	UART_RWFIFO = 1;
-#elif defined(_kii_v3_)
-	//SAM TODO
 #endif
 
 	// TX FIFO Enabled, TX FIFO Size 1 (Max 8 datawords), RX FIFO Enabled, RX FIFO Size 1 (Max 8 datawords)
@@ -277,24 +250,18 @@ void uart_serial_setup()
 	//  0x2 - 8 dataword
 #if defined(_kinetis_)
 	UART_PFIFO = UART_PFIFO_TXFE | UART_PFIFO_RXFE;
-#elif defined(_sam_)
-	//SAM TOOD
 #endif
 
 	// Reciever Inversion Disabled, LSBF
 	// UART_S2_RXINV UART_S2_MSBF
 #if defined(_kinetis_)
 	UART_S2 |= 0x00;
-#elif defined(_sam_)
-	//SAM TOOD
 #endif
 
 	// Transmit Inversion Disabled
 	// UART_C3_TXINV
 #if defined(_kinetis_)
 	UART_C3 |= 0x00;
-#elif defined(_sam_)
-	//SAM TOOD
 #endif
 
 	// TX Enabled, RX Enabled, RX Interrupt Enabled, Generate idles
@@ -302,8 +269,8 @@ void uart_serial_setup()
 #if defined(_kinetis_)
 	UART_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE | UART_C2_ILIE;
 #elif defined(_sam_)
-	UART0->UART_CR = UART_CR_RXEN | UART_CR_TXEN;
-	//UART0->UART_IER = UART_IER_RXRDY | UART_IER_TXRDY;
+	UART_PERIPH->UART_CR = UART_CR_TXEN | UART_CR_RXEN;
+	UART_PERIPH->UART_IER = UART_IER_RXRDY;
 #endif
 
 	// Add interrupt to the vector table (slightly higher than USB)
@@ -311,13 +278,37 @@ void uart_serial_setup()
 	NVIC_SET_PRIORITY( IRQ_UART_STATUS, 111 );
 	NVIC_ENABLE_IRQ( IRQ_UART_STATUS );
 #elif defined(_sam_)
-	//SAM TOOD
+	NVIC_SetPriority( UART_IRQ, 111 );
+	NVIC_EnableIRQ( UART_IRQ );
 #endif
 
 	// UART is now ready to use
 	uart_configured = 1;
 }
 
+void uart_buffer_append(char c)
+{
+	uart_buffer[uart_buffer_tail++] = c;
+	uart_buffer_items++;
+
+	// Wrap-around of tail pointer
+	if ( uart_buffer_tail >= uart_buffer_size )
+	{
+		uart_buffer_tail = 0;
+	}
+
+	// Make sure the head pointer also moves if circular buffer is overwritten
+	if ( uart_buffer_head == uart_buffer_tail )
+	{
+		uart_buffer_head++;
+	}
+
+	// Wrap-around of head pointer
+	if ( uart_buffer_head >= uart_buffer_size )
+	{
+		uart_buffer_head = 0;
+	}
+}
 
 // Get the next character, or -1 if nothing received
 int uart_serial_getchar()
@@ -370,8 +361,7 @@ int uart_serial_putchar( uint8_t c )
 	while ( !( UART_SFIFO & UART_SFIFO_TXEMPT ) ); // Wait till there is room to send
 	UART_D = c;
 #elif defined(_sam_)
-	//while ( !(UART0->UART_SR & UART_SR_TXRDY) ); // Wait till tx ready
-	while ( !(UART0->UART_SR & UART_SR_TXEMPTY) ); // Wait till tx empty
+	while ( !(UART_PERIPH->UART_SR & UART_SR_TXRDY) ); // Wait till tx ready
 	UART0->UART_THR = c;
 #endif
 
@@ -394,8 +384,7 @@ int uart_serial_write( const void *buffer, uint32_t size )
 		while ( !( UART_SFIFO & UART_SFIFO_TXEMPT ) ); // Wait till there is room to send
 		UART_D = data[position++];
 #elif defined(_sam_)
-		//while ( !( UART0->UART_SR & UART_SR_TXRDY ) ); //Wait till tx ready
-		while ( !(UART0->UART_SR & UART_SR_TXEMPTY) ); // Wait till tx empty
+		while ( !( UART_PERIPH->UART_SR & UART_SR_TXRDY ) ); //Wait till tx ready
 		UART0->UART_THR = data[position++];
 #endif
 	}
@@ -410,7 +399,7 @@ void uart_serial_flush_output()
 #if defined(_kinetis_)
 	while ( !( UART_SFIFO & UART_SFIFO_TXEMPT ) ); // Wait till there is room to send
 #elif defined(_sam_)
-	while ( !( UART0->UART_SR & UART_SR_TXEMPTY ) );
+	while ( !( UART_PERIPH->UART_SR & UART_SR_TXEMPTY ) );
 #endif
 }
 

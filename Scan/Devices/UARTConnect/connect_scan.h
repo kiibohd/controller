@@ -22,6 +22,17 @@
 #include <kll.h>
 
 
+// ----- Defines -----
+
+// Special packet values
+#define SOH 0x01
+#define CABLE_CHECK_ARG 0xD2
+#define BYTE_COUNT_START 0xFFFF
+
+// Node id's
+#define MASTER_ID 0x00
+#define DEFAULT_SLAVE_ID 0xFF
+#define BROADCAST_ID 0xFF
 
 // ----- Enums -----
 
