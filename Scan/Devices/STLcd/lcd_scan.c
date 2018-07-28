@@ -519,6 +519,7 @@ inline uint8_t LCD_scan()
 // current - mA
 void LCD_currentChange( unsigned int current )
 {
+#if defined(_kinetis_)
 	// Since we are only disabling the PWM module, we can just do this immediately
 	if ( current < 150 )
 	{
@@ -528,6 +529,9 @@ void LCD_currentChange( unsigned int current )
 	{
 		SIM_SCGC6 |= SIM_SCGC6_FTM0;
 	}
+#elif defined(_sam_)
+	//SAM TODO
+#endif
 }
 
 
@@ -567,7 +571,6 @@ void LCD_layerStackExact_capability( TriggerMacro *trigger, uint8_t state, uint8
 
 	// Number data for LCD
 	const uint8_t numbers[10][128] = {
-#if 0 //REMOVE ME
 		{ STLcdNumber0_define },
 		{ STLcdNumber1_define },
 		{ STLcdNumber2_define },
@@ -578,12 +581,10 @@ void LCD_layerStackExact_capability( TriggerMacro *trigger, uint8_t state, uint8
 		{ STLcdNumber7_define },
 		{ STLcdNumber8_define },
 		{ STLcdNumber9_define },
-#endif
 	};
 
 	// Color data for numbers
 	const uint16_t colors[10][3] = {
-#if 0 //REMOVE ME
 		{ STLcdNumber0Color_define },
 		{ STLcdNumber1Color_define },
 		{ STLcdNumber2Color_define },
@@ -594,7 +595,6 @@ void LCD_layerStackExact_capability( TriggerMacro *trigger, uint8_t state, uint8
 		{ STLcdNumber7Color_define },
 		{ STLcdNumber8Color_define },
 		{ STLcdNumber9Color_define },
-#endif
 	};
 
 	// Only display if there are layers active
