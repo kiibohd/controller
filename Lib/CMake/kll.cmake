@@ -43,43 +43,10 @@ endif ()
 message ( STATUS "Checking for kll" )
 
 ### XXX XXX XXX - Remember to update Pipfile as well when you change the version! ###
-set ( KLL_MIN_VERSION "0.5.5.1" )
+set ( KLL_MIN_VERSION "0.5.5.3" )
 
 # 1) Check for environment variable
 if ( NOT DEFINED KLL_EXECUTABLE )
-	#| Make sure pip is available
-	#message ( STATUS "Checking for pip" )
-	#set ( PIP_EXECUTABLE
-	#	${PYTHON_EXECUTABLE} -m pip
-	#	CACHE STRING "pip Executable Path"
-	#)
-	#execute_process ( COMMAND ${PIP_EXECUTABLE} --version
-	#	OUTPUT_VARIABLE pip_version
-	#	ERROR_QUIET
-	#	OUTPUT_STRIP_TRAILING_WHITESPACE
-	#)
-	#if ( pip_version MATCHES "^pip " )
-	#	set ( PIP_FOUND 1 )
-	#	message ( STATUS "pip Version Detected: ${pip_version}" )
-	#else ()
-	#	message ( FATAL_ERROR "pip not available '${PIP_EXECUTABLE}'. pip is required to complete the build process." )
-	#endif ()
-	#unset ( pip_version )
-
-	#| Make sure pipenv is installed
-	#message ( STATUS "Checking for pipenv" )
-	#set ( PIPENV_EXECUTABLE
-	#	${PYTHON_EXECUTABLE} -m pipenv
-	#)
-	#execute_process ( COMMAND ${PIP_EXECUTABLE} install --user pipenv
-	#	RESULT_VARIABLE pipenv_install_result
-	#	OUTPUT_STRIP_TRAILING_WHITESPACE
-	#)
-	#if ( pipenv_install_result )
-	#	message ( FATAL_ERROR "pipenv is not available, and could not be installed with '${PIP_EXECUTABLE} install --user pipenv'" )
-	#endif ()
-	#unset ( pipenv_install_result )
-
 	# 2) Check for local copy of kll compiler
 	if ( EXISTS "${PROJECT_SOURCE_DIR}/kll/kll/kll" )
 		set ( KLL_EXECUTABLE
@@ -88,22 +55,15 @@ if ( NOT DEFINED KLL_EXECUTABLE )
 		set ( KLL_WORKING_DIRECTORY
 			"${PROJECT_SOURCE_DIR}/kll"
 		)
-		# Install kll dependencies using pipenv
-		#execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
-		#	WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}/kll"
-		#)
 
-	# 3) Check/install kll using pipenv
-	#else ()
-	#	set ( KLL_EXECUTABLE
-	#		pipenv run ${PYTHON_EXECUTABLE} -m kll
-	#	)
-	#	set ( KLL_WORKING_DIRECTORY
-	#		"${PROJECT_SOURCE_DIR}"
-	#	)
-	#	execute_process ( COMMAND ${PIPENV_EXECUTABLE} install
-	#		WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-	#	)
+	# 3) Use pip kll
+	else ()
+		set ( KLL_EXECUTABLE
+			${PYTHON_EXECUTABLE} -m kll
+		)
+		set ( KLL_WORKING_DIRECTORY
+			"${PROJECT_SOURCE_DIR}"
+		)
 	endif ()
 endif ()
 

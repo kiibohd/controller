@@ -25,6 +25,18 @@ for var in ${VariablesList[@]}; do
 	fi
 done
 
+# Make sure pipenv is detected
+PIPENV_ACTIVE=${PIPENV_ACTIVE:-0}
+if [ $PIPENV_ACTIVE -ne 1 ]; then
+	CUR_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null && pwd )"
+	echo "ERROR: pipenv is not active!"
+	echo "Please run the following before running this script ($(basename "$0")):"
+	echo "  cd $CUR_DIR  OR  cd $CUR_DIR/../kll"
+	echo "  pipenv install"
+	echo "  pipenv shell"
+	ExitEarly=true
+fi
+
 # Error was detected, exit immediately
 if $ExitEarly; then
 	exit 1
