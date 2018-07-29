@@ -224,7 +224,8 @@ set ( kll_keymap     "${PROJECT_BINARY_DIR}/generatedKeymap.h" )
 set ( kll_hid_lookup "${PROJECT_BINARY_DIR}/usb_hid.h" )
 set ( kll_defs       "${PROJECT_BINARY_DIR}/kll_defs.h" )
 set ( kll_pixelmap   "${PROJECT_BINARY_DIR}/generatedPixelmap.c" )
-set ( kll_outputname ${kll_keymap} ${kll_defs} ${kll_hid_lookup} ${kll_pixelmap} )
+set ( kll_json       "${PROJECT_BINARY_DIR}/kll.json" )
+set ( kll_outputname ${kll_keymap} ${kll_defs} ${kll_hid_lookup} ${kll_pixelmap} ${kll_json} )
 
 #| KLL Configurator Options
 #|
@@ -250,6 +251,7 @@ set ( kll_cmd
 	--map-output ${kll_keymap}
 	--hid-output ${kll_hid_lookup}
 	--pixel-output ${kll_pixelmap}
+	--json-output ${kll_json}
 	${kll_configurator_options}
 )
 

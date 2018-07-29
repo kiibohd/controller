@@ -19,6 +19,9 @@ layerShift  => Layer_layerShift_capability( layer : 2 );
 # Argument 0 -> Next, 1 -> Previous
 layerRotate => Layer_layerRotate_capability( previous : 1 );
 
+# Null/None/noop Capability
+none => Macro_none_capability();
+
 # Test Capabilities
 testThreadSafe   => Macro_testThreadSafe_capability();
 testThreadUnsafe => Macro_testThreadUnsafe_capability();

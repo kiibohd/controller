@@ -7,8 +7,9 @@ RUN reflector --verbose --country 'United States' -l 5 --sort rate --save /etc/p
 RUN pacman -Sy --noconfirm \
 	git cmake ctags tmux libusb python python-pillow ninja dfu-util gcc gdb \
 	arm-none-eabi-binutils arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib \
-	clang lsb-release && \
-	rm -rf /var/cache/pacman/pkg
+	clang lsb-release python-pip && \
+	rm -rf /var/cache/pacman/pkg && \
+	pip install --upgrade pip
 
 VOLUME /controller
 WORKDIR /controller/Keyboards

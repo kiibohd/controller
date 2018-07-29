@@ -62,7 +62,7 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository universe -y; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded -y; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded python3-pip -y; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade python; fi # Homebrew defaults to Python 3 now, but we have to upgrade
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install tree ctags dfu-util binutils gnu-sed; fi
@@ -75,12 +75,6 @@ install:
   # Info about OS
   - uname -a
 
-  # Pre-clone kll.git to speed-up build
-  - git clone https://github.com/kiibohd/kll.git
-
-  # Directory tree to validate kll.git
-  - tree
-
   # Compiler Version
   - ${CC} --version
 
@@ -91,9 +85,13 @@ install:
   # CMake Version
   - cmake --version
 
+  # Prepare pipenv
+  - sudo pip3 install --upgrade pip
+  - sudo pip3 install kll
+
 # Run test script(s)
 script:
-  - (cd ${DIR} && COMPILER=${CC} ./${SCRIPT})
+  - cd ${DIR} && PIPENV_ACTIVE=1 COMPILER=${CC} ./${SCRIPT}
 
 # Setup Deploy
 before_deploy:

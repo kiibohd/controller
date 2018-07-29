@@ -2,8 +2,9 @@ FROM ubuntu:xenial
 
 RUN apt-get update && \
     apt-get install -qy git cmake ctags tmux libusb-1.0-0-dev binutils-arm-none-eabi lsb-core \
-    gcc-arm-none-eabi libnewlib-arm-none-eabi dfu-util python3 python3-pil git ninja-build && \
-    rm -rf /var/lib/apt/lists/*
+    gcc-arm-none-eabi libnewlib-arm-none-eabi dfu-util python3 python3-pil git ninja-build python3-pip && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip3 install --upgrade pip
 
 VOLUME /controller
 WORKDIR /controller/Keyboards

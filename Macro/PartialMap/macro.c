@@ -168,6 +168,23 @@ const uint8_t ScheduleStateSize = ScheduleStateSize_define;
 
 // ----- Capabilities -----
 
+// No-op capability (None)
+void Macro_none_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Macro_none()");
+		return;
+	default:
+		break;
+	}
+
+}
+
 // Test Thread-safe Capability
 // Capability used to test a thread-safe result
 void Macro_testThreadSafe_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
