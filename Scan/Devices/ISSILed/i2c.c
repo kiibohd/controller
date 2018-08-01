@@ -163,18 +163,19 @@ void i2c_setup()
 		}
 
 #elif defined(_sam_)
-#define BAUD 400000
-#define CK 1
+#define BAUD 800000
+#define CK 0
 
 		switch ( ch )
 		{
 		case 0:
-			//Enable Peripheral / Disable PIO
+			// Enable Peripheral / Disable PIO
 			PIOA->PIO_PDR = (1 << 3) | (1 << 4);
-			//Enable i2c clock
+			// Enable i2c clock
 			PMC->PMC_PCER0 = (1 << ID_TWI0);
 			break;
 		case 1:
+			MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO4 | CCFG_SYSIO_SYSIO5; // Switch PB4 from TDI to GPIO
 			PIOB->PIO_PDR = (1 << 4) | (1 << 5);
 			PMC->PMC_PCER0 = (1 << ID_TWI1);
 			break;
@@ -363,12 +364,11 @@ i2c_send_sequence_cleanup:
 	twi_dev->TWI_MMR = TWI_MMR_DADR(address) | (mread ? TWI_MMR_MREAD : 0);
 
 	// Enable interrupts
-	twi_dev->TWI_IER = 0xFFFFFFFF;
+	twi_dev->TWI_IER = TWI_IER_RXRDY | TWI_IER_TXRDY | TWI_IER_TXCOMP | TWI_IER_ARBLST;
 	//twi_dev->TWI_IDR = 0xFFFFFFFF;
 
 	// Generate a start condition
 	twi_dev->TWI_CR |= TWI_CR_START;
-	print("\r\n\n ----- START ----- \r\n");
 
 	// Fire off the first read or write.
 	// The first (address) byte is automatically trasmitted before any data
@@ -620,7 +620,8 @@ void i2c_isr( uint8_t ch )
 #if defined(_kinetis_)
 				*I2C_D = element;
 #elif defined(_sam_)
-				while (! (status & TWI_SR_TXRDY));
+				// while (! (status & TWI_SR_TXRDY));
+				if (!(status & TWI_SR_TXRDY)) return;
 				twi_dev->TWI_THR = element;
 #endif
 				//print( NL );

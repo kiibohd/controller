@@ -724,9 +724,9 @@ inline void LED_setup()
 #endif
 #endif
 
-	PIOA->PIO_PER = (1<<15);
-	PIOA->PIO_OER = (1<<15);
-	PIOA->PIO_SODR = (1<<15);
+	// PIOA->PIO_PER = (1<<15);
+	// PIOA->PIO_OER = (1<<15);
+	// PIOA->PIO_SODR = (1<<15);
 
 	// Zero out Frame Registers
 	// This needs to be done before disabling the hardware shutdown (or the leds will do undefined things)
