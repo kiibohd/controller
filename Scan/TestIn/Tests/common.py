@@ -817,6 +817,8 @@ class ResultElem:
             # Expected arg needs to be looked up for Animations
             value = i.control.json_input['AnimationSettings'][self.elem['setting']]
             self.expected_args = [value]
+        elif elemtype == 'None':
+            pass
         else:
             # Otherwise uid is used for the arg
             self.expected_args = [self.elem['uid']]
