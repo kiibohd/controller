@@ -99,7 +99,7 @@ inline uint32_t cycle_now()
 #if defined(_kinetis_)
 	return SYST_CVR;
 #elif defined(_sam_)
-	return SCB->SHCSR & SCB_SHCSR_SYSTICKACT_Msk;
+	return SysTick->VAL;
 #else
 #warning "cycle_now not implemented"
 	return 0;

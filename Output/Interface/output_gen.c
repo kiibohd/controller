@@ -133,6 +133,11 @@ inline void OutputGen_setup()
 	Output_DebugMode = 0;
 	Output_ExtCurrent_Available = 0;
 	Output_USBCurrent_Available = 0;
+
+#if defined(_sam_)
+	// HACK: Will be corrected when usb support is added
+	Output_USBCurrent_Available = 500;
+#endif
 }
 
 
