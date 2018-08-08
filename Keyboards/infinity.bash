@@ -3,7 +3,7 @@
 # Keyboard: Infinity 60% (MD1)
 #
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015-2017
+# Jacob Alexander 2015-2018
 
 
 
@@ -12,6 +12,18 @@ Layout=$(basename $0 | cut -d'.' -f2)
 if [ "${Layout}" = "bash" ]; then
 	Layout=alphabet
 fi
+
+
+# VID:PID Mapping
+VENDOR_ID="0x308F"
+case "${Layout}" in
+hacker)
+	PRODUCT_ID="0x0001"
+	;;
+standard)
+	PRODUCT_ID="0x0002"
+	;;
+esac
 
 
 

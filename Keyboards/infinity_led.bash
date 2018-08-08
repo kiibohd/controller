@@ -3,7 +3,7 @@
 # Keyboard: Infinity 60% with LED backlight support (MD1.1)
 #
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2016-2017
+# Jacob Alexander 2016-2018
 
 
 
@@ -12,6 +12,21 @@ Layout=$(basename $0 | cut -d'.' -f2)
 if [ "${Layout}" = "bash" ]; then
 	Layout=alphabet
 fi
+
+
+# VID:PID Mapping
+VENDOR_ID="0x308F"
+case "${Layout}" in
+alphabet)
+	PRODUCT_ID="0x000F"
+	;;
+hacker)
+	PRODUCT_ID="0x000E"
+	;;
+standard)
+	PRODUCT_ID="0x000D"
+	;;
+esac
 
 
 

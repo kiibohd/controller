@@ -3,7 +3,7 @@
 # Keyboard: WhiteFox
 #
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015-2017
+# Jacob Alexander 2015-2018
 
 
 # Default to TrueFox
@@ -11,6 +11,30 @@ Layout=$(basename $0 | cut -d'.' -f2)
 if [ "${Layout}" = "bash" ]; then
 	Layout=truefox
 fi
+
+
+# VID:PID Mapping
+VENDOR_ID="0x308F"
+case "${Layout}" in
+aria)
+	PRODUCT_ID="0x0008"
+	;;
+iso)
+	PRODUCT_ID="0x0007"
+	;;
+jackofalltrades)
+	PRODUCT_ID="0x000B"
+	;;
+truefox)
+	PRODUCT_ID="0x000A"
+	;;
+vanilla)
+	PRODUCT_ID="0x0006"
+	;;
+winkeyless)
+	PRODUCT_ID="0x0009"
+	;;
+esac
 
 
 #################

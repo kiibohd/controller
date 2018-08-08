@@ -14,6 +14,10 @@ EnableHostBuild=${EnableHostBuild:-false}
 EnableHostOnlyBuild=${EnableHostOnlyBuild:-false}
 HostTest=${HostTest:-""}
 
+# Default VID:PIDs
+VENDOR_ID=${VENDOR_ID:-0x1C11}
+PRODUCT_ID=${PRODUCT_ID:-0xB04D}
+
 # Make sure all of the relevant variables have been set
 # NOTE: PartialMaps and DefaultMap do not have to be set
 VariablesList=(BuildPath BaseMap ScanModule MacroModule OutputModule DebugModule Chip Compiler)
@@ -226,6 +230,11 @@ echo "Selected Generator: ${CMAKE_GENERATOR}"
 echo "${BuildPath}"
 
 
+# Info
+echo "VID: ${VENDOR_ID}"
+echo "PID: ${PRODUCT_ID}"
+
+
 
 #
 # Run Host Build (test kll)
@@ -250,6 +259,8 @@ if ${EnableHostBuild}; then
 			-DBaseMap="${BaseMap}" \
 			-DDefaultMap="${DefaultMap}" \
 			-DPartialMaps="${PartialMapsExpanded}" \
+			-DVENDOR_ID="${VENDOR_ID}" \
+			-DPRODUCT_ID="${PRODUCT_ID}" \
 			${CMakeExtraArgs} "${CMakeListsPath}" \
 			-G "${CMAKE_GENERATOR}"
 		return_code=$?
@@ -267,6 +278,8 @@ if ${EnableHostBuild}; then
 			-DBaseMap="${BaseMap}" \
 			-DDefaultMap="${DefaultMap}" \
 			-DPartialMaps="${PartialMapsExpanded}" \
+			-DVENDOR_ID="${VENDOR_ID}" \
+			-DPRODUCT_ID="${PRODUCT_ID}" \
 			${CMakeExtraArgs} "${CMakeListsPath}" \
 			-G "${CMAKE_GENERATOR}"
 		return_code=$?
@@ -344,6 +357,8 @@ if [[ "${OS_BUILD}" == "cygwin" ]]; then
 		-DBaseMap="${BaseMap}" \
 		-DDefaultMap="${DefaultMap}" \
 		-DPartialMaps="${PartialMapsExpanded}" \
+		-DVENDOR_ID="${VENDOR_ID}" \
+		-DPRODUCT_ID="${PRODUCT_ID}" \
 		${CMakeExtraArgs} "${CMakeListsPath}" \
 		-G "${CMAKE_GENERATOR}"
 	return_code=$?
@@ -361,6 +376,8 @@ else
 		-DBaseMap="${BaseMap}" \
 		-DDefaultMap="${DefaultMap}" \
 		-DPartialMaps="${PartialMapsExpanded}" \
+		-DVENDOR_ID="${VENDOR_ID}" \
+		-DPRODUCT_ID="${PRODUCT_ID}" \
 		${CMakeExtraArgs} "${CMakeListsPath}" \
 		-G "${CMAKE_GENERATOR}"
 	return_code=$?
