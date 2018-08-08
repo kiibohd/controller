@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is bash lib file for the convenience build scripts
 # Don't call this script directly
-# Jacob Alexander 2015-2017
+# Jacob Alexander 2015-2018
 
 # Check if compiler has been overridden by the environment
 Compiler=${COMPILER:-${Compiler}}
@@ -11,7 +11,7 @@ BuildPath=${BuildPath}.${Compiler}
 
 # Make sure all of the relevant variables have been set
 # NOTE: PartialMaps and DefaultMap do not have to be set
-VariablesList=(BuildPath Chip Compiler MANUFACTURER BOOT_PRODUCT_STR)
+VariablesList=(BuildPath Chip Compiler MANUFACTURER BOOT_PRODUCT_STR BOOT_VENDOR_ID BOOT_PRODUCT_ID)
 ExitEarly=false
 for var in ${VariablesList[@]}; do
 	if [ -z ${!var+x} ]; then
@@ -149,6 +149,8 @@ echo "${BuildPath}"
 # Info
 echo "Manufacturer: ${MANUFACTURER}"
 echo "Boot Product Str: ${BOOT_PRODUCT_STR}"
+echo "Boot VID: ${BOOT_VENDOR_ID}"
+echo "Boot PID: ${BOOT_PRODUCT_ID}"
 
 
 # Run CMake commands
@@ -162,11 +164,11 @@ if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
 		exit 1
 	fi
 	echo "Cygwin Build"
-	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
+	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" -DBOOT_VENDOR_ID="${BOOT_VENDOR_ID}" -DBOOT_PRODUCT_ID="${BOOT_PRODUCT_ID}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 
 # Linux / Mac (and everything else)
 else
-	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
+	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" -DBOOT_VENDOR_ID="${BOOT_VENDOR_ID}" -DBOOT_PRODUCT_ID="${BOOT_PRODUCT_ID}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 	return_code=$?
 
 fi

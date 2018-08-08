@@ -125,20 +125,21 @@ message( "${COMPILER_SRCS}" )
 #| USB Defines, this is how the loader programs detect which type of chip base is used
 message( STATUS "Bootloader Type:" )
 if ( DFU )
-	set( VENDOR_ID       "0x1C11" )
-	set( PRODUCT_ID      "0xB04D" )
-	set( BOOT_VENDOR_ID  "0x1C11" )
-	set( BOOT_PRODUCT_ID "0xB007" )
+	# XXX (HaaTa) These VID's are deprecated, but are kept as the default for unspecified keyboards
+	set( VENDOR_ID       "0x1C11" CACHE STRING "USB Firmware VID" )
+	set( PRODUCT_ID      "0xB04D" CACHE STRING "USB Firmware PID" )
+	set( BOOT_VENDOR_ID  "0x1C11" CACHE STRING "USB Bootloader VID" )
+	set( BOOT_PRODUCT_ID "0xB007" CACHE STRING "USB Bootloader PID" )
 
 	# The | symbol is replaced by a space if in secure mode, or a \0 if not (at runtime)
 	set( BOOT_DFU_ALTNAME "Kiibohd DFU|Secure" )
 
 	message( "dfu" )
 elseif ( TEENSY )
-	set( VENDOR_ID       "0x1C11" )
-	set( PRODUCT_ID      "0xB04D" )
-	set( BOOT_VENDOR_ID  "0x16c0" ) # TODO Double check, this is likely incorrect
-	set( BOOT_PRODUCT_ID "0x0487" )
+	set( VENDOR_ID       "0x1C11" CACHE STRING "USB Firmware VID" )
+	set( PRODUCT_ID      "0xB04D" CACHE STRING "USB Firmware PID" )
+	set( BOOT_VENDOR_ID  "0x16c0" CACHE STRING "USB Bootloader VID" )# TODO Double check, this is likely incorrect
+	set( BOOT_PRODUCT_ID "0x0487" CACHE STRING "USB Bootloader PID" )
 	message( "Teensy" )
 endif ()
 
