@@ -3,7 +3,8 @@
 # By default, initiates JLinkExe
 
 AUTO_SCREEN_SESSION="/dev/kiibohd"
-NOSCREEN=1
+ERASE=0
+NOSCREEN=0
 NOCONNECT=0
 PROG_NAME=$(basename $0)
 
@@ -12,6 +13,10 @@ while (( "$#" >= "1" )); do
 	# Scan each argument
 	key="$1"
 	case $key in
+	-e|--erase)
+		ERASE=1
+		shift
+		;;
 	-a|--autoscreen)
 		NOSCREEN=0
 		if [ ! -e "$2" ]; then
@@ -30,6 +35,7 @@ while (( "$#" >= "1" )); do
 		echo "  (load.dfu)"
 		echo ""
 		echo "Arguments:"
+		echo " -e, --erase                     Erase the whole chip before loading the firmware"
 		echo " -a, --autoscreen <SERIAL_PORT>  Use screen on the specified serial port after loading."
 		echo "                                 e.g. /dev/ttyACM0"
 		echo " -n, --noconnect                 Don't automatically connect with JLinkExe"
@@ -50,6 +56,9 @@ done
 # Used for development boards
 if type JLinkExe &>/dev/null; then
 	echo "connect" > flash.jlink
+	if [[ $ERASE -eq 1 ]]; then
+		echo "erase" >> flash.jlink
+	fi
 	echo "loadfile @TARGET_HEX@" >> flash.jlink
 	echo "r" >> flash.jlink
 	echo "g" >> flash.jlink
@@ -81,4 +90,3 @@ if (( "$EXIT_STATUS" == "0" )) && [[ "$AUTO_SCREEN_SESSION" != "" ]] && [[ $NOSC
 fi
 
 exit $EXIT_STATUS
-
