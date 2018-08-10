@@ -9,4 +9,4 @@ kll = ">=0.5.5.5"
 [dev-packages]
 
 [requires]
-python_version = "3.6"
+
