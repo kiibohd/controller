@@ -388,6 +388,16 @@ uint8_t Matrix_single_scan()
 	// Current strobe
 	uint8_t strobe = matrixCurrentStrobe;
 
+	// XXX (HaaTa)
+	// Before strobing drain each sense line
+	// This helps with faulty pull-up resistors (particularily with SAM4S)
+	for ( uint8_t sense = 0; sense < Matrix_rowsNum; sense++ )
+	{
+		Matrix_pin( Matrix_rows[ sense ], Type_StrobeSetup );
+		Matrix_pin( Matrix_rows[ sense ], Type_StrobeOff );
+		Matrix_pin( Matrix_rows[ sense ], Type_SenseSetup );
+	}
+
 	// Strobe Pin
 	Matrix_pin( Matrix_cols[ strobe ], Type_StrobeOn );
 

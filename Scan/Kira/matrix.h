@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -49,11 +49,7 @@
 //  PTC1..5
 
 // Define Rows (Sense) and Columns (Strobes)
-// next
-//GPIO_Pin Matrix_cols[] = { gpio(B,1), gpio(B,2), gpio(B,3), gpio(A,18), gpio(A,19), gpio(A,23), gpio(A,20), gpio(A,11), gpio(A,8), gpio(A,7), gpio(A,6), gpio(A,5), gpio(A,27), gpio(A,28), gpio(A,29), gpio(A,30), gpio(A,2), gpio(A,1), gpio(A,0) };
-//GPIO_Pin Matrix_rows[] = { gpio(A,26), gpio(A,25), gpio(A,24), gpio(A,13), gpio(A,14), gpio(A,31) };
-// 1.01
-GPIO_Pin Matrix_cols[] = { gpio(B,1), gpio(B,2), gpio(B,3), gpio(A,19), gpio(A,18), gpio(A,23), gpio(A,20), gpio(A,11), gpio(A,8), gpio(A,7), gpio(A,6), gpio(A,5), gpio(A,27), gpio(A,28), gpio(A,29), gpio(A,30), gpio(A,2), gpio(A,1), gpio(A,0) };
+GPIO_Pin Matrix_cols[] = { gpio(B,1), gpio(B,2), gpio(B,3), gpio(A,18), gpio(A,19), gpio(A,23), gpio(A,20), gpio(A,11), gpio(A,8), gpio(A,7), gpio(A,6), gpio(A,5), gpio(A,27), gpio(A,28), gpio(A,29), gpio(A,30), gpio(A,2), gpio(A,1), gpio(A,0) };
 GPIO_Pin Matrix_rows[] = { gpio(A,26), gpio(A,25), gpio(A,24), gpio(A,13), gpio(A,14), gpio(A,31) };
 
 // Define type of scan matrix
