@@ -38,7 +38,7 @@ SEARCH_DIR(.)
 /* Memory Spaces Definitions */
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x00400000, LENGTH = 512K - 8K
+  FLASH (rx) : ORIGIN = 0x00400000, LENGTH = 512K - 16K
   RAM  (rwx) : ORIGIN = 0x20000000, LENGTH = 128K
 }
 

@@ -18,7 +18,7 @@ if [[ ! -z ${SubBuild} ]]; then
 	SubBuild=".${SubBuild// /_}"
 fi
 
-BuildPath="sam4sd32c${SubBuild}"
+BuildPath="sam4s8c${SubBuild}"
 
 
 
@@ -31,7 +31,7 @@ BuildPath="sam4sd32c${SubBuild}"
 # NOTE: Changing any of these variables will require a force build to compile correctly
 
 # Microcontroller
-Chip="sam4sd32c"
+Chip="sam4s8c"
 
 # Compiler Selection
 Compiler="gcc"

@@ -38,15 +38,16 @@ SEARCH_DIR(.)
 /* Memory Spaces Definitions */
 MEMORY
 {
-  FLASH     (rx) : ORIGIN = 0x00400000, LENGTH = 1024K
-  FLASH_APP (rx) : ORIGIN = 0x00400000, LENGTH = 1024K - 8K
-  RAM      (rwx) : ORIGIN = 0x20000000, LENGTH = 150K
+  FLASH     (rx) : ORIGIN = 0x00400000, LENGTH = 512K
+  FLASH_APP (rx) : ORIGIN = 0x00404000, LENGTH = 512K - 8K
+  RAM      (rwx) : ORIGIN = 0x20000000, LENGTH = 128K
 }
 
 /* Starting Address of the application ROM */
 _bootloader  = ORIGIN( FLASH );
 _app_rom     = ORIGIN( FLASH_APP );
 _app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
+__ram_end__ = ORIGIN(RAM) + LENGTH(RAM) - 4;
 
 /* The stack size used by the application. NOTE: you need to adjust according to your application. */
 STACK_SIZE = DEFINED(STACK_SIZE) ? STACK_SIZE : 0x400;
@@ -62,6 +63,7 @@ SECTIONS
         . = ALIGN(4);
         _sfixed = .;
         KEEP(*(.vectors .vectors.*))
+	KEEP(*(.startup*))
         *(.text .text.* .gnu.linkonce.t.*)
         *(.glue_7t) *(.glue_7)
         *(.rodata .rodata* .gnu.linkonce.r.*)
@@ -104,14 +106,14 @@ SECTIONS
 
         . = ALIGN(4);
         _efixed = .;            /* End of text section */
-    } > FLASH_APP
+    } > FLASH
 
     /* .ARM.exidx is sorted, so has to go in its own output section.  */
     PROVIDE_HIDDEN (__exidx_start = .);
     .ARM.exidx :
     {
       *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-    } > FLASH_APP
+    } > FLASH
     PROVIDE_HIDDEN (__exidx_end = .);
 
     . = ALIGN(4);
@@ -132,11 +134,13 @@ SECTIONS
     {
         . = ALIGN(4);
         _sbss = . ;
+        __bss_start__ = . ;
         _szero = .;
         *(.bss .bss.*)
         *(COMMON)
         . = ALIGN(4);
         _ebss = . ;
+        __bss_end__ = . ;
         _ezero = .;
     } > RAM
 

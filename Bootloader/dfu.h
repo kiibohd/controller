@@ -27,6 +27,7 @@
 #include <stdint.h>
 
 
+#if !defined(_sam_)
 
 // ----- Defines -----
 
@@ -47,9 +48,9 @@
 #elif defined(_mk22fx512avlh12_)
 #define USB_DFU_TRANSFER_SIZE FLASH_SECTOR_SIZE / 2
 
-// XXX Determine sector size for sam4sd32c
-#elif defined(_sam4sd32_)
-#define USB_DFU_TRANSFER_SIZE FLASH_SECTOR_SIZE
+// XXX Determine sector size for sam4s8c
+#elif defined(_sam4s8c_)
+#define USB_DFU_TRANSFER_SIZE FLASH_SECTOR_SIZE / 2
 
 #endif
 #endif
@@ -192,3 +193,5 @@ void dfu_write_done( enum dfu_status, struct dfu_ctx *ctx );
 void dfu_init( dfu_setup_read_t setup_read, dfu_setup_write_t setup_write, dfu_finish_write_t finish_write, struct dfu_ctx *ctx );
 void dfu_app_init( dfu_detach_t detachcb );
 
+
+#endif

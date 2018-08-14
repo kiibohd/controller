@@ -23,14 +23,14 @@
 
 // ----- Local Includes -----
 
-#include "device.h"
-#include "usb-internal.h"
+//#include "device.h"
+//#include "usb-internal.h"
 
 
 
 // ----- Functions -----
 
-void *usb_get_xfer_data(struct usb_xfer_info *i)
+/*void *usb_get_xfer_data(struct usb_xfer_info *i)
 {
 	// SAM TODO
 	return NULL;
@@ -96,10 +96,10 @@ void usb_queue_next(struct usbd_ep_pipe_state_t *s, void *addr, size_t len)
 	// SAM TODO
 }
 
-/*static void usb_reset(void)
+static void usb_reset(void)
 {
 	// SAM TODO
-}*/
+}
 
 void usb_enable(void)
 {
@@ -120,5 +120,4 @@ int usb_tx_serialno(size_t reqlen)
 {
 	// SAM TODO
 	return 0;
-}
-
+}*/
