@@ -55,6 +55,8 @@
 
 // ----- Variables -----
 
+extern const uint8_t sys_reset_to_loader_magic[22];
+
 /* IO definitions (access restrictions to peripheral registers) */
 /**
     \defgroup CMSIS_glob_defs CMSIS Global Defines

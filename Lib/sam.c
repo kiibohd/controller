@@ -44,6 +44,8 @@
 
 // ----- Variables -----
 
+const uint8_t sys_reset_to_loader_magic[22] = "\xff\x00\x7fRESET TO LOADER\x7f\x00\xff";
+
 /* Initialize segments */
 extern uint32_t _sfixed;
 extern uint32_t _efixed;
