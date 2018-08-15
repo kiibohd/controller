@@ -217,8 +217,10 @@ set_target_properties ( ${TARGET_ELF} PROPERTIES
 
 #| Convert the .ELF into a .bin to load onto the McHCK
 set ( TARGET_BIN ${TARGET}.bin )
+set ( TARGET_HEX ${TARGET}.hex )
 add_custom_command ( TARGET ${TARGET_ELF} POST_BUILD
 	COMMAND ${CMAKE_OBJCOPY} ${BIN_FLAGS} ${TARGET_ELF} ${TARGET_BIN}
+	COMMAND ${CMAKE_OBJCOPY} -O ihex ${TARGET_ELF} ${TARGET_HEX}
 	COMMENT "Creating binary file to load:  ${TARGET_BIN}"
 )
 

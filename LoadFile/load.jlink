@@ -49,8 +49,8 @@ done
 # Load via JLinkExe
 # Used for development boards
 if type JLinkExe &>/dev/null; then
-	echo "loadfile @TARGET_BIN@ @TARGET_ADDRESS@" > flash.jlink
-	echo "verifybin @TARGET_BIN@ @TARGET_ADDRESS@" >> flash.jlink
+	echo "connect" > flash.jlink
+	echo "loadfile @TARGET_HEX@" >> flash.jlink
 	echo "r" >> flash.jlink
 	echo "g" >> flash.jlink
 	echo "exit" >> flash.jlink
