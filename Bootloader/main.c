@@ -23,14 +23,20 @@
 // Local Includes
 #include "weak.h"
 #include "device.h"
-#include "dfu.desc.h"
-
 #include "debug.h"
 
+#if defined(_kinetis_)
+#include "dfu.desc.h"
+
+#elif defined(_sam_)
+#include "wdt.h"
+
+#endif
 
 
 // ----- Variables -----
 
+#if defined(_kinetis_)
 /**
  * Unfortunately we can't DMA directly to FlexRAM, so we'll have to stage here.
  */
@@ -38,10 +44,12 @@ static char staging[ USB_DFU_TRANSFER_SIZE ];
 
 // DFU State
 static struct dfu_ctx dfu_ctx;
+#endif
 
 
 // ----- Functions -----
 
+#if defined(_kinetis_)
 int sector_print( void* buf, size_t sector, size_t chunks )
 {
 	uint8_t* start = (uint8_t*)buf + sector * USB_DFU_TRANSFER_SIZE;
@@ -50,15 +58,11 @@ int sector_print( void* buf, size_t sector, size_t chunks )
 	int retval = 0;
 
 	// Verify if sector erased
-#if defined(_kinetis_)
 	FTFL.fccob.read_1s_section.fcmd = FTFL_FCMD_READ_1s_SECTION;
 	FTFL.fccob.read_1s_section.addr = (uintptr_t)start;
 	FTFL.fccob.read_1s_section.margin = FTFL_MARGIN_NORMAL;
 	FTFL.fccob.read_1s_section.num_words = 250; // 2000 kB / 64 bits
 	retval = ftfl_submit_cmd();
-#elif defined(_sam_)
-	// SAM TODO
-#endif
 
 #ifdef FLASH_DEBUG
 	print( NL );
@@ -203,14 +207,12 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 	// Depending on the error return a different status
 	switch ( flash_program_sector( off + (uintptr_t)&_app_rom, USB_DFU_TRANSFER_SIZE ) )
 	{
-	/*
 	case FTFL_FSTAT_RDCOLERR: // Flash Read Collision Error
 	case FTFL_FSTAT_ACCERR:   // Flash Access Error
 	case FTFL_FSTAT_FPVIOL:   // Flash Protection Violation Error
 		return DFU_STATUS_errADDRESS;
 	case FTFL_FSTAT_MGSTAT0:  // Memory Controller Command Completion Error
 		return DFU_STATUS_errADDRESS;
-	*/
 
 	case 0:
 	default: // No error
@@ -232,11 +234,15 @@ void init_usb_bootloader( int config )
 	// Clear verified status
 	dfu_ctx.verified = DFU_VALIDATION_UNKNOWN;
 }
+#endif
 
 // Code jump routine
 __attribute__((noreturn))
 static inline void jump_to_app( uintptr_t addr )
 {
+	// ARM-Cortex vector tables all begin with
+	// the stack pointer, followed by reset handler
+
 	// addr is in r0
 	__asm__("ldr sp, [%[addr], #0]\n"
 		"ldr pc, [%[addr], #4]"
@@ -249,6 +255,10 @@ static inline void jump_to_app( uintptr_t addr )
 // NOTE: Code does not start here, see Lib/mk20dx.c
 void main()
 {
+	// Bootloader Section
+	extern uint32_t _app_rom;
+
+#if defined(_kinetis_)
 	// Prepared debug output (when supported)
 	uart_serial_setup();
 	printNL( NL "Bootloader DFU-Mode" );
@@ -257,10 +267,6 @@ void main()
 	Chip_reset();
 	Device_reset();
 
-	// Bootloader Section
-	extern uint32_t _app_rom;
-
-#if defined(_kinetis_)
 	// We treat _app_rom as pointer to directly read the stack
 	// pointer and check for valid app code.  This is no fool
 	// proof method, but it should help for the first flash.
@@ -302,9 +308,34 @@ void main()
 		jump_to_app( addr );
 	}
 #elif defined(_sam_)
-//SAM TODO
+	if (    // PIN  (External Reset Pin/Switch)
+		(REG_RSTC_SR & RSTC_SR_RSTTYP_Msk) == RSTC_SR_RSTTYP_UserReset
+		// WDOG (Watchdog timeout)
+		|| (REG_RSTC_SR & RSTC_SR_RSTTYP_Msk) == RSTC_SR_RSTTYP_WatchdogReset
+		// Blank flash check
+		|| _app_rom == 0xffffffff
+		// Software reset
+		|| memcmp( (uint8_t*)GPBR, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0
+	)
+	{
+		// Bootloader mode
+		for ( int pos = 0; pos <= 8; pos++ )
+			GPBR->SYS_GPBR[ pos ] = 0x00000000;
+	}
+	else
+	{
+		// Enable Watchdog before jumping
+		// XXX (HaaTa) This watchdog cannot trigger an IRQ, as we're relocating the vector table
+		wdt_init(WDT, WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT, 1000, 1000);
+
+		// Firmware mode
+		uint32_t addr = (uintptr_t)&_app_rom;
+		SCB->VTOR = ((uint32_t) addr); // relocate vector table
+		jump_to_app( addr );
+	}
 #endif
 
+#if defined(_kinetis_)
 	// Detected CPU
 	print("CPU Id: ");
 	printHex( SCB_CPUID );
@@ -325,6 +356,7 @@ void main()
 	print( NL " Soft Rst - " );
 	printHex( memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 );
 	print( NL );
+#endif
 
 	// Device/Chip specific setup
 	Chip_setup();
@@ -338,13 +370,17 @@ void main()
 	print( NL );
 #endif
 
+#if defined(_kinetis_)
 	flash_prepare_flashing();
 	dfu_usb_init(); // Initialize USB and dfu
+#endif
 
 	// Main Loop
 	for (;;)
 	{
+#if defined(_kinetis_)
 		dfu_usb_poll();
+#endif
 
 		// Device specific functions
 		Chip_process();

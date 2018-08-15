@@ -113,10 +113,10 @@ set ( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/../Lib/CMake )
 include ( initialize )
 
 
-
 ##
 # Source Defines
 #
+if ( FAMILY STREQUAL "kinetis" )
 set ( SRCS
 	main.c
 	debug.c
@@ -127,6 +127,46 @@ set ( SRCS
 	${FAMILY}.c
 	Devices/${CHIP}.c
 )
+
+elseif ( FAMILY STREQUAL "sam" )
+set ( SRCS
+	../ASF/common/services/clock/sam4s/sysclk.c
+	../ASF/common/services/isp/flip/sam/isp.c
+	../ASF/common/services/sleepmgr/sam/sleepmgr.c
+	../ASF/common/services/usb/class/dfu_flip/device/udi_dfu_atmel.c
+	../ASF/common/services/usb/class/dfu_flip/device/udi_dfu_atmel_desc.c
+	../ASF/common/services/usb/class/hid/device/kbd/example/sam4sd32c_sam4s_xplained_pro/ui.c
+	../ASF/common/services/usb/udc/udc.c
+	../ASF/common/utils/interrupt/interrupt_sam_nvic.c
+	../ASF/sam/boards/sam4s_xplained_pro/init.c
+	../ASF/sam/drivers/efc/efc.c
+	../ASF/sam/drivers/matrix/matrix.c
+	../ASF/sam/drivers/pio/pio.c
+	../ASF/sam/drivers/pio/pio_handler.c
+	../ASF/sam/drivers/pmc/pmc.c
+	../ASF/sam/drivers/pmc/sleep.c
+	../ASF/sam/drivers/udp/udp_device.c
+	../ASF/sam/drivers/wdt/wdt.c
+	../ASF/sam/services/flash_efc/flash_efc.c
+	../ASF/sam/utils/cmsis/sam4s/source/templates/gcc/startup_sam4s.c
+	../ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.c
+	../ASF/sam/utils/syscalls/gcc/syscalls.c
+
+	main.c
+	${FAMILY}.c
+	Devices/${CHIP}.c
+)
+
+add_definitions(
+	-D__SAM4S8C__
+	-DBOARD=SAM4S_XPLAINED_PRO
+)
+
+else ( )
+	message( FATAL_ERROR "Unsupported family ${FAMILY}" )
+
+endif ( )
+
 
 # Add device file, if it exists
 if ( EXISTS ${CMAKE_SOURCE_DIR}/Devices/${BOOT_PRODUCT_STR}.c )
@@ -154,6 +194,39 @@ include_directories (
 	${CMAKE_SOURCE_DIR}/../Lib
 	${CMAKE_SOURCE_DIR}/..
 	${CMAKE_SOURCE_DIR}
+
+	"../ASF/common/boards"
+	"../ASF/common/services/clock"
+	"../ASF/common/services/gpio"
+	"../ASF/common/services/ioport"
+	"../ASF/common/services/isp/flip"
+	"../ASF/common/services/isp/flip/module_config"
+	"../ASF/common/services/sleepmgr"
+	"../ASF/common/services/usb"
+	"../ASF/common/services/usb/class/dfu_flip"
+	"../ASF/common/services/usb/class/dfu_flip/device"
+	"../ASF/common/services/usb/class/hid"
+	"../ASF/common/services/usb/class/hid/device"
+	"../ASF/common/services/usb/class/hid/device/kbd"
+	"../ASF/common/services/usb/udc"
+	"../ASF/common/utils"
+	"../ASF/sam/boards"
+	"../ASF/sam/boards/sam4s_xplained_pro"
+	"../ASF/sam/drivers/efc"
+	"../ASF/sam/drivers/matrix"
+	"../ASF/sam/drivers/pio"
+	"../ASF/sam/drivers/pmc"
+	"../ASF/sam/drivers/udp"
+	"../ASF/sam/drivers/wdt"
+	"../ASF/sam/services/flash_efc"
+	"../ASF/sam/services/flash_efc/flash_program_example/sam4s16c_sam4s_xplained"
+	"../ASF/sam/utils"
+	"../ASF/sam/utils/cmsis/sam4s/include"
+	"../ASF/sam/utils/header_files"
+	"../ASF/sam/utils/preprocessor"
+	"../ASF/thirdparty/CMSIS/Include"
+	"../ASF/thirdparty/CMSIS/Lib/GCC"
+	"../config"
 )
 
 
