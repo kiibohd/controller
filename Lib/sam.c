@@ -424,6 +424,8 @@ void ResetHandler()
 
 	// Initialize the SysTick counter
 	SysTick->LOAD = (F_CPU / 1000) - 1;
+	SysTick->VAL = 0;
+	SysTick->CALIB = F_CPU / 8;
 	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 
 	// Enable IRQs
