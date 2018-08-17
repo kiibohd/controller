@@ -76,7 +76,7 @@ flashMode => Output_flashMode_capability();
 # After a period of inactivity, the USB host may request that the device go into low power mode
 # This is different than system sleep, though it may occur around the same time
 enableUSBSuspend => enableUSBSuspend_define;
-enableUSBSuspend = 1;
+enableUSBSuspend = 0;
 
 # Enable Low-power Negotiation
 # In order to support low-powered USB hosts, such as an Apple IPad, a low power auto-negotiation scheme has been implemented
@@ -97,7 +97,7 @@ enableDeviceRestartOnUSBTimeout = 0;
 # Enable Host-Resume (wake-from-sleep)
 # On specific actions (such as USB key actions), will trigger the host device to wake if USB is suspended
 enableUSBResume => enableUSBResume_define;
-enableUSBResume = 1;
+enableUSBResume = 0;
 
 
 ## USB Endpoint Configuration ##
@@ -114,7 +114,7 @@ enableJoystick = 0;
 
 # Mouse Endpoint
 enableMouse => enableMouse_define;
-enableMouse = 1;
+enableMouse = 0;
 
 # Keyboard Endpoint
 enableKeyboard => enableKeyboard_define;
@@ -122,9 +122,9 @@ enableKeyboard = 1;
 
 # CDC / Serial Port Endpoint
 enableVirtualSerialPort => enableVirtualSerialPort_define;
-enableVirtualSerialPort = 1;
+enableVirtualSerialPort = 0;
 
 # Raw I/O Endpoint
 enableRawIO => enableRawIO_define;
-enableRawIO = 1;
+enableRawIO = 0;
 
