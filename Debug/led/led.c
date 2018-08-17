@@ -147,14 +147,14 @@ inline void errorLED( uint8_t on )
 	}
 
 #elif defined(_kii_v3_)
-	// SAM dev kit
+	// sam4s
 	// Error LED On (A5)
 	if (on) {
-		PIOB->PIO_CODR = (1<<0);
+		PIOB->PIO_SODR = (1<<0);
 	}
 	// Error LED Off
 	else {
-		PIOB->PIO_SODR = (1<<0);
+		PIOB->PIO_CODR = (1<<0);
 	}
 
 #endif
