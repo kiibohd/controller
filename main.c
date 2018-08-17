@@ -133,6 +133,15 @@ int main()
 	// Start scanning on first periodic loop
 	stage_tracker = PeriodicStage_Scan;
 
+#if DEBUG_RESETS
+	// Blink to indicate a reset happened
+	errorLED(0);
+	delay_ms(500);
+	errorLED(1);
+	delay_ms(500);
+	errorLED(0);
+#endif
+
 	// Main Detection Loop
 	while ( 1 )
 	{
@@ -167,6 +176,11 @@ int main()
 		SEGGER_SYSVIEW_OnTaskTerminate(TASK_OUTPUT_POLL);
 
 		SEGGER_SYSVIEW_OnIdle();
+		
+#if defined(_sam_)
+		// Not locked up... Reset the watchdog timer
+		WDT->WDT_CR = WDT_CR_KEY_PASSWD | WDT_CR_WDRSTT;
+#endif
 	}
 }
 

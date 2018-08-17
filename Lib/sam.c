@@ -37,6 +37,8 @@
 #include "udc.h"
 #include "sysview.h"
 
+#define WDT_TICK_US (128 * 1000000 / BOARD_FREQ_SLCK_XTAL)
+#define WDT_MAX_VALUE 4095
 
 #define TRACE_BUFFER_SIZE 256
 
@@ -428,16 +430,19 @@ void ResetHandler()
 	SysTick->CALIB = F_CPU / 8;
 	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 
+	// Initialze the Watchdog timer
+	WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDRSTEN | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
+
 	// Enable IRQs
 	__enable_irq();
 
 	// Intialize entropy for random numbers
 	rand_initialize();
 
-	init_errorLED();
-	errorLED(1);
+	// Start USB stack
+	udc_start();
 
-	WDT->WDT_MR = WDT_MR_WDDIS;
+	init_errorLED();
 
 	// Start USB stack to authorize VBus monitoring
 	udc_start();
