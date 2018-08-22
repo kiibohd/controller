@@ -38,6 +38,7 @@ void cliFunc_aniAdd     ( char* args );
 void cliFunc_aniDel     ( char* args );
 void cliFunc_aniStack   ( char* args );
 void cliFunc_chanTest   ( char* args );
+void cliFunc_pixelBrTest( char* args );
 void cliFunc_pixelList  ( char* args );
 void cliFunc_pixelSCTest( char* args );
 void cliFunc_pixelTest  ( char* args );
@@ -62,6 +63,10 @@ typedef enum PixelTest {
 	PixelTest_Scan_Roll,
 	PixelTest_XY_All,
 	PixelTest_XY_Roll,
+	PixelTest_Breath_1,   // Set Breath group 1 to buffer
+	PixelTest_Breath_2,   // Set Breath group 2 to buffer
+	PixelTest_Breath_3,   // Set Breath group 3 to buffer
+	PixelTest_Breath_Off, // Clear all breath groups
 } PixelTest;
 
 
@@ -73,6 +78,7 @@ CLIDict_Entry( aniAdd,       "Add the given animation id to the stack" );
 CLIDict_Entry( aniDel,       "Remove the given stack index animation" );
 CLIDict_Entry( aniStack,     "Displays the animation stack contents" );
 CLIDict_Entry( chanTest,     "Channel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
+CLIDict_Entry( pixelBrTest,  "Breath test. 0/o - off, 1 - Group 1, 2 - Group 2, 3 - Group 3" );
 CLIDict_Entry( pixelList,    "Prints out pixel:channel mappings." );
 CLIDict_Entry( pixelSCTest,  "Scancode pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop" );
 CLIDict_Entry( pixelTest,    "Pixel test. No arg - next pixel. # - pixel, r - roll-through. a - all, s - stop, f - full" );
@@ -84,6 +90,7 @@ CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
 	CLIDict_Item( aniDel ),
 	CLIDict_Item( aniStack ),
 	CLIDict_Item( chanTest ),
+	CLIDict_Item( pixelBrTest ),
 	CLIDict_Item( pixelList ),
 	CLIDict_Item( pixelSCTest ),
 	CLIDict_Item( pixelTest ),
@@ -121,6 +128,11 @@ uint8_t  Pixel_AnimationStackElement_HostSize = sizeof( AnimationStackElement );
 // Latency Measurement Resource
 static uint8_t pixelLatencyResource;
 
+// Breath group storage
+const uint8_t Pixel_BreathGroup1_Default[] = { ISSILedBreathGroup1_define };
+const uint8_t Pixel_BreathGroup2_Default[] = { ISSILedBreathGroup2_define };
+const uint8_t Pixel_BreathGroup3_Default[] = { ISSILedBreathGroup3_define };
+
 
 
 // ----- Function Declarations -----
@@ -134,6 +146,8 @@ void Pixel_pixelSet( PixelElement *elem, uint32_t value );
 PixelBuf *Pixel_bufferMap( uint16_t channel );
 
 AnimationStackElement *Pixel_lookupAnimation( uint16_t index, uint16_t prev );
+
+uint8_t LED_Breath_ChannelSet( uint16_t chan, uint8_t value );
 
 
 
@@ -334,6 +348,56 @@ void Pixel_pixelInterpolate( PixelElement *elem, uint8_t position, uint8_t inten
 		uint16_t ch_pos = elem->indices[ch];
 		PixelBuf *pixbuf = Pixel_bufferMap( ch_pos );
 		PixelBuf16( pixbuf, ch_pos ) = Pixel_8bitInterpolation( 0, intensity, position * (ch + 1) );
+	}
+}
+
+void Pixel_Breath_ClearBreathPages()
+{
+	// Iterate over all of the channels and set to 0 (disabled)
+	for ( uint16_t ch = 0; ch < Pixel_TotalChannels_KLL; ch++ )
+	{
+		LED_Breath_ChannelSet( ch, 0 );
+	}
+}
+
+void Pixel_Breath_SetDefaultPage( uint8_t page )
+{
+	uint8_t *data;
+	uint8_t size;
+
+	// Determine size and page
+	switch ( page )
+	{
+	case 1:
+		data = (uint8_t*)Pixel_BreathGroup1_Default;
+		size = sizeof(Pixel_BreathGroup1_Default);
+		break;
+	case 2:
+		data = (uint8_t*)Pixel_BreathGroup2_Default;
+		size = sizeof(Pixel_BreathGroup2_Default);
+		break;
+	case 3:
+		data = (uint8_t*)Pixel_BreathGroup3_Default;
+		size = sizeof(Pixel_BreathGroup3_Default);
+		break;
+	default:
+		warn_msg("Invalid Default Breath Page: ");
+		printInt8( page );
+		print(NL);
+		return;
+	}
+
+	// Iterate over the group, lookup the channels and apply the configuration
+	for ( uint8_t pos = 0; pos < size; pos++ )
+	{
+		// Lookup pixel
+		const PixelElement *elem = &Pixel_Mapping[data[pos]];
+
+		// Find each of the channels in the pixel and set the breath channel
+		for ( uint8_t chan = 0; chan < elem->channels; chan++ )
+		{
+			LED_Breath_ChannelSet( elem->indices[chan], page );
+		}
 	}
 }
 
@@ -1864,6 +1928,30 @@ inline void Pixel_process()
 
 		goto pixel_process_done;
 
+	// Breath set page 1
+	case PixelTest_Breath_1:
+		Pixel_Breath_SetDefaultPage( 1 );
+		Pixel_testMode = PixelTest_Off;
+		break;
+
+	// Breath set page 2
+	case PixelTest_Breath_2:
+		Pixel_Breath_SetDefaultPage( 2 );
+		Pixel_testMode = PixelTest_Off;
+		break;
+
+	// Breath set page 3
+	case PixelTest_Breath_3:
+		Pixel_Breath_SetDefaultPage( 3 );
+		Pixel_testMode = PixelTest_Off;
+		break;
+
+	// Disable breath settings
+	case PixelTest_Breath_Off:
+		Pixel_Breath_ClearBreathPages();
+		Pixel_testMode = PixelTest_Off;
+		break;
+
 	// Otherwise ignore
 	default:
 		break;
@@ -2338,6 +2426,46 @@ void cliFunc_pixelXYTest( char* args )
 	// Toggle pixel
 	Pixel_pixelToggle( elem );
 }
+
+void cliFunc_pixelBrTest( char* args )
+{
+	print( NL ); // No \r\n by default after the command is entered
+
+	char* curArgs;
+	char* arg1Ptr;
+	char* arg2Ptr = args;
+
+	// Process argument if given
+	curArgs = arg2Ptr;
+	CLI_argumentIsolation( curArgs, &arg1Ptr, &arg2Ptr );
+
+	// Check for special args
+	switch ( *arg1Ptr )
+	{
+	case '1':
+		info_msg("Breath Group 1 Test");
+		Pixel_testMode = PixelTest_Breath_1;
+		return;
+
+	case '2':
+		info_msg("Breath Group 2 Test");
+		Pixel_testMode = PixelTest_Breath_2;
+		return;
+
+	case '3':
+		info_msg("Breath Group 3 Test");
+		Pixel_testMode = PixelTest_Breath_3;
+		return;
+
+	case 'o':
+	case 'O':
+	case '0':
+		info_msg("Disable Breath Test");
+		Pixel_testMode = PixelTest_Breath_Off;
+		return;
+	}
+}
+
 void cliFunc_aniAdd( char* args )
 {
 	print( NL ); // No \r\n by default after the command is entered

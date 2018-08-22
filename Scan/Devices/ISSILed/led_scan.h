@@ -34,5 +34,7 @@ extern uint8_t LED_FrameBuffersReady;
 void LED_setup();
 void LED_scan();
 
+uint8_t LED_Breath_ChannelSet( uint16_t chan, uint8_t value );
+
 void LED_currentChange( unsigned int current );
 

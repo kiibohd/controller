@@ -1,11 +1,11 @@
 # ISSILed
 Name = ISSILedCapabilities;
-Version = 0.4;
-Author = "HaaTa (Jacob Alexander) 2015-2017";
+Version = 0.5;
+Author = "HaaTa (Jacob Alexander) 2015-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-03-29;
+Date = 2018-08-14;
 
 # Basic ISSI Capabilities
 # Modes
@@ -157,4 +157,27 @@ ISSILedMask4 = "
 	0xFF, 0xFF, /* C8-1 -> C8-16 */
 	0xFF, 0xFF, /* C9-1 -> C9-16 */
 ";
+
+
+# LED Default Breath Groups
+#
+# These lists specify pixels (groups of LED channels).
+# If a pixel is not specified in the default groups, it defaults to PWM control (normal mode).
+# These defaults can be overridden at run-time; however, when reset will go back to these defaults.
+#
+# NOTE: These only work for chips that support ABM groups (emulated support will be tricky)
+# Supported Chips:
+#  * 31FL3733
+#
+# Group 1 -> ABM-1
+# Group 2 -> ABM-2
+# Group 3 -> ABM-3
+#
+# Usually ABM-1 is for keys, ABM-2 is for underlighting and ABM-3 is for dynamic functionality
+ISSILedBreathGroup1 => ISSILedBreathGroup1_define;
+ISSILedBreathGroup1 = "";
+ISSILedBreathGroup2 => ISSILedBreathGroup2_define;
+ISSILedBreathGroup2 = "";
+ISSILedBreathGroup3 => ISSILedBreathGroup3_define;
+ISSILedBreathGroup3 = "";
 

@@ -104,6 +104,8 @@
 #define ISSI_LEDControlPage    0x00
 #define ISSI_LEDPwmPage        0x01
 #define ISSI_LEDPwmRegStart    0x00
+#define ISSI_LEDBreathPage     0x02
+#define ISSI_LEDBreathRegStart 0x00
 #define ISSI_PageLength        0xBF
 #define ISSI_SendDelay          70
 #define ISSI_LEDPages            3
@@ -245,6 +247,9 @@ const LED_EnableBuffer LED_ledEnableMask[ISSI_Chips_define] = {
 	LED_MaskDefine( 4 ),
 #endif
 };
+
+// Breath Control Page
+volatile LED_Buffer LED_breathPageBuffer[ISSI_Chips_define];
 
 
 #if ISSI_Chips_define >= 5
@@ -448,6 +453,142 @@ uint8_t LED_readReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t page )
 	return recv_data;
 }
 
+// Sets the breath mode of each channel
+// Returns 1 if set, 0 if not set
+// XXX (HaaTa): This will depend on which ISSI chip is being used on what is supported
+uint8_t LED_Breath_ChannelSet( uint16_t chan, uint8_t value )
+{
+#if ISSI_Chip_31FL3733_define
+	// Check for a valid input
+	switch ( value )
+	{
+	case 0:
+	case 1:
+	case 2:
+	case 3:
+		// Valid
+		break;
+	default:
+		// Invalid
+		return 0;
+	}
+#else
+	return 0;
+#endif
+
+	uint8_t chip = 0;
+	uint16_t pos = 0;
+	// Chip 1
+	if ( chan < LED_BufferLength )
+	{
+		pos = chan;
+	}
+	// Chip 2
+	else if ( chan < LED_BufferLength * 2 )
+	{
+		chip = 1;
+		pos = chan - LED_BufferLength;
+	}
+	// Chip 3
+	else if ( chan < LED_BufferLength * 3 )
+	{
+		chip = 2;
+		pos = chan - LED_BufferLength * 2;
+	}
+	// Chip 4
+	else if ( chan < LED_BufferLength * 4 )
+	{
+		chip = 3;
+		pos = chan - LED_BufferLength * 3;
+	}
+	// Invalid
+	else
+	{
+		return 0;
+	}
+	print("YAY: ");
+	printInt16( pos );
+	print(" ");
+	printInt8( value );
+	print(NL);
+
+	// Set value to buffer
+	LED_breathPageBuffer[chip].buffer[pos] = value;
+}
+
+// Update breath LED mapping
+// Each LED can be assigned to a different breath group
+void LED_Breath_UpdatePage()
+{
+#if ISSI_Chip_31FL3733_define
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+
+		// Page Setup
+		LED_setupPage(
+			bus,
+			LED_ChannelMapping[ ch ].addr,
+			ISSI_LEDBreathPage
+		);
+
+		// Write out page
+		while ( i2c_send( bus, (uint16_t*)&LED_breathPageBuffer[ ch ], sizeof( LED_Buffer ) / 2 ) == -1 )
+			delay_us( ISSI_SendDelay );
+	}
+#endif
+}
+
+// Control breath functionality of ISSI Chip
+typedef struct LedBreath {
+#if ISSI_Chip_31FL3733_define
+	uint8_t abm:2;     // ABM register set to program
+	uint8_t t1:3;      // Fade-in time    (000..111   -> 0.21s..26.88s)
+	uint8_t t2:4;      // Hold time       (0000..1000 -> 0s..26.88s)
+	uint8_t t3:3;      // Fade-out time   (000..111   -> 0.21s..26.88s)
+	uint8_t t4:4;      // Off time        (0000..1010 -> 0s..107.52s)
+	uint8_t lb:2;      // Loop begin time (00:T1, 01:T2, 10:T3, 11:T4)
+	uint8_t le:2;      // Loop end time   (00:End of T3, 01:End of T1)
+	uint16_t loops:12; // Number of loops (0:inf, 1-4096 cycles)
+#endif
+} LedBreath;
+
+void LED_Breath( LedBreath cfg )
+{
+#if ISSI_Chip_31FL3733_define
+	// 31FL3733 has an offset based on which ABM register set is used (there are 3)
+	// See Table 12 (pg 17 in the Datasheet)
+	if ( cfg.abm > 3 || cfg.abm == 0 )
+	{
+		erro_print("Invalid ABM, must be 1-3");
+		return;
+	}
+	uint8_t reg_offset = (cfg.abm - 1) * 4;
+
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
+	{
+		uint8_t addr = LED_ChannelMapping[ ch ].addr;
+		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+
+		// Write T1 and T2 settings
+		uint8_t reg = (cfg.t1 << 5) | (cfg.t2 << 1);
+		LED_writeReg( bus, addr, reg_offset + 0x02, reg, ISSI_LEDBreathPage );
+
+		// Write T3 and T4 settings
+		reg = (cfg.t3 << 5) | (cfg.t4 << 1);
+		LED_writeReg( bus, addr, reg_offset + 0x03, reg, ISSI_LEDBreathPage );
+
+		// Write LE, LB and LTA (first 4 MSBits of loops)
+		reg = (cfg.le << 6) | (cfg.lb << 4) | (cfg.loops >> 8);
+		LED_writeReg( bus, addr, reg_offset + 0x04, reg, ISSI_LEDBreathPage );
+
+		// Write LTB (8 LSBits of loops)
+		reg = (cfg.loops & 0xFF);
+		LED_writeReg( bus, addr, reg_offset + 0x05, reg, ISSI_LEDBreathPage );
+	}
+#endif
+}
+
 void LED_reset()
 {
 	// Force PixelMap to stop during reset
@@ -531,12 +672,12 @@ void LED_reset()
 		// Enable master sync for the first chip and disable software shutdown
 		if ( ch == 0 )
 		{
-			LED_writeReg( bus, addr, 0x00, 0x41, ISSI_ConfigPage );
+			LED_writeReg( bus, addr, 0x00, 0x43, ISSI_ConfigPage );
 		}
 		// Slave sync for the rest and disable software shutdown
 		else
 		{
-			LED_writeReg( bus, addr, 0x00, 0x81, ISSI_ConfigPage );
+			LED_writeReg( bus, addr, 0x00, 0x83, ISSI_ConfigPage );
 		}
 
 #elif ISSI_Chip_31FL3732_define == 1
@@ -693,6 +834,25 @@ inline void LED_setup()
 #endif
 #endif
 
+	// Breath control
+#if ISSI_Chip_31FL3733_define
+	// Setup LED_pageBuffer addresses and brightness section
+	LED_breathPageBuffer[0].i2c_addr = LED_MapCh1_Addr_define;
+	LED_breathPageBuffer[0].reg_addr = ISSI_LEDBreathRegStart;
+#if ISSI_Chips_define >= 2
+	LED_breathPageBuffer[1].i2c_addr = LED_MapCh2_Addr_define;
+	LED_breathPageBuffer[1].reg_addr = ISSI_LEDBreathRegStart;
+#endif
+#if ISSI_Chips_define >= 3
+	LED_breathPageBuffer[2].i2c_addr = LED_MapCh3_Addr_define;
+	LED_breathPageBuffer[2].reg_addr = ISSI_LEDBreathRegStart;
+#endif
+#if ISSI_Chips_define >= 4
+	LED_breathPageBuffer[3].i2c_addr = LED_MapCh4_Addr_define;
+	LED_breathPageBuffer[3].reg_addr = ISSI_LEDBreathRegStart;
+#endif
+#endif
+
 	// LED default setting
 	LED_enable = ISSI_Enable_define;
 	LED_enable_current = ISSI_Enable_define; // Needs a default setting, almost always unset immediately
@@ -723,10 +883,6 @@ inline void LED_setup()
 	PIOA->PIO_CODR = (1<<17);
 #endif
 #endif
-
-	// PIOA->PIO_PER = (1<<15);
-	// PIOA->PIO_OER = (1<<15);
-	// PIOA->PIO_SODR = (1<<15);
 
 	// Zero out Frame Registers
 	// This needs to be done before disabling the hardware shutdown (or the leds will do undefined things)
@@ -939,6 +1095,9 @@ inline void LED_scan()
 	// Update frame start time
 	LED_timePrev = Time_now();
 
+	// Update breath page registers
+	LED_Breath_UpdatePage();
+
 	// Set the page of all the ISSI chips
 	// This way we can easily link the buffers to send the brightnesses in the background
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
@@ -1107,6 +1266,29 @@ void LED_control_capability( TriggerMacro *trigger, uint8_t state, uint8_t state
 
 	// Modify led state of this node
 	LED_control( control, arg );
+}
+
+void LED_Breath_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("LED_control_capability(mode,amount)");
+		return;
+	default:
+		return;
+	}
+
+	// Set the input structure
+	// TODO
+	LedControl control = (LedControl)args[0];
+	uint8_t arg = (uint8_t)args[1];
 }
 
 
