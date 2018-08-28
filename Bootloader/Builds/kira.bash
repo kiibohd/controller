@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is a build script template
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015-2017
+# Jacob Alexander 2017-2018
 
 
 
@@ -10,31 +10,9 @@
 #################
 
 # Should be empty if not set
-SubBuild=${BOOT_PRODUCT_STR}
-BOOT_PRODUCT_STR=${BOOT_PRODUCT_STR:-Kiibohd DFU Bootloader}
-MANUFACTURER=${MANUFACTURER:-Kiibohd}
-
-if [[ ! -z ${SubBuild} ]]; then
-	SubBuild=".${SubBuild// /_}"
-fi
-
-BuildPath="sam4s8c${SubBuild}"
-
-
-
-##########################
-# Advanced Configuration #
-##########################
-
-# Don't change the variables in this section unless you know what you're doing
-# These are useful for completely custom keyboards
-# NOTE: Changing any of these variables will require a force build to compile correctly
-
-# Microcontroller
-Chip="sam4s8c"
-
-# Compiler Selection
-Compiler="gcc"
+BOOT_PRODUCT_STR=Kira
+BOOT_VENDOR_ID="0x308F"
+BOOT_PRODUCT_ID="0x0012"
 
 
 
@@ -45,11 +23,11 @@ Compiler="gcc"
 # Shouldn't need to touch this section
 
 # Check if the library can be found
-if [ ! -f cmake.bash ]; then
-	echo "ERROR: Cannot find 'cmake.bash'"
+if [ ! -f sam4s8c.bash ]; then
+	echo "ERROR: Cannot find 'sam4s8c.bash'"
 	exit 1
 fi
 
 # Load the library
-source cmake.bash
+source sam4s8c.bash
 
