@@ -42,19 +42,22 @@ void Device_setup()
 {
 	// Setup scanning for S1
 	// Row1
-	GPIOD_PDDR &= ~(1<<5);
-	PORTD_PCR5 = PORT_PCR_PE | PORT_PCR_PFE | PORT_PCR_MUX(1);
+	PIOA->PIO_PUDR = (1 << 26);
+	PIOA->PIO_PPDER = (1 << 26);
+	PIOA->PIO_IFER = (1 << 26);
+	PIOA->PIO_ODR = (1 << 26);
+	PIOA->PIO_PER = (1 << 26);
+
 	// Col1
-	GPIOB_PDDR |= (1<<2);
-	PORTB_PCR2 = PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOB_PSOR |= (1<<2);
+	PIOB->PIO_OER = (1 << 1);
+	PIOB->PIO_PER = (1 << 1);
 }
 
 // Called during each loop of the main bootloader sequence
 void Device_process()
 {
 	// Check for S1 being pressed
-	if ( GPIOD_PDIR & (1<<5) )
+	if ( PIOA->PIO_PDSR & (1<<26) )
 	{
 		print( "Reset key pressed." NL );
 		SOFTWARE_RESET();
