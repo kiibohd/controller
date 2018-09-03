@@ -50,13 +50,13 @@ To generate the environment, only need to do this once, or whenever you update t
 
 ```bash
 cd controller/Dockerfiles
-docker build -t controller .
+docker build -f Dockerfile.ubuntu -t controller.ubuntu .
 cd ..
 ```
 
 To enter the build environment.
 ```bash
-docker run -it --rm -v "$(pwd):/controller" controller
+docker run -it --rm -v "$(pwd):/controller" controller.ubuntu
 ```
 
 To exit the docker environment.

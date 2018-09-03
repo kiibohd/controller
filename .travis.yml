@@ -21,7 +21,9 @@ env:
   # Keyboard Tests
   - DIR=Keyboards SCRIPT=ic_keyboards.bash # Input Club Keyboards
   - DIR=Keyboards SCRIPT=ic_keyboards.bash EnableHostOnlyBuild=true HostTest=kll.py # Input Club Keyboards - Host-Side Build
-  - DIR=Keyboards SCRIPT=others.bash
+
+  # Misc Keyboard Tests
+  - DIR=Keyboards/Others SCRIPT=others.bash
 
   # Debug Build Tests
   - DIR=Keyboards/Testing SCRIPT=all_tests.bash

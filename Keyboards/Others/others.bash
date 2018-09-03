@@ -12,13 +12,13 @@
 # Shouldn't need to touch this section
 
 # Check if the library can be found
-if [ ! -f common.bash ]; then
+if [ ! -f "${BASH_SOURCE%/*}/../common.bash" ]; then
 	echo "ERROR: Cannot find 'common.bash'"
 	exit 1
 fi
 
 # Load common functions
-source "common.bash"
+source "${BASH_SOURCE%/*}/../common.bash"
 
 
 

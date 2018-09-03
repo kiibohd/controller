@@ -7,10 +7,7 @@
 
 
 # Default to TrueFox
-Layout=$(basename $0 | cut -d'.' -f2)
-if [ "${Layout}" = "bash" ]; then
-	Layout=truefox
-fi
+Layout=${Layout:-truefox}
 
 
 # VID:PID Mapping

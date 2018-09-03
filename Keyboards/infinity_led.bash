@@ -8,10 +8,7 @@
 
 
 # Default to Alphabet
-Layout=$(basename $0 | cut -d'.' -f2)
-if [ "${Layout}" = "bash" ]; then
-	Layout=alphabet
-fi
+Layout=${Layout:-alphabet}
 
 
 # VID:PID Mapping
