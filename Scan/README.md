@@ -24,7 +24,8 @@ Brief descriptions of each of the modules.
 * [Kira](Kira) - Kira Scan Module
 * [K-Type](K-Type) - K-Type Scan Module
 * [TestIn](TestIn) - Host-Side KLL Scan Module
-* [WhiteFox](WhiteFox) - WhiteFox Scan Module
+* [WhiteFox](WhiteFox) - WhiteFox (Kinetis; 2015-2018) Scan Module
+* [WhiteFox.sam4s](WhiteFox) - WhiteFox (SAM4S; Late 2018) Scan Module
 
 
 ### Sub-Modules

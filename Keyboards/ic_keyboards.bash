@@ -37,6 +37,7 @@ source "common.bash"
 # Run test builds
 if [[ "${1}" != "win" ]] && ${EnableHostOnlyBuild}; then
 	# NOTE: Infinity Ergodox is not tested as Interconnect and LCD needs more infrastructure to test
+<<<<<<< HEAD
 	cmd "bash ./geminiduskdawn.bash"
 	cmd "bash ./infinity.alphabet.bash"
 	cmd "bash ./infinity.hacker.bash"
@@ -52,6 +53,12 @@ if [[ "${1}" != "win" ]] && ${EnableHostOnlyBuild}; then
 	cmd "bash ./whitefox.truefox.bash"
 	cmd "bash ./whitefox.vanilla.bash"
 	cmd "bash ./whitefox.winkeyless.bash"
+	cmd "bash ./whitefox_sam4s.aria.bash"
+	cmd "bash ./whitefox_sam4s.iso.bash"
+	cmd "bash ./whitefox_sam4s.jackofalltrades.bash"
+	cmd "bash ./whitefox_sam4s.truefox.bash"
+	cmd "bash ./whitefox_sam4s.vanilla.bash"
+	cmd "bash ./whitefox_sam4s.winkeyless.bash"
 
 	# Tally results
 	result
@@ -77,6 +84,12 @@ if [ "${1}" != "win" ]; then
 	cmd_cpy "bash ./whitefox.truefox.bash"         kiibohd.dfu.bin firmware/whitefox.truefox.dfu.bin
 	cmd_cpy "bash ./whitefox.vanilla.bash"         kiibohd.dfu.bin firmware/whitefox.vanilla.dfu.bin
 	cmd_cpy "bash ./whitefox.winkeyless.bash"      kiibohd.dfu.bin firmware/whitefox.winkeyless.dfu.bin
+	cmd_cpy "bash ./whitefox_sam4s.aria.bash"            kiibohd.dfu.bin firmware/whitefox_sam4s.aria.dfu.bin
+	cmd_cpy "bash ./whitefox_sam4s.iso.bash"             kiibohd.dfu.bin firmware/whitefox_sam4s.iso.dfu.bin
+	cmd_cpy "bash ./whitefox_sam4s.jackofalltrades.bash" kiibohd.dfu.bin firmware/whitefox_sam4s.jackofalltrades.dfu.bin
+	cmd_cpy "bash ./whitefox_sam4s.truefox.bash"         kiibohd.dfu.bin firmware/whitefox_sam4s.truefox.dfu.bin
+	cmd_cpy "bash ./whitefox_sam4s.vanilla.bash"         kiibohd.dfu.bin firmware/whitefox_sam4s.vanilla.dfu.bin
+	cmd_cpy "bash ./whitefox_sam4s.winkeyless.bash"      kiibohd.dfu.bin firmware/whitefox_sam4s.winkeyless.dfu.bin
 
 # Windows (no symlinks)
 else
@@ -90,6 +103,7 @@ else
 	cmd_cpy "bash ./k-type.bash"                   kiibohd.dfu.bin firmware/k-type.dfu.bin
 	cmd_cpy "bash ./kira.bash"                     kiibohd.dfu.bin firmware/kira.dfu.bin
 	cmd_cpy "bash ./whitefox.bash"                 kiibohd.dfu.bin firmware/whitefox.dfu.bin
+	cmd_cpy "bash ./whitefox_sam4s.bash"           kiibohd.dfu.bin firmware/whitefox_sam4s.dfu.bin
 fi
 
 # Tally results
