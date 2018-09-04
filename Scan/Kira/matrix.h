@@ -30,23 +30,9 @@
 
 // ----- Matrix Definition -----
 
-// Freescale ARM MK20's support GPIO PTA, PTB, PTC, PTD and PTE 0..31
-// Not all chips have access to all of these pins (most don't have 160 pins :P)
-//
 // NOTE:
 // Before using a pin, make sure it supports being a GPIO *and* doesn't have a default pull-up/pull-down
 // Checking this is completely on the ownness of the user
-
-// KType
-//
-// Column (Strobe) - 10 Total
-//  PTB2,3,18,19
-//  PTC0,8..11
-//  PTD0
-//
-// Rows (Sense) - 10 Total
-//  PTD1,4..7
-//  PTC1..5
 
 // Define Rows (Sense) and Columns (Strobes)
 GPIO_Pin Matrix_cols[] = { gpio(B,1), gpio(B,2), gpio(B,3), gpio(A,18), gpio(A,19), gpio(A,23), gpio(A,20), gpio(A,11), gpio(A,8), gpio(A,7), gpio(A,6), gpio(A,5), gpio(A,27), gpio(A,28), gpio(A,29), gpio(A,30), gpio(A,2), gpio(A,1), gpio(A,0) };

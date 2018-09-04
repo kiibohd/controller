@@ -83,6 +83,12 @@ CLIDict_Def( matrixCLIDict, "Matrix Module Commands" ) = {
 static volatile KeyState Matrix_scanArray[ Matrix_colsNum * Matrix_rowsNum ];
 
 
+#if ScanCodeRemapping_define == 1
+// ScanCode Remapping Array
+static const uint16_t matrixScanCodeRemappingMatrix[] = { ScanCodeRemappingMatrix_define };
+#endif
+
+
 // Matrix debug flag - If set to 1, for each keypress the scan code is displayed in hex
 //                     If set to 2, for each key state change, the scan code is displayed along with the state
 //                     If set to 3, for each scan, update a state table
@@ -412,10 +418,15 @@ uint8_t Matrix_single_scan()
 	{
 		// Key position
 		uint16_t key = Matrix_colsNum * sense + strobe;
+#if ScanCodeRemapping_define == 1
+		uint16_t key_disp = matrixScanCodeRemappingMatrix[key];
+#else
 		uint16_t key_disp = key + 1; // 1-indexed for reporting purposes
+#endif
 
 		// Check bounds, before attempting to scan
-		if ( key_disp > MaxScanCode_KLL )
+		// 1-indexed as ScanCode 0 is not used
+		if ( key + 1 > MaxScanCode_KLL )
 		{
 			continue;
 		}
