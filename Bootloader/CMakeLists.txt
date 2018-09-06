@@ -130,29 +130,25 @@ set ( SRCS
 
 elseif ( FAMILY STREQUAL "sam" )
 set ( SRCS
-	../ASF/common/services/clock/sam4s/sysclk.c
-	../ASF/common/services/isp/flip/sam/isp.c
-	../ASF/common/services/sleepmgr/sam/sleepmgr.c
-	../ASF/common/services/usb/class/dfu_flip/device/udi_dfu_atmel.c
-	../ASF/common/services/usb/class/dfu_flip/device/udi_dfu_atmel_desc.c
-	../ASF/common/services/usb/class/hid/device/kbd/example/sam4sd32c_sam4s_xplained_pro/ui.c
-	../ASF/common/services/usb/udc/udc.c
-	../ASF/common/utils/interrupt/interrupt_sam_nvic.c
-	../ASF/sam/boards/sam4s_xplained_pro/init.c
-	../ASF/sam/drivers/efc/efc.c
-	../ASF/sam/drivers/matrix/matrix.c
-	../ASF/sam/drivers/pio/pio.c
-	../ASF/sam/drivers/pio/pio_handler.c
-	../ASF/sam/drivers/pmc/pmc.c
-	../ASF/sam/drivers/pmc/sleep.c
-	../ASF/sam/drivers/udp/udp_device.c
-	../ASF/sam/drivers/wdt/wdt.c
-	../ASF/sam/services/flash_efc/flash_efc.c
-	../ASF/sam/utils/cmsis/sam4s/source/templates/gcc/startup_sam4s.c
-	../ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.c
-	../ASF/sam/utils/syscalls/gcc/syscalls.c
+	../Lib/ASF/common/services/clock/sam4s/sysclk.c
+	../Lib/ASF/common/services/isp/flip/sam/isp.c
+	../Lib/ASF/common/services/usb/class/dfu_flip/device/udi_dfu_atmel.c
+	../Lib/ASF/common/services/usb/class/dfu_flip/device/udi_dfu_atmel_desc.c
+	../Lib/ASF/common/services/usb/udc/udc.c
+	../Lib/ASF/common/utils/interrupt/interrupt_sam_nvic.c
+	../Lib/ASF/sam/drivers/efc/efc.c
+	../Lib/ASF/sam/drivers/matrix/matrix.c
+	../Lib/ASF/sam/drivers/pmc/pmc.c
+	../Lib/ASF/sam/drivers/udp/udp_device.c
+	../Lib/ASF/sam/drivers/wdt/wdt.c
+	../Lib/ASF/sam/services/flash_efc/flash_efc.c
+	../Lib/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.c
 
 	main.c
+	dfu.c
+	dfu.desc.c
+	flash.c
+	usb.c
 	${FAMILY}.c
 	Devices/${CHIP}.c
 )
@@ -195,38 +191,38 @@ include_directories (
 	${CMAKE_SOURCE_DIR}/..
 	${CMAKE_SOURCE_DIR}
 
-	"../ASF/common/boards"
-	"../ASF/common/services/clock"
-	"../ASF/common/services/gpio"
-	"../ASF/common/services/ioport"
-	"../ASF/common/services/isp/flip"
-	"../ASF/common/services/isp/flip/module_config"
-	"../ASF/common/services/sleepmgr"
-	"../ASF/common/services/usb"
-	"../ASF/common/services/usb/class/dfu_flip"
-	"../ASF/common/services/usb/class/dfu_flip/device"
-	"../ASF/common/services/usb/class/hid"
-	"../ASF/common/services/usb/class/hid/device"
-	"../ASF/common/services/usb/class/hid/device/kbd"
-	"../ASF/common/services/usb/udc"
-	"../ASF/common/utils"
-	"../ASF/sam/boards"
-	"../ASF/sam/boards/sam4s_xplained_pro"
-	"../ASF/sam/drivers/efc"
-	"../ASF/sam/drivers/matrix"
-	"../ASF/sam/drivers/pio"
-	"../ASF/sam/drivers/pmc"
-	"../ASF/sam/drivers/udp"
-	"../ASF/sam/drivers/wdt"
-	"../ASF/sam/services/flash_efc"
-	"../ASF/sam/services/flash_efc/flash_program_example/sam4s16c_sam4s_xplained"
-	"../ASF/sam/utils"
-	"../ASF/sam/utils/cmsis/sam4s/include"
-	"../ASF/sam/utils/header_files"
-	"../ASF/sam/utils/preprocessor"
-	"../ASF/thirdparty/CMSIS/Include"
-	"../ASF/thirdparty/CMSIS/Lib/GCC"
-	"../config"
+	"../Lib/ASF/config"
+	"../Lib/ASF/common/boards"
+	"../Lib/ASF/common/services/clock"
+	"../Lib/ASF/common/services/gpio"
+	"../Lib/ASF/common/services/ioport"
+	"../Lib/ASF/common/services/isp/flip"
+	"../Lib/ASF/common/services/isp/flip/module_config"
+	"../Lib/ASF/common/services/sleepmgr"
+	"../Lib/ASF/common/services/usb"
+	"../Lib/ASF/common/services/usb/class/dfu_flip"
+	"../Lib/ASF/common/services/usb/class/dfu_flip/device"
+	"../Lib/ASF/common/services/usb/class/hid"
+	"../Lib/ASF/common/services/usb/class/hid/device"
+	"../Lib/ASF/common/services/usb/class/hid/device/kbd"
+	"../Lib/ASF/common/services/usb/udc"
+	"../Lib/ASF/common/utils"
+	"../Lib/ASF/sam/boards"
+	"../Lib/ASF/sam/boards/sam4s_xplained_pro"
+	"../Lib/ASF/sam/drivers/efc"
+	"../Lib/ASF/sam/drivers/matrix"
+	"../Lib/ASF/sam/drivers/pio"
+	"../Lib/ASF/sam/drivers/pmc"
+	"../Lib/ASF/sam/drivers/udp"
+	"../Lib/ASF/sam/drivers/wdt"
+	"../Lib/ASF/sam/services/flash_efc"
+	"../Lib/ASF/sam/services/flash_efc/flash_program_example/sam4s16c_sam4s_xplained"
+	"../Lib/ASF/sam/utils"
+	"../Lib/ASF/sam/utils/cmsis/sam4s/include"
+	"../Lib/ASF/sam/utils/header_files"
+	"../Lib/ASF/sam/utils/preprocessor"
+	"../Lib/CMSIS/Include"
+	"../Lib/CMSIS/Lib/GCC"
 )
 
 

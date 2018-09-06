@@ -29,8 +29,6 @@
 #include "usb-common.h"
 
 
-#if !defined(_sam_)
-
 // ----- Defines -----
 
 #define USB_CTRL_REQ_DIR_SHIFT 0
@@ -149,6 +147,7 @@ struct usb_desc_dev_t {
 };
 CTASSERT_SIZE_BYTE(struct usb_desc_dev_t, 18);
 
+#if !defined(_sam_)
 struct usb_desc_ep_t {
 	uint8_t bLength;
 	enum usb_desc_type bDescriptorType : 8; /* = USB_DESC_EP */
@@ -187,6 +186,7 @@ struct usb_desc_ep_t {
 	uint8_t bInterval;
 } __packed;
 CTASSERT_SIZE_BYTE(struct usb_desc_ep_t, 7);
+#endif
 
 struct usb_desc_iface_t {
 	uint8_t bLength;
@@ -416,8 +416,6 @@ int usb_ep0_rx(void *, size_t, ep_callback_t, void *);
 void *usb_ep0_tx_inplace_prepare(size_t len);
 int usb_ep0_tx(void *buf, size_t len, size_t reqlen, ep_callback_t cb, void *cb_data);
 int usb_ep0_tx_cp(const void *, size_t, size_t, ep_callback_t, void *);
-
-#endif
 
 
 // ----- DFU USB Additional Includes -----

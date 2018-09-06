@@ -46,6 +46,7 @@
 #endif
 
 #if defined(_sam_)
+#include "udc.h"
 #include <udi_hid_kbd.h>
 #endif
 
@@ -1809,6 +1810,8 @@ uint8_t usb_init()
 #elif defined(_sam_)
 	//SAM TODO
 	usb_configuration = 1;
+
+	udc_start();
 #endif
 
 	// Do not check for power negotiation delay until Get Configuration Descriptor

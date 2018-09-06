@@ -29,9 +29,13 @@
 
 // ----- Macros -----
 
+#if defined(_sam_)
+#undef LSB
+#undef MSB
+#endif
+
 #define LSB(n) ((n) & 255)
 #define MSB(n) (((n) >> 8) & 255)
-
 
 
 // ----- Structs -----
@@ -60,22 +64,22 @@ static const struct usb_config_1 usb_config_1 = {
 			.iInterface = 4
 		},
 
-	.dfu = {
-		.bLength = sizeof(struct dfu_desc_functional),
-		.bDescriptorType = {
-			.id = 0x1,
-			.type_type = USB_DESC_TYPE_CLASS
-		},
-		.will_detach = 1,
-		.manifestation_tolerant = 0,
-		.can_upload = 0,
-		.can_upload = 1,
-		.can_download = 1,
-		.wDetachTimeOut = 0,
-		.wTransferSize = USB_DFU_TRANSFER_SIZE,
-		.bcdDFUVersion = { .maj = 1, .min = 1 }
-	}
-},
+		.dfu = {
+			.bLength = sizeof(struct dfu_desc_functional),
+			.bDescriptorType = {
+				.id = 0x1,
+				.type_type = USB_DESC_TYPE_CLASS
+			},
+			.will_detach = 1,
+			.manifestation_tolerant = 0,
+			.can_upload = 0,
+			.can_upload = 1,
+			.can_download = 1,
+			.wDetachTimeOut = 0,
+			.wTransferSize = USB_DFU_TRANSFER_SIZE,
+			.bcdDFUVersion = { .maj = 1, .min = 1 }
+		}
+	},
 
 };
 

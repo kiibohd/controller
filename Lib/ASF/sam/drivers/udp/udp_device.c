@@ -261,10 +261,10 @@ typedef enum {
 static udd_ctrl_ep_state_t udd_ep_control_state;
 
 //! Total number of data received/sent during data packet phase with previous payload buffers
-static uint16_t udd_ctrl_prev_payload_nb_trans;
+uint16_t udd_ctrl_prev_payload_nb_trans;
 
 //! Number of data received/sent to/from udd_g_ctrlreq.payload buffer
-static uint16_t udd_ctrl_payload_nb_trans;
+uint16_t udd_ctrl_payload_nb_trans;
 
 /**
  * \brief Reset control endpoint
@@ -290,7 +290,7 @@ static void udd_ctrl_in_sent(void);
 static void udd_ctrl_out_received(void);
 
 //! \brief Managed stall event of IN/OUT packet on control endpoint
-static void udd_ctrl_stall_data(void);
+void udd_ctrl_stall_data(void);
 
 //! \brief Send a ZLP IN on control endpoint
 static void udd_ctrl_send_zlp_in(void);
@@ -1166,7 +1166,10 @@ static void udd_ctrl_out_received(void)
 			udd_ctrl_endofrequest();
 		} else {
 			// Protocol error during SETUP request
+
+#if !defined(_bootloader_) // XXXXXXX
 			udd_ctrl_stall_data();
+#endif
 		}
 		udd_ack_bank0_received(0);
 		// Reinitializes control endpoint management
@@ -1236,7 +1239,7 @@ static void udd_ctrl_out_received(void)
 }
 
 
-static void udd_ctrl_stall_data(void)
+void udd_ctrl_stall_data(void)
 {
 	// Stall all packets on IN & OUT control endpoint
 	udd_ep_control_state = UDD_EPCTRL_STALL_REQ;

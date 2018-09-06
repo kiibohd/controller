@@ -25,9 +25,8 @@
 #include <Lib/entropy.h>
 
 // Local Includes
-#include "asf.h"
-#include "wdt.h"
-
+#include "flash_efc.h"
+#include "udc.h"
 
 
 // ----- Defines -----
@@ -49,13 +48,13 @@ void Chip_reset()
 // Called during bootloader initialization
 void Chip_setup()
 {
+	/* Disable WDT */
+	WDT->WDT_MR = WDT_MR_WDDIS;
+
 	/* Enable Debug LED */
 	PIOB->PIO_PER = (1<<0);
 	PIOB->PIO_OER = (1<<0);
 	PIOB->PIO_SODR = (1<<0);
-
-	sysclk_init();
-	board_init(); // disables wdt
 
 	/* Initialize flash: 6 wait states for flash writing. */
 	uint32_t ul_rc;
@@ -64,14 +63,15 @@ void Chip_setup()
 		return;
 	}
 
-	// Start USB stack
+	/* Start USB stack */
 	udc_start();
 }
 
 // Called during each loop of the main bootloader sequence
 void Chip_process()
 {
-	__WFI(); // Saves some cycles
+	// Not locked up... Reset the watchdog timer
+	WDT->WDT_CR = WDT_CR_KEY_PASSWD | WDT_CR_WDRSTT;
 }
 
 // Key validation
@@ -80,6 +80,7 @@ void Chip_process()
 // Returns start-of-data offset if valid (may be unused until next block)
 int8_t Chip_validation( uint8_t* key )
 {
-	return -1;
+	// TODO
+	return 0;
 }
 

@@ -367,6 +367,7 @@ void ResetHandler()
 	* 7- Select the programmable clocks (optional)
 	*/
 
+#if defined(_bootloader_)
 	/* Step 1 - Activation of external oscillator
 	* As we are clocking the core from internal Fast RC, we keep the bit CKGR_MOR_MOSCRCEN.
 	* Main Crystal Oscillator Start-up Time (CKGR_MOR_MOSCXTST) is set to maximum value.
@@ -408,6 +409,7 @@ void ResetHandler()
 
 	PMC->PMC_MCKR = PMC_MCKR_PRES_CLK_2 | PMC_MCKR_CSS_PLLA_CLK;
 	for ( ; (PMC->PMC_SR & PMC_SR_MCKRDY) != PMC_SR_MCKRDY ; );
+#endif
 
 
 	/* Set the vector table base address */
@@ -432,24 +434,15 @@ void ResetHandler()
 	SysTick->CALIB = F_CPU / 8;
 	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 
-	// Initialze the Watchdog timer
-	WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDRSTEN | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
-
 	// Enable IRQs
 	__enable_irq();
 
 	// Intialize entropy for random numbers
 	rand_initialize();
 
-	// Start USB stack
-	udc_start();
-
 #if !defined(_bootloader_)
 	init_errorLED();
 #endif
-
-	// Start USB stack to authorize VBus monitoring
-	udc_start();
 
 	// Start main
 	main();

@@ -24,32 +24,30 @@
 #include "weak.h"
 #include "device.h"
 #include "debug.h"
+#include "dfu.h"
 
-#if defined(_kinetis_)
 #include "dfu.desc.h"
 
-#elif defined(_sam_)
-#include "wdt.h"
-
+#if defined(_sam_)
+#include "osc.h"
+#define WDT_TICK_US (128 * 1000000 / BOARD_FREQ_SLCK_XTAL)
+#define WDT_MAX_VALUE 4095
 #endif
 
 
 // ----- Variables -----
 
-#if defined(_kinetis_)
 /**
  * Unfortunately we can't DMA directly to FlexRAM, so we'll have to stage here.
  */
 static char staging[ USB_DFU_TRANSFER_SIZE ];
 
 // DFU State
-static struct dfu_ctx dfu_ctx;
-#endif
+struct dfu_ctx dfu_ctx;
 
 
 // ----- Functions -----
 
-#if defined(_kinetis_)
 int sector_print( void* buf, size_t sector, size_t chunks )
 {
 	uint8_t* start = (uint8_t*)buf + sector * USB_DFU_TRANSFER_SIZE;
@@ -57,12 +55,14 @@ int sector_print( void* buf, size_t sector, size_t chunks )
 	uint8_t* pos = start;
 	int retval = 0;
 
+#if defined(_kinetis_)
 	// Verify if sector erased
 	FTFL.fccob.read_1s_section.fcmd = FTFL_FCMD_READ_1s_SECTION;
 	FTFL.fccob.read_1s_section.addr = (uintptr_t)start;
 	FTFL.fccob.read_1s_section.margin = FTFL_MARGIN_NORMAL;
 	FTFL.fccob.read_1s_section.num_words = 250; // 2000 kB / 64 bits
 	retval = ftfl_submit_cmd();
+#endif
 
 #ifdef FLASH_DEBUG
 	print( NL );
@@ -154,8 +154,6 @@ static enum dfu_status setup_write( size_t off, size_t len, void **buf )
 
 static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 {
-	void *target;
-
 	// If nothing left to flash, this is still ok
 	if ( len == 0 )
 	{
@@ -197,7 +195,8 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 		return DFU_STATUS_errADDRESS;
 	}
 
-	target = flash_get_staging_area( off + (uintptr_t)&_app_rom, USB_DFU_TRANSFER_SIZE );
+#if defined(_kinetis_)
+	void *target = flash_get_staging_area( off + (uintptr_t)&_app_rom, USB_DFU_TRANSFER_SIZE );
 	if ( !target )
 	{
 		return DFU_STATUS_errADDRESS;
@@ -218,6 +217,18 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 	default: // No error
 		return DFU_STATUS_OK;
 	}
+#elif defined(_sam_)
+	switch ( flash_program_sector( off + (uintptr_t)&_app_rom, staging, USB_DFU_TRANSFER_SIZE ) )
+	{
+	case FLASH_RC_OK:  // No error
+		return DFU_STATUS_OK;
+	case FLASH_RC_ERROR:
+	case FLASH_RC_INVALID:
+	case FLASH_RC_NOT_SUPPORT:
+	default:
+		return DFU_STATUS_errADDRESS;
+	}
+#endif
 }
 
 void init_usb_bootloader( int config )
@@ -234,7 +245,6 @@ void init_usb_bootloader( int config )
 	// Clear verified status
 	dfu_ctx.verified = DFU_VALIDATION_UNKNOWN;
 }
-#endif
 
 // Code jump routine
 __attribute__((noreturn))
@@ -326,7 +336,7 @@ void main()
 	{
 		// Enable Watchdog before jumping
 		// XXX (HaaTa) This watchdog cannot trigger an IRQ, as we're relocating the vector table
-		wdt_init(WDT, WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT, 1000, 1000);
+		WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDRSTEN | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
 
 		// Firmware mode
 		uint32_t addr = (uintptr_t)&_app_rom;
@@ -372,8 +382,8 @@ void main()
 
 #if defined(_kinetis_)
 	flash_prepare_flashing();
-	dfu_usb_init(); // Initialize USB and dfu
 #endif
+	dfu_usb_init(); // Initialize USB and dfu
 
 	// Main Loop
 	for (;;)

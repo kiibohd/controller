@@ -57,10 +57,11 @@ void Device_setup()
 void Device_process()
 {
 	// Check for S1 being pressed
-	if ( PIOA->PIO_PDSR & (1<<26) )
+	// FIXME: Causing random resets
+	/*if ( PIOA->PIO_PDSR & (1<<26) )
 	{
 		print( "Reset key pressed." NL );
 		SOFTWARE_RESET();
-	}
+	}*/
 }
 

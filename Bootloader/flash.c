@@ -167,51 +167,30 @@ void *flash_get_staging_area( uintptr_t addr, size_t len )
 
 
 #elif defined(_sam_)
-//SAM TODO
 
-int ftfl_submit_cmd()
+int flash_program_sector( uintptr_t addr, const void *data, size_t len )
 {
-	return (0);
-}
+	uint32_t ul_rc;
 
-int flash_prepare_flashing()
-{
-	return (0);
-}
+	if (((addr - IFLASH0_ADDR) % LOCK_REGION_SIZE) == 0) {
+		/* Unlock page */
+		ul_rc = flash_unlock(addr, addr+len-1, 0, 0);
+		if (ul_rc != FLASH_RC_OK) {
+			return ul_rc;
+		}
 
-int flash_read_1s_sector( uintptr_t addr, size_t num )
-{
-	return (0);
-}
+		/* The EWP command is not supported for non-8KByte sectors in all devices
+		 *  SAM4 series, so an erase command is requried before the write operation.
+		 */
+		ul_rc = flash_erase_page(addr, IFLASH_ERASE_PAGES_16);
+		if (ul_rc != FLASH_RC_OK) {
+			return ul_rc;
+		}
+	}
 
-int flash_erase_sector( uintptr_t addr )
-{
-	return (0);
-}
-
-int flash_program_section( uintptr_t addr, size_t num )
-{
-	return (0);
-}
-
-int flash_program_sector( uintptr_t addr, size_t len )
-{
-	return (0);
-}
-
-int flash_prepare_reading()
-{
-	return (0);
-}
-
-int flash_read_sector( uintptr_t addr, size_t len )
-{
-	return (0);
-}
-
-void *flash_get_staging_area( uintptr_t addr, size_t len )
-{
-	return NULL;
+	/* Write page */
+	ul_rc = flash_write(addr, data, len, 0);
+	return ul_rc;
 }
 
 #endif

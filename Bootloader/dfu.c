@@ -91,7 +91,7 @@ static void dfu_reset_system( void *buf, ssize_t len, void *cbdata )
 	SOFTWARE_RESET();
 }
 
-static int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
+int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 {
 	struct dfu_ctx *ctx = data;
 	int fail = 1;
@@ -277,6 +277,10 @@ void dfu_init( dfu_setup_read_t setup_read, dfu_setup_write_t setup_write, dfu_f
 	ctx->setup_read = setup_read;
 	ctx->setup_write = setup_write;
 	ctx->finish_write = finish_write;
+#if defined(_sam_)
+	// XXX
+	ctx->verified = DFU_VALIDATION_OK;
+#endif
 	usb_attach_function(&dfu_function, &ctx->header);
 }
 

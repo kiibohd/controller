@@ -48,7 +48,6 @@
 #define _CONF_USB_H_
 
 #include "compiler.h"
-#define UDD_NO_SLEEP_MGR
 
 /**
  * USB Device Configuration
@@ -56,13 +55,12 @@
  */
 
 //! Device definition (mandatory)
-#define  USB_DEVICE_VENDOR_ID             0x1C11
-#define  USB_DEVICE_PRODUCT_ID            0xB0AD
+#define  USB_DEVICE_VENDOR_ID             0x1c11
+#define  USB_DEVICE_PRODUCT_ID            0xb007
 #define  USB_DEVICE_MAJOR_VERSION         1
 #define  USB_DEVICE_MINOR_VERSION         0
 #define  USB_DEVICE_POWER                 100 // Consumption on Vbus line (mA)
-#define  USB_DEVICE_ATTR                  \
-	(USB_CONFIG_ATTR_SELF_POWERED)
+#define  USB_DEVICE_ATTR                  (USB_CONFIG_ATTR_BUS_POWERED)
 //	(USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_SELF_POWERED)
 //	(USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_BUS_POWERED)
 //	(USB_CONFIG_ATTR_BUS_POWERED)
@@ -121,6 +119,23 @@
 //@}
 //@}
 
+/**
+ * Configuration of DFU interface
+ * @{
+ */
+//! Interface callback definition
+#define  UDI_DFU_ENABLE_EXT()             true
+#define  UDI_DFU_DISABLE_EXT()
+
+//! FLIP protocol version to use
+#define  FLIP_PROTOCOL_VERSION   FLIP_PROTOCOL_VERSION_2
+// Split erase is available since batchisp 1.2.5 to avoid USB protocol 2 error
+#define  UDI_DFU_ATMEL_PROTOCOL_2_SPLIT_ERASE_CHIP
+// Reduce the RAM used (1KB instead of 2KB), but the CODE increase of 80B
+#define  UDI_DFU_SMALL_RAM
+//@}
+//@}
+
 
 /**
  * USB Device Driver Configuration
@@ -129,7 +144,18 @@
 //@}
 
 //! The includes of classes and other headers must be done at the end of this file to avoid compile error
+#if defined(_bootloader_)
+bool udi_dfu_atmel_setup(void);
+
+#undef USB_DEVICE_MAX_EP
+#define USB_DEVICE_SPECIFIC_REQUEST udi_dfu_atmel_setup
+#define  USB_DEVICE_MAX_EP 1
+#include "udi_dfu_atmel_conf.h"
+
+#else
 #include "udi_hid_kbd_conf.h"
+#endif
+
 #include "main.h"
 
 #endif // _CONF_USB_H_

@@ -27,8 +27,6 @@
 #include <stdint.h>
 
 
-#if !defined(_sam_)
-
 // ----- Defines -----
 
 #define USB_FUNCTION_DFU_IFACE_COUNT 1
@@ -48,9 +46,9 @@
 #elif defined(_mk22fx512avlh12_)
 #define USB_DFU_TRANSFER_SIZE FLASH_SECTOR_SIZE / 2
 
-// XXX Determine sector size for sam4s8c
+// 16 pages is the smallest erase for 48/64k areas, Section 8.1.3.1
 #elif defined(_sam4s8c_)
-#define USB_DFU_TRANSFER_SIZE FLASH_SECTOR_SIZE / 2
+#define USB_DFU_TRANSFER_SIZE (8*FLASH_PAGE_SIZE) //4096
 
 #endif
 #endif
@@ -192,6 +190,4 @@ extern const struct usbd_function dfu_app_function;
 void dfu_write_done( enum dfu_status, struct dfu_ctx *ctx );
 void dfu_init( dfu_setup_read_t setup_read, dfu_setup_write_t setup_write, dfu_finish_write_t finish_write, struct dfu_ctx *ctx );
 void dfu_app_init( dfu_detach_t detachcb );
-
-
-#endif
+int dfu_handle_control( struct usb_ctrl_req_t *req, void *data );
