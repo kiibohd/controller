@@ -230,6 +230,7 @@ endif ()
 #| First check for JLink based dev kits
 if ( JLINK )
 	configure_file( LoadFile/load.jlink load NEWLINE_STYLE UNIX )
+	configure_file( LoadFile/dump.jlink dump NEWLINE_STYLE UNIX @ONLY )
 	configure_file( LoadFile/debug.jlink debug NEWLINE_STYLE UNIX )
 	configure_file( LoadFile/rtt.jlink rtt NEWLINE_STYLE UNIX )
 	configure_file( LoadFile/reset.jlink reset NEWLINE_STYLE UNIX )

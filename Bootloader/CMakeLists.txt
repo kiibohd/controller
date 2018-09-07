@@ -323,6 +323,10 @@ set_target_properties ( ${TARGET_ELF} PROPERTIES
 #| Convert the .ELF into a .bin to load onto the McHCK
 set ( TARGET_BIN ${TARGET}.bin )
 set ( TARGET_HEX ${TARGET}.hex )
+set(
+	TARGET_ADDRESS "0x0"
+	CACHE STRING "Bootloader starting address"
+)
 add_custom_command ( TARGET ${TARGET_ELF} POST_BUILD
 	COMMAND ${CMAKE_OBJCOPY} ${BIN_FLAGS} ${TARGET_ELF} ${TARGET_BIN}
 	COMMAND ${CMAKE_OBJCOPY} -O ihex ${TARGET_ELF} ${TARGET_HEX}
@@ -372,6 +376,7 @@ add_custom_target ( SizeAfter ALL
 
 if ( JLINK )
 configure_file( ${CMAKE_SOURCE_DIR}/../LoadFile/load.jlink load NEWLINE_STYLE UNIX )
+configure_file( ${CMAKE_SOURCE_DIR}/../LoadFile/dump.jlink dump NEWLINE_STYLE UNIX @ONLY )
 configure_file( ${CMAKE_SOURCE_DIR}/../LoadFile/debug.jlink debug NEWLINE_STYLE UNIX )
 configure_file( ${CMAKE_SOURCE_DIR}/../LoadFile/rtt.jlink rtt NEWLINE_STYLE UNIX )
 configure_file( ${CMAKE_SOURCE_DIR}/../LoadFile/reset.jlink reset NEWLINE_STYLE UNIX )

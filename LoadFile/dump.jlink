@@ -1,0 +1,10 @@
+FIRMWARE_SIZE=$(wc -c < @TARGET_BIN@)
+
+echo "connect" > dump.jlink
+echo "savebin dump.bin @TARGET_ADDRESS@ ${FIRMWARE_SIZE}" >> dump.jlink
+echo "exit" >> dump.jlink
+
+rm dump.bin
+JLinkExe -device sam4s8c -if swd -speed auto -CommanderScript dump.jlink -AutoConnect 1
+
+#hexdump dump.bin | less
