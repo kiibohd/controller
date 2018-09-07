@@ -19,27 +19,20 @@
 #| You _MUST_ set this to match the microcontroller you are trying to compile for
 #| You _MUST_ clean the build directory if you change this value
 #|
-set ( FAMILY
-	"kinetis"
-#	"sam"
-CACHE STRING "Family"
-)
-
-
-
-###
-# Chip Selection
-#
-
-#| You _MUST_ set this to match the microcontroller you are trying to compile for
-#| You _MUST_ clean the build directory if you change this value
-#|
 set ( CHIP
 	"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
 #	"mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
+#	"sam4s8c"          # Sam
 	CACHE STRING "Chip"
 )
 
+if ( "${CHIP}" MATCHES "^mk2.*$" )
+	set( FAMILY "kinetis" )
+elseif ( "${CHIP}" MATCHES "^sam.*$" )
+	set( FAMILY "sam" )
+else ( )
+	message( FATAL_ERROR "Unknown chip ${CHIP}" )
+endif ( )
 
 
 ###
