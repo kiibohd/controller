@@ -17,7 +17,7 @@
 
 // ----- Local Includes -----
 
-#include "mchck.h"
+#include "device.h"
 #include "debug.h"
 
 
@@ -30,6 +30,7 @@ uint32_t flash_ALLOW_BRICKABLE_ADDRESSES;
 
 // ----- Functions -----
 
+#if defined(_kinetis_)
 /* This will have to live in SRAM. */
 __attribute__((section(".ramtext.ftfl_submit_cmd"), long_call))
 int ftfl_submit_cmd()
@@ -64,6 +65,7 @@ int flash_prepare_flashing()
 
 int flash_read_1s_sector( uintptr_t addr, size_t num )
 {
+	// Verifies num sectors starting at addr are erased
 	FTFL.fccob.read_1s_section.fcmd = FTFL_FCMD_READ_1s_SECTION;
 	FTFL.fccob.read_1s_section.addr = addr;
 	FTFL.fccob.read_1s_section.margin = FTFL_MARGIN_NORMAL;
@@ -164,3 +166,78 @@ void *flash_get_staging_area( uintptr_t addr, size_t len )
 	return (FlexRAM);
 }
 
+
+#elif defined(_sam_)
+
+int ftfl_submit_cmd(uint8_t cmd, uint16_t args)
+{
+	// Wait for flash to be ready
+	while ((EFC0->EEFC_FMR & EEFC_FMR_FRDY));
+
+	EFC0->EEFC_FCR = EEFC_FCR_FCMD(cmd) | EEFC_FCR_FARG(args) | EEFC_FCR_FKEY_PASSWD;
+
+	// Wait for the operation to complete
+	while ((EFC0->EEFC_FMR & EEFC_FMR_FRDY));
+
+	// Mask error bits
+	return EFC0->EEFC_FSR & (EEFC_FSR_FCMDE | EEFC_FSR_FLOCKE | EEFC_FSR_FLERR);
+}
+
+int flash_prepare_flashing()
+{
+	// Nothing to do?
+	return (0);
+}
+
+int flash_erase_sector( uintptr_t addr )
+{
+#ifdef FLASH_DEBUG
+	// Debug
+	print("Erasing Sector: address(");
+	printHex( addr );
+	printNL(")");
+#endif
+
+	int page = addr / FLASH_PAGE_SIZE;
+	return ftfl_submit_cmd(EEFC_FCR_FCMD_ES, page);
+}
+
+int flash_program_section( uintptr_t addr, size_t num )
+{
+#ifdef FLASH_DEBUG
+	// Debug
+	print("Programming Sector: address(");
+	printHex( addr );
+	print(") units (");
+	printHex( num );
+	printNL(")");
+#endif
+
+	int page = addr / FLASH_PAGE_SIZE;
+	return ftfl_submit_cmd(EEFC_FCR_FCMD_WP, page);
+}
+
+int flash_program_sector( uintptr_t addr, size_t len )
+{
+	int page = addr / FLASH_PAGE_SIZE;
+	return ftfl_submit_cmd(EEFC_FCR_FCMD_WP, page);
+}
+
+int flash_prepare_reading()
+{
+	return (0);
+}
+
+int flash_read_sector( uintptr_t addr, size_t len )
+{
+	return (0);
+}
+
+void *flash_get_staging_area( uintptr_t addr, size_t len )
+{
+	if ( (addr & (USB_DFU_TRANSFER_SIZE - 1)) != 0 || len != USB_DFU_TRANSFER_SIZE )
+		return (NULL);
+	return (void*)(IFLASH0_ADDR);
+}
+
+#endif

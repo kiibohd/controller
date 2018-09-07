@@ -19,6 +19,21 @@
 #| You _MUST_ set this to match the microcontroller you are trying to compile for
 #| You _MUST_ clean the build directory if you change this value
 #|
+set ( FAMILY
+	"kinetis"
+#	"sam"
+CACHE STRING "Family"
+)
+
+
+
+###
+# Chip Selection
+#
+
+#| You _MUST_ set this to match the microcontroller you are trying to compile for
+#| You _MUST_ clean the build directory if you change this value
+#|
 set ( CHIP
 	"mk20dx128vlf5"    # McHCK       mk20dx128vlf5
 #	"mk20dx256vlh7"    # Kiibohd-dfu mk20dx256vlh7
@@ -86,8 +101,8 @@ set ( SRCS
 	dfu.c
 	dfu.desc.c
 	flash.c
-	kinetis.c
 	usb.c
+	${FAMILY}.c
 	Devices/${CHIP}.c
 )
 

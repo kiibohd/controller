@@ -15,14 +15,20 @@
  */
 
 //
-// WhiteFox
+// Kiibohd-dfu
+// Infinity Ergodox / WhiteFox / K-Type
 //
 
 // ----- Includes -----
 
+// Project Includes
+#include <Lib/entropy.h>
+
 // Local Includes
+#include "../weak.h"
 #include "../device.h"
 #include "../debug.h"
+#include "../dfu.desc.h"
 
 
 
@@ -30,34 +36,35 @@
 
 // ----- Variables -----
 
+uint32_t Chip_secure1;
+uint32_t Chip_secure2;
+
+
+
 // ----- Functions -----
 
 // Called early-on during ResetHandler
-void Device_reset()
+void Chip_reset()
 {
 }
 
 // Called during bootloader initialization
-void Device_setup()
+void Chip_setup()
 {
-	// Setup scanning for S1
-	// Row1
-	GPIOD_PDDR &= ~(1<<5);
-	PORTD_PCR5 = PORT_PCR_PE | PORT_PCR_PFE | PORT_PCR_MUX(1);
-	// Col1
-	GPIOB_PDDR |= (1<<2);
-	PORTB_PCR2 = PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOB_PSOR |= (1<<2);
+	//EFC0->EEFC_FMR = EEFC_FMR_FWS(0x#);
 }
 
 // Called during each loop of the main bootloader sequence
-void Device_process()
+void Chip_process()
 {
-	// Check for S1 being pressed
-	if ( GPIOD_PDIR & (1<<5) )
-	{
-		print( "Reset key pressed." NL );
-		SOFTWARE_RESET();
-	}
+}
+
+// Key validation
+// Point to start of key
+// Returns -1 if invalid
+// Returns start-of-data offset if valid (may be unused until next block)
+int8_t Chip_validation( uint8_t* key )
+{
+	return -1;
 }
 
