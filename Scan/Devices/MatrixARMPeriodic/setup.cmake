@@ -26,7 +26,7 @@ set ( Module_SRCS
 #
 set_property (
 	SOURCE ${CMAKE_CURRENT_LIST_DIR}/matrix_scan.c
-	APPEND PROPERTY OBJECT_DEPENDS ${MatrixARM_Path}/_matrix.h
+	APPEND PROPERTY OBJECT_DEPENDS ${MatrixARM_Path}/matrix.h
 )
 
 

@@ -587,11 +587,11 @@ static void usb_setup()
 
 	case 0x0C82: // SYNCH_FRAME
 	{
+#if defined(_kinetis_)
 		// XXX (HaaTa): Only necessary for isochronous endpoints
 		//uint8_t direction = setup.wIndex & 0x80; // D7 Direction
 		uint8_t endpoint = setup.wIndex & 0x0F; // D0..D3 Endpoint Number
 
-#if defined(_kinetis_)
 		// Valid endpoint
 		if ( endpoint <= NUM_ENDPOINTS )
 		{

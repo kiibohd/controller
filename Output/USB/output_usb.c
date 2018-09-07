@@ -50,9 +50,10 @@
 // Interface Includes
 #include <output_com.h>
 
+#if defined(_sam_)
 #include "usb_protocol_hid.h"
 #include "udi_hid_kbd.h"
-
+#endif
 
 
 
@@ -603,8 +604,11 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 
 		break;
 	}
+#if defined(_sam_)
 	// TODO - Remove once udi_hid_kbd is removed
 	USBKeys_primary.changed = 0;
+#endif
+
 #endif
 }
 
