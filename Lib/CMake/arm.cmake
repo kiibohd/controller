@@ -168,11 +168,11 @@ if ( BOOTLOADER )
 	if ( "${COMPILER}" MATCHES "clang" )
 		# TODO Not currently working, clang doesn't support all the neccessary extensions
 		message ( AUTHOR_WARNING "clang doesn't support all the needed extensions, code may need rework to use clang" )
-		set ( TUNING "-D_bootloader_ -Wno-main -msoft-float -target arm-none-eabi -mtbm -fdata-sections -ffunction-sections -fshort-wchar -fplan9-extensions -fstrict-volatile-bitfields -flto -fno-use-linker-plugin" )
+		set ( TUNING "-D_bootloader_ -Wno-main -msoft-float -target arm-none-eabi -mtbm -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -fplan9-extensions -fstrict-volatile-bitfields -flto -fno-use-linker-plugin -nostdlib" )
 
 	## GCC Compiler
 	else ()
-		set ( TUNING "-D_bootloader_ -Wno-main -msoft-float -mthumb -fplan9-extensions -ffunction-sections -fdata-sections -fstrict-volatile-bitfields -flto -fno-use-linker-plugin" )
+		set ( TUNING "-D_bootloader_ -Wno-main -msoft-float -mthumb -fplan9-extensions -ffunction-sections -fdata-sections -fno-builtin -fstrict-volatile-bitfields -fno-use-linker-plugin -nostdlib" )
 		#set( TUNING "-mthumb -fdata-sections -ffunction-sections -fno-builtin -msoft-float -fstrict-volatile-bitfields -flto -fno-use-linker-plugin -fwhole-program -Wno-main -nostartfiles -fplan9-extensions -D_bootloader_" )
 	endif ()
 

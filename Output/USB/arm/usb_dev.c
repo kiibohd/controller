@@ -45,6 +45,9 @@
 #include "usb_serial.h"
 #endif
 
+#if defined(_sam_)
+#include <udi_hid_kbd.h>
+#endif
 
 
 // ----- Defines -----
@@ -584,14 +587,15 @@ static void usb_setup()
 
 	case 0x0C82: // SYNCH_FRAME
 	{
+#if defined(_kinetis_)
 		// XXX (HaaTa): Only necessary for isochronous endpoints
 		//uint8_t direction = setup.wIndex & 0x80; // D7 Direction
 		uint8_t endpoint = setup.wIndex & 0x0F; // D0..D3 Endpoint Number
 
-#if defined(_kinetis_)
 		// Valid endpoint
 		if ( endpoint <= NUM_ENDPOINTS )
 		{
+#if defined(_kinetis_)
 			// Isochronous endpoint, USB_ENDPT_EPHSHK is set to 0
 			if ( ( (*(uint8_t *)(&USB0_ENDPT0 + endpoint * 4)) & USB_ENDPT_EPHSHK ) == 0 )
 			{
@@ -602,6 +606,7 @@ static void usb_setup()
 				data = reply_buffer;
 				goto send;
 			}
+#endif
 		}
 #elif defined(_sam_)
 		// SAM TODO
@@ -1797,6 +1802,7 @@ uint8_t usb_init()
 	USB0_CONTROL = USB_CONTROL_DPPULLUPNONOTG;
 #elif defined(_sam_)
 	//SAM TODO
+	usb_configuration = 1;
 #endif
 
 	// Do not check for power negotiation delay until Get Configuration Descriptor

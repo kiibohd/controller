@@ -50,6 +50,11 @@
 // Interface Includes
 #include <output_com.h>
 
+#if defined(_sam_)
+#include "usb_protocol_hid.h"
+#include "udi_hid_kbd.h"
+#endif
+
 
 
 // ----- Macros -----
@@ -428,10 +433,16 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 		{
 			if ( keyPress )
 			{
+#if defined(_sam_)
+				udi_hid_kbd_modifier_down(1 << (key ^ 0xE0));
+#endif
 				USBKeys_primary.modifiers |= 1 << (key ^ 0xE0); // Left shift 1 by key XOR 0xE0
 			}
 			else // Release
 			{
+#if defined(_sam_)
+				udi_hid_kbd_modifier_up(1 << (key ^ 0xE0));
+#endif
 				USBKeys_primary.modifiers &= ~(1 << (key ^ 0xE0)); // Left shift 1 by key XOR 0xE0
 			}
 
@@ -448,6 +459,9 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 				// On press, key already present, don't re-add
 				if ( keyPress && USBKeys_primary.keys[newkey] == key )
 				{
+#if defined(_sam_)
+					udi_hid_kbd_down(newkey);
+#endif
 					keyFound = 1;
 					break;
 				}
@@ -455,6 +469,9 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 				// On release, remove if found
 				if ( !keyPress && USBKeys_primary.keys[newkey] == key )
 				{
+#if defined(_sam_)
+					udi_hid_kbd_up(newkey);
+#endif
 					// Shift keys over
 					for ( uint8_t pos = newkey; pos < USBKeys_Sent - 1; pos++ )
 					{
@@ -489,10 +506,16 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 		{
 			if ( keyPress )
 			{
+#if defined(_sam_)
+				udi_hid_kbd_modifier_down(1 << (key ^ 0xE0));
+#endif
 				USBKeys_primary.modifiers |= 1 << (key ^ 0xE0); // Left shift 1 by key XOR 0xE0
 			}
 			else // Release
 			{
+#if defined(_sam_)
+				udi_hid_kbd_modifier_up(1 << (key ^ 0xE0));
+#endif
 				USBKeys_primary.modifiers &= ~(1 << (key ^ 0xE0)); // Left shift 1 by key XOR 0xE0
 			}
 
@@ -564,17 +587,28 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 		// Set/Unset
 		if ( keyPress )
 		{
+#if defined(_sam_)
+			udi_hid_kbd_down(key);
+#endif
 			USBKeys_primary.keys[bytePosition] |= (1 << byteShift);
 			USBKeys_Sent--;
 		}
 		else // Release
 		{
+#if defined(_sam_)
+			udi_hid_kbd_up(key);
+#endif
 			USBKeys_primary.keys[bytePosition] &= ~(1 << byteShift);
 			USBKeys_Sent++;
 		}
 
 		break;
 	}
+#if defined(_sam_)
+	// TODO - Remove once udi_hid_kbd is removed
+	USBKeys_primary.changed = 0;
+#endif
+
 #endif
 }
 

@@ -38,6 +38,7 @@
 
 #endif
 
+#include "sysview.h"
 
 
 // ----- Variables -----
@@ -114,8 +115,8 @@ void Periodic_init( uint32_t cycles )
 	// Enable clock for timer
 	PMC->PMC_PCER0 |= (1 << ID_TC0);
 
-	// Setup Timer Counter to MCK/2 (highest frequency)
-	TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK1 | TC_CMR_CPCTRG;
+	// Setup Timer Counter to MCK/32
+	TC0->TC_CHANNEL[0].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_CPCTRG;
 
 	// Timer Count-down value
 	// Number of cycles to count from CPU clock before calling interrupt
@@ -157,10 +158,13 @@ uint32_t Periodic_cycles()
 
 void TC0_Handler()
 {
-	if ( TC0->TC_CHANNEL[0].TC_SR & TC_SR_CPCS )
+	SEGGER_SYSVIEW_RecordEnterISR();
+	uint32_t status = TC0->TC_CHANNEL[0].TC_SR;
+	if ( status & TC_SR_CPCS )
 	{
 		(*periodic_func)();
 	}
+	SEGGER_SYSVIEW_RecordExitISRToScheduler();
 }
 
 

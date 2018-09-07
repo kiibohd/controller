@@ -53,6 +53,7 @@ if type JLinkExe &>/dev/null; then
 	echo "verifybin @TARGET_BIN@ @TARGET_ADDRESS@" >> flash.jlink
 	echo "r" >> flash.jlink
 	echo "g" >> flash.jlink
+	echo "exit" >> flash.jlink
 	if [[ $NOCONNECT -ne 1 ]]; then
 		JLinkExe -device @CHIP@ -if @JLINK_INTERFACE@ -speed @JLINK_SPEED@ -CommanderScript flash.jlink -AutoConnect 1
 	else

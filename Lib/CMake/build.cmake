@@ -6,6 +6,41 @@
 #
 ###
 
+include_directories(
+	"Lib/CMSIS/Include"
+	"Lib/CMSIS/Lib/GCC"
+)
+
+if ( "${CHIP}" MATCHES "^sam.*$" )
+include_directories(
+	"Lib/ASF/config"
+	"Lib/ASF/common/boards"
+	"Lib/ASF/common/services/clock"
+	"Lib/ASF/common/services/gpio"
+	"Lib/ASF/common/services/ioport"
+	"Lib/ASF/common/services/usb"
+	"Lib/ASF/common/services/usb/class/hid"
+	"Lib/ASF/common/services/usb/class/hid/device"
+	"Lib/ASF/common/services/usb/class/hid/device/kbd"
+	"Lib/ASF/common/services/usb/udc"
+	"Lib/ASF/common/utils"
+	"Lib/ASF/sam/boards"
+	"Lib/ASF/sam/drivers/pio"
+	"Lib/ASF/sam/drivers/pmc"
+	"Lib/ASF/sam/drivers/udp"
+	"Lib/ASF/sam/utils"
+	"Lib/ASF/sam/utils/cmsis/sam4s/include"
+	"Lib/ASF/sam/utils/header_files"
+	"Lib/ASF/sam/utils/preprocessor"
+)
+
+add_definitions(
+	-D__SAM4S8C__
+	-DBOARD=SAM4S_XPLAINED_PRO
+	-DUDD_ENABLE
+)
+endif ( )
+
 
 ###
 # Disable -Wl,-search_paths_first for OSX (not supported by avr-gcc or arm-none-eabi-gcc)

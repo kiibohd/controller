@@ -33,8 +33,14 @@
 // Local Includes
 #include "entropy.h"
 #include "sam.h"
+#include "osc.h"
+#include "udc.h"
+#include "sysview.h"
 
+#define WDT_TICK_US (128 * 1000000 / BOARD_FREQ_SLCK_XTAL)
+#define WDT_MAX_VALUE 4095
 
+#define TRACE_BUFFER_SIZE 256
 
 // ----- Variables -----
 
@@ -48,6 +54,8 @@ extern uint32_t _szero;
 extern uint32_t _ezero;
 extern uint32_t _sstack;
 extern uint32_t _estack;
+
+//__attribute__((__aligned__(TRACE_BUFFER_SIZE * sizeof(uint32_t)))) uint32_t mtb[TRACE_BUFFER_SIZE];
 
 // ----- Function Declarations -----
 
@@ -94,6 +102,7 @@ void unused_isr()
 extern volatile uint32_t systick_millis_count;
 void systick_default_isr()
 {
+	SEGGER_SYSVIEW_RecordEnterISR();
 	systick_millis_count++;
 
 	// Not necessary in bootloader
@@ -103,9 +112,8 @@ void systick_default_isr()
 	DWT->CYCCNT = 0;
 	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 #endif
+	SEGGER_SYSVIEW_RecordExitISRToScheduler();
 }
-
-// NVIC - Default ISR/Vector Linking
 
 /* Cortex-M4 core handlers */
 void NMI_Handler        ( void ) __attribute__ ((weak, alias("unused_isr")));
@@ -168,7 +176,9 @@ void CRCCU_Handler  ( void ) __attribute__ ((weak, alias("unused_isr")));
 void ACC_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 void UDP_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 
+
 /* Exception Table */
+/* NOTE: Table alignment requirements mean that bits [6:0] of the table offset are always zero */
 __attribute__ ((section(".vectors")))
 const DeviceVectors exception_table = {
 
@@ -234,7 +244,7 @@ const DeviceVectors exception_table = {
 #endif /* _SAM4S_HSMCI_INSTANCE_ */
         .pfnTWI0_Handler   = (void*) TWI0_Handler,   /* 19 Two Wire Interface 0 */
         .pfnTWI1_Handler   = (void*) TWI1_Handler,   /* 20 Two Wire Interface 1 */
-        //.pfnSPI_Handler    = (void*) SPI_Handler,    /* 21 Serial Peripheral Interface */ //FIXME
+        .pfnSPI_Handler    = (void*) SPI_Handler,    /* 21 Serial Peripheral Interface */
         .pfnSSC_Handler    = (void*) SSC_Handler,    /* 22 Synchronous Serial Controller */
         .pfnTC0_Handler    = (void*) TC0_Handler,    /* 23 Timer/Counter 0 */
         .pfnTC1_Handler    = (void*) TC1_Handler,    /* 24 Timer/Counter 1 */
@@ -263,9 +273,8 @@ const DeviceVectors exception_table = {
         .pfnPWM_Handler    = (void*) PWM_Handler,    /* 31 Pulse Width Modulation */
         .pfnCRCCU_Handler  = (void*) CRCCU_Handler,  /* 32 CRC Calculation Unit */
         .pfnACC_Handler    = (void*) ACC_Handler,    /* 33 Analog Comparator */
-        //.pfnUDP_Handler    = (void*) UDP_Handler     /* 34 USB Device Port */ //FIXME
+        .pfnUDP_Handler    = (void*) UDP_Handler     /* 34 USB Device Port */
 };
-
 
 // ----- Flash Configuration -----
 
@@ -303,6 +312,20 @@ void *memcpy( void *dst, const void *src, unsigned int len )
 
 // ----- Chip Entry Point -----
 
+// ===== Target frequency (System clock)
+// - PLLA source: XTAL             = 12MHz
+// - PLLA output: XTAL * 20 / 1    = 240MHz
+// - System clock source: PLLA
+// - System clock prescaler: 2 (divided by 2)
+// - System clock: 12 * 20 / 1 / 2 = 120MHz
+
+// ===== Target frequency (USB Clock)
+// - PLLB source: XTAL          = 12MHz
+// - PLLB output: XTAL * 16 / 2 = 96Mhz
+// - USB clock source: PLLB
+// - USB clock divider: 2 (divided by 2)
+// - USB clock: 12 * 16 / 2 / 2 = 48MHz
+
 void ResetHandler()
 {
 	uint32_t *pSrc, *pDest;
@@ -311,14 +334,14 @@ void ResetHandler()
 	pDest = &_srelocate;
 
 	if (pSrc != pDest) {
-			for (; pDest < &_erelocate;) {
-					*pDest++ = *pSrc++;
-			}
+		for (; pDest < &_erelocate;) {
+			*pDest++ = *pSrc++;
+		}
 	}
 
 	/* Clear the zero segment */
 	for (pDest = &_szero; pDest < &_ezero;) {
-			*pDest++ = 0;
+		*pDest++ = 0;
 	}
 
 
@@ -368,42 +391,47 @@ void ResetHandler()
 	* We set the maximum PLL Lock time to maximum in CKGR_PLLAR_PLLACOUNT.
 	*/
 	//PMC->CKGR_PLLAR = CKGR_PLLAR_ONE | (CKGR_PLLAR_MULA(0x1dul) | CKGR_PLLAR_DIVA(3ul) | CKGR_PLLAR_PLLACOUNT(0x1ul));
-	PMC->CKGR_PLLAR = CKGR_PLLAR_ONE | (CKGR_PLLAR_MULA(0x9ul) | CKGR_PLLAR_DIVA(1ul) | CKGR_PLLAR_PLLACOUNT(0x3ful));
+	PMC->CKGR_PLLAR = CKGR_PLLAR_ONE | (CKGR_PLLAR_MULA(20-1) | CKGR_PLLAR_DIVA(1) | CKGR_PLLAR_PLLACOUNT(0x3ful));
 	for ( ; (PMC->PMC_SR & PMC_SR_LOCKA) != PMC_SR_LOCKA ; );
 
+	PMC->CKGR_PLLBR = (CKGR_PLLBR_MULB(16-1) | CKGR_PLLBR_DIVB(2) | CKGR_PLLBR_PLLBCOUNT(0x3ful));
+	for ( ; (PMC->PMC_SR & PMC_SR_LOCKB) != PMC_SR_LOCKB ; );
+
 	/* Step 6 - Select the master clock and processor clock
-	* Source for MasterClock will be PLLA output (PMC_MCKR_CSS_PLLA_CLK), without frequency division.
+	* Source for MasterClock will be PLLA output (PMC_MCKR_CSS_PLLA_CLK), with 1/2 frequency division.
+	* NOTE: Must change prescaler before changing source
 	*/
-	PMC->PMC_MCKR = PMC_MCKR_PRES_CLK_1 | PMC_MCKR_CSS_PLLA_CLK;
+	PMC->PMC_MCKR |= PMC_MCKR_PRES_CLK_2;
 	for ( ; (PMC->PMC_SR & PMC_SR_MCKRDY) != PMC_SR_MCKRDY ; );
 
-	/*
-	* Step 7 - Select the programmable clocks
-	*
-	* Output MCK on PCK1/pin PA17
-	* Used to validate Master Clock settings
-	*/
-	//  PMC->PMC_SCER = PMC_SCER_PCK1 ;
+	PMC->PMC_MCKR = PMC_MCKR_PRES_CLK_2 | PMC_MCKR_CSS_PLLA_CLK;
+	for ( ; (PMC->PMC_SR & PMC_SR_MCKRDY) != PMC_SR_MCKRDY ; );
 
-	//SystemCoreClock=__SYSTEM_CLOCK_120MHZ;
-	
-	/* exception_table being initialized, setup vectors in RAM */
-	//vectorSetOrigin( &exception_table );
 
 	/* Set the vector table base address */
 	pSrc = (uint32_t *) & _sfixed;
-	SCB->VTOR = ((uint32_t) pSrc & SCB_VTOR_TBLOFF_Msk);
+	SCB->VTOR = ((uint32_t) pSrc);
 
 	/* Disable PMC write protection */
 	//PMC->PMC_WPMR = PMC_WPMR_WPKEY(0x504D43ul) & ~PMC_WPMR_WPEN;
 
 #if defined(DEBUG)
 	disable_write_buffering();
+
+	// Initialize micro-trace buffer
+	//REG_MTB_POSITION = ((uint32_t) (mtb - REG_MTB_BASE)) & 0xFFFFFFF8;
+	//REG_MTB_FLOW = ((uint32_t) mtb + TRACE_BUFFER_SIZE * sizeof(uint32_t)) & 0xFFFFFFF8;
+	//REG_MTB_MASTER = 0x80000000 + 6;
 #endif
 
 	// Initialize the SysTick counter
 	SysTick->LOAD = (F_CPU / 1000) - 1;
+	SysTick->VAL = 0;
+	SysTick->CALIB = F_CPU / 8;
 	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
+
+	// Initialze the Watchdog timer
+	WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDRSTEN | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
 
 	// Enable IRQs
 	__enable_irq();
@@ -411,14 +439,23 @@ void ResetHandler()
 	// Intialize entropy for random numbers
 	rand_initialize();
 
+	// Start USB stack
+	udc_start();
+
 	init_errorLED();
-	errorLED(1);
+
+	// Start USB stack to authorize VBus monitoring
+	udc_start();
 
 	// Start main
 	main();
 	while ( 1 ); // Shouldn't get here...
 }
 
+bool main_kbd_enable(void)
+{
+	return true;
+}
 
 
 // ----- RAM Setup -----

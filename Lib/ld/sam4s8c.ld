@@ -131,11 +131,13 @@ SECTIONS
     {
         . = ALIGN(4);
         _sbss = . ;
+	__bss_start__ = . ;
         _szero = .;
         *(.bss .bss.*)
         *(COMMON)
         . = ALIGN(4);
         _ebss = . ;
+	__bss_end__ = . ;
         _ezero = .;
     } > RAM
 
@@ -163,3 +165,4 @@ SECTIONS
     _end = . ;
     _ram_end_ = ORIGIN(RAM) + LENGTH(RAM) -1 ;
 }
+
