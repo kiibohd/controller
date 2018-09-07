@@ -269,8 +269,6 @@ uint32_t rand_value32()
 #include <stdlib.h>
 #include "entropy.h"
 
-#include "sam.h"
-
 
 
 // ----- Functions -----
