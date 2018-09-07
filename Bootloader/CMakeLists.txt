@@ -68,6 +68,28 @@ set ( FLASHING_STATION_ID
 set ( BOOTLOADER 1 )
 
 
+###
+# Debug
+#
+
+# Use a JLink programmer (no bootloader required)
+set( JLINK
+	0
+	CACHE STRING "Enable JLINK Programming/Debugging"
+)
+
+#| swd or jtag
+set( JLINK_INTERFACE
+	"swd"
+	CACHE STRING "JLink Interface"
+)
+
+#| Speed in kHz or auto
+set( JLINK_SPEED
+	"auto"
+	CACHE STRING "JLink Speed"
+)
+
 
 ###
 # Compiler Intialization
@@ -207,7 +229,6 @@ endif ()
 set ( TARGET_ELF ${TARGET}.elf )
 add_executable ( ${TARGET_ELF} ${SRCS} )
 
-
 #| .ELF Properties
 set_target_properties ( ${TARGET_ELF} PROPERTIES
 	LINK_FLAGS ${LINKER_FLAGS}
@@ -260,3 +281,14 @@ add_custom_target ( SizeAfter ALL
 	COMMENT "Chip usage for ${CHIP}"
 )
 
+
+###
+# Setup Loader Script and Program
+#
+
+if ( JLINK )
+configure_file( ${CMAKE_SOURCE_DIR}/../LoadFile/load.jlink load NEWLINE_STYLE UNIX )
+configure_file( ${CMAKE_SOURCE_DIR}/../LoadFile/debug.jlink debug NEWLINE_STYLE UNIX )
+configure_file( ${CMAKE_SOURCE_DIR}/../LoadFile/rtt.jlink rtt NEWLINE_STYLE UNIX )
+configure_file( ${CMAKE_SOURCE_DIR}/../LoadFile/reset.jlink reset NEWLINE_STYLE UNIX )
+endif()
