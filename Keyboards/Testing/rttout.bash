@@ -49,7 +49,7 @@ OutputModule="SeggerRTT"
 DebugModule="full"
 
 # Microcontroller
-Chip="mk20dx128vlf5"
+Chip="sam4s8c"
 
 # Compiler Selection
 Compiler="gcc"
