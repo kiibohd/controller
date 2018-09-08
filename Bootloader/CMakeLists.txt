@@ -142,7 +142,6 @@ set ( SRCS
 	dfu.desc.c
 	flash.c
 	usb.c
-	${FAMILY}.c
 	Devices/${CHIP}.c
 )
 
