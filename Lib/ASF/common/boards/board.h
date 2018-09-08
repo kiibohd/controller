@@ -6,45 +6,35 @@
  * This file includes the appropriate board header file according to the
  * defined board (parameter BOARD).
  *
- * Copyright (c) 2009-2016 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2009-2018 Microchip Technology Inc. and its subsidiaries.
  *
  * \asf_license_start
  *
  * \page License
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * Subject to your compliance with these terms, you may use Microchip
+ * software and any derivatives exclusively with Microchip products.
+ * It is your responsibility to comply with third party license terms applicable
+ * to your use of third party software (including open source software) that
+ * may accompany Microchip software.
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- * 3. The name of Atmel may not be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * 4. This software may only be redistributed and used in connection with an
- *    Atmel microcontroller product.
- *
- * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
- * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS SUPPLIED BY MICROCHIP "AS IS". NO WARRANTIES,
+ * WHETHER EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE,
+ * INCLUDING ANY IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY,
+ * AND FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL MICROCHIP BE
+ * LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE, INCIDENTAL OR CONSEQUENTIAL
+ * LOSS, DAMAGE, COST OR EXPENSE OF ANY KIND WHATSOEVER RELATED TO THE
+ * SOFTWARE, HOWEVER CAUSED, EVEN IF MICROCHIP HAS BEEN ADVISED OF THE
+ * POSSIBILITY OR THE DAMAGES ARE FORESEEABLE.  TO THE FULLEST EXTENT
+ * ALLOWED BY LAW, MICROCHIP'S TOTAL LIABILITY ON ALL CLAIMS IN ANY WAY
+ * RELATED TO THIS SOFTWARE WILL NOT EXCEED THE AMOUNT OF FEES, IF ANY,
+ * THAT YOU HAVE PAID DIRECTLY TO MICROCHIP FOR THIS SOFTWARE.
  *
  * \asf_license_stop
  *
  */
 /*
- * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
+ * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
 
 #ifndef _BOARD_H_
@@ -163,7 +153,11 @@ extern "C" {
 #define SIMULATOR_XMEGA_A1         97  //!< Simulator for XMEGA A1 devices.
 #define AVR_SIMULATOR_UC3          98  //!< Simulator for the AVR UC3 device family.
 #define USER_BOARD                 99  //!< User-reserved board (if any).
-#define DUMMY_BOARD               100  //!< Dummy board to support board-independent applications (e.g. bootloader).
+#define DUMMY_BOARD                100 //!< Dummy board to support board-independent applications (e.g. bootloader).
+#define SAMB11ZR_SENSOR_TAG        101 //!< SAMB11ZR sensor tag board
+#define SAMR30_MODULE_XPLAINED_PRO 102 //!< SAM R30 Module Xplained Pro board.
+#define SAMR21G18_MODULE           103 //!< SAMR21G18-MR210UA Module.
+#define SAMR21B18_MODULE           104 //!< SAMR21B18-MZ210PA Module.
 //! @}
 
 /*! \name Extension Boards
@@ -286,8 +280,10 @@ extern "C" {
 #  include "samd21_xplained_pro/samd21_xplained_pro.h"
 #elif BOARD == SAMR21_XPLAINED_PRO
 #  include "samr21_xplained_pro/samr21_xplained_pro.h"
-#elif BOARD == SAMR30_XPLAINED_PRO
+#elif BOARD == SAMR30_XPLAINED_PRO && defined(__SAMR30G18A__)
 #  include "samr30_xplained_pro/samr30_xplained_pro.h"
+#elif BOARD == SAMR30_MODULE_XPLAINED_PRO && defined(__SAMR30E18A__)
+#  include "samr30_module_xplained_pro/samr30_module_xplained_pro.h"
 #elif BOARD == SAMR21ZLL_EK
 #  include "samr21zll_ek/samr21zll_ek.h"
 #elif BOARD == SAMD11_XPLAINED_PRO
@@ -382,11 +378,17 @@ extern "C" {
 #  include "simulator/xmega_a1/simulator_xmega_a1.h"
 #elif BOARD == AVR_SIMULATOR_UC3
 #  include "avr_simulator_uc3/avr_simulator_uc3.h"
+#elif BOARD == SAMR21G18_MODULE
+# include "samr21g18_module/samr21g18_module.h"
+#elif BOARD == SAMR21B18_MODULE
+# include "samr21b18_module/samr21b18_module.h"
 #elif BOARD == USER_BOARD
-  // User-reserved area: #include the header file of your board here (if any).
+// User-reserved area: #include the header file of your board here (if any).
 #  include "user_board.h"
 #elif BOARD == DUMMY_BOARD
 #  include "dummy/dummy_board.h"
+#elif BOARD == SAMB11ZR_SENSOR_TAG
+#  include "samb11zr_sensor_tag/samb11zr_sensor_tag.h"
 #else
 #  error No known Atmel board defined
 #endif

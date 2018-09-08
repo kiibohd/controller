@@ -68,6 +68,12 @@
 // _teensy_3_5_      - PJRC Teensy 3.5
 // _teensy_3_5__3_6_ - PJRC Teensy 3.5+3.6
 // _teensy_3_6_      - PJRC Teensy 3.6
+//
+// _avr_             - Atmel AVR
+// _cortex_m0_       - ARM Cortex-M0
+// _cortex_m0p_      - ARM Cortex-M0+
+// _cortex_m4_       - ARM Cortex-M4
+// _cortex_m4f_      - ARM Cortex-M4F (FPU)
 
 
 
@@ -79,6 +85,7 @@
 
 // mk20dx128vlf5
 #if defined(_mk20dx128_) || defined(_mk20dx128vlf5_)
+	#define _cortex_m4_ 1
 	#define _kinetis_ 1
 	#define _kinetis_k_ 1
 	#define _kinetis_k2x_ 1
@@ -88,6 +95,7 @@
 
 // mk20dx128vlh7
 #if defined(_mk20dx128vlh7_)
+	#define _cortex_m4_ 1
 	#define _kinetis_ 1
 	#define _kinetis_k_ 1
 	#define _kinetis_k2x_ 1
@@ -97,6 +105,7 @@
 
 // mk20dx256vlh7
 #if defined(_mk20dx256_) || defined(_mk20dx256vlh7_)
+	#define _cortex_m4_ 1
 	#define _kinetis_ 1
 	#define _kinetis_k_ 1
 	#define _kinetis_k2x_ 1
@@ -106,6 +115,7 @@
 
 // mk22fx512avlh12
 #if defined(_mk22fx512avlh12_)
+	#define _cortex_m4_ 1
 	#define _kinetis_ 1
 	#define _kinetis_k_ 1
 	#define _kinetis_k2x_ 1
@@ -116,6 +126,8 @@
 
 // mk64fx512vmd12
 #if defined(_mk64fx512_)
+	#define _cortex_m4_ 1
+	#define _cortex_m4f_ 1
 	#define _kinetis_ 1
 	#define _kinetis_k_ 1
 	#define _kinetis_k6x_ 1
@@ -125,6 +137,8 @@
 
 // mk66fx1m0vmd18
 #if defined(_mk66fx1m0_)
+	#define _cortex_m4_ 1
+	#define _cortex_m4f_ 1
 	#define _kinetis_ 1
 	#define _kinetis_k_ 1
 	#define _kinetis_k6x_ 1
@@ -138,6 +152,7 @@
 
 // sam4s2a (128 kB) 48-pin
 #if defined(_sam4s2a_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_a_ 1
@@ -147,6 +162,7 @@
 
 // sam4s2b (128 kB) 64-pin
 #if defined(_sam4s2b_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_b_ 1
@@ -156,6 +172,7 @@
 
 // sam4s2c (128 kB) 100-pin
 #if defined(_sam4s2c_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_c_ 1
@@ -165,6 +182,7 @@
 
 // sam4s4a (256 kB) 48-pin
 #if defined(_sam4s4a_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_a_ 1
@@ -174,6 +192,7 @@
 
 // sam4s4b (256 kB) 64-pin
 #if defined(_sam4s4b_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_b_ 1
@@ -183,6 +202,7 @@
 
 // sam4s4c (256 kB) 100-pin
 #if defined(_sam4s4c_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_c_ 1
@@ -192,6 +212,7 @@
 
 // sam4s8b (512 kB) 64-pin
 #if defined(_sam4s8b_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_b_ 1
@@ -201,6 +222,7 @@
 
 // sam4s8c (512 kB) 100-pin
 #if defined(_sam4s8c_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_c_ 1
@@ -210,6 +232,7 @@
 
 // sam4s16b (1028 kB) 64-pin
 #if defined(_sam4s16b_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_b_ 1
@@ -219,6 +242,7 @@
 
 // sam4s16c (1028 kB) 100-pin
 #if defined(_sam4s16c_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_c_ 1
@@ -228,6 +252,7 @@
 
 // sam4sa16b (sam4s16b /w HCache) (1024 kB) 64-pin
 #if defined(_sam4sa16b_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_b_ 1
@@ -239,6 +264,7 @@
 
 // sam4sa16c (sam4s16b /w HCache) (1024 kB) 100-pin
 #if defined(_sam4sa16c_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_c_ 1
@@ -250,6 +276,7 @@
 
 // sam4sd16b (HCache) (2 x 512 kB) 64-pin
 #if defined(_sam4sd16b_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_b_ 1
@@ -261,6 +288,7 @@
 
 // sam4sd16c (HCache) (2 x 512 kB) 100-pin
 #if defined(_sam4sd16c_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_c_ 1
@@ -272,6 +300,7 @@
 
 // sam4sd32b (HCache) (2 x 1024 kB) 64-pin
 #if defined(_sam4sd32b_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_b_ 1
@@ -283,6 +312,7 @@
 
 // sam4sd32c (HCache) (2 x 1024 kB) 100-pin
 #if defined(_sam4sd32c_)
+	#define _cortex_m4_ 1
 	#define _sam_ 1
 	#define _sam4s_ 1
 	#define _sam4s_c_ 1
@@ -298,6 +328,8 @@
 
 // nRF52810-QCAA (192 kB) 32-pin
 #if defined(_nrf52810_qcaa_)
+	#define _cortex_m4_ 1
+	#define _cortex_m4f_ 1
 	#define _nrf_ 1
 	#define _nrf5_ 1
 	#define _nrf52_ 1
@@ -307,6 +339,8 @@
 
 // nRF52810-QFAA (192 kB) 48-pin
 #if defined(_nrf52810_qfaa_)
+	#define _cortex_m4_ 1
+	#define _cortex_m4f_ 1
 	#define _nrf_ 1
 	#define _nrf5_ 1
 	#define _nrf52_ 1
@@ -316,6 +350,8 @@
 
 // nRF52832-QFAA (512 kB) 48-pin
 #if defined(_nrf52832_qfaa_)
+	#define _cortex_m4_ 1
+	#define _cortex_m4f_ 1
 	#define _nrf_ 1
 	#define _nrf5_ 1
 	#define _nrf52_ 1
@@ -326,6 +362,8 @@
 
 // nRF52832-QFAB (256 kB) 48-pin
 #if defined(_nrf52832_qfab_)
+	#define _cortex_m4_ 1
+	#define _cortex_m4f_ 1
 	#define _nrf_ 1
 	#define _nrf5_ 1
 	#define _nrf52_ 1
@@ -336,6 +374,8 @@
 
 // nRF52832-CIAA (512 kB) 50-pin
 #if defined(_nrf52832_ciaa_)
+	#define _cortex_m4_ 1
+	#define _cortex_m4f_ 1
 	#define _nrf_ 1
 	#define _nrf5_ 1
 	#define _nrf52_ 1
@@ -346,6 +386,8 @@
 
 // nRF52840-QIAA (1024 kB) 73-pin
 #if defined(_nrf52840_qiaa_)
+	#define _cortex_m4_ 1
+	#define _cortex_m4f_ 1
 	#define _nrf_ 1
 	#define _nrf5_ 1
 	#define _nrf52_ 1
@@ -359,11 +401,13 @@
 
 // at90usb1286
 #if defined(_at90usb1286_)
+	#define _avr_ 1
 	#define _avr_at_ 1
 #endif
 
 // atmega32u4
 #if defined(_atmega32u4_)
+	#define _avr_ 1
 	#define _avr_at_ 1
 #endif
 

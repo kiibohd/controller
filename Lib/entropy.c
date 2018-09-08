@@ -106,7 +106,7 @@ volatile uint32_t gWDT_entropy_pool[WDT_POOL_SIZE];
 
 // This function initializes the global variables needed to implement the circular entropy pool and
 // the buffer that holds the raw Timer 1 values that are used to create the entropy pool.  It then
-// Initializes the Watch Dog Timer (WDT) to perform an interrupt every 2048 clock cycles, (about
+// Initializes the Low Power Timer (LPTMR) to perform an interrupt every 2048 clock cycles, (about
 // 16 ms) which is as fast as it can be set.
 void rand_initialize()
 {
@@ -165,7 +165,7 @@ uint8_t rand_available()
 }
 
 
-// This interrupt service routine is called every time the WDT interrupt is triggered.
+// This interrupt service routine is called every time the LPTMR interrupt is triggered.
 // With the default configuration that is approximately once every 16ms, producing
 // approximately two 32-bit integer values every second.
 //
@@ -229,17 +229,50 @@ void lptmr_isr()
 // ----- Includes -----
 
 #include <stdlib.h>
+#include "atomic.h"
 #include "entropy.h"
 
 #include "sam.h"
 
 
 
+// ----- Defines -----
+
+#define WDT_MAX_8INT  0xFF
+#define WDT_MAX_16INT 0xFFFF
+#define WDT_MAX_32INT 0xFFFFFFFF
+#define WDT_POOL_SIZE 8
+
+#define gWDT_buffer_SIZE 32
+
+
+
+// ----- Variables -----
+
+         uint8_t  gWDT_buffer[gWDT_buffer_SIZE];
+         uint8_t  gWDT_buffer_position;
+         uint8_t  gWDT_loop_counter;
+volatile uint8_t  gWDT_pool_start;
+volatile uint8_t  gWDT_pool_end;
+volatile uint8_t  gWDT_pool_count;
+volatile uint32_t gWDT_entropy_pool[WDT_POOL_SIZE];
+
+
+
 // ----- Functions -----
 
+// This function initializes the global variables needed to implement the circular entropy pool and
+// the buffer that holds the raw Timer 1 values that are used to create the entropy pool.  It then
+// Initializes tc1, to perform an interrupt
+// every 2048 clock cycles.
 void rand_initialize()
 {
-	// TODO (HaaTa)
+	gWDT_buffer_position = 0;
+	gWDT_pool_start = 0;
+	gWDT_pool_end = 0;
+	gWDT_pool_count = 0;
+
+	// TODO
 }
 
 void rand_disable()
@@ -249,16 +282,77 @@ void rand_disable()
 
 uint8_t rand_available()
 {
-	// TODO (HaaTa)
-	return 1;
+	return gWDT_pool_count;
 }
 
 // Pseudo-random value using clock
 uint32_t rand_value32()
 {
-	// TODO (HaaTa)
-	return 0;
+	uint32_t retVal = 0;
+	uint8_t waiting;
+	while ( gWDT_pool_count < 1 )
+	{
+		waiting += 1;
+	}
+
+	ATOMIC_BLOCK( ATOMIC_RESTORESTATE )
+	{
+		retVal = gWDT_entropy_pool[gWDT_pool_start];
+		gWDT_pool_start = (gWDT_pool_start + 1) % WDT_POOL_SIZE;
+		--gWDT_pool_count;
+	}
+
+	return retVal;
 }
+
+// This interrupt service routine is called every time the TC1 interrupt is triggered.
+// With the default configuration that is approximately once every 16ms, producing
+// approximately two 32-bit integer values every second.
+//
+// The pool is implemented as an 8 value circular buffer
+/*
+static void isr_hardware_neutral( uint8_t val )
+{
+	gWDT_buffer[gWDT_buffer_position] = val;
+	gWDT_buffer_position++; // every time the WDT interrupt is triggered
+
+	if ( gWDT_buffer_position >= gWDT_buffer_SIZE )
+	{
+		gWDT_pool_end = (gWDT_pool_start + gWDT_pool_count) % WDT_POOL_SIZE;
+
+		// The following code is an implementation of Jenkin's one at a time hash
+		// This hash function has had preliminary testing to verify that it
+		// produces reasonably uniform random results when using WDT jitter
+		// on a variety of Arduino platforms
+		for ( gWDT_loop_counter = 0; gWDT_loop_counter < gWDT_buffer_SIZE; ++gWDT_loop_counter )
+		{
+			gWDT_entropy_pool[gWDT_pool_end] += gWDT_buffer[gWDT_loop_counter];
+			gWDT_entropy_pool[gWDT_pool_end] += (gWDT_entropy_pool[gWDT_pool_end] << 10);
+			gWDT_entropy_pool[gWDT_pool_end] ^= (gWDT_entropy_pool[gWDT_pool_end] >> 6);
+		}
+
+		gWDT_entropy_pool[gWDT_pool_end] += (gWDT_entropy_pool[gWDT_pool_end] << 3);
+		gWDT_entropy_pool[gWDT_pool_end] ^= (gWDT_entropy_pool[gWDT_pool_end] >> 11);
+		gWDT_entropy_pool[gWDT_pool_end] += (gWDT_entropy_pool[gWDT_pool_end] << 15);
+		gWDT_entropy_pool[gWDT_pool_end] = gWDT_entropy_pool[gWDT_pool_end];
+
+		// Start collecting the next 32 bytes of Timer 1 counts
+		gWDT_buffer_position = 0;
+
+		// The entropy pool is full
+		if (gWDT_pool_count == WDT_POOL_SIZE)
+		{
+			gWDT_pool_start = (gWDT_pool_start + 1) % WDT_POOL_SIZE;
+		}
+		// Add another unsigned long (32 bits) to the entropy pool
+		else
+		{
+			++gWDT_pool_count;
+		}
+	}
+}
+*/
+
 
 
 #elif defined(_nrf_)

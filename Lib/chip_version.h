@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 by Jacob Alexander
+/* Copyright (C) 2017-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,7 @@
 // ----- Includes -----
 
 #include <stdint.h>
+
 
 
 #if defined(_sam_)
@@ -93,15 +94,6 @@ const uint16_t ChipVersion_sramsize[] = {
 	512, // 15 - 1111 - 512 kB
 };
 
-// See 30.3.1 CHIPID_CIDR | ARCH | Architecture Identifier
-// http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-11100-32-bit%20Cortex-M4-Microcontroller-SAM4S_Datasheet.pdf
-// XXX (HaaTa) - Only from 0x88 to 0x8A, make sure to update offset when adding more
-const char *ChipVersion_archid[] = {
-	"SAM4SxA", // 0x88 - 136 - 1000 1000 - 48-pin
-	"SAM4SxB", // 0x89 - 137 - 1000 1001 - 64-pin
-	"SAM4SxC", // 0x8A - 138 - 1000 1010 - 100-pin
-};
-
 // See 30.3.1 CHIPID_CIDR | NVPTYP | Nonvolatile Program Memory Type
 // http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-11100-32-bit%20Cortex-M4-Microcontroller-SAM4S_Datasheet.pdf
 // Mark reserved as --
@@ -118,10 +110,124 @@ const char *ChipVersion_nvmtype[] = {
 
 
 
-
 // ----- Function Declarations -----
 
 // ----- Functions -----
+
+const char *ChipVersion_cpuid_partno()
+{
+	switch ( SCB->CPUID & SCB_CPUID_PARTNO_Msk )
+	{
+	case 0xC20:
+		return "Cortex-M0";
+	case 0xC23:
+		return "Cortex-M3";
+	case 0xC60:
+		return "Cortex-M0+";
+	case 0xC24:
+		return "Cortex-M4";
+	default:
+		return "--";
+	}
+}
+
+const char *ChipVersion_cpuid_implementor()
+{
+	switch ( SCB->CPUID & SCB_CPUID_IMPLEMENTER_Msk )
+	{
+	case 0x41:
+		return "ARM";
+	default:
+		return "--";
+	}
+}
+
+// See 30.3.1 CHIPID_CIDR | ARCH | Architecture Identifier
+// http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-11100-32-bit%20Cortex-M4-Microcontroller-SAM4S_Datasheet.pdf
+const char *ChipVersion_archid()
+{
+	switch ( CHIPID->CHIPID_CIDR & CHIPID_CIDR_ARCH_Msk )
+	{
+	case 0x88:
+		return "SAM4SxA"; // 0x88 - 136 - 1000 1000 - 48-pin
+	case 0x89:
+		return "SAM4SxB"; // 0x89 - 137 - 1000 1001 - 64-pin
+	case 0x8A:
+		return "SAM4SxC"; // 0x8A - 138 - 1000 1010 - 100-pin
+	case 0x99:
+		return "SAM4SDxB"; // 0x99 - 153 - 1001 1001 - 64-pin
+	case 0x9A:
+		return "SAM4SDxC"; // 0x9A - 154 - 1001 1010 - 100-pin
+	default:
+		return "--";
+	}
+}
+
+// Attempts to detect the chip part number using registers only
+// See 30.2 (Table 30-1) for part numbers
+// http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-11100-32-bit%20Cortex-M4-Microcontroller-SAM4S_Datasheet.pdf
+// Returns -- if unknown
+const char *ChipVersion_lookup()
+{
+	switch ( CHIPID->CHIPID_CIDR & 0xFFFFFFF0 )
+	{
+	case 0x29A70EE0:
+		return "SAM4SD32C";
+	case 0x29970EE0:
+		return "SAM4SD32B";
+	case 0x29A70CE0:
+		return "SAM4SD16C";
+	case 0x29970CE0:
+		return "SAM4SD16B";
+	case 0x28A70CE0:
+		return "SAM4SA16C";
+	case 0x28970CE0:
+		return "SAM4SA16B";
+	case 0x289C0CE0:
+		return "SAM4S16B";
+	case 0x28AC0CE0:
+		return "SAM4S16C";
+	case 0x289C0AE0:
+		return "SAM4S8B";
+	case 0x28AC0AE0:
+		return "SAM4S8C";
+	case 0x28AB09E0:
+		return "SAM4S4C";
+	case 0x289B09E0:
+		return "SAM4S4B";
+	case 0x288B09E0:
+		return "SAM4S4A";
+	case 0x28AB07E0:
+		return "SAM4S2C";
+	case 0x289B07E0:
+		return "SAM4S2B";
+	case 0x288B07E0:
+		return "SAM4S2A";
+	default:
+		return "--";
+	}
+}
+
+// Attempts to detect chip part revision number using registers only
+// See 30.2 (Table 30-1) for part numbers
+// http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-11100-32-bit%20Cortex-M4-Microcontroller-SAM4S_Datasheet.pdf
+// Returns -- if unknown
+const char *ChipVersion_revision()
+{
+	switch ( CHIPID->CHIPID_CIDR & CHIPID_CIDR_VERSION_Msk )
+	{
+	case 0x0:
+		return "A";
+	case 0x1:
+		return "B";
+	case 0x2:
+		return "C";
+	default:
+		return "--";
+	}
+}
+
+
 
 #elif defined(_nrf_)
 
@@ -345,11 +451,17 @@ const uint16_t ChipVersion_ramsize[] = {
 // ----- Function Declarations -----
 
 // ----- Functions -----
-
+//
 const char *ChipVersion_cpuid_partno()
 {
 	switch ( SCB_CPUID_PARTNO )
 	{
+	case 0xC20:
+		return "Cortex-M0";
+	case 0xC23:
+		return "Cortex-M3";
+	case 0xC60:
+		return "Cortex-M0+";
 	case 0xC24:
 		return "Cortex-M4";
 	default:

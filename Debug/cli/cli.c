@@ -792,7 +792,78 @@ void cliFunc_version( char* args )
 	printHex32_op( SIM_UIDMH, 8 );
 	printHex32_op( SIM_UIDML, 8 );
 	printHex32_op( SIM_UIDL, 8 );
+
 #elif defined(_sam_)
+	print( NL );
+	print( " \033[1mCPU Detected:\033[0m  " );
+	print( ChipVersion_lookup() );
+	print( " (Rev " );
+	print( ChipVersion_revision() );
+	print( ")" NL);
+
+	print( " \033[1mCPU Id:\033[0m        " );
+	printHex32( SCB->CPUID );
+	print( NL "  (Implementor:");
+	print( ChipVersion_cpuid_implementor() );
+	print( ":" );
+	printHex32( SCB->CPUID & SCB_CPUID_IMPLEMENTER_Msk );
+	print( ")(Variant:" );
+	printHex32( SCB->CPUID & SCB_CPUID_VARIANT_Msk );
+	print( ")(Arch:" );
+	printHex32( SCB->CPUID & SCB_CPUID_ARCHITECTURE_Msk );
+	print( ")(PartNo:" );
+	print( ChipVersion_cpuid_partno() );
+	print( ":" );
+	printHex32( SCB->CPUID & SCB_CPUID_PARTNO_Msk );
+	print( ")(Revision:" );
+	printHex32( SCB->CPUID & SCB_CPUID_REVISION_Msk );
+	print( ")" NL );
+
+
+	print( " \033[1mChip Id:\033[0m       " );
+	printHex32( CHIPID->CHIPID_CIDR );
+	print( NL "  (Version:");
+	printHex32( CHIPID->CHIPID_CIDR & CHIPID_CIDR_VERSION_Msk );
+	print( ")(Proc:" );
+	print( ChipVersion_proctype[ CHIPID->CHIPID_CIDR & CHIPID_CIDR_EPROC_Msk ] );
+	print( ":" );
+	printHex32( CHIPID->CHIPID_CIDR & CHIPID_CIDR_EPROC_Msk );
+	print( ")(NVM1:" );
+	printInt16( ChipVersion_nvmsize[ CHIPID->CHIPID_CIDR & CHIPID_CIDR_NVPSIZ_Msk ] );
+	print( "kB:" );
+	printHex32( CHIPID->CHIPID_CIDR & CHIPID_CIDR_NVPSIZ_Msk );
+	print( ")(NVM2:" );
+	printInt16( ChipVersion_nvmsize[ CHIPID->CHIPID_CIDR & CHIPID_CIDR_NVPSIZ2_Msk ] );
+	print( "kB:" );
+	printHex32( CHIPID->CHIPID_CIDR & CHIPID_CIDR_NVPSIZ2_Msk );
+	print( ")(SRAM:" );
+	printInt16( ChipVersion_sramsize[ CHIPID->CHIPID_CIDR & CHIPID_CIDR_SRAMSIZ_Msk ] );
+	print( "kB:" );
+	printHex32( CHIPID->CHIPID_CIDR & CHIPID_CIDR_SRAMSIZ_Msk );
+	print( ")(Arch:" );
+	print( ChipVersion_archid() );
+	print( ":" );
+	printHex32( CHIPID->CHIPID_CIDR & CHIPID_CIDR_ARCH_Msk );
+	print( ")(NVMType:" );
+	print( ChipVersion_nvmtype[ CHIPID->CHIPID_CIDR & CHIPID_CIDR_NVPTYP_Msk ] );
+	print( ":" );
+	printHex32( CHIPID->CHIPID_CIDR & CHIPID_CIDR_NVPTYP_Msk );
+	print( ")(ExtId:" );
+	printHex32( CHIPID->CHIPID_CIDR & CHIPID_CIDR_EXT );
+	print( ")" NL );
+
+	print( " \033[1mChip Ext:\033[0m      " );
+	print( NL "  (EXID:");
+	printHex32( CHIPID->CHIPID_EXID & CHIPID_EXID_EXID_Msk );
+	print( ")" NL );
+
+	/*
+	print( " \033[1mUnique Id:\033[0m     " );
+	printHex32_op( SIM_UIDH, 8 );
+	printHex32_op( SIM_UIDMH, 8 );
+	printHex32_op( SIM_UIDML, 8 );
+	printHex32_op( SIM_UIDL, 8 );
+	*/
 #elif defined(_avr_at_)
 #elif defined(_host_)
 #else

@@ -205,7 +205,11 @@ uint8_t Matrix_pin( GPIO_Pin gpio, Type type )
 		break;
 	}
 #elif defined(_sam_)
+#if defined(_sam4s_c_)
 	volatile Pio *ports[] = {PIOA, PIOB, PIOC};
+#else
+	volatile Pio *ports[] = {PIOA, PIOB};
+#endif
 	volatile Pio *pio = ports[gpio.port];
 
 	//TODO: Parallel capture seems cool

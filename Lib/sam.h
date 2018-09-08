@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 by Jacob Alexander
+/* Copyright (C) 2017-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  */
 
 #pragma once
-#include "sam4s8c.h"
+#include "sam4s.h"
 
 // ----- Defines -----
 
@@ -30,12 +30,12 @@
 
 #define NOP() do {} while ( 0 )
 
-//TODO: Do theese seperately in mcu_compat
-#define _SAM4S_PIOC_INSTANCE_
+//TODO: Do these seperately in mcu_compat
 #define _SAM4S_USART1_INSTANCE_
 #define _SAM4S_HSMCI_INSTANCE_
 #define _SAM4S_TC1_INSTANCE_
 #define _SAM4S_DACC_INSTANCE_
+
 
 
 // ----- Includes -----

@@ -1,84 +1,73 @@
 /**
  * \file
  *
- * Copyright (c) 2012-2015 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2012-2018 Microchip Technology Inc. and its subsidiaries.
+ * Modified by Jacob Alexander 2018
  *
  * \asf_license_start
  *
  * \page License
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * Subject to your compliance with these terms, you may use Microchip
+ * software and any derivatives exclusively with Microchip products.
+ * It is your responsibility to comply with third party license terms applicable
+ * to your use of third party software (including open source software) that
+ * may accompany Microchip software.
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- * 3. The name of Atmel may not be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * 4. This software may only be redistributed and used in connection with an
- *    Atmel microcontroller product.
- *
- * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
- * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS SUPPLIED BY MICROCHIP "AS IS". NO WARRANTIES,
+ * WHETHER EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE,
+ * INCLUDING ANY IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY,
+ * AND FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL MICROCHIP BE
+ * LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE, INCIDENTAL OR CONSEQUENTIAL
+ * LOSS, DAMAGE, COST OR EXPENSE OF ANY KIND WHATSOEVER RELATED TO THE
+ * SOFTWARE, HOWEVER CAUSED, EVEN IF MICROCHIP HAS BEEN ADVISED OF THE
+ * POSSIBILITY OR THE DAMAGES ARE FORESEEABLE.  TO THE FULLEST EXTENT
+ * ALLOWED BY LAW, MICROCHIP'S TOTAL LIABILITY ON ALL CLAIMS IN ANY WAY
+ * RELATED TO THIS SOFTWARE WILL NOT EXCEED THE AMOUNT OF FEES, IF ANY,
+ * THAT YOU HAVE PAID DIRECTLY TO MICROCHIP FOR THIS SOFTWARE.
  *
  * \asf_license_stop
  *
  */
 /*
- * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
+ * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
 
-#ifndef _SAM4S_
-#define _SAM4S_
+#pragma once
 
-#if defined __SAM4SA16B__
+#if defined _sam4sa16b_
   #include "sam4sa16b.h"
-#elif defined __SAM4SA16C__
+#elif defined _sam4sa16c_
   #include "sam4sa16c.h"
-#elif defined __SAM4SD16B__
+#elif defined _sam4sd16b_
   #include "sam4sd16b.h"
-#elif defined __SAM4SD16C__
+#elif defined _sam4sd16c_
   #include "sam4sd16c.h"
-#elif defined __SAM4SD32B__
+#elif defined _sam4sd32b_
   #include "sam4sd32b.h"
-#elif defined __SAM4SD32C__
+#elif defined _sam4sd32c_
   #include "sam4sd32c.h"
-#elif defined __SAM4S2A__
+#elif defined _sam4s2a_
   #include "sam4s2a.h"
-#elif defined __SAM4S2B__
+#elif defined _sam4s2b_
   #include "sam4s2b.h"
-#elif defined __SAM4S2C__
+#elif defined _sam4s2c_
   #include "sam4s2c.h"
-#elif defined __SAM4S4A__
+#elif defined _sam4s4a_
   #include "sam4s4a.h"
-#elif defined __SAM4S4B__
+#elif defined _sam4s4b_
   #include "sam4s4b.h"
-#elif defined __SAM4S4C__
+#elif defined _sam4s4c_
   #include "sam4s4c.h"
-#elif defined __SAM4S8B__
+#elif defined _sam4s8b_
   #include "sam4s8b.h"
-#elif defined __SAM4S8C__
+#elif defined _sam4s8c_
   #include "sam4s8c.h"
-#elif defined __SAM4S16B__
+#elif defined _sam4s16b_
   #include "sam4s16b.h"
-#elif defined __SAM4S16C__
+#elif defined _sam4s16c_
   #include "sam4s16c.h"
 #else
   #error Library does not support the specified device.
 #endif
 
-#endif /* _SAM4S_ */

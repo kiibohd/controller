@@ -1,45 +1,35 @@
 /**
  * \file
  *
- * Copyright (c) 2012-2016 Atmel Corporation. All rights reserved.
+ * Copyright (c) 2012-2018 Microchip Technology Inc. and its subsidiaries.
  *
  * \asf_license_start
  *
  * \page License
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * Subject to your compliance with these terms, you may use Microchip
+ * software and any derivatives exclusively with Microchip products.
+ * It is your responsibility to comply with third party license terms applicable
+ * to your use of third party software (including open source software) that
+ * may accompany Microchip software.
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- * 3. The name of Atmel may not be used to endorse or promote products derived
- *    from this software without specific prior written permission.
- *
- * 4. This software may only be redistributed and used in connection with an
- *    Atmel microcontroller product.
- *
- * THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
- * EXPRESSLY AND SPECIFICALLY DISCLAIMED. IN NO EVENT SHALL ATMEL BE LIABLE FOR
- * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
- * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
+ * THIS SOFTWARE IS SUPPLIED BY MICROCHIP "AS IS". NO WARRANTIES,
+ * WHETHER EXPRESS, IMPLIED OR STATUTORY, APPLY TO THIS SOFTWARE,
+ * INCLUDING ANY IMPLIED WARRANTIES OF NON-INFRINGEMENT, MERCHANTABILITY,
+ * AND FITNESS FOR A PARTICULAR PURPOSE. IN NO EVENT WILL MICROCHIP BE
+ * LIABLE FOR ANY INDIRECT, SPECIAL, PUNITIVE, INCIDENTAL OR CONSEQUENTIAL
+ * LOSS, DAMAGE, COST OR EXPENSE OF ANY KIND WHATSOEVER RELATED TO THE
+ * SOFTWARE, HOWEVER CAUSED, EVEN IF MICROCHIP HAS BEEN ADVISED OF THE
+ * POSSIBILITY OR THE DAMAGES ARE FORESEEABLE.  TO THE FULLEST EXTENT
+ * ALLOWED BY LAW, MICROCHIP'S TOTAL LIABILITY ON ALL CLAIMS IN ANY WAY
+ * RELATED TO THIS SOFTWARE WILL NOT EXCEED THE AMOUNT OF FEES, IF ANY,
+ * THAT YOU HAVE PAID DIRECTLY TO MICROCHIP FOR THIS SOFTWARE.
  *
  * \asf_license_stop
  *
  */
 /*
- * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
+ * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
 
 #ifndef _SAM4S8C_
@@ -250,10 +240,10 @@ void WDT_Handler        ( void );
 /*@{*/
 
 //#include "component/component_acc.h"
-//#include "component/component_adc.h"
-//#include "component/component_chipid.h"
-//#include "component/component_crccu.h"
-//#include "component/component_dacc.h"
+#include "component/component_adc.h"
+#include "component/component_chipid.h"
+#include "component/component_crccu.h"
+#include "component/component_dacc.h"
 #include "component/component_efc.h"
 #include "component/component_gpbr.h"
 //#include "component/component_hsmci.h"
@@ -261,7 +251,7 @@ void WDT_Handler        ( void );
 #include "component/component_pdc.h"
 #include "component/component_pio.h"
 #include "component/component_pmc.h"
-//#include "component/component_pwm.h"
+#include "component/component_pwm.h"
 #include "component/component_rstc.h"
 //#include "component/component_rtc.h"
 //#include "component/component_rtt.h"
@@ -290,24 +280,24 @@ void WDT_Handler        ( void );
 //#include "instance/instance_tc1.h"
 #include "instance/instance_twi0.h"
 //#include "instance/instance_twi1.h"
-//#include "instance/instance_pwm.h"
+#include "instance/instance_pwm.h"
 //#include "instance/instance_usart0.h"
 //#include "instance/instance_usart1.h"
 #include "instance/instance_udp.h"
-//#include "instance/instance_adc.h"
-//#include "instance/instance_dacc.h"
+#include "instance/instance_adc.h"
+#include "instance/instance_dacc.h"
 //#include "instance/instance_acc.h"
-//#include "instance/instance_crccu.h"
+#include "instance/instance_crccu.h"
 //#include "instance/instance_smc.h"
 #include "instance/instance_matrix.h"
 #include "instance/instance_pmc.h"
 //#include "instance/instance_uart0.h"
-//#include "instance/instance_chipid.h"
+#include "instance/instance_chipid.h"
 //#include "instance/instance_uart1.h"
 #include "instance/instance_efc0.h"
 #include "instance/instance_pioa.h"
 #include "instance/instance_piob.h"
-//#include "instance/instance_pioc.h"
+#include "instance/instance_pioc.h"
 #include "instance/instance_rstc.h"
 #include "instance/instance_supc.h"
 //#include "instance/instance_rtt.h"
