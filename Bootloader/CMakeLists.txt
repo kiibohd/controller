@@ -82,7 +82,7 @@ set ( BOOTLOADER 1 )
 
 # Use a JLink programmer (no bootloader required)
 set( JLINK
-	0
+	1
 	CACHE STRING "Enable JLINK Programming/Debugging"
 )
 
