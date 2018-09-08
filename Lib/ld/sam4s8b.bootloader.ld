@@ -28,7 +28,7 @@
 /* ---------------------------------------------------------------------------- */
 
 /*------------------------------------------------------------------------------
- *      Linker script for running in internal FLASH on the ATSAM4S8B
+ *      Linker script for running in internal FLASH on the ATSAM4SD32C
  *----------------------------------------------------------------------------*/
 
 OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
@@ -38,20 +38,22 @@ SEARCH_DIR(.)
 /* Memory Spaces Definitions */
 MEMORY
 {
-  FLASH (rx) : ORIGIN = 0x00400000, LENGTH = 512K - 16K
-  RAM  (rwx) : ORIGIN = 0x20000000, LENGTH = 128K
+  FLASH     (rx) : ORIGIN = 0x00400000, LENGTH = 512K
+  FLASH_APP (rx) : ORIGIN = 0x00404000, LENGTH = 512K - 16K
+  RAM      (rwx) : ORIGIN = 0x20000000, LENGTH = 128K
 }
 
 /* Starting Address of the application ROM */
-_app_rom     = ORIGIN( FLASH );
+_bootloader  = ORIGIN( FLASH );
+_app_rom     = ORIGIN( FLASH_APP );
 _app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
+__ram_end__ = ORIGIN(RAM) + LENGTH(RAM) - 4;
 
 /* The stack size used by the application. NOTE: you need to adjust according to your application. */
 STACK_SIZE = DEFINED(STACK_SIZE) ? STACK_SIZE : 0x400;
 
 /* The heapsize used by the application. NOTE: you need to adjust according to your application. */
 HEAP_SIZE = DEFINED(HEAP_SIZE) ? HEAP_SIZE : 0x200;
-
 
 /* Section Definitions */
 SECTIONS
@@ -61,6 +63,7 @@ SECTIONS
         . = ALIGN(4);
         _sfixed = .;
         KEEP(*(.vectors .vectors.*))
+	KEEP(*(.startup*))
         *(.text .text.* .gnu.linkonce.t.*)
         *(.glue_7t) *(.glue_7)
         *(.rodata .rodata* .gnu.linkonce.r.*)
@@ -131,13 +134,13 @@ SECTIONS
     {
         . = ALIGN(4);
         _sbss = . ;
-	__bss_start__ = . ;
+        __bss_start__ = . ;
         _szero = .;
         *(.bss .bss.*)
         *(COMMON)
         . = ALIGN(4);
         _ebss = . ;
-	__bss_end__ = . ;
+        __bss_end__ = . ;
         _ezero = .;
     } > RAM
 

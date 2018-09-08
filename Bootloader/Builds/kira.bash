@@ -23,11 +23,11 @@ BOOT_PRODUCT_ID="0x0012"
 # Shouldn't need to touch this section
 
 # Check if the library can be found
-if [ ! -f sam4s8c.bash ]; then
-	echo "ERROR: Cannot find 'sam4s8c.bash'"
+if [ ! -f sam4s8b.bash ]; then
+	echo "ERROR: Cannot find 'sam4s8b.bash'"
 	exit 1
 fi
 
 # Load the library
-source sam4s8c.bash
+source sam4s8b.bash
 

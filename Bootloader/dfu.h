@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2017 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2018 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@
 #define USB_DFU_TRANSFER_SIZE FLASH_SECTOR_SIZE / 2
 
 // 16 pages is the smallest erase for 48/64k areas, Section 8.1.3.1
-#elif defined(_sam4s8c_)
+#elif defined(_sam4s8_)
 #define USB_DFU_TRANSFER_SIZE (8*FLASH_PAGE_SIZE) //4096
 
 #endif

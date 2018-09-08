@@ -16,6 +16,7 @@
 
 //
 // Kiibohd-dfu
+// Kira
 //
 
 // ----- Includes -----

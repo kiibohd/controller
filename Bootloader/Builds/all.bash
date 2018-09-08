@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # This script runs each of the bootloader build scripts
-# Jacob Alexander 2017
+# Jacob Alexander 2017-2018
 
 
 
@@ -30,6 +30,8 @@ cmd_cpy ./mk20dx128vlf5.bash   kiibohd_bootloader.bin bootloader/mk20dx128vlf5.b
 cmd_cpy ./mk20dx128vlh7.bash   kiibohd_bootloader.bin bootloader/mk20dx128vlh7.bootloader.bin
 cmd_cpy ./mk20dx256vlh7.bash   kiibohd_bootloader.bin bootloader/mk20dx256vlh7.bootloader.bin
 cmd_cpy ./mk22fx512avlh12.bash kiibohd_bootloader.bin bootloader/mk22fx512avlh12.bootloader.bin
+cmd_cpy ./sam4s8b.bash         kiibohd_bootloader.bin bootloader/sam4s8b.bootloader.bin
+cmd_cpy ./sam4s8c.bash         kiibohd_bootloader.bin bootloader/sam4s8c.bootloader.bin
 cmd_cpy ./ergodox.bash         kiibohd_bootloader.bin bootloader/ergodox.bootloader.bin
 cmd_cpy ./infinity.bash        kiibohd_bootloader.bin bootloader/infinity.bootloader.bin
 cmd_cpy ./infinity_led.bash    kiibohd_bootloader.bin bootloader/infinity_led.bootloader.bin
