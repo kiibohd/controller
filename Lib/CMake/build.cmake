@@ -106,20 +106,6 @@ else ()
 endif ()
 
 
-#| Convert the .ELF Into a .bin
-if ( JLINK )
-	set( TARGET_BIN ${TARGET}.jlink.bin )
-	set(
-		TARGET_ADDRESS "0x0"
-		CACHE STRING "Firmware starting address"
-	)
-	add_custom_command( TARGET ${TARGET} POST_BUILD
-		COMMAND ${OBJ_COPY} ${BIN_FLAGS} ${TARGET_OUT} ${TARGET_BIN}
-		COMMENT "Create jlink bin file: ${TARGET_BIN}"
-	)
-endif ()
-
-
 #| Convert the .ELF into a .bin to load onto the McHCK
 #| Then sign using dfu-suffix (requries dfu-util)
 if ( DEFINED DFU )
@@ -159,6 +145,24 @@ if ( DEFINED DFU )
 		endif ()
 	endif ()
 endif ()
+
+
+#| Convert the .ELF Into a .bin
+if ( JLINK )
+	set( TARGET_BIN ${TARGET}.jlink.bin )
+	set( TARGET_HEX ${TARGET}.jlink.hex )
+	set(
+		TARGET_ADDRESS "0x0"
+		CACHE STRING "Firmware starting address"
+	)
+	add_custom_command( TARGET ${TARGET} POST_BUILD
+		COMMAND ${OBJ_COPY} -O binary ${TARGET_OUT} ${TARGET_BIN}
+		COMMAND ${OBJ_COPY} -O ihex ${TARGET_OUT} ${TARGET_HEX}
+		COMMENT "Create jlink bin file: ${TARGET_BIN}"
+		COMMENT "Create jlink hex file: ${TARGET_HEX}"
+	)
+endif ()
+
 
 
 #| Convert the .ELF into a .HEX to load onto the Teensy
@@ -226,6 +230,7 @@ endif ()
 #| First check for JLink based dev kits
 if ( JLINK )
 	configure_file( LoadFile/load.jlink load NEWLINE_STYLE UNIX )
+	configure_file( LoadFile/dump.jlink dump NEWLINE_STYLE UNIX @ONLY )
 	configure_file( LoadFile/debug.jlink debug NEWLINE_STYLE UNIX )
 	configure_file( LoadFile/rtt.jlink rtt NEWLINE_STYLE UNIX )
 	configure_file( LoadFile/reset.jlink reset NEWLINE_STYLE UNIX )

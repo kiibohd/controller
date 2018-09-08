@@ -23,7 +23,7 @@
 
 // ----- Local Includes -----
 
-#include "mchck.h"
+#include "device.h"
 #include "usb-internal.h"
 
 

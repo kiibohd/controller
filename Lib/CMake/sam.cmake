@@ -42,7 +42,7 @@
 # http://www.microchip.com/wwwproducts/en/ATSAM4S2C
 if ( "${CHIP}" MATCHES "sam4s2a" OR "${CHIP}" MATCHES "sam4s2b" OR "${CHIP}" MATCHES "sam4s2c" )
 	set( SIZE_RAM     65536 )
-	set( SIZE_FLASH  122880 ) # 8kB bootloader (131072 bytes)
+	set( SIZE_FLASH  114688 ) # 16kB bootloader (131072 bytes)
 	set( F_CPU    120000000 )
 	set( CHIP_SHORT "sam4s2" )
 	set( CHIP_FAMILY "sam4s" )
@@ -51,7 +51,7 @@ if ( "${CHIP}" MATCHES "sam4s2a" OR "${CHIP}" MATCHES "sam4s2b" OR "${CHIP}" MAT
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
-		set( SIZE_FLASH 8192 )
+		set( SIZE_FLASH 16384 )
 	endif ()
 
 #| Kiibohd-dfu
@@ -60,7 +60,7 @@ if ( "${CHIP}" MATCHES "sam4s2a" OR "${CHIP}" MATCHES "sam4s2b" OR "${CHIP}" MAT
 # http://www.microchip.com/wwwproducts/en/ATSAM4S4C
 elseif ( "${CHIP}" MATCHES "sam4s4a" OR "${CHIP}" MATCHES "sam4s4b" OR "${CHIP}" MATCHES "sam4s4c" )
 	set( SIZE_RAM     65536 )
-	set( SIZE_FLASH  253952 ) # 8kB bootloader (262144 bytes)
+	set( SIZE_FLASH  245760 ) # 16kB bootloader (262144 bytes)
 	set( F_CPU    120000000 )
 	set( CHIP_SHORT "sam4s4" )
 	set( CHIP_FAMILY "sam4s" )
@@ -69,7 +69,7 @@ elseif ( "${CHIP}" MATCHES "sam4s4a" OR "${CHIP}" MATCHES "sam4s4b" OR "${CHIP}"
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
-		set( SIZE_FLASH 8192 )
+		set( SIZE_FLASH 16384 )
 	endif ()
 
 
@@ -78,7 +78,7 @@ elseif ( "${CHIP}" MATCHES "sam4s4a" OR "${CHIP}" MATCHES "sam4s4b" OR "${CHIP}"
 # http://www.microchip.com/wwwproducts/en/ATSAM4S8C
 elseif ( "${CHIP}" MATCHES "sam4s8b" OR "${CHIP}" MATCHES "sam4s8c" )
 	set( SIZE_RAM    131072 )
-	set( SIZE_FLASH  516096 ) # 8kB bootloader (524288 bytes)
+	set( SIZE_FLASH  507904 ) # 16kB bootloader (524288 bytes)
 	set( F_CPU    120000000 )
 	set( CHIP_SHORT "sam4s8" )
 	set( CHIP_FAMILY "sam4s" )
@@ -87,7 +87,7 @@ elseif ( "${CHIP}" MATCHES "sam4s8b" OR "${CHIP}" MATCHES "sam4s8c" )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
-		set( SIZE_FLASH 8192 )
+		set( SIZE_FLASH 16384 )
 	endif ()
 
 #| Kiibohd-dfu
@@ -95,7 +95,7 @@ elseif ( "${CHIP}" MATCHES "sam4s8b" OR "${CHIP}" MATCHES "sam4s8c" )
 # http://www.microchip.com/wwwproducts/en/ATSAM4S16C
 elseif ( "${CHIP}" MATCHES "sam4s16b" OR "${CHIP}" MATCHES "sam4s16c" )
 	set( SIZE_RAM    131072 )
-	set( SIZE_FLASH 1040384 ) # 8kB bootloader (1048576 bytes)
+	set( SIZE_FLASH 1032192 ) # 16kB bootloader (1048576 bytes)
 	set( F_CPU    120000000 )
 	set( CHIP_SHORT "sam4s16" )
 	set( CHIP_FAMILY "sam4s" )
@@ -104,7 +104,7 @@ elseif ( "${CHIP}" MATCHES "sam4s16b" OR "${CHIP}" MATCHES "sam4s16c" )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
-		set( SIZE_FLASH 8192 )
+		set( SIZE_FLASH 16384 )
 	endif ()
 
 #| Kiibohd-dfu
@@ -112,7 +112,7 @@ elseif ( "${CHIP}" MATCHES "sam4s16b" OR "${CHIP}" MATCHES "sam4s16c" )
 # http://www.microchip.com/wwwproducts/en/ATSAM4SA16C
 elseif ( "${CHIP}" MATCHES "sam4sa16b" OR "${CHIP}" MATCHES "sam4sa16c" )
 	set( SIZE_RAM    163840 )
-	set( SIZE_FLASH 1040384 ) # 8kB bootloader (1048576 bytes)
+	set( SIZE_FLASH 1032192 ) # 16kB bootloader (1048576 bytes)
 	set( F_CPU    120000000 )
 	set( CHIP_SHORT "sam4sa16" )
 	set( CHIP_FAMILY "sam4s" )
@@ -121,7 +121,7 @@ elseif ( "${CHIP}" MATCHES "sam4sa16b" OR "${CHIP}" MATCHES "sam4sa16c" )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
-		set( SIZE_FLASH 8192 )
+		set( SIZE_FLASH 16384 )
 	endif ()
 
 #| Kiibohd-dfu
@@ -129,7 +129,7 @@ elseif ( "${CHIP}" MATCHES "sam4sa16b" OR "${CHIP}" MATCHES "sam4sa16c" )
 # http://www.microchip.com/wwwproducts/en/ATSAM4SD16C
 elseif ( "${CHIP}" MATCHES "sam4sd16b" OR "${CHIP}" MATCHES "sam4sd16c" )
 	set( SIZE_RAM    163840 )
-	set( SIZE_FLASH 1040384 ) # 8kB bootloader (1048576 bytes)
+	set( SIZE_FLASH 1032192 ) # 16kB bootloader (1048576 bytes)
 	set( F_CPU    120000000 )
 	set( CHIP_SHORT "sam4sd16" )
 	set( CHIP_FAMILY "sam4s" )
@@ -138,7 +138,7 @@ elseif ( "${CHIP}" MATCHES "sam4sd16b" OR "${CHIP}" MATCHES "sam4sd16c" )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
-		set( SIZE_FLASH 8192 )
+		set( SIZE_FLASH 16384 )
 	endif ()
 
 #| Kiibohd-dfu
@@ -146,7 +146,7 @@ elseif ( "${CHIP}" MATCHES "sam4sd16b" OR "${CHIP}" MATCHES "sam4sd16c" )
 # http://www.microchip.com/wwwproducts/en/ATSAM4SD32C
 elseif ( "${CHIP}" MATCHES "sam4sd32b" OR "${CHIP}" MATCHES "sam4sd32c" )
 	set( SIZE_RAM    163840 )
-	set( SIZE_FLASH 1040384 ) # 8kB bootloader (2097152 bytes)
+	set( SIZE_FLASH 1032192 ) # 16kB bootloader (2097152 bytes)
 	set( F_CPU    120000000 )
 	set( CHIP_SHORT "sam4sd32" )
 	set( CHIP_FAMILY "sam4s" )
@@ -155,7 +155,7 @@ elseif ( "${CHIP}" MATCHES "sam4sd32b" OR "${CHIP}" MATCHES "sam4sd32c" )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
-		set( SIZE_FLASH 8192 )
+		set( SIZE_FLASH 16384 )
 	endif ()
 
 #| Unknown ARM
