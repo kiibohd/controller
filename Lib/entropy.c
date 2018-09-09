@@ -8,7 +8,7 @@
  *     http://code.google.com/p/avr-hardware-random-number-generation/wiki/WikiAVRentropy
  *
  * Copyright 2014 by Walter Anderson
- * Modifications 2017 by Jacob Alexander
+ * Modifications 2017-2018 by Jacob Alexander
  *
  * Entropy is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -263,7 +263,7 @@ volatile uint32_t gWDT_entropy_pool[WDT_POOL_SIZE];
 
 // This function initializes the global variables needed to implement the circular entropy pool and
 // the buffer that holds the raw Timer 1 values that are used to create the entropy pool.  It then
-// Initializes tc1, to perform an interrupt
+// Initializes tc0 (channel 1), to perform an interrupt
 // every 2048 clock cycles.
 void rand_initialize()
 {
@@ -272,14 +272,36 @@ void rand_initialize()
 	gWDT_pool_end = 0;
 	gWDT_pool_count = 0;
 
-	// TODO
+	// Setup TC0 (Channel 1)
+	// Enable clock for timer
+	PMC->PMC_PCER0 |= (1 << ID_TC0);
+
+	// Setup Timer Counter to MCK/128, compare resets counter
+	TC0->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK5 | TC_CMR_CPCTRG;
+
+	// Timer Count-down value
+	// Number of cycles to count from CPU clock before calling interrupt
+	TC0->TC_CHANNEL[1].TC_RC = TC_RA_RA(937); // Approx. ~1 kHz @ 120 MHz MCK
+
+	// Enable Timer, Enable interrupt
+	TC0->TC_CHANNEL[1].TC_IER = TC_IER_CPCS;
+	TC0->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
+
+	// Enable TC1 interrupt
+	NVIC_EnableIRQ( TC1_IRQn );
+
+	// Set TC1 interrupt to a low priority
+	NVIC_SetPriority( TC1_IRQn, 200 );
 }
 
+// Disables interrupt, thus stopping CPU usage generating entropy
 void rand_disable()
 {
-	// TODO (HaaTa)
+	NVIC_DisableIRQ( TC1_IRQn );
 }
 
+// This function returns a unsigned char (8-bit) with the number of unsigned long values
+// in the entropy pool
 uint8_t rand_available()
 {
 	return gWDT_pool_count;
@@ -310,7 +332,6 @@ uint32_t rand_value32()
 // approximately two 32-bit integer values every second.
 //
 // The pool is implemented as an 8 value circular buffer
-/*
 static void isr_hardware_neutral( uint8_t val )
 {
 	gWDT_buffer[gWDT_buffer_position] = val;
@@ -351,7 +372,16 @@ static void isr_hardware_neutral( uint8_t val )
 		}
 	}
 }
-*/
+
+void TC1_Handler()
+{
+	uint32_t status = TC0->TC_CHANNEL[1].TC_SR;
+	if ( status & TC_SR_CPCS )
+	{
+		// Use the current state of systick for seeding
+		isr_hardware_neutral(SysTick->VAL & SysTick_VAL_CURRENT_Msk);
+	}
+}
 
 
 
