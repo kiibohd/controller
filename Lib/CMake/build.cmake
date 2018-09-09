@@ -29,6 +29,7 @@ include_directories(
 	"Lib/ASF/sam/drivers/pio"
 	"Lib/ASF/sam/drivers/pmc"
 	"Lib/ASF/sam/drivers/udp"
+	"Lib/ASF/sam/services/flash_efc"
 	"Lib/ASF/sam/utils"
 	"Lib/ASF/sam/utils/cmsis/sam4s/include"
 	"Lib/ASF/sam/utils/header_files"

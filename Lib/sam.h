@@ -36,6 +36,17 @@
 #define _SAM4S_TC1_INSTANCE_
 #define _SAM4S_DACC_INSTANCE_
 
+// 63-byte non-volatile storage
+// Can be 63, 127, 255 and 511 bytes
+// XXX (HaaTa): Dual bank flash controllers (e.g. sam4sd32c) will have problems if using more than 1/2 the flash
+//              Will have to calculate the starting storage position differently...
+#define STORAGE_SIZE 63
+#define STORAGE_PAGES 16
+#define STORAGE_FLASH_PAGE_SIZE IFLASH0_PAGE_SIZE
+#define STORAGE_RESERVED_FLASH (STORAGE_PAGES * STORAGE_FLASH_PAGE_SIZE)
+#define STORAGE_FLASH_SIZE IFLASH0_SIZE
+#define STORAGE_FLASH_START (IFLASH0_ADDR + STORAGE_FLASH_SIZE - STORAGE_RESERVED_FLASH)
+
 
 
 // ----- Includes -----

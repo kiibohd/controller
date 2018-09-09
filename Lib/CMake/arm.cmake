@@ -103,6 +103,7 @@ set( COMPILER_SRCS
 	Lib/delay.c
 	Lib/entropy.c
 	Lib/periodic.c
+	Lib/storage.c
 	Lib/time.c
 )
 if ( "${CPU}" MATCHES "cortex-m4" )
