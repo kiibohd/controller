@@ -1,6 +1,6 @@
 #!/bin/bash
 # Common functions for running kiibohd unit tests
-# Jacob Alexander 2016-2017
+# Jacob Alexander 2016-2018
 
 PASSED=0
 FAILED=0
@@ -27,8 +27,10 @@ cmd() {
 	# Check command
 	if [[ ${RET} -ne 0 ]]; then
 		((FAILED++))
+		echo "==> FAILED: $@"
 	else
 		((PASSED++))
+		echo "==> PASSED: $@"
 	fi
 
 	return ${RET}
