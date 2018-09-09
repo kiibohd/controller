@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2016 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2018 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,7 +38,6 @@ static uint8_t ep0_buf[2][EP0_BUFSIZE] __attribute__((aligned(4)));
 struct usbd_t usb;
 
 #elif defined(_sam_)
-//#include "udd.h"
 #include <stdbool.h>
 
 typedef uint16_t                le16_t;
@@ -713,21 +712,10 @@ void usb_init(const struct usbd_device *identity)
 	usb_enable();
 
 #elif defined(_sam_)
-	// Read unique identifier
-	/*EFC0->EEFC_FMR |= EEFC_FMR_SCOD;
-	EFC0->EEFC_FCR = EEFC_FCR_FCMD_STUI | EEFC_FCR_FARG(0) | EEFC_FCR_FKEY_PASSWD;
-	while ((EFC0->EEFC_FMR & EEFC_FMR_FRDY)); // wait for FRDY to fall
-	
-	// Copy to iSerial	
-	int32ToHex16( ((uint32_t*)IFLASH0_ADDR)[0], &(dfu_device_str_desc[3]->bString[8]) );
-	int32ToHex16( ((uint32_t*)IFLASH0_ADDR)[1], &(dfu_device_str_desc[3]->bString[16]) );
-	int32ToHex16( ((uint32_t*)IFLASH0_ADDR)[2], &(dfu_device_str_desc[3]->bString[24]) );
-	int32ToHex16( ((uint32_t*)IFLASH0_ADDR)[3], &(dfu_device_str_desc[3]->bString[32]) );
-
-	// Stop read
-	while (!(EFC0->EEFC_FMR & EEFC_FMR_FRDY)); // wait for FRDY to rise
-	EFC0->EEFC_FCR = EEFC_FCR_FCMD_SPUI | EEFC_FCR_FARG(0) | EEFC_FCR_FKEY_PASSWD;
-	EFC0->EEFC_FMR &= ~EEFC_FMR_SCOD;*/
+	int32ToHex16( sam_UniqueId[0], &(dfu_device_str_desc[3]->bString[8]) );
+	int32ToHex16( sam_UniqueId[1], &(dfu_device_str_desc[3]->bString[16]) );
+	int32ToHex16( sam_UniqueId[2], &(dfu_device_str_desc[3]->bString[24]) );
+	int32ToHex16( sam_UniqueId[3], &(dfu_device_str_desc[3]->bString[32]) );
 
 	init_usb_bootloader(0);
 #endif

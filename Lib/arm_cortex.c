@@ -88,7 +88,7 @@ void read_stacked_fault_frame( uint32_t *faultStackedAddress )
 
 	// Fault Address Registers. These may not contain valid values.
 	// Check BFARVALID/MMARVALID to see if they are valid values
-	
+
 	// MemManage Fault Address Register
 	_MMAR = (*((volatile unsigned long *)(0xE000ED34))) ;
 	// Bus Fault Address Register

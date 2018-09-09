@@ -106,8 +106,15 @@ set( COMPILER_SRCS
 	Lib/time.c
 )
 if ( "${CPU}" MATCHES "cortex-m4" )
-	list(APPEND COMPILER_SRCS
+	list( APPEND COMPILER_SRCS
 		Lib/arm_cortex.c
+	)
+endif ()
+
+#| SAM Sources
+if ( "${CHIP_SUPPORT}" MATCHES "sam" )
+	list( APPEND COMPILER_SRCS
+		Lib/ASF/sam/drivers/efc/efc.c
 	)
 endif ()
 

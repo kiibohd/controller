@@ -32,6 +32,7 @@
 
 // Local Includes
 #include "entropy.h"
+#include "efc.h"
 #include "sam.h"
 #include "osc.h"
 #include "udc.h"
@@ -56,6 +57,10 @@ extern uint32_t _szero;
 extern uint32_t _ezero;
 extern uint32_t _sstack;
 extern uint32_t _estack;
+
+// Unique Id storage variable
+// Must be read from flash using ReadUniqueID()
+uint32_t sam_UniqueId[4];
 
 //__attribute__((__aligned__(TRACE_BUFFER_SIZE * sizeof(uint32_t)))) uint32_t mtb[TRACE_BUFFER_SIZE];
 
@@ -311,6 +316,15 @@ void *memcpy( void *dst, const void *src, unsigned int len )
 	return (dst);
 }
 
+// Reads Unique Id into sam_UniqueId buffer
+uint32_t ReadUniqueID()
+{
+	// Send Start STUI (Read Unique Identifier)
+	// Send Stop SPUI (Read Unique Identifier)
+	// Read 32 x 4 bytes (128 bytes) into sam_UniqueId
+	return efc_perform_read_sequence( EFC0, EEFC_FCR_FCMD_STUI, EEFC_FCR_FCMD_SPUI, sam_UniqueId, 4 );
+}
+
 
 // ----- Chip Entry Point -----
 
@@ -443,6 +457,8 @@ void ResetHandler()
 #if !defined(_bootloader_)
 	init_errorLED();
 #endif
+	// Read Unique ID from flash
+	ReadUniqueID();
 
 	// Start main
 	main();

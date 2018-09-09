@@ -857,13 +857,11 @@ void cliFunc_version( char* args )
 	printHex32( CHIPID->CHIPID_EXID & CHIPID_EXID_EXID_Msk );
 	print( ")" NL );
 
-	/*
 	print( " \033[1mUnique Id:\033[0m     " );
-	printHex32_op( SIM_UIDH, 8 );
-	printHex32_op( SIM_UIDMH, 8 );
-	printHex32_op( SIM_UIDML, 8 );
-	printHex32_op( SIM_UIDL, 8 );
-	*/
+	printHex32_op( sam_UniqueId[0], 8 );
+	printHex32_op( sam_UniqueId[1], 8 );
+	printHex32_op( sam_UniqueId[2], 8 );
+	printHex32_op( sam_UniqueId[3], 8 );
 #elif defined(_avr_at_)
 #elif defined(_host_)
 #else

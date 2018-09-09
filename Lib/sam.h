@@ -57,6 +57,10 @@
 
 extern const uint8_t sys_reset_to_loader_magic[22];
 
+// Unique Id storage variable
+// Must be read from flash using ReadUniqueID()
+extern uint32_t sam_UniqueId[4];
+
 /* IO definitions (access restrictions to peripheral registers) */
 /**
     \defgroup CMSIS_glob_defs CMSIS Global Defines

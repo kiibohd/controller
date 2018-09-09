@@ -11,7 +11,7 @@ include_directories(
 	"Lib/CMSIS/Lib/GCC"
 )
 
-if ( "${CHIP}" MATCHES "^sam.*$" )
+if ( "${CHIP_SUPPORT}" MATCHES "sam" )
 include_directories(
 	"Lib/ASF/config"
 	"Lib/ASF/common/boards"
@@ -25,6 +25,7 @@ include_directories(
 	"Lib/ASF/common/services/usb/udc"
 	"Lib/ASF/common/utils"
 	"Lib/ASF/sam/boards"
+	"Lib/ASF/sam/drivers/efc"
 	"Lib/ASF/sam/drivers/pio"
 	"Lib/ASF/sam/drivers/pmc"
 	"Lib/ASF/sam/drivers/udp"
