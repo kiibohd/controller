@@ -710,13 +710,19 @@ static bool udc_req_std_dev_get_descriptor(void)
 				USB_DT_CONFIGURATION;
 		break;
 
-#ifdef USB_DEVICE_HS_SUPPORT
 	case USB_DT_DEVICE_QUALIFIER:
 		// Device qualifier descriptor requested
 		udd_set_setup_payload( (uint8_t *) udc_config.qualifier,
 				udc_config.qualifier->bLength);
 		break;
 
+	case USB_DT_DEBUG:
+		// Debug descriptor requested
+		udd_set_setup_payload( (uint8_t *) udc_config.debug,
+				udc_config.debug->bLength);
+		break;
+
+#ifdef USB_DEVICE_HS_SUPPORT
 	case USB_DT_OTHER_SPEED_CONFIGURATION:
 		// Other configuration descriptor requested
 		if (!udd_is_high_speed()) {

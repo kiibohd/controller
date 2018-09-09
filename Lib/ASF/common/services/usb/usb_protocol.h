@@ -196,6 +196,7 @@ enum usb_descriptor_type {
 	USB_DT_OTHER_SPEED_CONFIGURATION = 7,
 	USB_DT_INTERFACE_POWER = 8,
 	USB_DT_OTG = 9,
+	USB_DT_DEBUG = 10,
 	USB_DT_IAD = 0x0B,
 	USB_DT_BOS = 0x0F,
 	USB_DT_DEVICE_CAPABILITY = 0x10,
@@ -346,6 +347,26 @@ typedef struct {
 	uint8_t bNumConfigurations;
 	uint8_t bReserved;
 } usb_dev_qual_desc_t;
+
+/**
+ * \brief Standard USB debug descriptor structure
+ *
+ * This descriptor is used to describe certain characteristics of the device
+ * that the host debug port driver needs to know to communicate with the device.
+ * Specifically, the debug descriptor lists the addresses of the endpoints that
+ * comprise the Debug Pipe. The endpoints are identified by endpoint number. This
+ * number is identical to bits 3-0 of the bEndpointAddress field in an Endpoint
+ * descriptor. This descriptor contains information about the device when running
+ * at the "other" speed (i.e. if the device is currently operating at high
+ * speed, this descriptor can be used to determine what would change if
+ * the device was operating at full speed.)
+ */
+typedef struct {
+	uint8_t bLength;
+	uint8_t bDescriptorType;
+	uint8_t bDebugInEndpoint;
+	uint8_t bDebugOutEndpoint;
+} usb_dev_debug_desc_t;
 
 /**
  * \brief USB Device BOS descriptor structure

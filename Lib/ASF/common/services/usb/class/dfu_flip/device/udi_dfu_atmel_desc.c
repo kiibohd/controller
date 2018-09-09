@@ -106,7 +106,7 @@ UDC_DESC_STORAGE udc_desc_t udc_desc_fs = {
 	.conf.wTotalLength         = LE16(sizeof(udc_desc_t)),
 	.conf.bNumInterfaces       = USB_DEVICE_NB_INTERFACE,
 	.conf.bConfigurationValue  = 1,
-	.conf.iConfiguration       = 5,
+	.conf.iConfiguration       = 0, // TODO (HaaTa): FIXME
 	.conf.bmAttributes         = USB_CONFIG_ATTR_MUST_SET | USB_DEVICE_ATTR,
 	.conf.bMaxPower            = USB_CONFIG_MAX_POWER(USB_DEVICE_POWER),
 	.udi_dfu_atmel             = {
@@ -119,7 +119,7 @@ UDC_DESC_STORAGE udc_desc_t udc_desc_fs = {
 			.bInterfaceClass     = USB_DEV_CLASS_APP,
 			.bInterfaceSubClass  = USB_DEV_SUBCLASS_APP_DFU,
 			.bInterfaceProtocol  = USB_DEV_PROTO_DFU_DFU,
-			.iInterface          = 4
+			.iInterface          = 0, // TODO (HaaTa): FIXME
 		},
 		.dfu = {
 			.bLength = sizeof(struct dfu_desc_functional),
@@ -160,10 +160,24 @@ UDC_DESC_STORAGE udc_config_speed_t   udc_config_lsfs[1] = {{
 	.udi_apis      = udi_apis,
 }};
 
+//! Needed to fix lsusb "Resource temporarily unavailable"
+COMPILER_WORD_ALIGNED
+UDC_DESC_STORAGE usb_dev_qual_desc_t udc_device_qual = {
+	.bLength                   = 1,
+};
+
+//! Needed to fix lsusb "Resource temporarily unavailable"
+COMPILER_WORD_ALIGNED
+UDC_DESC_STORAGE usb_dev_debug_desc_t udc_device_debug = {
+	.bLength                   = 1,
+};
+
 //! Add all information about USB Device in global structure for UDC
 UDC_DESC_STORAGE udc_config_t udc_config = {
 	.confdev_lsfs = &udc_device_desc,
 	.conf_lsfs = udc_config_lsfs,
+	.qualifier = &udc_device_qual,
+	.debug = &udc_device_debug,
 };
 
 //@}

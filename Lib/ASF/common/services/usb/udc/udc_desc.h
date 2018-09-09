@@ -103,11 +103,13 @@ typedef struct {
 	usb_dev_desc_t UDC_DESC_STORAGE *confdev_lsfs;
 	//! USB configuration descriptor and UDI API pointers for low or full speed
 	udc_config_speed_t UDC_DESC_STORAGE *conf_lsfs;
+	//! USB device qualifier, only use in high speed mode
+	usb_dev_qual_desc_t UDC_DESC_STORAGE *qualifier;
+	//! USB debug descriptor, generally unused (but queried by lsusb)
+	usb_dev_debug_desc_t UDC_DESC_STORAGE *debug;
 #ifdef USB_DEVICE_HS_SUPPORT
 	//! USB device descriptor for high speed
 	usb_dev_desc_t UDC_DESC_STORAGE *confdev_hs;
-	//! USB device qualifier, only use in high speed mode
-	usb_dev_qual_desc_t UDC_DESC_STORAGE *qualifier;
 	//! USB configuration descriptor and UDI API pointers for high speed
 	udc_config_speed_t UDC_DESC_STORAGE *conf_hs;
 #endif
