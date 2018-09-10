@@ -17,6 +17,8 @@ HostTest=${HostTest:-""}
 # Default VID:PIDs
 VENDOR_ID=${VENDOR_ID:-0x1C11}
 PRODUCT_ID=${PRODUCT_ID:-0xB04D}
+BOOT_VENDOR_ID=${BOOT_VENDOR_ID:-0x1C11}
+BOOT_PRODUCT_ID=${BOOT_PRODUCT_ID:-0xB007}
 
 # Make sure all of the relevant variables have been set
 # NOTE: PartialMaps and DefaultMap do not have to be set
@@ -231,8 +233,8 @@ echo "${BuildPath}"
 
 
 # Info
-echo "VID: ${VENDOR_ID}"
-echo "PID: ${PRODUCT_ID}"
+echo "VID: ${VENDOR_ID} (Boot: ${BOOT_VENDOR_ID})"
+echo "PID: ${PRODUCT_ID} (Boot: ${BOOT_PRODUCT_ID})"
 
 
 
@@ -261,6 +263,8 @@ if ${EnableHostBuild}; then
 			-DPartialMaps="${PartialMapsExpanded}" \
 			-DVENDOR_ID="${VENDOR_ID}" \
 			-DPRODUCT_ID="${PRODUCT_ID}" \
+			-DBOOT_VENDOR_ID="${BOOT_VENDOR_ID}" \
+			-DBOOT_PRODUCT_ID="${BOOT_PRODUCT_ID}" \
 			${CMakeExtraArgs} "${CMakeListsPath}" \
 			-G "${CMAKE_GENERATOR}"
 		return_code=$?
@@ -280,6 +284,8 @@ if ${EnableHostBuild}; then
 			-DPartialMaps="${PartialMapsExpanded}" \
 			-DVENDOR_ID="${VENDOR_ID}" \
 			-DPRODUCT_ID="${PRODUCT_ID}" \
+			-DBOOT_VENDOR_ID="${BOOT_VENDOR_ID}" \
+			-DBOOT_PRODUCT_ID="${BOOT_PRODUCT_ID}" \
 			${CMakeExtraArgs} "${CMakeListsPath}" \
 			-G "${CMAKE_GENERATOR}"
 		return_code=$?
@@ -359,6 +365,8 @@ if [[ "${OS_BUILD}" == "cygwin" ]]; then
 		-DPartialMaps="${PartialMapsExpanded}" \
 		-DVENDOR_ID="${VENDOR_ID}" \
 		-DPRODUCT_ID="${PRODUCT_ID}" \
+		-DBOOT_VENDOR_ID="${BOOT_VENDOR_ID}" \
+		-DBOOT_PRODUCT_ID="${BOOT_PRODUCT_ID}" \
 		${CMakeExtraArgs} "${CMakeListsPath}" \
 		-G "${CMAKE_GENERATOR}"
 	return_code=$?
@@ -378,6 +386,8 @@ else
 		-DPartialMaps="${PartialMapsExpanded}" \
 		-DVENDOR_ID="${VENDOR_ID}" \
 		-DPRODUCT_ID="${PRODUCT_ID}" \
+		-DBOOT_VENDOR_ID="${BOOT_VENDOR_ID}" \
+		-DBOOT_PRODUCT_ID="${BOOT_PRODUCT_ID}" \
 		${CMakeExtraArgs} "${CMakeListsPath}" \
 		-G "${CMAKE_GENERATOR}"
 	return_code=$?
