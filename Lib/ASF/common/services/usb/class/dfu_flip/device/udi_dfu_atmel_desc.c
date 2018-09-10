@@ -65,23 +65,10 @@ UDC_DESC_STORAGE usb_dev_desc_t udc_device_desc = {
 	.bMaxPacketSize0           = USB_DEVICE_EP_CTRL_SIZE,
 	.idVendor                  = LE16(USB_DEVICE_VENDOR_ID),
 	.idProduct                 = LE16(USB_DEVICE_PRODUCT_ID),
-	.bcdDevice                 = LE16((USB_DEVICE_MAJOR_VERSION << 8)
-		| USB_DEVICE_MINOR_VERSION),
-#ifdef USB_DEVICE_MANUFACTURE_NAME
+	.bcdDevice                 = LE16(USB_DEVICE_VERSION),
 	.iManufacturer             = 1,
-#else
-	.iManufacturer             = 0,  // No manufacture string
-#endif
-#ifdef USB_DEVICE_PRODUCT_NAME
 	.iProduct                  = 2,
-#else
-	.iProduct                  = 0,  // No product string
-#endif
-#ifdef USB_DEVICE_SERIAL_NAME
 	.iSerialNumber             = 3,
-#else
-	.iSerialNumber             = 0,  // No serial string
-#endif
 	.bNumConfigurations        = 1
 };
 
@@ -106,7 +93,7 @@ UDC_DESC_STORAGE udc_desc_t udc_desc_fs = {
 	.conf.wTotalLength         = LE16(sizeof(udc_desc_t)),
 	.conf.bNumInterfaces       = USB_DEVICE_NB_INTERFACE,
 	.conf.bConfigurationValue  = 1,
-	.conf.iConfiguration       = 0, // TODO (HaaTa): FIXME
+	.conf.iConfiguration       = 5,
 	.conf.bmAttributes         = USB_CONFIG_ATTR_MUST_SET | USB_DEVICE_ATTR,
 	.conf.bMaxPower            = USB_CONFIG_MAX_POWER(USB_DEVICE_POWER),
 	.udi_dfu_atmel             = {
@@ -119,7 +106,7 @@ UDC_DESC_STORAGE udc_desc_t udc_desc_fs = {
 			.bInterfaceClass     = USB_DEV_CLASS_APP,
 			.bInterfaceSubClass  = USB_DEV_SUBCLASS_APP_DFU,
 			.bInterfaceProtocol  = USB_DEV_PROTO_DFU_DFU,
-			.iInterface          = 0, // TODO (HaaTa): FIXME
+			.iInterface          = 4,
 		},
 		.dfu = {
 			.bLength = sizeof(struct dfu_desc_functional),

@@ -139,3 +139,36 @@ void dfu_usb_poll()
 	usb_poll();
 }
 
+#if defined(_sam_)
+#include <usb_protocol.h>
+#include <udd.h>
+
+/*! \brief Example of extra USB string management
+ * This feature is available for single or composite device
+ * which want implement additional USB string than
+ * Manufacture, Product and serial number ID.
+ *
+ * return true, if the string ID requested is know and managed by this functions
+ */
+bool main_extra_string()
+{
+	// Lookup request and send descriptor
+	uint8_t inreq = udd_g_ctrlreq.req.wValue & 0xff;
+	for ( uint8_t req = 0; dfu_device_str_desc[req] != NULL; req++ )
+	{
+		// Request matches
+		if ( inreq == req )
+		{
+			udd_g_ctrlreq.payload_size = dfu_device_str_desc[req]->bLength;
+			udd_g_ctrlreq.payload = (uint8_t *)dfu_device_str_desc[req];
+		}
+	}
+
+        // if the string is larger than request length, then cut it
+        if (udd_g_ctrlreq.payload_size > udd_g_ctrlreq.req.wLength) {
+                udd_g_ctrlreq.payload_size = udd_g_ctrlreq.req.wLength;
+        }
+        return true;
+}
+#endif
+

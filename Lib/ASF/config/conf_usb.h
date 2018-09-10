@@ -47,6 +47,7 @@
 #ifndef _CONF_USB_H_
 #define _CONF_USB_H_
 
+#include <buildvars.h>
 #include "compiler.h"
 
 /**
@@ -55,10 +56,11 @@
  */
 
 //! Device definition (mandatory)
-#define  USB_DEVICE_VENDOR_ID             0x1c11
-#define  USB_DEVICE_PRODUCT_ID            0xb007
-#define  USB_DEVICE_MAJOR_VERSION         1
-#define  USB_DEVICE_MINOR_VERSION         0
+#define  USB_DEVICE_VENDOR_ID             VENDOR_ID
+#define  USB_DEVICE_PRODUCT_ID            PRODUCT_ID
+//#define  USB_DEVICE_MAJOR_VERSION         1
+//#define  USB_DEVICE_MINOR_VERSION         0
+#define  USB_DEVICE_VERSION               BCD_VERSION
 #define  USB_DEVICE_POWER                 100 // Consumption on Vbus line (mA)
 #define  USB_DEVICE_ATTR                  (USB_CONFIG_ATTR_BUS_POWERED)
 //	(USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_SELF_POWERED)
@@ -66,8 +68,8 @@
 //	(USB_CONFIG_ATTR_BUS_POWERED)
 
 //! USB Device string definitions (Optional)
-#define  USB_DEVICE_MANUFACTURE_NAME      "Kiibohd"
-#define  USB_DEVICE_PRODUCT_NAME          "Boot Keyboard"
+//#define  USB_DEVICE_MANUFACTURE_NAME      "Kiibohd"
+//#define  USB_DEVICE_PRODUCT_NAME          "Boot Keyboard"
 // #define  USB_DEVICE_SERIAL_NAME           "12...EF"
 
 /**
@@ -98,7 +100,8 @@
 //#define  UDC_REMOTEWAKEUP_DISABLE()       main_remotewakeup_disable()
 //! When a extra string descriptor must be supported
 //! other than manufacturer, product and serial string
-// #define  UDC_GET_EXTRA_STRING()
+extern bool main_extra_string();
+#define  UDC_GET_EXTRA_STRING() main_extra_string()
 //@}
 
 //@}
