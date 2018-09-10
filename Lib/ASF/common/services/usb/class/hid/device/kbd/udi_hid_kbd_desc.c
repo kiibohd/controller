@@ -67,8 +67,7 @@ UDC_DESC_STORAGE usb_dev_desc_t udc_device_desc = {
 	.bMaxPacketSize0           = USB_DEVICE_EP_CTRL_SIZE,
 	.idVendor                  = LE16(USB_DEVICE_VENDOR_ID),
 	.idProduct                 = LE16(USB_DEVICE_PRODUCT_ID),
-	.bcdDevice                 = LE16((USB_DEVICE_MAJOR_VERSION << 8)
-	| USB_DEVICE_MINOR_VERSION),
+	.bcdDevice                 = LE16(USB_DEVICE_VERSION),
 #ifdef USB_DEVICE_MANUFACTURE_NAME
 	.iManufacturer             = 1,
 #else
@@ -152,6 +151,11 @@ UDC_DESC_STORAGE udc_config_t udc_config = {
 	.conf_hs = udc_config_fshs,
 #endif
 };
+
+bool main_extra_string()
+{
+	return false;
+}
 
 //@}
 //@}
