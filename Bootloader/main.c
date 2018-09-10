@@ -318,6 +318,10 @@ void main()
 		jump_to_app( addr );
 	}
 #elif defined(_sam_)
+	// Early setup
+	Chip_reset();
+	Device_reset();
+
 	if (    // PIN  (External Reset Pin/Switch)
 		(REG_RSTC_SR & RSTC_SR_RSTTYP_Msk) == RSTC_SR_RSTTYP_UserReset
 		// WDOG (Watchdog timeout)
