@@ -201,16 +201,20 @@ static void endpoint0_stall()
 #if defined(_kinetis_)
 	USB0_ENDPT0 = USB_ENDPT_EPSTALL | USB_ENDPT_EPRXEN | USB_ENDPT_EPTXEN | USB_ENDPT_EPHSHK;
 #elif defined(_sam_)
-	//SAM TODO
+	udd_ctrl_stall_data();
 #endif
 }
 
 static void endpoint0_transmit( const void *data, uint32_t len )
 {
+#if defined(_kinetis_)
 	table[index(0, TX, ep0_tx_bdt_bank)].addr = (void *)data;
 	table[index(0, TX, ep0_tx_bdt_bank)].desc = BDT_DESC(len, ep0_tx_data_toggle);
 	ep0_tx_data_toggle ^= 1;
 	ep0_tx_bdt_bank ^= 1;
+#elif defined(_sam_)
+	udd_set_setup_payload(data, len);
+#endif
 }
 
 void usb_reinit()
@@ -219,7 +223,7 @@ void usb_reinit()
 #if defined(_kinetis_)
 	USB0_CONTROL = 0; // Disable D+ Pullup to simulate disconnect
 #elif defined(_sam_)
-	//SAM TODO
+	udc_stop();
 #endif
 	delay_ms(10); // Delay is necessary to simulate disconnect
 	usb_init();
@@ -264,7 +268,7 @@ void usb_device_check()
 	}
 }
 
-static void usb_setup()
+void usb_setup()
 {
 	const uint8_t *data = NULL;
 	uint32_t datalen = 0;
@@ -1198,6 +1202,8 @@ usb_packet_t *usb_rx( uint32_t endpoint )
 {
 	//print("USB RX");
 	usb_packet_t *ret;
+
+#if defined(_kinetis_)
 	endpoint--;
 
 	// Make sure this is a valid endpoint
@@ -1223,6 +1229,11 @@ usb_packet_t *usb_rx( uint32_t endpoint )
 	//serial_print(", packet=");
 	//serial_phex32(ret);
 	//serial_print("\n");
+#elif defined(_sam_)
+	ret = rx_first[endpoint];
+	udd_set_setup_payload(ret->buf, ret->len);
+#endif
+
 	return ret;
 }
 
@@ -1370,6 +1381,7 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 	// Use the currently set descriptor value
 	Output_update_usb_current( *usb_bMaxPower * 2 );
 
+#if defined(_kinetis_)
 	bdt_t *b = &table[ index( endpoint, TX, EVEN ) ];
 	uint8_t next;
 
@@ -1414,6 +1426,10 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 	b->addr = packet->buf;
 	b->desc = BDT_DESC( packet->len, ((uint32_t)b & 8) ? DATA1 : DATA0 );
 	__enable_irq();
+
+#elif defined(_sam_)
+	udd_set_setup_payload(packet->buf, packet->len);
+#endif
 }
 
 
