@@ -115,11 +115,11 @@ void Chip_setup()
 	PIOB->PIO_SODR = (1<<0);
 
 	/* Initialize flash: 6 wait states for flash writing. */
-	uint32_t ul_rc;
+	/*uint32_t ul_rc;
 	ul_rc = flash_init(FLASH_ACCESS_MODE_128, 6);
 	if (ul_rc != FLASH_RC_OK) {
 		return;
-	}
+	}*/
 
 	/* Start USB stack */
 	udc_start();

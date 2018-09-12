@@ -381,7 +381,9 @@ void ResetHandler()
 	* 7- Select the programmable clocks (optional)
 	*/
 
-#if defined(_bootloader_)
+	PMC->PMC_MCKR = (PMC->PMC_MCKR & (~PMC_MCKR_CSS_Msk)) | PMC_MCKR_CSS_SLOW_CLK;
+	for ( ; (PMC->PMC_SR & PMC_SR_MCKRDY) != PMC_SR_MCKRDY ; );
+
 	/* Step 1 - Activation of external oscillator
 	* As we are clocking the core from internal Fast RC, we keep the bit CKGR_MOR_MOSCRCEN.
 	* Main Crystal Oscillator Start-up Time (CKGR_MOR_MOSCXTST) is set to maximum value.
@@ -418,13 +420,12 @@ void ResetHandler()
 	* Source for MasterClock will be PLLA output (PMC_MCKR_CSS_PLLA_CLK), with 1/2 frequency division.
 	* NOTE: Must change prescaler before changing source
 	*/
-	PMC->PMC_MCKR |= PMC_MCKR_PRES_CLK_2;
+	PMC->PMC_MCKR = (PMC->PMC_MCKR & (~PMC_MCKR_PRES_Msk)) | PMC_MCKR_PRES_CLK_2;
 	for ( ; (PMC->PMC_SR & PMC_SR_MCKRDY) != PMC_SR_MCKRDY ; );
 
-	PMC->PMC_MCKR = PMC_MCKR_PRES_CLK_2 | PMC_MCKR_CSS_PLLA_CLK;
+	PMC->PMC_MCKR = (PMC->PMC_MCKR & (~PMC_MCKR_CSS_Msk)) | PMC_MCKR_CSS_PLLA_CLK;
+	//PMC->PMC_MCKR = PMC_MCKR_PRES_CLK_2 | PMC_MCKR_CSS_PLLA_CLK;
 	for ( ; (PMC->PMC_SR & PMC_SR_MCKRDY) != PMC_SR_MCKRDY ; );
-#endif
-
 
 	/* Set the vector table base address */
 	pSrc = (uint32_t *) & _sfixed;
@@ -456,6 +457,7 @@ void ResetHandler()
 
 #if !defined(_bootloader_)
 	init_errorLED();
+	errorLED(0);
 #endif
 	// Read Unique ID from flash
 	ReadUniqueID();
