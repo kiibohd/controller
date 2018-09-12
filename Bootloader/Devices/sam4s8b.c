@@ -23,6 +23,7 @@
 
 // Project Includes
 #include <Lib/entropy.h>
+#include "debug.h"
 
 // Local Includes
 #include "flash_efc.h"
@@ -45,7 +46,7 @@ uint32_t Chip_secure2;
 void Chip_reset()
 {
 	// Generating Secure Key
-	//print( "Generating Secure Key..." NL );
+	print( "Generating Secure Key..." NL );
 
 	/* TODO Random number generation
 	// Read current 64 bit secure number
@@ -76,7 +77,7 @@ void Chip_reset()
                 || _app_rom == 0xffffffff
         )
 	{
-		//print( "Secure Key Bypassed." NL );
+		print( "Secure Key Bypassed." NL );
 		Chip_secure1 = 0;
 		Chip_secure2 = 0;
 
@@ -100,7 +101,7 @@ void Chip_reset()
 		}
 	}
 
-	//print( "Secure Key Generated." NL );
+	print( "Secure Key Generated." NL );
 }
 
 // Called during bootloader initialization
@@ -166,7 +167,7 @@ int8_t Chip_validation( uint8_t* key )
 	}
 
 	// Otherwise, an invalid key
-	//print( "Invalid firmware key!" NL );
+	print( "Invalid firmware key!" NL );
 	return -1;
 }
 

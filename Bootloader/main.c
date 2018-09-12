@@ -268,7 +268,6 @@ void main()
 	// Bootloader Section
 	extern uint32_t _app_rom;
 
-#if defined(_kinetis_)
 	// Prepared debug output (when supported)
 	uart_serial_setup();
 	printNL( NL "Bootloader DFU-Mode" );
@@ -277,6 +276,7 @@ void main()
 	Chip_reset();
 	Device_reset();
 
+#if defined(_kinetis_)
 	// We treat _app_rom as pointer to directly read the stack
 	// pointer and check for valid app code.  This is no fool
 	// proof method, but it should help for the first flash.
@@ -318,10 +318,6 @@ void main()
 		jump_to_app( addr );
 	}
 #elif defined(_sam_)
-	// Early setup
-	Chip_reset();
-	Device_reset();
-
 	if (    // PIN  (External Reset Pin/Switch)
 		(REG_RSTC_SR & RSTC_SR_RSTTYP_Msk) == RSTC_SR_RSTTYP_UserReset
 		// WDOG (Watchdog timeout)
@@ -399,5 +395,7 @@ void main()
 		// Device specific functions
 		Chip_process();
 		Device_process();
+
+		print("Bootloader" NL);
 	}
 }

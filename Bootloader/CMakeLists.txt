@@ -138,6 +138,7 @@ set ( SRCS
 	../Lib/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.c
 
 	main.c
+	debug.c
 	dfu.c
 	dfu.desc.c
 	flash.c

@@ -46,7 +46,7 @@
 
 // ----- Functions -----
 
-#if defined(_kii_v1_) || defined(_kii_v2_)
+#if defined(_kii_v1_) || defined(_kii_v2_) || defined(_kii_v3_)
 int Output_putstr( char* str );
 
 int uart_serial_write( const void *buffer, uint32_t size );
