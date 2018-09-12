@@ -36,6 +36,10 @@
 #define _SAM4S_TC1_INSTANCE_
 #define _SAM4S_DACC_INSTANCE_
 
+// Secrure bootloader
+#define GPBR_SECURE1 GPBR->SYS_GPBR[6]
+#define GPBR_SECURE2 GPBR->SYS_GPBR[7]
+
 // 63-byte non-volatile storage
 // Can be 63, 127, 255 and 511 bytes
 // XXX (HaaTa): Dual bank flash controllers (e.g. sam4sd32c) will have problems if using more than 1/2 the flash

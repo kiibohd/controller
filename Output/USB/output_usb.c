@@ -779,9 +779,14 @@ inline void USB_setup()
 
 	// Check if we need to disable secure bootloader mode
 	// This is done by setting both 32 bit Kiibohd specific VBAT secure register regions
-#if ( defined(_kii_v1_) || defined(_kii_v2_) ) && SecureBootloader_define == 0
+#if SecureBootloader_define == 0
+#if ( defined(_kii_v1_) || defined(_kii_v2_) )
 	VBAT_SECURE1 = 0;
 	VBAT_SECURE2 = 0;
+#elif defined(_kii_v2_)
+	GPBR_SECURE1 = 0;
+	GPBR_SECURE2 = 0;
+#endif
 #endif
 
 #if enableRawIO_define == 1

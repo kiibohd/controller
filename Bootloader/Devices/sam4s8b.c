@@ -49,14 +49,14 @@ void Chip_reset()
 
 	/* TODO Random number generation
 	// Read current 64 bit secure number
-	Chip_secure1 = VBAT_SECURE1;
-	Chip_secure2 = VBAT_SECURE2;
+	Chip_secure1 = GPBR_SECURE1;
+	Chip_secure2 = GPBR_SECURE2;
 
 	// Generate 64 bit random numbers
 	while ( !rand_available() );
-	VBAT_SECURE1 = rand_value32();
+	GPBR_SECURE1 = rand_value32();
 	while ( !rand_available() );
-	VBAT_SECURE2 = rand_value32();
+	GPBR_SECURE2 = rand_value32();
 	*/
 
 	// Disable rand generation
@@ -68,15 +68,13 @@ void Chip_reset()
 
 	// If using an external reset, disable secure validation
 	// Or if the flash is blank
-	/* TODO
 	if (    // PIN  (External Reset Pin/Switch)
-		RCM_SRS0 & 0x40
-		// WDOG (Watchdog timeout)
-		|| RCM_SRS0 & 0x20
-		// Blank flash check
-		|| _app_rom == 0xffffffff
-	)
-	*/
+                (REG_RSTC_SR & RSTC_SR_RSTTYP_Msk) == RSTC_SR_RSTTYP_UserReset
+                // WDOG (Watchdog timeout)
+                || (REG_RSTC_SR & RSTC_SR_RSTTYP_Msk) == RSTC_SR_RSTTYP_WatchdogReset
+                // Blank flash check
+                || _app_rom == 0xffffffff
+        )
 	{
 		//print( "Secure Key Bypassed." NL );
 		Chip_secure1 = 0;
@@ -140,7 +138,35 @@ void Chip_process()
 // Returns start-of-data offset if valid (may be unused until next block)
 int8_t Chip_validation( uint8_t* key )
 {
-	// TODO
-	return 0;
+	// Ignore check if set to 0s
+	if ( Chip_secure1 == 0 && Chip_secure2 == 0 )
+	{
+		// Check to see if there's a key set, start after the key section
+		// Block size is 1024 (0x400)
+		uint8_t key_section = 8;
+		for ( uint16_t byte = key_section; byte < 1024; byte++ )
+		{
+			// If anything isn't zero, this is a data section
+			if ( key[byte] != 0 )
+			{
+				key_section = 0;
+			}
+		}
+
+		return key_section;
+	}
+
+	// Check first 32 bits, then second 32 bits of incoming key
+	if (
+		*(uint32_t*)&key[0] == Chip_secure1
+		&& *(uint32_t*)&key[4] == Chip_secure2
+	)
+	{
+		return 8;
+	}
+
+	// Otherwise, an invalid key
+	//print( "Invalid firmware key!" NL );
+	return -1;
 }
 
