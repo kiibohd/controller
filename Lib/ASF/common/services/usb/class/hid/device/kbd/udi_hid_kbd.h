@@ -52,7 +52,7 @@ extern "C" {
  * @{
  */
 //! Global structure which contains standard UDI API for UDC
-extern UDC_DESC_STORAGE udi_api_t udi_api_hid_kbd;
+extern udi_api_t udi_api_hid_kbd;
 //@}
 
 /**
@@ -86,6 +86,7 @@ typedef struct {
 #define UDI_HID_KBD_EP_SIZE  8
 
 //! Content of HID keyboard interface descriptor for all speed
+#ifndef UDI_HID_KBD_DESC
 #define UDI_HID_KBD_DESC    {\
 	.iface.bLength             = sizeof(usb_iface_desc_t),\
 	.iface.bDescriptorType     = USB_DT_INTERFACE,\
@@ -111,6 +112,7 @@ typedef struct {
 	.ep.bInterval              = 2,\
 	}
 //@}
+#endif
 
 
 /**

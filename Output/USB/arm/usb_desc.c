@@ -34,6 +34,12 @@
 // Local Includes
 #include "usb_desc.h"
 
+#include <Lib/mcu_compat.h>
+
+#if defined(_sam_)
+#include "udc_desc.h"
+#endif
+
 // Generated Includes
 #include <kll_defs.h>
 
@@ -1048,4 +1054,87 @@ const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS] =
 #endif
 };
 
+#if defined(_sam_)
+/**
+ * \name UDC structures which contains all USB Device definitions
+ */
+//@{
+//
 
+bool udi_hid_enable(void) { return true; }
+void udi_hid_disable(void) { }
+bool my_udi_hid_setup(void) { usb_setup(); return true; }
+uint8_t udi_hid_getsetting(void) { return 0; }
+void udi_hid_sof(void) {
+	// SOF tokens are used for keepalive, consider the system awake when we're receiving them
+	/*if ( usb_dev_sleep )
+	{
+		Output_update_usb_current( *usb_bMaxPower * 2 );
+		usb_dev_sleep = 0;
+	}*/
+}
+
+//! Global structure which contains standard UDI interface for UDC
+udi_api_t udi_api_hid = {
+        .enable = (bool(*)(void))udi_hid_enable,
+        .disable = (void (*)(void))udi_hid_disable,
+        .setup = (bool(*)(void))my_udi_hid_setup,
+        .getsetting = (uint8_t(*)(void))udi_hid_getsetting,
+        .sof_notify = (void(*)(void))udi_hid_sof,
+};
+
+//! Associate an UDI for each USB interface
+udi_api_t* udi_apis[] = {
+#if enableKeyboard_define == 1
+	&udi_api_hid,
+	&udi_api_hid,
+	&udi_api_hid,
+#endif
+#if enableMouse_define == 1
+	&udi_api_hid,
+#endif
+#if enableJoystick_define == 1
+	&udi_api_hid,
+#endif
+#if enableVirtualSerialPort_define == 1
+	&udi_api_hid,
+	&udi_api_hid,
+#endif
+#if enableRawIO_define == 1
+	&udi_api_hid,
+#endif
+};
+#define _STR(a) #a
+#define CTASSERT(x)             _Static_assert(x, _STR(x))
+#define CTASSERT_SIZE_BYTE(t, s)     CTASSERT(sizeof(t) == (s))
+CTASSERT_SIZE_BYTE(udi_apis, sizeof(udi_api_t*)*NUM_INTERFACE);
+
+//! Add UDI with USB Descriptors FS & HS
+udc_config_speed_t   udc_config_fshs[1] = {{
+	.desc          = (usb_conf_desc_t*)config_descriptor,
+	.udi_apis      = udi_apis,
+}};
+
+COMPILER_WORD_ALIGNED
+usb_dev_debug_desc_t udc_device_debug = {
+	.bLength = 1,
+};
+
+//! Needed to fix lsusb "Resource temporarily unavailable"
+COMPILER_WORD_ALIGNED
+UDC_DESC_STORAGE usb_dev_qual_desc_t udc_device_qual = {
+	.bLength = 1,
+};
+
+//! Add all information about USB Device in global structure for UDC
+udc_config_t udc_config = {
+	.confdev_lsfs = device_descriptor,
+	.conf_lsfs = udc_config_fshs,
+#ifdef USB_DEVICE_HS_SUPPORT
+	.confdev_hs = device_descriptor,
+	.conf_hs = udc_config_fshs,
+#endif
+	.qualifier = &udc_device_qual,
+	.debug = &udc_device_debug,
+};
+#endif

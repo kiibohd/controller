@@ -126,7 +126,7 @@ typedef struct {
 	void * addr;
 } bdt_t;
 
-static union {
+typedef union {
 	struct {
 		union {
 			struct {
@@ -143,7 +143,7 @@ static union {
 		uint32_t word1;
 		uint32_t word2;
 	};
-} setup;
+} setup_t;
 
 
 
@@ -163,6 +163,7 @@ static uint8_t tx_state[NUM_ENDPOINTS];
 // SETUP always uses a DATA0 PID for the data field of the SETUP transaction.
 // transactions in the data phase start with DATA1 and toggle (figure 8-12, USB1.1)
 // Status stage uses a DATA1 PID.
+static setup_t setup;
 
 #if defined(_kinetis_)
 static uint8_t ep0_rx0_buf[EP0_SIZE] __attribute__ ((aligned (4)));
@@ -282,6 +283,11 @@ void usb_setup()
 	// Reset USB Init timer
 	USBInit_TimeEnd = systick_millis_count;
 	USBInit_Ticks++;
+
+#if defined(_sam_)
+	// ASF has its own global variable
+	setup = *(setup_t*)&udd_g_ctrlreq.req;
+#endif
 
 	// If another request is made, disable the power negotiation check
 	// See GET_DESCRIPTOR - Configuration
@@ -1260,6 +1266,7 @@ uint32_t usb_tx_byte_count( uint32_t endpoint )
 
 uint32_t usb_tx_packet_count( uint32_t endpoint )
 {
+#if defined(_kinetis_)
 	const usb_packet_t *p;
 	uint32_t count=0;
 
@@ -1271,6 +1278,9 @@ uint32_t usb_tx_packet_count( uint32_t endpoint )
 		count++;
 	__enable_irq();
 	return count;
+#elif defined(_sam_)
+	return 0;
+#endif
 }
 
 
@@ -1428,7 +1438,7 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 	__enable_irq();
 
 #elif defined(_sam_)
-	udd_set_setup_payload(packet->buf, packet->len);
+	udd_ep_run(endpoint | USB_EP_DIR_IN, false, packet->buf, packet->len, NULL);
 #endif
 }
 
