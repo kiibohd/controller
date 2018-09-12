@@ -52,7 +52,7 @@ elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 		../../Lib/ASF/common/services/usb/udc/udc.c
 		../../Lib/ASF/common/services/usb/class/hid/device/udi_hid.c
 		../../Lib/ASF/common/services/usb/class/hid/device/kbd/udi_hid_kbd.c
-		../../Lib/ASF/common/services/usb/class/hid/device/kbd/udi_hid_kbd_desc.c
+		#../../Lib/ASF/common/services/usb/class/hid/device/kbd/udi_hid_kbd_desc.c
 	)
 	endif ( )
 
