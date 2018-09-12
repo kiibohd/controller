@@ -690,10 +690,12 @@ int usb_ep0_tx_cp(const void *buf, size_t len, size_t reqlen, ep_callback_t cb, 
 	return udd_ctrl_payload_nb_trans - udd_ctrl_prev_payload_nb_trans;
 }
 
+void usb_handle_control_status_cb(ep_callback_t cb) {
+	udd_g_ctrlreq.callback = cb;
+}
 
 void usb_attach_function(const struct usbd_function *function, struct usbd_function_ctx_header *ctx) {}
 void usb_handle_control_status(int fail) {}
-void usb_handle_control_status_cb(ep_callback_t cb) {}
 
 #endif
 
