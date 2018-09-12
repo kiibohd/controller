@@ -58,6 +58,7 @@
 #define USB_DESC_STRING_LANG_ENUS USB_DESC_STRING(u"\x0409")
 #define USB_DESC_STRING_SERIALNO ((const void *)1)
 
+#define USB_CTRL_REQ_MSFT_COMPAT_ID 0x0004
 
 // ----- Structs & Enumerations -----
 
@@ -421,4 +422,4 @@ int usb_ep0_tx_cp(const void *, size_t, size_t, ep_callback_t, void *);
 // ----- DFU USB Additional Includes -----
 
 #include "dfu.h"
-
+#include "dfu.desc.h"

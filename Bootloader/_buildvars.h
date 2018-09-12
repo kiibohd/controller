@@ -39,6 +39,7 @@
 // Windows, even though the driver is supplied by Microsoft, an
 // INF file is needed to load the driver.  These numbers need to
 // match the INF file.
+#define STR_WCID_DRIVER         "LIBUSB0\0"
 #define VENDOR_ID               @BOOT_VENDOR_ID@
 #define PRODUCT_ID              @BOOT_PRODUCT_ID@
 #define BCD_VERSION             @Git_Commit_Number@

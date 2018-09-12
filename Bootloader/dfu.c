@@ -96,6 +96,16 @@ int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 	struct dfu_ctx *ctx = data;
 	int fail = 1;
 
+	if ( req->bRequest == MS_VENDOR_CODE) {
+		/* Microsoft extensions */
+		switch (req->wIndex) {
+			case USB_CTRL_REQ_MSFT_COMPAT_ID:
+				usb_ep0_tx_cp(&msft_extended_compat_desc, msft_extended_compat_desc.dwLength, req->wLength, NULL, NULL);
+		}
+
+		goto out_no_status;
+	}
+
 	switch ( (enum dfu_ctrl_req_code)req->bRequest )
 	{
 	// On Detach, just reset MCU and (attempt to) boot to firmware

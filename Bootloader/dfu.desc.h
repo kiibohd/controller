@@ -22,9 +22,29 @@
 #include "device.h"
 
 
+// ----- Defines -----
+
+// We can set this to anything we want
+#define MS_VENDOR_CODE 0x20
+
 
 // ----- Variables -----
 
+struct usb_desc_msft_compat_t {
+	uint32_t dwLength;
+	uint16_t bcdVersion;
+	uint16_t wIndex;
+	uint8_t  bCount;
+	uint8_t  reserved1[7];
+	uint8_t  bFirstInterfaceNumber;
+	uint8_t  reserved2;
+	uint8_t  compatibleID[8];
+	uint8_t  subCompatibleID[8];
+	uint8_t  reserved3[6];
+};
+CTASSERT_SIZE_BYTE(struct usb_desc_msft_compat_t, 40);
+
+extern struct usb_desc_msft_compat_t msft_extended_compat_desc;
 extern struct usb_desc_string_t * const dfu_device_str_desc[];
 
 usbd_init_fun_t init_usb_bootloader;

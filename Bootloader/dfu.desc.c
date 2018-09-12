@@ -108,6 +108,28 @@ static const struct usb_desc_dev_t dfu_device_dev_desc = {
 	.bNumConfigurations = 1,
 };
 
+// Enables Microsoft specefic setup requests with bmRequestType set to bMS_VendorCode
+// LanguageID must be 0, not english (0x0409)
+static struct usb_desc_string_t msft_os_str_desc = {
+	.bLength = 18,
+	.bDescriptorType = USB_DESC_STRING,
+	.bString = {
+		'M', 'S', 'F', 'T', '1', '0', '0',	// qwSignature
+		MS_VENDOR_CODE,				// bMS_VendorCode & bPad
+	}
+};
+
+// Microsoft Compatible ID Feature Descriptor ---
+// Requests the given driver if available
+struct usb_desc_msft_compat_t msft_extended_compat_desc = {
+	.dwLength = sizeof(struct usb_desc_msft_compat_t),
+	.bcdVersion = 0x01,
+	.wIndex = USB_CTRL_REQ_MSFT_COMPAT_ID,
+	.bCount = 1,
+	.bFirstInterfaceNumber = 0,
+	.compatibleID = STR_WCID_DRIVER
+};
+
 struct usb_desc_string_t * const dfu_device_str_desc[] = {
 	USB_DESC_STRING_LANG_ENUS,
 	USB_DESC_STRING(STR_MANUFACTURER),
@@ -152,23 +174,41 @@ void dfu_usb_poll()
  */
 bool main_extra_string()
 {
-	// Lookup request and send descriptor
+	struct usb_desc_string_t *desc = NULL;
 	uint8_t inreq = udd_g_ctrlreq.req.wValue & 0xff;
+
+	// Microsoft looks for a special string at index 0xEE
+	// If found it will be compared against known OS compatabilily strings
+	// Once matched additional Microsoft-specific setup requests may be sent
+	if (inreq  == 0xEE) {
+		desc = &msft_os_str_desc;
+		goto send_str_desc;
+	}
+
+	// Lookup request and send descriptor
 	for ( uint8_t req = 0; dfu_device_str_desc[req] != NULL; req++ )
 	{
 		// Request matches
 		if ( inreq == req )
 		{
-			udd_g_ctrlreq.payload_size = dfu_device_str_desc[req]->bLength;
-			udd_g_ctrlreq.payload = (uint8_t *)dfu_device_str_desc[req];
+			desc = dfu_device_str_desc[req];
+			goto send_str_desc;
 		}
 	}
 
-        // if the string is larger than request length, then cut it
-        if (udd_g_ctrlreq.payload_size > udd_g_ctrlreq.req.wLength) {
-                udd_g_ctrlreq.payload_size = udd_g_ctrlreq.req.wLength;
-        }
-        return true;
+	// No string found
+	return false;
+
+send_str_desc:
+	udd_g_ctrlreq.payload = (uint8_t *)desc;
+	udd_g_ctrlreq.payload_size = desc->bLength;
+
+	// if the string is larger than request length, then cut it
+	if (udd_g_ctrlreq.payload_size > udd_g_ctrlreq.req.wLength) {
+		udd_g_ctrlreq.payload_size = udd_g_ctrlreq.req.wLength;
+	}
+
+	return true;
 }
 #endif
 

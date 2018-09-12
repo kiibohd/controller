@@ -365,6 +365,15 @@ static int usb_tx_string_desc(int idx, int reqlen)
 {
 	struct usb_desc_string_t * const *d;
 
+	// Microsoft looks for a special string at index 0xEE
+	// If found it will be compared against known OS compatabilily strings
+	// Once matched additional Microsoft-specific setup requests may be sent
+	if (idx == 0xEE) {
+		d = &msft_extended_compat_desc;
+		usb_ep0_tx_cp(*d, (*d)->bLength, reqlen, NULL, NULL);
+		return (0);
+	}
+
 	for (d = usb.identity->string_descs; idx != 0 && *d != NULL; ++d)
 		--idx;
 	switch ((uintptr_t)*d) {
