@@ -156,6 +156,7 @@ bool udi_dfu_atmel_setup(void);
 #include "udi_dfu_atmel_conf.h"
 
 #else
+#define USB_DEVICE_SPECIFIC_REQUEST usb_setup
 #include "udi_hid_kbd_conf.h"
 #endif
 
