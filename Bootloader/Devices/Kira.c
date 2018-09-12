@@ -37,31 +37,49 @@ void Device_reset()
 {
 }
 
+void Pin_Input(Pio *pio, uint8_t pin) {
+	pio->PIO_PUDR = (1 << pin);
+	pio->PIO_PPDER = (1 << pin);
+	pio->PIO_IFER = (1 << pin);
+	pio->PIO_ODR = (1 << pin);
+	pio->PIO_PER = (1 << pin);
+}
+
+void Pin_Output(Pio *pio, uint8_t pin) {
+	pio->PIO_OER = (1 << pin);
+	pio->PIO_PER = (1 << pin);
+	pio->PIO_CODR = (1 << pin);
+}
+
 // Called during bootloader initialization
 void Device_setup()
 {
 	// Setup scanning for S1
-	// Row1
-	PIOA->PIO_PUDR = (1 << 26);
-	PIOA->PIO_PPDER = (1 << 26);
-	PIOA->PIO_IFER = (1 << 26);
-	PIOA->PIO_ODR = (1 << 26);
-	PIOA->PIO_PER = (1 << 26);
+	PMC->PMC_PCER0 = (1 << ID_PIOA) | (1 << ID_PIOB);
 
-	// Col1
-	PIOB->PIO_OER = (1 << 1);
-	PIOB->PIO_PER = (1 << 1);
+	// Cols (strobe)
+	Pin_Output(PIOB, 1);
+
+	// Rows (sense)
+	Pin_Input(PIOA, 26);
 }
 
 // Called during each loop of the main bootloader sequence
 void Device_process()
 {
+	// stray capacitance hack
+	Pin_Output(PIOA, 26);
+	Pin_Input(PIOA, 26);
+
 	// Check for S1 being pressed
-	// FIXME: Causing random resets
-	/*if ( PIOA->PIO_PDSR & (1<<26) )
+	PIOB->PIO_SODR = (1 << 1);
+
+	if ( PIOA->PIO_PDSR & (1<<26) )
 	{
 		print( "Reset key pressed." NL );
 		SOFTWARE_RESET();
-	}*/
+	}
+
+	PIOB->PIO_CODR = (1 << 1);
 }
 
