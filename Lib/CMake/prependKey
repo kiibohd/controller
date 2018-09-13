@@ -28,6 +28,8 @@ input_file=${1}
 tmp_file=newbin.bin
 CLEARKEY=${CLEARKEY:-false}
 STRIPKEY=${STRIPKEY:-false}
+BLOCK_SIZE=${BLOCK_SIZE:-1024}
+KEY_SIZE=${KEY_SIZE:-8}
 
 # Check for 2nd argument, then convert to an base 10 integer
 if [ $# -eq 2 ]; then
@@ -58,16 +60,18 @@ cur_key=$(head -c 4 ${input_file} | hexdump -C | cut -b9- | cut -d"|" -f1 | tr -
 # 00400020 - mk20dx128vlh7
 # 00800020 - mk20dx256vlh7
 # 00000120 - mk22fx512avlh12
+# d8650020 - sam4s8b
 if [ "${cur_key}" = "00800020" ] \
 		|| [ "${cur_key}" = "00200020" ] \
 		|| [ "${cur_key}" = "00000120" ] \
-		|| [ "${cur_key}" = "00400020" ]; then
+		|| [ "${cur_key}" = "00400020" ] \
+		|| [ "${cur_key}" = "908b0020" ]; then
 	echo "Setting new key"
 else
 	# Check if CLEARKEY was set to true
 	if ${CLEARKEY} || ${STRIPKEY}; then
 		# Strip first 1024 bytes
-		dd bs=1024 skip=1 if=${input_file} of=${tmp_file} &> /dev/null
+		dd bs=${BLOCK_SIZE} skip=1 if=${input_file} of=${tmp_file} &> /dev/null
 		# Overwrite old file
 		mv ${tmp_file} ${input_file}
 
@@ -87,12 +91,13 @@ fi
 # This means we have to pad 1016 bytes in addition to the 8 bytes to the beginning of the file
 #    8 * 2 = 16 digits
 # 1016 * 2 = 2032 digits
+PAD_LENGTH=$(( (${BLOCK_SIZE}-${KEY_SIZE}) * 2 ))
 output_key=$(printf "%016X" ${key})
 echo "Key Prepended: ${output_key}"
 
 # 4 bytes at a time, then re-order to Little-Endian
 # XXX (HaaTa) This seems to not work on macOS (removing the tailing I breaks the formatting...)
-echo ${output_key}$(printf "%02032X" 0) | ${SED} 's/\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)/\\\\\\x\4\\\\\\x\3\\\\\\x\2\\\\\\x\1/gI' | xargs printf > ${tmp_file}
+echo ${output_key}$(printf "%0${PAD_LENGTH}X" 0) | ${SED} 's/\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)\([0-9A-F]\{2\}\)/\\\\\\x\4\\\\\\x\3\\\\\\x\2\\\\\\x\1/gI' | xargs printf > ${tmp_file}
 
 # Append old file onto new one
 cat ${input_file} >> ${tmp_file}

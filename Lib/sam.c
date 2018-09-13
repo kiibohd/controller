@@ -342,6 +342,7 @@ uint32_t ReadUniqueID()
 // - USB clock divider: 2 (divided by 2)
 // - USB clock: 12 * 16 / 2 / 2 = 48MHz
 
+__attribute__ ((section(".startup")))
 void ResetHandler()
 {
 	uint32_t *pSrc, *pDest;

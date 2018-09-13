@@ -330,7 +330,7 @@ void main()
 	)
 	{
 		// Bootloader mode
-		for ( int pos = 0; pos <= 8; pos++ )
+		for ( int pos = 0; pos <= sizeof(sys_reset_to_loader_magic)/sizeof(GPBR->SYS_GPBR[0]); pos++ )
 			GPBR->SYS_GPBR[ pos ] = 0x00000000;
 	}
 	else
