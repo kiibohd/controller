@@ -263,8 +263,8 @@ volatile uint32_t gWDT_entropy_pool[WDT_POOL_SIZE];
 
 // This function initializes the global variables needed to implement the circular entropy pool and
 // the buffer that holds the raw Timer 1 values that are used to create the entropy pool.  It then
-// Initializes tc0 (channel 1), to perform an interrupt
-// every 2048 clock cycles.
+// Initializes tc0 (channel 1), to perform an interrupt every 2048 clock cycles.
+// NOTE: Atmel is dumb and uses the range TC{0..5} to refer to TC{0,1}->TC_CHANNEL{0..2}
 void rand_initialize()
 {
 	gWDT_buffer_position = 0;
@@ -272,16 +272,15 @@ void rand_initialize()
 	gWDT_pool_end = 0;
 	gWDT_pool_count = 0;
 
-	// Setup TC0 (Channel 1)
-	// Enable clock for timer
-	PMC->PMC_PCER0 |= (1 << ID_TC0);
+	// Enable clock for timer TC0 (Channel 1)
+	PMC->PMC_PCER0 |= (1 << ID_TC1);
 
 	// Setup Timer Counter to MCK/128, compare resets counter
-	TC0->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK5 | TC_CMR_CPCTRG;
+	TC0->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_CPCTRG;
 
 	// Timer Count-down value
 	// Number of cycles to count from CPU clock before calling interrupt
-	TC0->TC_CHANNEL[1].TC_RC = TC_RA_RA(937); // Approx. ~1 kHz @ 120 MHz MCK
+	TC0->TC_CHANNEL[1].TC_RC = TC_RC_RC(937); // Approx. ~1 kHz @ 120 MHz MCK
 
 	// Enable Timer, Enable interrupt
 	TC0->TC_CHANNEL[1].TC_IER = TC_IER_CPCS;
@@ -297,6 +296,8 @@ void rand_initialize()
 // Disables interrupt, thus stopping CPU usage generating entropy
 void rand_disable()
 {
+	TC0->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKDIS;
+	TC0->TC_CHANNEL[1].TC_IDR = 0xFF;
 	NVIC_DisableIRQ( TC1_IRQn );
 }
 

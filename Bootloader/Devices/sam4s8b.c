@@ -48,7 +48,6 @@ void Chip_reset()
 	// Generating Secure Key
 	print( "Generating Secure Key..." NL );
 
-	/* TODO Random number generation
 	// Read current 64 bit secure number
 	Chip_secure1 = GPBR_SECURE1;
 	Chip_secure2 = GPBR_SECURE2;
@@ -58,7 +57,6 @@ void Chip_reset()
 	GPBR_SECURE1 = rand_value32();
 	while ( !rand_available() );
 	GPBR_SECURE2 = rand_value32();
-	*/
 
 	// Disable rand generation
 	rand_disable();
