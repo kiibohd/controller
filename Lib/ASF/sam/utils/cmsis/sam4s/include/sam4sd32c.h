@@ -264,7 +264,7 @@ void WDT_Handler        ( void );
 #include "component/component_supc.h"
 #include "component/component_tc.h"
 #include "component/component_twi.h"
-//#include "component/component_uart.h"
+#include "component/component_uart.h"
 #include "component/component_udp.h"
 //#include "component/component_usart.h"
 #include "component/component_wdt.h"
