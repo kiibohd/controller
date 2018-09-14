@@ -366,6 +366,31 @@ void main()
 	print( NL " Soft Rst - " );
 	printHex( memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 );
 	print( NL );
+#elif defined(_sam_)
+	// Detected CPU
+	print("CPU Id: ");
+	printHex( SCB->CPUID );
+	print( NL "Chip Id: ");
+	printHex( CHIPID->CHIPID_CIDR );
+	print( NL "Chip Ext: ");
+	printHex( CHIPID->CHIPID_EXID );
+
+	// Bootloader Entry Reasons
+	print( NL " GeneralReset - ");
+	printHex( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk & RSTC_SR_RSTTYP_GeneralReset );
+	print( NL " BackupReset - ");
+	printHex( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk & RSTC_SR_RSTTYP_BackupReset );
+	print( NL " WatchdogReset - ");
+	printHex( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk & RSTC_SR_RSTTYP_WatchdogReset );
+	print( NL " SoftwareReset - ");
+	printHex( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk & RSTC_SR_RSTTYP_SoftwareReset );
+	print( NL " UserReset - ");
+	printHex( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk & RSTC_SR_RSTTYP_UserReset );
+	print( NL " _app_rom - ");
+	printHex( (uint32_t)_app_rom );
+	print( NL " Soft Rst - " );
+	printHex( memcmp( (uint8_t*)GPBR, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 );
+	print( NL );
 #endif
 
 	// Device/Chip specific setup
