@@ -1084,9 +1084,30 @@ udi_api_t udi_api_hid = {
 };
 
 //! Associate an UDI for each USB interface
-udi_api_t *udi_apis[NUM_INTERFACE] = {
+udi_api_t* udi_apis[] = {
+#if enableKeyboard_define == 1
 	&udi_api_hid,
+	&udi_api_hid,
+	&udi_api_hid,
+#endif
+#if enableMouse_define == 1
+	&udi_api_hid,
+#endif
+#if enableJoystick_define == 1
+	&udi_api_hid,
+#endif
+#if enableVirtualSerialPort_define == 1
+	&udi_api_hid,
+	&udi_api_hid,
+#endif
+#if enableRawIO_define == 1
+	&udi_api_hid,
+#endif
 };
+#define _STR(a) #a
+#define CTASSERT(x)             _Static_assert(x, _STR(x))
+#define CTASSERT_SIZE_BYTE(t, s)     CTASSERT(sizeof(t) == (s))
+CTASSERT_SIZE_BYTE(udi_apis, sizeof(udi_api_t*)*NUM_INTERFACE);
 
 //! Add UDI with USB Descriptors FS & HS
 udc_config_speed_t   udc_config_fshs[1] = {{
@@ -1094,14 +1115,20 @@ udc_config_speed_t   udc_config_fshs[1] = {{
 	.udi_apis      = udi_apis,
 }};
 
+COMPILER_WORD_ALIGNED                                                                                                                                         
+usb_dev_debug_desc_t udc_device_debug = {                                                                                                    
+	        .bLength                   = 1,                                                                                                                       
+}; 
+
 //! Add all information about USB Device in global structure for UDC
 udc_config_t udc_config = {
 	.confdev_lsfs = device_descriptor,
 	.conf_lsfs = udc_config_fshs,
 #ifdef USB_DEVICE_HS_SUPPORT
 	.confdev_hs = device_descriptor,
-	.qualifier = device_qualifier_descriptor,
 	.conf_hs = udc_config_fshs,
 #endif
+	.qualifier = device_qualifier_descriptor,
+	.debug = &udc_device_debug,
 };
 #endif
