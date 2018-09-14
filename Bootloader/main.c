@@ -395,7 +395,5 @@ void main()
 		// Device specific functions
 		Chip_process();
 		Device_process();
-
-		print("Bootloader" NL);
 	}
 }
