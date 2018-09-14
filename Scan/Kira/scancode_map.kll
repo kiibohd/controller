@@ -538,5 +538,6 @@ P[82,85,86,88,89,90,92,95,98,100]     <= y:86.36;
 # USB Overrides
 enableUSBSuspend = 0;
 enableUSBResume = 0;
+enableMouse = 0;
 enableVirtualSerialPort = 0;
 enableRawIO = 0;

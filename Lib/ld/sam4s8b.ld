@@ -161,6 +161,12 @@ SECTIONS
         _eheap = .;
     } > RAM
 
+.usbbuffers (NOLOAD) : {
+	. = ALIGN(4);
+	*(.usbbuffers*)
+} > RAM
+
+
     . = ALIGN(4);
     _end = . ;
     _ram_end_ = ORIGIN(RAM) + LENGTH(RAM) -1 ;

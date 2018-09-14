@@ -179,7 +179,7 @@
 #define  USB_DEVICE_EP_CTRL_SIZE    64
 #define  UDI_HID_KBD_EP_IN (1 | USB_EP_DIR_IN)
 #undef USB_DEVICE_MAX_EP
-#define  USB_DEVICE_MAX_EP 1 //NUM_ENDPOINTS
+#define  USB_DEVICE_MAX_EP 3 //NUM_ENDPOINTS
 
 // ----- Structs -----
 

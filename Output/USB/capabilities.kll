@@ -49,7 +49,7 @@ usbIdleForce = 1;
 # Set to 0 for Boot Mode (6KRO)
 # Set to 1 for NKRO Mode (default)
 usbProtocol => USBProtocol_define;
-usbProtocol = 1;
+usbProtocol = 0;
 
 # Secure Bootloader Mode
 # XXX (HaaTa)

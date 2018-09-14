@@ -1434,7 +1434,8 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 	__enable_irq();
 
 #elif defined(_sam_)
-	udd_set_setup_payload(packet->buf, packet->len);
+	//udd_set_setup_payload(packet->buf, packet->len);
+	udd_ep_run(endpoint | USB_EP_DIR_IN, false, packet->buf, packet->len, NULL);
 #endif
 }
 
