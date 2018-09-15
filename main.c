@@ -176,7 +176,7 @@ int main()
 		SEGGER_SYSVIEW_OnTaskTerminate(TASK_OUTPUT_POLL);
 
 		SEGGER_SYSVIEW_OnIdle();
-		
+
 #if defined(_sam_)
 		// Not locked up... Reset the watchdog timer
 		WDT->WDT_CR = WDT_CR_KEY_PASSWD | WDT_CR_WDRSTT;

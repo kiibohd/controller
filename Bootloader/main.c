@@ -270,7 +270,7 @@ void main()
 
 	// Prepared debug output (when supported)
 	uart_serial_setup();
-	printNL( NL "Bootloader DFU-Mode" );
+	printNL( NL "==> Bootloader DFU-Mode" );
 
 	// Early setup
 	Chip_reset();
@@ -313,6 +313,7 @@ void main()
 		WDOG_STCTRLH |= WDOG_STCTRLH_WDOGEN;
 
 		// Firmware mode
+		print( NL "==> Booting Firmware..." );
 		uint32_t addr = (uintptr_t)&_app_rom;
 		SCB_VTOR = addr; // relocate vector table
 		jump_to_app( addr );
@@ -339,6 +340,7 @@ void main()
 		WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDRSTEN | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
 
 		// Firmware mode
+		print( NL "==> Booting Firmware..." );
 		uint32_t addr = (uintptr_t)&_app_rom;
 		SCB->VTOR = ((uint32_t) addr); // relocate vector table
 		jump_to_app( addr );
