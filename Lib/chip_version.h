@@ -116,7 +116,7 @@ const char *ChipVersion_nvmtype[] = {
 
 const char *ChipVersion_cpuid_partno()
 {
-	switch ( SCB->CPUID & SCB_CPUID_PARTNO_Msk )
+	switch ( (SCB->CPUID & SCB_CPUID_PARTNO_Msk) >> SCB_CPUID_PARTNO_Pos )
 	{
 	case 0xC20:
 		return "Cortex-M0";
@@ -133,7 +133,7 @@ const char *ChipVersion_cpuid_partno()
 
 const char *ChipVersion_cpuid_implementor()
 {
-	switch ( SCB->CPUID & SCB_CPUID_IMPLEMENTER_Msk )
+	switch ( (SCB->CPUID & SCB_CPUID_IMPLEMENTER_Msk) >> SCB_CPUID_IMPLEMENTER_Pos )
 	{
 	case 0x41:
 		return "ARM";
@@ -146,7 +146,7 @@ const char *ChipVersion_cpuid_implementor()
 // http://ww1.microchip.com/downloads/en/DeviceDoc/Atmel-11100-32-bit%20Cortex-M4-Microcontroller-SAM4S_Datasheet.pdf
 const char *ChipVersion_archid()
 {
-	switch ( CHIPID->CHIPID_CIDR & CHIPID_CIDR_ARCH_Msk )
+	switch ( (CHIPID->CHIPID_CIDR & CHIPID_CIDR_ARCH_Msk) >> CHIPID_CIDR_ARCH_Pos )
 	{
 	case 0x88:
 		return "SAM4SxA"; // 0x88 - 136 - 1000 1000 - 48-pin
@@ -214,7 +214,7 @@ const char *ChipVersion_lookup()
 // Returns -- if unknown
 const char *ChipVersion_revision()
 {
-	switch ( CHIPID->CHIPID_CIDR & CHIPID_CIDR_VERSION_Msk )
+	switch ( (CHIPID->CHIPID_CIDR & CHIPID_CIDR_VERSION_Msk) >> CHIPID_CIDR_VERSION_Pos )
 	{
 	case 0x0:
 		return "A";
