@@ -57,9 +57,9 @@ void i2c_isr( uint8_t ch );
 // Initialize error counters
 void i2c_initial()
 {
-	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
+	for ( uint8_t ch = ISSI_I2C_FirstBus_define; ch < ISSI_I2C_Buses_define + ISSI_I2C_FirstBus_define; ch++ )
 	{
-		volatile I2C_Channel *channel = &( i2c_channels[ch] );
+		volatile I2C_Channel *channel = &( i2c_channels[ch - ISSI_I2C_FirstBus_define] );
 		channel->error_count = 0;
 		channel->last_error = 0; // No error to begin with (resets on successful transaction)
 	}
@@ -67,7 +67,7 @@ void i2c_initial()
 
 void i2c_setup()
 {
-	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
+	for ( uint8_t ch = ISSI_I2C_FirstBus_define; ch < ISSI_I2C_Buses_define + ISSI_I2C_FirstBus_define; ch++ )
 	{
 #if defined(_kinetis_)
 		volatile uint8_t *I2C_F   = (uint8_t*)(&I2C0_F) + i2c_offset[ch];
@@ -184,10 +184,10 @@ void i2c_setup()
 		Twi *twi_dev = twi_devs[ch];
 		uint16_t div = (F_CPU/BAUD - 4) / (2<<CK);
 
-		//Set clock
+		// Set clock
 		twi_dev->TWI_CWGR = TWI_CWGR_CLDIV(div) + TWI_CWGR_CHDIV(div) + TWI_CWGR_CKDIV(CK);
 
-		//Enable master mode
+		// Enable master mode
 		twi_dev->TWI_CR = TWI_CR_MSDIS | TWI_CR_SVDIS;
 		twi_dev->TWI_CR = TWI_CR_MSEN;
 
@@ -210,9 +210,9 @@ void i2c_setup()
 // Checks if any bus has errored
 uint8_t i2c_error()
 {
-	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
+	for ( uint8_t ch = ISSI_I2C_FirstBus_define; ch < ISSI_I2C_Buses_define + ISSI_I2C_FirstBus_define; ch++ )
 	{
-		volatile I2C_Channel *channel = &( i2c_channels[ch] );
+		volatile I2C_Channel *channel = &( i2c_channels[ch - ISSI_I2C_FirstBus_define] );
 		if ( channel->status == I2C_ERROR )
 		{
 			return 1;
@@ -225,9 +225,9 @@ uint8_t i2c_error()
 void i2c_reset()
 {
 	// Cleanup after an I2C error
-	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
+	for ( uint8_t ch = ISSI_I2C_FirstBus_define; ch < ISSI_I2C_Buses_define + ISSI_I2C_FirstBus_define; ch++ )
 	{
-		volatile I2C_Channel *channel = &( i2c_channels[ch] );
+		volatile I2C_Channel *channel = &( i2c_channels[ch - ISSI_I2C_FirstBus_define] );
 		channel->status = I2C_AVAILABLE;
 	}
 
@@ -236,7 +236,7 @@ void i2c_reset()
 
 uint8_t i2c_busy( uint8_t ch )
 {
-	volatile I2C_Channel *channel = &( i2c_channels[ch] );
+	volatile I2C_Channel *channel = &( i2c_channels[ch - ISSI_I2C_FirstBus_define] );
 	if ( channel->status == I2C_BUSY )
 	{
 		return 1;
@@ -247,14 +247,13 @@ uint8_t i2c_busy( uint8_t ch )
 
 uint8_t i2c_any_busy()
 {
-	for ( uint8_t ch = 0; ch < ISSI_I2C_Buses_define; ch++ )
+	for ( uint8_t ch = ISSI_I2C_FirstBus_define; ch < ISSI_I2C_Buses_define + ISSI_I2C_FirstBus_define; ch++ )
 	{
 		if ( i2c_busy( ch ) )
 			return 1;
 	}
 	return 0;
 }
-
 
 // These are here for readability and correspond to bit 0 of the address byte.
 #define I2C_WRITING 0
@@ -270,7 +269,7 @@ int32_t i2c_send_sequence(
 ) {
 	int32_t result = 0;
 
-	volatile I2C_Channel *channel = &( i2c_channels[ch] );
+	volatile I2C_Channel *channel = &( i2c_channels[ch - ISSI_I2C_FirstBus_define] );
 	uint8_t address;
 
 #if defined(_kinetis_)
@@ -385,7 +384,7 @@ i2c_send_sequence_cleanup:
 
 void i2c_isr( uint8_t ch )
 {
-	volatile I2C_Channel* channel = &i2c_channels[ch];
+	volatile I2C_Channel* channel = &i2c_channels[ch - ISSI_I2C_FirstBus_define];
 #if defined(_kinetis_)
 	volatile uint8_t *I2C_C1  = (uint8_t*)(&I2C0_C1) + i2c_offset[ch];
 	volatile uint8_t *I2C_S   = (uint8_t*)(&I2C0_S) + i2c_offset[ch];

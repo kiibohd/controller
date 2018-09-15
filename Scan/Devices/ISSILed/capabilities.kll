@@ -5,7 +5,7 @@ Author = "HaaTa (Jacob Alexander) 2015-2017";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-03-29;
+Date = 2018-09-15;
 
 # Basic ISSI Capabilities
 # Modes
@@ -80,6 +80,8 @@ ISSI_Chips = 1; # 1 by default
 # I2C Buses
 ISSI_I2C_Buses => ISSI_I2C_Buses_define;
 ISSI_I2C_Buses = 1; # 1 by default
+ISSI_I2C_FirstBus => ISSI_I2C_FirstBus_define;
+ISSI_I2C_FirstBus = 0; # Start at I2C0 (used for initialization)
 
 # I2C LED Struct Definition
 LED_BufferStruct = "

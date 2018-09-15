@@ -264,6 +264,7 @@ void LED_setupPage( uint8_t bus, uint8_t addr, uint8_t page )
 {
 #if ISSI_Chip_31FL3733_define == 1
 	// See http://www.issi.com/WW/pdf/31FL3733.pdf Table 3 Page 12
+	// See http://www.issi.com/WW/pdf/31FL3736.pdf Table 3 Page 13
 	uint16_t pageEnable[] = { addr, 0xFE, 0xC5 };
 	while ( i2c_send( bus, pageEnable, sizeof( pageEnable ) / 2 ) == -1 )
 		delay_us( ISSI_SendDelay );
@@ -462,7 +463,11 @@ void LED_reset()
 	GPIOC_PSOR |= (1<<5);
 	delay_us(200);
 	GPIOC_PCOR |= (1<<5);
-#elif defined(_sam_)
+#elif defined(_sam4s_a_)
+	PIOA->PIO_SODR = (1<<16);
+	delay_us(200);
+	PIOA->PIO_CODR = (1<<16);
+#elif defined(_sam4s_)
 	PIOA->PIO_SODR = (1<<17);
 	delay_us(200);
 	PIOA->PIO_CODR = (1<<17);
@@ -716,7 +721,12 @@ inline void LED_setup()
 	GPIOC_PSOR |= (1<<5);
 	delay_us(50);
 	GPIOC_PCOR |= (1<<5);
-#elif defined(_sam_)
+#elif defined(_sam4s_a_)
+	PIOA->PIO_OER = (1<<16);
+	PIOA->PIO_SODR = (1<<16);
+	delay_us(50);
+	PIOA->PIO_CODR = (1<<16);
+#elif defined(_sam4s_)
 	PIOA->PIO_OER = (1<<17);
 	PIOA->PIO_SODR = (1<<17);
 	delay_us(50);
@@ -868,7 +878,7 @@ inline void LED_scan()
 #if defined(_kinetis_)
 		GPIOB_PCOR |= (1<<16);
 #elif defined(_sam_)
-		PIOA->PIO_CODR = (1<<17);
+		PIOA->PIO_CODR = (1<<15);
 #endif
 		goto led_finish_scan;
 	}
@@ -1131,7 +1141,12 @@ void cliFunc_ledReset( char* args )
 	GPIOC_PSOR |= (1<<5);
 	delay_us(50);
 	GPIOC_PCOR |= (1<<5);
-#elif defined(_sam_)
+#elif defined(_sam4s_a_)
+	PIOA->PIO_OER = (1<<16);
+	PIOA->PIO_SODR = (1<<16);
+	delay_us(50);
+	PIOA->PIO_CODR = (1<<16);
+#elif defined(_sam4s_)
 	PIOA->PIO_SODR = (1<<17);
 	delay_us(50);
 	PIOA->PIO_CODR = (1<<17);
