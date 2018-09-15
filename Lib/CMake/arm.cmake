@@ -115,7 +115,11 @@ endif ()
 #| SAM Sources
 if ( "${CHIP_SUPPORT}" MATCHES "sam" )
 	list( APPEND COMPILER_SRCS
+		Lib/ASF/common/services/clock/sam4s/sysclk.c
+		Lib/ASF/common/utils/interrupt/interrupt_sam_nvic.c
 		Lib/ASF/sam/drivers/efc/efc.c
+		Lib/ASF/sam/drivers/pmc/pmc.c
+		Lib/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.c
 	)
 endif ()
 

@@ -47,11 +47,7 @@ elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 
 	if ( "${CHIP}" MATCHES "^sam.*$" )
 	list(APPEND Module_SRCS
-		../../Lib/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.c
 		../../Lib/ASF/sam/drivers/udp/udp_device.c
-		../../Lib/ASF/sam/drivers/pmc/pmc.c
-		../../Lib/ASF/common/utils/interrupt/interrupt_sam_nvic.c
-		../../Lib/ASF/common/services/clock/sam4s/sysclk.c
 
 		../../Lib/ASF/common/services/usb/udc/udc.c
 		../../Lib/ASF/common/services/usb/class/hid/device/udi_hid.c
