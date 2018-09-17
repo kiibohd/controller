@@ -31,7 +31,7 @@ environment:
     # Input Club Keyboard Tests
     - SCRIPT_DIR: Keyboards
       SCRIPT: ic_keyboards.bash
-    - SCRIPT_DIR: Keyboards
+    - SCRIPT_DIR: Keyboards/Others
       SCRIPT: others.bash
 
     # Debug Build Tests
