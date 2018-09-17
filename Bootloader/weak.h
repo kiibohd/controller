@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 by Jacob Alexander
+/* Copyright (C) 2017-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,10 +24,11 @@
 
 int8_t Chip_validation( uint8_t* key ) __attribute__ ((weak));
 
-void   Chip_process()   __attribute__ ((weak));
-void   Chip_reset()     __attribute__ ((weak));
-void   Chip_setup()     __attribute__ ((weak));
-void   Device_process() __attribute__ ((weak));
-void   Device_reset()   __attribute__ ((weak));
-void   Device_setup()   __attribute__ ((weak));
+void   Chip_process()           __attribute__ ((weak));
+void   Chip_reset()             __attribute__ ((weak));
+void   Chip_setup()             __attribute__ ((weak));
+void   Chip_download_complete() __attribute__ ((weak));
+void   Device_process()         __attribute__ ((weak));
+void   Device_reset()           __attribute__ ((weak));
+void   Device_setup()           __attribute__ ((weak));
 

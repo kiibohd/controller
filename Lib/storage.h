@@ -49,9 +49,14 @@
 
 // ----- Functions -----
 
-uint8_t storage_init(void);
-uint8_t storage_write(uint8_t* data, uint16_t address, uint16_t size );
+void storage_init();
+uint8_t storage_write(uint8_t* data, uint16_t address, uint16_t size, uint8_t clear );
 uint8_t storage_read(uint8_t* data, uint16_t address, uint16_t size );
+uint8_t storage_clear_page();
+
+uint8_t storage_page_position();
+int8_t storage_block_position();
+uint8_t storage_is_storage_cleared();
 
 #endif
 

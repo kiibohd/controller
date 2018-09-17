@@ -23,6 +23,7 @@
 
 // Project Includes
 #include <Lib/entropy.h>
+#include <Lib/storage.h>
 #include "debug.h"
 
 // Local Includes
@@ -105,22 +106,18 @@ void Chip_reset()
 // Called during bootloader initialization
 void Chip_setup()
 {
-	/* Disable WDT */
+	// Disable WDT
 	WDT->WDT_MR = WDT_MR_WDDIS;
 
-	/* Enable Debug LED */
+	// Enable Debug LED
 	PIOB->PIO_PER = (1<<0);
 	PIOB->PIO_OER = (1<<0);
 	PIOB->PIO_SODR = (1<<0);
 
-	/* Initialize flash: 6 wait states for flash writing. */
-	/*uint32_t ul_rc;
-	ul_rc = flash_init(FLASH_ACCESS_MODE_128, 6);
-	if (ul_rc != FLASH_RC_OK) {
-		return;
-	}*/
+	// Initialize non-volatile storage
+	storage_init();
 
-	/* Start USB stack */
+	// Start USB stack
 	udc_start();
 }
 
@@ -167,5 +164,25 @@ int8_t Chip_validation( uint8_t* key )
 	// Otherwise, an invalid key
 	print( "Invalid firmware key!" NL );
 	return -1;
+}
+
+// Called after firmware download has completed, but before reseting and jumping to firmware
+void Chip_download_complete()
+{
+	// Make sure the last page of non-volatile memory has been cleared
+	switch ( storage_clear_page() )
+	{
+	case 0:
+		print("Flash was not cleared." NL);
+		break;
+	default:
+		print("Flashed cleared!" NL);
+		break;
+	}
+	print(" Page: ");
+	printHex( storage_page_position() );
+	print( " Block: ");
+	printHex( storage_block_position() );
+	print( NL );
 }
 

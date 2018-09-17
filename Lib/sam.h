@@ -44,13 +44,13 @@
 // Can be 63, 127, 255 and 511 bytes
 // XXX (HaaTa): Dual bank flash controllers (e.g. sam4sd32c) will have problems if using more than 1/2 the flash
 //              Will have to calculate the starting storage position differently...
-// Bootloader should always be defined as the maximum size so it is able to fully clear the block when flashing
-// new firmware.
+// Bootloader should always be defined as the minimum size so it is able to fully clear the block from any block
+// when attempting to clear the flash for new firmware.
 // The bootloader will only reset a page if
-//  a) Storage isn't already empty (all FFs)
-//  b) Storage isn't already cleared (Current page is all 00s)
+//  a) Storage is completely empty (page 0, block 0)
+//  b) The previous page has cleared blocks already
 #if defined(_bootloader_)
-#define STORAGE_SIZE 511
+#define STORAGE_SIZE 63
 #else
 #define STORAGE_SIZE 63
 #endif

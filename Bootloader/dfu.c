@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2017 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2018 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include "usb.h"
 #include "dfu.h"
 #include "debug.h"
+#include "weak.h"
 
 
 
@@ -230,6 +231,8 @@ int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		{
 		case DFU_STATE_dfuMANIFEST:
 			ctx->state = DFU_STATE_dfuMANIFEST_WAIT_RESET;
+			// Download finished, just waiting for reset now
+			Chip_download_complete();
 			break;
 		case DFU_STATE_dfuMANIFEST_WAIT_RESET:
 			ctx->state = DFU_STATE_dfuIDLE;

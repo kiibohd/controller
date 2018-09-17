@@ -41,6 +41,13 @@
 
 #include "storage.h"
 
+// Project Includes
+#if defined(_bootloader_)
+#include <debug.h>
+#else
+#include <print.h>
+#endif
+
 // ASF Includes
 #include <flash_efc.h>
 
@@ -75,18 +82,39 @@ static int8_t current_storage_index = 0;
 static uint8_t storage_buffer[STORAGE_SIZE];
 static uint8_t current_page = 0;
 static uint8_t erase_flag = 0;
+static uint8_t cleared_block = 0; // Set to 1 if current block has been cleared (i.e. empty)
 
-/* status byte scheme
-| X | X | X | X | X | X | X | V |
-if V = 1, page/sub_page is next in line to be written, otherwise 0
-*/
+// Status Byte Scheme
+//
+// | X | X | X | X | X | X | B | V |
+// if V = 1, page/sub_page is next in line to be written, otherwise 0
+// if V = 0 and B = 1, the page has been cleared and does not need to be cleared (when blanking out the page)
 
 
 
 // ----- Functions -----
 
+// Determine if the given block has been cleared
+// This is used by the bootloader to clear out old and possibly incompatible non-volatile data
+// However if the next block wasn't used, the bootloader needs a way to not wear out the flash
+// This is also useful for firmware in order to determine whether or not to discard the non-volatile state data
+//
+// data points to the "reading" page rather than the full flash block
+//
+// Returns 1 if cleared page was found
+// Returns 0 if a normal page was found
+static uint8_t find_cleared_block( uint8_t *data )
+{
+	// Determine if block is cleared
+	if ( !(data[0] & 0x01) && data[0] & 0x02 )
+	{
+		return 1;
+	}
+	return 0;
+}
+
 // Determine which block in page we are at
-static int8_t get_storage_block( uint8_t * data )
+static int8_t get_storage_block( uint8_t *data )
 {
 #if (STORAGE_SIZE == 511)
 	if ( data[0] & 0x01 )
@@ -156,7 +184,7 @@ static int8_t get_storage_block( uint8_t * data )
 	return -1;
 }
 
-uint8_t storage_init()
+void storage_init()
 {
 	uint8_t page_walker;
 
@@ -193,6 +221,9 @@ uint8_t storage_init()
 	// If no page found, then the last page was the valid one. select the last block and put the data into buffer
 	if ( page_walker == STORAGE_PAGES )
 	{
+		// Check for cleared page
+		cleared_block = find_cleared_block( page_buffer );
+
 		for ( int i = 0; i < STORAGE_SIZE; i++ )
 		{
 #if (STORAGE_SIZE == 511)
@@ -223,6 +254,9 @@ uint8_t storage_init()
 				sizeof(page_buffer)
 			);
 
+			// Check for cleared page
+			cleared_block = find_cleared_block( page_buffer );
+
 			for ( int i  = 0; i < STORAGE_SIZE; i++ )
 			{
 #if(STORAGE_SIZE == 511)
@@ -239,22 +273,31 @@ uint8_t storage_init()
 		// If the block is within a page, go to previous block and fetch the data
 		else
 		{
+			uint16_t pos = (current_storage_index - 1) * (STORAGE_SIZE + 1);
+
+			// Check for cleared page
+			cleared_block = find_cleared_block( &page_buffer[pos] );
+
 			for ( int i = 0; i < STORAGE_SIZE; i++ )
 			{
-				storage_buffer[i] = page_buffer[((current_storage_index - 1) * (STORAGE_SIZE + 1)) + 1 + i];
+				storage_buffer[i] = page_buffer[pos + 1 + i];
 			}
 		}
 
 	}
-
-	return 1;
 }
 
 // Write storage block
 // data    - Buffer to write from
 // address - Starting address to write to
 // size    - Number of bytes to write into storage
-uint8_t storage_write(uint8_t* data, uint16_t address, uint16_t size )
+// clear   - Set 0 for normal write, Set 1 to indicate nothing of value in the block (empty block)
+//
+// Returns
+//  0 - Not enough space
+//  1 - Success
+//  2 - Failed to write successfully, but incremented counters (i.e. try again)
+uint8_t storage_write(uint8_t* data, uint16_t address, uint16_t size, uint8_t clear )
 {
 	// Flashing buffer
 	uint8_t page_buffer[STORAGE_FLASH_PAGE_SIZE];
@@ -281,8 +324,22 @@ uint8_t storage_write(uint8_t* data, uint16_t address, uint16_t size )
 		flash_erase_page( STORAGE_FLASH_START + (STORAGE_FLASH_PAGE_SIZE * 8), IFLASH_ERASE_PAGES_8 );
 	}
 
+	// Check which type of block we are writing
+	uint8_t block_type = 0x00; // Normal block
+	if ( clear )
+	{
+		// Cleared page, update status to indicate this page should be ignored
+		block_type = 0x02;
+		cleared_block = 1;
+	}
+	else
+	{
+		// Valid block
+		cleared_block = 0;
+	}
+
 	// Clear empty page flag
-	page_buffer[(current_storage_index * (STORAGE_SIZE + 1))] = 0x00;
+	page_buffer[(current_storage_index * (STORAGE_SIZE + 1))] = block_type;
 
 	// Prepare flashing and in-memory buffers so we can write to flash
 	for ( int i = 0; i < size; i++ )
@@ -295,7 +352,7 @@ uint8_t storage_write(uint8_t* data, uint16_t address, uint16_t size )
 	}
 
 	// Write flashing buffer to flash
-	flash_write(
+	uint32_t status = flash_write(
 		(STORAGE_FLASH_START + current_page * STORAGE_FLASH_PAGE_SIZE),
 		(const void *)page_buffer,
 		sizeof(page_buffer), 0
@@ -334,6 +391,18 @@ uint8_t storage_write(uint8_t* data, uint16_t address, uint16_t size )
 		erase_flag = 1;
 		current_storage_index = 0;
 	}
+
+	// Check status
+	if ( status )
+	{
+		print("Failed to write to flash... ERROR: ");
+#if defined(_bootloader_)
+		printHex(status);
+#else
+		printHex32(status);
+#endif
+		return 2;
+	}
 	return 1;
 }
 
@@ -354,6 +423,66 @@ uint8_t storage_read( uint8_t* data, uint16_t address, uint16_t size )
 	{
 		data[i] = storage_buffer[address + i];
 	}
+	return 1;
+}
+
+// Read storage page position
+// Must run storage_init() first!
+uint8_t storage_page_position()
+{
+	return current_page;
+}
+
+// Read storage block position (offset from the page)
+// Must run storage_init() first!
+int8_t storage_block_position()
+{
+	return current_storage_index;
+}
+
+// Returns 1 if storage has been cleared and will not have conflicts when changing the block size
+// Or if there is no useful data in the non-volatile storage
+uint8_t storage_is_storage_cleared()
+{
+	return cleared_block;
+}
+
+// Clears the current page
+// Does not clear if:
+//  - Previous page was cleared already
+//  - Flash is entirely empty (no reason to clear)
+//
+// Returns:
+//  0 - Page was not cleared
+//  1 - Page was cleared
+uint8_t storage_clear_page()
+{
+	// Flash is empty
+	if ( current_page == 0 && current_storage_index == 0 )
+	{
+		return 0;
+	}
+
+	// Previous page was completely cleared
+	if ( current_storage_index == 0 && cleared_block == 1 )
+	{
+		return 0;
+	}
+
+	// Clear the rest of the blocks in the page
+	// Write a 0'd out buffer as well
+	uint8_t temp_buffer[STORAGE_SIZE];
+	memset( temp_buffer, 0, STORAGE_SIZE );
+	while ( current_storage_index != 0 )
+	{
+		if ( storage_write( temp_buffer, 0, STORAGE_SIZE, 1 ) == 0 )
+		{
+			// This is bad...not possible to recover without manually clearing
+			print("Not enough room in buffer, failed to clear block.");
+			return 0;
+		}
+	}
+
 	return 1;
 }
 
