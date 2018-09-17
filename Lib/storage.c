@@ -287,11 +287,56 @@ void storage_init()
 	}
 }
 
+// Erase flash if full
+// Only erases flash if erase flag has been set
+// storage_init() must be called first
+//
+// Returns:
+//  0 - Erase was not done (invalid status for erasure)
+//  1 - Erase completed
+static uint8_t storage_erase_flash()
+{
+	// If we have wrapped around the reserved 16 pages, delete everything
+	if ( current_page == 0 && erase_flag && current_storage_index == 0 )
+	{
+		// Erase the first 8 pages
+		uint32_t status = flash_erase_page( STORAGE_FLASH_START, IFLASH_ERASE_PAGES_8 );
+		if ( status )
+		{
+			print("Failed erasing pages 0..7: ");
+#if defined(_bootloader_)
+			printHex( status );
+#else
+			printHex32( status );
+#endif
+			print( NL );
+		}
+
+		// Erase the last 8 pages
+		status = flash_erase_page( STORAGE_FLASH_START + (STORAGE_FLASH_PAGE_SIZE * 8), IFLASH_ERASE_PAGES_8 );
+		if ( status )
+		{
+			print("Failed erasing pages 8..15: ");
+#if defined(_bootloader_)
+			printHex( status );
+#else
+			printHex32( status );
+#endif
+			print( NL );
+		}
+
+		return 1;
+	}
+
+	return 0;
+}
+
 // Write storage block
 // data    - Buffer to write from
 // address - Starting address to write to
 // size    - Number of bytes to write into storage
 // clear   - Set 0 for normal write, Set 1 to indicate nothing of value in the block (empty block)
+// storage_init() must be called first
 //
 // Returns
 //  0 - Not enough space
@@ -315,14 +360,8 @@ uint8_t storage_write(uint8_t* data, uint16_t address, uint16_t size, uint8_t cl
 		page_buffer[i] = 0xff;
 	}
 
-	// If we have wrapped around the reserved 16 pages, delete everything
-	if ( current_page == 0 && erase_flag && current_storage_index == 0 )
-	{
-		// Erase the first 8 pages
-		flash_erase_page( STORAGE_FLASH_START, IFLASH_ERASE_PAGES_8 );
-		// Erase the last 8 pages
-		flash_erase_page( STORAGE_FLASH_START + (STORAGE_FLASH_PAGE_SIZE * 8), IFLASH_ERASE_PAGES_8 );
-	}
+	// Erase flash, only erases if erase_flag has been set
+	storage_erase_flash();
 
 	// Check which type of block we are writing
 	uint8_t block_type = 0x00; // Normal block
@@ -410,6 +449,11 @@ uint8_t storage_write(uint8_t* data, uint16_t address, uint16_t size, uint8_t cl
 // data    - Buffer to read into
 // address - Starting address from storage
 // size    - Number of bytes to read starting from address
+// storage_init() must be called first
+//
+// Returns:
+//  0 - If range is invalid and will not fit inside a block
+//  1 - Read was successful
 uint8_t storage_read( uint8_t* data, uint16_t address, uint16_t size )
 {
 	// Make sure the data section fully exists
@@ -442,6 +486,7 @@ int8_t storage_block_position()
 
 // Returns 1 if storage has been cleared and will not have conflicts when changing the block size
 // Or if there is no useful data in the non-volatile storage
+// storage_init() must be called first
 uint8_t storage_is_storage_cleared()
 {
 	return cleared_block;
@@ -451,6 +496,7 @@ uint8_t storage_is_storage_cleared()
 // Does not clear if:
 //  - Previous page was cleared already
 //  - Flash is entirely empty (no reason to clear)
+// storage_init() must be called first
 //
 // Returns:
 //  0 - Page was not cleared
@@ -460,6 +506,11 @@ uint8_t storage_clear_page()
 	// Flash is empty
 	if ( current_page == 0 && current_storage_index == 0 )
 	{
+		// Flash is full, needs to be erased which is the same as clearing a page
+		if ( storage_erase_flash() )
+		{
+			return 1;
+		}
 		return 0;
 	}
 
