@@ -94,6 +94,7 @@ execute_process ( COMMAND ${KLL_EXECUTABLE} --path
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
 )
+file ( TO_CMAKE_PATH "${kll_installation_path}" kll_installation_path )
 message ( STATUS "kll Installation Path: ${kll_installation_path}" )
 set ( kll_layouts_path
 	"${kll_installation_path}/layouts"
@@ -105,6 +106,7 @@ execute_process ( COMMAND ${KLL_EXECUTABLE} --layout-cache-path
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 	WORKING_DIRECTORY ${KLL_WORKING_DIRECTORY}
 )
+file ( TO_CMAKE_PATH "${kll_cache_path}" kll_cache_path )
 message ( STATUS "kll Layouts Cache Path: ${kll_cache_path}" )
 
 
