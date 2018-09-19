@@ -854,7 +854,7 @@ void cliFunc_version( char* args )
 
 	print( " \033[1mChip Ext:\033[0m      " );
 	printHex32( CHIPID->CHIPID_EXID & CHIPID_EXID_EXID_Msk );
-	print( ")" NL );
+	print( NL );
 
 	print( " \033[1mUnique Id:\033[0m     " );
 	printHex32_op( sam_UniqueId[0], 8 );
