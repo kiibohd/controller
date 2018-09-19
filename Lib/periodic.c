@@ -162,9 +162,9 @@ void TC0_Handler()
 	uint32_t status = TC0->TC_CHANNEL[0].TC_SR;
 	if ( status & TC_SR_CPCS )
 	{
+		SEGGER_SYSVIEW_RecordExitISRToScheduler();
 		(*periodic_func)();
 	}
-	SEGGER_SYSVIEW_RecordExitISRToScheduler();
 }
 
 

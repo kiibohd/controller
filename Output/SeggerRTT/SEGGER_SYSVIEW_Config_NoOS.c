@@ -64,6 +64,8 @@ Revision: $Rev: 7745 $
 #include "SEGGER_SYSVIEW.h"
 #include "SEGGER_SYSVIEW_Conf.h"
 
+#include <Lib/mcu_compat.h>
+
 // SystemcoreClock can be used in most CMSIS compatible projects.
 // In non-CMSIS projects define SYSVIEW_CPU_FREQ.
 //extern unsigned int SystemCoreClock;
@@ -89,7 +91,7 @@ Revision: $Rev: 7745 $
 #define SYSVIEW_CPU_FREQ        (SystemCoreClock)
 
 // The lowest RAM address used for IDs (pointers)
-#define SYSVIEW_RAM_BASE        (0xfff8000)
+#define SYSVIEW_RAM_BASE        (0x20000000)
 
 // Define as 1 if the Cortex-M cycle counter is used as SystemView timestamp. Must match SEGGER_SYSVIEW_Conf.h
 #ifndef   USE_CYCCNT_TIMESTAMP
@@ -133,7 +135,7 @@ static void _cbSendSystemDesc(void) {
   SEGGER_SYSVIEW_SendSysDesc("I#14=PendSV");
   SEGGER_SYSVIEW_SendSysDesc("I#15=SysTick");
 
-//#if defined(_sam_)
+#if defined(_sam_)
   SEGGER_SYSVIEW_SendSysDesc("I#16=SUPC");
   SEGGER_SYSVIEW_SendSysDesc("I#17=RSTC");
   SEGGER_SYSVIEW_SendSysDesc("I#18=RTC");
@@ -166,7 +168,7 @@ static void _cbSendSystemDesc(void) {
   SEGGER_SYSVIEW_SendSysDesc("I#48=CRCCU");
   SEGGER_SYSVIEW_SendSysDesc("I#49=ACC");
   SEGGER_SYSVIEW_SendSysDesc("I#50=UDP");
-//#endif
+#endif
 }
 
 

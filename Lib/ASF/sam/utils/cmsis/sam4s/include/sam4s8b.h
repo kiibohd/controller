@@ -470,7 +470,9 @@ void WDT_Handler        ( void );
 #define CHIP_EXID         (0x0UL)
 #define NB_CH_ADC         (10UL)
 #define NB_CH_DAC         (2UL)
+#ifndef USB_DEVICE_MAX_EP
 #define USB_DEVICE_MAX_EP (8UL)
+#endif
 
 /* ************************************************************************** */
 /*   ELECTRICAL DEFINITIONS FOR SAM4S8B */

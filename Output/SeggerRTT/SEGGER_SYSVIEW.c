@@ -624,7 +624,7 @@ static void _SendSyncInfo(void) {
 static void _SendPacket(U8* pStartPacket, U8* pEndPacket, unsigned int EventId) {
   unsigned int  NumBytes;
   U32           TimeStamp;
-  U32           Delta;
+  I32           Delta;
 #if (SEGGER_SYSVIEW_POST_MORTEM_MODE != 1)
   int           Status;
 #endif
@@ -692,6 +692,9 @@ Send:
   //
   TimeStamp  = SEGGER_SYSVIEW_GET_TIMESTAMP();
   Delta = TimeStamp - _SYSVIEW_Globals.LastTxTimeStamp;
+  if (Delta < 0) {
+	  Delta = 1;
+  }
   MAKE_DELTA_32BIT(Delta);
   ENCODE_U32(pEndPacket, Delta);
 #if (SEGGER_SYSVIEW_POST_MORTEM_MODE == 1)

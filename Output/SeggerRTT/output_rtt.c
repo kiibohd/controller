@@ -30,6 +30,7 @@
 // RTT Includes
 #include "SEGGER_RTT.h"
 #include "SEGGER_SYSVIEW.h"
+#include "SEGGER_SYSVIEW_Conf.h"
 
 // KLL Include
 #include <kll.h>
@@ -59,8 +60,10 @@ volatile uint8_t rtt_buffer[rtt_buffer_size];
 // RTT Module Setup
 inline void RTT_setup()
 {
-	SEGGER_SYSVIEW_Conf();
-	//SEGGER_SYSVIEW_Start();
+	//SEGGER_SYSVIEW_Conf();
+#if SEGGER_SYSVIEW_POST_MORTEM_MODE
+	SEGGER_SYSVIEW_Start();
+#endif
 }
 
 

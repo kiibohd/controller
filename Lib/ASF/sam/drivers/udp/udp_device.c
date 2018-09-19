@@ -44,6 +44,56 @@
 #include <string.h>
 
 #include <Lib/sysview.h>
+void UDP_Desc();
+SEGGER_SYSVIEW_MODULE UDP_Module = {
+	"M=udp_device",
+	39, 0,
+	UDP_Desc, NULL
+};
+
+void UDP_Desc() {
+	// SEGGER_SYSVIEW_NameResource ((U32)&(RxPacketFifo), "Rx FIFO");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "0 udd_sleep_mode b_idle=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "1 udd_vbus_monitor_sleep_mode b_lock=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "2 udd_vbus_handler id=%u mask=%d");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "3 udd_enable");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "4 udd_disable");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "5 udd_attach");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "6 udd_detach");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "7 udd_set_address address=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "8 udd_get_address | address=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "9 udd_get_frame_number | address=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "10 udd_send_remotewakeup");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "11 udd_set_setup_payload payload=%p payload_size=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "12 udd_ep_alloc ep=%u bmAttributes=%u MaxEndpointSize=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "13 udd_ep_free ep=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "14 udd_ep_is_halted ep=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "15 udd_ep_set_halt ep=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "16 udd_ep_clear_halt ep=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "17 udd_ep_run ep=%u b_shortpacket=%u buf=%p buf_size=%u callback=%p");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "18 udd_ep_abort ep=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "19 udd_ep_wait_stall_clear ep=%u callback=%p");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "20 udd_reset_ep_ctrl");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "21 udd_ctrl_init");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "22 udd_ctrl_setup_received");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "23 udd_ctrl_in_sent");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "24 udd_ctrl_out_received");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "25 udd_ctrl_stall_data");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "26 udd_ctrl_send_zlp_in");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "27 udd_ctrl_send_zlp_out");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "28 udd_ctrl_endofrequest");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "29 udd_ctrl_interrupt");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "30 udd_ep_job_table_reset");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "31 udd_ep_job_table_kill");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "32 udd_ep_abort_job ep=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "33 udd_ep_finish_job ptr_job=%p status=%u ep_num=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "34 udd_ep_ack_out_received ep=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "35 udd_ep_write_fifo ep=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "36 udd_ep_in_sent ep=%u b_tx=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "37 udd_ep_out_received ep=%u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "38 udd_ep_interrupt");
+}
+
 
 #ifndef UDD_NO_SLEEP_MGR
 #  include "sleep.h"
@@ -158,6 +208,7 @@ static bool udd_b_idle;
  */
 static void udd_sleep_mode(bool b_idle)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 0, b_idle);
 	if (!b_idle && udd_b_idle) {
 		sleepmgr_unlock_mode(UDP_SLEEP_MODE_USB_IDLE);
 	}
@@ -165,12 +216,15 @@ static void udd_sleep_mode(bool b_idle)
 		sleepmgr_lock_mode(UDP_SLEEP_MODE_USB_IDLE);
 	}
 	udd_b_idle = b_idle;
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 0);
 }
 #else
 
 static void udd_sleep_mode(bool b_idle)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 0, b_idle);
 	UNUSED(b_idle);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 0);
 }
 
 #endif // UDD_NO_SLEEP_MGR
@@ -192,6 +246,7 @@ static bool b_vbus_sleep_lock = false;
  */
 static void udd_vbus_monitor_sleep_mode(bool b_lock)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 1, b_lock);
 	if (b_lock && !b_vbus_sleep_lock) {
 		b_vbus_sleep_lock = true;
 		sleepmgr_lock_mode(SLEEPMGR_SLEEP_WFI);
@@ -200,6 +255,7 @@ static void udd_vbus_monitor_sleep_mode(bool b_lock)
 		b_vbus_sleep_lock = false;
 		sleepmgr_unlock_mode(SLEEPMGR_SLEEP_WFI);
 	}
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 1);
 }
 # else
 #  define udd_vbus_monitor_sleep_mode(lock)
@@ -210,6 +266,7 @@ static void udd_vbus_monitor_sleep_mode(bool b_lock)
  */
 static void udd_vbus_handler(uint32_t id, uint32_t mask)
 {
+	SEGGER_SYSVIEW_RecordU32x2(UDP_Module.EventOffset + 2, id, mask);
 	if (USB_VBUS_PIO_ID != id || USB_VBUS_PIO_MASK != mask) {
 		return;
 	}
@@ -225,6 +282,7 @@ static void udd_vbus_handler(uint32_t id, uint32_t mask)
 		udd_detach();
 	}
 	UDC_VBUS_EVENT(b_vbus_high);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 2);
 }
 
 #endif
@@ -556,6 +614,8 @@ bool udd_include_vbus_monitoring(void)
 
 void udd_enable(void)
 {
+	SEGGER_SYSVIEW_RegisterModule(&UDP_Module);
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 3);
 	irqflags_t flags;
 
 	flags = cpu_irq_save();
@@ -602,11 +662,13 @@ void udd_enable(void)
 #endif
 
 	cpu_irq_restore(flags);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 3);
 }
 
 
 void udd_disable(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 4);
 	irqflags_t flags;
 	flags = cpu_irq_save();
 
@@ -621,11 +683,13 @@ void udd_disable(void)
 # endif
 
 	cpu_irq_restore(flags);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 4);
 }
 
 
 void udd_attach(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 5);
 	irqflags_t flags;
 	flags = cpu_irq_save();
 
@@ -648,16 +712,19 @@ void udd_attach(void)
 	udd_enable_sof_interrupt();
 
 	cpu_irq_restore(flags);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 5);
 }
 
 
 void udd_detach(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 6);
 	// Disable transceiver
 	udd_disable_transceiver();
 	// Detach device from the bus
 	udd_detach_device();
 	udd_sleep_mode(false);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 6);
 }
 
 
@@ -669,6 +736,7 @@ bool udd_is_high_speed(void)
 
 void udd_set_address(uint8_t address)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 7);
 	udd_disable_address_state();
 	udd_disable_address();
 	if (address) {
@@ -676,19 +744,26 @@ void udd_set_address(uint8_t address)
 		udd_enable_address();
 		udd_enable_address_state();
 	}
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 7);
 }
 
 
 uint8_t udd_getaddress(void)
 {
-	if (Is_udd_address_state_enabled())
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 8);
+	if (Is_udd_address_state_enabled()) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 8, udd_get_configured_address());
 		return udd_get_configured_address();
+	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 8, 0);
 	return 0;
 }
 
 
 uint16_t udd_get_frame_number(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 9);
+	SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 9, udd_frame_number());
 	return udd_frame_number();
 }
 
@@ -701,6 +776,7 @@ uint16_t udd_get_micro_frame_number(void)
 
 void udd_send_remotewakeup(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 10);
 #ifndef UDD_NO_SLEEP_MGR
 	if (!udd_b_idle)
 #endif
@@ -709,13 +785,16 @@ void udd_send_remotewakeup(void)
 		udd_enable_periph_ck();
 		udd_initiate_remote_wake_up();
 	}
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 10);
 }
 
 
 void udd_set_setup_payload( uint8_t *payload, uint16_t payload_size )
 {
+	SEGGER_SYSVIEW_RecordU32x2(UDP_Module.EventOffset + 11, payload, payload_size);
 	udd_g_ctrlreq.payload = payload;
 	udd_g_ctrlreq.payload_size = payload_size;
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 11);
 }
 
 
@@ -723,6 +802,7 @@ void udd_set_setup_payload( uint8_t *payload, uint16_t payload_size )
 bool udd_ep_alloc(udd_ep_id_t ep, uint8_t bmAttributes,
 		uint16_t MaxEndpointSize)
 {
+	SEGGER_SYSVIEW_RecordU32x3(UDP_Module.EventOffset + 12, ep, bmAttributes, MaxEndpointSize);
 	udd_ep_job_t *ptr_job;
 	bool b_dir_in;
 	bool b_iso;
@@ -731,17 +811,21 @@ bool udd_ep_alloc(udd_ep_id_t ep, uint8_t bmAttributes,
 	ep = ep & USB_EP_ADDR_MASK;
 
 	if (ep > USB_DEVICE_MAX_EP) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 12, 0);
 		return false;
 	}
 	if (Is_udd_endpoint_enabled(ep)) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 12, 0);
 		return false;
 	}
 
 	// Check parameters
 	if (b_iso && (!udd_is_endpoint_support_iso(ep))) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 12, 0);
 		return false;
 	}
 	if (MaxEndpointSize > udd_get_endpoint_size_max(ep)) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 12, 0);
 		return false;
 	}
 	ptr_job = &udd_ep_job[ep - 1];
@@ -761,28 +845,35 @@ bool udd_ep_alloc(udd_ep_id_t ep, uint8_t bmAttributes,
 	udd_configure_endpoint(ep,
 		(b_dir_in ? ((bmAttributes&USB_EP_TYPE_MASK) | 0x4) : (bmAttributes&USB_EP_TYPE_MASK)),
 		0);
+	SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 12, 1);
 	return true;
 }
 
 
 void udd_ep_free(udd_ep_id_t ep)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 13, ep);
 	uint8_t ep_index = ep & USB_EP_ADDR_MASK;
 	if (USB_DEVICE_MAX_EP < ep_index) {
+		SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 13);
 		return;
 	}
 	udd_disable_endpoint(ep_index);
 	udd_ep_abort_job(ep);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 13);
 }
 
 
 bool udd_ep_is_halted(udd_ep_id_t ep)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 14, ep);
 	uint8_t ep_index = ep & USB_EP_ADDR_MASK;
 	udd_ep_job_t *ptr_job = &udd_ep_job[ep_index - 1];
 	if (USB_DEVICE_MAX_EP < ep_index) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 14, 0);
 		return false;
 	}
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 14);
 	return ptr_job->b_stall_requested ||
 			Is_udd_endpoint_stall_pending(ep & USB_EP_ADDR_MASK);
 }
@@ -790,11 +881,13 @@ bool udd_ep_is_halted(udd_ep_id_t ep)
 
 bool udd_ep_set_halt(udd_ep_id_t ep)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 15, ep);
 	bool b_dir_in = ep & USB_EP_DIR_IN;
 	uint8_t ep_index = ep & USB_EP_ADDR_MASK;
 	udd_ep_job_t *ptr_job = &udd_ep_job[ep_index - 1];
 	irqflags_t flags;
 	if (USB_DEVICE_MAX_EP < ep_index) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 15, 0);
 		return false;
 	}
 	flags = cpu_irq_save();
@@ -811,17 +904,21 @@ bool udd_ep_set_halt(udd_ep_id_t ep)
 		udd_enable_endpoint_interrupt(ep_index);
 		cpu_irq_restore(flags);
 	}
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 15);
 	return true;
 }
 
 
 bool udd_ep_clear_halt(udd_ep_id_t ep)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 16, ep);
 	udd_ep_job_t *ptr_job;
 
 	ep &= USB_EP_ADDR_MASK;
-	if (USB_DEVICE_MAX_EP < ep)
+	if (USB_DEVICE_MAX_EP < ep) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 16, 0);
 		return false;
+	}
 	ptr_job = &udd_ep_job[ep - 1];
 
 	ptr_job->b_stall_requested = false;
@@ -839,6 +936,7 @@ bool udd_ep_clear_halt(udd_ep_id_t ep)
 			ptr_job->call_nohalt();
 		}
 	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 16, 1);
 	return true;
 }
 
@@ -847,12 +945,14 @@ bool udd_ep_run(udd_ep_id_t ep, bool b_shortpacket,
 		uint8_t * buf, iram_size_t buf_size,
 		udd_callback_trans_t callback)
 {
+	SEGGER_SYSVIEW_RecordU32x5(UDP_Module.EventOffset + 17, ep, b_shortpacket, buf, buf_size, callback);
 	udd_ep_job_t *ptr_job;
 	irqflags_t flags;
 	bool b_dir_in = ep & USB_EP_DIR_IN;
 
 	ep &= USB_EP_ADDR_MASK;
 	if (USB_DEVICE_MAX_EP < ep) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 17, 0);
 		return false;
 	}
 	// Get job about endpoint
@@ -861,12 +961,14 @@ bool udd_ep_run(udd_ep_id_t ep, bool b_shortpacket,
 	if ((!Is_udd_endpoint_enabled(ep))
 			|| ptr_job->b_stall_requested
 			|| Is_udd_endpoint_stall_requested(ep)) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 17, 0);
 		return false; // Endpoint is halted
 	}
 
 	flags = cpu_irq_save();
 	if (ptr_job->busy == true) {
 		cpu_irq_restore(flags);
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 17, 0);
 		return false; // Job already on going
 	}
 	ptr_job->busy = true;
@@ -900,18 +1002,22 @@ bool udd_ep_run(udd_ep_id_t ep, bool b_shortpacket,
 	}
 	cpu_irq_restore(flags);
 
+	SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 17, 1);
 	return true;
 }
 
 
 void udd_ep_abort(udd_ep_id_t ep)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 18, ep);
 	bool b_dir_in = ep & USB_EP_DIR_IN;
 	irqflags_t flags;
 
 	ep &= USB_EP_ADDR_MASK;
-	if (USB_DEVICE_MAX_EP < ep)
+	if (USB_DEVICE_MAX_EP < ep) {
+		SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 18);
 		return;
+	}
 
 	// Disable interrupts
 	flags = cpu_irq_save();
@@ -937,27 +1043,32 @@ void udd_ep_abort(udd_ep_id_t ep)
 	udd_reset_endpoint(ep);
 	// Abort job
 	udd_ep_abort_job(ep);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 18);
 }
 
 
 bool udd_ep_wait_stall_clear(udd_ep_id_t ep,
 		udd_callback_halt_cleared_t callback)
 {
+	SEGGER_SYSVIEW_RecordU32x2(UDP_Module.EventOffset + 19, ep, callback);
 	udd_ep_job_t *ptr_job;
 
 	ep &= USB_EP_ADDR_MASK;
 	if (USB_DEVICE_MAX_EP < ep) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 19, 0);
 		return false;
 	}
 
 	ptr_job = &udd_ep_job[ep - 1];
 
 	if (!Is_udd_endpoint_enabled(ep)) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 19, 0);
 		return false; // Endpoint not enabled
 	}
 
 	// Wait clear halt endpoint
 	if (ptr_job->busy == true) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 19, 0);
 		return false; // Job already on going
 	}
 
@@ -970,6 +1081,7 @@ bool udd_ep_wait_stall_clear(udd_ep_id_t ep,
 		// endpoint not halted then call directly callback
 		callback();
 	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 19, 1);
 	return true;
 }
 #endif // (0!=USB_DEVICE_MAX_EP)
@@ -980,6 +1092,7 @@ bool udd_ep_wait_stall_clear(udd_ep_id_t ep,
 
 static void udd_reset_ep_ctrl(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 20);
 	irqflags_t flags;
 
 	// Reset USB address to 0
@@ -992,19 +1105,23 @@ static void udd_reset_ep_ctrl(void)
 	flags = cpu_irq_save();
 	udd_enable_endpoint_interrupt(0);
 	cpu_irq_restore(flags);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 20);
 }
 
 static void udd_ctrl_init(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 21);
 	udd_g_ctrlreq.callback = NULL;
 	udd_g_ctrlreq.over_under_run = NULL;
 	udd_g_ctrlreq.payload_size = 0;
 	udd_ep_control_state = UDD_EPCTRL_SETUP;
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 21);
 }
 
 
 static void udd_ctrl_setup_received(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 22);
 	uint8_t i;
 
 	if (UDD_EPCTRL_SETUP != udd_ep_control_state) {
@@ -1060,11 +1177,13 @@ static void udd_ctrl_setup_received(void)
 		udd_ctrl_payload_nb_trans = 0;
 		udd_ep_control_state = UDD_EPCTRL_DATA_OUT;
 	}
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 22);
 }
 
 
 static void udd_ctrl_in_sent(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 23);
 	static bool b_shortpacket = false;
 	uint16_t nb_remain;
 	uint8_t i;
@@ -1143,11 +1262,13 @@ static void udd_ctrl_in_sent(void)
 	// In case of abort of DATA IN phase, no need to enable nak OUT interrupt
 	// because OUT endpoint is already free and ZLP OUT accepted.
 	cpu_irq_restore(flags);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 23);
 }
 
 
 static void udd_ctrl_out_received(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 24);
 	uint8_t i;
 	uint16_t nb_data;
 
@@ -1232,69 +1353,86 @@ static void udd_ctrl_out_received(void)
 	}
 	// Free buffer of control endpoint to authorize next reception
 	udd_ack_bank0_received(0);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 24);
 }
 
 
 void udd_ctrl_stall_data(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 25);
 	// Stall all packets on IN & OUT control endpoint
 	udd_ep_control_state = UDD_EPCTRL_STALL_REQ;
 	udd_enable_stall_handshake(0);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 25);
 }
 
 
 static void udd_ctrl_send_zlp_in(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 26);
 	udd_ep_control_state = UDD_EPCTRL_HANDSHAKE_WAIT_IN_ZLP;
 	// Validate and send empty IN packet on control endpoint
 	// Send ZLP on IN endpoint
 	udd_set_transmit_ready(0);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 26);
 }
 
 
 static void udd_ctrl_send_zlp_out(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 27);
 	udd_ep_control_state = UDD_EPCTRL_HANDSHAKE_WAIT_OUT_ZLP;
 	// No action is necessary to accept OUT ZLP
 	// because the buffer of control endpoint is already free
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 27);
 }
 
 
 static void udd_ctrl_endofrequest(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 28);
 	// If a callback is registered then call it
 	if (udd_g_ctrlreq.callback) {
 		udd_g_ctrlreq.callback();
 	}
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 28);
 }
 
 
 static bool udd_ctrl_interrupt(void)
 {
-	if (!Is_udd_endpoint_interrupt(0))
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 29);
+	if (!Is_udd_endpoint_interrupt(0)) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 29, 0);
 		return false; // No interrupt events on control endpoint
+	}
 
 	// Search event on control endpoint
 	if (Is_udd_setup_received(0)) {
 		// SETUP packet received
 		udd_ctrl_setup_received();
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 29, 1);
 		return true;
 	}
 	if (Is_udd_in_sent(0)) {
 		// IN packet sent
 		udd_ctrl_in_sent();
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 29, 1);
 		return true;
 	}
 	if (Is_udd_bank0_received(0)) {
 		// OUT packet received
 		udd_ctrl_out_received();
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 29, 1);
 		return true;
 	}
 	if (Is_udd_stall(0)) {
 		// STALLed
 		udd_ack_stall(0);
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 29, 1);
 		return true;
 	}
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 29, 0);
 	return false;
 }
 
@@ -1306,6 +1444,7 @@ static bool udd_ctrl_interrupt(void)
 
 static void udd_ep_job_table_reset(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 30);
 	uint8_t i;
 	for (i = 0; i < USB_DEVICE_MAX_EP; i++) {
 		udd_ep_job[i].bank = 0;
@@ -1314,32 +1453,38 @@ static void udd_ep_job_table_reset(void)
 		udd_ep_job[i].b_shortpacket = false;
 		udd_ep_job[i].b_buf_end = false;
 	}
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 30);
 }
 
 
 static void udd_ep_job_table_kill(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 31);
 	uint8_t i;
 
 	// For each endpoint, kill job
 	for (i = 0; i < USB_DEVICE_MAX_EP; i++) {
 		udd_ep_finish_job(&udd_ep_job[i], UDD_EP_TRANSFER_ABORT, i + 1);
 	}
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 31);
 }
 
 
 static void udd_ep_abort_job(udd_ep_id_t ep)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 32, ep);
 	ep &= USB_EP_ADDR_MASK;
 
 	// Abort job on endpoint
 	udd_ep_finish_job(&udd_ep_job[ep - 1], UDD_EP_TRANSFER_ABORT, ep);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 32);
 }
 
 
 static void udd_ep_finish_job(udd_ep_job_t * ptr_job, int status,
 		uint8_t ep_num)
 {
+	SEGGER_SYSVIEW_RecordU32x3(UDP_Module.EventOffset + 33, ptr_job, status, ep_num);
 	if (ptr_job->busy == false) {
 		return; // No on-going job
 	}
@@ -1352,11 +1497,13 @@ static void udd_ep_finish_job(udd_ep_job_t * ptr_job, int status,
 	}
 	ptr_job->call_trans((status == UDD_EP_TRANSFER_ABORT) ?
 		UDD_EP_TRANSFER_ABORT : UDD_EP_TRANSFER_OK, ptr_job->buf_size, ep_num);
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 33);
 }
 
 
 static void udd_ep_ack_out_received(udd_ep_id_t ep)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 34, ep);
 	bool bank0_received, bank1_received;
 	udd_ep_job_t *ptr_job = &udd_ep_job[ep - 1];
 
@@ -1381,11 +1528,13 @@ static void udd_ep_ack_out_received(udd_ep_id_t ep)
 		udd_ack_bank1_received(ep);
 		ptr_job->bank = 0;
 	}
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 34);
 }
 
 
 static bool udd_ep_write_fifo(udd_ep_id_t ep)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 35, ep);
 	udd_ep_job_t *ptr_job = &udd_ep_job[ep - 1];
 	uint8_t *ptr_src = &ptr_job->buf[ptr_job->buf_cnt];
 	uint32_t nb_remain = ptr_job->buf_size - ptr_job->buf_cnt;
@@ -1419,12 +1568,14 @@ static bool udd_ep_write_fifo(udd_ep_id_t ep)
 
 	// Add to buffered banks
 	ptr_job->bank++;
+	SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 35, 1);
 	return is_short_pkt;
 }
 
 
 static bool udd_ep_in_sent(udd_ep_id_t ep, bool b_tx)
 {
+	SEGGER_SYSVIEW_RecordU32x2(UDP_Module.EventOffset + 36, ep, b_tx);
 	bool b_shortpacket;
 	udd_ep_job_t *ptr_job = &udd_ep_job[ep - 1];
 
@@ -1455,12 +1606,14 @@ static bool udd_ep_in_sent(udd_ep_id_t ep, bool b_tx)
 		ptr_job->b_buf_end = true;
 		return false;
 	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 36, 1);
 	return true; // Pending
 }
 
 
 static void udd_ep_out_received(udd_ep_id_t ep)
 {
+	SEGGER_SYSVIEW_RecordU32(UDP_Module.EventOffset + 37, ep);
 	udd_ep_job_t *ptr_job = &udd_ep_job[ep - 1];
 	uint32_t nb_data = 0, i;
 	uint32_t nb_remain = ptr_job->buf_size - ptr_job->buf_cnt;
@@ -1495,11 +1648,13 @@ static void udd_ep_out_received(udd_ep_id_t ep)
 		ptr_job->buf_size = ptr_job->buf_cnt; // buf_size is passed to callback as XFR count
 		udd_ep_finish_job(ptr_job, UDD_EP_TRANSFER_OK, ep);
 	}
+	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 37);
 }
 
 
 static bool udd_ep_interrupt(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 38);
 	udd_ep_id_t ep;
 	udd_ep_job_t *ptr_job;
 
@@ -1516,6 +1671,7 @@ static bool udd_ep_interrupt(void)
 		// RXOUT: Full packet received
 		if (Is_udd_any_bank_received(ep)) {
 			udd_ep_out_received(ep);
+			SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 38, 1);
 			return true;
 		}
 		// TXIN: packet sent
@@ -1536,6 +1692,7 @@ static bool udd_ep_interrupt(void)
 					// Halt executed
 					ptr_job->b_stall_requested = false;
 				}
+				SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 38, 1);
 				return true;
 			}
 			// Finish Job when buffer end
@@ -1554,6 +1711,7 @@ static bool udd_ep_interrupt(void)
 				cpu_irq_restore(flags);
 				// Ack last packet
 				udd_ack_in_sent(ep);
+				SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 38, 1);
 				return true;
 			} else if (udd_get_endpoint_bank_max_nbr(ep) > 1
 					&& ptr_job->bank > 0) {
@@ -1576,6 +1734,7 @@ static bool udd_ep_interrupt(void)
 				udd_ep_in_sent(ep, true);
 				udd_ack_in_sent(ep);
 			}
+			SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 38, 1);
 			return true;
 		}
 		// Stall sent/CRC error
@@ -1584,9 +1743,11 @@ static bool udd_ep_interrupt(void)
 			if (udd_get_endpoint_type(ep) == UDP_CSR_EPTYPE_ISO_OUT ||
 				udd_get_endpoint_type(ep) == UDP_CSR_EPTYPE_ISO_IN) {
 			}
+			SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 38, 1);
 			return true;
 		}
 	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 38, 0);
 	return false;
 }
 #endif // (0!=USB_DEVICE_MAX_EP)

@@ -109,7 +109,7 @@ void unused_isr()
 extern volatile uint32_t systick_millis_count;
 void systick_default_isr()
 {
-	SEGGER_SYSVIEW_RecordEnterISR();
+	//SEGGER_SYSVIEW_RecordEnterISR();
 	systick_millis_count++;
 
 	// Not necessary in bootloader
@@ -119,7 +119,7 @@ void systick_default_isr()
 	DWT->CYCCNT = 0;
 	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 #endif
-	SEGGER_SYSVIEW_RecordExitISRToScheduler();
+	//SEGGER_SYSVIEW_RecordExitISR();
 }
 
 /* Cortex-M4 core handlers */
@@ -441,6 +441,10 @@ void ResetHandler()
 	//REG_MTB_POSITION = ((uint32_t) (mtb - REG_MTB_BASE)) & 0xFFFFFFF8;
 	//REG_MTB_FLOW = ((uint32_t) mtb + TRACE_BUFFER_SIZE * sizeof(uint32_t)) & 0xFFFFFFF8;
 	//REG_MTB_MASTER = 0x80000000 + 6;
+#endif
+
+#ifdef SEGGER_SYSVIEW_H
+	SEGGER_SYSVIEW_Conf();
 #endif
 
 	// Initialize the SysTick counter
