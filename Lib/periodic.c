@@ -158,11 +158,11 @@ uint32_t Periodic_cycles()
 
 void TC0_Handler()
 {
-	SEGGER_SYSVIEW_RecordEnterISR();
+	//SEGGER_SYSVIEW_RecordEnterISR();
 	uint32_t status = TC0->TC_CHANNEL[0].TC_SR;
 	if ( status & TC_SR_CPCS )
 	{
-		SEGGER_SYSVIEW_RecordExitISRToScheduler();
+		//SEGGER_SYSVIEW_RecordExitISRToScheduler();
 		(*periodic_func)();
 	}
 }

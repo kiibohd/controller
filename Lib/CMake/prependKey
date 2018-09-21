@@ -58,28 +58,31 @@ cur_key=$(head -c 4 ${input_file} | hexdump -C | cut -b9- | cut -d"|" -f1 | tr -
 # 00400020 - mk20dx128vlh7
 # 00800020 - mk20dx256vlh7
 # 00000120 - mk22fx512avlh12
-if [ "${cur_key}" = "00800020" ] \
-		|| [ "${cur_key}" = "00200020" ] \
-		|| [ "${cur_key}" = "00000120" ] \
-		|| [ "${cur_key}" = "00400020" ]; then
-	echo "Setting new key"
-else
-	# Check if CLEARKEY was set to true
-	if ${CLEARKEY} || ${STRIPKEY}; then
-		# Strip first 1024 bytes
-		dd bs=1024 skip=1 if=${input_file} of=${tmp_file} &> /dev/null
-		# Overwrite old file
-		mv ${tmp_file} ${input_file}
-
-		# Do not prepend a new key
-		if ${STRIPKEY}; then
-			exit 0
-		fi
-	else
-		echo "Key already set!: ${cur_key}"
-		exit 1
-	fi
-fi
+# d8650020 - sam4s8b
+#if [ "${cur_key}" = "00800020" ] \
+#		|| [ "${cur_key}" = "00200020" ] \
+#		|| [ "${cur_key}" = "00000120" ] \
+#		|| [ "${cur_key}" = "00400020" ] \
+#		|| [ "${cur_key}" = "d8650020" ] \
+#		|| [ "${cur_key}" = "c8650020" ]; then
+#	echo "Setting new key"
+#else
+#	# Check if CLEARKEY was set to true
+#	if ${CLEARKEY} || ${STRIPKEY}; then
+#		# Strip first 1024 bytes
+#		dd bs=${BLOCK_SIZE} skip=1 if=${input_file} of=${tmp_file} &> /dev/null
+#		# Overwrite old file
+#		mv ${tmp_file} ${input_file}
+#
+#		# Do not prepend a new key
+#		if ${STRIPKEY}; then
+#			exit 0
+#		fi
+#	else
+#		echo "Key already set!: ${cur_key}"
+#		exit 1
+#	fi
+#fi
 
 # Generate printf key
 # XXX (HaaTa) Currently only the mk20dx256vlh7 is supported

@@ -92,6 +92,7 @@ void UDP_Desc() {
 	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "36 udd_ep_in_sent ep=%u b_tx=%u");
 	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "37 udd_ep_out_received ep=%u");
 	SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "38 udd_ep_interrupt");
+	//SEGGER_SYSVIEW_RecordModuleDescription(&UDP_Module, "39 STRING %u");
 }
 
 
@@ -500,7 +501,7 @@ static bool udd_ep_interrupt(void);
  */
 ISR(UDD_USB_INT_FUN)
 {
-	SEGGER_SYSVIEW_RecordEnterISR();
+	//SEGGER_SYSVIEW_RecordEnterISR();
 
 	/* For fast wakeup clocks restore
 	 * In WAIT mode, clocks are switched to FASTRC.
@@ -602,7 +603,7 @@ ISR(UDD_USB_INT_FUN)
 
 udd_interrupt_end:
 udd_interrupt_sof_end:
-	SEGGER_SYSVIEW_RecordExitISR();
+	//SEGGER_SYSVIEW_RecordExitISR();
 	return;
 }
 

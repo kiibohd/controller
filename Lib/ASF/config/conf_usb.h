@@ -100,8 +100,6 @@
 //#define  UDC_REMOTEWAKEUP_DISABLE()       main_remotewakeup_disable()
 //! When a extra string descriptor must be supported
 //! other than manufacturer, product and serial string
-extern bool main_extra_string();
-#define  UDC_GET_EXTRA_STRING() main_extra_string()
 //@}
 
 //@}
@@ -149,9 +147,11 @@ extern bool main_extra_string();
 //! The includes of classes and other headers must be done at the end of this file to avoid compile error
 #if defined(_bootloader_)
 bool udi_dfu_atmel_setup(void);
+extern bool main_extra_string();
 
 #undef USB_DEVICE_MAX_EP
 #define USB_DEVICE_SPECIFIC_REQUEST udi_dfu_atmel_setup
+#define  UDC_GET_EXTRA_STRING() main_extra_string()
 #define  USB_DEVICE_MAX_EP 1
 #include "udi_dfu_atmel_conf.h"
 

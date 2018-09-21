@@ -479,6 +479,17 @@ static uint8_t joystick_report_desc[] = {
 // Determine number of interfaces
 #define NUM_INTERFACE (KEYBOARD_INTERFACES + CDC_INTERFACES + MOUSE_INTERFACES + JOYSTICK_INTERFACES + RAWIO_INTERFACES)
 
+#define XSTR(x) STR(x)
+#define STR(x) #x
+#pragma message "NUMIFACE " XSTR(NUM_INTERFACE)
+#pragma message "kbd " XSTR(KEYBOARD_INTERFACE)
+#pragma message "nkey " XSTR(NKRO_KEYBOARD_INTERFACE)
+#pragma message "sys " XSTR(SYS_CTRL_INTERFACE)
+#pragma message "CDC-stat " XSTR(CDC_STATUS_INTERFACE)
+#pragma message "CDC-data " XSTR(CDC_DATA_INTERFACE)
+#pragma message "rawio " XSTR(RAWIO_INTERFACE)
+#pragma message "mouse " XSTR(MOUSE_INTERFACE)
+#pragma message "joystick " XSTR(JOYSTICK_INTERFACE)
 
 // USB Configuration Descriptor.  This huge descriptor tells all
 // of the devices capbilities.
@@ -606,6 +617,7 @@ static uint8_t config_descriptor[] = {
 // --- CDC / Serial Port Endpoint Descriptors ---
 //
 #if enableVirtualSerialPort_define == 1
+#error SERIAL PORT
 #define SERIAL_CDC_DESC_TOTAL_OFFSET (SERIAL_CDC_DESC_SIZE)
 
 // --- Serial CDC --- CDC IAD Descriptor
@@ -1054,7 +1066,7 @@ const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS] =
 #endif
 };
 
-#if defined(_sam_)
+#if 1 //defined(_sam_)
 /**
  * \name UDC structures which contains all USB Device definitions
  */

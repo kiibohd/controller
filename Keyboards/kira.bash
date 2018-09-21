@@ -51,7 +51,7 @@ DefaultMap="kira/demo.1 stdFuncMap"
 # Keyboard Module Configuration
 ScanModule="Kira"
 MacroModule="PixelMap"
-OutputModule="USB"
+OutputModule="USBxRTT"
 DebugModule="full"
 
 # Microcontroller
@@ -60,7 +60,8 @@ Chip="sam4s8b"
 # Compiler Selection
 Compiler="gcc"
 
-
+#export CMakeExtraArgs="-DCMAKE_BUILD_TYPE=Debug -DJLINK=1"
+export CMakeExtraArgs="-DJLINK=1"
 
 ########################
 # Bash Library Include #

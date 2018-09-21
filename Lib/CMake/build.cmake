@@ -40,6 +40,7 @@ add_definitions(
 	-D__SAM4S8C__
 	-DBOARD=SAM4S_XPLAINED_PRO
 	-DUDD_ENABLE
+	-DSYSTEMVIEW_ENABLED
 )
 endif ( )
 

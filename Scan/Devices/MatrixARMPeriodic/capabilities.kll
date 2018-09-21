@@ -23,7 +23,8 @@ MinDebounceTime = 6; # 6 ms
 # so there is generally little worry about scanning too quickly other than starving other functions.
 # If you scan too slowly, keypresses may be slow/delayed, or even dropped.
 PeriodicCycles => PeriodicCycles_define;
-PeriodicCycles = 1000; # 1000 cycles
+#PeriodicCycles = 10000; # 1000 cycles
+PeriodicCycles = 2500; # 1000 cycles
 
 # This option delays each strobe by the given number of microseconds
 # By default this should *NOT* be set unless your keyboard is having issues

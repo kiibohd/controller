@@ -73,6 +73,7 @@ usb_packet_t *usb_malloc()
 	__disable_irq();
 	avail = usb_buffer_available;
 	n = __builtin_clz( avail ); // clz = count leading zeros
+	n = 0;
 	if ( n >= NUM_USB_BUFFERS )
 	{
 		__enable_irq();

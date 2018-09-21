@@ -159,7 +159,7 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 		}
 
 		// USB Timeout, drop the packet, and potentially try something more drastic to re-enable the bus
-		if ( Time_duration_ms( start ) > TX_TIMEOUT_MS || transmit_previous_timeout )
+		/*if ( Time_duration_ms( start ) > TX_TIMEOUT_MS || transmit_previous_timeout )
 		{
 			transmit_previous_timeout = 1;
 			buffer->changed = USBKeyChangeState_None; // Indicate packet lost
@@ -171,7 +171,7 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 			#endif
 			// Try to wakeup
 			return;
-		}
+		}*/
 
 		yield();
 	}

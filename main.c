@@ -69,29 +69,29 @@ int main_periodic()
 	{
 	case PeriodicStage_Scan:
 		// Returns non-zero if ready to process macros
-		SEGGER_SYSVIEW_OnTaskStartExec(TASK_SCAN_PERIODIC);
+		//SEGGER_SYSVIEW_OnTaskStartExec(TASK_SCAN_PERIODIC);
 		Scan_poll();
 		if ( Scan_periodic() )
 		{
 			stage_tracker = PeriodicStage_Macro;
 		}
-		SEGGER_SYSVIEW_OnTaskTerminate(TASK_SCAN_PERIODIC);
+		//SEGGER_SYSVIEW_OnTaskTerminate(TASK_SCAN_PERIODIC);
 		break;
 
 	case PeriodicStage_Macro:
 		// Run Macros over Key Indices and convert to USB Keys
-		SEGGER_SYSVIEW_OnTaskStartExec(TASK_MACRO_PERIODIC);
+		//SEGGER_SYSVIEW_OnTaskStartExec(TASK_MACRO_PERIODIC);
 		Macro_periodic();
 		stage_tracker = PeriodicStage_Output;
-		SEGGER_SYSVIEW_OnTaskTerminate(TASK_MACRO_PERIODIC);
+		//SEGGER_SYSVIEW_OnTaskTerminate(TASK_MACRO_PERIODIC);
 		break;
 
 	case PeriodicStage_Output:
 		// Send periodic USB results
-		SEGGER_SYSVIEW_OnTaskStartExec(TASK_OUTPUT_PERIODIC);
+		//SEGGER_SYSVIEW_OnTaskStartExec(TASK_OUTPUT_PERIODIC);
 		Output_periodic();
 		stage_tracker = PeriodicStage_Scan;
-		SEGGER_SYSVIEW_OnTaskTerminate(TASK_OUTPUT_PERIODIC);
+		//SEGGER_SYSVIEW_OnTaskTerminate(TASK_OUTPUT_PERIODIC);
 
 		// Full rotation
 		return 1;
@@ -107,13 +107,13 @@ int main()
 {
 #ifdef SEGGER_SYSVIEW_H
 	SEGGER_SYSVIEW_Conf();
-	SEGGER_SYSVIEW_OnTaskCreate(TASK_SCAN_PERIODIC);
-	SEGGER_SYSVIEW_OnTaskCreate(TASK_MACRO_PERIODIC);
-	SEGGER_SYSVIEW_OnTaskCreate(TASK_OUTPUT_PERIODIC);
-	SEGGER_SYSVIEW_OnTaskCreate(TASK_CLI_PROCESS);
-	SEGGER_SYSVIEW_OnTaskCreate(TASK_SCAN_POLL);
-	SEGGER_SYSVIEW_OnTaskCreate(TASK_MACRO_POLL);
-	SEGGER_SYSVIEW_OnTaskCreate(TASK_OUTPUT_POLL);
+	//SEGGER_SYSVIEW_OnTaskCreate(TASK_SCAN_PERIODIC);
+	//SEGGER_SYSVIEW_OnTaskCreate(TASK_MACRO_PERIODIC);
+	//SEGGER_SYSVIEW_OnTaskCreate(TASK_OUTPUT_PERIODIC);
+	//SEGGER_SYSVIEW_OnTaskCreate(TASK_CLI_PROCESS);
+	//SEGGER_SYSVIEW_OnTaskCreate(TASK_SCAN_POLL);
+	//SEGGER_SYSVIEW_OnTaskCreate(TASK_MACRO_POLL);
+	//SEGGER_SYSVIEW_OnTaskCreate(TASK_OUTPUT_POLL);
 #endif
 
 	// Setup Latency Measurements
@@ -145,6 +145,8 @@ int main()
 	// Main Detection Loop
 	while ( 1 )
 	{
+		//SEGGER_SYSVIEW_SendTaskList();
+
 		// Run constantly
 		// Used to process things such as the cli and output module (i.e. USB).
 		// Should not be used to run things that require consistent timing.
@@ -152,31 +154,30 @@ int main()
 		// as they need to run as quickly as possible, in case there needs to be frame drops
 
 		// Process CLI
-		SEGGER_SYSVIEW_OnTaskStartExec(TASK_CLI_PROCESS);
+		//SEGGER_SYSVIEW_OnTaskStartExec(TASK_CLI_PROCESS);
 		CLI_process();
-		SEGGER_SYSVIEW_OnTaskTerminate(TASK_CLI_PROCESS);
+		//SEGGER_SYSVIEW_OnTaskTerminate(TASK_CLI_PROCESS);
 
 		//SEGGER_SYSVIEW_OnIdle();
 
 		// Scan module poll routines
-		SEGGER_SYSVIEW_OnTaskStartExec(TASK_SCAN_POLL);
+		//SEGGER_SYSVIEW_OnTaskStartExec(TASK_SCAN_POLL);
 		Scan_poll();
-		SEGGER_SYSVIEW_OnTaskTerminate(TASK_SCAN_POLL);
+		//SEGGER_SYSVIEW_OnTaskTerminate(TASK_SCAN_POLL);
 
 		//SEGGER_SYSVIEW_OnIdle();
 
 		// Macro module poll routines
-		SEGGER_SYSVIEW_OnTaskStartExec(TASK_MACRO_POLL);
+		//SEGGER_SYSVIEW_OnTaskStartExec(TASK_MACRO_POLL);
 		Macro_poll();
-		SEGGER_SYSVIEW_OnTaskTerminate(TASK_MACRO_POLL);
+		//SEGGER_SYSVIEW_OnTaskTerminate(TASK_MACRO_POLL);
 
 		// Output module poll routines
-		SEGGER_SYSVIEW_OnTaskStartExec(TASK_OUTPUT_POLL);
+		//SEGGER_SYSVIEW_OnTaskStartExec(TASK_OUTPUT_POLL);
 		Output_poll();
-		SEGGER_SYSVIEW_OnTaskTerminate(TASK_OUTPUT_POLL);
+		//SEGGER_SYSVIEW_OnTaskTerminate(TASK_OUTPUT_POLL);
 
 		SEGGER_SYSVIEW_OnIdle();
-
 #if defined(_sam_)
 		// Not locked up... Reset the watchdog timer
 		WDT->WDT_CR = WDT_CR_KEY_PASSWD | WDT_CR_WDRSTT;

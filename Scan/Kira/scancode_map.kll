@@ -157,7 +157,8 @@ S114 : None;
 ISSI_Chip_31FL3733 = 1;
 
 # Global Brightness
-ISSI_Global_Brightness = 255; # 0xFF by default (max)
+#ISSI_Global_Brightness = 255; # 0xFF by default (max)
+ISSI_Global_Brightness = 25; # 0xFF by default (max)
 
 # Available ISSI Chips
 ISSI_Chips = 2; # 2 by default
