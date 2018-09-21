@@ -50,6 +50,7 @@
 // Interface Includes
 #include <output_com.h>
 
+#include <Lib/sysview.h>
 #if defined(_sam_)
 #include "usb_protocol_hid.h"
 #include "udi_hid_kbd.h"
@@ -434,6 +435,8 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 			if ( keyPress )
 			{
 #if defined(_sam_)
+				//SEGGER_SYSVIEW_Start();
+				SEGGER_SYSVIEW_Print("Key press");
 				//udi_hid_kbd_modifier_down(1 << (key ^ 0xE0));
 #endif
 				USBKeys_primary.modifiers |= 1 << (key ^ 0xE0); // Left shift 1 by key XOR 0xE0
@@ -442,6 +445,8 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 			{
 #if defined(_sam_)
 				//udi_hid_kbd_modifier_up(1 << (key ^ 0xE0));
+				SEGGER_SYSVIEW_Print("Key release");
+				//SEGGER_SYSVIEW_Stop();
 #endif
 				USBKeys_primary.modifiers &= ~(1 << (key ^ 0xE0)); // Left shift 1 by key XOR 0xE0
 			}
@@ -460,6 +465,8 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 				if ( keyPress && USBKeys_primary.keys[newkey] == key )
 				{
 #if defined(_sam_)
+					//SEGGER_SYSVIEW_Start();
+					SEGGER_SYSVIEW_Print("Key press");
 					//udi_hid_kbd_down(newkey);
 #endif
 					keyFound = 1;
@@ -471,6 +478,8 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 				{
 #if defined(_sam_)
 					//udi_hid_kbd_up(newkey);
+					SEGGER_SYSVIEW_Print("Key release");
+					//SEGGER_SYSVIEW_Stop();
 #endif
 					// Shift keys over
 					for ( uint8_t pos = newkey; pos < USBKeys_Sent - 1; pos++ )
@@ -494,6 +503,8 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 			// Add key if not already found in the buffer
 			if ( keyPress && !keyFound )
 			{
+				//SEGGER_SYSVIEW_Start();
+				SEGGER_SYSVIEW_Print("Key press");
 				USBKeys_primary.keys[USBKeys_Sent++] = key;
 				USBKeys_primary.changed = USBKeyChangeState_Keys;
 			}
@@ -507,6 +518,8 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 			if ( keyPress )
 			{
 #if defined(_sam_)
+				//SEGGER_SYSVIEW_Start();
+				SEGGER_SYSVIEW_Print("Key press");
 				//udi_hid_kbd_modifier_down(1 << (key ^ 0xE0));
 #endif
 				USBKeys_primary.modifiers |= 1 << (key ^ 0xE0); // Left shift 1 by key XOR 0xE0
@@ -515,6 +528,8 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 			{
 #if defined(_sam_)
 				//udi_hid_kbd_modifier_up(1 << (key ^ 0xE0));
+				SEGGER_SYSVIEW_Print("Key release");
+				//SEGGER_SYSVIEW_Stop();
 #endif
 				USBKeys_primary.modifiers &= ~(1 << (key ^ 0xE0)); // Left shift 1 by key XOR 0xE0
 			}
@@ -588,6 +603,8 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 		if ( keyPress )
 		{
 #if defined(_sam_)
+			//SEGGER_SYSVIEW_Start();
+			SEGGER_SYSVIEW_Print("Key press");
 			//udi_hid_kbd_down(key);
 #endif
 			USBKeys_primary.keys[bytePosition] |= (1 << byteShift);
@@ -597,6 +614,8 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 		{
 #if defined(_sam_)
 			//udi_hid_kbd_up(key);
+			SEGGER_SYSVIEW_Print("Key release");
+			//SEGGER_SYSVIEW_Stop();
 #endif
 			USBKeys_primary.keys[bytePosition] &= ~(1 << byteShift);
 			USBKeys_Sent++;

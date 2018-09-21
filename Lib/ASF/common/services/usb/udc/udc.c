@@ -41,6 +41,46 @@
 #include "udi.h"
 #include "udc.h"
 
+#include <Lib/sysview.h>
+void UDC_Desc();
+SEGGER_SYSVIEW_MODULE UDC_Module = {
+	"M=udc",
+	29, 0,
+	UDC_Desc, NULL
+};
+
+void UDC_Desc() {
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "0 udc_get_string_serial_name | %p");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "1 udc_get_interface_desc | %p");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "2 udc_get_eof_conf | %p");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "3 udc_next_desc_in_iface desc=%p desc_id=%u | %p");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "4 udc_update_iface_desc iface_num=%u setting_nume=%u | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "5 udc_iface_disable iface_num=%u | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "6 udc_iface_enable iface_num=%u setting_num=%u | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "7 udc_start");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "8 udc_stop");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "9 udc_reset");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "10 udc_sof_notify");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "11 udc_req_std_dev_get_status | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "12 udc_req_std_ep_get_status | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "13 udc_req_std_dev_clear_feature | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "14 udc_req_std_ep_clear_feature | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "15 udc_req_std_dev_set_feature | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "16 udc_req_std_ep_set_feature | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "17 udc_valid_address | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "18 udc_req_std_dev_set_address | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "19 udc_req_std_dev_get_str_desc | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "20 udc_req_std_dev_get_descriptor | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "21 udc_req_std_dev_get_configuration | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "22 udc_req_std_dev_set_configuration | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "23 udc_req_std_iface_get_setting | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "24 udc_req_std_iface_set_setting | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "25 udc_reqstd | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "26 udc_req_iface | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "27 udc_req_ep | %u");
+	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "28 udc_process_setup | %u");
+}
+
 /**
  * \ingroup udc_group
  * \defgroup udc_group_interne Implementation of UDC
@@ -122,6 +162,8 @@ static uint8_t udc_string_product_name[] = USB_DEVICE_PRODUCT_NAME;
 #if defined USB_DEVICE_GET_SERIAL_NAME_POINTER
 	static const uint8_t *udc_get_string_serial_name(void)
 	{
+		SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 0);
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 0, USB_DEVICE_SERIAL_NAME);
 		return (const uint8_t *)USB_DEVICE_GET_SERIAL_NAME_POINTER;
 	}
 #  define USB_DEVICE_SERIAL_NAME_SIZE \
@@ -129,6 +171,8 @@ static uint8_t udc_string_product_name[] = USB_DEVICE_PRODUCT_NAME;
 #elif defined USB_DEVICE_SERIAL_NAME
 	static const uint8_t *udc_get_string_serial_name(void)
 	{
+		SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 0);
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 0, USB_DEVICE_SERIAL_NAME);
 		return (const uint8_t *)USB_DEVICE_SERIAL_NAME;
 	}
 #  define USB_DEVICE_SERIAL_NAME_SIZE \
@@ -154,6 +198,8 @@ static UDC_DESC_STORAGE struct udc_string_desc_t udc_string_desc = {
 
 usb_iface_desc_t UDC_DESC_STORAGE *udc_get_interface_desc(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 1);
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 1, udc_ptr_iface);
 	return udc_ptr_iface;
 }
 
@@ -164,6 +210,8 @@ usb_iface_desc_t UDC_DESC_STORAGE *udc_get_interface_desc(void)
  */
 static usb_conf_desc_t UDC_DESC_STORAGE *udc_get_eof_conf(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 2);
+	SEGGER_SYSVIEW_RecordEndCall(UDC_Module.EventOffset + 2);
 	return (UDC_DESC_STORAGE usb_conf_desc_t *) ((uint8_t *)
 			udc_ptr_conf->desc +
 			le16_to_cpu(udc_ptr_conf->desc->wTotalLength));
@@ -183,6 +231,7 @@ static usb_conf_desc_t UDC_DESC_STORAGE *udc_get_eof_conf(void)
 static usb_conf_desc_t UDC_DESC_STORAGE *udc_next_desc_in_iface(usb_conf_desc_t
 		UDC_DESC_STORAGE * desc, uint8_t desc_id)
 {
+	SEGGER_SYSVIEW_RecordU32x2(UDC_Module.EventOffset + 3, desc, desc_id);
 	usb_conf_desc_t UDC_DESC_STORAGE *ptr_eof_desc;
 
 	ptr_eof_desc = udc_get_eof_conf();
@@ -197,12 +246,16 @@ static usb_conf_desc_t UDC_DESC_STORAGE *udc_next_desc_in_iface(usb_conf_desc_t
 			break; // End of global interface descriptor
 		}
 		if (desc_id == desc->bDescriptorType) {
+			SEGGER_SYSVIEW_Print("Specific descriptor found");
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 3, desc);
 			return desc; // Specific descriptor found
 		}
 		// Go to next descriptor
 		desc = (UDC_DESC_STORAGE usb_conf_desc_t *) ((uint8_t *) desc +
 				desc->bLength);
 	}
+	SEGGER_SYSVIEW_Print("No specific descriptor found");
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 3, NULL);
 	return NULL; // No specific descriptor found
 }
 #endif
@@ -218,13 +271,16 @@ static usb_conf_desc_t UDC_DESC_STORAGE *udc_next_desc_in_iface(usb_conf_desc_t
  */
 static bool udc_update_iface_desc(uint8_t iface_num, uint8_t setting_num)
 {
+	SEGGER_SYSVIEW_RecordU32x2(UDC_Module.EventOffset + 4, iface_num, setting_num);
 	usb_conf_desc_t UDC_DESC_STORAGE *ptr_end_desc;
 
 	if (0 == udc_num_configuration) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 4, 0);
 		return false;
 	}
 
 	if (iface_num >= udc_ptr_conf->desc->bNumInterfaces) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 4, 0);
 		return false;
 	}
 
@@ -242,6 +298,8 @@ static bool udc_update_iface_desc(uint8_t iface_num, uint8_t setting_num)
 			if ((iface_num == udc_ptr_iface->bInterfaceNumber) &&
 					(setting_num ==
 					udc_ptr_iface->bAlternateSetting)) {
+				SEGGER_SYSVIEW_Print("A interface descriptor is found");
+				SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 4, 1);
 				return true; // Interface found
 			}
 		}
@@ -250,6 +308,8 @@ static bool udc_update_iface_desc(uint8_t iface_num, uint8_t setting_num)
 				(uint8_t *) udc_ptr_iface +
 				udc_ptr_iface->bLength);
 	}
+	SEGGER_SYSVIEW_Print("Interface not found");
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 4, 1);
 	return false; // Interface not found
 }
 
@@ -263,11 +323,13 @@ static bool udc_update_iface_desc(uint8_t iface_num, uint8_t setting_num)
  */
 static bool udc_iface_disable(uint8_t iface_num)
 {
+	SEGGER_SYSVIEW_RecordU32(UDC_Module.EventOffset + 5, iface_num);
 	udi_api_t UDC_DESC_STORAGE *udi_api;
 
 	// Select first alternate setting of the interface
 	// to update udc_ptr_iface before call iface->getsetting()
 	if (!udc_update_iface_desc(iface_num, 0)) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 5, 0);
 		return false;
 	}
 
@@ -276,6 +338,7 @@ static bool udc_iface_disable(uint8_t iface_num)
 
 #if (0!=USB_DEVICE_MAX_EP)
 	if (!udc_update_iface_desc(iface_num, udi_api->getsetting())) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 5, 0);
 		return false;
 	}
 
@@ -300,6 +363,7 @@ static bool udc_iface_disable(uint8_t iface_num)
 
 	// Disable interface
 	udi_api->disable();
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 5, 1);
 	return true;
 }
 
@@ -315,8 +379,11 @@ static bool udc_iface_disable(uint8_t iface_num)
  */
 static bool udc_iface_enable(uint8_t iface_num, uint8_t setting_num)
 {
+	//SEGGER_SYSVIEW_RegisterModule(&UDC_Module);
+	SEGGER_SYSVIEW_RecordU32x2(UDC_Module.EventOffset + 6, iface_num, setting_num);
 	// Select the interface descriptor
 	if (!udc_update_iface_desc(iface_num, setting_num)) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 6, 0);
 		return false;
 	}
 
@@ -338,11 +405,13 @@ static bool udc_iface_enable(uint8_t iface_num, uint8_t setting_num)
 				ep_desc->bmAttributes,
 				le16_to_cpu
 				(ep_desc->wMaxPacketSize))) {
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 6, 0);
 			return false;
 		}
 	}
 #endif
 	// Enable the interface
+	SEGGER_SYSVIEW_RecordEndCall(UDC_Module.EventOffset + 6);
 	return udc_ptr_conf->udi_apis[iface_num]->enable();
 }
 
@@ -350,15 +419,19 @@ static bool udc_iface_enable(uint8_t iface_num, uint8_t setting_num)
  */
 void udc_start(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 7);
 	udd_enable();
+	SEGGER_SYSVIEW_RecordEndCall(UDC_Module.EventOffset + 7);
 }
 
 /*! \brief Stop the USB Device stack
  */
 void udc_stop(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 8);
 	udd_disable();
 	udc_reset();
+	SEGGER_SYSVIEW_RecordEndCall(UDC_Module.EventOffset + 8);
 }
 
 /**
@@ -367,6 +440,7 @@ void udc_stop(void)
  */
 void udc_reset(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 9);
 	uint8_t iface_num;
 
 	if (udc_num_configuration) {
@@ -381,6 +455,7 @@ void udc_reset(void)
 	== (USB_DEVICE_ATTR & USB_CONFIG_ATTR_REMOTE_WAKEUP))
 	if (CPU_TO_LE16(USB_DEV_STATUS_REMOTEWAKEUP) & udc_device_status) {
 		// Remote wakeup is enabled then disable it
+		SEGGER_SYSVIEW_Print("Remote wakeup is enabled then disable it");
 		UDC_REMOTEWAKEUP_DISABLE();
 	}
 #endif
@@ -390,10 +465,12 @@ void udc_reset(void)
 #else
 			CPU_TO_LE16(USB_DEV_STATUS_BUS_POWERED);
 #endif
+	SEGGER_SYSVIEW_RecordEndCall(UDC_Module.EventOffset + 9);
 }
 
 void udc_sof_notify(void)
 {
+	//SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 10);
 	uint8_t iface_num;
 
 	if (udc_num_configuration) {
@@ -405,6 +482,7 @@ void udc_sof_notify(void)
 			}
 		}
 	}
+	//SEGGER_SYSVIEW_RecordEndCall(UDC_Module.EventOffset + 10);
 }
 
 /**
@@ -414,12 +492,15 @@ void udc_sof_notify(void)
  */
 static bool udc_req_std_dev_get_status(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 11);
 	if (udd_g_ctrlreq.req.wLength != sizeof(udc_device_status)) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 11, 0);
 		return false;
 	}
 
 	udd_set_setup_payload( (uint8_t *) & udc_device_status,
 			sizeof(udc_device_status));
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 11, 1);
 	return true;
 }
 
@@ -431,9 +512,11 @@ static bool udc_req_std_dev_get_status(void)
  */
 static bool udc_req_std_ep_get_status(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 12);
 	static le16_t udc_ep_status;
 
 	if (udd_g_ctrlreq.req.wLength != sizeof(udc_ep_status)) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 12, 0);
 		return false;
 	}
 
@@ -442,6 +525,7 @@ static bool udc_req_std_ep_get_status(void)
 
 	udd_set_setup_payload( (uint8_t *) & udc_ep_status,
 			sizeof(udc_ep_status));
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 12, 1);
 	return true;
 }
 #endif
@@ -453,7 +537,9 @@ static bool udc_req_std_ep_get_status(void)
  */
 static bool udc_req_std_dev_clear_feature(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 13);
 	if (udd_g_ctrlreq.req.wLength) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 13, 0);
 		return false;
 	}
 
@@ -463,8 +549,10 @@ static bool udc_req_std_dev_clear_feature(void)
 	== (USB_DEVICE_ATTR & USB_CONFIG_ATTR_REMOTE_WAKEUP))
 		UDC_REMOTEWAKEUP_DISABLE();
 #endif
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 13, 1);
 		return true;
 	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 13, 0);
 	return false;
 }
 
@@ -476,13 +564,16 @@ static bool udc_req_std_dev_clear_feature(void)
  */
 static bool udc_req_std_ep_clear_feature(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 14);
 	if (udd_g_ctrlreq.req.wLength) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 14, 0);
 		return false;
 	}
 
 	if (udd_g_ctrlreq.req.wValue == USB_EP_FEATURE_HALT) {
 		return udd_ep_clear_halt(udd_g_ctrlreq.req.wIndex & 0xFF);
 	}
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 14, 0);
 	return false;
 }
 #endif
@@ -494,24 +585,30 @@ static bool udc_req_std_ep_clear_feature(void)
  */
 static bool udc_req_std_dev_set_feature(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 15);
 	if (udd_g_ctrlreq.req.wLength) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 15, 0);
 		return false;
 	}
 
 	switch (udd_g_ctrlreq.req.wValue) {
 
 	case USB_DEV_FEATURE_REMOTE_WAKEUP:
+		SEGGER_SYSVIEW_Print("USB_DEV_FEATURE_REMOTE_WAKEUP:");
 #if (USB_CONFIG_ATTR_REMOTE_WAKEUP \
 	== (USB_DEVICE_ATTR & USB_CONFIG_ATTR_REMOTE_WAKEUP))
 		udc_device_status |= CPU_TO_LE16(USB_DEV_STATUS_REMOTEWAKEUP);
 		UDC_REMOTEWAKEUP_ENABLE();
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 15, 1);
 		return true;
 #else
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 15, 0);
 		return false;
 #endif
 
 #ifdef USB_DEVICE_HS_SUPPORT
 	case USB_DEV_FEATURE_TEST_MODE:
+		SEGGER_SYSVIEW_Print("USB_DEV_FEATURE_TEST_MODE");
 		if (!udd_is_high_speed()) {
 			break;
 		}
@@ -522,22 +619,31 @@ static bool udc_req_std_dev_set_feature(void)
 		udc_reset();
 		switch ((udd_g_ctrlreq.req.wIndex >> 8) & 0xFF) {
 		case USB_DEV_TEST_MODE_J:
+			SEGGER_SYSVIEW_Print("USB_DEV_TEST_MODE_J");
 			udd_g_ctrlreq.callback = udd_test_mode_j;
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 15, 1);
 			return true;
 
 		case USB_DEV_TEST_MODE_K:
+			SEGGER_SYSVIEW_Print("USB_DEV_TEST_MODE_K");
 			udd_g_ctrlreq.callback = udd_test_mode_k;
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 15, 1);
 			return true;
 
 		case USB_DEV_TEST_MODE_SE0_NAK:
+			SEGGER_SYSVIEW_Print("USB_DEV_TEST_MODE_SE0_NAK");
 			udd_g_ctrlreq.callback = udd_test_mode_se0_nak;
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 15, 1);
 			return true;
 
 		case USB_DEV_TEST_MODE_PACKET:
+			SEGGER_SYSVIEW_Print("USB_DEV_TEST_MODE_PACKET");
 			udd_g_ctrlreq.callback = udd_test_mode_packet;
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 15, 1);
 			return true;
 
 		case USB_DEV_TEST_MODE_FORCE_ENABLE: // Only for downstream facing hub ports
+			SEGGER_SYSVIEW_Print("USB_DEV_TEST_MODE_FORCE_ENABLE");
 		default:
 			break;
 		}
@@ -546,6 +652,7 @@ static bool udc_req_std_dev_set_feature(void)
 	default:
 		break;
 	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 15, 0);
 	return false;
 }
 
@@ -557,13 +664,16 @@ static bool udc_req_std_dev_set_feature(void)
 #if (0!=USB_DEVICE_MAX_EP)
 static bool udc_req_std_ep_set_feature(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 16);
 	if (udd_g_ctrlreq.req.wLength) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 16, 0);
 		return false;
 	}
 	if (udd_g_ctrlreq.req.wValue == USB_EP_FEATURE_HALT) {
 		udd_ep_abort(udd_g_ctrlreq.req.wIndex & 0xFF);
 		return udd_ep_set_halt(udd_g_ctrlreq.req.wIndex & 0xFF);
 	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 16, 0);
 	return false;
 }
 #endif
@@ -574,7 +684,9 @@ static bool udc_req_std_ep_set_feature(void)
  */
 static void udc_valid_address(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 17);
 	udd_set_address(udd_g_ctrlreq.req.wValue & 0x7F);
+	SEGGER_SYSVIEW_RecordEndCall(UDC_Module.EventOffset + 17);
 }
 
 /**
@@ -584,13 +696,16 @@ static void udc_valid_address(void)
  */
 static bool udc_req_std_dev_set_address(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 18);
 	if (udd_g_ctrlreq.req.wLength) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 18, 0);
 		return false;
 	}
 
 	// The address must be changed at the end of setup request after the handshake
 	// then we use a callback to change address
 	udd_g_ctrlreq.callback = udc_valid_address;
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 18, 1);
 	return true;
 }
 
@@ -601,6 +716,7 @@ static bool udc_req_std_dev_set_address(void)
  */
 static bool udc_req_std_dev_get_str_desc(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 19);
 	uint8_t i;
 	const uint8_t *str;
 	uint8_t str_length = 0;
@@ -636,6 +752,7 @@ static bool udc_req_std_dev_get_str_desc(void)
 			break;
 		}
 #endif
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 19, 0);
 		return false;
 	}
 
@@ -650,6 +767,7 @@ static bool udc_req_std_dev_get_str_desc(void)
 			udc_string_desc.header.bLength);
 	}
 
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 19, 1);
 	return true;
 }
 
@@ -660,6 +778,7 @@ static bool udc_req_std_dev_get_str_desc(void)
  */
 static bool udc_req_std_dev_get_descriptor(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 20);
 	uint8_t conf_num;
 
 	conf_num = udd_g_ctrlreq.req.wValue & 0xff;
@@ -668,14 +787,17 @@ static bool udc_req_std_dev_get_descriptor(void)
 	switch ((uint8_t) (udd_g_ctrlreq.req.wValue >> 8)) {
 	case USB_DT_DEVICE:
 		// Device descriptor requested
+		SEGGER_SYSVIEW_Print("Device descriptor requested");
 #ifdef USB_DEVICE_HS_SUPPORT
 		if (!udd_is_high_speed()) {
+			SEGGER_SYSVIEW_Print("High speed");
 			udd_set_setup_payload(
 				(uint8_t *) udc_config.confdev_hs,
 				udc_config.confdev_hs->bLength);
 		} else
 #endif
 		{
+			SEGGER_SYSVIEW_Print("Low speed");
 			udd_set_setup_payload(
 				(uint8_t *) udc_config.confdev_lsfs,
 				udc_config.confdev_lsfs->bLength);
@@ -684,11 +806,14 @@ static bool udc_req_std_dev_get_descriptor(void)
 
 	case USB_DT_CONFIGURATION:
 		// Configuration descriptor requested
+		SEGGER_SYSVIEW_Print("Configuration descriptor requested");
 #ifdef USB_DEVICE_HS_SUPPORT
 		if (udd_is_high_speed()) {
 			// HS descriptor
+			SEGGER_SYSVIEW_Print("HS descriptor");
 			if (conf_num >= udc_config.confdev_hs->
 					bNumConfigurations) {
+				SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 20, 0);
 				return false;
 			}
 			udd_set_setup_payload(
@@ -698,8 +823,10 @@ static bool udc_req_std_dev_get_descriptor(void)
 #endif
 		{
 			// FS descriptor
+			SEGGER_SYSVIEW_Print("FS descriptor");
 			if (conf_num >= udc_config.confdev_lsfs->
 					bNumConfigurations) {
+				SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 20, 0);
 				return false;
 			}
 			udd_set_setup_payload(
@@ -712,12 +839,14 @@ static bool udc_req_std_dev_get_descriptor(void)
 
 	case USB_DT_DEVICE_QUALIFIER:
 		// Device qualifier descriptor requested
+		SEGGER_SYSVIEW_Print("Device qualifier descriptor requested");
 		udd_set_setup_payload( (uint8_t *) udc_config.qualifier,
 				udc_config.qualifier->bLength);
 		break;
 
 	case USB_DT_DEBUG:
 		// Debug descriptor requested
+		SEGGER_SYSVIEW_Print("Debug descriptor requested");
 		udd_set_setup_payload( (uint8_t *) udc_config.debug,
 				udc_config.debug->bLength);
 		break;
@@ -725,10 +854,13 @@ static bool udc_req_std_dev_get_descriptor(void)
 #ifdef USB_DEVICE_HS_SUPPORT
 	case USB_DT_OTHER_SPEED_CONFIGURATION:
 		// Other configuration descriptor requested
+		SEGGER_SYSVIEW_Print("Other configuration descriptor requested");
 		if (!udd_is_high_speed()) {
 			// HS descriptor
+			SEGGER_SYSVIEW_Print("HS descriptor");
 			if (conf_num >= udc_config.confdev_hs->
 					bNumConfigurations) {
+				SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 20, 0);
 				return false;
 			}
 			udd_set_setup_payload(
@@ -736,8 +868,10 @@ static bool udc_req_std_dev_get_descriptor(void)
 				le16_to_cpu(udc_config.conf_hs[conf_num].desc->wTotalLength));
 		} else {
 			// FS descriptor
+			SEGGER_SYSVIEW_Print("FS descriptor");
 			if (conf_num >= udc_config.confdev_lsfs->
 					bNumConfigurations) {
+				SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 20, 0);
 				return false;
 			}
 			udd_set_setup_payload(
@@ -751,7 +885,9 @@ static bool udc_req_std_dev_get_descriptor(void)
 
 	case USB_DT_BOS:
 		// Device BOS descriptor requested
+		SEGGER_SYSVIEW_Print("Device BOS descriptor requested");
 		if (udc_config.conf_bos == NULL) {
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 20, 0);
 			return false;
 		}
 		udd_set_setup_payload( (uint8_t *) udc_config.conf_bos,
@@ -760,19 +896,24 @@ static bool udc_req_std_dev_get_descriptor(void)
 
 	case USB_DT_STRING:
 		// String descriptor requested
+		SEGGER_SYSVIEW_Print("String descriptor requested");
 		if (!udc_req_std_dev_get_str_desc()) {
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 20, 0);
 			return false;
 		}
 		break;
 
 	default:
 		// Unknown descriptor requested
+		SEGGER_SYSVIEW_Print("Unknown descriptor requested");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 20, 0);
 		return false;
 	}
 	// if the descriptor is larger than length requested, then reduce it
 	if (udd_g_ctrlreq.req.wLength < udd_g_ctrlreq.payload_size) {
 		udd_g_ctrlreq.payload_size = udd_g_ctrlreq.req.wLength;
 	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 20, 1);
 	return true;
 }
 
@@ -783,11 +924,14 @@ static bool udc_req_std_dev_get_descriptor(void)
  */
 static bool udc_req_std_dev_get_configuration(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 21);
 	if (udd_g_ctrlreq.req.wLength != 1) {
 		return false;
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 21, 0);
 	}
 
 	udd_set_setup_payload(&udc_num_configuration,1);
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 21, 1);
 	return true;
 }
 
@@ -798,14 +942,19 @@ static bool udc_req_std_dev_get_configuration(void)
  */
 static bool udc_req_std_dev_set_configuration(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 22);
 	uint8_t iface_num;
 
 	// Check request length
 	if (udd_g_ctrlreq.req.wLength) {
+		SEGGER_SYSVIEW_Print("Bad wLength");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 22, 0);
 		return false;
 	}
 	// Authorize configuration only if the address is valid
 	if (!udd_getaddress()) {
+		SEGGER_SYSVIEW_Print("Bad address");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 22, 0);
 		return false;
 	}
 	// Check the configuration number requested
@@ -814,6 +963,7 @@ static bool udc_req_std_dev_set_configuration(void)
 		// HS descriptor
 		if ((udd_g_ctrlreq.req.wValue & 0xFF) >
 				udc_config.confdev_hs->bNumConfigurations) {
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 22, 0);
 			return false;
 		}
 	} else
@@ -822,6 +972,7 @@ static bool udc_req_std_dev_set_configuration(void)
 		// FS descriptor
 		if ((udd_g_ctrlreq.req.wValue & 0xFF) >
 				udc_config.confdev_lsfs->bNumConfigurations) {
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 22, 0);
 			return false;
 		}
 	}
@@ -832,26 +983,32 @@ static bool udc_req_std_dev_set_configuration(void)
 	// Enable new configuration
 	udc_num_configuration = udd_g_ctrlreq.req.wValue & 0xFF;
 	if (udc_num_configuration == 0) {
+		SEGGER_SYSVIEW_Print("Default empty configuration requested");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 22, 1);
 		return true; // Default empty configuration requested
 	}
 	// Update pointer of the configuration descriptor
 #ifdef USB_DEVICE_HS_SUPPORT
 	if (udd_is_high_speed()) {
 		// HS descriptor
+		SEGGER_SYSVIEW_Print("HS configuration");
 		udc_ptr_conf = &udc_config.conf_hs[udc_num_configuration - 1];
 	} else
 #endif
 	{
 		// FS descriptor
+		SEGGER_SYSVIEW_Print("FS configuration");
 		udc_ptr_conf = &udc_config.conf_lsfs[udc_num_configuration - 1];
 	}
 	// Enable all interfaces of the selected configuration
 	for (iface_num = 0; iface_num < udc_ptr_conf->desc->bNumInterfaces;
 			iface_num++) {
 		if (!udc_iface_enable(iface_num, 0)) {
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 22, 0);
 			return false;
 		}
 	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 22, 1);
 	return true;
 }
 
@@ -863,25 +1020,33 @@ static bool udc_req_std_dev_set_configuration(void)
  */
 static bool udc_req_std_iface_get_setting(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 23);
 	uint8_t iface_num;
 	udi_api_t UDC_DESC_STORAGE *udi_api;
 
 	if (udd_g_ctrlreq.req.wLength != 1) {
+		SEGGER_SYSVIEW_Print("Error in request");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 23, 0);
 		return false; // Error in request
 	}
 	if (!udc_num_configuration) {
+		SEGGER_SYSVIEW_Print("The device is not is configured state yet");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 23, 0);
 		return false; // The device is not is configured state yet
 	}
 
 	// Check the interface number included in the request
 	iface_num = udd_g_ctrlreq.req.wIndex & 0xFF;
 	if (iface_num >= udc_ptr_conf->desc->bNumInterfaces) {
+		SEGGER_SYSVIEW_Print("Bad interface number");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 23, 0);
 		return false;
 	}
 
 	// Select first alternate setting of the interface to update udc_ptr_iface
 	// before call iface->getsetting()
 	if (!udc_update_iface_desc(iface_num, 0)) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 23, 0);
 		return false;
 	}
 	// Get alternate setting from UDI
@@ -890,6 +1055,7 @@ static bool udc_req_std_iface_get_setting(void)
 
 	// Link value to payload pointer of request
 	udd_set_setup_payload(&udc_iface_setting,1);
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 23, 1);
 	return true;
 }
 
@@ -901,12 +1067,17 @@ static bool udc_req_std_iface_get_setting(void)
  */
 static bool udc_req_std_iface_set_setting(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 24);
 	uint8_t iface_num, setting_num;
 
 	if (udd_g_ctrlreq.req.wLength) {
+		SEGGER_SYSVIEW_Print("Error in request");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 24, 0);
 		return false; // Error in request
 	}
 	if (!udc_num_configuration) {
+		SEGGER_SYSVIEW_Print("The device is not is configured state yet");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 24, 0);
 		return false; // The device is not is configured state yet
 	}
 
@@ -915,10 +1086,13 @@ static bool udc_req_std_iface_set_setting(void)
 
 	// Disable current setting
 	if (!udc_iface_disable(iface_num)) {
+		SEGGER_SYSVIEW_Print("Disable current setting");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 24, 0);
 		return false;
 	}
 
 	// Enable new setting
+	SEGGER_SYSVIEW_RecordEndCall(UDC_Module.EventOffset + 24);
 	return udc_iface_enable(iface_num, setting_num);
 }
 
@@ -929,14 +1103,18 @@ static bool udc_req_std_iface_set_setting(void)
  */
 static bool udc_reqstd(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 25);
 	if (Udd_setup_is_in()) {
 		// GET Standard Requests
 		if (udd_g_ctrlreq.req.wLength == 0) {
+			SEGGER_SYSVIEW_Print("Error for USB host");
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 25, 0);
 			return false; // Error for USB host
 		}
 
 		if (USB_REQ_RECIP_DEVICE == Udd_setup_recipient()) {
 			// Standard Get Device request
+			SEGGER_SYSVIEW_Print("Standard Get Device request");
 			switch (udd_g_ctrlreq.req.bRequest) {
 			case USB_REQ_GET_STATUS:
 				return udc_req_std_dev_get_status();
@@ -951,6 +1129,7 @@ static bool udc_reqstd(void)
 
 		if (USB_REQ_RECIP_INTERFACE == Udd_setup_recipient()) {
 			// Standard Get Interface request
+			SEGGER_SYSVIEW_Print("Standard Get Interface request");
 			switch (udd_g_ctrlreq.req.bRequest) {
 			case USB_REQ_GET_INTERFACE:
 				return udc_req_std_iface_get_setting();
@@ -961,6 +1140,7 @@ static bool udc_reqstd(void)
 #if (0!=USB_DEVICE_MAX_EP)
 		if (USB_REQ_RECIP_ENDPOINT == Udd_setup_recipient()) {
 			// Standard Get Endpoint request
+			SEGGER_SYSVIEW_Print("Standard Get Endpoint request");
 			switch (udd_g_ctrlreq.req.bRequest) {
 			case USB_REQ_GET_STATUS:
 				return udc_req_std_ep_get_status();
@@ -973,6 +1153,7 @@ static bool udc_reqstd(void)
 		// SET Standard Requests
 		if (USB_REQ_RECIP_DEVICE == Udd_setup_recipient()) {
 			// Standard Set Device request
+			SEGGER_SYSVIEW_Print("Standard Set Device request");
 			switch (udd_g_ctrlreq.req.bRequest) {
 			case USB_REQ_SET_ADDRESS:
 				return udc_req_std_dev_set_address();
@@ -992,6 +1173,7 @@ static bool udc_reqstd(void)
 
 		if (USB_REQ_RECIP_INTERFACE == Udd_setup_recipient()) {
 			// Standard Set Interface request
+			SEGGER_SYSVIEW_Print("Standard Set Interface request");
 			switch (udd_g_ctrlreq.req.bRequest) {
 			case USB_REQ_SET_INTERFACE:
 				return udc_req_std_iface_set_setting();
@@ -1002,6 +1184,7 @@ static bool udc_reqstd(void)
 #if (0!=USB_DEVICE_MAX_EP)
 		if (USB_REQ_RECIP_ENDPOINT == Udd_setup_recipient()) {
 			// Standard Set Endpoint request
+			SEGGER_SYSVIEW_Print("Standard Set Endpoint request");
 			switch (udd_g_ctrlreq.req.bRequest) {
 			case USB_REQ_CLEAR_FEATURE:
 				return udc_req_std_ep_clear_feature();
@@ -1013,6 +1196,7 @@ static bool udc_reqstd(void)
 		}
 #endif
 	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 25, 0);
 	return false;
 }
 
@@ -1023,15 +1207,19 @@ static bool udc_reqstd(void)
  */
 static bool udc_req_iface(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 26);
 	uint8_t iface_num;
 	udi_api_t UDC_DESC_STORAGE *udi_api;
 
 	if (0 == udc_num_configuration) {
+		SEGGER_SYSVIEW_Print("The device is not is configured state yet");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 26, 0);
 		return false; // The device is not is configured state yet
 	}
 	// Check interface number
 	iface_num = udd_g_ctrlreq.req.wIndex & 0xFF;
 	if (iface_num >= udc_ptr_conf->desc->bNumInterfaces) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 26, 0);
 		return false;
 	}
 
@@ -1039,15 +1227,18 @@ static bool udc_req_iface(void)
 	// Select first alternate setting of interface to update udc_ptr_iface
 	// before calling udi_api->getsetting()
 	if (!udc_update_iface_desc(iface_num, 0)) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 26, 0);
 		return false;
 	}
 	// Select the interface with the current alternate setting
 	udi_api = udc_ptr_conf->udi_apis[iface_num];
 	if (!udc_update_iface_desc(iface_num, udi_api->getsetting())) {
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 26, 0);
 		return false;
 	}
 
 	// Send the SETUP request to the UDI corresponding to the interface number
+	SEGGER_SYSVIEW_RecordEndCall(UDC_Module.EventOffset + 26);
 	return udi_api->setup();
 }
 
@@ -1058,10 +1249,13 @@ static bool udc_req_iface(void)
  */
 static bool udc_req_ep(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 27);
 	uint8_t iface_num;
 	udi_api_t UDC_DESC_STORAGE *udi_api;
 
 	if (0 == udc_num_configuration) {
+		SEGGER_SYSVIEW_Print("The device is not is configured state yet ");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 27, 0);
 		return false; // The device is not is configured state yet
 	}
 	// Send this request on all enabled interfaces
@@ -1071,14 +1265,17 @@ static bool udc_req_ep(void)
 		// Select the interface with the current alternate setting
 		udi_api = udc_ptr_conf->udi_apis[iface_num];
 		if (!udc_update_iface_desc(iface_num, udi_api->getsetting())) {
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 27, 0);
 			return false;
 		}
 
 		// Send the SETUP request to the UDI
 		if (udi_api->setup()) {
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 27, 1);
 			return true;
 		}
 	}
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 27, 0);
 	return false;
 }
 
@@ -1097,6 +1294,7 @@ static bool udc_req_ep(void)
  */
 bool udc_process_setup(void)
 {
+	SEGGER_SYSVIEW_RecordVoid(UDC_Module.EventOffset + 28);
 	// By default no data (receive/send) and no callbacks registered
 	udd_g_ctrlreq.payload_size = 0;
 	udd_g_ctrlreq.callback = NULL;
@@ -1104,13 +1302,17 @@ bool udc_process_setup(void)
 
 	if (Udd_setup_is_in()) {
 		if (udd_g_ctrlreq.req.wLength == 0) {
+			SEGGER_SYSVIEW_Print("Error from USB host");
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 28, 0);
 			return false; // Error from USB host
 		}
 	}
 
 	// If standard request then try to decode it in UDC
 	if (Udd_setup_type() == USB_REQ_TYPE_STANDARD) {
+		SEGGER_SYSVIEW_Print("standard request, try to decode it in UDC");
 		if (udc_reqstd()) {
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 28, 1);
 			return true;
 		}
 	}
@@ -1118,6 +1320,8 @@ bool udc_process_setup(void)
 	// If interface request then try to decode it in UDI
 	if (Udd_setup_recipient() == USB_REQ_RECIP_INTERFACE) {
 		if (udc_req_iface()) {
+			SEGGER_SYSVIEW_Print("interface request, try to decode it in UDI");
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 28, 1);
 			return true;
 		}
 	}
@@ -1125,6 +1329,8 @@ bool udc_process_setup(void)
 	// If endpoint request then try to decode it in UDI
 	if (Udd_setup_recipient() == USB_REQ_RECIP_ENDPOINT) {
 		if (udc_req_ep()) {
+			SEGGER_SYSVIEW_Print("endpoint request, try to decode it in UDI");
+			SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 28, 1);
 			return true;
 		}
 	}
@@ -1132,8 +1338,12 @@ bool udc_process_setup(void)
 	// Here SETUP request unknown by UDC and UDIs
 #ifdef USB_DEVICE_SPECIFIC_REQUEST
 	// Try to decode it in specific callback
+	SEGGER_SYSVIEW_Print("Here SETUP request unknown by UDC and UDIs. Try to decode it in specific callback");
+	SEGGER_SYSVIEW_RecordEndCall(UDC_Module.EventOffset + 28);
 	return USB_DEVICE_SPECIFIC_REQUEST(); // Ex: Vendor request,...
 #else
+	SEGGER_SYSVIEW_Print("Here SETUP request unknown by UDC and UDIs");
+	SEGGER_SYSVIEW_RecordEndCallU32(UDC_Module.EventOffset + 28, 0);
 	return false;
 #endif
 }

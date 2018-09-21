@@ -529,11 +529,13 @@ ISR(UDD_USB_INT_FUN)
 	}
 
 	if (udd_ctrl_interrupt()) {
+		SEGGER_SYSVIEW_Print(" Interrupt acked by control endpoint managed ");
 		goto udd_interrupt_end; // Interrupt acked by control endpoint managed
 	}
 
 #if (0 != USB_DEVICE_MAX_EP)
 	if (udd_ep_interrupt()) {
+		SEGGER_SYSVIEW_Print("Interrupt acked by bulk/interrupt/isochronous endpoint managed");
 		goto udd_interrupt_end; // Interrupt acked by bulk/interrupt/isochronous endpoint managed
 	}
 #endif
@@ -542,6 +544,7 @@ ISR(UDD_USB_INT_FUN)
 		(Is_udd_resume_interrupt_enabled() && Is_udd_resume()) ||
 		(Is_udd_ext_resume_interrupt_enabled() && Is_udd_ext_resume())) {
 		// Ack wakeup interrupt and enable suspend interrupt
+		SEGGER_SYSVIEW_Print("Ack wakeup interrupt and enable suspend interrupt");
 		udd_ack_wakeups();
 		// Do resume operations
 		udd_disable_wakeups();
@@ -558,6 +561,7 @@ ISR(UDD_USB_INT_FUN)
 
 	if (Is_udd_suspend_interrupt_enabled() && Is_udd_suspend()) {
 		// Ack suspend interrupt and enable resume interrupt
+		SEGGER_SYSVIEW_Print("Ack suspend interrupt and enable resume interrupt");
 		udd_ack_suspend();
 		udd_disable_suspend_interrupt();
 		udd_enable_wake_up_interrupt();
@@ -573,6 +577,7 @@ ISR(UDD_USB_INT_FUN)
 	}
 	if (Is_udd_reset()) {
 		// USB bus reset detection
+		SEGGER_SYSVIEW_Print("USB bus reset detection");
 		udd_ack_reset();
 
 		// Abort all jobs on-going
@@ -641,6 +646,7 @@ void udd_enable(void)
 
 #ifndef UDD_NO_SLEEP_MGR
 	// Initialize the sleep mode authorized for the USB suspend mode
+	SEGGER_SYSVIEW_Print("Initialize the sleep mode authorized for the USB suspend mode");
 	udd_b_idle = false;
 	sleepmgr_lock_mode(UDP_SLEEP_MODE_USB_SUSPEND);
 #endif
@@ -653,6 +659,7 @@ void udd_enable(void)
 	 * This is possible due to a short timing between a Host mode stop/start.
 	 */
 	if (Is_udd_vbus_high()) {
+		SEGGER_SYSVIEW_Print("Force Vbus interrupt when Vbus is always high");
 		udd_vbus_handler(USB_VBUS_PIO_ID, USB_VBUS_PIO_MASK);
 	}
 #else
@@ -781,6 +788,7 @@ void udd_send_remotewakeup(void)
 	if (!udd_b_idle)
 #endif
 	{
+		SEGGER_SYSVIEW_Print("Enter in IDLE mode");
 		udd_sleep_mode(true); // Enter in IDLE mode
 		udd_enable_periph_ck();
 		udd_initiate_remote_wake_up();
@@ -797,6 +805,9 @@ void udd_set_setup_payload( uint8_t *payload, uint16_t payload_size )
 	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 11);
 }
 
+//void udd_configure_endpoint(udd_ep_id_t ep, type, dir) {
+//	_udd_configure_endpoint(ep, type, dir);
+//}
 
 #if (0!=USB_DEVICE_MAX_EP)
 bool udd_ep_alloc(udd_ep_id_t ep, uint8_t bmAttributes,
@@ -836,6 +847,7 @@ bool udd_ep_alloc(udd_ep_id_t ep, uint8_t bmAttributes,
 	ptr_job->b_stall_requested = false;
 	if (b_dir_in) {
 		// No data buffered in FIFO
+		SEGGER_SYSVIEW_Print("No data buffered in FIFO");
 		ptr_job->bank = 0;
 	}
 
@@ -894,12 +906,14 @@ bool udd_ep_set_halt(udd_ep_id_t ep)
 	if (b_dir_in && (Is_udd_transmit_ready(ep_index)
 				|| ptr_job->bank > 1)) {
 		// Halt until banks sent
+		SEGGER_SYSVIEW_Print("Halt until banks sent");
 		ptr_job->b_stall_requested = true;
 		udd_enable_endpoint_interrupt(ep_index);
 		cpu_irq_restore(flags);
 		return true;
 	} else {
 		// Stall endpoint
+		SEGGER_SYSVIEW_Print("Stall endpoint");
 		udd_enable_stall_handshake(ep_index);
 		udd_enable_endpoint_interrupt(ep_index);
 		cpu_irq_restore(flags);
@@ -924,6 +938,7 @@ bool udd_ep_clear_halt(udd_ep_id_t ep)
 	ptr_job->b_stall_requested = false;
 	if (Is_udd_endpoint_stall_requested(ep)) {
 		// Remove stall
+		SEGGER_SYSVIEW_Print("Remove stall");
 		udd_disable_stall_handshake(ep);
 		// Reset FIFO and data toggle (after stall cleared)
 		udd_reset_endpoint(ep);
@@ -961,20 +976,26 @@ bool udd_ep_run(udd_ep_id_t ep, bool b_shortpacket,
 	if ((!Is_udd_endpoint_enabled(ep))
 			|| ptr_job->b_stall_requested
 			|| Is_udd_endpoint_stall_requested(ep)) {
+		SEGGER_SYSVIEW_Print("Endpoint is halted");
+		SEGGER_SYSVIEW_PrintfHost("Is_udd_endpoint_enabled = %u", Is_udd_endpoint_enabled(ep));
+		SEGGER_SYSVIEW_PrintfHost("b_stall_requested = %u", ptr_job->b_stall_requested);
+		SEGGER_SYSVIEW_PrintfHost("Is_udd_endpoint_stall_requested = %u", Is_udd_endpoint_stall_requested(ep));
 		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 17, 0);
 		return false; // Endpoint is halted
 	}
 
 	flags = cpu_irq_save();
-	if (ptr_job->busy == true) {
+	/*if (ptr_job->busy == true) {
 		cpu_irq_restore(flags);
+		SEGGER_SYSVIEW_Print("Job already on going");
 		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 17, 0);
 		return false; // Job already on going
-	}
+	}*/
 	ptr_job->busy = true;
 	cpu_irq_restore(flags);
 
 	// No job running. Let's setup a new one.
+	SEGGER_SYSVIEW_Print("No job running. Let's setup a new one.");
 	ptr_job->buf = buf;
 	ptr_job->buf_size = buf_size;
 	ptr_job->buf_cnt = 0;
@@ -986,19 +1007,26 @@ bool udd_ep_run(udd_ep_id_t ep, bool b_shortpacket,
 	udd_enable_endpoint_interrupt(ep);
 	// Request first transfer
 	if (b_dir_in) {
-		if (Is_udd_in_pending(ep)) {
+		if (Is_udd_in_pending(ep)) { // N.B. cleared by udd_ack_in_sent
 			// Append more data (handled in interrupt service)
+			SEGGER_SYSVIEW_Print("Append more data (handled in interrupt service)");
+			SEGGER_SYSVIEW_PrintfHost("TXPKTRDY = %u", Tst_bits(UDP->UDP_CSR[ep], UDP_CSR_TXPKTRDY));
+			SEGGER_SYSVIEW_PrintfHost("TXCOMP = %u", Tst_bits(UDP->UDP_CSR[ep], UDP_CSR_TXCOMP));
 		} else {
 			// Start new, try to fill 1~2 banks before handling status
+			SEGGER_SYSVIEW_Print("Start new, try to fill 1~2 banks before handling status<Paste>");
 			if (udd_ep_in_sent(ep, true)) {
 				// Over one bank
+				SEGGER_SYSVIEW_Print("Over one bank");
 				udd_ep_in_sent(ep, false);
 			} else {
 				// Less than one bank
+				SEGGER_SYSVIEW_Print("Less than one bank");
 			}
 		}
 	} else {
 		// Waiting for OUT received interrupt
+		SEGGER_SYSVIEW_Print("Waiting for OUT received interrupt");
 	}
 	cpu_irq_restore(flags);
 
@@ -1025,6 +1053,7 @@ void udd_ep_abort(udd_ep_id_t ep)
 	cpu_irq_restore(flags);
 	// Clear pending statuses
 	if (b_dir_in) {
+		SEGGER_SYSVIEW_Print("b_dir_in");
 		// Kill banks
 		if (Is_udd_transmit_ready(ep)) {
 			udd_kill_data_in_fifo(ep,
@@ -1034,6 +1063,7 @@ void udd_ep_abort(udd_ep_id_t ep)
 		// Reset number of buffered banks
 		udd_ep_job[ep - 1].bank = 0;
 	} else {
+		SEGGER_SYSVIEW_Print("!b_dir_in");
 		// Clear all pending banks statuses
 		while(Is_udd_any_bank_received(ep)) {
 			udd_ep_ack_out_received(ep);
@@ -1062,12 +1092,14 @@ bool udd_ep_wait_stall_clear(udd_ep_id_t ep,
 	ptr_job = &udd_ep_job[ep - 1];
 
 	if (!Is_udd_endpoint_enabled(ep)) {
+		SEGGER_SYSVIEW_Print("Endpoint not enabled");
 		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 19, 0);
 		return false; // Endpoint not enabled
 	}
 
 	// Wait clear halt endpoint
 	if (ptr_job->busy == true) {
+		SEGGER_SYSVIEW_Print("Job already on going");
 		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 19, 0);
 		return false; // Job already on going
 	}
@@ -1075,10 +1107,12 @@ bool udd_ep_wait_stall_clear(udd_ep_id_t ep,
 	if (Is_udd_endpoint_stall_requested(ep)
 			|| ptr_job->b_stall_requested) {
 		// Endpoint halted then registers the callback
+		SEGGER_SYSVIEW_Print("Endpoint halted then registers the callback");
 		ptr_job->busy = true;
 		ptr_job->call_nohalt = callback;
 	} else {
 		// endpoint not halted then call directly callback
+		SEGGER_SYSVIEW_Print("endpoint not halted then call directly callback");
 		callback();
 	}
 	SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 19, 1);
@@ -1127,6 +1161,7 @@ static void udd_ctrl_setup_received(void)
 	if (UDD_EPCTRL_SETUP != udd_ep_control_state) {
 		// May be a hidden DATA or ZLP phase
 		// or protocol abort
+		SEGGER_SYSVIEW_Print("May be a hidden DATA or ZLP phase or protocol abort");
 		udd_ctrl_endofrequest();
 
 		// Reinitializes control endpoint management
@@ -1134,8 +1169,10 @@ static void udd_ctrl_setup_received(void)
 	}
 	// Fill setup request structure
 	if (8 != udd_byte_count(0)) {
+		SEGGER_SYSVIEW_Print("Error data number doesn't correspond to SETUP packet");
 		udd_ack_setup_received(0);
 		udd_ctrl_stall_data();
+		SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 22);
 		return; // Error data number doesn't correspond to SETUP packet
 	}
 	for (i = 0; i < 8; i++) {
@@ -1150,6 +1187,7 @@ static void udd_ctrl_setup_received(void)
 	// Decode setup request
 	if (udc_process_setup() == false) {
 		// Setup request unknown then stall it
+		SEGGER_SYSVIEW_Print("Setup request unknown then stall it");
 		udd_ack_setup_received(0);
 		udd_ctrl_stall_data();
 		return;
@@ -1160,6 +1198,7 @@ static void udd_ctrl_setup_received(void)
 		udd_set_endpoint_direction_in(0);
 		udd_ack_setup_received(0);
 		// IN data phase requested
+		SEGGER_SYSVIEW_Print("IN data phase requested");
 		udd_ctrl_prev_payload_nb_trans = 0;
 		udd_ctrl_payload_nb_trans = 0;
 		udd_ep_control_state = UDD_EPCTRL_DATA_IN;
@@ -1169,10 +1208,12 @@ static void udd_ctrl_setup_received(void)
 		if (0 == udd_g_ctrlreq.req.wLength) {
 			// No data phase requested
 			// Send IN ZLP to ACK setup request
+			SEGGER_SYSVIEW_Print("No data phase requested. Send IN ZLP to ACK setup request");
 			udd_ctrl_send_zlp_in();
 			return;
 		}
 		// OUT data phase requested
+		SEGGER_SYSVIEW_Print("OUT data phase requested");
 		udd_ctrl_prev_payload_nb_trans = 0;
 		udd_ctrl_payload_nb_trans = 0;
 		udd_ep_control_state = UDD_EPCTRL_DATA_OUT;
@@ -1194,6 +1235,7 @@ static void udd_ctrl_in_sent(void)
 		// Ack
 		udd_ack_in_sent(0);
 		// ZLP on IN is sent, then valid end of setup request
+		SEGGER_SYSVIEW_Print("ZLP on IN is sent, then valid end of setup request");
 		udd_ctrl_endofrequest();
 		// Reinitializes control endpoint management
 		udd_ctrl_init();
@@ -1205,6 +1247,7 @@ static void udd_ctrl_in_sent(void)
 	if (0 == nb_remain) {
 		// All content of current buffer payload are sent
 		// Update number of total data sending by previous payload buffer
+		SEGGER_SYSVIEW_Print("All content of current buffer payload are sent");
 		udd_ctrl_prev_payload_nb_trans += udd_ctrl_payload_nb_trans;
 		if ((udd_g_ctrlreq.req.wLength == udd_ctrl_prev_payload_nb_trans)
 				|| b_shortpacket) {
@@ -1220,8 +1263,10 @@ static void udd_ctrl_in_sent(void)
 				|| (!udd_g_ctrlreq.over_under_run())) {
 			// Underrun then send zlp on IN
 			// Here nb_remain=0 and allows to send a IN ZLP
+			SEGGER_SYSVIEW_Print("Need of new buffer because the data phase is not complete");
 		} else {
 			// A new payload buffer is given
+			SEGGER_SYSVIEW_Print("A new payload buffer is given");
 			udd_ctrl_payload_nb_trans = 0;
 			nb_remain = udd_g_ctrlreq.payload_size;
 		}
@@ -1232,6 +1277,7 @@ static void udd_ctrl_in_sent(void)
 		b_shortpacket = false;
 	} else {
 		b_shortpacket = true;
+		SEGGER_SYSVIEW_Print("shortpacket");
 	}
 	// Fill buffer of endpoint control
 	ptr_src = udd_g_ctrlreq.payload + udd_ctrl_payload_nb_trans;
@@ -1245,6 +1291,7 @@ static void udd_ctrl_in_sent(void)
 	flags = cpu_irq_save();
 	if (Is_udd_bank0_received(0)) {
 		// IN DATA phase aborted by OUT ZLP
+		SEGGER_SYSVIEW_Print("IN DATA phase aborted by OUT ZLP");
 		cpu_irq_restore(flags);
 		udd_ep_control_state = UDD_EPCTRL_HANDSHAKE_WAIT_OUT_ZLP;
 		udd_ack_in_sent(0);
@@ -1280,9 +1327,11 @@ static void udd_ctrl_out_received(void)
 			// - Data IN Phase aborted,
 			// - or last Data IN Phase hidden by ZLP OUT sending quickly,
 			// - or ZLP OUT received normally.
+			SEGGER_SYSVIEW_Print("End of SETUP request");
 			udd_ctrl_endofrequest();
 		} else {
 			// Protocol error during SETUP request
+			SEGGER_SYSVIEW_Print("Protocol error during SETUP request");
 
 #if !defined(_bootloader_) // XXXXXXX
 			udd_ctrl_stall_data();
@@ -1297,6 +1346,7 @@ static void udd_ctrl_out_received(void)
 	nb_data = udd_byte_count(0);
 	if (udd_g_ctrlreq.payload_size < (udd_ctrl_payload_nb_trans + nb_data)) {
 		// Payload buffer too small
+		SEGGER_SYSVIEW_Print("Payload buffer too small");
 		nb_data = udd_g_ctrlreq.payload_size -
 				udd_ctrl_payload_nb_trans;
 	}
@@ -1313,6 +1363,7 @@ static void udd_ctrl_out_received(void)
 		// End of reception because it is a short packet
 		// Before send ZLP, call intermediate callback
 		// in case of data receive generate a stall
+		SEGGER_SYSVIEW_Print("End of reception");
 		udd_g_ctrlreq.payload_size = udd_ctrl_payload_nb_trans;
 		if (NULL != udd_g_ctrlreq.over_under_run) {
 			if (!udd_g_ctrlreq.over_under_run()) {
@@ -1331,8 +1382,10 @@ static void udd_ctrl_out_received(void)
 
 	if (udd_g_ctrlreq.payload_size == udd_ctrl_payload_nb_trans) {
 		// Overrun then request a new payload buffer
+		SEGGER_SYSVIEW_Print("Overrun then request a new payload buffer");
 		if (!udd_g_ctrlreq.over_under_run) {
 			// No callback available to request a new payload buffer
+			SEGGER_SYSVIEW_Print("No callback available to request a new payload buffer");
 			udd_ctrl_stall_data();
 			// Ack reception of OUT to replace NAK by a STALL
 			udd_ack_bank0_received(0);
@@ -1340,6 +1393,7 @@ static void udd_ctrl_out_received(void)
 		}
 		if (!udd_g_ctrlreq.over_under_run()) {
 			// No new payload buffer delivered
+			SEGGER_SYSVIEW_Print("No new payload buffer delivered");
 			udd_ctrl_stall_data();
 			// Ack reception of OUT to replace NAK by a STALL
 			udd_ack_bank0_received(0);
@@ -1393,6 +1447,7 @@ static void udd_ctrl_endofrequest(void)
 	SEGGER_SYSVIEW_RecordVoid(UDP_Module.EventOffset + 28);
 	// If a callback is registered then call it
 	if (udd_g_ctrlreq.callback) {
+		SEGGER_SYSVIEW_Print("callback is registered, call it");
 		udd_g_ctrlreq.callback();
 	}
 	SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 28);
@@ -1485,11 +1540,15 @@ static void udd_ep_finish_job(udd_ep_job_t * ptr_job, int status,
 		uint8_t ep_num)
 {
 	SEGGER_SYSVIEW_RecordU32x3(UDP_Module.EventOffset + 33, ptr_job, status, ep_num);
-	if (ptr_job->busy == false) {
+	if (ptr_job->busy == false) { 
+		SEGGER_SYSVIEW_Print("No on-going job");
+		SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 33);
 		return; // No on-going job
 	}
 	ptr_job->busy = false;
 	if (NULL == ptr_job->call_trans) {
+		SEGGER_SYSVIEW_Print("No callback linked to job");
+		SEGGER_SYSVIEW_RecordEndCall(UDP_Module.EventOffset + 33);
 		return; // No callback linked to job
 	}
 	if (Is_udd_endpoint_type_in(ep_num)) {
@@ -1581,11 +1640,15 @@ static bool udd_ep_in_sent(udd_ep_id_t ep, bool b_tx)
 
 	// All banks are full
 	if (ptr_job->bank >= udd_get_endpoint_bank_max_nbr(ep)) {
+		SEGGER_SYSVIEW_Print("All banks are full");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 36, 1);
 		return true; // Data pending
 	}
 
 	// No more data in buffer
 	if (ptr_job->buf_cnt >= ptr_job->buf_size && !ptr_job->b_shortpacket) {
+		SEGGER_SYSVIEW_Print("No more data in buffer");
+		SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 36, 0);
 		return false;
 	}
 
@@ -1594,16 +1657,19 @@ static bool udd_ep_in_sent(udd_ep_id_t ep, bool b_tx)
 
 	// Data is ready to send
 	if (b_tx) {
+		SEGGER_SYSVIEW_Print("Data is ready to send");
 		udd_set_transmit_ready(ep);
 	}
 	// Short PKT? no need to send it again.
 	if (b_shortpacket) {
+		SEGGER_SYSVIEW_Print("Short PKT. no need to send it again.");
 		ptr_job->b_shortpacket = false;
 	}
 	// All transfer done, including ZLP, Finish Job
 	if ((ptr_job->buf_cnt >= ptr_job->buf_size)
 			&& (!ptr_job->b_shortpacket)) {
 		ptr_job->b_buf_end = true;
+		SEGGER_SYSVIEW_Print("All transfer done, including ZLP, Finish Job");
 		return false;
 	}
 	SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 36, 1);
@@ -1670,22 +1736,26 @@ static bool udd_ep_interrupt(void)
 
 		// RXOUT: Full packet received
 		if (Is_udd_any_bank_received(ep)) {
+			SEGGER_SYSVIEW_Print("RXOUT: Full packet received");
 			udd_ep_out_received(ep);
 			SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 38, 1);
 			return true;
 		}
 		// TXIN: packet sent
 		if (Is_udd_in_sent(ep)) {
-
+			SEGGER_SYSVIEW_Print("TXIN: packet sent");
 			ptr_job->bank--;
 			// Stall when all banks free
 			if (ptr_job->b_stall_requested) {
+				SEGGER_SYSVIEW_Print("Stall when all banks free");
 				if (ptr_job->bank) {
 					// Send remaining
+					SEGGER_SYSVIEW_Print("Send remaining");
 					udd_set_transmit_ready(ep);
 					udd_ack_in_sent(ep);
 				} else {
 					// Ack last packet
+					SEGGER_SYSVIEW_Print("Ack last packet");
 					udd_ack_in_sent(ep);
 					// Enable stall
 					udd_enable_stall_handshake(ep);
@@ -1697,40 +1767,46 @@ static bool udd_ep_interrupt(void)
 			}
 			// Finish Job when buffer end
 			if (ptr_job->b_buf_end) {
+				SEGGER_SYSVIEW_Print("Finish Job when buffer end");
 				ptr_job->b_buf_end = false;
 				ptr_job->buf_size = ptr_job->buf_cnt; // buf_size is passed to callback as XFR count
-                udd_disable_endpoint_interrupt(ep);
-                udd_ep_finish_job(ptr_job, UDD_EP_TRANSFER_OK, ep);
+				udd_disable_endpoint_interrupt(ep);
+				udd_ep_finish_job(ptr_job, UDD_EP_TRANSFER_OK, ep);
 			}
 			if (ptr_job->buf_cnt >= ptr_job->buf_size &&
 					!ptr_job->b_shortpacket &&
 					ptr_job->bank == 0) {
 				// All transfer done, including ZLP
+				SEGGER_SYSVIEW_Print("All transfer done, including ZLP");
 				irqflags_t flags = cpu_irq_save();
 				udd_disable_endpoint_interrupt(ep);
 				cpu_irq_restore(flags);
 				// Ack last packet
+				SEGGER_SYSVIEW_Print("Ack last packet");
 				udd_ack_in_sent(ep);
 				SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 38, 1);
 				return true;
 			} else if (udd_get_endpoint_bank_max_nbr(ep) > 1
 					&& ptr_job->bank > 0) {
 				// Already banks buffered, transmit while loading
+				SEGGER_SYSVIEW_Print("Already banks buffered, transmit while loading");
 				udd_set_transmit_ready(ep);
 				udd_ack_in_sent(ep);
 				udd_ep_in_sent(ep, false);
 			} else if (udd_get_endpoint_bank_max_nbr(ep) > 1) {
 				// Still bank free, load and transmit
+				SEGGER_SYSVIEW_Print("Still bank free, load and transmit");
 				if (!udd_ep_in_sent(ep, true)) {
 					ptr_job->b_buf_end = false;
 					ptr_job->buf_size = ptr_job->buf_cnt; // buf_size is passed to callback as XFR count
-                    udd_disable_endpoint_interrupt(ep);
-                    udd_ep_finish_job(ptr_job, UDD_EP_TRANSFER_OK, ep);
+					udd_disable_endpoint_interrupt(ep);
+					udd_ep_finish_job(ptr_job, UDD_EP_TRANSFER_OK, ep);
 				}
 				udd_ack_in_sent(ep);
 				udd_ep_in_sent(ep, false);
 			} else {
 				// Single bank transfer, ack when ready
+				SEGGER_SYSVIEW_Print("Single bank transfer, ack when ready");
 				udd_ep_in_sent(ep, true);
 				udd_ack_in_sent(ep);
 			}
@@ -1739,9 +1815,10 @@ static bool udd_ep_interrupt(void)
 		}
 		// Stall sent/CRC error
 		if (Is_udd_stall(ep)) {
+			SEGGER_SYSVIEW_Print("Stall sent/CRC error");
 			udd_ack_stall(ep);
 			if (udd_get_endpoint_type(ep) == UDP_CSR_EPTYPE_ISO_OUT ||
-				udd_get_endpoint_type(ep) == UDP_CSR_EPTYPE_ISO_IN) {
+					udd_get_endpoint_type(ep) == UDP_CSR_EPTYPE_ISO_IN) {
 			}
 			SEGGER_SYSVIEW_RecordEndCallU32(UDP_Module.EventOffset + 38, 1);
 			return true;
