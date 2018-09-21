@@ -43,11 +43,13 @@
 
 #include <Lib/sysview.h>
 void UDC_Desc();
+#ifdef SEGGER_SYSVIEW_H
 SEGGER_SYSVIEW_MODULE UDC_Module = {
 	"M=udc",
 	29, 0,
 	UDC_Desc, NULL
 };
+#endif
 
 void UDC_Desc() {
 	SEGGER_SYSVIEW_RecordModuleDescription(&UDC_Module, "0 udc_get_string_serial_name | %p");

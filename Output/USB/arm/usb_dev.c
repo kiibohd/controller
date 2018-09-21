@@ -1440,7 +1440,7 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 
 #elif defined(_sam_)
 	//udd_set_setup_payload(packet->buf, packet->len);
-	SEGGER_SYSVIEW_Print("usb_tx");
+	//SEGGER_SYSVIEW_Print("usb_tx");
 	udd_ep_run(endpoint | USB_EP_DIR_IN, false, packet->buf, packet->len, NULL);
 #endif
 }
@@ -1841,7 +1841,7 @@ uint8_t usb_init()
 	usb_configuration = 1;
 
 	//SEGGER_SYSVIEW_Conf();
-	SEGGER_SYSVIEW_Start();
+	//SEGGER_SYSVIEW_Start();
 	udc_start();
 #endif
 

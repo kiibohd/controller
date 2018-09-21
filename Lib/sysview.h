@@ -21,7 +21,7 @@
 
 #pragma once
 
-#ifdef SYSTEMVIEW_ENABLED && !defined(_bootloader_)
+#if defined(SYSTEMVIEW_ENABLED) && !defined(_bootloader_)
 #include "SEGGER_SYSVIEW.h"
 
 #else
@@ -44,7 +44,10 @@
 #define SEGGER_SYSVIEW_RecordEndCallU32(x, y)
 
 #define SEGGER_SYSVIEW_Print(x)
+#define SEGGER_SYSVIEW_PrintfHost(x, ...)
 #define SEGGER_SYSVIEW_RegisterModule(x)
+#define SEGGER_SYSVIEW_Start()
+#define SEGGER_SYSVIEW_RecordModuleDescription(x, y)
 
 #define SEGGER_SYSVIEW_OnIdle()
 #define SEGGER_SYSVIEW_OnTaskCreate(x)

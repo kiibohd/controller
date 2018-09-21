@@ -45,11 +45,13 @@
 
 #include <Lib/sysview.h>
 void UDP_Desc();
+#ifdef SEGGER_SYSVIEW_H
 SEGGER_SYSVIEW_MODULE UDP_Module = {
 	"M=udp_device",
 	39, 0,
 	UDP_Desc, NULL
 };
+#endif
 
 void UDP_Desc() {
 	// SEGGER_SYSVIEW_NameResource ((U32)&(RxPacketFifo), "Rx FIFO");
