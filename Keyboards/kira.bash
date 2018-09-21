@@ -51,7 +51,7 @@ DefaultMap="kira/demo.1 stdFuncMap"
 # Keyboard Module Configuration
 ScanModule="Kira"
 MacroModule="PixelMap"
-OutputModule="USBxRTT"
+OutputModule="USBxUART"
 DebugModule="full"
 
 # Microcontroller
