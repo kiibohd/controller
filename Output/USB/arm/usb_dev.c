@@ -214,7 +214,7 @@ static void endpoint0_transmit( const void *data, uint32_t len )
 	ep0_tx_data_toggle ^= 1;
 	ep0_tx_bdt_bank ^= 1;
 #elif defined(_sam_)
-	udd_set_setup_payload(data, len);
+	udd_set_setup_payload((uint8_t*)data, len);
 #endif
 }
 
@@ -884,9 +884,12 @@ send:
 	#endif
 
 	if ( datalen > setup.wLength )
+	{
 		datalen = setup.wLength;
-
+	}
 	size = datalen;
+
+#if defined(_kinetis_)
 	if ( size > EP0_SIZE )
 		size = EP0_SIZE;
 
@@ -912,6 +915,9 @@ send:
 	// Save rest of transfer for later? XXX
 	ep0_tx_ptr = data;
 	ep0_tx_len = datalen;
+#elif defined(_sam_)
+	endpoint0_transmit( data, size );
+#endif
 }
 
 
