@@ -1863,6 +1863,10 @@ uint8_t usb_init()
 	//SAM TODO - Use actual setup state to determine this
 	usb_configuration = 1;
 
+	// Make sure USB transceiver is reset (in case we didn't do a full reset)
+	udd_disable();
+
+	// Start USB stack
 	udc_start();
 #endif
 

@@ -749,7 +749,7 @@ inline void USB_setup()
 #if ( defined(_kii_v1_) || defined(_kii_v2_) )
 	VBAT_SECURE1 = 0;
 	VBAT_SECURE2 = 0;
-#elif defined(_kii_v2_)
+#elif defined(_kii_v3_)
 	GPBR_SECURE1 = 0;
 	GPBR_SECURE2 = 0;
 #endif
