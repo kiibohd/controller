@@ -29,8 +29,12 @@
  * SOFTWARE.
  */
 
+#include <Lib/mcu_compat.h>
 #include <kll_defs.h>
+
 #if enableVirtualSerialPort_define == 1
+
+#if defined(_kinetis_)
 
 // ----- Includes -----
 
@@ -314,5 +318,87 @@ void usb_serial_flush_callback()
 	}
 }
 
-#endif
+#elif defined(_sam_)
+
+// ----- Includes -----
+
+// ASF Includes
+#include <udi_cdc.h>
+#include <arm/usb_desc.h>
+
+
+
+// ----- Defines -----
+
+// ----- Variables -----
+
+static uint8_t usb_serial_enabled = 0;
+
+
+
+// ----- Functions -----
+
+bool usb_cdc_enable_callback()
+{
+	usb_serial_enabled = 0;
+	return true;
+}
+
+void usb_cdc_disable_callback()
+{
+	usb_serial_enabled = 0;
+}
+
+void usb_cdc_rx_notify_callback(uint8_t port)
+{
+	usb_serial_enabled = 1;
+}
+
+// Number of bytes available in the receive buffer
+int usb_serial_available()
+{
+	// Make sure CDC is enabled
+	if ( !usb_serial_enabled )
+	{
+		return 0;
+	}
+
+	return (int)udi_cdc_get_nb_received_data();
+}
+
+int usb_serial_write( const void *buffer, uint32_t size )
+{
+	// Make sure CDC is enabled
+	if ( !usb_serial_enabled )
+	{
+		return -1;
+	}
+
+	// TODO (HaaTa): Possibly queue up buffer rather than stall?
+	while ( udi_cdc_write_buf( buffer, size ) > 0 );
+
+	return 0;
+}
+
+int usb_serial_getchar()
+{
+	// Make sure CDC is enabled
+	if ( !usb_serial_enabled )
+	{
+		return -1;
+	}
+
+	// Check if not ready
+	if ( !udi_cdc_is_rx_ready() )
+	{
+		return -1;
+	}
+
+	// Acquire character
+	return udi_cdc_getc();
+}
+
+#endif // MCU
+
+#endif // Serial
 

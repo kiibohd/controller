@@ -49,6 +49,7 @@ elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 	list(APPEND Module_SRCS
 		../../Lib/ASF/sam/drivers/udp/udp_device.c
 		../../Lib/ASF/common/services/usb/udc/udc.c
+		../../Lib/ASF/common/services/usb/class/cdc/device/udi_cdc.c
 	)
 	endif ( )
 

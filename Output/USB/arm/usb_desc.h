@@ -98,22 +98,22 @@
 #define CDC_STATUS_NAME         L"Virtual Serial Port - Status"
 #define CDC_DATA_NAME           L"Virtual Serial Port - Data"
 
-#define RAWIO_INTERFACE         5 // RawIO
-#define RAWIO_TX_ENDPOINT       7
+#define MOUSE_INTERFACE         5 // Mouse
+#define MOUSE_ENDPOINT          7
+#define MOUSE_SIZE              8
+#define MOUSE_INTERVAL          1
+#define MOUSE_NAME              L"Mouse"
+
+#define RAWIO_INTERFACE         6 // RawIO
+#define RAWIO_TX_ENDPOINT       8
 #define RAWIO_TX_SIZE           64
 #define RAWIO_TX_INTERVAL       1
-#define RAWIO_RX_ENDPOINT       8
+#define RAWIO_RX_ENDPOINT       9
 #define RAWIO_RX_SIZE           64
 #define RAWIO_RX_INTERVAL       1
 #define RAWIO_USAGE_PAGE        0xFFFF
 #define RAWIO_USAGE             0xFFFF
 #define RAWIO_NAME              L"RawIO API Interface"
-
-#define MOUSE_INTERFACE         6 // Mouse
-#define MOUSE_ENDPOINT          9
-#define MOUSE_SIZE              8
-#define MOUSE_INTERVAL          1
-#define MOUSE_NAME              L"Mouse"
 
 #define JOYSTICK_INTERFACE      7 // Joystick
 #define JOYSTICK_ENDPOINT       10
@@ -177,11 +177,15 @@
 #define ENDPOINT10_CONFIG       ENDPOINT_TRANSIMIT_ONLY
 
 #if defined(_sam_)
-#define  USB_DEVICE_EP_CTRL_SIZE    64
-#define  UDI_HID_KBD_EP_IN (1 | USB_EP_DIR_IN)
-#define  UDI_HID_KBD_IFACE_NUMBER    KEYBOARD_INTERFACE+5 //REMOVE ME
-#undef USB_DEVICE_MAX_EP
-#define  USB_DEVICE_MAX_EP 3 //NUM_ENDPOINTS
+#define USB_DEVICE_EP_CTRL_SIZE    64
+
+#undef  USB_DEVICE_MAX_EP
+#define USB_DEVICE_MAX_EP 7
+
+#undef  UDI_CDC_COMM_IFACE_NUMBER_0
+#undef  UDI_CDC_DATA_IFACE_NUMBER_0
+#define UDI_CDC_COMM_IFACE_NUMBER_0 3
+#define UDI_CDC_DATA_IFACE_NUMBER_0 4
 #endif
 
 // ----- Structs -----

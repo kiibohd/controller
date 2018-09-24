@@ -96,6 +96,7 @@ void usb_free( usb_packet_t *p )
 	if ( n >= NUM_USB_BUFFERS )
 		return;
 
+#if defined(_kinetis_)
 	// if any endpoints are starving for memory to receive
 	// packets, give this memory to them immediately!
 	if ( usb_rx_memory_needed && usb_configuration )
@@ -103,6 +104,7 @@ void usb_free( usb_packet_t *p )
 		usb_rx_memory( p );
 		return;
 	}
+#endif
 
 	mask = (0x80000000 >> n);
 	__disable_irq();
