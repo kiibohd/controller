@@ -124,10 +124,10 @@ void systick_default_isr()
 
 /* Cortex-M4 core handlers */
 void NMI_Handler        ( void ) __attribute__ ((weak, alias("unused_isr")));
-void HardFault_Handler  ( void ) __attribute__ ((weak, alias("unused_isr")));
-void MemManage_Handler  ( void ) __attribute__ ((weak, alias("unused_isr")));
-void BusFault_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
-void UsageFault_Handler ( void ) __attribute__ ((weak, alias("unused_isr")));
+void HardFault_Handler  ( void ) __attribute__ ((weak, alias("fault_isr")));
+void MemManage_Handler  ( void ) __attribute__ ((weak, alias("fault_isr")));
+void BusFault_Handler   ( void ) __attribute__ ((weak, alias("fault_isr")));
+void UsageFault_Handler ( void ) __attribute__ ((weak, alias("fault_isr")));
 void SVC_Handler        ( void ) __attribute__ ((weak, alias("unused_isr")));
 void DebugMon_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
 void PendSV_Handler     ( void ) __attribute__ ((weak, alias("unused_isr")));
@@ -138,7 +138,7 @@ void SUPC_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
 void RSTC_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
 void RTC_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 void RTT_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
-void WDT_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
+//void WDT_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 void PMC_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 void EFC0_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
 #ifdef _SAM4S_EFC1_INSTANCE_
@@ -183,6 +183,11 @@ void CRCCU_Handler  ( void ) __attribute__ ((weak, alias("unused_isr")));
 void ACC_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 void UDP_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 
+
+void WDT_Handler() {
+	__asm volatile("BKPT #01");
+	for( ;; );
+}
 
 /* Exception Table */
 /* NOTE: Table alignment requirements mean that bits [6:0] of the table offset are always zero */
