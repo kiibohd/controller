@@ -35,10 +35,14 @@
 
 // Compiler Includes
 #include <stdint.h>
+#include <stdbool.h>
 #include <stddef.h>
 
+// Project Includes
+#include <Lib/mcu_compat.h>
+
 // Local Includes
-#include <output_usb.h>
+//#include <output_usb.h>
 
 
 
@@ -220,4 +224,8 @@ extern uint8_t *usb_bMaxPower;
 // ----- Functions -----
 
 void usb_set_config_descriptor_size();
+
+#if defined(_sam_)
+bool my_udi_hid_setup(void);
+#endif
 

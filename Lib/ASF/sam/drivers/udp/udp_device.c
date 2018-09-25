@@ -149,7 +149,7 @@
 #endif
 
 //! State of USB line
-static bool udd_b_idle;
+bool udd_b_idle;
 
 
 /*! \brief Authorize or not the CPU powerdown mode
@@ -170,7 +170,9 @@ static void udd_sleep_mode(bool b_idle)
 
 static void udd_sleep_mode(bool b_idle)
 {
-	UNUSED(b_idle);
+	if (b_idle) {
+		usb_resume();
+	}
 }
 
 #endif // UDD_NO_SLEEP_MGR

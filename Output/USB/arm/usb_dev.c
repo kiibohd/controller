@@ -172,9 +172,10 @@ static const uint8_t *ep0_tx_ptr = NULL;
 static uint16_t ep0_tx_len;
 static uint8_t ep0_tx_bdt_bank = 0;
 static uint8_t ep0_tx_data_toggle = 0;
-#endif
+static uint8_t usb_dev_sleep = 0;
 
 uint8_t usb_rx_memory_needed = 0;
+#endif
 
 volatile uint8_t usb_configuration = 0;
 volatile uint8_t usb_reboot_timer = 0;
@@ -184,7 +185,6 @@ static uint8_t reply_buffer[8];
 static uint8_t power_neg_delay;
 static uint32_t power_neg_time;
 
-static uint8_t usb_dev_sleep = 0;
 static uint8_t usb_remote_wakeup = 0;
 
 
@@ -1224,9 +1224,9 @@ static void usb_control( uint32_t stat )
 usb_packet_t *usb_rx( uint32_t endpoint )
 {
 	//print("USB RX");
-	usb_packet_t *ret;
 
 #if defined(_kinetis_)
+	usb_packet_t *ret;
 	endpoint--;
 
 	// Make sure this is a valid endpoint
@@ -1252,16 +1252,19 @@ usb_packet_t *usb_rx( uint32_t endpoint )
 	//serial_print(", packet=");
 	//serial_phex32(ret);
 	//serial_print("\n");
+	return ret;
+
 #elif defined(_sam_)
-	/* TODO (HaaTa): We probably don't need this for sam4s
-	ret = rx_first[endpoint];
-	udd_set_setup_payload(ret->buf, ret->len);
-	*/
-#endif
+	// TODO (HaaTa): We probably don't need this for sam4s
+	usb_packet_t *ret = usb_malloc();
+	udd_ep_run(endpoint | USB_EP_DIR_OUT, false, ret->buf, ret->len, NULL);
 
 	return ret;
+#endif
+
 }
 
+#if defined(_kinetis_)
 static uint32_t usb_queue_byte_count( const usb_packet_t *p )
 {
 	uint32_t count=0;
@@ -1277,22 +1280,19 @@ static uint32_t usb_queue_byte_count( const usb_packet_t *p )
 
 uint32_t usb_tx_byte_count( uint32_t endpoint )
 {
-#if defined(_kinetis_)
 	endpoint--;
 	if ( endpoint >= NUM_ENDPOINTS )
 		return 0;
 	return usb_queue_byte_count( tx_first[ endpoint ] );
-#elif defined(_sam_)
-#warning SAM4S Not implemented
-	return 0;
-#endif
 }
+#endif
 
 uint32_t usb_tx_packet_count( uint32_t endpoint )
 {
+	uint32_t count=0;
+
 #if defined(_kinetis_)
 	const usb_packet_t *p;
-	uint32_t count=0;
 
 	endpoint--;
 	if ( endpoint >= NUM_ENDPOINTS )
@@ -1301,13 +1301,10 @@ uint32_t usb_tx_packet_count( uint32_t endpoint )
 	for ( p = tx_first[ endpoint ]; p; p = p->next )
 		count++;
 	__enable_irq();
-	return count;
-#elif defined(_sam_)
-#warning SAM4S Not implemented
-	return 0;
 #endif
-}
 
+	return count;
+}
 
 #if defined(_kinetis_)
 // Called from usb_free, but only when usb_rx_memory_needed > 0, indicating
@@ -1366,12 +1363,17 @@ void usb_rx_memory( usb_packet_t *packet )
 // Check if USB bus is suspended/sleeping
 uint8_t usb_suspended()
 {
+#if defined(_kinetis_)
 	return usb_dev_sleep;
+#elif defined(_sam_)
+	return !udd_b_idle;
+#endif
 }
 
 // Call whenever there's an action that may wake the host device
 uint8_t usb_resume()
 {
+#if defined(_kinetis_)
 	// If we have been sleeping, try to wake up host
 	if ( usb_dev_sleep && usb_configured() && usb_remote_wakeup )
 	{
@@ -1381,15 +1383,11 @@ uint8_t usb_resume()
 #endif
 		// According to the USB Spec a device must hold resume for at least 1 ms but no more than 15 ms
 		// After setting to RESUME, send a packet, delay then unset RESUME
-#if defined(_kinetis_)
 		USB0_CTL |= USB_CTL_RESUME;
 		usb_packet_t *tx_packet = usb_malloc();
 		usb_tx( KEYBOARD_ENDPOINT, tx_packet );
 		delay_ms(10);
 		USB0_CTL &= ~(USB_CTL_RESUME);
-#elif defined(_sam_)
-		//SAM TODO
-#endif
 		usb_dev_sleep = 0; // Make sure we don't call this again, may crash system
 #else
 		warn_print("Host Resume Disabled");
@@ -1397,6 +1395,7 @@ uint8_t usb_resume()
 
 		return 1;
 	}
+#endif
 
 	return 0;
 }
@@ -1489,7 +1488,6 @@ void usb_device_reload()
 #if defined(_kinetis_)
 void usb_isr()
 {
-#if defined(_kinetis_)
 	uint8_t status, stat, t;
 
 restart:
@@ -1859,6 +1857,10 @@ uint8_t usb_init()
 
 	// enable d+ pullup
 	USB0_CONTROL = USB_CONTROL_DPPULLUPNONOTG;
+
+	// During initialization host isn't sleeping
+	usb_dev_sleep = 0;
+
 #elif defined(_sam_)
 	//SAM TODO - Use actual setup state to determine this
 	usb_configuration = 1;
@@ -1872,9 +1874,6 @@ uint8_t usb_init()
 
 	// Do not check for power negotiation delay until Get Configuration Descriptor
 	power_neg_delay = 0;
-
-	// During initialization host isn't sleeping
-	usb_dev_sleep = 0;
 
 	// XXX (HaaTa)
 	// Make sure remote wakeup is set initially as we want to wake-up by default

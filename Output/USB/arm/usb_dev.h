@@ -74,16 +74,23 @@ usb_packet_t *usb_rx( uint32_t endpoint );
 static inline uint32_t usb_rx_byte_count(uint32_t endpoint) __attribute__((always_inline));
 static inline uint32_t usb_rx_byte_count(uint32_t endpoint)
 {
+#if defined(_kinetis_)
 	endpoint--;
 	if ( endpoint >= NUM_ENDPOINTS )
 	{
 		return 0;
 	}
 	return usb_rx_byte_count_data[ endpoint ];
+
+#elif defined(_sam_)
+	// SAM TODO
+	return 0;
+#endif
 }
 
 void usb_device_reload();
 void usb_device_check();
+void usb_setup();
 
 extern void usb_serial_flush_callback();
 

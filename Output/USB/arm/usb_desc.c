@@ -31,21 +31,32 @@
 
 // ----- Includes -----
 
-// Local Includes
-#include "usb_desc.h"
-
 #include <Lib/mcu_compat.h>
+#include "output_usb.h"
 
-#if defined(_sam_)
-#include "udc_desc.h"
-#endif
+// Local Includes
+#include "usb_dev.h"
+#include "usb_desc.h"
 
 // Generated Includes
 #include <kll_defs.h>
 
+#if defined(_sam_)
+#include <print.h>
+#include <udi_cdc.h>
+#endif
+
 
 
 // ----- Macros -----
+
+#ifdef LSB
+#undef LSB
+#endif
+
+#ifdef MSB
+#undef MSB
+#endif
 
 #define LSB(n) ((n) & 255)
 #define MSB(n) (((n) >> 8) & 255)
@@ -1061,8 +1072,6 @@ const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS] =
 //@{
 //
 
-#include <print.h>
-#include <udi_cdc.h>
 bool udi_hid_enable(void) { return true; }
 void udi_hid_disable(void) { }
 bool my_udi_hid_setup(void) { usb_setup(); return true; }

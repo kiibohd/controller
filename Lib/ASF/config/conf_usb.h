@@ -154,11 +154,12 @@ extern bool main_extra_string();
 
 // ===== Firmware =====
 #else
-#define USB_DEVICE_SPECIFIC_REQUEST usb_setup
 #include "udi_cdc_conf.h"
 
 // - Last Include -
+#include "Output/USB/arm/usb_dev.h"
 #include "Output/USB/arm/usb_desc.h"
+#define USB_DEVICE_SPECIFIC_REQUEST my_udi_hid_setup
 
 #endif
 
