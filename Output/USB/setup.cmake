@@ -48,12 +48,7 @@ elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 	if ( "${CHIP}" MATCHES "^sam.*$" )
 	list(APPEND Module_SRCS
 		../../Lib/ASF/sam/drivers/udp/udp_device.c
-
 		../../Lib/ASF/common/services/usb/udc/udc.c
-
-		#../../Lib/ASF/common/services/usb/class/hid/device/udi_hid.c
-		#../../Lib/ASF/common/services/usb/class/hid/device/kbd/udi_hid_kbd.c
-		#../../Lib/ASF/common/services/usb/class/hid/device/kbd/udi_hid_kbd_desc.c
 	)
 	endif ( )
 
