@@ -91,6 +91,7 @@ static inline uint32_t usb_rx_byte_count(uint32_t endpoint)
 void usb_device_reload();
 void usb_device_check();
 void usb_setup();
+void usb_set_configuration(uint8_t config);
 
 extern void usb_serial_flush_callback();
 

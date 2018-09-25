@@ -160,6 +160,8 @@ extern bool main_extra_string();
 #include "Output/USB/arm/usb_dev.h"
 #include "Output/USB/arm/usb_desc.h"
 #define USB_DEVICE_SPECIFIC_REQUEST my_udi_hid_setup
+#define USB_CONFIGURATION_CHANGED usb_set_configuration
+#define USB_RESUME_CALLBACK usb_resume
 
 #endif
 

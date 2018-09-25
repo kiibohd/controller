@@ -270,6 +270,11 @@ void usb_device_check()
 	}
 }
 
+void usb_set_configuration(uint8_t config) {
+	usb_configuration = config;
+	Output_Available = usb_configuration;
+}
+
 void usb_setup()
 {
 #if defined(_kinetis_)
@@ -314,8 +319,8 @@ void usb_setup()
 		printHex( setup.wValue );
 		print(" ");
 		#endif
-		usb_configuration = setup.wValue;
-		Output_Available = usb_configuration;
+
+		usb_set_configuration(setup.wValue);
 		reg = &USB0_ENDPT1;
 		cfg = usb_endpoint_config_table;
 
@@ -1862,9 +1867,6 @@ uint8_t usb_init()
 	usb_dev_sleep = 0;
 
 #elif defined(_sam_)
-	//SAM TODO - Use actual setup state to determine this
-	usb_configuration = 1;
-
 	// Make sure USB transceiver is reset (in case we didn't do a full reset)
 	udd_disable();
 
