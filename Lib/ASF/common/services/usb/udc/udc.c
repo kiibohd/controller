@@ -831,6 +831,9 @@ static bool udc_req_std_dev_set_configuration(void)
 
 	// Enable new configuration
 	udc_num_configuration = udd_g_ctrlreq.req.wValue & 0xFF;
+#ifdef USB_CONFIGURATION_CHANGED
+	USB_CONFIGURATION_CHANGED(udc_num_configuration);
+#endif
 	if (udc_num_configuration == 0) {
 		return true; // Default empty configuration requested
 	}

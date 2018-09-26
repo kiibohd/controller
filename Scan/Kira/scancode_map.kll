@@ -536,7 +536,4 @@ P[82,85,86,88,89,90,92,95,98,100]     <= y:86.36;
 #P[128]     <= y:6.35;
 
 # USB Overrides
-enableUSBSuspend = 0;
-enableUSBResume = 0;
-enableVirtualSerialPort = 0;
-enableRawIO = 0;
+enableRawIO = 0; # Not enough endpoints

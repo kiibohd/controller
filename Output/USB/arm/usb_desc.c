@@ -31,15 +31,32 @@
 
 // ----- Includes -----
 
+#include <Lib/mcu_compat.h>
+#include "output_usb.h"
+
 // Local Includes
+#include "usb_dev.h"
 #include "usb_desc.h"
 
 // Generated Includes
 #include <kll_defs.h>
 
+#if defined(_sam_)
+#include <print.h>
+#include <udi_cdc.h>
+#endif
+
 
 
 // ----- Macros -----
+
+#ifdef LSB
+#undef LSB
+#endif
+
+#ifdef MSB
+#undef MSB
+#endif
 
 #define LSB(n) ((n) & 255)
 #define MSB(n) (((n) >> 8) & 255)
@@ -693,6 +710,47 @@ static uint8_t config_descriptor[] = {
 
 
 //
+// --- Mouse Endpoint Descriptors ---
+//
+#if enableMouse_define == 1
+#define MOUSE_DESC_TOTAL_OFFSET (MOUSE_DESC_SIZE)
+
+// --- Mouse Interface ---
+// - 9 bytes -
+	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
+	9,                                      // bLength
+	4,                                      // bDescriptorType
+	MOUSE_INTERFACE,                        // bInterfaceNumber
+	0,                                      // bAlternateSetting
+	1,                                      // bNumEndpoints
+	0x03,                                   // bInterfaceClass (0x03 = HID)
+	0x00,                                   // bInterfaceSubClass (0x01 = Boot)
+	0x02,                                   // bInterfaceProtocol (0x02 = Mouse)
+	MOUSE_INTERFACE + 5,                    // iInterface
+// - 9 bytes -
+	// HID interface descriptor, HID 1.11 spec, section 6.2.1
+	9,                                      // bLength
+	0x21,                                   // bDescriptorType
+	0x11, 0x01,                             // bcdHID
+	0,                                      // bCountryCode
+	1,                                      // bNumDescriptors
+	0x22,                                   // bDescriptorType
+	LSB(sizeof(mouse_report_desc)),         // wDescriptorLength
+	MSB(sizeof(mouse_report_desc)),
+// - 7 bytes -
+	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+	7,                                      // bLength
+	5,                                      // bDescriptorType
+	MOUSE_ENDPOINT | 0x80,                  // bEndpointAddress
+	0x03,                                   // bmAttributes (0x03=intr)
+	MOUSE_SIZE, 0,                          // wMaxPacketSize
+	MOUSE_INTERVAL,                         // bInterval
+#else
+#define MOUSE_DESC_TOTAL_OFFSET (0)
+#endif
+
+
+//
 // --- Raw IO Endpoint Descriptors ---
 //
 #if enableRawIO_define == 1
@@ -741,47 +799,6 @@ static uint8_t config_descriptor[] = {
 	RAWIO_RX_INTERVAL,                      // bInterval
 #else
 #define RAWIO_DESC_TOTAL_OFFSET (0)
-#endif
-
-
-//
-// --- Mouse Endpoint Descriptors ---
-//
-#if enableMouse_define == 1
-#define MOUSE_DESC_TOTAL_OFFSET (MOUSE_DESC_SIZE)
-
-// --- Mouse Interface ---
-// - 9 bytes -
-	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
-	9,                                      // bLength
-	4,                                      // bDescriptorType
-	MOUSE_INTERFACE,                        // bInterfaceNumber
-	0,                                      // bAlternateSetting
-	1,                                      // bNumEndpoints
-	0x03,                                   // bInterfaceClass (0x03 = HID)
-	0x00,                                   // bInterfaceSubClass (0x01 = Boot)
-	0x02,                                   // bInterfaceProtocol (0x02 = Mouse)
-	MOUSE_INTERFACE + 5,                    // iInterface
-// - 9 bytes -
-	// HID interface descriptor, HID 1.11 spec, section 6.2.1
-	9,                                      // bLength
-	0x21,                                   // bDescriptorType
-	0x11, 0x01,                             // bcdHID
-	0,                                      // bCountryCode
-	1,                                      // bNumDescriptors
-	0x22,                                   // bDescriptorType
-	LSB(sizeof(mouse_report_desc)),         // wDescriptorLength
-	MSB(sizeof(mouse_report_desc)),
-// - 7 bytes -
-	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-	7,                                      // bLength
-	5,                                      // bDescriptorType
-	MOUSE_ENDPOINT | 0x80,                  // bEndpointAddress
-	0x03,                                   // bmAttributes (0x03=intr)
-	MOUSE_SIZE, 0,                          // wMaxPacketSize
-	MOUSE_INTERVAL,                         // bInterval
-#else
-#define MOUSE_DESC_TOTAL_OFFSET (0)
 #endif
 
 
@@ -1048,4 +1065,81 @@ const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS] =
 #endif
 };
 
+#if defined(_sam_)
+/**
+ * \name UDC structures which contains all USB Device definitions
+ */
+//@{
+//
 
+bool udi_hid_enable(void) { return true; }
+void udi_hid_disable(void) { }
+bool my_udi_hid_setup(void) { usb_setup(); return true; }
+uint8_t udi_hid_getsetting(void) { print("SETTING"); return 0; }
+void udi_hid_sof(void) {
+	// SOF tokens are used for keepalive, consider the system awake when we're receiving them
+	/*if ( usb_dev_sleep )
+	{
+		Output_update_usb_current( *usb_bMaxPower * 2 );
+		usb_dev_sleep = 0;
+	}*/
+}
+
+//! Global structure which contains standard UDI interface for UDC
+udi_api_t udi_api_hid = {
+        .enable = (bool(*)(void))udi_hid_enable,
+        .disable = (void (*)(void))udi_hid_disable,
+        .setup = (bool(*)(void))my_udi_hid_setup,
+        .getsetting = (uint8_t(*)(void))udi_hid_getsetting,
+        .sof_notify = (void(*)(void))udi_hid_sof,
+};
+
+//! Associate an UDI for each USB interface
+udi_api_t* udi_apis[] = {
+#if enableKeyboard_define == 1
+	&udi_api_hid,
+	&udi_api_hid,
+	&udi_api_hid,
+#endif
+#if enableVirtualSerialPort_define == 1
+	&udi_api_cdc_comm,
+	&udi_api_cdc_data,
+#endif
+#if enableMouse_define == 1
+	&udi_api_hid,
+#endif
+#if enableRawIO_define == 1
+	&udi_api_hid,
+#endif
+};
+#define __STR(a) #a
+#define CTASSERT(x)             _Static_assert(x, __STR(x))
+#define CTASSERT_SIZE_BYTE(t, s)     CTASSERT(sizeof(t) == (s))
+CTASSERT_SIZE_BYTE(udi_apis, sizeof(udi_api_t*)*NUM_INTERFACE);
+
+//! Add UDI with USB Descriptors FS & HS
+udc_config_speed_t   udc_config_fshs[1] = {{
+	.desc          = (usb_conf_desc_t*)config_descriptor,
+	.udi_apis      = udi_apis,
+}};
+
+COMPILER_WORD_ALIGNED
+usb_dev_debug_desc_t udc_device_debug = {
+	.bLength = 1,
+};
+
+//! Needed to fix lsusb "Resource temporarily unavailable"
+COMPILER_WORD_ALIGNED
+UDC_DESC_STORAGE usb_dev_qual_desc_t udc_device_qual = {
+        .bLength = 1,
+};
+
+//! Add all information about USB Device in global structure for UDC
+udc_config_t udc_config = {
+	.confdev_lsfs = (usb_dev_desc_t*)device_descriptor,
+	.conf_lsfs = udc_config_fshs,
+	.qualifier = &udc_device_qual,
+	.debug = &udc_device_debug,
+};
+
+#endif

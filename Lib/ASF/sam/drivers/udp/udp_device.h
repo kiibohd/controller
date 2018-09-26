@@ -47,6 +47,10 @@
 #include "pio.h"
 #include "pio_handler.h"
 
+extern bool udd_b_idle;
+
+void udd_ctrl_stall_data(void);
+
 __always_inline static void io_pin_init(uint32_t pin, uint32_t flags,
 	IRQn_Type port_irqn, uint8_t irq_level,
 	void (*handler)(uint32_t,uint32_t), uint32_t wkup)

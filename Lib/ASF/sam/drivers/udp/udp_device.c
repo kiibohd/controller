@@ -138,6 +138,9 @@
  */
 //@{
 
+//! State of USB line
+bool udd_b_idle;
+
 #ifndef UDD_NO_SLEEP_MGR
 
 //! Definition of sleep levels
@@ -147,10 +150,6 @@
 #else
 #define UDP_SLEEP_MODE_USB_IDLE     SLEEPMGR_SLEEP_WFI
 #endif
-
-//! State of USB line
-static bool udd_b_idle;
-
 
 /*! \brief Authorize or not the CPU powerdown mode
  *
@@ -170,7 +169,11 @@ static void udd_sleep_mode(bool b_idle)
 
 static void udd_sleep_mode(bool b_idle)
 {
-	UNUSED(b_idle);
+	if (b_idle) {
+#ifdef USB_RESUME_CALLBACK
+		USB_RESUME_CALLBACK();
+#endif
+	}
 }
 
 #endif // UDD_NO_SLEEP_MGR

@@ -330,14 +330,19 @@ void main()
 	)
 	{
 		// Bootloader mode
-		for ( int pos = 0; pos <= 8; pos++ )
+		for ( int pos = 0; pos <= sizeof(sys_reset_to_loader_magic)/sizeof(GPBR->SYS_GPBR[0]); pos++ )
 			GPBR->SYS_GPBR[ pos ] = 0x00000000;
 	}
 	else
 	{
 		// Enable Watchdog before jumping
 		// XXX (HaaTa) This watchdog cannot trigger an IRQ, as we're relocating the vector table
+#if defined(DEBUG) && defined(JLINK)
+		WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDFIEN | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
+		//WDT->WDT_MR = WDT_MR_WDDIS;
+#else
 		WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDRSTEN | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
+#endif
 
 		// Firmware mode
 		print( NL "==> Booting Firmware..." );

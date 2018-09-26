@@ -19,6 +19,8 @@ include_directories(
 	"Lib/ASF/common/services/gpio"
 	"Lib/ASF/common/services/ioport"
 	"Lib/ASF/common/services/usb"
+	"Lib/ASF/common/services/usb/class/cdc"
+	"Lib/ASF/common/services/usb/class/cdc/device"
 	"Lib/ASF/common/services/usb/class/hid"
 	"Lib/ASF/common/services/usb/class/hid/device"
 	"Lib/ASF/common/services/usb/class/hid/device/kbd"

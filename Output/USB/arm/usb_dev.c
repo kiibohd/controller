@@ -47,7 +47,7 @@
 
 #if defined(_sam_)
 #include "udc.h"
-#include <udi_hid_kbd.h>
+#include "udp_device.h"
 #endif
 
 
@@ -126,7 +126,7 @@ typedef struct {
 	void * addr;
 } bdt_t;
 
-static union {
+typedef union {
 	struct {
 		union {
 			struct {
@@ -143,12 +143,18 @@ static union {
 		uint32_t word1;
 		uint32_t word2;
 	};
-} setup;
+} setup_t;
 
 
 
 // ----- Variables -----
 
+// SETUP always uses a DATA0 PID for the data field of the SETUP transaction.
+// transactions in the data phase start with DATA1 and toggle (figure 8-12, USB1.1)
+// Status stage uses a DATA1 PID.
+static setup_t setup;
+
+#if defined(_kinetis_)
 __attribute__ ((section(".usbdescriptortable"), used))
 static bdt_t table[ (NUM_ENDPOINTS + 1) * 4 ];
 
@@ -160,19 +166,16 @@ uint16_t usb_rx_byte_count_data[ NUM_ENDPOINTS ];
 
 static uint8_t tx_state[NUM_ENDPOINTS];
 
-// SETUP always uses a DATA0 PID for the data field of the SETUP transaction.
-// transactions in the data phase start with DATA1 and toggle (figure 8-12, USB1.1)
-// Status stage uses a DATA1 PID.
-
-#if defined(_kinetis_)
 static uint8_t ep0_rx0_buf[EP0_SIZE] __attribute__ ((aligned (4)));
 static uint8_t ep0_rx1_buf[EP0_SIZE] __attribute__ ((aligned (4)));
-#endif
 static const uint8_t *ep0_tx_ptr = NULL;
 static uint16_t ep0_tx_len;
 static uint8_t ep0_tx_bdt_bank = 0;
 static uint8_t ep0_tx_data_toggle = 0;
+static uint8_t usb_dev_sleep = 0;
+
 uint8_t usb_rx_memory_needed = 0;
+#endif
 
 volatile uint8_t usb_configuration = 0;
 volatile uint8_t usb_reboot_timer = 0;
@@ -182,7 +185,6 @@ static uint8_t reply_buffer[8];
 static uint8_t power_neg_delay;
 static uint32_t power_neg_time;
 
-static uint8_t usb_dev_sleep = 0;
 static uint8_t usb_remote_wakeup = 0;
 
 
@@ -201,16 +203,20 @@ static void endpoint0_stall()
 #if defined(_kinetis_)
 	USB0_ENDPT0 = USB_ENDPT_EPSTALL | USB_ENDPT_EPRXEN | USB_ENDPT_EPTXEN | USB_ENDPT_EPHSHK;
 #elif defined(_sam_)
-	//SAM TODO
+	udd_ctrl_stall_data();
 #endif
 }
 
 static void endpoint0_transmit( const void *data, uint32_t len )
 {
+#if defined(_kinetis_)
 	table[index(0, TX, ep0_tx_bdt_bank)].addr = (void *)data;
 	table[index(0, TX, ep0_tx_bdt_bank)].desc = BDT_DESC(len, ep0_tx_data_toggle);
 	ep0_tx_data_toggle ^= 1;
 	ep0_tx_bdt_bank ^= 1;
+#elif defined(_sam_)
+	udd_set_setup_payload((uint8_t*)data, len);
+#endif
 }
 
 void usb_reinit()
@@ -219,7 +225,7 @@ void usb_reinit()
 #if defined(_kinetis_)
 	USB0_CONTROL = 0; // Disable D+ Pullup to simulate disconnect
 #elif defined(_sam_)
-	//SAM TODO
+	udc_stop();
 #endif
 	delay_ms(10); // Delay is necessary to simulate disconnect
 	usb_init();
@@ -264,20 +270,33 @@ void usb_device_check()
 	}
 }
 
-static void usb_setup()
+void usb_set_configuration(uint8_t config) {
+	usb_configuration = config;
+	Output_Available = usb_configuration;
+}
+
+void usb_setup()
 {
-	const uint8_t *data = NULL;
-	uint32_t datalen = 0;
-	const usb_descriptor_list_t *list;
-	uint32_t size;
+#if defined(_kinetis_)
 	volatile uint8_t *reg;
 	uint8_t epconf;
 	const uint8_t *cfg;
 	int i;
+#endif
+
+	const uint8_t *data = NULL;
+	uint32_t datalen = 0;
+	const usb_descriptor_list_t *list;
+	uint32_t size;
 
 	// Reset USB Init timer
 	USBInit_TimeEnd = systick_millis_count;
 	USBInit_Ticks++;
+
+#if defined(_sam_)
+	// ASF has its own global variable
+	setup = *(setup_t*)&udd_g_ctrlreq.req;
+#endif
 
 	// If another request is made, disable the power negotiation check
 	// See GET_DESCRIPTOR - Configuration
@@ -293,17 +312,16 @@ static void usb_setup()
 		USBDev_Address = setup.wValue;
 		goto send;
 
+#if defined(_kinetis_)
 	case 0x0900: // SET_CONFIGURATION
 		#ifdef UART_DEBUG
-		print("CONFIGURE - ");
+		print("SET_CONFIGURATION - ");
+		printHex( setup.wValue );
+		print(" ");
 		#endif
-		usb_configuration = setup.wValue;
-		Output_Available = usb_configuration;
-#if defined(_kinetis_)
+
+		usb_set_configuration(setup.wValue);
 		reg = &USB0_ENDPT1;
-#elif defined(_sam_)
-		//SAM TODO
-#endif
 		cfg = usb_endpoint_config_table;
 
 		// Now configured so we can utilize bMaxPower now
@@ -361,7 +379,6 @@ static void usb_setup()
 			epconf = *cfg++;
 			*reg = epconf;
 			reg += 4;
-#if defined(_kinetis_)
 			if ( epconf & USB_ENDPT_EPRXEN )
 			{
 				usb_packet_t *p;
@@ -390,11 +407,9 @@ static void usb_setup()
 			}
 			table[ index( i, TX, EVEN ) ].desc = 0;
 			table[ index( i, TX, ODD ) ].desc = 0;
-#elif defined(_sam_)
-		//SAM TODO
-#endif
 		}
 		goto send;
+#endif
 
 	case 0x0880: // GET_CONFIGURATION
 		reply_buffer[0] = usb_configuration;
@@ -408,11 +423,25 @@ static void usb_setup()
 		reply_buffer[1] = 0;
 		datalen = 2;
 		data = reply_buffer;
+		#ifdef UART_DEBUG
+		print("GET_STATUS (dev) - ");
+		printHex( reply_buffer[0] );
+		print(" ");
+		printHex( reply_buffer[1] );
+		print(" ");
+		#endif
 		goto send;
 
 	case 0x0081: // GET_STATUS (interface)
 		reply_buffer[0] = 0;
 		reply_buffer[1] = 0;
+		#ifdef UART_DEBUG
+		print("GET_STATUS (interface) - ");
+		printHex( reply_buffer[0] );
+		print(" ");
+		printHex( reply_buffer[1] );
+		print(" ");
+		#endif
 		datalen = 2;
 		data = reply_buffer;
 		goto send;
@@ -441,6 +470,13 @@ static void usb_setup()
 #elif defined(_sam_)
 		//SAM TODO
 #endif
+		#ifdef UART_DEBUG
+		print("GET_STATUS (ep) - ");
+		printHex( reply_buffer[0] );
+		print(" ");
+		printHex( reply_buffer[1] );
+		print(" ");
+		#endif
 		data = reply_buffer;
 		datalen = 2;
 		goto send;
@@ -694,7 +730,7 @@ static void usb_setup()
 		endpoint0_stall();
 		return;
 
-#if enableVirtualSerialPort_define == 1
+#if enableVirtualSerialPort_define == 1 && defined(_kinetis_)
 	case 0x2221: // CDC_SET_CONTROL_LINE_STATE
 		usb_cdc_line_rtsdtr = setup.wValue;
 		//info_print("set control line state");
@@ -874,9 +910,12 @@ send:
 	#endif
 
 	if ( datalen > setup.wLength )
+	{
 		datalen = setup.wLength;
-
+	}
 	size = datalen;
+
+#if defined(_kinetis_)
 	if ( size > EP0_SIZE )
 		size = EP0_SIZE;
 
@@ -902,9 +941,13 @@ send:
 	// Save rest of transfer for later? XXX
 	ep0_tx_ptr = data;
 	ep0_tx_len = datalen;
+#elif defined(_sam_)
+	endpoint0_transmit( data, size );
+#endif
 }
 
 
+#if defined(_kinetis_)
 //A bulk endpoint's toggle sequence is initialized to DATA0 when the endpoint
 //experiences any configuration event (configuration events are explained in
 //Sections 9.1.1.5 and 9.4.5).
@@ -991,11 +1034,7 @@ static void usb_control( uint32_t stat )
 		// actually "do" the setup request
 		usb_setup();
 		// unfreeze the USB, now that we're ready
-#if defined(_kinetis_)
 		USB0_CTL = USB_CTL_USBENSOFEN; // clear TXSUSPENDTOKENBUSY bit
-#elif defined(_sam_)
-		//SAM TODO
-#endif
 		break;
 
 	case 0x01:  // OUT transaction received from host
@@ -1148,11 +1187,7 @@ static void usb_control( uint32_t stat )
 			printHex(setup.wValue);
 			print(NL);
 			#endif
-#if defined(_kinetis_)
 			USB0_ADDR = setup.wValue;
-#elif defined(_sam_)
-			//SAM TODO
-#endif
 		}
 
 		// CDC_SET_LINE_CODING - PID=IN
@@ -1187,16 +1222,15 @@ static void usb_control( uint32_t stat )
 		#endif
 		break;
 	}
-#if defined(_kinetis_)
 	USB0_CTL = USB_CTL_USBENSOFEN; // clear TXSUSPENDTOKENBUSY bit
-#elif defined(_sam_)
-	//SAM TODO
-#endif
 }
+#endif
 
 usb_packet_t *usb_rx( uint32_t endpoint )
 {
 	//print("USB RX");
+
+#if defined(_kinetis_)
 	usb_packet_t *ret;
 	endpoint--;
 
@@ -1224,8 +1258,18 @@ usb_packet_t *usb_rx( uint32_t endpoint )
 	//serial_phex32(ret);
 	//serial_print("\n");
 	return ret;
+
+#elif defined(_sam_)
+	// TODO (HaaTa): We probably don't need this for sam4s
+	usb_packet_t *ret = usb_malloc();
+	udd_ep_run(endpoint | USB_EP_DIR_OUT, false, ret->buf, ret->len, NULL);
+
+	return ret;
+#endif
+
 }
 
+#if defined(_kinetis_)
 static uint32_t usb_queue_byte_count( const usb_packet_t *p )
 {
 	uint32_t count=0;
@@ -1246,11 +1290,14 @@ uint32_t usb_tx_byte_count( uint32_t endpoint )
 		return 0;
 	return usb_queue_byte_count( tx_first[ endpoint ] );
 }
+#endif
 
 uint32_t usb_tx_packet_count( uint32_t endpoint )
 {
-	const usb_packet_t *p;
 	uint32_t count=0;
+
+#if defined(_kinetis_)
+	const usb_packet_t *p;
 
 	endpoint--;
 	if ( endpoint >= NUM_ENDPOINTS )
@@ -1259,10 +1306,12 @@ uint32_t usb_tx_packet_count( uint32_t endpoint )
 	for ( p = tx_first[ endpoint ]; p; p = p->next )
 		count++;
 	__enable_irq();
+#endif
+
 	return count;
 }
 
-
+#if defined(_kinetis_)
 // Called from usb_free, but only when usb_rx_memory_needed > 0, indicating
 // receive endpoints are starving for memory.  The intention is to give
 // endpoints needing receive memory priority over the user's code, which is
@@ -1282,7 +1331,6 @@ void usb_rx_memory( usb_packet_t *packet )
 	__disable_irq();
 	for ( i = 1; i <= NUM_ENDPOINTS; i++ )
 	{
-#if defined(_kinetis_)
 		if ( *cfg++ & USB_ENDPT_EPRXEN )
 		{
 			if ( table[ index( i, RX, EVEN ) ].desc == 0 )
@@ -1306,12 +1354,6 @@ void usb_rx_memory( usb_packet_t *packet )
 				return;
 			}
 		}
-#elif defined(_sam_)
-	//SAM TODO
-	if ( *cfg++ & 0 )
-	{
-	}
-#endif
 	}
 	__enable_irq();
 	// we should never reach this point.  If we get here, it means
@@ -1321,16 +1363,22 @@ void usb_rx_memory( usb_packet_t *packet )
 	usb_free( packet );
 	return;
 }
+#endif
 
 // Check if USB bus is suspended/sleeping
 uint8_t usb_suspended()
 {
+#if defined(_kinetis_)
 	return usb_dev_sleep;
+#elif defined(_sam_)
+	return !udd_b_idle;
+#endif
 }
 
 // Call whenever there's an action that may wake the host device
 uint8_t usb_resume()
 {
+#if defined(_kinetis_)
 	// If we have been sleeping, try to wake up host
 	if ( usb_dev_sleep && usb_configured() && usb_remote_wakeup )
 	{
@@ -1340,15 +1388,11 @@ uint8_t usb_resume()
 #endif
 		// According to the USB Spec a device must hold resume for at least 1 ms but no more than 15 ms
 		// After setting to RESUME, send a packet, delay then unset RESUME
-#if defined(_kinetis_)
 		USB0_CTL |= USB_CTL_RESUME;
 		usb_packet_t *tx_packet = usb_malloc();
 		usb_tx( KEYBOARD_ENDPOINT, tx_packet );
 		delay_ms(10);
 		USB0_CTL &= ~(USB_CTL_RESUME);
-#elif defined(_sam_)
-		//SAM TODO
-#endif
 		usb_dev_sleep = 0; // Make sure we don't call this again, may crash system
 #else
 		warn_print("Host Resume Disabled");
@@ -1356,6 +1400,7 @@ uint8_t usb_resume()
 
 		return 1;
 	}
+#endif
 
 	return 0;
 }
@@ -1370,6 +1415,7 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 	// Use the currently set descriptor value
 	Output_update_usb_current( *usb_bMaxPower * 2 );
 
+#if defined(_kinetis_)
 	bdt_t *b = &table[ index( endpoint, TX, EVEN ) ];
 	uint8_t next;
 
@@ -1414,6 +1460,10 @@ void usb_tx( uint32_t endpoint, usb_packet_t *packet )
 	b->addr = packet->buf;
 	b->desc = BDT_DESC( packet->len, ((uint32_t)b & 8) ? DATA1 : DATA0 );
 	__enable_irq();
+
+#elif defined(_sam_)
+	udd_ep_run(endpoint | USB_EP_DIR_IN, false, packet->buf, packet->len, NULL);
+#endif
 }
 
 
@@ -1440,9 +1490,9 @@ void usb_device_reload()
 }
 
 
+#if defined(_kinetis_)
 void usb_isr()
 {
-#if defined(_kinetis_)
 	uint8_t status, stat, t;
 
 restart:
@@ -1726,14 +1776,8 @@ restart:
 
 		USB0_ISTAT |= USB_ISTAT_RESUME;
 	}
-#elif defined(_sam_)
-	//SAM TODO
-	if (0)
-	{
-		usb_control(0); //avoid unused warning
-	}
-#endif
 }
+#endif
 
 
 
@@ -1761,8 +1805,20 @@ uint8_t usb_init()
 	hex32ToStr16( SIM_UIDMH, &(usb_string_serial_number_default.wString[8]), 8 );
 	hex32ToStr16( SIM_UIDML, &(usb_string_serial_number_default.wString[16]), 8 );
 	hex32ToStr16( SIM_UIDL,  &(usb_string_serial_number_default.wString[24]), 8 );
+#elif defined(_sam_)
+	// Write the unique id to the USB Descriptor memory location
+	// It's split up into 4 32 bit registers
+	// 1) Read out register
+	// 2) Convert to UTF-16-LE
+	// 3) Write to USB Descriptor Memory (space is pre-allocated)
+	extern struct usb_string_descriptor_struct usb_string_serial_number_default;
+	hex32ToStr16( sam_UniqueId[0], &(usb_string_serial_number_default.wString[0]), 8 );
+	hex32ToStr16( sam_UniqueId[1], &(usb_string_serial_number_default.wString[8]), 8 );
+	hex32ToStr16( sam_UniqueId[2], &(usb_string_serial_number_default.wString[16]), 8 );
+	hex32ToStr16( sam_UniqueId[3], &(usb_string_serial_number_default.wString[24]), 8 );
 #endif
 
+#if defined(_kinetis_)
 	// Clear out endpoints table
 	for ( int i = 0; i <= NUM_ENDPOINTS * 4; i++ )
 	{
@@ -1770,7 +1826,6 @@ uint8_t usb_init()
 		table[i].addr = 0;
 	}
 
-#if defined(_kinetis_)
 	// this basically follows the flowchart in the Kinetis
 	// Quick Reference User Guide, Rev. 1, 03/2012, page 141
 
@@ -1807,18 +1862,20 @@ uint8_t usb_init()
 
 	// enable d+ pullup
 	USB0_CONTROL = USB_CONTROL_DPPULLUPNONOTG;
-#elif defined(_sam_)
-	//SAM TODO
-	usb_configuration = 1;
 
+	// During initialization host isn't sleeping
+	usb_dev_sleep = 0;
+
+#elif defined(_sam_)
+	// Make sure USB transceiver is reset (in case we didn't do a full reset)
+	udd_disable();
+
+	// Start USB stack
 	udc_start();
 #endif
 
 	// Do not check for power negotiation delay until Get Configuration Descriptor
 	power_neg_delay = 0;
-
-	// During initialization host isn't sleeping
-	usb_dev_sleep = 0;
 
 	// XXX (HaaTa)
 	// Make sure remote wakeup is set initially as we want to wake-up by default

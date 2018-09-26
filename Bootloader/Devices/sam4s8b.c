@@ -74,6 +74,7 @@ void Chip_reset()
                 || (REG_RSTC_SR & RSTC_SR_RSTTYP_Msk) == RSTC_SR_RSTTYP_WatchdogReset
                 // Blank flash check
                 || _app_rom == 0xffffffff
+		|| (Chip_secure1 == 0 && Chip_secure2 == 0)
         )
 	{
 		print( "Secure Key Bypassed." NL );
@@ -116,6 +117,9 @@ void Chip_setup()
 
 	// Initialize non-volatile storage
 	storage_init();
+
+	// Make sure USB transceiver is reset (in case we didn't do a full reset)
+	udd_disable();
 
 	// Start USB stack
 	udc_start();

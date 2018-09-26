@@ -42,11 +42,15 @@
 
 // ----- Variables -----
 
+#if defined(_kinetis_)
 __attribute__ ((section(".usbbuffers"), used))
 unsigned char usb_buffer_memory[ NUM_USB_BUFFERS * sizeof(usb_packet_t) ];
-
 static uint32_t usb_buffer_available = 0xFFFFFFFF;
 
+#elif defined(_sam_)
+static usb_packet_t usb_packet;
+
+#endif
 
 
 // ----- Externs -----
@@ -67,6 +71,7 @@ extern uint8_t usb_rx_memory_needed;
 
 usb_packet_t *usb_malloc()
 {
+#if defined(_kinetis_)
 	unsigned int n, avail;
 	uint8_t *p;
 
@@ -85,11 +90,16 @@ usb_packet_t *usb_malloc()
 	*(uint32_t *)p = 0;
 	*(uint32_t *)(p + 4) = 0;
 	return (usb_packet_t *)p;
+
+#elif defined(_sam_)
+	return &usb_packet;
+#endif
 }
 
 
 void usb_free( usb_packet_t *p )
 {
+#if defined(_kinetis_)
 	unsigned int n, mask;
 
 	n = ( (uint8_t *)p - usb_buffer_memory ) / sizeof(usb_packet_t);
@@ -108,5 +118,6 @@ void usb_free( usb_packet_t *p )
 	__disable_irq();
 	usb_buffer_available |= mask;
 	__enable_irq();
+#endif
 }
 
