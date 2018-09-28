@@ -34,6 +34,7 @@ void Macro_keyState( uint16_t scanCode, uint8_t state );
 void Macro_layerState( uint16_t layerIndex, uint8_t state );
 void Macro_ledState( uint16_t ledCode, uint8_t state );
 void Macro_timeState( uint8_t type, uint16_t cur_time, uint8_t state );
+void Macro_rotationState( uint8_t index, int8_t increment );
 
 uint8_t Macro_tick_update( TickStore *store, uint8_t type );
 

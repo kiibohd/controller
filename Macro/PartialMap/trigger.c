@@ -289,6 +289,24 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 
 		return TriggerMacroVote_DoNothing;
 
+	// Rotation State Type
+	case TriggerType_Rotation1:
+		// Rotation triggers use state as the index, rather than encoding a type of action
+		// There is only "activated" state for rotations, which is only sent once
+		// This makes rotations not so useful for long macros
+		// (though it may be possible to implement it if there is demand)
+		if (
+			guide_index == event_index &&
+			guide->type == event->type &&
+			guide->state == event->state // <== This is the rotation position
+		)
+		{
+			// Only ever "Pressed", other states are not used with rotations
+			return Trigger_evalShortTriggerMacroVote_PHRO( ScheduleType_P );
+		}
+
+		return TriggerMacroVote_DoNothing;
+
 	// Invalid State Type
 	default:
 		erro_print("Invalid State Type. This is a bug.");
@@ -456,6 +474,16 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 			return Trigger_evalLongTriggerMacroVote_DRO( event->state, 0 );
 		}
 
+		break;
+
+	// Rotation State Type
+	case TriggerType_Rotation1:
+		// Rotation triggers use state as the index, rather than encoding a type of action
+		// There is only "activated" state for rotations, which is only sent once
+		// This makes rotations not so useful for long macros
+		// (though it may be possible to implement it if there is demand)
+		// TODO
+		erro_print("Rotation State Type (Long Macros) - Not implemented...");
 		break;
 
 	// Invalid State Type

@@ -22,6 +22,11 @@ layerRotate => Layer_layerRotate_capability( previous : 1 );
 # Null/None/noop Capability
 none => Macro_none_capability();
 
+# Rotation Capability
+# Index specifies which rotation memory to use
+# Increment specifies how many positions to rotate, use negative for reverse
+rotate => Macro_rotate_capability( index : 1, increment : 1 );
+
 # Test Capabilities
 testThreadSafe   => Macro_testThreadSafe_capability();
 testThreadUnsafe => Macro_testThreadUnsafe_capability();

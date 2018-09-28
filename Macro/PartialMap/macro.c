@@ -137,6 +137,9 @@ uint8_t macroPauseMode;
 // Macro step counter - If non-zero, the step counter counts down every time the macro module does one processing loop
 uint16_t macroStepCounter;
 
+// Macro rotation store - Each store is indexed, and is initialized to 0
+static uint8_t Macro_rotation_store[256]; // TODO (HaaTa): Use KLL to determine max usage (or dynamically size)
+
 
 // Latency resource
 static uint8_t macroLatencyResource;
@@ -167,6 +170,34 @@ const uint8_t ScheduleStateSize = ScheduleStateSize_define;
 
 
 // ----- Capabilities -----
+
+// Rotation capability
+// Maintains state and fires of a rotation event trigger
+void Macro_rotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Macro_rotate()");
+		return;
+	default:
+		return;
+	}
+
+	// Get storage index from arguments
+	uint8_t index = args[0];
+	// Get increment from arguments
+	int8_t increment = (int8_t)args[1];
+
+	// Trigger rotation
+	Macro_rotationState( index, increment );
+}
 
 // No-op capability (None)
 void Macro_none_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
@@ -849,6 +880,57 @@ void Macro_timeState( uint8_t type, uint16_t cur_time, uint8_t state )
 }
 
 
+// Rotation state update
+// Queues up a rotation trigger event
+// States:
+//   * 0x00 - Off
+//   * 0x01 - Activate
+//   * 0x02 - On
+//   * 0x03 - Deactivate
+void Macro_rotationState( uint8_t index, int8_t increment )
+{
+	// For now, always Rotation1
+	uint8_t type = TriggerType_Rotation1;
+
+	// If index is invalid, ignore
+	if ( index >= RotationNum )
+	{
+		return;
+	}
+
+	// State is used as the increment position
+	int16_t position = Macro_rotation_store[index] + increment;
+
+	// Wrap-around
+	// May have to wrap-around multiple times
+	while ( position > Rotation_MaxParameter[index] )
+	{
+		position -= Rotation_MaxParameter[index];
+	}
+
+	// Reverse Wrap-around
+	if ( position < 0 )
+	{
+		// May have to wrap-around multiple times
+		while ( position * -1 > Rotation_MaxParameter[index] )
+		{
+			position += Rotation_MaxParameter[index];
+		}
+
+		// Do wrap-around
+		position += Rotation_MaxParameter[index];
+
+	}
+	Macro_rotation_store[index] = position;
+
+	// Queue event
+	macroTriggerEventBuffer[ macroTriggerEventBufferSize ].index = index;
+	macroTriggerEventBuffer[ macroTriggerEventBufferSize ].state = position;
+	macroTriggerEventBuffer[ macroTriggerEventBufferSize ].type  = type;
+	macroTriggerEventBufferSize++;
+}
+
+
 // [In]Activity detected, do TickStore update and signal generation
 // Returns 1 if a signal is sent
 uint8_t Macro_tick_update( TickStore *store, uint8_t type )
@@ -1078,6 +1160,9 @@ inline void Macro_setup()
 
 	// Make sure macro trigger event buffer is empty
 	macroTriggerEventBufferSize = 0;
+
+	// Initial rotation store to 0s
+	memset( Macro_rotation_store, 0, sizeof(Macro_rotate_capability) );
 
 	// Setup Layers
 	Layer_setup();
