@@ -116,6 +116,18 @@ void systick_default_isr()
 #if !defined(_bootloader_)
 	CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
 	DWT->CTRL &= DWT_CTRL_CYCCNTENA_Msk;
+	// Check to see if SysTick is being starved by another IRQ
+	// 12 cycle IRQ latency (plus some extra)
+	// XXX (HaaTa) There seems to be a CPU bug where you need to wait some clock cycles before you can
+	// clear the CYCCNT register on SAM4S (this wasn't the case on Kinetis)
+	if ( DWT->CYCCNT > F_CPU / 1000 + 30 )
+	{
+		erro_print("SysTick is being starved by another IRQ...");
+		printInt32( DWT->CYCCNT );
+		print(" vs. ");
+		printInt32( F_CPU / 1000 );
+		print(NL);
+	}
 	DWT->CYCCNT = 0;
 	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
 #endif
@@ -452,7 +464,7 @@ void ResetHandler()
 	// Initialize the SysTick counter
 	SysTick->LOAD = (F_CPU / 1000) - 1;
 	SysTick->VAL = 0;
-	SysTick->CALIB = F_CPU / 8;
+	SysTick->CALIB = F_CPU / 1000 / 8;
 	SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk | SysTick_CTRL_TICKINT_Msk | SysTick_CTRL_ENABLE_Msk;
 
 	// Enable IRQs

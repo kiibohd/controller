@@ -100,6 +100,16 @@ void systick_default_isr()
 	// Reset cycle count register
 	ARM_DEMCR |= ARM_DEMCR_TRCENA;
 	ARM_DWT_CTRL &= ~ARM_DWT_CTRL_CYCCNTENA;
+	// Check to see if SysTick is being starved by another IRQ
+	// 12 cycle IRQ latency (plus some extra)
+	if ( ARM_DWT_CYCCNT > F_CPU / 1000 + 30 )
+	{
+		erro_print("SysTick is being starved by another IRQ...");
+		printInt32( ARM_DWT_CYCCNT );
+		print(" vs. ");
+		printInt32( F_CPU / 1000 );
+		print(NL);
+	}
 	ARM_DWT_CYCCNT = 0;
 	ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA;
 #endif
