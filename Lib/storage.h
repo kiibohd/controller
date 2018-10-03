@@ -48,7 +48,7 @@
 
 // ----- Variables -----
 
-typedef struct {
+/*typedef struct {
 	uint8_t brightness;
 } LedSettings;
 
@@ -56,7 +56,19 @@ typedef struct {
 	LedSettings led;
 } NVSettings;
 
-extern NVSettings settings_storage;
+extern NVSettings settings_storage;*/
+
+typedef struct {
+	char *name;
+	void *settings;
+	void *defaults;
+	uint8_t size;
+	void (*onLoad)();
+	void (*onSave)();
+	void (*display)();
+} StorageModule;
+
+#define StorageMaxModules 4
 
 
 // ----- Functions -----
@@ -70,7 +82,9 @@ uint8_t storage_page_position();
 int8_t storage_block_position();
 uint8_t storage_is_storage_cleared();
 
+void Storage_registerModule(StorageModule *config);
 uint8_t storage_load_settings();
 uint8_t storage_save_settings();
+void storage_default_settings();
 
 #endif
