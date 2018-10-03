@@ -46,6 +46,18 @@
 #include <stdint.h>
 
 
+// ----- Variables -----
+
+typedef struct {
+	uint8_t brightness;
+} LedSettings;
+
+typedef struct {
+	LedSettings led;
+} NVSettings;
+
+extern NVSettings settings_storage;
+
 
 // ----- Functions -----
 
@@ -58,5 +70,7 @@ uint8_t storage_page_position();
 int8_t storage_block_position();
 uint8_t storage_is_storage_cleared();
 
-#endif
+uint8_t storage_load_settings();
+uint8_t storage_save_settings();
 
+#endif

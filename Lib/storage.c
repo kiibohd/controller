@@ -46,6 +46,8 @@
 #include <debug.h>
 #else
 #include <print.h>
+#include <cli.h>
+#include <led_scan.h>
 #endif
 
 // ASF Includes
@@ -90,7 +92,25 @@ static uint8_t cleared_block = 0; // Set to 1 if current block has been cleared 
 // if V = 1, page/sub_page is next in line to be written, otherwise 0
 // if V = 0 and B = 1, the page has been cleared and does not need to be cleared (when blanking out the page)
 
+#if !defined(_bootloader_)
+void cliFunc_storage( char* args );
+void cliFunc_erase( char* args );
+void cliFunc_load( char* args );
+void cliFunc_save( char* args );
 
+CLIDict_Entry( storage,  "Print settings storage info" );
+CLIDict_Entry( erase, "Clear saved settings" );
+CLIDict_Entry( load, "Load saved settings" );
+CLIDict_Entry( save, "Update saved settings" );
+
+CLIDict_Def( storageCLIDict, "Storage Module Commands" ) = {
+	CLIDict_Item( storage ),
+	CLIDict_Item( erase ),
+	CLIDict_Item( load ),
+	CLIDict_Item( save ),
+	{ 0, 0, 0 } // Null entry for dictionary end
+};
+#endif
 
 // ----- Functions -----
 
@@ -187,6 +207,8 @@ static int8_t get_storage_block( uint8_t *data )
 void storage_init()
 {
 	uint8_t page_walker;
+
+	CLI_registerDictionary( storageCLIDict, storageCLIDictName );
 
 	// Flash incoming read buffer
 	uint8_t page_buffer[STORAGE_FLASH_PAGE_SIZE];
@@ -537,5 +559,71 @@ uint8_t storage_clear_page()
 	return 1;
 }
 
+#if !defined(_bootloader_)
+NVSettings settings_storage;
+
+uint8_t storage_load_settings() {
+	uint8_t success = storage_read((uint8_t*)&settings_storage, 0, sizeof(settings_storage)) == 1;
+	if (success) {
+		LED_brightness = settings_storage.led.brightness;
+	}
+	return success;
+}
+
+uint8_t storage_save_settings() {
+	settings_storage.led.brightness = LED_brightness;
+	return storage_write((uint8_t*)&settings_storage, 0, sizeof(settings_storage), 0) == 1;
+}
+
+void cliFunc_storage( char* args )
+{
+	print( NL );
+	print(" Page: ");
+	printHex( storage_page_position() );
+	print(" Block: ");
+	printHex( storage_block_position() );
+	print( NL );
+	print(" Address: ");
+	printHex32((STORAGE_FLASH_START + current_page * STORAGE_FLASH_PAGE_SIZE)
+		//+ (current_storage_index * (STORAGE_SIZE + 1))
+	);
+	print( NL );
+}
+
+void cliFunc_erase( char* args )
+{
+	print( NL );
+	switch ( storage_clear_page() )
+	{
+	case 0:
+		print("Already cleared" NL);
+		break;
+	default:
+		print("Flash cleared!" NL);
+		break;
+	}
+}
+
+void cliFunc_load( char* args ) {
+	print( NL );
+	if (storage_load_settings()) {
+		print("Brightness: ");
+		printHex32(settings_storage.led.brightness);
+	} else {
+		print("Error!");
+	}
+}
+
+void cliFunc_save( char* args )
+{
+	print( NL );
+	if (storage_save_settings()) {
+		print("Success!");
+	} else {
+		print("Failure!");
+	}
+}
+
 #endif
 
+#endif

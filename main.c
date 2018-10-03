@@ -36,6 +36,7 @@
 
 #include <Lib/periodic.h>
 #include <Lib/sysview.h>
+#include <Lib/storage.h>
 
 // ----- Enumerations -----
 
@@ -124,6 +125,11 @@ int main()
 
 	// Setup periodic timer function
 	Periodic_function( &main_periodic );
+
+#if defined(_sam_)
+	storage_init();
+	storage_load_settings();
+#endif
 
 	// Setup Modules
 	Output_setup();

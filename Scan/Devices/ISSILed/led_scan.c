@@ -20,6 +20,7 @@
 #include <Lib/ScanLib.h>
 
 // Project Includes
+#include <Lib/storage.h>
 #include <cli.h>
 #include <kll_defs.h>
 #include <latency.h>
@@ -502,6 +503,10 @@ void LED_reset()
 
 	// Reset global brightness
 	LED_brightness = ISSI_Global_Brightness_define;
+
+#if defined(_sam_)
+	LED_brightness = settings_storage.led.brightness;
+#endif
 
 #if ISSI_Chip_31FL3733_define == 1
 	// Enable pull-up and pull-down anti-ghosting resistors
