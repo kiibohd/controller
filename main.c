@@ -127,7 +127,7 @@ int main()
 	Periodic_function( &main_periodic );
 
 #if defined(_sam_)
-	storage_init();
+	Storage_init();
 #endif
 
 	// Setup Modules

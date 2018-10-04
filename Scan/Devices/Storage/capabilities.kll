@@ -1,0 +1,14 @@
+# Storage
+Name = ISSILedCapabilities;
+Version = 0.1;
+Author = "Smasher816 (Rowan Decker) 2015-2017";
+KLL = 0.5;
+
+# Modified Date
+Date = 2018-10-03;
+
+# Storage Control
+# 0 - Load
+# 1 - Save
+# 2 - Defaults
+storage_control => Storage_StorageControl_capability( func : 1 );
