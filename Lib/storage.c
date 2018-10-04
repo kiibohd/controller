@@ -32,7 +32,7 @@
  */
 
 #include "mcu_compat.h"
-
+#include <Macro/PartialMap/kll.h>
 
 
 #if defined(_sam_)
@@ -668,6 +668,43 @@ void cliFunc_defaults( char* args )
 	}
 
 	print( NL "Loaded defauts");
+}
+
+void Storage_StorageControl_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )                                              
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Pixel_AnimationControl_capability(func)");
+		return;
+	default:
+		return;
+	}
+
+	uint8_t arg  = *(uint8_t*)(&args[0]);
+
+	// Decide how to handle function
+	switch ( arg )
+	{
+	case 0: // Load
+		storage_load_settings();
+		break;
+	case 1: // Save
+		storage_save_settings();
+		break;
+	case 2: // Defaults
+		storage_default_settings();
+		for (uint8_t i=0; i<module_count; i++) {
+			storage_modules[i]->onLoad();
+		}
+		break;
+	}
 }
 
 #endif
