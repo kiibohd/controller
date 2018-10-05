@@ -70,8 +70,10 @@ const char* Time_ticksPer_ns_str = "20.833 ns";
 const uint32_t Time_ticksPer_ns_x1000 = 20833;
 #elif defined(_host_)
 const char* Time_ticksPer_ns_str = "<USERDEFINED>";
+const uint32_t Time_ticksPer_ns_x1000 = 1;
 #else
 const char* Time_ticksPer_ns_str = "<UNKNOWN>";
+const uint32_t Time_ticksPer_ns_x1000 = 1;
 #endif
 
 
