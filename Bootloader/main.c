@@ -322,7 +322,7 @@ void main()
 	if (    // PIN  (External Reset Pin/Switch)
 		(REG_RSTC_SR & RSTC_SR_RSTTYP_Msk) == RSTC_SR_RSTTYP_UserReset
 		// WDOG (Watchdog timeout)
-		|| (REG_RSTC_SR & RSTC_SR_RSTTYP_Msk) == RSTC_SR_RSTTYP_WatchdogReset
+		//|| (REG_RSTC_SR & RSTC_SR_RSTTYP_Msk) == RSTC_SR_RSTTYP_WatchdogReset
 		// Blank flash check
 		|| _app_rom == 0xffffffff
 		// Software reset
@@ -337,12 +337,16 @@ void main()
 	{
 		// Enable Watchdog before jumping
 		// XXX (HaaTa) This watchdog cannot trigger an IRQ, as we're relocating the vector table
+		
 #if defined(DEBUG) && defined(JLINK)
 		WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDFIEN | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
 		//WDT->WDT_MR = WDT_MR_WDDIS;
 #else
-		WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDRSTEN | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
+		WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDRSTEN | WDT_MR_WDRPROC | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
 #endif
+
+		for ( int pos = 0; pos <= sizeof(sys_reset_to_loader_magic)/4; pos++ )
+			GPBR->SYS_GPBR[ pos ] = ((uint32_t*)sys_reset_to_loader_magic)[ pos ];
 
 		// Firmware mode
 		print( NL "==> Booting Firmware..." );
