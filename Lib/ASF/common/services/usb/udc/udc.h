@@ -115,6 +115,9 @@ extern "C" {
  * @{
  */
 
+extern le16_t udc_device_status;
+extern uint8_t udc_num_configuration;
+
 /**
  * \brief Authorizes the VBUS event
  *

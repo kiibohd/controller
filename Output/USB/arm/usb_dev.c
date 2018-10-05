@@ -486,7 +486,11 @@ void usb_setup()
 		switch ( setup.wValue )
 		{
 		case 0x1: // CLEAR_FEATURE(DEVICE_REMOTE_WAKEUP)
+			warn_msg(" CLEAR USB REMOTE WAKEUP " NL);
 			usb_remote_wakeup = 0;
+#if defined(_sam_)
+			//udd_disable_remote_wake_up();
+#endif
 			goto send;
 
 		// XXX (HaaTa): Not implemented
@@ -532,14 +536,22 @@ void usb_setup()
 	}
 
 	case 0x0300: // SET_FEATURE (device)
+		warn_msg("(SET_FEATURE, SETUP)  - ");
+		printHex32( setup.wValue );
+		print(NL);
 		switch ( setup.wValue )
 		{
 		// XXX: Only used to confirm Remote Wake
 		//      Used on Mac OSX and Windows not on Linux
 		// Good post on the behaviour:
 		// http://community.silabs.com/t5/8-bit-MCU/Remote-wakeup-HID/m-p/74957#M30802
+
 		case 0x1: // SET_FEATURE(DEVICE_REMOTE_WAKEUP)
 			usb_remote_wakeup = 1;
+			warn_msg(" SET USB REMOTE WAKEUP " NL);
+#if defined(_sam_)
+			//udd_enable_remote_wake_up();
+#endif
 			goto send;
 
 		// XXX (HaaTa): Not implemented
@@ -1381,14 +1393,35 @@ uint8_t usb_suspended()
 // Call whenever there's an action that may wake the host device
 uint8_t usb_resume()
 {
-#if defined(_kinetis_)
-	// If we have been sleeping, try to wake up host
-	if ( usb_dev_sleep && usb_configured() && usb_remote_wakeup )
-	{
-#if enableUSBResume_define == 1
-#if enableVirtualSerialPort_define != 1
-		info_print("Attempting to resume the host");
+#if defined(_sam_)
+	usb_remote_wakeup = udc_device_status & CPU_TO_LE16(USB_DEV_STATUS_REMOTEWAKEUP) ? 1 : 0;
 #endif
+
+	/*warn_msg("resume: usb_remote_wakeup = ");
+	printHex( usb_remote_wakeup );
+	print( NL );
+
+	print("configured = ");
+	printHex( usb_configured() );
+	print( NL );
+
+	print("suspended = ");
+	printHex( usb_suspended() );
+	print( NL );
+
+	print("RMWUPE = ");
+	printHex( Is_udd_remote_wake_up_enabled() );
+	print( NL );*/
+
+#if enableUSBResume_define == 1
+	// If we have been sleeping, try to wake up host
+	if ( usb_suspended() && usb_configured() && usb_remote_wakeup )
+	{
+//#if enableVirtualSerialPort_define != 1
+		info_print("Attempting to resume the host");
+//#endif
+
+#if defined(_kinetis_)
 		// According to the USB Spec a device must hold resume for at least 1 ms but no more than 15 ms
 		// After setting to RESUME, send a packet, delay then unset RESUME
 		USB0_CTL |= USB_CTL_RESUME;
@@ -1397,12 +1430,16 @@ uint8_t usb_resume()
 		delay_ms(10);
 		USB0_CTL &= ~(USB_CTL_RESUME);
 		usb_dev_sleep = 0; // Make sure we don't call this again, may crash system
-#else
-		warn_print("Host Resume Disabled");
+
+#elif defined(_sam_)
+		udd_send_remotewakeup();
 #endif
 
 		return 1;
 	}
+
+#else
+	warn_print("Host Resume Disabled");
 #endif
 
 	return 0;
@@ -1743,9 +1780,6 @@ restart:
 	{
 #if enableUSBSuspend_define == 1
 		// Can cause issues with the virtual serial port
-#if enableVirtualSerialPort_define != 1
-		info_print("Host has requested USB sleep/suspend state");
-#endif
 		if ( !usb_dev_sleep )
 		{
 			Output_update_usb_current( 100 ); // Set to 100 mA
@@ -1766,9 +1800,6 @@ restart:
 	if ( (status & USB_ISTAT_RESUME /* 20 */ ) )
 	{
 		// Can cause issues with the virtual serial port
-#if enableVirtualSerialPort_define != 1
-		info_print("Host has woken-up/resumed from sleep/suspend state");
-#endif
 		Output_update_usb_current( *usb_bMaxPower * 2 );
 		usb_dev_sleep = 0;
 
@@ -1783,6 +1814,19 @@ restart:
 #endif
 
 
+void usb_set_sleep_state(bool sleep) {
+	if (sleep) {
+#if enableVirtualSerialPort_define != 1
+		info_print("Host has requested USB sleep/suspend state");
+#endif
+		Output_update_usb_current( 100 ); // Set to 100 mA
+	} else {
+#if enableVirtualSerialPort_define != 1
+		info_print("Host has woken-up/resumed from sleep/suspend state");
+#endif
+		Output_update_usb_current( *usb_bMaxPower * 2 );
+	}
+}
 
 uint8_t usb_init()
 {

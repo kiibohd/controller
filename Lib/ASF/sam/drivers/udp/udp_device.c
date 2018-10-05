@@ -169,11 +169,7 @@ static void udd_sleep_mode(bool b_idle)
 
 static void udd_sleep_mode(bool b_idle)
 {
-	if (b_idle) {
-#ifdef USB_RESUME_CALLBACK
-		USB_RESUME_CALLBACK();
-#endif
-	}
+	udd_b_idle = b_idle;
 }
 
 #endif // UDD_NO_SLEEP_MGR
