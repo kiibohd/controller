@@ -773,6 +773,9 @@ void usb_setup()
 		// NKRO Keyboard Interface
 		case NKRO_KEYBOARD_INTERFACE:
 			break;
+		// Mouse Interface
+		case MOUSE_INTERFACE:
+			break;
 		default:
 			warn_msg("(SET_REPORT, SETUP) Unknown interface - ");
 			printHex( setup.wIndex );
