@@ -27,6 +27,7 @@ uint8_t module_count;
 
 void Storage_init() {
 	storage_init();
+	storage_default_settings();
 	CLI_registerDictionary( storageCLIDict, storageCLIDictName );
 }
 

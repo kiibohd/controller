@@ -486,11 +486,7 @@ void usb_setup()
 		switch ( setup.wValue )
 		{
 		case 0x1: // CLEAR_FEATURE(DEVICE_REMOTE_WAKEUP)
-			warn_msg(" CLEAR USB REMOTE WAKEUP " NL);
 			usb_remote_wakeup = 0;
-#if defined(_sam_)
-			//udd_disable_remote_wake_up();
-#endif
 			goto send;
 
 		// XXX (HaaTa): Not implemented
@@ -548,10 +544,6 @@ void usb_setup()
 
 		case 0x1: // SET_FEATURE(DEVICE_REMOTE_WAKEUP)
 			usb_remote_wakeup = 1;
-			warn_msg(" SET USB REMOTE WAKEUP " NL);
-#if defined(_sam_)
-			//udd_enable_remote_wake_up();
-#endif
 			goto send;
 
 		// XXX (HaaTa): Not implemented
@@ -1417,9 +1409,9 @@ uint8_t usb_resume()
 	// If we have been sleeping, try to wake up host
 	if ( usb_suspended() && usb_configured() && usb_remote_wakeup )
 	{
-//#if enableVirtualSerialPort_define != 1
+#if enableVirtualSerialPort_define != 1
 		info_print("Attempting to resume the host");
-//#endif
+#endif
 
 #if defined(_kinetis_)
 		// According to the USB Spec a device must hold resume for at least 1 ms but no more than 15 ms
