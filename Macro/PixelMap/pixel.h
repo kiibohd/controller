@@ -127,6 +127,13 @@ typedef enum AnimationControl {
 	AnimationControl_Clear      = 6, // Clears the display, animations continue
 } AnimationControl;
 
+typedef enum PixelPeriodIndex {
+	PixelPeriodIndex_Off_to_On = 0, // Start, fading from off to on
+	PixelPeriodIndex_On        = 1, // Hold on
+	PixelPeriodIndex_On_to_Off = 2, // Fading from on to off
+	PixelPeriodIndex_Off       = 3, // Hold off
+} PixelPeriodIndex;
+
 
 
 // ----- Structs -----
@@ -172,14 +179,14 @@ typedef struct PixelModElement {
 	};
 	uint8_t     data[0];          // Data size depends on PixelElement definition
 	                              // ( PixelElement.width / 8 + sizeof(PixelChange) ) * PixelElement.channels
-} __attribute((packed)) PixelModElement;
+} __attribute__((packed)) PixelModElement;
 
 // Pixel Mod Data Element
 // - Each element of uint8_t data[0]
 typedef struct PixelModDataElement {
 	PixelChange change;
 	uint8_t     data[0];
-} __attribute((packed)) PixelModDataElement;
+} __attribute__((packed)) PixelModDataElement;
 
 // Animation stack element
 typedef struct AnimationStackElement {
@@ -210,6 +217,33 @@ typedef struct AnimationStack {
 	AnimationStackElement *stack[Pixel_AnimationStackSize];
 } AnimationStack;
 
+// start/end are defined in the number of bits used for the variable
+// (1 << 0) == 1
+// (1 << 4) == 16
+// Maximum value is 24 (limit of algorithm)
+// (1 << 24) == 16777216 (0x1000000)
+// Maximum functional value is 15 (to save on EEPROM storage)
+// Actual time delay will depend on the current FPS setting for the LED driver
+typedef struct PixelPeriodConfig {
+	uint8_t start:4; // (1 << start) - 1
+	uint8_t end:4;   // (1 << end)
+} __attribute__((packed)) PixelPeriodConfig;
+
+typedef struct PixelFadeProfile {
+	// 0: Off -> On period
+	// 1: On hold time
+	// 2: On -> Off period
+	// 3: Off hold time
+	PixelPeriodConfig conf[4];
+	uint32_t pos;                 // Current position with the current PixelPeriodConfig
+	PixelPeriodIndex period_conf; // Which PixelPeriodConfig is being processed
+} PixelFadeProfile;
+
+typedef struct PixelLEDGroupEntry {
+	const uint16_t size;
+	const uint16_t *pixels;
+} PixelLEDGroupEntry;
+
 
 
 // ----- Variables -----
@@ -218,12 +252,19 @@ extern FrameState Pixel_FrameState;
 
 extern const AnimationStackElement Pixel_AnimationSettings[];
 
+extern const PixelLEDGroupEntry Pixel_LED_DefaultFadeGroups[];
+extern const PixelPeriodConfig  Pixel_LED_FadePeriods[];
+extern const uint8_t            Pixel_LED_FadePeriod_Defaults[4][4];
+
 extern       PixelBuf     Pixel_Buffers[];
+extern       PixelBuf     LED_Buffers[];
 extern const PixelElement Pixel_Mapping[];
 extern const uint16_t     Pixel_DisplayMapping[];
 extern const uint8_t    **Pixel_Animations[];
 extern const uint16_t     Pixel_ScanCodeToDisplay[];
 extern const uint16_t     Pixel_ScanCodeToPixel[];
+
+extern const Layer        LayerIndex[];
 
 
 

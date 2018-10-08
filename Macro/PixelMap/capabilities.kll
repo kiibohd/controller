@@ -1,11 +1,11 @@
 # PixelMap
 Name = PixelMapCapabilities;
-Version = 0.3;
-Author = "HaaTa (Jacob Alexander) 2015-2017";
+Version = 0.4;
+Author = "HaaTa (Jacob Alexander) 2015-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-02-05;
+Date = 2018-10-07;
 
 ## Capabilities ##
 animation => Pixel_Animation_capability( index : 2, loops : 1, pfunc : 1, divmask : 1, divshift : 1, replace : 1 );
@@ -22,6 +22,88 @@ pixel => Pixel_Pixel_capability();
 # 6 - Pause
 # 7 - Clear (clears the display, animations continue)
 animation_control => Pixel_AnimationControl_capability( func : 1 );
+
+# Fade Control
+# profile:
+#  0) Keys
+#  1) Underlighting
+#  2) Indicators
+#  3) Active Layer (must use fade_layer_highlight to re-scan)
+# config: One of 16 configs 0..15
+# period: Time period within profile
+#  0) Off to On
+#  1) On
+#  2) On to Off
+#  3) Off
+# Notes:
+#  * Set all periods in a profile to ( start=0, end=0 ) to disable profile
+#  * Timing is based on the FPS set in the LED driver, confgs are relative to that
+#  * Fading is processed after animations
+fade_set => Pixel_FadeSet_capability( profile : 1, config : 1, period : 1 );
+fade_layer_highlight => Pixel_FadeLayerHighlight_capability( layer : 2 );
+
+# Fade Period
+# .start and .end must be between 0 and 15
+# .start == (1 << start) - 1
+# .end   == (1 << end)
+# This means incrementing end will exponentially increase the time of the period.
+# .start = 0 and .end = 0 disables that time period
+# A non-zero start will prevent the LED from dimming to 0 for Off->On and On->Off
+# the subsequent Off state afterwards will use the previous start from On->Off for the display value.
+# Only 16 fade periods can be used.
+KLL_LED_FadePeriod => KLL_LED_FadePeriod_define;
+KLL_LED_FadePeriod[0] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[1] = "{ .start = 0, .end = 4 }";
+KLL_LED_FadePeriod[2] = "{ .start = 0, .end = 6 }";
+KLL_LED_FadePeriod[3] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[4] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[5] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[6] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[7] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[8] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[9] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[10] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[11] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[12] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[13] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[14] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[15] = "{ .start = 0, .end = 0 }";
+
+# Fade Default Configuration
+# There are 4 fade profiles
+# 0) Keys
+# 1) Underlighting
+# 2) Indicators
+# 3) Active Layer (uses fade_layer_highlight to refresh)
+# Each fade profile has 4 fade period configurations (see above).
+# 0) Off to On
+# 1) On
+# 2) On to Off
+# 3) Off
+## Keys
+KLL_LED_FadeDefaultConfig0 => KLL_LED_FadeDefaultConfig0_define;
+KLL_LED_FadeDefaultConfig0[0] = 0;
+KLL_LED_FadeDefaultConfig0[1] = 0;
+KLL_LED_FadeDefaultConfig0[2] = 0;
+KLL_LED_FadeDefaultConfig0[3] = 0;
+## Underlighting
+KLL_LED_FadeDefaultConfig1 => KLL_LED_FadeDefaultConfig1_define;
+KLL_LED_FadeDefaultConfig1[0] = 0;
+KLL_LED_FadeDefaultConfig1[1] = 0;
+KLL_LED_FadeDefaultConfig1[2] = 0;
+KLL_LED_FadeDefaultConfig1[3] = 0;
+## Indicators
+KLL_LED_FadeDefaultConfig2 => KLL_LED_FadeDefaultConfig2_define;
+KLL_LED_FadeDefaultConfig2[0] = 0;
+KLL_LED_FadeDefaultConfig2[1] = 0;
+KLL_LED_FadeDefaultConfig2[2] = 0;
+KLL_LED_FadeDefaultConfig2[3] = 0;
+## Active Layer
+KLL_LED_FadeDefaultConfig3 => KLL_LED_FadeDefaultConfig3_define;
+KLL_LED_FadeDefaultConfig3[0] = 0;
+KLL_LED_FadeDefaultConfig3[1] = 0;
+KLL_LED_FadeDefaultConfig3[2] = 0;
+KLL_LED_FadeDefaultConfig3[3] = 0;
 
 
 # Enable define
@@ -43,6 +125,18 @@ Pixel_Buffer_Size   => Pixel_Buffer_Size_define;
 Pixel_Buffer_Width  => Pixel_Buffer_Width_define;
 Pixel_Buffer_Buffer => Pixel_Buffer_Buffer_define;
 Pixel_Buffer_Length => Pixel_Buffer_Length_define;
+
+# LED Buffer Defines
+LED_Buffer_Size   => LED_Buffer_Size_define;
+LED_Buffer_Width  => LED_Buffer_Width_define;
+LED_Buffer_Buffer => LED_Buffer_Buffer_define;
+LED_Buffer_Length => LED_Buffer_Length_define;
+
+# Fade Groups
+KLL_LED_FadeGroup => KLL_LED_FadeGroup_define;
+KLL_LED_FadeGroup[0] = "";
+KLL_LED_FadeGroup[1] = "";
+KLL_LED_FadeGroup[2] = "";
 
 # Pixel Display Mapping Parameters
 Pixel_DisplayMapping_UnitSize = 19; # Default unit spacing in mm

@@ -1,12 +1,12 @@
 # Whitefox
 
 Name = WhiteFox;
-Version = 0.6;
-Author = "HaaTa (Jacob Alexander) 2015-2017";
+Version = 0.7;
+Author = "HaaTa (Jacob Alexander) 2015-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2017-11-26;
+Date = 2018-10-11;
 
 
 #
@@ -31,6 +31,11 @@ typedef struct LED_Buffer {
 	uint16_t buffer[144];
 } LED_Buffer;
 volatile LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
+
+typedef struct KLL_Buffer {
+	uint16_t buffer[144];
+} KLL_Buffer;
+volatile KLL_Buffer KLL_pageBuffer[ ISSI_Chips_define ];
 ";
 
 
@@ -67,7 +72,12 @@ ISSILedMask1 = "
 Pixel_Buffer_Size[]    =   0; # Starting channel for each buffer
 Pixel_Buffer_Width[]   =  16; # Width of each channel buffer (may be different than effective channel size)
 Pixel_Buffer_Length[]  = 144; # Length of each buffer (count, not bytes)
-Pixel_Buffer_Buffer[0] = "LED_pageBuffer[0].buffer"; # Pointer to the start of the buffer
+Pixel_Buffer_Buffer[0] = "KLL_pageBuffer[0].buffer"; # Pointer to the start of the buffer
+
+LED_Buffer_Size[]    =   0; # Starting channel for each buffer
+LED_Buffer_Width[]   =  16; # Width of each channel buffer (may be different than effective channel size)
+LED_Buffer_Length[]  = 144; # Length of each buffer (count, not bytes)
+LED_Buffer_Buffer[0] = "LED_pageBuffer[0].buffer"; # Pointer to the start of the buffer
 
 # Channel Optimizations
 Pixel_HardCode_ChanWidth = 8;
@@ -167,4 +177,16 @@ P[ 68](131:8) : S68;
 P[ 69](132:8) : S69;
 P[ 70](133:8) : S70;
 P[ 71](134:8) : S71;
+
+
+
+### LED Default Fade Groups ###
+#
+# Group 0 -> Keys
+# Group 1 -> Underlighting
+# Group 2 -> Indicators
+# Group 3 -> Active layer (not default)
+KLL_LED_FadeGroup[0] = "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71";
+KLL_LED_FadeGroup[1] = "";
+KLL_LED_FadeGroup[2] = "";
 

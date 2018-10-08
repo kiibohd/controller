@@ -118,6 +118,19 @@ uint16_t Pixel_Mapping_HostLen = 128; // TODO Define
 uint8_t  Pixel_AnimationStackElement_HostSize = sizeof( AnimationStackElement );
 #endif
 
+// Pixel Fade Profile Mapping
+// Assigned per pixel (rather than channel)
+// 0 - Disabled
+// 1 - Profile 1 - Keys
+// 2 - Profile 2 - Underlighting
+// 3 - Profile 3 - Indicator LEDs
+// 4 - Profile 4 - Current active layer (defaultmap is excluded)
+static uint8_t Pixel_pixel_fade_profile[Pixel_TotalPixels_KLL];
+
+// Pixel Fade Profile Parameters
+// TODO (HaaTa): Use KLL to determine number of profiles (currently only 4)
+static PixelFadeProfile Pixel_pixel_fade_profile_entries[4];
+
 // Latency Measurement Resource
 static uint8_t pixelLatencyResource;
 
@@ -130,6 +143,8 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState csta
 uint8_t Pixel_determineLastTriggerScanCode( TriggerMacro *trigger );
 
 void Pixel_pixelSet( PixelElement *elem, uint32_t value );
+
+void Pixel_SecondaryProcessing_profile_init();
 
 PixelBuf *Pixel_bufferMap( uint16_t channel );
 
@@ -290,6 +305,84 @@ void Pixel_AnimationControl_capability( TriggerMacro *trigger, uint8_t state, ui
 	case 7: // Clears pixels (no pause and no stop)
 		Pixel_animationControl = AnimationControl_Clear;
 		break;
+	}
+}
+
+void Pixel_FadeSet_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Pixel_FadeSet_capability(profile,config,period)");
+		return;
+	default:
+		return;
+	}
+
+	// Get arguments
+	uint8_t profile = *(uint8_t*)(&args[0]);
+	uint8_t config = *(uint8_t*)(&args[1]);
+	uint8_t period = *(uint8_t*)(&args[2]);
+
+	// Get period configuation
+	const PixelPeriodConfig *period_config = &Pixel_LED_FadePeriods[period];
+
+	// Set period configuration
+	Pixel_pixel_fade_profile_entries[profile].conf[config].start = period_config->start;
+	Pixel_pixel_fade_profile_entries[profile].conf[config].end = period_config->end;
+
+	// Reset the current period being processed
+	Pixel_pixel_fade_profile_entries[profile].pos = 0;
+}
+
+void Pixel_FadeLayerHighlight_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Scan the layer for keys
+		break;
+	case CapabilityState_Last:
+		// Refresh the fade profiles
+		Pixel_SecondaryProcessing_profile_init();
+		return;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Pixel_FadeLayerHighlight_capability(layer)");
+		return;
+	default:
+		return;
+	}
+
+	// Get argument
+	uint16_t layer = *(uint16_t*)(&args[0]);
+
+	// Lookup layer
+	const Layer *layer_map = &LayerIndex[layer];
+
+	// Lookup list of keys in layer
+	for ( uint8_t key = layer_map->first; key <= layer_map->last; key++ )
+	{
+		uint8_t index = key - layer_map->first;
+		// If the first entry in trigger list is a 0, ignore (otherwise, key is in layer)
+		if ( layer_map->triggerMap[index][0] == 0 )
+		{
+			continue;
+		}
+
+		// Lookup pixel associated with scancode (remember -1 as all pixels and scancodes start at 1, not 0)
+		uint16_t pixel = Pixel_ScanCodeToPixel[key - 1];
+
+		// Set pixel to group #4 (index 3)
+		Pixel_pixel_fade_profile[pixel - 1] = 3;
 	}
 }
 
@@ -606,6 +699,33 @@ PixelBuf *Pixel_bufferMap( uint16_t channel )
 
 	// Invalid channel, return first channel and display error
 	erro_msg("Invalid channel: ");
+	printHex( channel );
+	print( NL );
+	return 0;
+}
+
+// PixelBuf lookup (LED_Buffers)
+// - Determines which buffer a channel resides in
+PixelBuf *LED_bufferMap( uint16_t channel )
+{
+	// TODO Generate based on keyboard
+#if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
+	if      ( channel < 144 ) return &LED_Buffers[0];
+	else if ( channel < 288 ) return &LED_Buffers[1];
+	else if ( channel < 432 ) return &LED_Buffers[2];
+	else if ( channel < 576 ) return &LED_Buffers[3];
+#elif ISSI_Chip_31FL3733_define == 1
+	if      ( channel < 192 ) return &LED_Buffers[0];
+	else if ( channel < 384 ) return &LED_Buffers[1];
+	else if ( channel < 576 ) return &LED_Buffers[2];
+#else
+	if      ( channel < 192 ) return &LED_Buffers[0];
+	else if ( channel < 384 ) return &LED_Buffers[1];
+	else if ( channel < 576 ) return &LED_Buffers[2];
+#endif
+
+	// Invalid channel, return first channel and display error
+	erro_msg("Invalid channel (LED): ");
 	printHex( channel );
 	print( NL );
 	return 0;
@@ -1577,6 +1697,210 @@ void Pixel_pixelToggle( PixelElement *elem )
 
 
 
+// -- Secondary Processing --
+
+void Pixel_SecondaryProcessing_profile_init()
+{
+	// TODO (HaaTa): Only 3 profiles for now, may need more groups in the future
+	for ( uint8_t group = 0; group < 3; group++ )
+	{
+		const PixelLEDGroupEntry entry = Pixel_LED_DefaultFadeGroups[group];
+
+		// Iterate over each pixel
+		for ( uint16_t pxin = 0; pxin < entry.size; pxin++ )
+		{
+			// For each pixel in the default settings, apply index
+			// 0 specifies disabled, so all groups are +1
+			Pixel_pixel_fade_profile[entry.pixels[pxin] - 1] = group + 1;
+		}
+	}
+}
+
+void Pixel_SecondaryProcessing_setup()
+{
+	// Disable all fade profiles (active defaults afterwards)
+	memset( Pixel_pixel_fade_profile, 0, Pixel_TotalPixels_KLL );
+
+	// Setup each of the default profiles
+	Pixel_SecondaryProcessing_profile_init();
+
+	// Setup default profile parameters
+	for ( uint8_t pf = 0; pf < 4; pf++ )
+	{
+		// Each of the periods
+		for ( uint8_t pr = 0; pr < 4; pr++ )
+		{
+			// Lookup period using index
+			uint8_t period_index = Pixel_LED_FadePeriod_Defaults[pf][pr];
+			PixelPeriodConfig conf = Pixel_LED_FadePeriods[period_index];
+
+			// Set period to profile
+			Pixel_pixel_fade_profile_entries[pf].conf[pr].start = conf.start;
+			Pixel_pixel_fade_profile_entries[pf].conf[pr].end = conf.end;
+		}
+
+		// Reset state
+		Pixel_pixel_fade_profile_entries[pf].pos = 0;
+		Pixel_pixel_fade_profile_entries[pf].period_conf = PixelPeriodIndex_Off_to_On;
+	}
+}
+
+void Pixel_SecondaryProcessing()
+{
+	// Copy KLL buffer into LED buffer
+	for ( uint8_t buf = 0; buf < Pixel_BuffersLen_KLL; buf++ )
+	{
+		memcpy(
+			LED_Buffers[buf].data,
+			Pixel_Buffers[buf].data,
+			Pixel_Buffers[buf].size * ( Pixel_Buffers[buf].width >> 3 ) // Size may not be multiples bytes
+		);
+	}
+
+	// Iterate over each of the pixels, applying the appropriate profile to each one
+	for ( uint16_t pxin = 0; pxin < Pixel_TotalPixels_KLL; pxin++ )
+	{
+		// Select profile
+		uint8_t profile_in = Pixel_pixel_fade_profile[pxin];
+
+		// Nothing to do (fade disabled for this pixel)
+		if ( profile_in == 0 )
+		{
+			continue;
+		}
+
+		// All profiles start from 1
+		PixelFadeProfile *profile = &Pixel_pixel_fade_profile_entries[profile_in - 1];
+		PixelPeriodConfig *period = &profile->conf[profile->period_conf];
+
+		// Lookup channels of the pixel
+		const PixelElement *elem = &Pixel_Mapping[pxin];
+		for ( uint8_t ch = 0; ch < elem->channels; ch++ )
+		{
+			// Lookup PixelBuf containing the channel
+			uint16_t chan = elem->indices[ch];
+			PixelBuf *buf = LED_bufferMap( chan );
+
+			// Lookup memory location
+			// Then apply fade depending on the current position
+			//
+			// Percentage calculation using 32-bit integer instead of float
+			// This is just a: pos / end * current value of LED
+			// Ignores rounding
+			// For 8-bit values, the maximum percentage spread must be no greater than 25-bits
+			// e.g. 1 << 24
+			// TODO HANDLE DIRECTIONS
+			uint32_t val;
+			switch (buf->width)
+			{
+			// TODO (HaaTa): Handle non-16bit arrays of 8-bit values
+			case 16:
+				switch ( profile->period_conf )
+				{
+				// Off -> On
+				case PixelPeriodIndex_Off_to_On:
+				// On -> Off
+				case PixelPeriodIndex_On_to_Off:
+					// If start and end are set to 0, ignore
+					if ( period->end == 0 && period->start == 0 )
+					{
+						break;
+					}
+
+					val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+					val *= profile->pos;
+					val >>= period->end;
+					((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
+					break;
+				// On hold time
+				case PixelPeriodIndex_On:
+					// Do nothing
+					break;
+				// Off hold time
+				case PixelPeriodIndex_Off:
+				{
+					PixelPeriodConfig *prev = &profile->conf[PixelPeriodIndex_On_to_Off];
+
+					// If the previous config was disabled, do not set to 0
+					if ( prev->start == 0 && prev->end == 0 )
+					{
+						break;
+					}
+
+					// If the previous On->Off change didn't go to fully off
+					// Calculate the value based off the previous config
+					val = 0;
+					if ( prev->start != 0 )
+					{
+						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+						val *= (1 << prev->start) - 1;
+						val >>= prev->end;
+					}
+
+					// Set to 0
+					((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
+					break;
+				}
+				}
+				break;
+			default:
+				erro_print("Unsupported buffer width");
+				break;
+			}
+		}
+	}
+
+	// Increment positions of each of the active profiles
+	for ( uint8_t proin = 0; proin < 4; proin++ )
+	{
+		// Lookup profile and current period
+		PixelFadeProfile *profile = &Pixel_pixel_fade_profile_entries[proin];
+		PixelPeriodConfig *period = &profile->conf[profile->period_conf];
+
+		switch ( profile->period_conf )
+		{
+		case PixelPeriodIndex_Off_to_On:
+			profile->pos++;
+			// Check if we need to move onto the next conf
+			if ( profile->pos >= (1 << period->end) )
+			{
+				profile->pos = (1 << profile->conf[PixelPeriodIndex_On].start) - 1;
+				profile->period_conf = PixelPeriodIndex_On;
+			}
+			break;
+		case PixelPeriodIndex_On:
+			profile->pos++;
+			// Check if we need to move onto the next conf
+			if ( profile->pos >= (1 << period->end) )
+			{
+				profile->pos = (1 << profile->conf[PixelPeriodIndex_On_to_Off].end);
+				profile->period_conf = PixelPeriodIndex_On_to_Off;
+			}
+			break;
+		case PixelPeriodIndex_On_to_Off:
+			profile->pos--;
+			// Check if we need to move onto the next conf
+			if ( profile->pos == (1 << period->start) - 1 )
+			{
+				profile->pos = (1 << profile->conf[PixelPeriodIndex_Off].start) - 1;
+				profile->period_conf = PixelPeriodIndex_Off;
+			}
+			break;
+		case PixelPeriodIndex_Off:
+			profile->pos++;
+			// Check if we need to move onto the next conf
+			if ( profile->pos >= (1 << period->end) )
+			{
+				profile->pos = (1 << profile->conf[PixelPeriodIndex_Off_to_On].start) - 1;
+				profile->period_conf = PixelPeriodIndex_Off_to_On;
+			}
+			break;
+		}
+	}
+}
+
+
+
 // -- General --
 
 // Looks up the final scancode in a trigger macro
@@ -1883,6 +2207,9 @@ inline void Pixel_process()
 	}
 
 pixel_process_done:
+	// Apply secondary LED processing
+	Pixel_SecondaryProcessing();
+
 	// Frame is now ready to send
 	Pixel_FrameState = FrameState_Ready;
 
@@ -1911,6 +2238,9 @@ inline void Pixel_setup()
 
 	// Add initial animations
 	Pixel_initializeStartAnimations();
+
+	// Initialize secondary buffer processing
+	Pixel_SecondaryProcessing_setup();
 
 	// Allocate latency resource
 	pixelLatencyResource = Latency_add_resource("PixelMap", LatencyOption_Ticks);

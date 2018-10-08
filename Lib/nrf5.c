@@ -82,12 +82,44 @@ int memcmp( const void *a, const void *b, unsigned int len )
 
 void *memcpy( void *dst, const void *src, unsigned int len )
 {
+// Fast memcpy (Cortex-M4 only), adapted from:
+// https://cboard.cprogramming.com/c-programming/154333-fast-memcpy-alternative-32-bit-embedded-processor-posted-just-fyi-fwiw.html#post1149163
+// Cortex-M4 can do unaligned accesses, even for 32-bit values
+// Uses 32-bit values to do copies instead of 8-bit (should effectively speed up memcpy by 3x)
+#if defined(_cortex_m4_)
+	uint32_t i;
+	uint32_t *pLongSrc;
+	uint32_t *pLongDest;
+	uint32_t numLongs = len / 4;
+	uint32_t endLen = len & 0x03;
+
+	// Convert byte addressing to long addressing
+	pLongSrc = (uint32_t*) src;
+	pLongDest = (uint32_t*) dst;
+
+	// Copy long values, disregarding any 32-bit alignment issues
+	for ( i = 0; i < numLongs; i++ )
+	{
+		*pLongDest++ = *pLongSrc++;
+	}
+
+	// Convert back to byte addressing
+	uint8_t *srcbuf = (uint8_t*) pLongSrc;
+	uint8_t *dstbuf = (uint8_t*) pLongDest;
+
+	// Copy trailing bytes byte-by-byte
+	for (; endLen > 0; --endLen, ++dstbuf, ++srcbuf)
+		*dstbuf = *srcbuf;
+
+	return (dst);
+#else
 	char *dstbuf = dst;
 	const char *srcbuf = src;
 
 	for (; len > 0; --len, ++dstbuf, ++srcbuf)
 		*dstbuf = *srcbuf;
 	return (dst);
+#endif
 }
 
 

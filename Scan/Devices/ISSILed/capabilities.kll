@@ -91,6 +91,11 @@ typedef struct LED_Buffer {
 	uint16_t buffer[144];
 } LED_Buffer;
 volatile LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
+
+typedef struct KLL_Buffer {
+	uint16_t buffer[144];
+} KLL_Buffer;
+volatile KLL_Buffer KLL_pageBuffer[ ISSI_Chips_define ];
 ";
 
 # FPS Target
