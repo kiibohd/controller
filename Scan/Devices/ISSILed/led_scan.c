@@ -204,6 +204,7 @@ CLIDict_Def( ledCLIDict, "ISSI LED Module Commands" ) = {
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
+#if Storage_Enable_define == 1
 // Storage Module
 typedef struct {
 	uint8_t brightness;
@@ -224,6 +225,7 @@ StorageModule LedStorage = {
 	.onSave = LED_saveConfig,
 	.display = LED_printConfig
 };
+#endif
 
 #if ISSI_Chip_31FL3731_define == 1
 // Emulated brightness buffer
@@ -671,8 +673,9 @@ inline void LED_setup()
 {
 	// Register Scan CLI dictionary
 	CLI_registerDictionary( ledCLIDict, ledCLIDictName );
-
+#if Storage_Enable_define == 1
 	Storage_registerModule(&LedStorage);
+#endif
 
 	// Zero out FPS time
 	LED_timePrev = Time_now();
@@ -1286,6 +1289,7 @@ void cliFunc_ledSet( char* args )
 
 }
 
+#if Storage_Enable_define == 1
 void LED_loadConfig() {
 	LED_setBrightness(settings.brightness);
 }
@@ -1299,3 +1303,4 @@ void LED_printConfig() {
 	printInt8(settings.brightness);
 	print( NL );
 }
+#endif

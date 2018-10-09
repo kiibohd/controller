@@ -7,6 +7,9 @@ KLL = 0.5;
 # Modified Date
 Date = 2018-10-03;
 
+Storage_Enable => Storage_Enable_define;
+Storage_Enable = 1;
+
 # Storage Control
 # 0 - Load
 # 1 - Save

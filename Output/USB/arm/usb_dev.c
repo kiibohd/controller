@@ -175,6 +175,10 @@ static uint8_t ep0_tx_data_toggle = 0;
 static uint8_t usb_dev_sleep = 0;
 
 uint8_t usb_rx_memory_needed = 0;
+
+#elif defined(_sam_)
+static uint8_t usb_bulk_buf[64];
+
 #endif
 
 volatile uint8_t usb_configuration = 0;
@@ -190,6 +194,8 @@ static uint8_t usb_remote_wakeup = 0;
 
 
 // ----- Functions -----
+
+void keyboard_control(uint8_t *buf);
 
 static void endpoint0_stall()
 {
@@ -768,6 +774,12 @@ void usb_setup()
 		print( NL );
 		#endif
 
+		#if defined(_sam_)
+			udd_set_setup_payload(usb_bulk_buf, 1);
+			udd_g_ctrlreq.callback = keyboard_control;
+			return;
+		#endif
+
 		// Interface
 		switch ( setup.wIndex & 0xFF )
 		{
@@ -954,6 +966,62 @@ send:
 }
 
 
+void keyboard_control(uint8_t *buf) {
+#if defined(_sam_)
+	buf = usb_bulk_buf;
+#endif
+
+	// Keyboard HID SET_REPORT - PID=OUT
+	#if enableKeyboard_define == 1
+	// XXX - Getting lots of NAKs in Linux
+	if ( setup.wRequestAndType == 0x0921 && setup.wValue & 0x200 )
+	{
+		#ifdef UART_DEBUG
+		print("report_type(");
+		printHex( setup.wValue >> 8 );
+		print(")report_id(");
+		printHex( setup.wValue & 0xFF );
+		print(")interface(");
+		printHex( setup.wIndex );
+		print(")len(");
+		printHex( setup.wLength );
+		print(")[");
+
+		for ( size_t len = 0; len < setup.wLength; len++ )
+		{
+			printHex( buf[ len ] );
+			print(" ");
+		}
+		print("]");
+		print( NL );
+		#endif
+
+		// Interface
+		switch ( setup.wIndex & 0xFF )
+		{
+		// Keyboard Interface
+		case KEYBOARD_INTERFACE:
+			USBKeys_LEDs = buf[0];
+			break;
+		// NKRO Keyboard Interface
+		case NKRO_KEYBOARD_INTERFACE:
+			// Already set with the control sequence
+			// Only use 2nd byte, first byte is the report id
+			USBKeys_LEDs = buf[1];
+			break;
+		default:
+			warn_msg("(SET_REPORT, BULK) Unknown interface - ");
+			printHex( setup.wIndex );
+			print( NL );
+			break;
+		}
+
+		// XXX ZLP causes timeout/delay, why? -HaaTa
+		//endpoint0_transmit( NULL, 0 );
+	}
+	#endif
+}
+
 #if defined(_kinetis_)
 //A bulk endpoint's toggle sequence is initialized to DATA0 when the endpoint
 //experiences any configuration event (configuration events are explained in
@@ -1094,55 +1162,7 @@ static void usb_control( uint32_t stat )
 		}
 		#endif
 
-		// Keyboard HID SET_REPORT - PID=OUT
-		#if enableKeyboard_define == 1
-		// XXX - Getting lots of NAKs in Linux
-		if ( setup.wRequestAndType == 0x0921 && setup.wValue & 0x200 )
-		{
-			#ifdef UART_DEBUG
-			print("report_type(");
-			printHex( setup.wValue >> 8 );
-			print(")report_id(");
-			printHex( setup.wValue & 0xFF );
-			print(")interface(");
-			printHex( setup.wIndex );
-			print(")len(");
-			printHex( setup.wLength );
-			print(")[");
-
-			for ( size_t len = 0; len < setup.wLength; len++ )
-			{
-				printHex( buf[ len ] );
-				print(" ");
-			}
-			print("]");
-			print( NL );
-			#endif
-
-			// Interface
-			switch ( setup.wIndex & 0xFF )
-			{
-			// Keyboard Interface
-			case KEYBOARD_INTERFACE:
-				USBKeys_LEDs = buf[0];
-				break;
-			// NKRO Keyboard Interface
-			case NKRO_KEYBOARD_INTERFACE:
-				// Already set with the control sequence
-				// Only use 2nd byte, first byte is the report id
-				USBKeys_LEDs = buf[1];
-				break;
-			default:
-				warn_msg("(SET_REPORT, BULK) Unknown interface - ");
-				printHex( setup.wIndex );
-				print( NL );
-				break;
-			}
-
-			// XXX ZLP causes timeout/delay, why? -HaaTa
-			//endpoint0_transmit( NULL, 0 );
-		}
-		#endif
+		keyboard_control(buf);
 
 		// give the buffer back
 		b->desc = BDT_DESC( EP0_SIZE, DATA1 );
