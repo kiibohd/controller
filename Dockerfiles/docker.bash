@@ -23,10 +23,10 @@ fi
 sudo rm -rf ../Keyboards/Testing/linux-gnu.* ../Keyboards/linux-gnu.*
 
 # Build Host-Side KLL
-docker run -t --rm -v "$(pwd)/..:/controller" -w "/controller/Keyboards/Testing" "${Dockerimage}" /bin/bash -c "PIPENV_ACTIVE=1 ./klltest.bash"
+docker run -t --rm -v "$(pwd)/..:/controller" -w "/controller/Keyboards/Testing" "${Dockerimage}" /bin/bash -c "PIPENV_ACTIVE=1 GITHUB_APIKEY=${GITHUB_APIKEY} ./klltest.bash"
 
 # Build Firmware
-docker run -t --rm -v "$(pwd)/..:/controller" -w "/controller/Keyboards" "${Dockerimage}" /bin/bash -c "PIPENV_ACTIVE=1 ./whitefox.bash"
+docker run -t --rm -v "$(pwd)/..:/controller" -w "/controller/Keyboards" "${Dockerimage}" /bin/bash -c "PIPENV_ACTIVE=1 GITHUB_APIKEY=${GITHUB_APIKEY} ./whitefox.bash"
 
 
 
