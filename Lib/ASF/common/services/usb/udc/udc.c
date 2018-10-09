@@ -53,7 +53,7 @@
 //! @{
 
 //! Device status state (see enum usb_device_status in usb_protocol.h)
-static le16_t udc_device_status;
+le16_t udc_device_status;
 
 COMPILER_WORD_ALIGNED
 //! Device interface setting value
@@ -61,7 +61,7 @@ static uint8_t udc_iface_setting = 0;
 
 //! Device Configuration number selected by the USB host
 COMPILER_WORD_ALIGNED
-static uint8_t udc_num_configuration = 0;
+uint8_t udc_num_configuration = 0;
 
 //! Pointer on the selected speed device configuration
 static udc_config_speed_t UDC_DESC_STORAGE *udc_ptr_conf;

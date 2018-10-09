@@ -1075,7 +1075,7 @@ const uint8_t usb_endpoint_config_table[NUM_ENDPOINTS] =
 bool udi_hid_enable(void) { return true; }
 void udi_hid_disable(void) { }
 bool my_udi_hid_setup(void) { usb_setup(); return true; }
-uint8_t udi_hid_getsetting(void) { print("SETTING"); return 0; }
+uint8_t udi_hid_getsetting(void) { return 0; }
 void udi_hid_sof(void) {
 	// SOF tokens are used for keepalive, consider the system awake when we're receiving them
 	/*if ( usb_dev_sleep )

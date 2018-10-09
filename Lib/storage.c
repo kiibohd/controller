@@ -34,7 +34,6 @@
 #include "mcu_compat.h"
 
 
-
 #if defined(_sam_)
 
 // ----- Includes -----
@@ -89,8 +88,6 @@ static uint8_t cleared_block = 0; // Set to 1 if current block has been cleared 
 // | X | X | X | X | X | X | B | V |
 // if V = 1, page/sub_page is next in line to be written, otherwise 0
 // if V = 0 and B = 1, the page has been cleared and does not need to be cleared (when blanking out the page)
-
-
 
 // ----- Functions -----
 
@@ -538,4 +535,3 @@ uint8_t storage_clear_page()
 }
 
 #endif
-

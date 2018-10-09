@@ -197,8 +197,13 @@ void UDP_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 
 
 void WDT_Handler() {
+	print("WDT!" NL );
+#if defined(DEBUG) && defined(JLINK)
 	__asm volatile("BKPT #01");
+#else
+	SOFTWARE_RESET();
 	for( ;; );
+#endif
 }
 
 /* Exception Table */
@@ -476,6 +481,9 @@ void ResetHandler()
 #if !defined(_bootloader_)
 	init_errorLED();
 	errorLED(0);
+
+	for ( int pos = 0; pos <= sizeof(sys_reset_to_loader_magic)/sizeof(GPBR->SYS_GPBR[0]); pos++ )
+		GPBR->SYS_GPBR[ pos ] = 0x00000000;
 #endif
 	// Read Unique ID from flash
 	ReadUniqueID();

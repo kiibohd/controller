@@ -49,8 +49,7 @@
 #define  USB_DEVICE_PRODUCT_ID            PRODUCT_ID
 #define  USB_DEVICE_VERSION               BCD_VERSION
 #define  USB_DEVICE_POWER                 100 // Consumption on Vbus line (mA)
-#define  USB_DEVICE_ATTR                  (USB_CONFIG_ATTR_BUS_POWERED)
-//	(USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_SELF_POWERED)
+#define  USB_DEVICE_ATTR                  (USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_SELF_POWERED)
 //	(USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_BUS_POWERED)
 //	(USB_CONFIG_ATTR_BUS_POWERED)
 
@@ -61,11 +60,9 @@
  */
 //#define  UDC_VBUS_EVENT(b_vbus_high)
 //#define  UDC_SOF_EVENT()                  main_sof_action()
-//#define  UDC_SUSPEND_EVENT()              main_suspend_action()
-//#define  UDC_RESUME_EVENT()               main_resume_action()
 //! Mandatory when USB_DEVICE_ATTR authorizes remote wakeup feature
-//#define  UDC_REMOTEWAKEUP_ENABLE()        main_remotewakeup_enable()
-//#define  UDC_REMOTEWAKEUP_DISABLE()       main_remotewakeup_disable()
+#define  UDC_REMOTEWAKEUP_ENABLE()
+#define  UDC_REMOTEWAKEUP_DISABLE()
 //! When a extra string descriptor must be supported
 //! other than manufacturer, product and serial string
 //@}
@@ -159,9 +156,10 @@ extern bool main_extra_string();
 // - Last Include -
 #include "Output/USB/arm/usb_dev.h"
 #include "Output/USB/arm/usb_desc.h"
+#define  UDC_SUSPEND_EVENT()              usb_set_sleep_state(1)
+#define  UDC_RESUME_EVENT()               usb_set_sleep_state(0)
 #define USB_DEVICE_SPECIFIC_REQUEST my_udi_hid_setup
 #define USB_CONFIGURATION_CHANGED usb_set_configuration
-#define USB_RESUME_CALLBACK usb_resume
 
 #endif
 

@@ -36,6 +36,7 @@
 
 #include <Lib/periodic.h>
 #include <Lib/sysview.h>
+#include <Lib/storage.h>
 
 // ----- Enumerations -----
 
@@ -125,10 +126,18 @@ int main()
 	// Setup periodic timer function
 	Periodic_function( &main_periodic );
 
+#if Storage_Enable_define == 1
+	Storage_init();
+#endif
+
 	// Setup Modules
 	Output_setup();
 	Macro_setup();
 	Scan_setup();
+
+#if Storage_Enable_define == 1
+	storage_load_settings();
+#endif
 
 	// Start scanning on first periodic loop
 	stage_tracker = PeriodicStage_Scan;

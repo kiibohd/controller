@@ -26,6 +26,7 @@
 // ----- Variables -----
 
 extern uint8_t LED_FrameBuffersReady;
+extern uint8_t LED_brightness;
 
 
 
