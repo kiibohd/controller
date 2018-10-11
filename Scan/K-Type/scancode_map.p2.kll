@@ -214,10 +214,18 @@ ISSILedMask4 = "
 Pixel_Buffer_Size[]    =   0 144 288 432; # Starting channel for each buffer
 Pixel_Buffer_Width[]   =  16  16  16  16; # Width of each channel buffer (may be different than effective channel size)
 Pixel_Buffer_Length[]  = 144 144 144 144; # Length of each buffer (count, not bytes)
-Pixel_Buffer_Buffer[0] = "LED_pageBuffer[0].buffer"; # Pointer to the start of the buffer
-Pixel_Buffer_Buffer[1] = "LED_pageBuffer[1].buffer";
-Pixel_Buffer_Buffer[2] = "LED_pageBuffer[2].buffer";
-Pixel_Buffer_Buffer[3] = "LED_pageBuffer[3].buffer";
+Pixel_Buffer_Buffer[0] = "KLL_pageBuffer[0].buffer"; # Pointer to the start of the buffer
+Pixel_Buffer_Buffer[1] = "KLL_pageBuffer[1].buffer";
+Pixel_Buffer_Buffer[2] = "KLL_pageBuffer[2].buffer";
+Pixel_Buffer_Buffer[3] = "KLL_pageBuffer[3].buffer";
+
+LED_Buffer_Size[]    =   0 144 288 432; # Starting channel for each buffer
+LED_Buffer_Width[]   =  16  16  16  16; # Width of each channel buffer (may be different than effective channel size)
+LED_Buffer_Length[]  = 144 144 144 144; # Length of each buffer (count, not bytes)
+LED_Buffer_Buffer[0] = "LED_pageBuffer[0].buffer"; # Pointer to the start of the buffer
+LED_Buffer_Buffer[1] = "LED_pageBuffer[1].buffer";
+LED_Buffer_Buffer[2] = "LED_pageBuffer[2].buffer";
+LED_Buffer_Buffer[3] = "LED_pageBuffer[3].buffer";
 
 # I2C LED Struct Definition
 LED_BufferStruct = "
@@ -227,6 +235,11 @@ typedef struct LED_Buffer {
 	uint16_t buffer[144];
 } LED_Buffer;
 volatile LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
+
+typedef struct KLL_Buffer {
+	uint16_t buffer[144];
+} KLL_Buffer;
+volatile KLL_Buffer KLL_pageBuffer[ ISSI_Chips_define ];
 ";
 
 
@@ -517,3 +530,14 @@ P[126] <= y:-82.42;
 P[127] <= y:-52.32;
 P[128] <= y:-22.23;
 
+
+
+### LED Default Fade Groups ###
+#
+# Group 0 -> Keys
+# Group 1 -> Underlighting
+# Group 2 -> Indicators
+# Group 3 -> Active layer (not default)
+KLL_LED_FadeGroup[0] = "";
+KLL_LED_FadeGroup[1] = "";
+KLL_LED_FadeGroup[2] = "";
