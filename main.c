@@ -38,6 +38,8 @@
 #include <Lib/sysview.h>
 #include <Lib/storage.h>
 
+
+
 // ----- Enumerations -----
 
 typedef enum PeriodicStage {
@@ -126,8 +128,8 @@ int main()
 	// Setup periodic timer function
 	Periodic_function( &main_periodic );
 
-#if Storage_Enable_define == 1
-	Storage_init();
+#if storage_enable_define == 1
+	storage_init();
 #endif
 
 	// Setup Modules

@@ -143,6 +143,7 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState csta
 uint8_t Pixel_determineLastTriggerScanCode( TriggerMacro *trigger );
 
 void Pixel_pixelSet( PixelElement *elem, uint32_t value );
+void Pixel_clearAnimations();
 
 void Pixel_SecondaryProcessing_profile_init();
 
@@ -515,6 +516,11 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState csta
 		default:
 			break;
 		}
+
+	// Clear all current animations from stack before adding new animation
+	case AnimationReplaceType_Clear:
+		Pixel_clearAnimations();
+		break;
 
 	default:
 		break;
@@ -1529,6 +1535,12 @@ uint8_t Pixel_animationProcess( AnimationStackElement *elem )
 		// Indicate animation slot is free
 		elem->index = 0xFFFF;
 		return 0;
+
+	// Single frame of the animation
+	// Set to paused afterwards
+	case AnimationPlayState_Single:
+		elem->state = AnimationPlayState_Pause;
+		break;
 
 	// Do nothing
 	case AnimationPlayState_Start:

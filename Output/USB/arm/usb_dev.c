@@ -776,7 +776,7 @@ void usb_setup()
 
 		#if defined(_sam_)
 			udd_set_setup_payload(usb_bulk_buf, 1);
-			udd_g_ctrlreq.callback = keyboard_control;
+			udd_g_ctrlreq.callback = (void(*)(void))keyboard_control;
 			return;
 		#endif
 

@@ -108,13 +108,15 @@ typedef enum AnimationReplaceType {
 	AnimationReplaceType_Basic = 1, // Replace only if the same trigger initiated
 	AnimationReplaceType_All   = 2, // Replace no matter what trigger initiated
 	AnimationReplaceType_State = 3, // Using same trigger, start on Activate/Press, stop on Deactivate/Release
+	AnimationReplaceType_Clear = 4, // Clear all other animations before addi
 } AnimationReplaceType;
 
 // Animation Play State
 typedef enum AnimationPlayState {
-	AnimationPlayState_Start = 0, // Start animation
-	AnimationPlayState_Pause = 1, // Pause animation (default set by KLL Compiler)
-	AnimationPlayState_Stop  = 2, // Stop animation (removes animation state)
+	AnimationPlayState_Start  = 0, // Start animation
+	AnimationPlayState_Pause  = 1, // Pause animation (default set by KLL Compiler)
+	AnimationPlayState_Stop   = 2, // Stop animation (removes animation state)
+	AnimationPlayState_Single = 3, // Play a single frame of the animation
 } AnimationPlayState;
 
 typedef enum AnimationControl {

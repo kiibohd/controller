@@ -54,20 +54,20 @@ fade_layer_highlight => Pixel_FadeLayerHighlight_capability( layer : 2 );
 KLL_LED_FadePeriod => KLL_LED_FadePeriod_define;
 KLL_LED_FadePeriod[0] = "{ .start = 0, .end = 0 }";
 KLL_LED_FadePeriod[1] = "{ .start = 0, .end = 4 }";
-KLL_LED_FadePeriod[2] = "{ .start = 0, .end = 6 }";
-KLL_LED_FadePeriod[3] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[4] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[5] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[6] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[7] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[8] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[9] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[10] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[11] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[12] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[13] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[14] = "{ .start = 0, .end = 0 }";
-KLL_LED_FadePeriod[15] = "{ .start = 0, .end = 0 }";
+KLL_LED_FadePeriod[2] = "{ .start = 0, .end = 5 }";
+KLL_LED_FadePeriod[3] = "{ .start = 0, .end = 6 }";
+KLL_LED_FadePeriod[4] = "{ .start = 0, .end = 7 }";
+KLL_LED_FadePeriod[5] = "{ .start = 0, .end = 8 }";
+KLL_LED_FadePeriod[6] = "{ .start = 0, .end = 9 }";
+KLL_LED_FadePeriod[7] = "{ .start = 0, .end = 10 }";
+KLL_LED_FadePeriod[8] = "{ .start = 0, .end = 11 }";
+KLL_LED_FadePeriod[9] = "{ .start = 0, .end = 12 }";
+KLL_LED_FadePeriod[10] = "{ .start = 5, .end = 6 }";
+KLL_LED_FadePeriod[11] = "{ .start = 6, .end = 7 }";
+KLL_LED_FadePeriod[12] = "{ .start = 7, .end = 8 }";
+KLL_LED_FadePeriod[13] = "{ .start = 8, .end = 9 }";
+KLL_LED_FadePeriod[14] = "{ .start = 9, .end = 10 }";
+KLL_LED_FadePeriod[15] = "{ .start = 10, .end = 11 }";
 
 # Fade Default Configuration
 # There are 4 fade profiles
@@ -100,10 +100,10 @@ KLL_LED_FadeDefaultConfig2[2] = 0;
 KLL_LED_FadeDefaultConfig2[3] = 0;
 ## Active Layer
 KLL_LED_FadeDefaultConfig3 => KLL_LED_FadeDefaultConfig3_define;
-KLL_LED_FadeDefaultConfig3[0] = 0;
-KLL_LED_FadeDefaultConfig3[1] = 0;
-KLL_LED_FadeDefaultConfig3[2] = 0;
-KLL_LED_FadeDefaultConfig3[3] = 0;
+KLL_LED_FadeDefaultConfig3[0] = 5;
+KLL_LED_FadeDefaultConfig3[1] = 5;
+KLL_LED_FadeDefaultConfig3[2] = 5;
+KLL_LED_FadeDefaultConfig3[3] = 5;
 
 
 # Enable define
