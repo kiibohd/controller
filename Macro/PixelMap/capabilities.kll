@@ -100,10 +100,10 @@ KLL_LED_FadeDefaultConfig2[2] = 0;
 KLL_LED_FadeDefaultConfig2[3] = 0;
 ## Active Layer
 KLL_LED_FadeDefaultConfig3 => KLL_LED_FadeDefaultConfig3_define;
-KLL_LED_FadeDefaultConfig3[0] = 5;
-KLL_LED_FadeDefaultConfig3[1] = 5;
-KLL_LED_FadeDefaultConfig3[2] = 5;
-KLL_LED_FadeDefaultConfig3[3] = 5;
+KLL_LED_FadeDefaultConfig3[0] = 0;
+KLL_LED_FadeDefaultConfig3[1] = 0;
+KLL_LED_FadeDefaultConfig3[2] = 0;
+KLL_LED_FadeDefaultConfig3[3] = 0;
 
 
 # Enable define

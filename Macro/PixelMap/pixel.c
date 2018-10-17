@@ -1801,7 +1801,6 @@ void Pixel_SecondaryProcessing()
 			// Ignores rounding
 			// For 8-bit values, the maximum percentage spread must be no greater than 25-bits
 			// e.g. 1 << 24
-			// TODO HANDLE DIRECTIONS
 			uint32_t val;
 			switch (buf->width)
 			{

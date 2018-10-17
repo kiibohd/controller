@@ -128,8 +128,8 @@ int main()
 	// Setup periodic timer function
 	Periodic_function( &main_periodic );
 
-#if storage_enable_define == 1
-	storage_init();
+#if Storage_Enable_define == 1
+	Storage_init();
 #endif
 
 	// Setup Modules

@@ -120,7 +120,8 @@ void systick_default_isr()
 	// 12 cycle IRQ latency (plus some extra)
 	// XXX (HaaTa) There seems to be a CPU bug where you need to wait some clock cycles before you can
 	// clear the CYCCNT register on SAM4S (this wasn't the case on Kinetis)
-	if ( DWT->CYCCNT > F_CPU / 1000 + 30 )
+	// TODO (HaaTa) Determine what is starving IRQs by about 2000 cycles
+	if ( DWT->CYCCNT > F_CPU / 1000 + 2000 )
 	{
 		erro_print("SysTick is being starved by another IRQ...");
 		printInt32( DWT->CYCCNT );
