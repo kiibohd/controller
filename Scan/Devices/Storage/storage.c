@@ -108,10 +108,11 @@ void cliFunc_storage( char* args )
 	print(", Block: ");
 	printHex( storage_block_position() );
 	print( NL );
-	/*print("Address: ");
-	printHex32((STORAGE_FLASH_START + current_page * STORAGE_FLASH_PAGE_SIZE)
-		//+ (current_storage_index * (STORAGE_SIZE + 1))
-	);*/
+	print("Address: ");
+	printHex32((STORAGE_FLASH_START
+		+ storage_page_position() * STORAGE_FLASH_PAGE_SIZE)
+		+ (storage_block_position() * (STORAGE_SIZE + 1))
+	);
 	print( NL );
 	print("Cleared?: ");
 	printInt8( storage_is_storage_cleared() );
