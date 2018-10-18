@@ -1,7 +1,29 @@
+/* Copyright (C) 2018 by Jacob Alexander and Rowan Decker
+ *
+ * This file is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This file is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this file.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+// ----- Includes -----
+
 #include <Macro/PartialMap/kll.h>
 #include <Lib/storage.h>
 #include <print.h>
 #include <cli.h>
+
+
+
+// ----- CLI -----
 
 void cliFunc_storage( char* args );
 void cliFunc_load( char* args );
@@ -22,8 +44,15 @@ CLIDict_Def( storageCLIDict, "Storage Module Commands" ) = {
 };
 
 
+
+// ----- Variables -----
+
 StorageModule* storage_modules[StorageMaxModules];
 uint8_t module_count;
+
+
+
+// ----- Functions -----
 
 void Storage_init() {
 	storage_init();

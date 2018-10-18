@@ -88,6 +88,8 @@ static inline uint32_t usb_rx_byte_count(uint32_t endpoint)
 #endif
 }
 
+void usb_set_sleep_state(bool sleep);
+
 void usb_device_reload();
 void usb_device_check();
 void usb_setup();

@@ -45,6 +45,11 @@
 
 #include <stdint.h>
 
+#if Storage_Enable_define == 1
+#include <Scan/Devices/Storage/storage.h>
+#endif
+
+
 
 // ----- Variables -----
 

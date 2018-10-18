@@ -197,7 +197,7 @@ else ()
 
 	## GCC Compiler
 	else ()
-		set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles" )
+		set( TUNING "-mthumb -nostdlib -fdata-sections -ffunction-sections -fshort-wchar -fno-builtin -nostartfiles -fstack-protector-all" )
 	endif ()
 endif ()
 

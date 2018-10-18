@@ -1034,6 +1034,10 @@ typedef enum LedControl {
 	LedControl_off                     = 3,
 	LedControl_on                      = 4,
 	LedControl_toggle                  = 5,
+	// FPS Control - with argument
+	LedControl_set_fps                 = 6,
+	LedControl_increase_fps            = 7,
+	LedControl_decrease_fps            = 8,
 } LedControl;
 
 void LED_control( LedControl control, uint8_t arg )
@@ -1081,6 +1085,24 @@ void LED_control( LedControl control, uint8_t arg )
 
 	case LedControl_toggle:
 		LED_enable = !LED_enable;
+		return;
+
+	case LedControl_set_fps:
+		LED_displayFPS = (uint32_t)arg;
+		return;
+
+	case LedControl_increase_fps:
+		if ( LED_displayFPS < 0xFF )
+		{
+			LED_displayFPS += arg;
+		}
+		return;
+
+	case LedControl_decrease_fps:
+		if ( LED_displayFPS > 1 )
+		{
+			LED_displayFPS -= arg;
+		}
 		return;
 	}
 

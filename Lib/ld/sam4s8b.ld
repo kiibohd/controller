@@ -47,7 +47,7 @@ _app_rom     = ORIGIN( FLASH );
 _app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
 
 /* The stack size used by the application. NOTE: you need to adjust according to your application. */
-STACK_SIZE = DEFINED(STACK_SIZE) ? STACK_SIZE : 0x400;
+STACK_SIZE = DEFINED(STACK_SIZE) ? STACK_SIZE : 0x500;
 
 /* The heapsize used by the application. NOTE: you need to adjust according to your application. */
 HEAP_SIZE = DEFINED(HEAP_SIZE) ? HEAP_SIZE : 0x200;

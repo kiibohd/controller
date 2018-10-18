@@ -67,6 +67,14 @@ if ( NOT DEFINED KLL_EXECUTABLE )
 	endif ()
 endif ()
 
+# Determine if GITHUB_APIKEY was set, and apply it to the KLL compiler environment if it is
+if ( NOT "$ENV{GITHUB_APIKEY}" STREQUAL "" )
+	message ( STATUS "GITHUB_APIKEY was set." )
+	set ( KLL_EXECUTABLE
+		cmake -E env GITHUB_APIKEY=$ENV{GITHUB_APIKEY} ${KLL_EXECUTABLE}
+	)
+endif ()
+
 # Make sure kll is a high enough version
 execute_process ( COMMAND ${KLL_EXECUTABLE} --version
 	OUTPUT_VARIABLE kll_version_output_display
