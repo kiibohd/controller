@@ -182,8 +182,7 @@ Pixel_HardCode_Channels = 3;
 # So the framerate will not go above this amount.
 # If the framerate goes below, ledFPS cli will issue warnings when enabled.
 ISSI_FrameRate_ms => ISSI_FrameRate_ms_define;
-#ISSI_FrameRate_ms = 10; # 1000 / <ISSI_FrameRate_ms> = 100 fps
-ISSI_FrameRate_ms = 255; # 1000 / <ISSI_FrameRate_ms> = 100 fps
+ISSI_FrameRate_ms = 10; # 1000 / <ISSI_FrameRate_ms> = 100 fps
 
 
 

@@ -1792,6 +1792,7 @@ void Pixel_SecondaryProcessing()
 			// Lookup PixelBuf containing the channel
 			uint16_t chan = elem->indices[ch];
 			PixelBuf *buf = LED_bufferMap( chan );
+			PixelBuf *bufin = Pixel_bufferMap( chan );
 
 			// Lookup memory location
 			// Then apply fade depending on the current position
@@ -1818,7 +1819,7 @@ void Pixel_SecondaryProcessing()
 						break;
 					}
 
-					val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+					val = (uint8_t)((uint16_t*)bufin->data)[chan - buf->offset];
 					val *= profile->pos;
 					val >>= period->end;
 					((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
@@ -1843,7 +1844,7 @@ void Pixel_SecondaryProcessing()
 					val = 0;
 					if ( prev->start != 0 )
 					{
-						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+						val = (uint8_t)((uint16_t*)bufin->data)[chan - buf->offset];
 						val *= (1 << prev->start) - 1;
 						val >>= prev->end;
 					}
@@ -2219,7 +2220,10 @@ inline void Pixel_process()
 
 pixel_process_done:
 	// Apply secondary LED processing
+	// XXX (HaaTa): Disabling IRQ as a hack, some interrupt is causing corruption during the buffer handling
+	__disable_irq();
 	Pixel_SecondaryProcessing();
+	__enable_irq();
 
 	// Frame is now ready to send
 	Pixel_FrameState = FrameState_Ready;

@@ -335,7 +335,6 @@ void main()
 	{
 		// Enable Watchdog before jumping
 		// XXX (HaaTa) This watchdog cannot trigger an IRQ, as we're relocating the vector table
-		
 #if defined(DEBUG) && defined(JLINK)
 		WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDFIEN | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
 		//WDT->WDT_MR = WDT_MR_WDDIS;
@@ -386,16 +385,23 @@ void main()
 	printHex( CHIPID->CHIPID_EXID );
 
 	// Bootloader Entry Reasons
-	print( NL " GeneralReset - ");
-	printHex( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk & RSTC_SR_RSTTYP_GeneralReset );
-	print( NL " BackupReset - ");
-	printHex( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk & RSTC_SR_RSTTYP_BackupReset );
-	print( NL " WatchdogReset - ");
-	printHex( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk & RSTC_SR_RSTTYP_WatchdogReset );
-	print( NL " SoftwareReset - ");
-	printHex( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk & RSTC_SR_RSTTYP_SoftwareReset );
-	print( NL " UserReset - ");
-	printHex( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk & RSTC_SR_RSTTYP_UserReset );
+	switch ( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk ) {
+	case RSTC_SR_RSTTYP_GeneralReset:
+		print( NL " GeneralReset");
+		break;
+	case RSTC_SR_RSTTYP_BackupReset:
+		print( NL " BackupReset");
+		break;
+	case RSTC_SR_RSTTYP_WatchdogReset:
+		print( NL " WatchdogReset");
+		break;
+	case RSTC_SR_RSTTYP_SoftwareReset:
+		print( NL " SoftwareReset");
+		break;
+	case RSTC_SR_RSTTYP_UserReset:
+		print( NL " UserReset");
+		break;
+	}
 	print( NL " _app_rom - ");
 	printHex( (uint32_t)_app_rom );
 	print( NL " Soft Rst - " );

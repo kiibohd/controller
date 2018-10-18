@@ -62,6 +62,8 @@ extern uint32_t _estack;
 // Must be read from flash using ReadUniqueID()
 uint32_t sam_UniqueId[4];
 
+uintptr_t __stack_chk_guard = 0xdeadbeef;
+
 //__attribute__((__aligned__(TRACE_BUFFER_SIZE * sizeof(uint32_t)))) uint32_t mtb[TRACE_BUFFER_SIZE];
 
 // ----- Function Declarations -----
@@ -93,6 +95,20 @@ void fault_isr()
 #endif
 }
 
+
+// Stack Overflow Interrupt
+void __stack_chk_fail(void)
+{
+	print("Segfault!" NL );
+#if defined(DEBUG) && defined(JLINK)
+	asm volatile("BKPT #01");
+#else
+	fault_isr();
+#endif
+}
+
+
+// Default ISR if not used
 void unused_isr()
 {
 #if defined(DEBUG) && defined(JLINK)
@@ -121,13 +137,15 @@ void systick_default_isr()
 	// XXX (HaaTa) There seems to be a CPU bug where you need to wait some clock cycles before you can
 	// clear the CYCCNT register on SAM4S (this wasn't the case on Kinetis)
 	// TODO (HaaTa) Determine what is starving IRQs by about 2000 cycles
-	if ( DWT->CYCCNT > F_CPU / 1000 + 2000 )
+	if ( DWT->CYCCNT > F_CPU / 1000 + 30 )
 	{
+		/* XXX (HaaTa) The printing of this message is causing LED buffers to get clobbered (likely due to frame overflows)
 		erro_print("SysTick is being starved by another IRQ...");
 		printInt32( DWT->CYCCNT );
 		print(" vs. ");
 		printInt32( F_CPU / 1000 );
 		print(NL);
+		*/
 	}
 	DWT->CYCCNT = 0;
 	DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
@@ -400,6 +418,9 @@ uint32_t ReadUniqueID()
 __attribute__ ((section(".startup")))
 void ResetHandler()
 {
+	// Not locked up... Reset the watchdog timer
+	WDT->WDT_CR = WDT_CR_KEY_PASSWD | WDT_CR_WDRSTT;
+
 	uint32_t *pSrc, *pDest;
 	/* Initialize the relocate segment */
 	pSrc = &_etext;
