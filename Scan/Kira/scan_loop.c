@@ -106,3 +106,22 @@ void Scan_currentChange( unsigned int current )
 	LED_currentChange( current );
 }
 
+
+// Lock LED handling
+// TODO (HaaTa): This is temporary until state scheduling is working
+void Scan_capslock(uint8_t state)
+{
+	uint8_t val = state ? 155 : 0;
+	Pixel_pixelSet(&Pixel_Mapping[127-1], val);
+}
+void Scan_scrolllock(uint8_t state)
+{
+	uint8_t val = state ? 155 : 0;
+	Pixel_pixelSet(&Pixel_Mapping[128-1], val);
+}
+void Scan_numlock(uint8_t state)
+{
+	uint8_t val = state ? 155 : 0;
+	Pixel_pixelSet(&Pixel_Mapping[126-1], val);
+}
+

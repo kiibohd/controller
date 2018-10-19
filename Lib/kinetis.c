@@ -57,6 +57,8 @@ extern unsigned long _estack;
 
 const uint8_t sys_reset_to_loader_magic[22] = "\xff\x00\x7fRESET TO LOADER\x7f\x00\xff";
 
+uintptr_t __stack_chk_guard = 0xdeadbeef;
+
 
 
 // ----- Function Declarations -----
@@ -81,6 +83,13 @@ void fault_isr()
 		if ( SIM_SCGC4 & SIM_SCGC4_UART1 )  uart1_status_isr();
 		if ( SIM_SCGC4 & SIM_SCGC4_UART2 )  uart2_status_isr();
 	}
+}
+
+// Stack Overflow Interrupt
+void __stack_chk_fail(void)
+{
+	print("Segfault!" NL );
+	fault_isr();
 }
 
 void unused_isr()
