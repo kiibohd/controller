@@ -43,7 +43,7 @@ endif ()
 message ( STATUS "Checking for kll" )
 
 ### XXX XXX XXX - Remember to update Pipfile as well when you change the version! ###
-set ( KLL_MIN_VERSION "0.5.6.1" )
+set ( KLL_MIN_VERSION "0.5.6.3" )
 
 # 1) Check for environment variable
 if ( NOT DEFINED KLL_EXECUTABLE )
