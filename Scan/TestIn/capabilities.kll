@@ -8,6 +8,12 @@ KLL = 0.5;
 Date = 2017-11-26;
 
 
+#
+# Empty Capabilities (non-functional in host-mode)
+#
+ledControl => LED_control_capability( mode : 1, amount : 1 );
+storage_control => Storage_StorageControl_capability( func : 1 );
+
 
 #
 # LED Options

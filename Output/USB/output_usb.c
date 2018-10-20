@@ -811,7 +811,7 @@ void USB_indicator_update()
 		else if ( cur && cur == prev )
 		{
 			// TODO (HaaTa): Temporary Lock led control
-#if Scan_KiraKeyboard_define == 1
+#if Scan_KiraKeyboard_define == 1 && !defined(_host_)
 			switch ( id )
 			{
 			case LED_NUM_LOCK_1:
@@ -840,7 +840,7 @@ void USB_indicator_update()
 		else if ( prev )
 		{
 			// TODO (HaaTa): Temporary Lock led control
-#if Scan_KiraKeyboard_define == 1
+#if Scan_KiraKeyboard_define == 1 && !defined(_host_)
 			switch ( id )
 			{
 			case LED_NUM_LOCK_1:

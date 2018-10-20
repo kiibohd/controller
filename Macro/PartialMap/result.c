@@ -213,46 +213,136 @@ void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 	elem->trigger = (TriggerMacro*)triggerMacro;
 	elem->index = resultMacroIndex;
 
-	// Lookup index and type of the last key in the last combo
+	// Lookup index and type of a key in the last combo
+	// Depending on the trigger type, which key selected will vary
+	// First, find the last combo
+	var_uint_t prev_pos = 0;
 	var_uint_t pos = 0;
 	for ( uint8_t comboLength = triggerMacro->guide[0]; comboLength > 0; )
 	{
+		prev_pos = pos;
 		pos += TriggerGuideSize * comboLength + 1;
 		comboLength = triggerMacro->guide[ pos ];
 	}
 
-	TriggerGuide *guide = (TriggerGuide*)&triggerMacro->guide[ pos - TriggerGuideSize ];
-	uint8_t index = guide->scanCode;
-	uint8_t type = guide->type;
-
-	// Lookup index in buffer list for the current state and stateType
-	for ( var_uint_t keyIndex = 0; keyIndex < macroTriggerEventBufferSize; keyIndex++ )
+	// Parse the guide and scan each of the keys of the selected combo
+	TriggerEvent *event = 0;
+	for ( uint8_t elem = 0; elem < triggerMacro->guide[prev_pos]; elem++ )
 	{
-		if (
-			macroTriggerEventBuffer[ keyIndex ].index == index &&
-			macroTriggerEventBuffer[ keyIndex ].type == type
-		)
-		{
-			elem->record.state     = macroTriggerEventBuffer[ keyIndex ].state;
-			elem->record.stateType = macroTriggerEventBuffer[ keyIndex ].type;
+		// Calculate position of next TriggerGuide
+		pos = TriggerGuideSize * elem + 1;
+		TriggerGuide *cur_guide = (TriggerGuide*)&triggerMacro->guide[pos];
+		TriggerEvent *cur_event = 0;
 
-			// If this is a Layer stateType, mask the Shift/Latch/Lock information
-			switch ( elem->record.stateType )
+		// Lookup index in buffer list for the current state and stateType
+		for ( var_uint_t keyIndex = 0; keyIndex < macroTriggerEventBufferSize; keyIndex++ )
+		{
+			if (
+				macroTriggerEventBuffer[ keyIndex ].index == cur_guide->scanCode &&
+				macroTriggerEventBuffer[ keyIndex ].type == cur_guide->type
+			)
 			{
-			case TriggerType_Layer1:
-			case TriggerType_Layer2:
-			case TriggerType_Layer3:
-			case TriggerType_Layer4:
-				// We don't want to mask 0xFF, which is a debug state
-				if ( elem->record.state & 0xF0 && ( elem->record.state & 0x80 ) == 0x00 )
-				{
-					// Need to mask over 0x70, allow through all the rest of the bits
-					elem->record.state &= 0x8F;
-				}
+				cur_event = &macroTriggerEventBuffer[ keyIndex ];
 				break;
 			}
+
+		}
+
+		// Make sure an event was found...(this is unlikely)
+		if ( cur_event == 0 )
+		{
+
+			erro_print("Could not find event in event buffer for activated trigger! This is a bug!");
+			continue;
+		}
+
+		// If event hasn't been set, set it (may be overridden if a better state is found in the next iterations)
+		if ( event == 0 )
+		{
+			event = cur_event;
+		}
+
+		// Decide whether this is a good state to represent the Trigger
+		switch ( cur_guide->type )
+		{
+		// Normal State Type
+		case TriggerType_Switch1:
+		case TriggerType_Switch2:
+		case TriggerType_Switch3:
+		case TriggerType_Switch4:
+		// LED State Type
+		case TriggerType_LED1:
+		// Layer State Type
+		case TriggerType_Layer1:
+		case TriggerType_Layer2:
+		case TriggerType_Layer3:
+		case TriggerType_Layer4:
+		// Activity State Types
+		case TriggerType_Sleep1:
+		case TriggerType_Resume1:
+		case TriggerType_Inactive1:
+		case TriggerType_Active1:
+			// Only change representative state if Hold or Off going to Press or Release
+			if (
+				( event->state == ScheduleType_H || event->state == ScheduleType_O ) &&
+				( cur_event->state != event->state ) &&
+				( cur_event->state == ScheduleType_P || cur_event->state == ScheduleType_R )
+			)
+			{
+				event = cur_event;
+			}
+			// If there is a single release event, still choose Press
+			else if ( event->state == ScheduleType_P && cur_event->state == ScheduleType_R )
+			{
+				event = cur_event;
+			}
+			break;
+		// Analog State Type
+		case TriggerType_Analog1:
+		case TriggerType_Analog2:
+		case TriggerType_Analog3:
+		case TriggerType_Analog4:
+			// TODO (HaaTa) Just selects the first trigger for now
+			break;
+		// Animation State Type
+		case TriggerType_Animation1:
+		case TriggerType_Animation2:
+		case TriggerType_Animation3:
+		case TriggerType_Animation4:
+			// TODO (HaaTa) Just selects the first trigger for now
+			break;
+		// Rotation State Type
+		case TriggerType_Rotation1:
+			// TODO (HaaTa) Just selects the first trigger for now
 			break;
 		}
+	}
+
+	// If event was not set, ignore
+	if ( !event )
+	{
+		erro_print("No event found! Bug!");
+		return;
+	}
+
+	// Assign state and state type
+	elem->record.state     = event->state;
+	elem->record.stateType = event->type;
+
+	// If this is a Layer stateType, mask the Shift/Latch/Lock information
+	switch ( elem->record.stateType )
+	{
+	case TriggerType_Layer1:
+	case TriggerType_Layer2:
+	case TriggerType_Layer3:
+	case TriggerType_Layer4:
+		// We don't want to mask 0xFF, which is a debug state
+		if ( elem->record.state & 0xF0 && ( elem->record.state & 0x80 ) == 0x00 )
+		{
+			// Need to mask over 0x70, allow through all the rest of the bits
+			elem->record.state &= 0x8F;
+		}
+		break;
 	}
 
 	// Reset the macro position

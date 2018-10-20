@@ -60,6 +60,18 @@ CLIDict_Def( scanCLIDict, "Scan Module Commands" ) = {
 
 // ----- Functions -----
 
+// Empty function to handle some layouts that have mappings to LED control
+void LED_control_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+}
+
+
+// Empty function to handle some layouts that have non-volatile storage control
+void Storage_StorageControl_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+}
+
+
 // Setup
 inline void Scan_setup()
 {

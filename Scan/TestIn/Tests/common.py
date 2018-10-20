@@ -19,7 +19,9 @@ Common functions for Host-side KLL tests
 
 ### Imports ###
 
+import copy
 import inspect
+import itertools
 import json
 import linecache
 import logging
@@ -217,6 +219,8 @@ class KLLTest:
             # Set current test, used by sub-test children for debugging
             self.cur_test = index
 
+            ## TODO Run Permutation Start
+
             # Prepare layer setting
             # Run loop, to make sure layer is engaged already
             interface.control.cmd('lockLayer')(test.layer)
@@ -232,6 +236,8 @@ class KLLTest:
 
             # Cleanup layer manipulations
             interface.control.cmd('clearLayers')()
+
+            ## TODO Run Permutation Start
 
             # Check if test has failed
             if not test.result:
@@ -350,6 +356,7 @@ class TriggerResultEval(EvalBase):
 
         # Trigger Evaluation
         if not self.trigger.done():
+            self.trigger.trigger_permutations()
             if not self.trigger.eval():
                 return False
 
@@ -481,6 +488,12 @@ class TriggerEval:
         self.clean = -1
         self.cleaned = -1
 
+        # Settings
+        # TODO (HaaTa): Expose these 2 variables somehow, they are useful for testing combos
+        self.reverse_combo = False
+        self.delayed_combo = False
+        self.sub_step = 0 # Used with delayed_combo
+
         # Build sequence of combos
         self.trigger = []
         for comboindex, combo in enumerate(self.entry):
@@ -495,6 +508,22 @@ class TriggerEval:
                 ncombo.append(TriggerElem(self, elem, elemschedule))
             self.trigger.append(ncombo)
 
+    def trigger_permutations(self):
+        '''
+        Calculate the number of order permutations the trigger can be initiated with.
+        For example:
+        U"RCtrl" + U"RAlt" : U"A";
+        can be processed 3 ways.
+
+        1) RCtrl + RAlt in the same cycle
+        2) RCtrl in the first cycle, RAlt in the second cycle
+        3) RAlt in the first cycle, RCtrl in the second cycle
+
+        Only triggers need permutation testing.
+        '''
+        # TODO
+        pass
+
     def eval(self):
         '''
         Attempt to evaluate TriggerEval
@@ -506,16 +535,31 @@ class TriggerEval:
         if self.step > len(self.trigger):
             return False
 
+        # Reverse combo
+        combo = copy.copy(self.trigger[self.step])
+        if self.reverse_combo:
+            combo.reverse()
+
+        # Delayed combo
+        if self.delayed_combo:
+            combo = [combo[self.sub_step]]
+        self.sub_step += 1
+
         # Attempt to evaluate each element in the current combo
         finished = True
-        for elem in self.trigger[self.step]:
+        for elem in combo:
             if not elem.eval():
                 finished = False
+
+        # Only increment if sub_steps are complete
+        if self.delayed_combo:
+            finished = finished and self.sub_step >= len(self.trigger[self.step])
 
         # Increment step if finished
         if finished:
             self.step += 1
             self.clean += 1
+            self.sub_step = 0 # Reset on each combo
 
         # Always return True (even if not finished)
         # Only return False on an unexpected error
@@ -710,6 +754,11 @@ class TriggerElem:
 
             # Activate layer
             i.control.cmd('applyLayer')(ScheduleState.P, self.elem['uid'], layer_state)
+
+        # Generic Trigger
+        elif self.elem['type'] in ['GenericTrigger']:
+            # TODO Determine trigger index id
+            pass
 
         # Unknown TriggerElem
         else:

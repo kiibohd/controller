@@ -264,14 +264,3 @@ endif()
 #| Generate list of compiler commands for clang-tidy usage
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
-#| Make sure symlink exists (for convenience)
-if ( UNIX AND NOT DEFINED CONFIGURATOR )
-	# Make sure symlink is created immediately
-	execute_process ( COMMAND ln -sfn ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_SOURCE_DIR}/. )
-
-	# Also update before each build
-	add_custom_command( TARGET ${TARGET} POST_BUILD
-		COMMAND ln -sfn ${CMAKE_BINARY_DIR}/compile_commands.json ${CMAKE_SOURCE_DIR}/.
-	)
-endif ()
-

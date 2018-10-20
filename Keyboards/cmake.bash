@@ -321,7 +321,7 @@ if ${EnableHostBuild}; then
 		if [[ -e "$TestPath" ]]; then
 			# Run test
 			echo "Running '$TestPath'..."
-			./${TestPath}
+			python3 ./${TestPath}
 			return_code=$?
 
 			# Results

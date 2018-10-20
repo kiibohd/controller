@@ -55,7 +55,7 @@ const uint32_t Time_maxTicks = F_CPU / 1000;
 const uint32_t Time_maxTicks_ms = 0xFFFFFFFF / ( F_CPU / 1000 );
 #elif defined(_host_)
 // TODO (HaaTa) This is variable, should be set in KLL?
-const uint32_t Time_maxTicks = 1;
+const uint32_t Time_maxTicks = 1000;
 const uint32_t Time_maxTicks_ms = 1;
 #endif
 

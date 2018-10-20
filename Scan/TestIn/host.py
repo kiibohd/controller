@@ -110,6 +110,7 @@ class TriggerType:
     Resume1    = 0x12
     Inactive1  = 0x13
     Active1    = 0x14
+    Rotation1  = 0x15
 
     Debug      = 0xFF
 
