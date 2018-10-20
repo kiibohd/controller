@@ -80,7 +80,7 @@ typedef struct {
 } PixelConfig;
 
 static PixelConfig defaults = {
-	.animation_indices = {0},
+	.animation_indices = {[0 ... Pixel_AnimationStackSize-1] = 255}, //Todo, use some kll define
 	.fade_periods = {
 		{7, 5, 7, 0},
 		{7, 5, 7, 0},
@@ -2893,11 +2893,10 @@ void Pixel_saveConfig() {
 	{
 		for (uint8_t config=0; config<4; config++)
 		{
-			const PixelPeriodConfig *period_config = &Pixel_pixel_fade_profile_entries[profile].conf[config];
-
 			// XXX TODO: Needs a real lookup
+			/*const PixelPeriodConfig *period_config = &Pixel_pixel_fade_profile_entries[profile].conf[config];
 			uint8_t index = period_config - &Pixel_LED_FadePeriods[0];
-			settings.fade_periods[profile][config] = index;
+			settings.fade_periods[profile][config] = index;*/
 		}
 	}
 }
