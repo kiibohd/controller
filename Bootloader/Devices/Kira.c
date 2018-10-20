@@ -29,6 +29,7 @@
 // ----- Defines -----
 
 // ----- Variables -----
+static uint8_t prev_btn_state = 1;
 
 // ----- Functions -----
 
@@ -59,6 +60,7 @@ void Device_setup()
 
 	// Cols (strobe)
 	Pin_Output(PIOB, 1);
+	PIOB->PIO_SODR = (1 << 1);
 
 	// Rows (sense)
 	Pin_Input(PIOA, 26);
@@ -67,19 +69,22 @@ void Device_setup()
 // Called during each loop of the main bootloader sequence
 void Device_process()
 {
+	uint8_t cur_btn_state;
+
 	// stray capacitance hack
 	Pin_Output(PIOA, 26);
 	Pin_Input(PIOA, 26);
 
 	// Check for S1 being pressed
-	PIOB->PIO_SODR = (1 << 1);
+	cur_btn_state = (PIOA->PIO_PDSR & (1<<26)) != 0;
 
-	if ( PIOA->PIO_PDSR & (1<<26) )
+	// Rising edge = press
+	if ( cur_btn_state && !prev_btn_state )
 	{
 		print( "Reset key pressed." NL );
 		SOFTWARE_RESET();
 	}
 
-	PIOB->PIO_CODR = (1 << 1);
+	prev_btn_state = cur_btn_state;
 }
 

@@ -166,12 +166,12 @@ void Result_evalResultMacroCombo(
 					if ( guide->args != 0 && item->args == &guide->args )
 					{
 						// Don't add
-						break;
+						continue;
 					}
 					else if ( guide->args == 0 )
 					{
 						// Don't add
-						break;
+						continue;
 					}
 				}
 			}

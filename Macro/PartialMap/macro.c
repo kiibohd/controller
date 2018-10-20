@@ -443,6 +443,11 @@ void Macro_showTriggerType( TriggerType type )
 		print("Active");
 		break;
 
+	// Rotation
+	case TriggerType_Rotation1:
+		print("Rotation");
+		break;
+
 	// Invalid
 	default:
 		print("INVALID");
@@ -463,7 +468,20 @@ void Macro_showTriggerEvent( TriggerEvent *event )
 	print(" ");
 
 	// Show state
-	Macro_showScheduleType( event->state );
+	switch ( event->type )
+	{
+	case TriggerType_Analog1:
+	case TriggerType_Analog2:
+	case TriggerType_Analog3:
+	case TriggerType_Analog4:
+	case TriggerType_Rotation1:
+		printInt8( event->state );
+		break;
+
+	default:
+		Macro_showScheduleType( event->state );
+		break;
+	}
 	print(" ");
 
 	// Show index number
@@ -893,7 +911,7 @@ void Macro_rotationState( uint8_t index, int8_t increment )
 	uint8_t type = TriggerType_Rotation1;
 
 	// If index is invalid, ignore
-	if ( index >= RotationNum )
+	if ( index > RotationNum )
 	{
 		return;
 	}
@@ -901,11 +919,17 @@ void Macro_rotationState( uint8_t index, int8_t increment )
 	// State is used as the increment position
 	int16_t position = Macro_rotation_store[index] + increment;
 
+	// If first starting, the first rotation is 0
+	if ( Macro_rotation_store[index] == 255 )
+	{
+		position = 0;
+	}
+
 	// Wrap-around
 	// May have to wrap-around multiple times
 	while ( position > Rotation_MaxParameter[index] )
 	{
-		position -= Rotation_MaxParameter[index];
+		position -= Rotation_MaxParameter[index] + 1;
 	}
 
 	// Reverse Wrap-around
@@ -914,11 +938,11 @@ void Macro_rotationState( uint8_t index, int8_t increment )
 		// May have to wrap-around multiple times
 		while ( position * -1 > Rotation_MaxParameter[index] )
 		{
-			position += Rotation_MaxParameter[index];
+			position += Rotation_MaxParameter[index] - 1;
 		}
 
 		// Do wrap-around
-		position += Rotation_MaxParameter[index];
+		position += Rotation_MaxParameter[index] - 1;
 
 	}
 	Macro_rotation_store[index] = position;
@@ -1161,8 +1185,8 @@ inline void Macro_setup()
 	// Make sure macro trigger event buffer is empty
 	macroTriggerEventBufferSize = 0;
 
-	// Initial rotation store to 0s
-	memset( Macro_rotation_store, 0, sizeof(Macro_rotate_capability) );
+	// Initial rotation store to 255s
+	memset( Macro_rotation_store, 255, sizeof(Macro_rotate_capability) );
 
 	// Setup Layers
 	Layer_setup();

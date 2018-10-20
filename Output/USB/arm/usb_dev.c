@@ -1530,6 +1530,15 @@ void usb_device_reload()
 	SOFTWARE_RESET();
 
 #elif defined(_kii_v3_)
+	// Disable/Turn-off LEDs if available
+#if defined(Pixel_MapEnabled_define)
+	extern uint8_t LED_enable;
+	extern void LED_scan();
+
+	LED_enable = 0;
+	LED_scan();
+#endif
+
 	// Copies variable into the GPBR register, must be identical to the variable in the bootloader to jump to the bootloader flash mode
 	for ( int pos = 0; pos <= sizeof(sys_reset_to_loader_magic)/4; pos++ )
 		GPBR->SYS_GPBR[ pos ] = ((uint32_t*)sys_reset_to_loader_magic)[ pos ];

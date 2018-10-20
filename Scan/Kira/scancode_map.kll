@@ -9,6 +9,11 @@ KLL = 0.5;
 Date = 2018-10-07;
 
 
+# Kira
+kiraKeyboard => Scan_KiraKeyboard_define;
+kiraKeyboard = "1";
+
+
 # ScanCode Remapping
 ScanCodeRemapping = 0; # XXX (HaaTa): Currently disabled, this file needs adjustment to use ScanCode Remapping
 

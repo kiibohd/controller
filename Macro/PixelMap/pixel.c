@@ -340,11 +340,14 @@ void Pixel_FadeSet_capability( TriggerMacro *trigger, uint8_t state, uint8_t sta
 
 	// Reset the current period being processed
 	Pixel_pixel_fade_profile_entries[profile].pos = 0;
+	Pixel_pixel_fade_profile_entries[profile].period_conf = PixelPeriodIndex_Off_to_On;
 }
 
 void Pixel_FadeLayerHighlight_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+	// TODO (HaaTa): FIXME
+	return;
 
 	switch ( cstate )
 	{
@@ -1403,12 +1406,22 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 
 			case PixelAddressType_ScanCode:
 				interp_mod->index = start + cur;
-				// TODO Ignore unused ScanCodes
+
+				// Ignore un-assigned ScanCodes
+				if ( Pixel_ScanCodeToDisplay[interp_mod->index - 1] == 0 )
+				{
+					continue;
+				}
 				break;
 
 			case PixelAddressType_Index:
 				interp_mod->index = start + cur;
-				// TODO Ignore unused Indices
+
+				// Ignore unused pixels (this is uncommon)
+				if ( Pixel_Mapping[interp_mod->index - 1].width == 0 || Pixel_Mapping[interp_mod->index - 1].channels == 0 )
+				{
+					continue;
+				}
 				break;
 
 			default:
@@ -2221,9 +2234,13 @@ inline void Pixel_process()
 pixel_process_done:
 	// Apply secondary LED processing
 	// XXX (HaaTa): Disabling IRQ as a hack, some interrupt is causing corruption during the buffer handling
+#if !defined(_host_)
 	__disable_irq();
+#endif
 	Pixel_SecondaryProcessing();
+#if !defined(_host_)
 	__enable_irq();
+#endif
 
 	// Frame is now ready to send
 	Pixel_FrameState = FrameState_Ready;

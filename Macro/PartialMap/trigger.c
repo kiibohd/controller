@@ -264,6 +264,29 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 
 		return TriggerMacroVote_DoNothing;
 
+	/*
+	// LED State Type
+	case TriggerType_LED1:
+		// XXX (HaaTa) This is an initial version of State Scheduling
+		//             For any state match that is not ScheduleType_A, set to ScheduleType_A
+		//             as this will indicate a pulse to the capability.
+		if (
+			guide_index == event_index &&
+			guide->type == event->type
+		)
+		{
+			// When state scheduling is specified
+			// TODO (HaaTa); We should probably move to another state type for "auto" schedule types
+			if ( guide->state == event->state && guide->state != ScheduleType_A )
+			{
+				return Trigger_evalShortTriggerMacroVote_PHRO( ScheduleType_A );
+			}
+			//return Trigger_evalShortTriggerMacroVote_PHRO( event->state );
+		}
+
+		return TriggerMacroVote_DoNothing;
+	*/
+
 	// Analog State Type
 	case TriggerType_Analog1:
 	case TriggerType_Analog2:
@@ -548,6 +571,7 @@ TriggerMacroVote Trigger_overallVote(
 		// After voting, append to overall vote
 		overallVote |= vote;
 	}
+
 
 	return overallVote;
 }

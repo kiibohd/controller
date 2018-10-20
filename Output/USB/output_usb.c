@@ -808,8 +808,25 @@ void USB_indicator_update()
 			continue;
 		}
 		// Detect if on
-		else if ( cur == prev )
+		else if ( cur && cur == prev )
 		{
+			// TODO (HaaTa): Temporary Lock led control
+#if Scan_KiraKeyboard_define == 1
+			switch ( id )
+			{
+			case LED_NUM_LOCK_1:
+				Scan_numlock(cur);
+				break;
+			case LED_CAPS_LOCK_2:
+				Scan_capslock(cur);
+				break;
+			case LED_SCROLL_LOCK_3:
+				Scan_scrolllock(cur);
+				break;
+			default:
+				break;
+			}
+#endif
 			// On
 			Macro_ledState( id, ScheduleType_On );
 		}
@@ -822,9 +839,27 @@ void USB_indicator_update()
 		// Detect if release
 		else if ( prev )
 		{
+			// TODO (HaaTa): Temporary Lock led control
+#if Scan_KiraKeyboard_define == 1
+			switch ( id )
+			{
+			case LED_NUM_LOCK_1:
+				Scan_numlock(cur);
+				break;
+			case LED_CAPS_LOCK_2:
+				Scan_capslock(cur);
+				break;
+			case LED_SCROLL_LOCK_3:
+				Scan_scrolllock(cur);
+				break;
+			default:
+				break;
+			}
+#endif
 			// Deactivate
 			Macro_ledState( id, ScheduleType_D );
 		}
+
 	}
 
 	// Update for next state comparison
