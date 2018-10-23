@@ -76,20 +76,43 @@ typedef enum PixelTest {
 #if Storage_Enable_define == 1
 typedef struct {
 	uint8_t animation_indices[Pixel_AnimationStackSize];
-	uint8_t fade_periods[4][4];
+	PixelPeriodConfig fade_periods[4][4];
 } PixelConfig;
 
 static PixelConfig defaults = {
 	.animation_indices = {[0 ... Pixel_AnimationStackSize-1] = 255}, //Todo, use some kll define
 	.fade_periods = {
-		{7, 5, 7, 0},
-		{7, 5, 7, 0},
-		{0, 0, 0, 0},
-		{5, 5, 5, 5},
-		/*KLL_LED_FadeDefaultConfig0_define,
-		KLL_LED_FadeDefaultConfig1_define,
-		KLL_LED_FadeDefaultConfig2_define,
-		KLL_LED_FadeDefaultConfig3_define*/
+		// KLL_LED_FadeDefaultConfig0_define,
+		{
+			{0, 10}, //7
+			{0,  8}, //5
+			{0, 10}, //7
+			{0,  0}  //0
+		},
+
+		// KLL_LED_FadeDefaultConfig1_define,
+		{
+			{0, 10}, //7
+			{0,  8}, //5
+			{0, 10}, //7
+			{0,  0}  //0
+		},
+		
+		// KLL_LED_FadeDefaultConfig2_define,
+		{
+			{0,  0}, //0
+			{0,  0}, //0
+			{0,  0}, //0
+			{0,  0}  //0
+		},
+
+		// KLL_LED_FadeDefaultConfig3_define
+		{
+			{0,  8}, //5
+			{0,  8}, //5
+			{0,  8}, //5
+			{0,  8}  //5
+		},
 	}
 };
 
@@ -2870,10 +2893,8 @@ void Pixel_loadConfig() {
 	{	
 		for (uint8_t config=0; config<4; config++)
 		{
-			uint8_t period = settings.fade_periods[profile][config];
-			const PixelPeriodConfig *period_config = &Pixel_LED_FadePeriods[period];
-			Pixel_pixel_fade_profile_entries[profile].conf[config].start = period_config->start;
-			Pixel_pixel_fade_profile_entries[profile].conf[config].end = period_config->end;
+			PixelPeriodConfig period_config = settings.fade_periods[profile][config];
+			Pixel_pixel_fade_profile_entries[profile].conf[config] = period_config;
 		}
 	}
 }
@@ -2896,9 +2917,8 @@ void Pixel_saveConfig() {
 		for (uint8_t config=0; config<4; config++)
 		{
 			// XXX TODO: Needs a real lookup
-			/*const PixelPeriodConfig *period_config = &Pixel_pixel_fade_profile_entries[profile].conf[config];
-			uint8_t index = period_config - &Pixel_LED_FadePeriods[0];
-			settings.fade_periods[profile][config] = index;*/
+			const PixelPeriodConfig period_config = Pixel_pixel_fade_profile_entries[profile].conf[config];
+			settings.fade_periods[profile][config] = period_config;
 		}
 	}
 }
@@ -2924,13 +2944,15 @@ void Pixel_printConfig() {
 	{	
 		for (uint8_t config=0; config<4; config++)
 		{
-			uint8_t period = settings.fade_periods[profile][config];
+			PixelPeriodConfig period = settings.fade_periods[profile][config];
 			print("FadeConfig[");
 			printInt8(profile);
 			print("][");
 			printInt8(config);
-			print("] = ");
-			printInt8(period);
+			print("] = {");
+			printInt8(period.start);
+			print(", ");
+			printInt8(period.end);
 			print(NL);
 		}
 	}
