@@ -2859,7 +2859,9 @@ void Pixel_loadConfig() {
 	{
 		uint8_t index = settings.animation_indices[pos];
 		if (index != 255) {
-			Pixel_addDefaultAnimation(index);
+			AnimationStackElement element = Pixel_AnimationSettings[ index ];
+			element.state = AnimationPlayState_Start;
+			Pixel_addAnimation( &element, CapabilityState_None );
 		}
 	}
 
