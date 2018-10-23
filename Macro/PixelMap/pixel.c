@@ -20,6 +20,7 @@
 #include <Lib/MacroLib.h>
 
 // Project Includes
+#include <Lib/storage.h>
 #include <cli.h>
 #include <kll_defs.h>
 #include <latency.h>
@@ -33,6 +34,10 @@
 
 
 // ----- Function Declarations -----
+
+void Pixel_loadConfig();
+void Pixel_saveConfig();
+void Pixel_printConfig();
 
 void cliFunc_aniAdd     ( char* args );
 void cliFunc_aniDel     ( char* args );
@@ -67,6 +72,62 @@ typedef enum PixelTest {
 
 
 // ----- Variables -----
+
+#if Storage_Enable_define == 1
+typedef struct {
+	uint8_t animation_indices[Pixel_AnimationStackSize];
+	PixelPeriodConfig fade_periods[4][4];
+} PixelConfig;
+
+static PixelConfig defaults = {
+	.animation_indices = {[0 ... Pixel_AnimationStackSize-1] = 255}, //Todo, use some kll define
+	.fade_periods = {
+		// KLL_LED_FadeDefaultConfig0_define,
+		{
+			{0, 10}, //7
+			{0,  8}, //5
+			{0, 10}, //7
+			{0,  0}  //0
+		},
+
+		// KLL_LED_FadeDefaultConfig1_define,
+		{
+			{0, 10}, //7
+			{0,  8}, //5
+			{0, 10}, //7
+			{0,  0}  //0
+		},
+		
+		// KLL_LED_FadeDefaultConfig2_define,
+		{
+			{0,  0}, //0
+			{0,  0}, //0
+			{0,  0}, //0
+			{0,  0}  //0
+		},
+
+		// KLL_LED_FadeDefaultConfig3_define
+		{
+			{0,  8}, //5
+			{0,  8}, //5
+			{0,  8}, //5
+			{0,  8}  //5
+		},
+	}
+};
+
+static PixelConfig settings;
+
+static StorageModule PixelStorage = {
+	.name = "Pixel Map",
+	.settings = &settings,
+	.defaults = &defaults,
+	.size = sizeof(PixelConfig),
+	.onLoad = Pixel_loadConfig,
+	.onSave = Pixel_saveConfig,
+	.display = Pixel_printConfig
+};
+#endif
 
 // Macro Module command dictionary
 CLIDict_Entry( aniAdd,       "Add the given animation id to the stack" );
@@ -2256,6 +2317,11 @@ inline void Pixel_setup()
 	// Register Pixel CLI dictionary
 	CLI_registerDictionary( pixelCLIDict, pixelCLIDictName );
 
+	// Register storage module
+#if Storage_Enable_define == 1
+	Storage_registerModule(&PixelStorage);
+#endif
+
 	// Set frame state to update
 	Pixel_FrameState = FrameState_Update;
 
@@ -2808,3 +2874,87 @@ void cliFunc_rectDisp( char* args )
 	Pixel_dispBuffer();
 }
 
+
+#if Storage_Enable_define == 1
+void Pixel_loadConfig() {
+	// Animations
+	for ( uint8_t pos = 0; pos < Pixel_AnimationStackSize; pos++ )
+	{
+		uint8_t index = settings.animation_indices[pos];
+		if (index != 255) {
+			AnimationStackElement element = Pixel_AnimationSettings[ index ];
+			element.state = AnimationPlayState_Start;
+			Pixel_addAnimation( &element, CapabilityState_None );
+		}
+	}
+
+	// Fade periods
+	for (uint8_t profile=0; profile<4; profile++)
+	{	
+		for (uint8_t config=0; config<4; config++)
+		{
+			PixelPeriodConfig period_config = settings.fade_periods[profile][config];
+			Pixel_pixel_fade_profile_entries[profile].conf[config] = period_config;
+		}
+	}
+}
+
+void Pixel_saveConfig() {
+	// Animations
+	for ( uint8_t pos = 0; pos < Pixel_AnimationStackSize; pos++ )
+	{
+		if (pos < Pixel_AnimationStack.size) {
+			AnimationStackElement *elem = Pixel_AnimationStack.stack[pos];
+			settings.animation_indices[pos] = elem->index;
+		} else {
+			settings.animation_indices[pos] = 255;
+		}
+	}
+
+	// Fade periods
+	for (uint8_t profile=0; profile<4; profile++)
+	{
+		for (uint8_t config=0; config<4; config++)
+		{
+			// XXX TODO: Needs a real lookup
+			const PixelPeriodConfig period_config = Pixel_pixel_fade_profile_entries[profile].conf[config];
+			settings.fade_periods[profile][config] = period_config;
+		}
+	}
+}
+
+void Pixel_printConfig() {
+	// Animations
+	print(" \033[35mAnimations\033[0m" NL);
+	for ( uint8_t pos = 0; pos < Pixel_AnimationStackSize; pos++ )
+	{
+		uint8_t index = settings.animation_indices[pos];
+		if (index != 255) {
+			print("AnimationStack.stack[");
+			printInt8(pos);
+			print("]->index = ");
+			printInt8(index);
+			print(NL);
+		}
+	}
+
+	// Fade periods
+	print(NL " \033[35mFades\033[0m" NL);
+	for (uint8_t profile=0; profile<4; profile++)
+	{	
+		for (uint8_t config=0; config<4; config++)
+		{
+			PixelPeriodConfig period = settings.fade_periods[profile][config];
+			print("FadeConfig[");
+			printInt8(profile);
+			print("][");
+			printInt8(config);
+			print("] = {");
+			printInt8(period.start);
+			print(", ");
+			printInt8(period.end);
+			print(NL);
+		}
+	}
+}
+#endif

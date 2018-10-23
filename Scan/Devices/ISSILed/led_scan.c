@@ -210,13 +210,13 @@ typedef struct {
 	uint8_t brightness;
 } LedConfig;
 
-LedConfig defaults = {
+static LedConfig defaults = {
 	.brightness = ISSI_Global_Brightness_define
 };
 
-LedConfig settings;
+static LedConfig settings;
 
-StorageModule LedStorage = {
+static StorageModule LedStorage = {
 	.name = "LED Scan",
 	.settings = &settings,
 	.defaults = &defaults,

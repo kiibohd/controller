@@ -252,7 +252,7 @@ void storage_init()
 			);
 
 			// Check for cleared page
-			cleared_block = find_cleared_block( page_buffer + STORAGE_FLASH_PAGE_SIZE - (STORAGE_SIZE + 1) );
+			cleared_block = find_cleared_block( page_buffer + STORAGE_FLASH_PAGE_SIZE-(STORAGE_SIZE + 1) );
 
 			for ( int i  = 0; i < STORAGE_SIZE; i++ )
 			{
