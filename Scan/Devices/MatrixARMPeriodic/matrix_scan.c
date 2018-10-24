@@ -484,6 +484,7 @@ uint8_t Matrix_single_scan()
 				if ( lastTransition < debounceExpiryTime )
 				{
 					state->curState = state->prevState;
+					Macro_keyState( key_disp, state->curState );
 					continue;
 				}
 
@@ -500,6 +501,7 @@ uint8_t Matrix_single_scan()
 				if ( lastTransition < debounceExpiryTime )
 				{
 					state->curState = state->prevState;
+					Macro_keyState( key_disp, state->curState );
 					continue;
 				}
 

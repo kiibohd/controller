@@ -594,7 +594,6 @@ TriggerMacroVote Trigger_overallVote(
 		overallVote |= vote;
 	}
 
-
 	return overallVote;
 }
 
