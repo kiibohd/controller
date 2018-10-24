@@ -81,39 +81,7 @@ typedef struct {
 
 static PixelConfig defaults = {
 	.animation_indices = {[0 ... Pixel_AnimationStackSize-1] = 255}, //Todo, use some kll define
-	.fade_periods = {
-		// KLL_LED_FadeDefaultConfig0_define,
-		{
-			{0, 10}, //7
-			{0,  8}, //5
-			{0, 10}, //7
-			{0,  0}  //0
-		},
-
-		// KLL_LED_FadeDefaultConfig1_define,
-		{
-			{0, 10}, //7
-			{0,  8}, //5
-			{0, 10}, //7
-			{0,  0}  //0
-		},
-		
-		// KLL_LED_FadeDefaultConfig2_define,
-		{
-			{0,  0}, //0
-			{0,  0}, //0
-			{0,  0}, //0
-			{0,  0}  //0
-		},
-
-		// KLL_LED_FadeDefaultConfig3_define
-		{
-			{0,  8}, //5
-			{0,  8}, //5
-			{0,  8}, //5
-			{0,  8}  //5
-		},
-	}
+	// .fade_periods initialized later
 };
 
 static PixelConfig settings;
@@ -2319,6 +2287,12 @@ inline void Pixel_setup()
 
 	// Register storage module
 #if Storage_Enable_define == 1
+	for (uint8_t profile=0; profile<4; profile++) {
+		for (uint8_t config=0; config<4; config++) {
+			defaults.fade_periods[profile][config] =
+				Pixel_LED_FadePeriods[Pixel_LED_FadePeriod_Defaults[profile][config]];
+		}
+	}
 	Storage_registerModule(&PixelStorage);
 #endif
 
