@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller Bootloader |###
 #
-# Jacob Alexander 2011-2017
+# Jacob Alexander 2011-2018
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -158,9 +158,10 @@ endif ( )
 
 
 # Add device file, if it exists
-if ( EXISTS ${CMAKE_SOURCE_DIR}/Devices/${BOOT_PRODUCT_STR}.c )
+string ( REPLACE " " "_" BOOT_PRODUCT_STR_CLEAN ${BOOT_PRODUCT_STR} )
+if ( EXISTS ${CMAKE_SOURCE_DIR}/Devices/${BOOT_PRODUCT_STR_CLEAN}.c )
 	set ( SRCS ${SRCS}
-		Devices/${BOOT_PRODUCT_STR}.c
+		Devices/${BOOT_PRODUCT_STR_CLEAN}.c
 	)
 endif ()
 

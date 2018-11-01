@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # This script runs each of the firmware build scripts
-# Input Club produced keyboard targets
+# Input Club supported keyboard targets
 # Jacob Alexander 2017-2018
 
 ###########
@@ -37,6 +37,7 @@ source "common.bash"
 # Run test builds
 if [[ "${1}" != "win" ]] && ${EnableHostOnlyBuild}; then
 	# NOTE: Infinity Ergodox is not tested as Interconnect and LCD needs more infrastructure to test
+	cmd "bash ./geminiduskdawn.bash"
 	cmd "bash ./infinity.alphabet.bash"
 	cmd "bash ./infinity.hacker.bash"
 	cmd "bash ./infinity.standard.bash"
@@ -61,6 +62,7 @@ fi
 if [ "${1}" != "win" ]; then
 	cmd_cpy "bash ./ergodox-l.bash"                kiibohd.dfu.bin firmware/ergodox.left.dfu.bin
 	cmd_cpy "bash ./ergodox-r.bash"                kiibohd.dfu.bin firmware/ergodox.right.dfu.bin
+	cmd_cpy "bash ./geminiduskdawn.bash"           kiibohd.dfu.bin firmware/geminiduskdawn.dfu.bin
 	cmd_cpy "bash ./infinity.alphabet.bash"        kiibohd.dfu.bin firmware/infinity.alphabet.dfu.bin
 	cmd_cpy "bash ./infinity.hacker.bash"          kiibohd.dfu.bin firmware/infinity.hacker.dfu.bin
 	cmd_cpy "bash ./infinity.standard.bash"        kiibohd.dfu.bin firmware/infinity.standard.dfu.bin
@@ -80,6 +82,7 @@ if [ "${1}" != "win" ]; then
 else
 	env
 
+	cmd_cpy "bash ./geminiduskdawn.bash"           kiibohd.dfu.bin firmware/geminiduskdawn.dfu.bin
 	cmd_cpy "bash ./ergodox-l.bash"                kiibohd.dfu.bin firmware/ergodox.left.dfu.bin
 	cmd_cpy "bash ./ergodox-r.bash"                kiibohd.dfu.bin firmware/ergodox.right.dfu.bin
 	cmd_cpy "bash ./infinity.bash"                 kiibohd.dfu.bin firmware/infinity.dfu.bin
