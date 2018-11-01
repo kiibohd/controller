@@ -53,7 +53,7 @@ OutputModule="USB"
 DebugModule="full"
 
 # Microcontroller
-Chip="sam4s8c"
+Chip="sam4s8b"
 
 # Compiler Selection
 Compiler="gcc"
