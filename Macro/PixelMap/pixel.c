@@ -55,16 +55,20 @@ void cliFunc_rectDisp   ( char* args );
 
 typedef enum PixelTest {
 	PixelTest_Off = 0,    // Disabled
+	PixelTest_Chan_Single,
 	PixelTest_Chan_All,   // Enable all positions
 	PixelTest_Chan_Roll,  // Iterate over all positions
 	PixelTest_Chan_Full,  // Turn on all pixels
 	PixelTest_Chan_Off,   // Turn off all pixels
+	PixelTest_Pixel_Single,
 	PixelTest_Pixel_All,  // Enable all positions
 	PixelTest_Pixel_Roll, // Iterate over all positions
 	PixelTest_Pixel_Full, // Turn on all pixels
 	PixelTest_Pixel_Off,  // Turn off all pixels
+	PixelTest_Scan_Single,
 	PixelTest_Scan_All,
 	PixelTest_Scan_Roll,
+	PixelTest_XY_Single,
 	PixelTest_XY_All,
 	PixelTest_XY_Roll,
 } PixelTest;
@@ -123,7 +127,7 @@ CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
 
 // Debug states
 PixelTest Pixel_testMode;
-uint16_t  Pixel_testPos = 0;
+volatile uint16_t  Pixel_testPos = 0;
 
 // Frame State
 //  Indicates to pixel and output modules current state of the buffer
@@ -2067,6 +2071,21 @@ inline void Pixel_process()
 	// First check if we are in a test mode
 	switch ( Pixel_testMode )
 	{
+	// Single channel control
+	case PixelTest_Chan_Single:
+		// Toggle channel
+		Pixel_channelToggle( Pixel_testPos );
+
+		// Increment channel
+		Pixel_testPos++;
+		if ( Pixel_testPos >= Pixel_TotalChannels_KLL )
+			Pixel_testPos = 0;
+
+		// Disable test mode
+		Pixel_testMode = PixelTest_Off;
+
+		goto pixel_process_done;
+
 	// Toggle current position, then increment
 	case PixelTest_Chan_Roll:
 		// Toggle channel
@@ -2109,6 +2128,21 @@ inline void Pixel_process()
 			// Toggle channel
 			Pixel_channelSet( ch, 0 );
 		}
+
+		goto pixel_process_done;
+
+	// Single pixel control
+	case PixelTest_Pixel_Single:
+		// Toggle channel
+		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ Pixel_testPos - 1 ] );
+
+		// Increment channel
+		Pixel_testPos++;
+		if ( Pixel_testPos >= Pixel_TotalChannels_KLL )
+			Pixel_testPos = 0;
+
+		// Disable test mode
+		Pixel_testMode = PixelTest_Off;
 
 		goto pixel_process_done;
 
@@ -2160,6 +2194,31 @@ inline void Pixel_process()
 
 		goto pixel_process_done;
 
+	// Single scan control
+	case PixelTest_Scan_Single:
+	{
+		// Lookup pixel
+		uint16_t pixel = Pixel_ScanCodeToPixel[ Pixel_testPos ];
+
+		// Increment pixel
+		Pixel_testPos++;
+		if ( Pixel_testPos >= MaxScanCode_KLL )
+			Pixel_testPos = 0;
+
+		// Ignore if pixel set to 0
+		if ( pixel == 0 )
+		{
+			goto pixel_process_final;
+		}
+
+		// Toggle channel
+		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+
+		// Disable test mode
+		Pixel_testMode = PixelTest_Off;
+
+		goto pixel_process_done;
+	}
 	// Toggle current position, then increment
 	case PixelTest_Scan_Roll:
 	{
@@ -2436,6 +2495,10 @@ void cliFunc_pixelTest( char* args )
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Pixel_Off;
 		return;
+
+	default:
+		Pixel_testMode = PixelTest_Pixel_Single;
+		break;
 	}
 
 	// Check for specific position
@@ -2444,24 +2507,18 @@ void cliFunc_pixelTest( char* args )
 		Pixel_testPos = numToInt( arg1Ptr );
 	}
 
+	// If 0, ignore
+	if ( Pixel_testPos == 0 )
+	{
+		Pixel_testMode = PixelTest_Off;
+		return;
+	}
+
 	// Debug info
 	print( NL );
 	info_msg("Pixel: ");
-	printInt16( Pixel_testPos + 1 );
+	printInt16( Pixel_testPos );
 	print(" ");
-
-	// Lookup pixel element
-	PixelElement *elem = (PixelElement*)&Pixel_Mapping[ Pixel_testPos ];
-	Pixel_showPixelElement( elem );
-	print( NL );
-
-	// Toggle channel
-	Pixel_pixelToggle( elem );
-
-	// Increment channel
-	Pixel_testPos++;
-	if ( Pixel_testPos >= Pixel_TotalPixels_KLL )
-		Pixel_testPos = 0;
 }
 
 void cliFunc_chanTest( char* args )
@@ -2484,33 +2541,37 @@ void cliFunc_chanTest( char* args )
 		info_msg("All channel test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Chan_All;
-		break;
+		return;
 
 	case 'r':
 	case 'R':
 		info_msg("Channel roll test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Chan_Roll;
-		break;
+		return;
 
 	case 's':
 	case 'S':
 		info_msg("Stopping channel test");
 		Pixel_testMode = PixelTest_Off;
-		break;
+		return;
 
 	case 'f':
 	case 'F':
 		info_msg("Enable all pixels");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Chan_Full;
-		break;
+		return;
 
 	case 'o':
 	case 'O':
 		info_msg("Disable all pixels");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Chan_Off;
+		return;
+
+	default:
+		Pixel_testMode = PixelTest_Chan_Single;
 		break;
 	}
 
@@ -2525,14 +2586,6 @@ void cliFunc_chanTest( char* args )
 	info_msg("Channel: ");
 	printInt16( Pixel_testPos );
 	print( NL );
-
-	// Toggle pixel
-	Pixel_channelToggle( Pixel_testPos );
-
-	// Increment pixel
-	Pixel_testPos++;
-	if ( Pixel_testPos >= Pixel_TotalChannels_KLL )
-		Pixel_testPos = 0;
 }
 
 void cliFunc_pixelSCTest( char* args )
@@ -2555,19 +2608,23 @@ void cliFunc_pixelSCTest( char* args )
 		info_msg("All scancode pixel test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Scan_All;
-		break;
+		return;
 
 	case 'r':
 	case 'R':
 		info_msg("Scancode pixel roll test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Scan_Roll;
-		break;
+		return;
 
 	case 's':
 	case 'S':
 		info_msg("Stopping scancode pixel test");
 		Pixel_testMode = PixelTest_Off;
+		return;
+
+	default:
+		Pixel_testMode = PixelTest_Scan_Single;
 		break;
 	}
 
@@ -2575,6 +2632,13 @@ void cliFunc_pixelSCTest( char* args )
 	if ( *arg1Ptr != '\0' )
 	{
 		Pixel_testPos = numToInt( arg1Ptr );
+	}
+
+	// If 0, ignore
+	if ( Pixel_testPos == 0 )
+	{
+		Pixel_testMode = PixelTest_Off;
+		return;
 	}
 
 	// Lookup pixel
@@ -2587,25 +2651,6 @@ void cliFunc_pixelSCTest( char* args )
 	print(" Pixel: ");
 	printInt16( pixel );
 	print(" ");
-
-	// Lookup pixel element
-	PixelElement *elem = (PixelElement*)&Pixel_Mapping[ pixel - 1 ];
-	Pixel_showPixelElement( elem );
-	print( NL );
-
-	// Increment pixel
-	Pixel_testPos++;
-	if ( Pixel_testPos >= MaxScanCode_KLL )
-		Pixel_testPos = 0;
-
-	// Ignore if pixel set to 0
-	if ( pixel == 0 )
-	{
-		return;
-	}
-
-	// Toggle pixel
-	Pixel_pixelToggle( elem );
 }
 
 void cliFunc_pixelXYTest( char* args )
@@ -2864,7 +2909,7 @@ void Pixel_loadConfig() {
 
 	// Fade periods
 	for (uint8_t profile=0; profile<4; profile++)
-	{	
+	{
 		for (uint8_t config=0; config<4; config++)
 		{
 			PixelPeriodConfig period_config = settings.fade_periods[profile][config];
@@ -2915,7 +2960,7 @@ void Pixel_printConfig() {
 	// Fade periods
 	print(NL " \033[35mFades\033[0m" NL);
 	for (uint8_t profile=0; profile<4; profile++)
-	{	
+	{
 		for (uint8_t config=0; config<4; config++)
 		{
 			PixelPeriodConfig period = settings.fade_periods[profile][config];
