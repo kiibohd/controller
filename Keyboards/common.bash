@@ -4,6 +4,7 @@
 
 PASSED=0
 FAILED=0
+FAILED_TESTS=()
 
 COLOR_RED="\e[1;91m"
 COLOR_GREEN="\e[1;92m"
@@ -19,6 +20,10 @@ result() {
 		return 0
 	else
 		printf "${COLOR_YELLOW}${PASSED}/$((PASSED+FAILED))${COLOR_NORMAL}\n"
+		printf "${COLOR_RED} -- FAILED -- ${COLOR_NORMAL}\n"
+		for i in "${FAILED_TESTS[@]}"; do
+			printf "${COLOR_RED}${i}${COLOR_NORMAL}\n"
+		done
 		return 1
 	fi
 }
@@ -35,6 +40,7 @@ cmd() {
 	# Check command
 	if [[ ${RET} -ne 0 ]]; then
 		((FAILED++))
+		FAILED_TESTS+=("'${@}'")
 		printf "${COLOR_RED} ==> FAILED: $@ ❌${COLOR_NORMAL}\n"
 	else
 		((PASSED++))

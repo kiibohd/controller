@@ -108,7 +108,8 @@ typedef uint8_t state_uint_t;
 //   * Done/Repeat/Off        - DRO
 //   * Threshold (Range)      - 0x01 (Released), 0x02 (Pressed), 0x10 (Light press), 0xFF (Max press) (Threashold)
 //   * Layer Info             - 0x10 (Shift), 0x20 (Latch), 0x40 (Lock) -> May be activated simultaneously with AODO
-//   * Debug                  - 0xFF (Print capability name)
+//   * Generic                - 0x80 Used in KLL when a state is not specified and KLL should figure out what to do
+//   * Debug                  - 0xFF (Print capability name)A
 //
 // States with the same numerical value have same/similar function, but is called something else in that case.
 //
@@ -132,6 +133,10 @@ typedef enum ScheduleState {
 	ScheduleType_Latch  = 0x20, // Latch
 	ScheduleType_Lock   = 0x40, // Lock
 
+	ScheduleType_Gen    = 0x80, // Generic Trigger (Usually means Press, but can mean Press, Hold)
+	                            // This is the default trigger used by the KLL compiler
+				    // Can be combined with other states if necessary
+
 	ScheduleType_Debug  = 0xFF, // Print capability name
 } ScheduleState;
 
@@ -152,25 +157,19 @@ typedef enum CapabilityState {
 	CapabilityState_Debug   = 0xFF, // Debug trigger
 } CapabilityState;
 
-// Schedule parameter container
+// Schedule container
 // time   - Time constraints for parameter
 //          Set to 0.0 if unused
 // state  - Required state condition
 // analog - Analog threshold condition
-typedef struct ScheduleParam {
+// index  - Used for rotation state
+typedef struct Schedule {
 	Time time; // ms systick + cycletick (e.g. 13.889 ns per tick for 72 MHz)
 	union {
 		ScheduleState state;
 		uint8_t analog;
+		uint8_t index;
 	};
-} ScheduleParam;
-
-// Main schedule container
-// params - Pointer to list of ScheduleParams
-// count  - Number of ScheduleParams
-typedef struct Schedule {
-	ScheduleParam *params;
-	uint8_t count;
 } Schedule;
 
 // TODO Add to KLL, compute based on number of schedules
@@ -190,7 +189,7 @@ typedef struct ScheduleLookup {
 // Default Args (always sent): key state/analog of last key
 // Combo Length of 0 signifies end of sequence
 //
-// ResultMacro.guide -> [<combo length>|<capability index>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
+// ResultMacro.guide -> [<combo length>|<capability index>|<state>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
 //
 // ResultMacroRecord.pos       -> <current combo position>
 // ResultMacroRecord.prevPos   -> <previous combo position>
@@ -212,8 +211,9 @@ typedef struct ResultMacroRecord {
 // Guide, key element
 #define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) - 1 + CapabilitiesList[ (guidePtr)->index ].argCount
 typedef struct ResultGuide {
-	uint8_t index;
-	uint8_t args; // This is used as an array pointer (but for packing purposes, must be 8 bit)
+	uint8_t      index;
+	//state_uint_t state; // TODO
+	uint8_t      args; // This is used as an array pointer (but for packing purposes, must be 8 bit)
 } ResultGuide;
 
 
@@ -324,7 +324,7 @@ typedef struct TriggerGuide {
 // Used for incoming Trigger events
 typedef struct TriggerEvent {
 	TriggerType   type;
-	ScheduleState state;
+	state_uint_t  state;
 	uint8_t       index;
 } TriggerEvent;
 
@@ -374,6 +374,7 @@ typedef struct Capability {
 // Guide_RM / Define_RM Pair
 // Guide_RM( index ) = result;
 //  * index  - Result Macro index number
+//  * state  - Result Macro state index
 //  * result - Result Macro guide (see ResultMacro)
 // Define_RM( index );
 //  * index  - Result Macro index number

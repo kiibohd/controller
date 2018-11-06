@@ -262,8 +262,15 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 			)
 		)
 		{
-			vote = Trigger_evalShortTriggerMacroVote_PHRO( event->state );
-			break;
+			// If this trigger is generic, we can just vote based on the incoming state
+			if ( guide->state & ScheduleType_Gen )
+			{
+				vote = Trigger_evalShortTriggerMacroVote_PHRO( event->state );
+				break;
+			}
+
+			// TODO (HaaTa) Implement state scheduling
+			erro_print("State Scheduling not implemented yet...");
 		}
 
 		vote = TriggerMacroVote_DoNothing;
@@ -651,7 +658,9 @@ TriggerMacroEval Trigger_evalTriggerMacro( var_uint_t triggerMacroIndex )
 		{
 		case 1:
 			Trigger_showTriggerMacroVote( overallVote, long_trigger_macro );
-			print( NL );
+			print(" TriggerMacroList[");
+			printInt16( triggerMacroIndex );
+			print("]");
 			break;
 		}
 
@@ -722,7 +731,7 @@ TriggerMacroEval Trigger_evalTriggerMacro( var_uint_t triggerMacroIndex )
 			Trigger_showTriggerMacroVote( overallVote, long_trigger_macro );
 			print(" TriggerMacroList[");
 			printInt16( triggerMacroIndex );
-			print("]"NL);
+			print("]");
 			break;
 		}
 
@@ -872,17 +881,29 @@ void Trigger_process()
 		{
 		// Trigger Result Macro (purposely falling through)
 		case TriggerMacroEval_DoResult:
+			if ( voteDebugMode )
+			{
+				print(" DR");
+			}
 			// Append ResultMacro to PendingList
 			Result_appendResultMacroToPendingList(
 				&TriggerMacroList[ cur_macro ]
 			);
 
 		default:
+			if ( voteDebugMode )
+			{
+				print(" _" NL);
+			}
 			macroTriggerMacroPendingList[ macroTriggerMacroPendingListTail++ ] = cur_macro;
 			break;
 
 		// Trigger Result Macro and Remove (purposely falling through)
 		case TriggerMacroEval_DoResultAndRemove:
+			if ( voteDebugMode )
+			{
+				print(" DRaR");
+			}
 			// Append ResultMacro to PendingList
 			Result_appendResultMacroToPendingList(
 				&TriggerMacroList[ cur_macro ]
@@ -890,6 +911,10 @@ void Trigger_process()
 
 		// Remove Macro from Pending List, nothing to do, removing by default
 		case TriggerMacroEval_Remove:
+			if ( voteDebugMode )
+			{
+				print(" R" NL);
+			}
 			break;
 		}
 	}

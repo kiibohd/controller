@@ -345,8 +345,8 @@ void Macro_showScheduleType( ScheduleState state )
 	}
 }
 
-// Shows a ScheduleParam
-void Macro_showScheduleParam( ScheduleParam *param, uint8_t analog )
+// Shows a Schedule
+void Macro_showSchedule( Schedule *param, uint8_t analog )
 {
 	// Analog
 	if ( analog )
@@ -364,20 +364,6 @@ void Macro_showScheduleParam( ScheduleParam *param, uint8_t analog )
 	printInt32( param->time.ms );
 	print(".");
 	printInt32( param->time.ticks );
-}
-
-// Shows a Schedule
-void Macro_showSchedule( Schedule *schedule, uint8_t analog )
-{
-	// Show first element
-	Macro_showScheduleParam( &schedule->params[0], analog );
-
-	// Iterate over each additional parameter of the schedule
-	for ( uint8_t c = 1; c < schedule->count; c++ )
-	{
-		print(",");
-		Macro_showScheduleParam( &schedule->params[c], analog );
-	}
 }
 
 // Shows a TriggerType

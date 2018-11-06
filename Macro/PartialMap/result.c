@@ -230,8 +230,7 @@ void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 	for ( uint8_t elem = 0; elem < triggerMacro->guide[prev_pos]; elem++ )
 	{
 		// Calculate position of next TriggerGuide
-		pos = TriggerGuideSize * elem + 1;
-		TriggerGuide *cur_guide = (TriggerGuide*)&triggerMacro->guide[pos];
+		TriggerGuide *cur_guide = (TriggerGuide*)&triggerMacro->guide[prev_pos + 1];
 		TriggerEvent *cur_event = 0;
 
 		// Lookup index in buffer list for the current state and stateType
