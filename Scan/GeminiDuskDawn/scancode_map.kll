@@ -6,7 +6,7 @@ Author = "HaaTa (Jacob Alexander) 2015-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-10-31;
+Date = 2018-11-07;
 
 
 # Function Row (1-19)
@@ -25,8 +25,10 @@ S12 : U"F11";
 S13 : U"F12";
 S14 : None;
 S15 : U"PrintScreen";
-S16 : U"ScrollLock";
-S17 : U"Pause";
+S16 : U"Volume Down";
+S16 +: CONS"Volume Down";
+S17 : U"Volume Up";
+S17 +: CONS"Volume Up";
 S18 : None;
 S19 : None;
 
@@ -127,7 +129,7 @@ S104 : None;
 S105 : U"RAlt";
 S106 : U"RGui";
 S107 : None;
-S108 : U"Function1";
+S108 : Layer[1];
 S109 : U"RCtrl";
 S110 : U"Left";
 S111 : U"Down";
@@ -334,7 +336,7 @@ P[ 97](289:8, 305:8, 321:8) : S97;
 P[ 98](290:8, 306:8, 322:8) : S98;
 
 
-P[101](294:8, 310:8, 336:8) : S101;
+P[101](293:8, 309:8, 325:8) : S101;
 
 
 

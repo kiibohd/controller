@@ -24,6 +24,7 @@ set ( MatrixARM_Path ${CMAKE_CURRENT_LIST_DIR} )
 #
 AddModule ( Scan Devices/ISSILed )
 AddModule ( Scan Devices/MatrixARMPeriodic )
+AddModule ( Scan Devices/Storage )
 
 
 ###
