@@ -757,8 +757,8 @@ class TriggerElem:
 
         # Generic Trigger
         elif self.elem['type'] in ['GenericTrigger']:
-            # TODO Determine trigger index id
-            pass
+            # Activate trigger
+            i.control.cmd('setTriggerCode')(self.elem['uid'], self.elem['idcode'], self.elem['schedule'][0]['state'] )
 
         # Unknown TriggerElem
         else:
@@ -806,6 +806,13 @@ class TriggerElem:
 
             # Deactivate layer
             i.control.cmd('applyLayer')(state, self.elem['uid'], layer_state)
+
+        # Generic Trigger
+        elif self.elem['type'] in ['GenericTrigger']:
+            # Do nothing as we don't know how to clean up this trigger
+            # XXX (HaaTa): It can be possible to deduce from the idcode what type of trigger this is
+            #              However, not all triggers have an inverse (some just cleanup on their own such as rotations)
+            pass
 
         # Unknown TriggerElem
         else:

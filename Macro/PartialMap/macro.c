@@ -528,6 +528,7 @@ uint8_t Macro_pressReleaseAdd( void *trigger_ptr )
 	case TriggerType_Analog2:
 	case TriggerType_Analog3:
 	case TriggerType_Analog4:
+	case TriggerType_Rotation1:
 		break;
 
 	// Invalid TriggerGuide type for Interconnect
@@ -1054,6 +1055,10 @@ void Macro_periodic()
 				default:
 					break;
 				}
+				break;
+
+			case TriggerType_Rotation1:
+				// Do not re-add
 				break;
 
 			// Not implemented

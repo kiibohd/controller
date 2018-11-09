@@ -118,6 +118,23 @@ inline void Scan_finishedWithOutput( uint8_t sentKeys )
 }
 
 
+// Adds a trigger code to the queue
+// Returns 1 if added, 0 if the ScanCode is already in the buffer
+// Returns 2 if there's an error
+// Generally 1 will be the return
+int Scan_setTriggerCode( uint8_t index, uint8_t type, uint8_t state )
+{
+	// Add trigger event to macro key buffer
+	TriggerGuide guide = {
+		.type     = type,
+		.state    = state,
+		.scanCode = index,
+	};
+
+	return Macro_pressReleaseAdd( &guide );
+}
+
+
 // Adds a ScanCode to the internal KLL buffer
 // Returns 1 if added, 0 if the ScanCode is already in the buffer
 // Returns 2 if there's an error
