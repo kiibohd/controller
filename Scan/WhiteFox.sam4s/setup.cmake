@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Scan Module |###
 #
-# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2018 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -24,6 +24,7 @@ set ( MatrixARM_Path ${CMAKE_CURRENT_LIST_DIR} )
 #
 AddModule ( Scan Devices/ISSILed )
 AddModule ( Scan Devices/MatrixARMPeriodic )
+AddModule ( Scan Devices/Storage )
 
 
 ###

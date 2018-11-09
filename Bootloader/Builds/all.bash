@@ -39,6 +39,7 @@ cmd_cpy ./infinity_led.bash    kiibohd_bootloader.bin bootloader/infinity_led.bo
 cmd_cpy ./kira.bash            kiibohd_bootloader.bin bootloader/kira.bootloader.bin
 cmd_cpy ./ktype.bash           kiibohd_bootloader.bin bootloader/ktype.bootloader.bin
 cmd_cpy ./whitefox.bash        kiibohd_bootloader.bin bootloader/whitefox.bootloader.bin
+cmd_cpy ./whitefox_sam4s.bash  kiibohd_bootloader.bin bootloader/whitefox_sam4s.bootloader.bin
 
 # Tally results
 result

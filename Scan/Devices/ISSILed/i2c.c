@@ -163,8 +163,14 @@ void i2c_setup()
 		}
 
 #elif defined(_sam_)
+
+#if ISSI_Chip_31FL3731_define == 1
+#define BAUD 400000
+#define CK 1
+#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define == 1
 #define BAUD 800000
 #define CK 0
+#endif
 
 		switch ( ch )
 		{
