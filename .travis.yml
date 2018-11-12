@@ -3,7 +3,7 @@
 # Jacob Alexander 2016-2018
 
 sudo: required
-dist: trusty
+dist: xenial
 
 language:
   - c
