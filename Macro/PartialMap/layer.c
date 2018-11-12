@@ -476,6 +476,19 @@ nat_ptr_t *Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 	// If no trigger macro is defined at the given layer, fallthrough to the next layer
 	for ( uint16_t layerIndex = macroLayerIndexStackSize; layerIndex != 0xFFFF; layerIndex-- )
 	{
+		// If this is a Layer trigger event, ignore other layers, always check the default map
+		switch ( event->type )
+		{
+		case TriggerType_Layer1:
+		case TriggerType_Layer2:
+		case TriggerType_Layer3:
+		case TriggerType_Layer4:
+			layerIndex = 0;
+			continue;
+		default:
+			break;
+		}
+
 		// Lookup Layer
 		const Layer *layer = &LayerIndex[ macroLayerIndexStack[ layerIndex ] ];
 

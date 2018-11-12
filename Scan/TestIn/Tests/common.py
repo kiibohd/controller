@@ -21,8 +21,6 @@ Common functions for Host-side KLL tests
 
 import copy
 import inspect
-import itertools
-import json
 import linecache
 import logging
 import sys
@@ -909,17 +907,43 @@ class ResultElem:
         '''
         # TODO (HaaTa) Handle scheduling
         import interface as i
+        TriggerType = i.control.scan.TriggerType
 
         # Lookup capability history, success if any capabilities match
         match = None
         for cap in i.control.data.capability_history.all():
             data = cap.callbackdata
             # Validate state and capability name
-            if (data.state & 0x0F) == state and data.read_capability()[0] == self.name:
+            # Rotations use states beyond 0x0F
+            if (
+                data.read_capability()[0] == self.name and (
+                    (data.state & 0x0F) == state or
+                    (data.state == state and data.stateType == TriggerType.Rotation1)
+                )
+            ):
                 # Validate args
                 match_args = True
-                for index in range(len(self.expected_args)):
-                    if data.args[index] != self.expected_args[index]:
+
+                # XXX Each data argument may consist of multiple bytes
+                #     This can be looked up using kll.json
+                #     Generally 1, 2 and 4 (8-bit, 16-bit and 32-bit)
+                capability = i.control.json_input['Capabilities'][self.name]
+                byte_pos = 0
+                for index in range(capability['args_count']):
+                    value_width = capability['args'][index]['width']
+                    value = 0
+                    if value_width == 1:
+                        value = data.args[byte_pos]
+                        byte_pos += 1
+                    elif value_width == 2:
+                        value = (data.args[byte_pos + 1] << 8) | data.args[byte_pos]
+                        byte_pos += 2
+                    elif value_width == 4:
+                        value = (data.args[byte_pos + 3] << 24) | (data.args[byte_pos + 2] << 16) | (data.args[byte_pos + 1] << 8) | data.args[byte_pos]
+                        byte_pos += 4
+
+                    # Check read value vs. expected
+                    if value != self.expected_args[index]:
                         match_args = False
                         break
 
@@ -953,12 +977,16 @@ class ResultElem:
         @return: True if found, False if not.
         '''
         # TODO (HaaTa) Handle scheduling
+        if len(self.parent.parent.trigger.entry[-1][-1]['schedule']) > 0:
+            state = self.parent.parent.trigger.entry[-1][-1]['schedule'][0]['state']
+        else:
+            state = 1
 
         # Check capability state
-        result = self.monitor_state(1)
+        result = self.monitor_state(state)
 
         # Validate capability result
-        result = result and self.validation.verify(1)
+        result = result and self.validation.verify(state)
 
         return result
 
@@ -968,15 +996,28 @@ class ResultElem:
 
         @return: True if expected cleanup occured, False if not.
         '''
+        import interface as i
+        TriggerType = i.control.scan.TriggerType
         # TODO (HaaTa) Handle scheduling
 
-        # Check capability state
-        result = self.monitor_state(3)
+        # If not a generic trigger, don't check for cleanup
+        trigger = self.parent.parent.trigger.entry[-1][-1]
+        if trigger['type'] == 'GenericTrigger':
+            # If this is a rotation trigger, don't check for cleanup (single-shot)
+            if trigger['idcode'] == TriggerType.Rotation1:
+                return True
 
-        # Validate capability result cleanup
-        result = result and self.validation.verify(3)
+            # If this is a layer trigger, don't check for clenau
 
-        return result
+            # Check capability state
+            result = self.monitor_state(3)
+
+            # Validate capability result cleanup
+            result = result and self.validation.verify(3)
+
+            return result
+
+        return True
 
     def __repr__(self):
         '''
