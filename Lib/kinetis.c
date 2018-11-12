@@ -113,11 +113,13 @@ void systick_default_isr()
 	// 12 cycle IRQ latency (plus some extra)
 	if ( ARM_DWT_CYCCNT > F_CPU / 1000 + 30 )
 	{
+		/* XXX (HaaTa) The printing of this message is causing LED buffers to get clobbered (likely due to frame overflows)
 		erro_print("SysTick is being starved by another IRQ...");
 		printInt32( ARM_DWT_CYCCNT );
 		print(" vs. ");
 		printInt32( F_CPU / 1000 );
 		print(NL);
+		*/
 	}
 	ARM_DWT_CYCCNT = 0;
 	ARM_DWT_CTRL |= ARM_DWT_CTRL_CYCCNTENA;
