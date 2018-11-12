@@ -123,7 +123,3 @@ deploy:
     condition: $TRAVIS_OS_NAME = linux
     condition: $DEPLOY_NAME != ""
 
-# Post test script commands
-after_script:
-  - tree
-

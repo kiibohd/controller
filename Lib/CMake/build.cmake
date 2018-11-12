@@ -179,20 +179,29 @@ if ( DEFINED TEENSY )
 endif()
 
 
-#| Generate the Extended .LSS
-set( TARGET_LSS ${TARGET}.lss )
-add_custom_command( TARGET ${TARGET} POST_BUILD
-	COMMAND ${CMAKE_OBJDUMP} ${LSS_FLAGS} ${TARGET_OUT} > ${TARGET_LSS}
-	COMMENT "Creating Extended Listing:     ${TARGET_LSS}"
-)
+
+###
+# objdump files
+# Useful if objdump is available
+#
+find_package( Objdump )
+
+if ( OBJDUMP_FOUND )
+	# Generate the Extended .LSS
+	set( TARGET_LSS ${TARGET}.lss )
+	add_custom_command( TARGET ${TARGET} POST_BUILD
+		COMMAND ${CMAKE_OBJDUMP} ${LSS_FLAGS} ${TARGET_OUT} > ${TARGET_LSS}
+		COMMENT "Creating Extended Listing:     ${TARGET_LSS}"
+	)
 
 
-#| Generate the Symbol Table .SYM
-set( TARGET_SYM ${TARGET}.sym )
-add_custom_command( TARGET ${TARGET} POST_BUILD
-	COMMAND ${CMAKE_NM} -n ${TARGET_OUT} > ${TARGET_SYM}
-	COMMENT "Creating Symbol Table:         ${TARGET_SYM}"
-)
+	# Generate the Symbol Table .SYM
+	set( TARGET_SYM ${TARGET}.sym )
+	add_custom_command( TARGET ${TARGET} POST_BUILD
+		COMMAND ${CMAKE_NM} -n ${TARGET_OUT} > ${TARGET_SYM}
+		COMMENT "Creating Symbol Table:         ${TARGET_SYM}"
+	)
+endif ()
 
 
 #| Compiler Selection Record
