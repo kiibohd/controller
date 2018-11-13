@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander
+/* Copyright (C) 2014-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -53,5 +53,5 @@ GPIO_Pin Matrix_cols[] = { gpio(B,2), gpio(B,3), gpio(B,18), gpio(B,19), gpio(C,
 GPIO_Pin Matrix_rows[] = { gpio(D,5), gpio(D,6), gpio(D,7), gpio(C,1), gpio(C,2), gpio(C,3), gpio(C,4), gpio(C,5), gpio(C,6), gpio(C,7) };
 
 // Define type of scan matrix
-Config Matrix_type = Config_Pulldown;
+GPIO_Config Matrix_type = GPIO_Config_Pulldown;
 

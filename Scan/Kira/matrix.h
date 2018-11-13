@@ -39,5 +39,5 @@ GPIO_Pin Matrix_cols[] = { gpio(B,1), gpio(B,2), gpio(B,3), gpio(A,18), gpio(A,1
 GPIO_Pin Matrix_rows[] = { gpio(A,26), gpio(A,25), gpio(A,24), gpio(A,13), gpio(A,14), gpio(A,31) };
 
 // Define type of scan matrix
-Config Matrix_type = Config_Pulldown;
+GPIO_Config Matrix_type = GPIO_Config_Pulldown;
 

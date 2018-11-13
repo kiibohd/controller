@@ -102,6 +102,7 @@ set( COMPILER_SRCS
 	Lib/${CHIP_SUPPORT}.c
 	Lib/delay.c
 	Lib/entropy.c
+	Lib/gpio.c
 	Lib/periodic.c
 	Lib/storage.c
 	Lib/time.c

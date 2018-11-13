@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2016 by Jacob Alexander, Crystal Hammer
+/* Copyright (C) 2014-2018 by Jacob Alexander, Crystal Hammer
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,16 +35,16 @@
 //   This is the default map of just A4Tech KX-100 matrix
 //   scan codes for keys are defined in defaultMap.kll
 /*
-      1|   2    3    4    5    6    7    8    9    10  11  12   13   14   15   16   17   18  
+      1|   2    3    4    5    6    7    8    9    10  11  12   13   14   15   16   17   18
    -
-   1  Mcmp Bstp Esc  \    F4   Up   Del  Ins  Spc  G   H   F6   ==   Vol- AltL xx   F11  '   
-   2  Calc ExA4 ExC2 ExE2 ExE1 <-   Sub  ->   Dn   B   N   ExC1 Apps Mnxt AltR xx   F12  /   
-   3  Mstp Bbck Z    X    C    Mpau Mul  Div  NumL V   M   ,    .    Vol+ xx   CtrR Ent  \   
-   4  GuiR Bfwd A    S    D    Ent  PgDn Dn   End  F   J   K    L    ShiR xx   ==   \    ;   
-   5  xx   Mail Q    W    E    Add  PgUp Up   Home R   U   I    O    xx   ScrL Paus ExE3 P   
-   6  ExB1 GuiL Tab  Caps F3   RB~  ->   Del  <-   T   Y   ]    F7   ShiL ==   Pwr  Back [   
-   7  xx   Bsch 1    2    3    End  PgDn xx   Pwr  4   7   8    9    Msel Ptr  F5   F10  0   
-   8  Bhom Vmut `~   F1   F2   Home PgUp Ins  Del  5   6   =    F8   Mprv ==   CtrL F9   -   
+   1  Mcmp Bstp Esc  \    F4   Up   Del  Ins  Spc  G   H   F6   ==   Vol- AltL xx   F11  '
+   2  Calc ExA4 ExC2 ExE2 ExE1 <-   Sub  ->   Dn   B   N   ExC1 Apps Mnxt AltR xx   F12  /
+   3  Mstp Bbck Z    X    C    Mpau Mul  Div  NumL V   M   ,    .    Vol+ xx   CtrR Ent  \
+   4  GuiR Bfwd A    S    D    Ent  PgDn Dn   End  F   J   K    L    ShiR xx   ==   \    ;
+   5  xx   Mail Q    W    E    Add  PgUp Up   Home R   U   I    O    xx   ScrL Paus ExE3 P
+   6  ExB1 GuiL Tab  Caps F3   RB~  ->   Del  <-   T   Y   ]    F7   ShiL ==   Pwr  Back [
+   7  xx   Bsch 1    2    3    End  PgDn xx   Pwr  4   7   8    9    Msel Ptr  F5   F10  0
+   8  Bhom Vmut `~   F1   F2   Home PgUp Ins  Del  5   6   =    F8   Mprv ==   CtrL F9   -
 
      rows -       columns |
    1 3 5 7    1 3 5 7 9 11 13 15 17
@@ -57,7 +57,7 @@ GPIO_Pin Matrix_rows[] = {
 	gpio(C,10), gpio(C,11), gpio(B,18), gpio(A,4), gpio(A,5), gpio(B,19), gpio(C,9), gpio(C,8) };
 
 // Define type of scan matrix
-Config Matrix_type = Config_Pullup;
+GPIO_Config Matrix_type = GPIO_Config_Pullup;
 
 
 // Define this if your matrix has ghosting (i.e. regular keyboard without diodes)

@@ -33,6 +33,7 @@
 #include <print.h>
 #include <macro.h>
 #include <Lib/delay.h>
+#include <Lib/gpio.h>
 #include <Lib/periodic.h>
 #include <Lib/time.h>
 
@@ -128,157 +129,6 @@ static volatile uint16_t matrixStateReleaseCount;
 
 // ----- Functions -----
 
-// Pin action (Strobe, Sense, Strobe Setup, Sense Setup)
-uint8_t Matrix_pin( GPIO_Pin gpio, Type type )
-{
-#if defined(_kinetis_)
-	// NOTE: This function is highly dependent upon the organization of the register map
-	//       Only guaranteed to work with Freescale Kinetis MCUs
-	// Register width is defined as size of a pointer
-	unsigned int gpio_offset = gpio.port * 0x40   / sizeof(unsigned int*);
-	unsigned int port_offset = gpio.port * 0x1000 / sizeof(unsigned int*) + gpio.pin;
-
-	// Assumes 0x40 between GPIO Port registers and 0x1000 between PORT pin registers
-	// See Lib/kinetis.h
-	volatile unsigned int *GPIO_PDDR = (unsigned int*)(&GPIOA_PDDR) + gpio_offset;
-	volatile unsigned int *GPIO_PSOR = (unsigned int*)(&GPIOA_PSOR) + gpio_offset;
-	volatile unsigned int *GPIO_PCOR = (unsigned int*)(&GPIOA_PCOR) + gpio_offset;
-	volatile unsigned int *GPIO_PDIR = (unsigned int*)(&GPIOA_PDIR) + gpio_offset;
-	volatile unsigned int *PORT_PCR  = (unsigned int*)(&PORTA_PCR0) + port_offset;
-
-	// Operation depends on Type
-	switch ( type )
-	{
-	case Type_StrobeOn:
-		*GPIO_PSOR |= (1 << gpio.pin);
-		break;
-
-	case Type_StrobeOff:
-		*GPIO_PCOR |= (1 << gpio.pin);
-		break;
-
-	case Type_StrobeSetup:
-		// Set as output pin
-		*GPIO_PDDR |= (1 << gpio.pin);
-
-		// Configure pin with slow slew, high drive strength and GPIO mux
-		*PORT_PCR = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-
-		// Enabling open-drain if specified
-		switch ( Matrix_type )
-		{
-		case Config_Opendrain:
-			*PORT_PCR |= PORT_PCR_ODE;
-			break;
-
-		// Do nothing otherwise
-		default:
-			break;
-		}
-		break;
-
-	case Type_Sense:
-		return *GPIO_PDIR & (1 << gpio.pin) ? 1 : 0;
-
-	case Type_SenseSetup:
-		// Set as input pin
-		*GPIO_PDDR &= ~(1 << gpio.pin);
-
-		// Configure pin with passive filter and GPIO mux
-		*PORT_PCR = PORT_PCR_PFE | PORT_PCR_MUX(1);
-
-		// Pull resistor config
-		switch ( Matrix_type )
-		{
-		case Config_Pullup:
-			*PORT_PCR |= PORT_PCR_PE | PORT_PCR_PS;
-			break;
-
-		case Config_Pulldown:
-			*PORT_PCR |= PORT_PCR_PE;
-			break;
-
-		// Do nothing otherwise
-		default:
-			break;
-		}
-		break;
-	}
-#elif defined(_sam_)
-#if defined(_sam4s_c_)
-	volatile Pio *ports[] = {PIOA, PIOB, PIOC};
-#else
-	volatile Pio *ports[] = {PIOA, PIOB};
-#endif
-	volatile Pio *pio = ports[gpio.port];
-
-	//TODO: Parallel capture seems cool
-
-	// Operation depends on Type
-	switch ( type )
-	{
-	case Type_StrobeOn:
-		pio->PIO_SODR = (1 << gpio.pin);
-		break;
-
-	case Type_StrobeOff:
-		pio->PIO_CODR = (1 << gpio.pin);
-		break;
-
-	case Type_StrobeSetup:
-		// Enabling open-drain if specified
-		switch ( Matrix_type )
-		{
-		case Config_Opendrain:
-			pio->PIO_MDER = (1 << gpio.pin);
-			break;
-
-		// Do nothing otherwise
-		default:
-			//pio->PIO_MDDR = (1 << gpio.pin);
-			break;
-		}
-
-		// Set as output pin
-		pio->PIO_OER = (1 << gpio.pin);
-		pio->PIO_PER = (1 << gpio.pin);
-		break;
-
-	case Type_Sense:
-		return (pio->PIO_PDSR >> gpio.pin) & 1;
-
-	case Type_SenseSetup:
-		// Pull resistor config
-		switch ( Matrix_type )
-		{
-		case Config_Pullup:
-			pio->PIO_PPDDR = (1 << gpio.pin);
-			pio->PIO_PUER = (1 << gpio.pin);
-			break;
-
-		case Config_Pulldown:
-			pio->PIO_PUDR = (1 << gpio.pin);
-			pio->PIO_PPDER = (1 << gpio.pin);
-			break;
-
-		// Do nothing otherwise
-		default:
-			break;
-		}
-
-		// Set as input pin
-		pio->PIO_IFER = (1 << gpio.pin); // glitch filter
-		pio->PIO_ODR = (1 << gpio.pin);
-		pio->PIO_PER = (1 << gpio.pin);
-		break;
-	}
-
-#endif
-
-	return 0;
-}
-
-
 // Setup GPIO pins for matrix scanning
 void Matrix_setup()
 {
@@ -293,13 +143,13 @@ void Matrix_setup()
 	// Setup Strobe Pins
 	for ( uint8_t pin = 0; pin < Matrix_colsNum; pin++ )
 	{
-		Matrix_pin( Matrix_cols[ pin ], Type_StrobeSetup );
+		Matrix_pin( Matrix_cols[ pin ], GPIO_Type_DriveSetup, Matrix_type );
 	}
 
 	// Setup Sense Pins
 	for ( uint8_t pin = 0; pin < Matrix_rowsNum; pin++ )
 	{
-		Matrix_pin( Matrix_rows[ pin ], Type_SenseSetup );
+		Matrix_pin( Matrix_rows[ pin ], GPIO_Type_ReadSetup, Matrix_type );
 	}
 
 	// Clear out Debounce Array
@@ -403,13 +253,13 @@ uint8_t Matrix_single_scan()
 	// This helps with faulty pull-up resistors (particularily with SAM4S)
 	for ( uint8_t sense = 0; sense < Matrix_rowsNum; sense++ )
 	{
-		Matrix_pin( Matrix_rows[ sense ], Type_StrobeSetup );
-		Matrix_pin( Matrix_rows[ sense ], Type_StrobeOff );
-		Matrix_pin( Matrix_rows[ sense ], Type_SenseSetup );
+		Matrix_pin( Matrix_rows[ sense ], GPIO_Type_DriveSetup, Matrix_type );
+		Matrix_pin( Matrix_rows[ sense ], GPIO_Type_DriveLow, Matrix_type );
+		Matrix_pin( Matrix_rows[ sense ], GPIO_Type_ReadSetup, Matrix_type );
 	}
 
 	// Strobe Pin
-	Matrix_pin( Matrix_cols[ strobe ], Type_StrobeOn );
+	Matrix_pin( Matrix_cols[ strobe ], GPIO_Type_DriveHigh, Matrix_type );
 
 	// Used to allow the strobe signal to propagate, generally not required
 	if ( strobeDelayTime > 0 )
@@ -443,7 +293,7 @@ uint8_t Matrix_single_scan()
 		// Somewhat longer with switch bounciness
 		// The advantage of this is that the count is ongoing and never needs to be reset
 		// State still needs to be kept track of to deal with what to send to the Macro module
-		if ( Matrix_pin( Matrix_rows[ sense ], Type_Sense ) )
+		if ( Matrix_pin( Matrix_rows[ sense ], GPIO_Type_Read, Matrix_type ) )
 		{
 			// Only update if not going to wrap around
 			if ( state->activeCount < DebounceDivThreshold ) state->activeCount += 1;
@@ -591,7 +441,7 @@ uint8_t Matrix_single_scan()
 	}
 
 	// Unstrobe Pin
-	Matrix_pin( Matrix_cols[ strobe ], Type_StrobeOff );
+	Matrix_pin( Matrix_cols[ strobe ], GPIO_Type_DriveLow, Matrix_type );
 
 	// Measure ending latency
 	Latency_end_time( matrixLatencyResource );

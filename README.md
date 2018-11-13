@@ -3,7 +3,7 @@ The Kiibohd Controller
 
 This is the main Kiibohd Firmware.
 In general, this should be the **only** git repo you need to clone.
-The [KLL](https://github.com/kiibohd/kll) git repo is automatically cloned during the build process.
+The [KLL](https://github.com/kiibohd/kll) compiler is automatically retrieved during the build process and will warn you if your KLL compiler is too old.
 
 Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](http://kiibohd.com) for details on the KLL (Keyboard Layout Language) Spec.
 
@@ -18,10 +18,12 @@ Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](
 Official Keyboards
 ------------------
 
+* Gemini [Dusk](https://kono.store/products/gemini-dusk) and [Dawn](https://kono.store/products/gemini-dawn)
 * [Infinity 60%](https://input.club/devices/infinity-keyboard/)
 * [Infinity 60% LED](https://input.club/devices/infinity-keyboard/)
 * [Infinity Ergodox](https://input.club/devices/infinity-ergodox/)
 * [K-Type](https://input.club/k-type/)
+* [Kira](https://kono.store/products/kira-mechanical-keyboard)
 * [WhiteFox](https://input.club/whitefox/)
 
 
@@ -44,6 +46,7 @@ To compile natively for your platform, refer to the [wiki](../../wiki).
 Supported Microcontrollers
 --------------------------
 
+* [atsam4s](https://www.microchip.com/design-centers/32-bit/sam-32-bit-mcus/sam-4s-mcus)
 * [Teensy 2.0](https://www.pjrc.com/store/teensy.html) (Deprecated)
 * [Teensy 2.0++](https://www.pjrc.com/store/teensypp.html) (Deprecated)
 * [Teensy 3.0](https://www.pjrc.com/store/teensy3.html)
