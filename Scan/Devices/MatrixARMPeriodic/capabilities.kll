@@ -1,11 +1,11 @@
 # MatrixARMPeriodic
 Name = MatrixARMPeriodicCapabilities;
-Version = 0.2;
+Version = 0.3;
 Author = "HaaTa (Jacob Alexander) 2017-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-03-24;
+Date = 2018-11-13;
 
 # Defines available to the MatrixArmPeriodic sub-module
 
@@ -39,6 +39,30 @@ StrobeDelay = 0; # Disabled
 ActivityTimerMultiplier => ActivityTimerMultiplier_define;
 ActivityTimerMultiplier = 1; # 1 second by default
 #ActivityTimerMultiplier = 60; # 60 seconds between each tick
+
+# ScanCode Strobe List
+# This specified which the column (strobe) GPIOs for the matrix
+# gpio(<label>, <index>)
+# gpio(A,3)  ==> PA3
+# gpio(C,24) ==> PC24
+ScanCodeStrobeList => ScanCodeStrobeList_define;
+ScanCodeStrobeList = "";
+
+# ScanCode Sense List
+# This specified which the row (sense) GPIOs for the matrix
+# gpio(<label>, <index>)
+# gpio(A,3)  ==> PA3
+# gpio(C,24) ==> PC24
+ScanCodeSenseList => ScanCodeSenseList_define;
+ScanCodeSenseList = "";
+
+# ScanCode Matrix Type
+# Specifies which type of pull resistors are used
+# GPIO_Config_Pulldown  - Built-in pulldown resistor on sense
+# GPIO_Config_Pullup    - Built-in pullup resistor on sense
+# GPIO_Config_Opendrain - External pull resistor on sense
+ScanCodeMatrixType => ScanCodeMatrixType_define;
+ScanCodeMatrixType = "GPIO_Config_Pulldown";
 
 # ScanCode Remapping
 # This is useful when a matrix is laid out convenient for pcb routing; however,

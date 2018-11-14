@@ -40,14 +40,26 @@
 // Local Includes
 #include "matrix_scan.h"
 
-// Matrix Configuration
-#include <matrix.h>
-
 
 
 // ----- Defines -----
 
 #define TickStore_MaxTicks 255
+
+
+
+// ----- Matrix Definition -----
+// Scan Type
+const GPIO_Config Matrix_type = ScanCodeMatrixType_define;
+
+// Matrix
+const GPIO_Pin Matrix_cols[] = { ScanCodeStrobeList_define };
+const GPIO_Pin Matrix_rows[] = { ScanCodeSenseList_define };
+
+// Convenience Macros
+#define Matrix_colsNum sizeof( Matrix_cols ) / sizeof( GPIO_Pin )
+#define Matrix_rowsNum sizeof( Matrix_rows ) / sizeof( GPIO_Pin )
+#define Matrix_maxKeys sizeof( Matrix_scanArray ) / sizeof( KeyState )
 
 
 

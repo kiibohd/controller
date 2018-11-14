@@ -22,7 +22,6 @@
 // ----- Includes -----
 
 // Project Includes
-#include <kll_defs.h>
 #include <print.h>
 
 #if defined(_kinetis_)

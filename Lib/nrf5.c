@@ -48,6 +48,10 @@ extern uint32_t _ezero;
 extern uint32_t _sstack;
 extern uint32_t _estack;
 
+uintptr_t __stack_chk_guard = 0xdeadbeef;
+
+//__attribute__((__aligned__(TRACE_BUFFER_SIZE * sizeof(uint32_t)))) uint32_t mtb[TRACE_BUFFER_SIZE];
+
 // ----- Function Declarations -----
 
 extern int main();
@@ -56,6 +60,40 @@ void ResetHandler();
 
 
 // ----- Interrupts -----
+
+// NVIC - Default ISR
+void fault_isr()
+{
+	print("Fault!" NL );
+
+#if defined(DEBUG) && defined(JLINK)
+	asm volatile("BKPT #01");
+#else
+	while ( 1 )
+	{
+		// keep polling some communication while in fault
+		// mode, so we don't completely die.
+		/*if ( SIM_SCGC4 & SIM_SCGC4_USBOTG ) usb_isr();
+		if ( SIM_SCGC4 & SIM_SCGC4_UART0 )  uart0_status_isr();
+		if ( SIM_SCGC4 & SIM_SCGC4_UART1 )  uart1_status_isr();
+		if ( SIM_SCGC4 & SIM_SCGC4_UART2 )  uart2_status_isr();*/
+	}
+#endif
+}
+
+
+// Stack Overflow Interrupt
+void __stack_chk_fail(void)
+{
+	print("Segfault!" NL );
+#if defined(DEBUG) && defined(JLINK)
+	asm volatile("BKPT #01");
+#else
+	fault_isr();
+#endif
+}
+
+
 
 // ----- Flash Configuration -----
 

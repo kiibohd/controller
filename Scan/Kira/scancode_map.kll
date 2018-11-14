@@ -1,17 +1,62 @@
 # Kira Base Configuration
 
 Name = Kira;
-Version = 0.5;
+Version = 0.6;
 Author = "HaaTa (Jacob Alexander) 2017-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-10-07;
+Date = 2018-11-13;
 
 
 # Kira
 kiraKeyboard => Scan_KiraKeyboard_define;
 kiraKeyboard = "1";
+
+
+# ScanCode Strobe List
+# This specified which the column (strobe) GPIOs for the matrix
+# gpio(<label>, <index>)
+# gpio(A,3)  ==> PA3
+# gpio(C,24) ==> PC24
+ScanCodeStrobeList => ScanCodeStrobeList_define;
+ScanCodeStrobeList = "
+	gpio(B,1),
+	gpio(B,2),
+	gpio(B,3),
+	gpio(A,18),
+	gpio(A,19),
+	gpio(A,23),
+	gpio(A,20),
+	gpio(A,11),
+	gpio(A,8),
+	gpio(A,7),
+	gpio(A,6),
+	gpio(A,5),
+	gpio(A,27),
+	gpio(A,28),
+	gpio(A,29),
+	gpio(A,30),
+	gpio(A,2),
+	gpio(A,1),
+	gpio(A,0)
+";
+
+
+# ScanCode Sense List
+# This specified which the row (sense) GPIOs for the matrix
+# gpio(<label>, <index>)
+# gpio(A,3)  ==> PA3
+# gpio(C,24) ==> PC24
+ScanCodeSenseList => ScanCodeSenseList_define;
+ScanCodeSenseList = "
+	gpio(A,26),
+	gpio(A,25),
+	gpio(A,24),
+	gpio(A,13),
+	gpio(A,14),
+	gpio(A,31)
+";
 
 
 # ScanCode Remapping

@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Scan Module |###
 #
-# Written by Jacob Alexander in 2014-2015 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2018 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -18,15 +18,6 @@ set ( SubModule 1 )
 #
 set ( Module_SRCS
 	matrix_scan.c
-)
-
-
-###
-# Header file dependency tracking
-#
-set_property (
-	SOURCE ${CMAKE_CURRENT_LIST_DIR}/matrix_scan.c
-	APPEND PROPERTY OBJECT_DEPENDS ${MatrixARM_Path}/matrix.h
 )
 
 
