@@ -196,6 +196,15 @@ latencyResources = 10;
 # Driver Chip
 ISSI_Chip_31FL3733 = 1;
 
+# GPIO Pin Assignment
+# Hardware Shutdown Pin (SDB)
+ISSI_HardwareShutdownPin => ISSI_HardwareShutdownPin_define;
+ISSI_HardwareShutdownPin = "gpio(A,15)";
+
+# I2C Reset Pin (IIRST)
+ISSI_IIRSTPin => ISSI_IIRSTPin_define;
+ISSI_IIRSTPin = "gpio(A,17)";
+
 # Global Brightness
 # 0xFF (255) is the max
 ISSI_Global_Brightness = 10; # Half brightness
