@@ -43,7 +43,7 @@
 
 // Pin action (Strobe, Sense, Strobe Setup, Sense Setup)
 // GPIO_Config is only set with DriveSetup and ReadSetup, otherwise it is ignored
-uint8_t Matrix_pin( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
+uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 {
 #if defined(_kinetis_)
 	// NOTE: This function is highly dependent upon the organization of the register map
@@ -69,6 +69,10 @@ uint8_t Matrix_pin( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 
 	case GPIO_Type_DriveLow:
 		*GPIO_PCOR |= (1 << gpio.pin);
+		break;
+
+	case GPIO_Type_DriveToggle:
+		*GPIO_PTOR |= (1 << gpio.pin);
 		break;
 
 	case GPIO_Type_DriveSetup:
@@ -135,6 +139,18 @@ uint8_t Matrix_pin( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 
 	case GPIO_Type_DriveLow:
 		pio->PIO_CODR = (1 << gpio.pin);
+		break;
+
+	case GPIO_Type_DriveToggle:
+		// Toggle pin opposite to the current state
+		if ( pio->PIO_ODSR & (1 << gpio.pin) )
+		{
+			pio->PIO_CODR = (1 << gpio.pin);
+		}
+		else
+		{
+			pio->PIO_SODR = (1 << gpio.pin);
+		}
 		break;
 
 	case GPIO_Type_DriveSetup:

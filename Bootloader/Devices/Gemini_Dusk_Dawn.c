@@ -20,6 +20,9 @@
 
 // ----- Includes -----
 
+// Project Includes
+#include <Lib/gpio.h>
+
 // Local Includes
 #include "../device.h"
 #include "../debug.h"
@@ -30,25 +33,22 @@
 
 // ----- Variables -----
 
+static uint8_t prev_btn_state = 1;
+
+// USB swap pin
+const GPIO_Pin usb_swap_pin = gpio(A,12);
+
+// Esc key strobe
+const GPIO_Pin strobe_pin = gpio(B,1);
+const GPIO_Pin sense_pin = gpio(A,26);
+
+
+
 // ----- Functions -----
 
 // Called early-on during ResetHandler
 void Device_reset()
 {
-}
-
-void Pin_Input(Pio *pio, uint8_t pin) {
-	pio->PIO_PUDR = (1 << pin);
-	pio->PIO_PPDER = (1 << pin);
-	pio->PIO_IFER = (1 << pin);
-	pio->PIO_ODR = (1 << pin);
-	pio->PIO_PER = (1 << pin);
-}
-
-void Pin_Output(Pio *pio, uint8_t pin) {
-	pio->PIO_OER = (1 << pin);
-	pio->PIO_PER = (1 << pin);
-	pio->PIO_CODR = (1 << pin);
 }
 
 // Called during bootloader initialization
@@ -58,28 +58,40 @@ void Device_setup()
 	PMC->PMC_PCER0 = (1 << ID_PIOA) | (1 << ID_PIOB);
 
 	// Cols (strobe)
-	Pin_Output(PIOB, 1);
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveHigh, GPIO_Config_None );
 
 	// Rows (sense)
-	Pin_Input(PIOA, 26);
+	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pullup );
+
+	// PA12 - USB Swap
+	// Start, disabled
+	GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveLow, GPIO_Config_None );
 }
 
 // Called during each loop of the main bootloader sequence
 void Device_process()
 {
+	uint8_t cur_btn_state;
+
 	// stray capacitance hack
-	Pin_Output(PIOA, 26);
-	Pin_Input(PIOA, 26);
+	GPIO_Ctrl( sense_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
+	GPIO_Ctrl( sense_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
+	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pullup );
 
 	// Check for S1 being pressed
-	PIOB->PIO_SODR = (1 << 1);
+	cur_btn_state = GPIO_Ctrl( sense_pin, GPIO_Type_Read, GPIO_Config_Pullup ) != 0;
 
-	if ( PIOA->PIO_PDSR & (1<<26) )
+	/* XXX HaaTa - Add USB swapping code */
+
+	// Rising edge = press
+	if ( cur_btn_state && !prev_btn_state )
 	{
 		print( "Reset key pressed." NL );
 		SOFTWARE_RESET();
 	}
 
-	PIOB->PIO_CODR = (1 << 1);
+	prev_btn_state = cur_btn_state;
 }
 

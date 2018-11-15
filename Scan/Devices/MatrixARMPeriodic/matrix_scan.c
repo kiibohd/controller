@@ -155,13 +155,13 @@ void Matrix_setup()
 	// Setup Strobe Pins
 	for ( uint8_t pin = 0; pin < Matrix_colsNum; pin++ )
 	{
-		Matrix_pin( Matrix_cols[ pin ], GPIO_Type_DriveSetup, Matrix_type );
+		GPIO_Ctrl( Matrix_cols[ pin ], GPIO_Type_DriveSetup, Matrix_type );
 	}
 
 	// Setup Sense Pins
 	for ( uint8_t pin = 0; pin < Matrix_rowsNum; pin++ )
 	{
-		Matrix_pin( Matrix_rows[ pin ], GPIO_Type_ReadSetup, Matrix_type );
+		GPIO_Ctrl( Matrix_rows[ pin ], GPIO_Type_ReadSetup, Matrix_type );
 	}
 
 	// Clear out Debounce Array
@@ -265,13 +265,13 @@ uint8_t Matrix_single_scan()
 	// This helps with faulty pull-up resistors (particularily with SAM4S)
 	for ( uint8_t sense = 0; sense < Matrix_rowsNum; sense++ )
 	{
-		Matrix_pin( Matrix_rows[ sense ], GPIO_Type_DriveSetup, Matrix_type );
-		Matrix_pin( Matrix_rows[ sense ], GPIO_Type_DriveLow, Matrix_type );
-		Matrix_pin( Matrix_rows[ sense ], GPIO_Type_ReadSetup, Matrix_type );
+		GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_DriveSetup, Matrix_type );
+		GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_DriveLow, Matrix_type );
+		GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_ReadSetup, Matrix_type );
 	}
 
 	// Strobe Pin
-	Matrix_pin( Matrix_cols[ strobe ], GPIO_Type_DriveHigh, Matrix_type );
+	GPIO_Ctrl( Matrix_cols[ strobe ], GPIO_Type_DriveHigh, Matrix_type );
 
 	// Used to allow the strobe signal to propagate, generally not required
 	if ( strobeDelayTime > 0 )
@@ -305,7 +305,7 @@ uint8_t Matrix_single_scan()
 		// Somewhat longer with switch bounciness
 		// The advantage of this is that the count is ongoing and never needs to be reset
 		// State still needs to be kept track of to deal with what to send to the Macro module
-		if ( Matrix_pin( Matrix_rows[ sense ], GPIO_Type_Read, Matrix_type ) )
+		if ( GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_Read, Matrix_type ) )
 		{
 			// Only update if not going to wrap around
 			if ( state->activeCount < DebounceDivThreshold ) state->activeCount += 1;
@@ -453,7 +453,7 @@ uint8_t Matrix_single_scan()
 	}
 
 	// Unstrobe Pin
-	Matrix_pin( Matrix_cols[ strobe ], GPIO_Type_DriveLow, Matrix_type );
+	GPIO_Ctrl( Matrix_cols[ strobe ], GPIO_Type_DriveLow, Matrix_type );
 
 	// Measure ending latency
 	Latency_end_time( matrixLatencyResource );

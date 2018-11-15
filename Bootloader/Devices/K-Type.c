@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 by Jacob Alexander
+/* Copyright (C) 2017-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 // ----- Includes -----
 
 // Project Includes
+#include <Lib/gpio.h>
 #include <delay.h>
 
 // Local Includes
@@ -41,6 +42,13 @@
 uint32_t last_ms;
 uint8_t  attempt;
 
+// USB swap pin
+const GPIO_Pin usb_swap_pin = gpio(A,4);
+
+// Esc key strobe
+const GPIO_Pin strobe_pin = gpio(B,2);
+const GPIO_Pin sense_pin = gpio(D,5);
+
 
 
 // ----- Functions -----
@@ -55,22 +63,20 @@ void Device_setup()
 {
 	// PTA4 - USB Swap
 	// Start, disabled
-	GPIOA_PDDR |= (1<<4);
-	PORTA_PCR4 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PCOR |= (1<<4);
+	GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveLow, GPIO_Config_None );
 
 	// Setup parameters for USB port swap
 	last_ms = systick_millis_count;
 	attempt = 0;
 
 	// Setup scanning for S1
-	// Row1
-	GPIOD_PDDR &= ~(1<<5);
-	PORTD_PCR5 = PORT_PCR_PE | PORT_PCR_PFE | PORT_PCR_MUX(1);
-	// Col1
-	GPIOB_PDDR |= (1<<2);
-	PORTB_PCR2 = PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOB_PSOR |= (1<<2);
+	// Col 1 (strobe)
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveHigh, GPIO_Config_None );
+
+	// Row 1 (sense)
+	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pullup );
 }
 
 // Called during each loop of the main bootloader sequence
@@ -91,12 +97,12 @@ void Device_process()
 		last_ms = systick_millis_count;
 
 		print("USB not initializing, port swapping");
-		GPIOA_PTOR |= (1<<4);
+		GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveToggle, GPIO_Config_None );
 		attempt++;
 	}
 
 	// Check for S1 being pressed
-	if ( GPIOD_PDIR & (1<<5) )
+	if ( GPIO_Ctrl( sense_pin, GPIO_Type_Read, GPIO_Config_Pullup ) )
 	{
 		print( "Reset key pressed." NL );
 		SOFTWARE_RESET();

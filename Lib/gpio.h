@@ -88,6 +88,7 @@ typedef enum GPIO_Pin_Num {
 typedef enum GPIO_Type {
 	GPIO_Type_DriveHigh,
 	GPIO_Type_DriveLow,
+	GPIO_Type_DriveToggle,
 	GPIO_Type_DriveSetup,
 	GPIO_Type_Read,
 	GPIO_Type_ReadSetup,
@@ -95,6 +96,7 @@ typedef enum GPIO_Type {
 
 // Sense/Strobe configuration
 typedef enum GPIO_Config {
+	GPIO_Config_None,      // No configuration (ok for drive high/low)
 	GPIO_Config_Pullup,    // Internal pull-up
 	GPIO_Config_Pulldown,  // Internal pull-down
 	GPIO_Config_Opendrain, // External pull resistor
@@ -114,5 +116,5 @@ typedef struct GPIO_Pin {
 
 // ----- Functions -----
 
-uint8_t Matrix_pin( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config );
+uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config );
 

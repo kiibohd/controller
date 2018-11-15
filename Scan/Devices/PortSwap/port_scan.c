@@ -14,6 +14,17 @@
  * along with this file.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// ----- Defines -----
+
+// Compile-modes
+// See capabilities.kll for details
+#define None         0
+#define USBSwap      1
+#define USBInterSwap 2
+#define USBHubSwap   3
+
+
+
 // ----- Includes -----
 
 // Compiler Includes
@@ -21,36 +32,31 @@
 
 // Project Includes
 #include <cli.h>
+#include <kll.h>
 #include <kll_defs.h>
 #include <latency.h>
 #include <led.h>
 #include <print.h>
+#include <Lib/gpio.h>
 
 // USB Includes
 #if defined(_avr_at_)
 #include <avr/usb_keyboard_serial.h>
-#elif defined(_kinetis_) || defined(_sam_) //AVR
+#elif defined(_kinetis_) || defined(_sam_)
 #include <arm/usb_dev.h>
 #endif
 
 // Interconnect Includes
+#if Port_SwapMode_define == USBInterSwap
 #include <connect_scan.h>
+#endif
 
 // Local Includes
 #include "port_scan.h"
 
 
 
-// ----- Defines -----
-
-#define USB_SWAP_PIN 4
-#define UART_TXRX_PIN 12
-#define UART_SWAP_PIN 13
-
-
 // ----- Structs -----
-
-
 
 // ----- Function Declarations -----
 
@@ -64,6 +70,24 @@ void cliFunc_portUSB  ( char* args );
 // ----- Variables -----
 
 uint32_t Port_lastcheck_ms;
+
+// GPIOs used for swapping
+#if Port_SwapMode_define == USBSwap || Port_SwapMode_define == USBInterSwap
+static const GPIO_Pin usb_swap_pin1 = Port_SwapUSBPin1_define;
+#endif
+#if Port_SwapMode_define == USBHubSwap
+static const GPIO_Pin usb_swap_pin2 = Port_SwapUSBPin2_define;
+static const GPIO_Pin usb_swap_pin3 = Port_SwapUSBPin3_define;
+static const GPIO_Pin usb_swap_pin4 = Port_SwapUSBPin4_define;
+#endif
+
+#if Port_SwapMode_define == USBInterSwap
+static const GPIO_Pin uart_swap_pin1 = Port_SwapInterpPin1_define;;
+#endif
+
+#if Port_SwapMode_define == USBInterSwap
+static const GPIO_Pin uart_cross_pin1 = Port_CrossInterPin1_define;
+#endif
 
 // Scan Module command dictionary
 CLIDict_Entry( portCross, "Cross interconnect pins." );
@@ -86,57 +110,45 @@ static uint8_t portLatencyResource;
 
 void Port_usb_swap()
 {
+#if Port_SwapMode_define == USBSwap || Port_SwapMode_define == USBInterSwap
 	info_print("USB Port Swap");
 
-	// PTA4 - USB Swap
-#if defined(_kinetis_)
-	GPIOA_PTOR |= (1<<USB_SWAP_PIN);
-#elif defined(_sam_)
-	if (PIOA->ODSR & (1<<USB_SWAP_PIN)) {
-		PIOA->CODR = (1<<USB_SWAP_PIN);
-	} else {
-		PIOA->SODR = (1<<USB_SWAP_PIN);
-	}
-#endif
+	// USB Swap
+	GPIO_Ctrl( usb_swap_pin1, GPIO_Type_DriveToggle, GPIO_Config_None );
 
 	// Re-initialize usb
 	// Call usb_configured() to check if usb is ready
 	usb_init();
+#else
+	warn_print("Unsupported");
+#endif
 }
 
 void Port_uart_swap()
 {
+#if Port_SwapMode_define == USBInterSwap
 	info_print("Interconnect Line Swap");
 
-	// PTA13 - UART Swap
-#if defined(_kinetis_)
-	GPIOA_PTOR |= (1<<UART_SWAP_PIN);
-#elif defined(_sam_)
-	if (PIOA->ODSR & (1<<UART_SWAP_PIN)) {
-		PIOA->CODR = (1<<UART_SWAP_PIN);
-	} else {
-		PIOA->SODR = (1<<UART_SWAP_PIN);
-	}
+	// UART Swap
+	GPIO_Ctrl( uart_swap_pin1, GPIO_Type_DriveToggle, GPIO_Config_None );
+#else
+	warn_print("Unsupported");
 #endif
 }
 
 void Port_cross()
 {
+#if Port_SwapMode_define == USBInterSwap
 	info_print("Interconnect Line Cross");
 
-	// PTA12 - UART Tx/Rx cross-over
-#if defined(_kinetis_)
-	GPIOA_PTOR |= (1<<UART_TXRX_PIN);
-#elif defined(_sam_)
-	if (PIOA->ODSR & (1<<UART_TXRX_PIN)) {
-		PIOA->CODR = (1<<UART_TXRX_PIN);
-	} else {
-		PIOA->SODR = (1<<UART_TXRX_PIN);
-	}
-#endif
+	// UART Tx/Rx cross-over
+	GPIO_Ctrl( uart_cross_pin1, GPIO_Type_DriveToggle, GPIO_Config_None );
 
 	// Reset interconnects
 	Connect_reset();
+#else
+	warn_print("Unsupported");
+#endif
 }
 
 // Setup
@@ -145,37 +157,28 @@ inline void Port_setup()
 	// Register Scan CLI dictionary
 	CLI_registerDictionary( portCLIDict, portCLIDictName );
 
-	// PTA4 - USB Swap
+#if Port_SwapMode_define == USBSwap
+	// USB Swap
 	// Start, disabled
-#if defined(_kinetis_)
-	GPIOA_PDDR |= (1<<USB_SWAP_PIN);
-	PORTA_PCR4 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PCOR |= (1<<USB_SWAP_PIN);
-#elif defined(_sam_)
-	PIOA->PIO_OER = (1<<USB_SWAP_PIN);
-	PIOA->PIO_CODR = (1<<USB_SWAP_PIN);
-#endif
+	GPIO_Ctrl( usb_swap_pin1, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( usb_swap_pin1, GPIO_Type_DriveLow, GPIO_Config_None );
+#elif Port_SwapMode_define == USBInterSwap
+	// USB Swap
+	// Start, disabled
+	GPIO_Ctrl( usb_swap_pin1, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( usb_swap_pin1, GPIO_Type_DriveLow, GPIO_Config_None );
 
-	// PTA12 - UART Tx/Rx cross-over
+	// UART Tx/Rx cross-over
 	// Start, disabled
-#if defined(_kinetis_)
-	GPIOA_PDDR |= (1<<UART_TXRX_PIN);
-	PORTA_PCR12 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PCOR |= (1<<UART_TXRX_PIN);
-#elif defined(_sam_)
-	PIOA->PIO_OER = (1<<UART_TXRX_PIN);
-	PIOA->PIO_CODR = (1<<UART_TXRX_PIN);
-#endif
+	GPIO_Ctrl( uart_cross_pin1, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( uart_cross_pin1, GPIO_Type_DriveLow, GPIO_Config_None );
 
-	// PTA13 - UART Swap
+	// UART Swap
 	// Start, disabled
-#if defined(_kinetis_)
-	GPIOA_PDDR |= (1<<UART_SWAP_PIN);
-	PORTA_PCR13 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PCOR |= (1<<UART_SWAP_PIN);
-#elif defined(_sam_)
-	PIOA->PIO_OER = (1<<UART_SWAP_PIN);
-	PIOA->PIO_CODR = (1<<UART_SWAP_PIN);
+	GPIO_Ctrl( uart_swap_pin1, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( uart_swap_pin1, GPIO_Type_DriveLow, GPIO_Config_None );
+#else
+	warn_print("Unsupported");
 #endif
 
 	// Starting point for automatic port swapping

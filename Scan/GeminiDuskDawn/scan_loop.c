@@ -32,6 +32,7 @@
 #include <matrix_scan.h>
 #include <macro.h>
 #include <output_com.h>
+#include <port_scan.h>
 #include <pixel.h>
 
 // Local Includes
@@ -48,6 +49,9 @@
 // Setup
 inline void Scan_setup()
 {
+	// Setup Port Swap module
+	Port_setup();
+
 	// Setup GPIO pins for matrix scanning
 	Matrix_setup();
 
@@ -67,6 +71,9 @@ inline void Scan_setup()
 // Usually reserved for LED update routines and other things that need quick update rates
 void Scan_poll()
 {
+	// Port Swap detection
+	Port_scan();
+
 	// Prepare any LED events
 	Pixel_process();
 

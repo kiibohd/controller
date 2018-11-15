@@ -1,12 +1,12 @@
 # K-Type Base Configuration - Production #1
 
 Name = K-Type;
-Version = 0.9;
+Version = 0.10;
 Author = "HaaTa (Jacob Alexander) 2015-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-11-13;
+Date = 2018-11-14;
 
 
 # ScanCode Strobe List
@@ -155,6 +155,14 @@ S0x5C : U"RCtrl";
 S0x5D : U"Left";
 S0x5E : U"Down";
 S0x5F : U"Right";
+
+
+# Port Swap Pins
+# USB + Interconnect Swap
+portSwapMode = "USBInterSwap";
+portCrossInterPin1 = "gpio(A,13)";
+portSwapInterPin1 = "gpio(A,12)";
+portSwapUSBPin1 = "gpio(A,4)";
 
 
 # Latency Resources

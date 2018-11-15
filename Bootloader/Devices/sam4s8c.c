@@ -22,6 +22,7 @@
 
 // Project Includes
 #include <Lib/entropy.h>
+#include <Lib/gpio.h>
 #include <Lib/storage.h>
 #include "debug.h"
 
@@ -110,9 +111,9 @@ void Chip_setup()
 	WDT->WDT_MR = WDT_MR_WDDIS;
 
 	// Enable Debug LED
-	PIOB->PIO_PER = (1<<0);
-	PIOB->PIO_OER = (1<<0);
-	PIOB->PIO_SODR = (1<<0);
+	const GPIO_Pin debug_led = gpio(B,0);
+	GPIO_Ctrl( debug_led, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( debug_led, GPIO_Type_DriveHigh, GPIO_Config_None );
 
 	// Initialize non-volatile storage
 	storage_init();

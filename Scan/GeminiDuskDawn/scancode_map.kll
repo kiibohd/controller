@@ -1,12 +1,12 @@
 # Gemini Dusk/Dawn Base Configuration
 
 Name = GeminiDuskDawn;
-Version = 0.2;
+Version = 0.3;
 Author = "HaaTa (Jacob Alexander) 2015-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-11-13;
+Date = 2018-11-14;
 
 
 # ScanCode Strobe List
@@ -181,6 +181,12 @@ S111 : U"Down";
 S112 : U"Right";
 S113 : None;
 S114 : None;
+
+
+# Port Swap Pins
+# USB Swap
+portSwapMode = "USBSwap";
+portSwapUSBPin1 = "gpio(A,12)";
 
 
 # Latency Resources

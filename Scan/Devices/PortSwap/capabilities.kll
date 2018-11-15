@@ -1,17 +1,39 @@
+# Port Swap
 Name = PortSwapCapabilities;
-Version = 0.1;
-Author = "HaaTa (Jacob Alexander) 2015";
+Version = 0.2;
+Author = "HaaTa (Jacob Alexander) 2015-2018";
 KLL = 0.3d;
 
 # Modified Date
-Date = 2015-10-23;
+Date = 2018-11-14;
+
+# Modes
+# 0 None         - Disabled
+# 1 USBSwap      - Swaps USB only (e.g. Gemini Dusk/Dawn)
+# 2 USBInterSwap - Swaps USB and Interconnect (e.g. K-Type)
+# 3 USBHubSwap   - Swaps USB with hub and includes hub bypass
+portSwapMode => Port_SwapMode_define;
+portSwapMode = "None";
 
 # Cross interconnect pins, required for complex cabling arrangements
+# Disabled if set to {}
 portCross => Port_cross_capability();
+portCrossInterPin1 => Port_CrossInterPin1_define;
+portCrossInterPin1 = "{}";
 
 # Capability to swap the USB port mapping
 portSwapUSB => Port_usb_capability();
+portSwapUSBPin1 => Port_SwapUSBPin1_define;
+portSwapUSBPin1 = "{}";
+portSwapUSBPin2 => Port_SwapUSBPin2_define;
+portSwapUSBPin2 = "{}";
+portSwapUSBPin3 => Port_SwapUSBPin3_define;
+portSwapUSBPin3 = "{}";
+portSwapUSBPin4 => Port_SwapUSBPin4_define;
+portSwapUSBPin4 = "{}";
 
 # Capability to swap the interconnect port mapping
 portSwapInter => Port_uart_capability();
+portSwapInterPin1 => Port_SwapInterpPin1_define;
+portSwapInterPin1 = "{}";
 
