@@ -42,6 +42,9 @@ matrix:
   # TODO - Still some travis clang issues
   allow_failures:
     - compiler: clang
+    # XXX (HaaTa): Docker environment creation is slow causing Travis-CI to halt jobs
+    # This will need to get fixed
+    - env: DIR=Dockerfiles SCRIPT=all.bash
 
   exclude:
     # Bootloader doesn't support clang yet
