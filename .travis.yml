@@ -96,7 +96,7 @@ install:
 
 # Run test script(s)
 script:
-  - cd ${DIR} && PIPENV_ACTIVE=1 COMPILER=${CC} ./${SCRIPT}
+  - cd ${DIR} && PIPENV_ACTIVE=1 COMPILER=${CC} bash ${SCRIPT}
 
 # Setup Deploy
 before_deploy:
