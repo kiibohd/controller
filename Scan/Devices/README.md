@@ -28,7 +28,5 @@ Brief descriptions of each of the sub-modules.
 
 No longer supported.
 
-* [MatrixARM](MatrixARM) - Old ARM scan module, deprecated in favour of [MatrixARMPeriodic](MatrixARMPeriodic)
-
-
+* [MatrixARM](Deprecated/MatrixARM) - Old ARM scan module, deprecated in favour of [MatrixARMPeriodic](MatrixARMPeriodic)
 
