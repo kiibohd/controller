@@ -1,0 +1,21 @@
+# led
+Name = led;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2018";
+KLL = 0.5;
+
+# Modified Date
+Date = 2018-11-16;
+
+
+# Debug LED GPIO
+# Disabled by default
+# Notes:
+# Teensy 3 - gpio(C,5)
+# McHCK - gpio(B,16)
+# kii v1 (IC60) - gpio(A,19)
+# kii v2 (Infinity Ergodox, WhiteFox, K-Type) - gpio(A,5)
+# kii v3 (Kira) - gpio(B,0)
+ledDebugPin => DebugLED_ErrorPin_define;
+ledDebugPin = "{}";
+
