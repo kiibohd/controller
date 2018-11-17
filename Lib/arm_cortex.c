@@ -19,7 +19,29 @@
  * THE SOFTWARE.
  */
 
-#include <stdint.h>
+/**< Interrupt Number Definition */
+typedef enum IRQn
+{
+/******  Cortex-M4 Processor Exceptions Numbers ******************************/
+  NonMaskableInt_IRQn   = -14, /**<  2 Non Maskable Interrupt                */
+  MemoryManagement_IRQn = -12, /**<  4 Cortex-M4 Memory Management Interrupt */
+  BusFault_IRQn         = -11, /**<  5 Cortex-M4 Bus Fault Interrupt         */
+  UsageFault_IRQn       = -10, /**<  6 Cortex-M4 Usage Fault Interrupt       */
+  SVCall_IRQn           = -5,  /**< 11 Cortex-M4 SV Call Interrupt           */
+  DebugMonitor_IRQn     = -4,  /**< 12 Cortex-M4 Debug Monitor Interrupt     */
+  PendSV_IRQn           = -2,  /**< 14 Cortex-M4 Pend SV Interrupt           */
+  SysTick_IRQn          = -1,  /**< 15 Cortex-M4 System Tick Interrupt       */
+} IRQn_Type;
+
+/**
+ * \brief Configuration of the Cortex-M4 Processor and Core Peripherals
+ */
+
+#define __CM4_REV              0x0001 /**< SAM4S8B core revision number ([15:8] revision number, [7:0] patch number) */
+#define __MPU_PRESENT          1      /**< SAM4S8B does provide a MPU */
+#define __FPU_PRESENT          0      /**< SAM4S8B does not provide a FPU */
+#define __NVIC_PRIO_BITS       4      /**< SAM4S8B uses 4 Bits for the Priority Levels */
+#define __Vendor_SysTickConfig 0      /**< Set to 1 if different SysTick Config is used */
 #include "arm_cortex.h"
 
 Cortex_IRQ get_current_isr()
@@ -106,7 +128,22 @@ void read_stacked_fault_frame( uint32_t *faultStackedAddress )
 }
 
 // Causes more BusFaults to be precise (good for debugging)
-void disable_write_buffering()
-{
-	SCnSCB_ACTLR |= SCnSCB_ACTLR_DISDEFWBUF_Msk;
+void disable_write_buffering() {
+	SCnSCB->ACTLR |= SCnSCB_ACTLR_DISDEFWBUF_Msk;
+}
+
+void mpu_setup_region(uint8_t region, uint32_t *start, uint32_t *end, uint32_t attr) {
+	MPU->RBAR = (( (uint32_t)start << MPU_RBAR_ADDR_Pos ) & MPU_RBAR_ADDR_Msk) |
+		((region << MPU_RBAR_REGION_Pos) & MPU_RBAR_REGION_Msk) |
+		((1 << MPU_RBAR_VALID_Pos) & MPU_RBAR_VALID_Msk);
+
+	uint8_t size_pow = 32 - __CLZ(end - start) - 1;
+	MPU->RASR = ((size_pow << MPU_RASR_SIZE_Pos) & MPU_RASR_SIZE_Msk) |
+		((1 << MPU_RASR_ENABLE_Pos) & MPU_RASR_ENABLE_Msk) |
+	      attr;
+}
+
+void mpu_enable() {
+	//MPU->CTRL = MPU_CTRL_PRIVDEFENA_Msk | MPU_CTRL_ENABLE_Msk;
+	MPU->CTRL = MPU_CTRL_ENABLE_Msk;
 }

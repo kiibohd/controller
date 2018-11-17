@@ -20,28 +20,59 @@
  */
 
 #pragma once
+#include <stdint.h>
 
 // ----- Defines -----
 
-/* Auxiliary Control Register Definitions */
-#define SCnSCB_ACTLR                 *(volatile uint32_t *)0xE000E008 // Auxiliary control
+#include <core_cm4.h>
 
+#define PERIPH_START ((uint32_t*)0x40000000)
+#define PERIPH_END   ((uint32_t*)0x40200000)
 
-#define SCnSCB_ACTLR_DISOOFP_Pos            9                                          /*!< ACTLR: DISOOFP Position */
-#define SCnSCB_ACTLR_DISOOFP_Msk           (1UL << SCnSCB_ACTLR_DISOOFP_Pos)           /*!< ACTLR: DISOOFP Mask */
+#define SYSTEM_START ((uint32_t*)0xE0000000)
+#define SYSTEM_END   ((uint32_t*)0xE000F000)
 
-#define SCnSCB_ACTLR_DISFPCA_Pos            8                                          /*!< ACTLR: DISFPCA Position */
-#define SCnSCB_ACTLR_DISFPCA_Msk           (1UL << SCnSCB_ACTLR_DISFPCA_Pos)           /*!< ACTLR: DISFPCA Mask */
+/* MPU Aliases */
 
-#define SCnSCB_ACTLR_DISFOLD_Pos            2                                          /*!< ACTLR: DISFOLD Position */
-#define SCnSCB_ACTLR_DISFOLD_Msk           (1UL << SCnSCB_ACTLR_DISFOLD_Pos)           /*!< ACTLR: DISFOLD Mask */
+#define MPU_ATTR_XN     (( 1 << MPU_RASR_XN_Pos) & MPU_RASR_XN_Msk)
+#define MPU_ATTR_AP(ap) ((ap << MPU_RASR_AP_Pos) & MPU_RASR_AP_Msk)
 
-#define SCnSCB_ACTLR_DISDEFWBUF_Pos         1                                          /*!< ACTLR: DISDEFWBUF Position */
-#define SCnSCB_ACTLR_DISDEFWBUF_Msk        (1UL << SCnSCB_ACTLR_DISDEFWBUF_Pos)        /*!< ACTLR: DISDEFWBUF Mask */
+#define MPU_ACCESS_NONE ((0b000 << MPU_RASR_AP_Pos) & MPU_RASR_AP_Msk)
+#define MPU_ACCESS_RW_PRIV ((0b001 << MPU_RASR_AP_Pos) & MPU_RASR_AP_Msk)
+#define MPU_ACCESS_PRIV_WRITE ((0b010 << MPU_RASR_AP_Pos) & MPU_RASR_AP_Msk)
+#define MPU_ACCESS_RW_ALL ((0b011 << MPU_RASR_AP_Pos) & MPU_RASR_AP_Msk)
+#define MPU_ACCESS_RO_PRIV ((0b101 << MPU_RASR_AP_Pos) & MPU_RASR_AP_Msk)
+#define MPU_ACCESS_RO_ALL ((0b110 << MPU_RASR_AP_Pos) & MPU_RASR_AP_Msk)
 
-#define SCnSCB_ACTLR_DISMCYCINT_Pos         0                                          /*!< ACTLR: DISMCYCINT Position */
-#define SCnSCB_ACTLR_DISMCYCINT_Msk        (1UL << SCnSCB_ACTLR_DISMCYCINT_Pos)        /*!< ACTLR: DISMCYCINT Mask */
+// Normal memory, non-shareable, write-through
+#define MPU_ATTR_FLASH (((0b000 << MPU_RASR_TEX_Pos) & MPU_RASR_TEX_Msk) \
+	| ((1 << MPU_RASR_C_Pos) & MPU_RASR_C_Msk) \
+	| ((0 << MPU_RASR_B_Pos) & MPU_RASR_B_Msk) \
+	| ((0 << MPU_RASR_S_Pos) & MPU_RASR_S_Msk))
 
+// Normal memory, shareable, write-through
+#define MPU_ATTR_INTERNAL_SRAM (((0b000 << MPU_RASR_TEX_Pos) & MPU_RASR_TEX_Msk) \
+	| ((1 << MPU_RASR_C_Pos) & MPU_RASR_C_Msk) \
+	| ((0 << MPU_RASR_B_Pos) & MPU_RASR_B_Msk) \
+	| ((1 << MPU_RASR_S_Pos) & MPU_RASR_S_Msk))
+
+// Normal memory, shareable, write-back, write-allocate
+#define MPU_ATTR_EXTERNAL_SRAM (((0b000 << MPU_RASR_TEX_Pos) & MPU_RASR_TEX_Msk) \
+	| ((1 << MPU_RASR_C_Pos) & MPU_RASR_C_Msk) \
+	| ((1 << MPU_RASR_B_Pos) & MPU_RASR_B_Msk) \
+	| ((1 << MPU_RASR_S_Pos) & MPU_RASR_S_Msk))
+
+// Device memory, shareable
+#define MPU_ATTR_PERIPHERALS (((0b000 << MPU_RASR_TEX_Pos) & MPU_RASR_TEX_Msk) \
+	| ((0 << MPU_RASR_C_Pos) & MPU_RASR_C_Msk) \
+	| ((1 << MPU_RASR_B_Pos) & MPU_RASR_B_Msk) \
+	| ((1 << MPU_RASR_S_Pos) & MPU_RASR_S_Msk))
+
+// Device memory, shareable
+#define MPU_ATTR_SYSTEM (((0b000 << MPU_RASR_TEX_Pos) & MPU_RASR_TEX_Msk) \
+	| ((0 << MPU_RASR_C_Pos) & MPU_RASR_C_Msk) \
+	| ((0 << MPU_RASR_B_Pos) & MPU_RASR_B_Msk) \
+	| ((0 << MPU_RASR_S_Pos) & MPU_RASR_S_Msk))
 
 // ----- Types -----
 
@@ -145,6 +176,11 @@ typedef struct __attribute__((packed)) {
 } DFSR_t;
 
 
+// ----- Variables -----
+
+extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _app_rom, _app_rom_end, _bootloader;
+
+
 // ----- Functions -----
 
 extern void __attribute__((naked)) debug_isr ( void );
@@ -152,3 +188,6 @@ extern void __attribute__((naked)) debug_isr ( void );
 Cortex_IRQ get_current_isr();
 void read_stacked_fault_frame( uint32_t *faultStackedAddress );
 void disable_write_buffering();
+
+void mpu_setup_region(uint8_t region, uint32_t *start, uint32_t *end, uint32_t attr);
+void mpu_enable();

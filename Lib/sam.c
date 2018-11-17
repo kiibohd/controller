@@ -57,6 +57,9 @@ extern uint32_t _szero;
 extern uint32_t _ezero;
 extern uint32_t _sstack;
 extern uint32_t _estack;
+extern uint32_t _ram_start_, _ram_end_;
+extern uint32_t _sramfunc, _eramfunc;
+extern uint32_t _sdata, _edata;
 
 // Unique Id storage variable
 // Must be read from flash using ReadUniqueID()
@@ -437,6 +440,10 @@ void ResetHandler()
 		*pDest++ = 0;
 	}
 
+	/* Initialize the stack */
+	for (pDest = &_sstack; pDest < &_estack;) {
+		*pDest++ = 0xDEADBEEF;
+	}
 
 	/* Set 6 FWS for Embedded Flash Access according to 120MHz configuration */
 	EFC0->EEFC_FMR = EEFC_FMR_FWS(5)|EEFC_FMR_CLOE;
@@ -519,6 +526,16 @@ void ResetHandler()
 	//REG_MTB_FLOW = ((uint32_t) mtb + TRACE_BUFFER_SIZE * sizeof(uint32_t)) & 0xFFFFFFF8;
 	//REG_MTB_MASTER = 0x80000000 + 6;
 #endif
+
+	// Default to no access
+	mpu_setup_region(0, &_sfixed,            &_efixed,          MPU_ATTR_FLASH         | MPU_ACCESS_RO_ALL     | 0);
+	mpu_setup_region(1, STORAGE_FLASH_START, STORAGE_FLASH_END, MPU_ATTR_FLASH         | MPU_ACCESS_RW_ALL     | MPU_ATTR_XN);
+	mpu_setup_region(2, &_sramfunc,          &_eramfunc,        MPU_ATTR_INTERNAL_SRAM | MPU_ACCESS_RO_ALL     | 0);
+	mpu_setup_region(3, _sdata,              &_ezero,           MPU_ATTR_INTERNAL_SRAM | MPU_ACCESS_RW_ALL     | MPU_ATTR_XN);
+	mpu_setup_region(4, _sstack,             &_estack,          MPU_ATTR_INTERNAL_SRAM | MPU_ACCESS_RW_ALL     | MPU_ATTR_XN);
+	mpu_setup_region(5, PERIPH_START,        PERIPH_END,        MPU_ATTR_PERIPHERALS   | MPU_ACCESS_PRIV_WRITE | MPU_ATTR_XN);
+	mpu_setup_region(6, SYSTEM_END,          SYSTEM_END,        MPU_ACCESS_PRIV_WRITE); // Always XN
+	mpu_enable();
 
 	// Initialize the SysTick counter
 	SysTick->LOAD = (F_CPU / 1000) - 1;

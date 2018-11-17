@@ -46,6 +46,10 @@ MEMORY
 _app_rom     = ORIGIN( FLASH );
 _app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
 
+/* Memmory range for the RAM */
+_ram_start_ = ORIGIN( RAM );
+_ram_end_ = ORIGIN( RAM ) + LENGTH( RAM ) -1 ;
+
 /* The stack size used by the application. NOTE: you need to adjust according to your application. */
 STACK_SIZE = DEFINED(STACK_SIZE) ? STACK_SIZE : 0x500;
 
@@ -121,8 +125,12 @@ SECTIONS
     {
         . = ALIGN(4);
         _srelocate = .;
+        _sramfunc = .;
         *(.ramfunc .ramfunc.*);
+	_eramfunc = .;
+        _sdata = .;
         *(.data .data.*);
+	_edata = .;
         . = ALIGN(4);
         _erelocate = .;
     } > RAM
@@ -142,8 +150,10 @@ SECTIONS
         _ezero = .;
     } > RAM
 
+    . = . + 1K; /* padding for mpu protection */
+
     /* stack section */
-    .stack (NOLOAD):
+    .stack (NOLOAD): AT( _ram_end - STACK_SIZE )
     {
         . = ALIGN(8);
         _sstack = .;
@@ -152,17 +162,6 @@ SECTIONS
         _estack = .;
     } > RAM
 
-    /* heap section */
-    .heap (NOLOAD):
-    {
-        . = ALIGN(8);
-         _sheap = .;
-        . = . + HEAP_SIZE;
-        . = ALIGN(8);
-        _eheap = .;
-    } > RAM
-
     . = ALIGN(4);
     _end = . ;
-    _ram_end_ = ORIGIN(RAM) + LENGTH(RAM) -1 ;
 }

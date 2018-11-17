@@ -60,6 +60,7 @@ CLIDict_Entry( reload,    "Signals microcontroller to reflash/reload." );
 CLIDict_Entry( reset,     "Resets the terminal back to initial settings." );
 CLIDict_Entry( restart,   "Sends a software restart, should be similar to powering on the device." );
 CLIDict_Entry( tick,      "Displays the fundamental tick size, and current ticks since last systick." );
+CLIDict_Entry( ram,       "Shows the current and max ram usage" );
 CLIDict_Entry( version,   "Version information about this firmware." );
 
 CLIDict_Def( basicCLIDict, "General Commands" ) = {
@@ -78,6 +79,7 @@ CLIDict_Def( basicCLIDict, "General Commands" ) = {
 	CLIDict_Item( reset ),
 	CLIDict_Item( restart ),
 	CLIDict_Item( tick ),
+	CLIDict_Item( ram ),
 	CLIDict_Item( version ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
@@ -868,3 +870,36 @@ void cliFunc_version( char* args )
 #endif
 }
 
+void cliFunc_ram( char* args )
+{
+extern uint32_t _sstack, _estack;
+
+	uint32_t *p;
+	for (p = &_sstack; p < &_estack; p++) {
+		if (*p != 0xDEADBEEF) break;
+	}
+
+	uint32_t stack_size = &_estack - &_sstack;
+	uint32_t stack_current = &_estack - (uint32_t*)__get_MSP();
+	uint32_t stack_peak = &_estack - p;
+	
+	print( NL );
+	print("stack: ");
+	printHex(stack_size);
+	print(" bytes" NL);
+
+	print("  current = ");
+	printHex(stack_current);
+	print(" (");
+	printInt8( 100 * stack_current / stack_size );
+	print("%)" NL);
+
+	print("  peak = ");
+	printHex(stack_peak);
+	print(" (");
+	printInt8( 100 * stack_peak / stack_size );
+	print("%)" NL);
+
+	print(NL);
+	print("heap: N/A" NL);
+}
