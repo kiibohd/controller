@@ -48,6 +48,10 @@ ScanCodeSenseList = "
 ";
 
 
+# Debug LED
+ledDebugPin = "gpio(A,19)";
+
+
 # Driver Chip
 ISSI_Chip_31FL3731 = 1;
 

@@ -95,8 +95,10 @@ CLIDict_Entry( portUSB,   "Swap USB ports manually, forces usb and interconnect 
 CLIDict_Entry( portUART,  "Swap interconnect ports." );
 
 CLIDict_Def( portCLIDict, "Port Swap Module Commands" ) = {
+#if Port_SwapMode_define == USBInterSwap
 	CLIDict_Item( portCross ),
 	CLIDict_Item( portUART ),
+#endif
 	CLIDict_Item( portUSB ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
@@ -118,7 +120,7 @@ void Port_usb_swap()
 
 	// Re-initialize usb
 	// Call usb_configured() to check if usb is ready
-	usb_init();
+	usb_reinit();
 #else
 	warn_print("Unsupported");
 #endif

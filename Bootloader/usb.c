@@ -700,7 +700,7 @@ int usb_ep0_tx_cp(const void *buf, size_t len, size_t reqlen, ep_callback_t cb, 
 }
 
 void usb_handle_control_status_cb(ep_callback_t cb) {
-	udd_g_ctrlreq.callback = cb;
+	udd_g_ctrlreq.callback = (void (*)(void))cb;
 }
 
 void usb_attach_function(const struct usbd_function *function, struct usbd_function_ctx_header *ctx) {}

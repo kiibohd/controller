@@ -59,6 +59,10 @@ ScanCodeSenseList = "
 ";
 
 
+# Debug LED
+ledDebugPin = "gpio(B,0)";
+
+
 # ScanCode Remapping
 ScanCodeRemapping = 0; # XXX (HaaTa): Currently disabled, this file needs adjustment to use ScanCode Remapping
 

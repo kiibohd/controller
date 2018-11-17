@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2014 by Jacob Alexander
+/* Copyright (C) 2011-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,15 @@
 
 
 // Project Includes
+#include <kll_defs.h>
+#include <Lib/gpio.h>
 #include "led.h"
+
+
+
+// ----- Variables -----
+
+static const GPIO_Pin led_pin = DebugLED_ErrorPin_define;
 
 
 
@@ -35,128 +43,28 @@
 // Error LED Setup
 inline void init_errorLED()
 {
-// AVR
-#if defined(_avr_at_)
-
-	// Use pin D6 as an output (LED)
-	DDRD |= (1<<6);
-
-// ARM
-#elif defined(_teensy_3_)
-
-	// Enable pin
-	GPIOC_PDDR |= (1<<5);
-
-	// Setup pin - Pin 13 -> C5 - See Lib/pin_map.teensy3 for more details on pins
-	PORTC_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-
-// MCHCK / Kiibohd-dfu
-#elif defined(_kii_v1_)
-
-/* Actual MCHCK
-	// Enable pin
-	GPIOB_PDDR |= (1<<16);
-
-	// Setup pin - B16 - See Lib/pin_map.mchck for more details on pins
-	PORTB_PCR16 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-*/
-	// Kiibohd MCHCK Variant
-	// Enable pin
-	GPIOA_PDDR |= (1<<19);
-
-	// Setup pin - A19 - See Lib/pin_map.mchck for more details on pins
-	PORTA_PCR19 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-
-// Kiibohd-dfu
-#elif defined(_kii_v2_)
-	// Kiibohd-dfu
-	// Enable pin
-	GPIOA_PDDR |= (1<<5);
-
-	// Setup pin - A5 - See Lib/pin_map.mchck for more details on pins
-	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-
-#elif defined(_kii_v3_)
-	//SAM dev kit
-
-	//Enable output
-	PIOB->PIO_OER = (1<<0);
-#endif
+	// Enable output
+	GPIO_Ctrl( led_pin, GPIO_Type_DriveSetup, GPIO_Config_None );
 }
 
 // Error LED Control
 inline void errorLED( uint8_t on )
 {
-// AVR
-#if defined(_avr_at_)
-
-	// Error LED On (D6)
-	if ( on ) {
-		PORTD |= (1<<6);
+	// Error LED On
+	if (on)
+	{
+		GPIO_Ctrl( led_pin, GPIO_Type_DriveHigh, GPIO_Config_None );
 	}
 	// Error LED Off
-	else {
-		PORTD &= ~(1<<6);
+	else
+	{
+		GPIO_Ctrl( led_pin, GPIO_Type_DriveLow, GPIO_Config_None );
 	}
+}
 
-// ARM
-#elif defined(_teensy_3_)
-
-	// Error LED On (C5)
-	if ( on ) {
-		GPIOC_PSOR |= (1<<5);
-	}
-	// Error LED Off
-	else {
-		GPIOC_PCOR |= (1<<5);
-	}
-
-// MCHCK
-#elif defined(_kii_v1_)
-
-/* Actual MCHCK
-	// Error LED On (B16)
-	if ( on ) {
-		GPIOB_PSOR |= (1<<16);
-	}
-	// Error LED Off
-	else {
-		GPIOB_PCOR |= (1<<16);
-	}
-*/
-	// Kiibohd MCHCK Variant
-	// Error LED On (A19)
-	if ( on ) {
-		GPIOA_PSOR |= (1<<19);
-	}
-	// Error LED Off
-	else {
-		GPIOA_PCOR |= (1<<19);
-	}
-
-// Kiibohd-dfu
-#elif defined(_kii_v2_)
-	// Kiibohd-dfu
-	// Error LED On (A5)
-	if ( on ) {
-		GPIOA_PSOR |= (1<<5);
-	}
-	// Error LED Off
-	else {
-		GPIOA_PCOR |= (1<<5);
-	}
-
-#elif defined(_kii_v3_)
-	// sam4s
-	// Error LED On (A5)
-	if (on) {
-		PIOB->PIO_SODR = (1<<0);
-	}
-	// Error LED Off
-	else {
-		PIOB->PIO_CODR = (1<<0);
-	}
-
-#endif
+// Error LED Toggle
+inline void errorLEDToggle()
+{
+	GPIO_Ctrl( led_pin, GPIO_Type_DriveToggle, GPIO_Config_None );
 }
 

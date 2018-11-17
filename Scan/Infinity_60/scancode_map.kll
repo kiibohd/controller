@@ -44,3 +44,7 @@ ScanCodeSenseList = "
 	gpio(D,7)
 ";
 
+
+# Debug LED
+ledDebugPin = "gpio(A,19)";
+

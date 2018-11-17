@@ -55,6 +55,10 @@ ScanCodeSenseList = "
 ";
 
 
+# Debug LED
+ledDebugPin = "gpio(B,0)";
+
+
 # ScanCode Remapping
 ScanCodeRemapping = 1; # Enabled
 

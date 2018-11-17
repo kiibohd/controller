@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2017 by Jacob Alexander
+/* Copyright (C) 2011-2018 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,8 +24,6 @@
 // ----- Includes -----
 
 #include <stdint.h>
-#include <Lib/mcu_compat.h>
-#include <stdint.h>
 
 
 
@@ -33,4 +31,5 @@
 
 void init_errorLED( void );
 void errorLED( uint8_t on );
+void errorLEDToggle();
 

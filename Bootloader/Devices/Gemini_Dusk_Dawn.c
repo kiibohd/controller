@@ -22,6 +22,10 @@
 
 // Project Includes
 #include <Lib/gpio.h>
+#include <delay.h>
+
+#include "udc.h"
+#include "udp_device.h"
 
 // Local Includes
 #include "../device.h"
@@ -31,7 +35,14 @@
 
 // ----- Defines -----
 
+#define USBPortSwapDelay_ms 1000
+
+
+
 // ----- Variables -----
+
+static uint32_t last_ms;
+static uint8_t  attempt;
 
 static uint8_t prev_btn_state = 1;
 
@@ -83,8 +94,6 @@ void Device_process()
 	// Check for S1 being pressed
 	cur_btn_state = GPIO_Ctrl( sense_pin, GPIO_Type_Read, GPIO_Config_Pullup ) != 0;
 
-	/* XXX HaaTa - Add USB swapping code */
-
 	// Rising edge = press
 	if ( cur_btn_state && !prev_btn_state )
 	{
@@ -93,5 +102,29 @@ void Device_process()
 	}
 
 	prev_btn_state = cur_btn_state;
+
+	// For keyboards with dual usb ports, doesn't do anything on keyboards without them
+	// If a USB connection is not detected in 2 seconds, switch to the other port to see if it's plugged in there
+	// USB not initialized, attempt to swap
+	if ( !Is_udd_configured_state_enabled() )
+	{
+		// Only check for swapping after delay
+		uint32_t wait_ms = systick_millis_count - last_ms;
+		if ( wait_ms < USBPortSwapDelay_ms + attempt / 2 * USBPortSwapDelay_ms )
+		{
+			return;
+		}
+
+		last_ms = systick_millis_count;
+
+		print("USB not initializing, port swapping");
+		GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveToggle, GPIO_Config_None );
+
+		// Re-initialize USB
+		udc_stop();
+		udc_start();
+
+		attempt++;
+	}
 }
 

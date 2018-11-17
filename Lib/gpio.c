@@ -22,6 +22,7 @@
 // ----- Includes -----
 
 // Project Includes
+#include <Lib/mcu_compat.h>
 #if defined(_kinetis_)
 #include <Lib/kinetis.h>
 #elif defined(_sam_)
@@ -57,6 +58,7 @@ uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 	volatile unsigned int *GPIO_PDDR = (unsigned int*)(&GPIOA_PDDR) + gpio_offset;
 	volatile unsigned int *GPIO_PSOR = (unsigned int*)(&GPIOA_PSOR) + gpio_offset;
 	volatile unsigned int *GPIO_PCOR = (unsigned int*)(&GPIOA_PCOR) + gpio_offset;
+	volatile unsigned int *GPIO_PTOR = (unsigned int*)(&GPIOA_PTOR) + gpio_offset;
 	volatile unsigned int *GPIO_PDIR = (unsigned int*)(&GPIOA_PDIR) + gpio_offset;
 	volatile unsigned int *PORT_PCR  = (unsigned int*)(&PORTA_PCR0) + port_offset;
 
@@ -134,22 +136,22 @@ uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 	switch ( type )
 	{
 	case GPIO_Type_DriveHigh:
-		pio->PIO_SODR = (1 << gpio.pin);
+		pio->PIO_SODR |= (1 << gpio.pin);
 		break;
 
 	case GPIO_Type_DriveLow:
-		pio->PIO_CODR = (1 << gpio.pin);
+		pio->PIO_CODR |= (1 << gpio.pin);
 		break;
 
 	case GPIO_Type_DriveToggle:
 		// Toggle pin opposite to the current state
 		if ( pio->PIO_ODSR & (1 << gpio.pin) )
 		{
-			pio->PIO_CODR = (1 << gpio.pin);
+			pio->PIO_CODR |= (1 << gpio.pin);
 		}
 		else
 		{
-			pio->PIO_SODR = (1 << gpio.pin);
+			pio->PIO_SODR |= (1 << gpio.pin);
 		}
 		break;
 
@@ -158,7 +160,7 @@ uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 		switch ( config )
 		{
 		case GPIO_Config_Opendrain:
-			pio->PIO_MDER = (1 << gpio.pin);
+			pio->PIO_MDER |= (1 << gpio.pin);
 			break;
 
 		// Do nothing otherwise
@@ -168,8 +170,8 @@ uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 		}
 
 		// Set as output pin
-		pio->PIO_OER = (1 << gpio.pin);
-		pio->PIO_PER = (1 << gpio.pin);
+		pio->PIO_OER |= (1 << gpio.pin);
+		pio->PIO_PER |= (1 << gpio.pin);
 		break;
 
 	case GPIO_Type_Read:
@@ -180,13 +182,13 @@ uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 		switch ( config )
 		{
 		case GPIO_Config_Pullup:
-			pio->PIO_PPDDR = (1 << gpio.pin);
-			pio->PIO_PUER = (1 << gpio.pin);
+			pio->PIO_PPDDR |= (1 << gpio.pin);
+			pio->PIO_PUER |= (1 << gpio.pin);
 			break;
 
 		case GPIO_Config_Pulldown:
-			pio->PIO_PUDR = (1 << gpio.pin);
-			pio->PIO_PPDER = (1 << gpio.pin);
+			pio->PIO_PUDR |= (1 << gpio.pin);
+			pio->PIO_PPDER |= (1 << gpio.pin);
 			break;
 
 		// Do nothing otherwise
@@ -195,12 +197,11 @@ uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 		}
 
 		// Set as input pin
-		pio->PIO_IFER = (1 << gpio.pin); // glitch filter
-		pio->PIO_ODR = (1 << gpio.pin);
-		pio->PIO_PER = (1 << gpio.pin);
+		pio->PIO_IFER |= (1 << gpio.pin); // glitch filter
+		pio->PIO_ODR |= (1 << gpio.pin);
+		pio->PIO_PER |= (1 << gpio.pin);
 		break;
 	}
-
 #endif
 
 	return 0;

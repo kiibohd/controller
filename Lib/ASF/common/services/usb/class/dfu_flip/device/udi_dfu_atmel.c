@@ -335,7 +335,7 @@ void udi_dfu_atmel_disable(void)
 }
 
 extern struct dfu_ctx dfu_ctx;
-int dfu_handle_control( struct usb_ctrl_req_t *req, void *data );
+int dfu_handle_control( void* req, void *data );
 
 bool udi_dfu_atmel_setup(void)
 {

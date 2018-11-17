@@ -103,6 +103,11 @@ void Chip_reset()
 	}
 
 	print( "Secure Key Generated." NL );
+
+	// Make sure debug LED is off
+	const GPIO_Pin debug_led = gpio(B,0);
+	GPIO_Ctrl( debug_led, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( debug_led, GPIO_Type_DriveLow, GPIO_Config_None );
 }
 
 // Called during bootloader initialization
@@ -120,7 +125,7 @@ void Chip_setup()
 	storage_init();
 
 	// Make sure USB transceiver is reset (in case we didn't do a full reset)
-	udd_disable();
+	udc_stop();
 
 	// Start USB stack
 	udc_start();

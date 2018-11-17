@@ -279,6 +279,10 @@ void usb_device_check()
 void usb_set_configuration(uint8_t config) {
 	usb_configuration = config;
 	Output_Available = usb_configuration;
+#if defined(_sam_)
+	// Instead of using a callback to set the address for the CLI, just query it after USB is configured
+	USBDev_Address = udd_getaddress();
+#endif
 }
 
 void usb_setup()
@@ -1936,7 +1940,7 @@ uint8_t usb_init()
 
 #elif defined(_sam_)
 	// Make sure USB transceiver is reset (in case we didn't do a full reset)
-	udd_disable();
+	udc_stop();
 
 	// Start USB stack
 	udc_start();

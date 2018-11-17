@@ -54,6 +54,10 @@ ScanCodeSenseList = "
 ";
 
 
+# Debug LED
+ledDebugPin = "gpio(B,0)";
+
+
 # Function Row (1-19)
 S1 : U"Esc";
 S2 : U"F1";

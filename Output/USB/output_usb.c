@@ -72,6 +72,7 @@ void cliFunc_idle       ( char* args );
 void cliFunc_kbdProtocol( char* args );
 void cliFunc_readLEDs   ( char* args );
 void cliFunc_usbAddr    ( char* args );
+void cliFunc_usbConf    ( char* args );
 void cliFunc_usbInitTime( char* args );
 
 
@@ -83,6 +84,7 @@ CLIDict_Entry( idle,        "Show/set the HID Idle time (multiples of 4 ms)." );
 CLIDict_Entry( kbdProtocol, "Keyboard Protocol Mode: 0 - Boot, 1 - OS/NKRO Mode." );
 CLIDict_Entry( readLEDs,    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 ScrlLck, 16 Kana, etc." );
 CLIDict_Entry( usbAddr,     "Shows the negotiated USB unique Id, given to device by host." );
+CLIDict_Entry( usbConf,     "Shows whether USB is configured or not." );
 CLIDict_Entry( usbInitTime, "Displays the time in ms from usb_init() till the last setup call." );
 
 CLIDict_Def( usbCLIDict, "USB Module Commands" ) = {
@@ -90,6 +92,7 @@ CLIDict_Def( usbCLIDict, "USB Module Commands" ) = {
 	CLIDict_Item( kbdProtocol ),
 	CLIDict_Item( readLEDs ),
 	CLIDict_Item( usbAddr ),
+	CLIDict_Item( usbConf ),
 	CLIDict_Item( usbInitTime ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
@@ -1172,6 +1175,16 @@ void cliFunc_usbAddr( char* args )
 	print(NL);
 	info_msg("USB Address: ");
 	printInt8( USBDev_Address );
+}
+
+
+void cliFunc_usbConf( char* args )
+{
+	print(NL);
+	info_msg("USB Configured: ");
+#if !defined(_host_)
+	printInt8( usb_configured() );
+#endif
 }
 
 
