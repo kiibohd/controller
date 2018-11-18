@@ -249,7 +249,6 @@ inline uint8_t Matrix_totalColumns()
 // This module keeps track of the next strobe to scan
 uint8_t Matrix_single_scan()
 {
-
 	// Start latency measurement
 	Latency_start_time( matrixLatencyResource );
 

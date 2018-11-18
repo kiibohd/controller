@@ -953,7 +953,7 @@ inline void LED_scan()
 			ISSI_LEDPwmPage
 		);
 
-#if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
+#if ISSI_Chip_31FL3732_define == 1
 		// Reset LED enable mask
 		// XXX At high speeds, the IS31FL3732 seems to have random bit flips
 		//     To get around this, just re-set the enable mask before each send
