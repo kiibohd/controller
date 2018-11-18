@@ -228,14 +228,14 @@ add_definitions( "-mcpu=${CPU} -DF_CPU=${F_CPU} -D_${CHIP}_=1 -O${OPT} ${TUNING}
 #| Linker Flags
 if ( BOOTLOADER )
 	# Bootloader linker flags
-	set( LINKER_FLAGS "${TUNING} -Wl,--gc-sections -fwhole-program -T${CMAKE_CURRENT_SOURCE_DIR}/../Lib/ld/${CHIP}.bootloader.ld -nostartfiles -Wl,-Map=link.map" )
+	set( LINKER_FLAGS "${TUNING} -Wl,--gc-sections -fwhole-program -L${CMAKE_CURRENT_SOURCE_DIR}/../Lib/ld -T${CHIP}.bootloader.ld -nostartfiles -Wl,-Map=link.map" )
 else ()
 	## Clang Compiler
 	if ( "${COMPILER}" MATCHES "clang" )
-		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/ld/${CHIP}.ld" )
+		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -L${CMAKE_CURRENT_SOURCE_DIR}/Lib/ld -T${CHIP}.ld" )
 	else ()
 		# Normal linker flags
-		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -T${CMAKE_CURRENT_SOURCE_DIR}/Lib/ld/${CHIP}.ld" )
+		set( LINKER_FLAGS "${TUNING} -Wl,-Map=link.map,--cref -Wl,--gc-sections -Wl,--no-wchar-size-warning -L${CMAKE_CURRENT_SOURCE_DIR}/Lib/ld -T${CHIP}.ld" )
 	endif ()
 endif ()
 

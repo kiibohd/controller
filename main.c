@@ -73,7 +73,6 @@ int main_periodic()
 	case PeriodicStage_Scan:
 		// Returns non-zero if ready to process macros
 		SEGGER_SYSVIEW_OnTaskStartExec(TASK_SCAN_PERIODIC);
-		Scan_poll();
 		if ( Scan_periodic() )
 		{
 			stage_tracker = PeriodicStage_Macro;

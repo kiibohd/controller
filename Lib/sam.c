@@ -529,10 +529,12 @@ void ResetHandler()
 
 	// Default to no access
 	mpu_setup_region(0, &_sfixed,            &_efixed,          MPU_ATTR_FLASH         | MPU_ACCESS_RO_ALL     | 0);
-	mpu_setup_region(1, STORAGE_FLASH_START, STORAGE_FLASH_END, MPU_ATTR_FLASH         | MPU_ACCESS_RW_ALL     | MPU_ATTR_XN);
+	mpu_setup_region(1,
+	         (uint32_t*)STORAGE_FLASH_START,
+	                              (uint32_t*)STORAGE_FLASH_END, MPU_ATTR_FLASH         | MPU_ACCESS_RW_ALL     | MPU_ATTR_XN);
 	mpu_setup_region(2, &_sramfunc,          &_eramfunc,        MPU_ATTR_INTERNAL_SRAM | MPU_ACCESS_RO_ALL     | 0);
-	mpu_setup_region(3, _sdata,              &_ezero,           MPU_ATTR_INTERNAL_SRAM | MPU_ACCESS_RW_ALL     | MPU_ATTR_XN);
-	mpu_setup_region(4, _sstack,             &_estack,          MPU_ATTR_INTERNAL_SRAM | MPU_ACCESS_RW_ALL     | MPU_ATTR_XN);
+	mpu_setup_region(3, (uint32_t*)_sdata,   &_ezero,           MPU_ATTR_INTERNAL_SRAM | MPU_ACCESS_RW_ALL     | MPU_ATTR_XN);
+	mpu_setup_region(4, (uint32_t*)_sstack,  &_estack,          MPU_ATTR_INTERNAL_SRAM | MPU_ACCESS_RW_ALL     | MPU_ATTR_XN);
 	mpu_setup_region(5, PERIPH_START,        PERIPH_END,        MPU_ATTR_PERIPHERALS   | MPU_ACCESS_PRIV_WRITE | MPU_ATTR_XN);
 	mpu_setup_region(6, SYSTEM_END,          SYSTEM_END,        MPU_ACCESS_PRIV_WRITE); // Always XN
 	mpu_enable();

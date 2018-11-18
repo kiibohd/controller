@@ -28,31 +28,119 @@
 /* ---------------------------------------------------------------------------- */
 
 /*------------------------------------------------------------------------------
- *      Linker script for running in internal FLASH on the ATSAM4SA16B
+ *      Linker script for running in internal FLASH on the ATSAM4S
  *----------------------------------------------------------------------------*/
 
 OUTPUT_FORMAT("elf32-littlearm", "elf32-littlearm", "elf32-littlearm")
 OUTPUT_ARCH(arm)
 SEARCH_DIR(.)
 
-/* Memory Spaces Definitions */
-MEMORY
-{
-  FLASH (rx) : ORIGIN = 0x00404000, LENGTH = 1024K - 16K - 8K
-  RAM  (rwx) : ORIGIN = 0x20000000, LENGTH = 160K
-}
-
-/* Starting Address of the application ROM */
-_app_rom     = ORIGIN( FLASH );
-_app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
-
-/* The stack size used by the application. NOTE: you need to adjust according to your application. */
-STACK_SIZE = DEFINED(STACK_SIZE) ? STACK_SIZE : 0x400;
-
-/* The heapsize used by the application. NOTE: you need to adjust according to your application. */
-HEAP_SIZE = DEFINED(HEAP_SIZE) ? HEAP_SIZE : 0x200;
-
 
 /* Section Definitions */
-INCLUDE sam4s.ld
+SECTIONS
+{
+    .text :
+    {
+        . = ALIGN(4);
+        _sfixed = .;
+        KEEP(*(.vectors .vectors.*))
+	KEEP(*(.startup*))
+        *(.text .text.* .gnu.linkonce.t.*)
+        *(.glue_7t) *(.glue_7)
+        *(.rodata .rodata* .gnu.linkonce.r.*)
+        *(.ARM.extab* .gnu.linkonce.armextab.*)
 
+        /* Support C constructors, and C destructors in both user code
+           and the C library. This also provides support for C++ code. */
+        . = ALIGN(4);
+        KEEP(*(.init))
+        . = ALIGN(4);
+        __preinit_array_start = .;
+        KEEP (*(.preinit_array))
+        __preinit_array_end = .;
+
+        . = ALIGN(4);
+        __init_array_start = .;
+        KEEP (*(SORT(.init_array.*)))
+        KEEP (*(.init_array))
+        __init_array_end = .;
+
+        . = ALIGN(0x4);
+        KEEP (*crtbegin.o(.ctors))
+        KEEP (*(EXCLUDE_FILE (*crtend.o) .ctors))
+        KEEP (*(SORT(.ctors.*)))
+        KEEP (*crtend.o(.ctors))
+
+        . = ALIGN(4);
+        KEEP(*(.fini))
+
+        . = ALIGN(4);
+        __fini_array_start = .;
+        KEEP (*(.fini_array))
+        KEEP (*(SORT(.fini_array.*)))
+        __fini_array_end = .;
+
+        KEEP (*crtbegin.o(.dtors))
+        KEEP (*(EXCLUDE_FILE (*crtend.o) .dtors))
+        KEEP (*(SORT(.dtors.*)))
+        KEEP (*crtend.o(.dtors))
+
+        . = ALIGN(4);
+        _efixed = .;            /* End of text section */
+    } > FLASH
+
+    /* .ARM.exidx is sorted, so has to go in its own output section.  */
+    PROVIDE_HIDDEN (__exidx_start = .);
+    .ARM.exidx :
+    {
+      *(.ARM.exidx* .gnu.linkonce.armexidx.*)
+    } > FLASH
+    PROVIDE_HIDDEN (__exidx_end = .);
+
+    . = ALIGN(4);
+    _etext = .;
+
+    .relocate : AT (_etext)
+    {
+        . = ALIGN(4);
+        _srelocate = .;
+        _sramfunc = .;
+        *(.ramfunc .ramfunc.*);
+	_eramfunc = .;
+        _sdata = .;
+        *(.data .data.*);
+	_edata = .;
+        . = ALIGN(4);
+        _erelocate = .;
+    } > RAM
+
+    /* .bss section which is used for uninitialized data */
+    .bss (NOLOAD) :
+    {
+        . = ALIGN(4);
+        _sbss = . ;
+	__bss_start__ = . ;
+        _szero = .;
+        *(.bss .bss.*)
+        *(COMMON)
+        . = ALIGN(4);
+        _ebss = . ;
+	__bss_end__ = . ;
+        _ezero = .;
+    } > RAM
+
+    . = . + 1K; /* padding for mpu protection */
+
+    /* stack section */
+    .stack (NOLOAD): AT( _ram_end_ - STACK_SIZE )
+    {
+        . = ALIGN(8);
+        _sstack = .;
+        . = . + STACK_SIZE;
+        . = ALIGN(8);
+        _estack = .;
+    } > RAM
+
+    . = ALIGN(4);
+    _end = . ;
+}

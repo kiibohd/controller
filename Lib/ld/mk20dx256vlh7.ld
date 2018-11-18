@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2014-2016 for use with McHCK and Kiibohd-dfu
+ * Modifications by Jacob Alexander 2014-2018 for use with McHCK and Kiibohd-dfu
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -40,64 +40,5 @@ _app_rom     = ORIGIN( FLASH );
 _app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
 
 /* Section Definitions */
-SECTIONS
-{
-	.text :
-	{
-		. = 0; KEEP(* (.vectors)) /* MUST BE AT 0 */
-		*(.startup*)
-		. = 0x400; KEEP(* (.flashconfig)) /* MUST BE AT 0x400 */
-		*(.text*)
-		*(.rodata*)
-		. = ALIGN(4);
-		KEEP(*(.init))
-	} > FLASH
-
-	.ARM.exidx :
-	{
-		__exidx_start = .;
-		*(.ARM.exidx* .gnu.linkonce.armexidx.*)
-		__exidx_end = .;
-	} > FLASH
-	_etext = .;
-
-	.usbdescriptortable (NOLOAD) : {
-		. = ALIGN(512);
-		*(.usbdescriptortable*)
-	} > RAM
-
-	.dmabuffers (NOLOAD) : {
-		. = ALIGN(4);
-		*(.dmabuffers*)
-	} > RAM
-
-	.usbbuffers (NOLOAD) : {
-		. = ALIGN(4);
-		*(.usbbuffers*)
-	} > RAM
-
-	.data : AT (_etext) {
-		. = ALIGN(4);
-		_sdata = .;
-		*(.data*)
-		. = ALIGN(4);
-		_edata = .;
-	} > RAM
-
-	.noinit (NOLOAD) : {
-		*(.noinit*)
-	} > RAM
-
-	.bss : {
-		. = ALIGN(4);
-		_sbss = .;
-		*(.bss*)
-		*(COMMON)
-		. = ALIGN(4);
-		_ebss = .;
-		__bss_end = .;
-	} > RAM
-
-	_estack = ORIGIN(RAM) + LENGTH(RAM);
-}
+INCLUDE mk.ld
 

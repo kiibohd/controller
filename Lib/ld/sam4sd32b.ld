@@ -46,121 +46,14 @@ MEMORY
 _app_rom     = ORIGIN( FLASH );
 _app_rom_end = ORIGIN( FLASH ) + LENGTH( FLASH );
 
-/* The stack size used by the application. NOTE: you need to adjust according to your application. */
-STACK_SIZE = DEFINED(STACK_SIZE) ? STACK_SIZE : 0x400;
+/* Memmory range for the RAM */
+_ram_start_ = ORIGIN( RAM );
+_ram_end_ = ORIGIN( RAM ) + LENGTH( RAM ) - 1 ;
 
-/* The heapsize used by the application. NOTE: you need to adjust according to your application. */
-HEAP_SIZE = DEFINED(HEAP_SIZE) ? HEAP_SIZE : 0x200;
+/* The stack size used by the application. NOTE: you need to adjust according to your application. */
+STACK_SIZE = DEFINED(STACK_SIZE) ? STACK_SIZE : 0x500;
 
 
 /* Section Definitions */
-SECTIONS
-{
-    .text :
-    {
-        . = ALIGN(4);
-        _sfixed = .;
-        KEEP(*(.vectors .vectors.*))
-	*(.startup*)
-        *(.text .text.* .gnu.linkonce.t.*)
-        *(.glue_7t) *(.glue_7)
-        *(.rodata .rodata* .gnu.linkonce.r.*)
-        *(.ARM.extab* .gnu.linkonce.armextab.*)
+INCLUDE sam4s.ld
 
-        /* Support C constructors, and C destructors in both user code
-           and the C library. This also provides support for C++ code. */
-        . = ALIGN(4);
-        KEEP(*(.init))
-        . = ALIGN(4);
-        __preinit_array_start = .;
-        KEEP (*(.preinit_array))
-        __preinit_array_end = .;
-
-        . = ALIGN(4);
-        __init_array_start = .;
-        KEEP (*(SORT(.init_array.*)))
-        KEEP (*(.init_array))
-        __init_array_end = .;
-
-        . = ALIGN(0x4);
-        KEEP (*crtbegin.o(.ctors))
-        KEEP (*(EXCLUDE_FILE (*crtend.o) .ctors))
-        KEEP (*(SORT(.ctors.*)))
-        KEEP (*crtend.o(.ctors))
-
-        . = ALIGN(4);
-        KEEP(*(.fini))
-
-        . = ALIGN(4);
-        __fini_array_start = .;
-        KEEP (*(.fini_array))
-        KEEP (*(SORT(.fini_array.*)))
-        __fini_array_end = .;
-
-        KEEP (*crtbegin.o(.dtors))
-        KEEP (*(EXCLUDE_FILE (*crtend.o) .dtors))
-        KEEP (*(SORT(.dtors.*)))
-        KEEP (*crtend.o(.dtors))
-
-        . = ALIGN(4);
-        _efixed = .;            /* End of text section */
-    } > FLASH
-
-    /* .ARM.exidx is sorted, so has to go in its own output section.  */
-    PROVIDE_HIDDEN (__exidx_start = .);
-    .ARM.exidx :
-    {
-      *(.ARM.exidx* .gnu.linkonce.armexidx.*)
-    } > FLASH
-    PROVIDE_HIDDEN (__exidx_end = .);
-
-    . = ALIGN(4);
-    _etext = .;
-
-    .relocate : AT (_etext)
-    {
-        . = ALIGN(4);
-        _srelocate = .;
-        *(.ramfunc .ramfunc.*);
-        *(.data .data.*);
-        . = ALIGN(4);
-        _erelocate = .;
-    } > RAM
-
-    /* .bss section which is used for uninitialized data */
-    .bss (NOLOAD) :
-    {
-        . = ALIGN(4);
-        _sbss = . ;
-        _szero = .;
-        *(.bss .bss.*)
-        *(COMMON)
-        . = ALIGN(4);
-        _ebss = . ;
-        _ezero = .;
-    } > RAM
-
-    /* stack section */
-    .stack (NOLOAD):
-    {
-        . = ALIGN(8);
-        _sstack = .;
-        . = . + STACK_SIZE;
-        . = ALIGN(8);
-        _estack = .;
-    } > RAM
-
-    /* heap section */
-    .heap (NOLOAD):
-    {
-        . = ALIGN(8);
-         _sheap = .;
-        . = . + HEAP_SIZE;
-        . = ALIGN(8);
-        _eheap = .;
-    } > RAM
-
-    . = ALIGN(4);
-    _end = . ;
-    _ram_end_ = ORIGIN(RAM) + LENGTH(RAM) -1 ;
-}

@@ -872,6 +872,9 @@ void cliFunc_version( char* args )
 
 void cliFunc_ram( char* args )
 {
+#if defined(_kinetis_) || defined(_host_) || (_nrf_)
+	print("Not implemented");
+#else
 extern uint32_t _sstack, _estack;
 
 	uint32_t *p;
@@ -882,7 +885,7 @@ extern uint32_t _sstack, _estack;
 	uint32_t stack_size = &_estack - &_sstack;
 	uint32_t stack_current = &_estack - (uint32_t*)__get_MSP();
 	uint32_t stack_peak = &_estack - p;
-	
+
 	print( NL );
 	print("stack: ");
 	printHex(stack_size);
@@ -899,7 +902,5 @@ extern uint32_t _sstack, _estack;
 	print(" (");
 	printInt8( 100 * stack_peak / stack_size );
 	print("%)" NL);
-
-	print(NL);
-	print("heap: N/A" NL);
+#endif
 }

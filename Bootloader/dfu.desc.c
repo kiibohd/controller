@@ -110,6 +110,7 @@ static const struct usb_desc_dev_t dfu_device_dev_desc = {
 
 // Enables Microsoft specefic setup requests with bmRequestType set to bMS_VendorCode
 // LanguageID must be 0, not english (0x0409)
+#if defined(_sam_)
 static struct usb_desc_string_t msft_os_str_desc = {
 	.bLength = 18,
 	.bDescriptorType = USB_DESC_STRING,
@@ -118,6 +119,7 @@ static struct usb_desc_string_t msft_os_str_desc = {
 		MS_VENDOR_CODE,				// bMS_VendorCode & bPad
 	}
 };
+#endif
 
 // Microsoft Compatible ID Feature Descriptor ---
 // Requests the given driver if available
