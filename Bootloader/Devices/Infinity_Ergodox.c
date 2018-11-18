@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 by Jacob Alexander
+/* Copyright (C) 2017-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,9 @@
 
 // ----- Includes -----
 
+// Project Includes
+#include <Lib/gpio.h>
+
 // Local Includes
 #include "../device.h"
 #include "../debug.h"
@@ -29,6 +32,15 @@
 // ----- Defines -----
 
 // ----- Variables -----
+
+// Screen PWM
+const GPIO_Pin red_chan_screen = gpio(C,1);
+
+// Esc key strobe (S7)
+const GPIO_Pin strobe_pin = gpio(D,0);
+const GPIO_Pin sense_pin = gpio(D,1);
+
+
 
 // ----- Functions -----
 
@@ -41,25 +53,22 @@ void Device_reset()
 void Device_setup()
 {
 	// Set LCD backlight on ICED to Red
-	GPIOC_PDDR |= (1<<1);
-	PORTC_PCR1 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOC_PCOR |= (1<<1);
+	GPIO_Ctrl( red_chan_screen, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( red_chan_screen, GPIO_Type_DriveHigh, GPIO_Config_None );
 
-	// Setup scanning for S7
-	// Row1
-	GPIOD_PDDR &= ~(1<<1);
-	PORTD_PCR1 = PORT_PCR_PE | PORT_PCR_PFE | PORT_PCR_MUX(1);
-	// Col9
-	GPIOD_PDDR |= (1<<0);
-	PORTD_PCR0 = PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOD_PSOR |= (1<<0);
+	// Cols (strobe)
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveHigh, GPIO_Config_None );
+
+	// Rows (sense)
+	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pullup );
 }
 
 // Called during each loop of the main bootloader sequence
 void Device_process()
 {
 	// Check for S7 being pressed
-	if ( GPIOD_PDIR & (1<<1) )
+	if ( GPIO_Ctrl( sense_pin, GPIO_Type_Read, GPIO_Config_Pullup ) )
 	{
 		print( "Reset key pressed." NL );
 		SOFTWARE_RESET();

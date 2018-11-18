@@ -1,4 +1,4 @@
-/* Copyright (C) 2017 by Jacob Alexander
+/* Copyright (C) 2017-2018 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +23,7 @@
 
 // Project Includes
 #include <Lib/entropy.h>
+#include <Lib/gpio.h>
 
 // Local Includes
 #include "../weak.h"
@@ -35,6 +36,9 @@
 // ----- Defines -----
 
 // ----- Variables -----
+
+// Debug LED
+const GPIO_Pin debug_led = gpio(A,5);
 
 uint32_t Chip_secure1;
 uint32_t Chip_secure2;
@@ -107,10 +111,9 @@ void Chip_reset()
 void Chip_setup()
 {
 	// Enabling LED to indicate we are in the bootloader
-	GPIOA_PDDR |= (1<<5);
 	// Setup pin - A5 - See Lib/pin_map.mchck for more details on pins
-	PORTA_PCR5 = PORT_PCR_SRE | PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOA_PSOR |= (1<<5);
+	GPIO_Ctrl( debug_led, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( debug_led, GPIO_Type_DriveHigh, GPIO_Config_None );
 
 	/*
 	print( "Cur Secure Code - ");

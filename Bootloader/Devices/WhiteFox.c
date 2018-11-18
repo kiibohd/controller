@@ -20,6 +20,9 @@
 
 // ----- Includes -----
 
+// Project Includes
+#include <Lib/gpio.h>
+
 // Local Includes
 #include "../device.h"
 #include "../debug.h"
@@ -29,6 +32,12 @@
 // ----- Defines -----
 
 // ----- Variables -----
+
+// Esc key strobe
+const GPIO_Pin strobe_pin = gpio(B,2);
+const GPIO_Pin sense_pin = gpio(D,0);
+
+
 
 // ----- Functions -----
 
@@ -41,20 +50,19 @@ void Device_reset()
 void Device_setup()
 {
 	// Setup scanning for S1
-	// Row1
-	GPIOD_PDDR &= ~(1<<0);
-	PORTD_PCR0 = PORT_PCR_PE | PORT_PCR_PFE | PORT_PCR_MUX(1);
-	// Col1
-	GPIOB_PDDR |= (1<<2);
-	PORTB_PCR2 = PORT_PCR_DSE | PORT_PCR_MUX(1);
-	GPIOB_PSOR |= (1<<2);
+	// Col 1 (strobe)
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveHigh, GPIO_Config_None );
+
+	// Row 1 (sense)
+	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pullup );
 }
 
 // Called during each loop of the main bootloader sequence
 void Device_process()
 {
-	// Check for S7 being pressed
-	if ( GPIOD_PDIR & (1<<0) )
+	// Check for S1 being pressed
+	if ( GPIO_Ctrl( sense_pin, GPIO_Type_Read, GPIO_Config_Pullup ) )
 	{
 		print( "Reset key pressed." NL );
 		SOFTWARE_RESET();
