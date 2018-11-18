@@ -15,7 +15,7 @@
  */
 
 //
-// WhiteFox
+// Kira
 //
 
 // ----- Includes -----
