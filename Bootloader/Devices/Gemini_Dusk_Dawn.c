@@ -73,7 +73,7 @@ void Device_setup()
 	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveHigh, GPIO_Config_None );
 
 	// Rows (sense)
-	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pullup );
+	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pulldown );
 
 	// PA12 - USB Swap
 	// Start, disabled
@@ -87,12 +87,12 @@ void Device_process()
 	uint8_t cur_btn_state;
 
 	// stray capacitance hack
-	GPIO_Ctrl( sense_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
-	GPIO_Ctrl( sense_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
-	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pullup );
+	GPIO_Ctrl( sense_pin, GPIO_Type_DriveSetup, GPIO_Config_Pulldown );
+	GPIO_Ctrl( sense_pin, GPIO_Type_DriveLow, GPIO_Config_Pulldown );
+	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pulldown );
 
 	// Check for S1 being pressed
-	cur_btn_state = GPIO_Ctrl( sense_pin, GPIO_Type_Read, GPIO_Config_Pullup ) != 0;
+	cur_btn_state = GPIO_Ctrl( sense_pin, GPIO_Type_Read, GPIO_Config_Pulldown ) != 0;
 
 	// Rising edge = press
 	if ( cur_btn_state && !prev_btn_state )

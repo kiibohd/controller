@@ -76,7 +76,7 @@ void Device_setup()
 	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveHigh, GPIO_Config_None );
 
 	// Row 1 (sense)
-	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pullup );
+	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pulldown );
 }
 
 // Called during each loop of the main bootloader sequence
@@ -102,7 +102,7 @@ void Device_process()
 	}
 
 	// Check for S1 being pressed
-	if ( GPIO_Ctrl( sense_pin, GPIO_Type_Read, GPIO_Config_Pullup ) )
+	if ( GPIO_Ctrl( sense_pin, GPIO_Type_Read, GPIO_Config_Pulldown ) )
 	{
 		print( "Reset key pressed." NL );
 		SOFTWARE_RESET();

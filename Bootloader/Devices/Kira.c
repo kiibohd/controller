@@ -55,11 +55,11 @@ void Device_setup()
 	PMC->PMC_PCER0 = (1 << ID_PIOA) | (1 << ID_PIOB);
 
 	// Cols (strobe)
-	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
-	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveHigh, GPIO_Config_Pullup );
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveSetup, GPIO_Config_Pulldown );
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveHigh, GPIO_Config_Pulldown );
 
 	// Rows (sense)
-	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pullup );
+	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pulldown );
 }
 
 // Called during each loop of the main bootloader sequence
@@ -68,12 +68,12 @@ void Device_process()
 	uint8_t cur_btn_state;
 
 	// stray capacitance hack
-	GPIO_Ctrl( sense_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
-	GPIO_Ctrl( sense_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
-	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pullup );
+	GPIO_Ctrl( sense_pin, GPIO_Type_DriveSetup, GPIO_Config_Pulldown );
+	GPIO_Ctrl( sense_pin, GPIO_Type_DriveLow, GPIO_Config_Pulldown );
+	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pulldown );
 
 	// Check for S1 being pressed
-	cur_btn_state = GPIO_Ctrl( sense_pin, GPIO_Type_Read, GPIO_Config_Pullup ) != 0;
+	cur_btn_state = GPIO_Ctrl( sense_pin, GPIO_Type_Read, GPIO_Config_Pulldown ) != 0;
 
 	// Rising edge = press
 	if ( cur_btn_state && !prev_btn_state )
