@@ -55,10 +55,12 @@
 #define ISSI_ConfigPageLength  0x0C
 #define ISSI_LEDControlPage    0x00
 #define ISSI_LEDPwmPage        0x00
-#define ISSI_LEDPwmRegStart    0x24
+#define ISSI_LEDPwmRegStart    0x00
 #define ISSI_PageLength        0xB4
 #define ISSI_SendDelay          200
 #define ISSI_LEDPages            8
+#define ISSI_LEDBlink           18
+#define ISSI_LEDCtrlLength      18
 
 #define ISSI_Ch1 0xE8
 #define ISSI_Ch2 0xEA
@@ -74,10 +76,12 @@
 #define ISSI_ConfigPageLength  0x0C
 #define ISSI_LEDControlPage    0x00
 #define ISSI_LEDPwmPage        0x00
-#define ISSI_LEDPwmRegStart    0x24
+#define ISSI_LEDPwmRegStart    0x00
 #define ISSI_PageLength        0xB4
 #define ISSI_SendDelay          200
 #define ISSI_LEDPages            8
+#define ISSI_LEDBlink           18
+#define ISSI_LEDCtrlLength      18
 
 #define ISSI_Ch1  0xA0
 #define ISSI_Ch2  0xA2
@@ -109,6 +113,8 @@
 #define ISSI_PageLength        0xBF
 #define ISSI_SendDelay          70
 #define ISSI_LEDPages            3
+#define ISSI_LEDBlink            0
+#define ISSI_LEDCtrlLength       0
 
 #define ISSI_Ch1  0xA0
 #define ISSI_Ch2  0xA2
@@ -157,6 +163,8 @@
 typedef struct LED_Buffer {
 	uint16_t i2c_addr;
 	uint16_t reg_addr;
+	uint16_t ledctrl[ISSI_LEDCtrlLength];
+	uint16_t unused[ISSI_LEDBlink];
 	uint16_t buffer[LED_BufferLength];
 } LED_Buffer;
 
@@ -509,10 +517,6 @@ void LED_reset()
 		// POR (Power-on-Reset)
 		// Clears all registers to default value (i.e. zeros)
 		LED_readReg( bus, addr, 0x11, ISSI_ConfigPage );
-#else
-		// Clear LED control pages
-		LED_zeroPages( bus, addr, 0x00, ISSI_LEDPages, 0x00, ISSI_PageLength ); // LED Registers
-#endif
 
 		// Set the enable mask
 		LED_sendPage(
@@ -522,6 +526,16 @@ void LED_reset()
 			sizeof( LED_EnableBuffer ) / 2,
 			0
 		);
+#else
+		// Clear LED control pages
+		LED_zeroPages( bus, addr, 0x00, ISSI_LEDPages, 0x00, ISSI_PageLength ); // LED Registers
+
+		// Copy enable mask to send buffer
+		for ( uint8_t reg = 0; reg < LED_EnableBufferLength; reg++ )
+		{
+			LED_pageBuffer[ ch ].ledctrl[ reg ] =  LED_ledEnableMask[ ch ].buffer[ reg ];
+		}
+#endif
 	}
 
 	// Reset global brightness
@@ -922,6 +936,11 @@ inline void LED_scan()
 #if ISSI_Chip_31FL3731_define == 1
 	for ( uint8_t chip = 0; chip < ISSI_Chips_define; chip++ )
 	{
+		for ( uint8_t ch = 0; ch < LED_EnableBufferLength; ch++ )
+		{
+			LED_pageBuffer_brightness[ chip ].ledctrl[ ch ] = LED_pageBuffer[ chip ].ledctrl[ ch ];
+		}
+
 		for ( uint8_t ch = 0; ch < LED_BufferLength; ch++ )
 		{
 			// Don't modify is 0
@@ -952,15 +971,6 @@ inline void LED_scan()
 			LED_ChannelMapping[ ch ].addr,
 			ISSI_LEDPwmPage
 		);
-
-#if ISSI_Chip_31FL3732_define == 1
-		// Reset LED enable mask
-		// XXX At high speeds, the IS31FL3732 seems to have random bit flips
-		//     To get around this, just re-set the enable mask before each send
-		// XXX Might be sufficient to do this every N frames though
-		while ( i2c_send( bus, (uint16_t*)&LED_ledEnableMask[ ch ], sizeof( LED_EnableBuffer ) / 2 ) == -1 )
-			delay_us( ISSI_SendDelay );
-#endif
 	}
 
 	// Send current set of buffers

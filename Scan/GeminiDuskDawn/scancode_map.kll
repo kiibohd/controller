@@ -279,6 +279,8 @@ LED_BufferStruct = "
 typedef struct LED_Buffer {
 	uint16_t i2c_addr;
 	uint16_t reg_addr;
+	uint16_t ledctrl[0];
+	uint16_t unused[0];
 	uint16_t buffer[192];
 } LED_Buffer;
 volatile LED_Buffer LED_pageBuffer[ ISSI_Chips_define ];
