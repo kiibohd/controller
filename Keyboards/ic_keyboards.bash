@@ -36,6 +36,10 @@ source "common.bash"
 
 # Run test builds
 if [[ "${1}" != "win" ]] && ${EnableHostOnlyBuild}; then
+	# Enable run-time sanitizers
+	export EnableSaniziter=true
+	export CMakeExtraArgs="-DSANITIZER=1"
+
 	# NOTE: Infinity Ergodox is not tested as Interconnect and LCD needs more infrastructure to test
 	cmd "bash ./geminiduskdawn.bash"
 	cmd "bash ./infinity.alphabet.bash"

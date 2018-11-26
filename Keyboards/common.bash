@@ -22,8 +22,12 @@ if $EnableSaniziter; then
 		# It's still recommended to have llvm installed to show backtrace
 		# Leak sanitizer is finding leaks in Python, these are likely bugs but the code we are
 		# testing doesn't actually malloc so it's not a big deal.
+		ASAN_LIB=$(ldconfig -v 2> /dev/null | grep libasan.so | cut -d' ' -f1 | head -1 | xargs)
+		UBSAN_LIB=$(ldconfig -v 2> /dev/null | grep libubsan.so | cut -d' ' -f1 | head -1 | xargs)
 		export ASAN_OPTIONS=detect_leaks=0
-		export LD_PRELOAD=libasan.so:libubsan.so
+		export LD_PRELOAD=${ASAN_LIB}:${UBSAN_LIB}
+		echo "ASAN_OPTIONS -> ${ASAN_OPTIONS}"
+		echo "LD_PRELOAD -> ${LD_PRELOAD}"
 		;;
 	# macOS
 	"darwin"*)
@@ -32,6 +36,7 @@ if $EnableSaniziter; then
 		# This says gcc, but on Darwin, it's actually clang
 		# (specifying clang seems to have problems)
 		export DYLD_INSERT_LIBRARIES=$(gcc -print-resource-dir)/lib/darwin/libclang_rt.asan_osx_dynamic.dylib
+		echo "DYLD_INSERT_LIBRARIES -> ${DYLD_INSERT_LIBRARIES}"
 		;;
 	esac
 fi
