@@ -55,6 +55,10 @@ Chip="host"
 # Compiler Selection
 Compiler="gcc"
 
+# Enable run-time sanitizers
+EnableSaniziter=true
+CMakeExtraArgs="-DSANITIZER=1"
+
 
 
 ########################

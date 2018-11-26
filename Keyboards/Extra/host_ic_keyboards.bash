@@ -8,6 +8,10 @@ export EnableHostOnlyBuild=true
 export BuildPathPrepend="Extra/"
 export CMakeListsPath="../../.."
 
+# Enable run-time sanitizers
+export EnableSaniziter=true
+export CMakeExtraArgs="-DSANITIZER=1"
+
 # Change working directory
 cd ..
 

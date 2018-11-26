@@ -108,6 +108,14 @@ else()
 endif()
 
 
+#| Enabling profiling tools
+if ( DEFINED SANITIZER )
+	message( STATUS "Sanitizers enabled" )
+	# XXX (HaaTa): asan has been useful, tsan isn't useful (no pthreads), usan hasn't shown anything
+	set( TUNING "${TUNING} -D_SANITIZER_=${SANITIZER} -fsanitize=undefined,address -fno-omit-frame-pointer -fno-optimize-sibling-calls" )
+endif ()
+
+
 #| Enable color output with Ninja
 if( CMAKE_GENERATOR STREQUAL "Ninja" )
 	## Clang Compiler

@@ -48,6 +48,29 @@ if $ExitEarly; then
 	exit 1
 fi
 
+# Sanitizer lookup
+if $EnableSaniziter; then
+	case "$OSTYPE" in
+	# Linux
+	"linux-gnu")
+		# TODO (HaaTa) This may not work using clang as the compiler (but it may work ok)
+		# It's still recommended to have llvm installed to show backtrace
+		# Leak sanitizer is finding leaks in Python, these are likely bugs but the code we are
+		# testing doesn't actually malloc so it's not a big deal.
+		export ASAN_OPTIONS=detect_leaks=0
+		export PRELOADED_LIBS=libasan.so:libubsan.so
+		;;
+	# macOS
+	"darwin"*)
+		# TODO (HaaTa) This may possibly point to the wrong clang
+		#              It would be better to get this path directly from CMake
+		# This says gcc, but on Darwin, it's actually clang
+		# (specifying clang seems to have problems)
+		export DYLD_INSERT_LIBRARIES=$(gcc -print-resource-dir)/lib/darwin/libclang_rt.asan_osx_dynamic.dylib
+		;;
+	esac
+fi
+
 # Prepare PartialMaps
 PartialMapsExpanded="${PartialMaps[1]}"
 count=2 # Start the loop at index 2
@@ -321,7 +344,7 @@ if ${EnableHostBuild}; then
 		if [[ -e "$TestPath" ]]; then
 			# Run test
 			echo "Running '$TestPath'..."
-			python3 ./${TestPath}
+			LD_PRELOAD=${PRELOADED_LIBS} python3 ./${TestPath}
 			return_code=$?
 
 			# Results
