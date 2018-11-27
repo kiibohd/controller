@@ -686,7 +686,7 @@ TriggerMacroEval Trigger_evalTriggerMacro( var_uint_t triggerMacroIndex )
 			// If this is the last combo in the sequence, trigger result
 			if ( macro->guide[ pos + comboLength + 1 ] == 0 )
 			{
-				return TriggerMacroEval_DoResult;
+				return TriggerMacroEval_DoResultAndRemove;
 			}
 		}
 		// If ready for transition and in Press state, increment combo position
@@ -696,9 +696,9 @@ TriggerMacroEval Trigger_evalTriggerMacro( var_uint_t triggerMacroIndex )
 
 			// If this is the last combo in the sequence, trigger result
 			// Or, the final release of a sequence
-			if ( macro->guide[ pos + comboLength + 1 ] == 0 || comboLength == 0 )
+			if ( comboLength == 0 || macro->guide[ pos + comboLength + 1 ] == 0 )
 			{
-				return TriggerMacroEval_DoResult;
+				return TriggerMacroEval_DoResultAndRemove;
 			}
 		}
 		// If passing and in Waiting state, set macro state to Press
@@ -710,7 +710,7 @@ TriggerMacroEval Trigger_evalTriggerMacro( var_uint_t triggerMacroIndex )
 			// If this is the last combo in the sequence, trigger result
 			if ( macro->guide[ pos + comboLength + 1 ] == 0 )
 			{
-				return TriggerMacroEval_DoResult;
+				return TriggerMacroEval_DoResultAndRemove;
 			}
 		}
 	}
