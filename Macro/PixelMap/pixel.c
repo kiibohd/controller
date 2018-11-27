@@ -1021,14 +1021,15 @@ uint16_t Pixel_fillPixelLookup(
 	case PixelAddressType_ColumnFill:
 		// Lookup pixel until either, non-0 index or we reached the last row
 		do {
-			// Pixel index
-			index = Pixel_DisplayMapping[ cur * Pixel_DisplayMapping_Cols_KLL + mod->rect.col ];
-
 			// Check if we've processed all rows
 			if ( cur >= Pixel_DisplayMapping_Rows_KLL )
 			{
 				return 0;
 			}
+
+			// Pixel index
+			index = Pixel_DisplayMapping[ cur * Pixel_DisplayMapping_Cols_KLL + mod->rect.col ];
+
 			cur++;
 		} while ( index == 0 );
 
@@ -1045,14 +1046,15 @@ uint16_t Pixel_fillPixelLookup(
 	case PixelAddressType_RowFill:
 		// Lookup pixel until either, non-0 index or we reached the last column
 		do {
-			// Pixel index
-			index = Pixel_DisplayMapping[ mod->rect.row * Pixel_DisplayMapping_Cols_KLL + cur ];
-
 			// Check if we've processed all rows
 			if ( cur >= Pixel_DisplayMapping_Cols_KLL )
 			{
 				return 0;
 			}
+
+			// Pixel index
+			index = Pixel_DisplayMapping[ mod->rect.row * Pixel_DisplayMapping_Cols_KLL + cur ];
+
 			cur++;
 		} while ( index == 0 );
 
@@ -1391,10 +1393,11 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 		PixelElement *elem = 0;
 
 		// Prepare tweened PixelModElement
-		// TODO allow for larger than 24-bit pixels (auto-generate?)
-		uint8_t interp_data[ sizeof( PixelModElement ) + sizeof( PixelModDataElement ) * 3 + 4 * 3 ];
+		// TODO (HaaTa) Allow for smaller bit widths than 8, and sizes larger than 24-bits
+		uint8_t data_size = sizeof( PixelModElement ) + ( sizeof( PixelModDataElement ) + mod_elem->width / 8 ) * mod_elem->channels;
+		uint8_t interp_data[ sizeof( PixelModElement ) + ( sizeof( PixelModDataElement ) + 1 ) * 3 ];
 		PixelModElement *interp_mod = (PixelModElement*)&interp_data;
-		memcpy( interp_mod, mod, sizeof( interp_data ) );
+		memcpy( interp_mod, mod, data_size );
 
 		// Calculate slice mulitplier size
 		// TODO Non-8bit
