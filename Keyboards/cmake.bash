@@ -13,6 +13,7 @@ BuildPath=${BuildPath}.${Compiler}
 EnableHostBuild=${EnableHostBuild:-false}
 EnableHostOnlyBuild=${EnableHostOnlyBuild:-false}
 HostTest=${HostTest:-""}
+EnableSaniziter=${EnableSaniziter:-false}
 
 # Default VID:PIDs
 VENDOR_ID=${VENDOR_ID:-0x1C11}
@@ -46,36 +47,6 @@ fi
 # Error was detected, exit immediately
 if $ExitEarly; then
 	exit 1
-fi
-
-# Sanitizer lookup
-if $EnableSaniziter; then
-	export CMakeExtraArgs="-DSANITIZER=1"
-
-	case "$OSTYPE" in
-	# Linux
-	"linux-gnu")
-		# TODO (HaaTa) This may not work using clang as the compiler (but it may work ok)
-		# It's still recommended to have llvm installed to show backtrace
-		# Leak sanitizer is finding leaks in Python, these are likely bugs but the code we are
-		# testing doesn't actually malloc so it's not a big deal.
-		ASAN_LIB=$(ldconfig -v 2> /dev/null | grep libasan.so | cut -d' ' -f1 | head -1 | xargs)
-		UBSAN_LIB=$(ldconfig -v 2> /dev/null | grep libubsan.so | cut -d' ' -f1 | head -1 | xargs)
-		export ASAN_OPTIONS=detect_leaks=0
-		export PRELOADED_LIBS=${ASAN_LIB}:${UBSAN_LIB}
-		echo "ASAN_OPTIONS -> ${ASAN_OPTIONS}"
-		echo "PRELOADED_LIBS -> ${PRELOADED_LIBS}"
-		;;
-	# macOS
-	"darwin"*)
-		# TODO (HaaTa) This may possibly point to the wrong clang
-		#              It would be better to get this path directly from CMake
-		# This says gcc, but on Darwin, it's actually clang
-		# (specifying clang seems to have problems)
-		export DYLD_INSERT_LIBRARIES=$(gcc -print-resource-dir)/lib/darwin/libclang_rt.asan_osx_dynamic.dylib
-		echo "DYLD_INSERT_LIBRARIES -> ${DYLD_INSERT_LIBRARIES}"
-		;;
-	esac
 fi
 
 # Prepare PartialMaps
@@ -223,6 +194,44 @@ done
 # If EnableHostOnlyBuild is enabled, EnableHostBuild should be set
 if ${EnableHostOnlyBuild}; then
 	EnableHostBuild=true
+	EnableSaniziter=true
+fi
+
+# Sanitizer lookup
+if $TRAVIS; then
+	if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+		export EnableSaniziter=false
+		export CMakeExtraArgs=""
+		echo "macOS builds on Travis-CI don't seem to like the DYLD_INSERT_LIBRARIES preload, disabling sanitization."
+	fi
+fi
+if $EnableSaniziter; then
+	export CMakeExtraArgs="-DSANITIZER=1"
+
+	case "$OSTYPE" in
+	# Linux
+	"linux-gnu")
+		# TODO (HaaTa) This may not work using clang as the compiler (but it may work ok)
+		# It's still recommended to have llvm installed to show backtrace
+		# Leak sanitizer is finding leaks in Python, these are likely bugs but the code we are
+		# testing doesn't actually malloc so it's not a big deal.
+		ASAN_LIB=$(ldconfig -v 2> /dev/null | grep libasan.so | cut -d' ' -f1 | head -1 | xargs)
+		UBSAN_LIB=$(ldconfig -v 2> /dev/null | grep libubsan.so | cut -d' ' -f1 | head -1 | xargs)
+		export ASAN_OPTIONS=detect_leaks=0
+		export PRELOADED_LIBS=${ASAN_LIB}:${UBSAN_LIB}
+		echo "ASAN_OPTIONS -> ${ASAN_OPTIONS}"
+		echo "PRELOADED_LIBS -> ${PRELOADED_LIBS}"
+		;;
+	# macOS
+	"darwin"*)
+		# TODO (HaaTa) This may possibly point to the wrong clang
+		#              It would be better to get this path directly from CMake
+		# This says gcc, but on Darwin, it's actually clang
+		# (specifying clang seems to have problems)
+		export DYLD_INSERT_LIBRARIES=$(gcc -print-resource-dir)/lib/darwin/libclang_rt.asan_osx_dynamic.dylib
+		echo "DYLD_INSERT_LIBRARIES -> ${DYLD_INSERT_LIBRARIES}"
+		;;
+	esac
 fi
 
 

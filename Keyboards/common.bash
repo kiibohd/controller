@@ -14,6 +14,12 @@ COLOR_NORMAL="\e[0m"
 EnableSaniziter=${EnableSaniziter:-false}
 
 # Sanitizer lookup
+if $TRAVIS; then
+	if [ "$TRAVIS_OS_NAME" = "osx" ]; then
+		EnableSaniziter=false
+		echo "macOS builds on Travis-CI don't seem to like the DYLD_INSERT_LIBRARIES preload, disabling sanitization."
+	fi
+fi
 if $EnableSaniziter; then
 	case "$OSTYPE" in
 	# Linux
