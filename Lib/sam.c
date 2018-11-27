@@ -102,27 +102,40 @@ void fault_isr()
 // Stack Overflow Interrupt
 void __stack_chk_fail(void)
 {
-	print("Segfault!" NL );
-#if defined(DEBUG) && defined(JLINK)
-	asm volatile("BKPT #01");
-#else
+	uint32_t sp = __get_MSP();
+	print("Stack overflow!" NL );
+	print(" SP = ");
+	printHex(sp);
+	print(NL NL);
 	fault_isr();
-#endif
 }
-
 
 // Default ISR if not used
 void unused_isr()
 {
-#if defined(DEBUG) && defined(JLINK)
-	/* CHECK IRQn IN GDB */
-	Cortex_IRQ IRQn __attribute__((unused)) = get_current_isr();
-	asm volatile("BKPT #01");
-#else
+	Cortex_IRQ irq = get_current_isr();
+	print("Unhandled ISR!" NL);
+	print(" IRQn = ");
+	printHex(irq);
+	print(NL NL);
 	fault_isr();
-#endif
 }
 
+void __attribute__((naked)) debug_isr ( void ) {
+	STACKED_ISR(hardfault_handler);
+}
+
+void __attribute__((naked)) mpu_isr ( void ) {
+	STACKED_ISR(memfault_handler);
+}
+
+void __attribute__((naked)) bus_isr ( void ) {
+	STACKED_ISR(busfault_handler);
+}
+
+void __attribute__((naked)) usage_isr ( void ) {
+	STACKED_ISR(usagefault_handler);
+}
 
 // NVIC - SysTick ISR
 extern volatile uint32_t systick_millis_count;
@@ -159,9 +172,9 @@ void systick_default_isr()
 /* Cortex-M4 core handlers */
 void NMI_Handler        ( void ) __attribute__ ((weak, alias("unused_isr")));
 void HardFault_Handler  ( void ) __attribute__ ((weak, alias("fault_isr")));
-void MemManage_Handler  ( void ) __attribute__ ((weak, alias("fault_isr")));
-void BusFault_Handler   ( void ) __attribute__ ((weak, alias("fault_isr")));
-void UsageFault_Handler ( void ) __attribute__ ((weak, alias("fault_isr")));
+void MemManage_Handler  ( void ) __attribute__ ((weak, alias("mpu_isr")));
+void BusFault_Handler   ( void ) __attribute__ ((weak, alias("bus_isr")));
+void UsageFault_Handler ( void ) __attribute__ ((weak, alias("usage_isr")));
 void SVC_Handler        ( void ) __attribute__ ((weak, alias("unused_isr")));
 void DebugMon_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
 void PendSV_Handler     ( void ) __attribute__ ((weak, alias("unused_isr")));
@@ -518,14 +531,7 @@ void ResetHandler()
 	/* Disable PMC write protection */
 	//PMC->PMC_WPMR = PMC_WPMR_WPKEY(0x504D43ul) & ~PMC_WPMR_WPEN;
 
-#if defined(DEBUG)
-	disable_write_buffering();
-
-	// Initialize micro-trace buffer
-	//REG_MTB_POSITION = ((uint32_t) (mtb - REG_MTB_BASE)) & 0xFFFFFFF8;
-	//REG_MTB_FLOW = ((uint32_t) mtb + TRACE_BUFFER_SIZE * sizeof(uint32_t)) & 0xFFFFFFF8;
-	//REG_MTB_MASTER = 0x80000000 + 6;
-#endif
+	cm4_init();
 
 	// Default to no access
 	mpu_setup_region(0, &_sfixed,            &_efixed,          MPU_ATTR_FLASH         | MPU_ACCESS_RO_ALL     | 0);

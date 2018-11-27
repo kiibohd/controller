@@ -19,6 +19,12 @@
  * THE SOFTWARE.
  */
 
+#if defined(_bootloader_)
+#include <debug.h>
+#else
+#include <print.h>
+#endif
+
 /**< Interrupt Number Definition */
 typedef enum IRQn
 {
@@ -44,6 +50,31 @@ typedef enum IRQn
 #define __Vendor_SysTickConfig 0      /**< Set to 1 if different SysTick Config is used */
 #include "arm_cortex.h"
 
+void cm4_init() {
+	SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
+	SCB->SHCSR |= SCB_SHCSR_USGFAULTENA_Msk | SCB_SHCSR_BUSFAULTENA_Msk;
+
+#if defined(DEBUG)
+	// Can give more precise busfault addresses
+	disable_write_buffering();
+#endif
+
+#if defined(JLINK)
+	// Break on reset or failed interrupt
+	CoreDebug->DEMCR |= CoreDebug_DEMCR_VC_INTERR_Msk | CoreDebug_DEMCR_VC_CORERESET_Msk;
+
+	// Initialize micro-trace buffer
+	//REG_MTB_POSITION = ((uint32_t) (mtb - REG_MTB_BASE)) & 0xFFFFFFF8;
+	//REG_MTB_FLOW = ((uint32_t) mtb + TRACE_BUFFER_SIZE * sizeof(uint32_t)) & 0xFFFFFFF8;
+	//REG_MTB_MASTER = 0x80000000 + 6;
+#endif
+}
+
+// Causes more BusFaults to be precise (good for debugging)
+void disable_write_buffering() {
+	SCnSCB->ACTLR |= SCnSCB_ACTLR_DISDEFWBUF_Msk;
+}
+
 Cortex_IRQ get_current_isr()
 {
 	uint32_t ipsr;
@@ -52,33 +83,11 @@ Cortex_IRQ get_current_isr()
 	return (Cortex_IRQ) (ipsr & 0xFF);
 }
 
-void __attribute__((naked)) debug_isr ( void ) {
-	__asm volatile(
-		"tst lr, #4\t\n"
-		"ite eq\t\n"
-		"mrseq r0, msp\t\n"
-		"mrsne r0, psp\t\n"
-		"b read_stacked_fault_frame\t\n"
-		: // no output
-		: // no input
-		: "r0" // clobber
-	);
-}
-
-void read_stacked_fault_frame( uint32_t *faultStackedAddress )
+void hardfault_handler( uint32_t *faultStackedAddress )
 {
 	/* These are volatile to try and prevent the compiler/linker optimising them
-	 * away as the variables never actually get used.  If the debugger won't show the
-	 * values of the variables, make them global my moving their declaration outside
-	 * of this function. */
-	volatile uint32_t    r0 __attribute__((unused));
-	volatile uint32_t    r1 __attribute__((unused));
-	volatile uint32_t    r2 __attribute__((unused));
-	volatile uint32_t    r3 __attribute__((unused));
-	volatile uint32_t   r12 __attribute__((unused));
-	volatile uint32_t    lr __attribute__((unused));
-	volatile uint32_t    pc __attribute__((unused));
-	volatile uint32_t   psr __attribute__((unused));
+	 * away as when debugging as the variables never actually get used. */
+	volatile StackFrame_t stack __attribute__((unused));
 	volatile   CFSR_t _CFSR __attribute__((unused));
 	volatile   HFSR_t _HFSR __attribute__((unused));
 	volatile   DFSR_t _DFSR __attribute__((unused));
@@ -86,50 +95,96 @@ void read_stacked_fault_frame( uint32_t *faultStackedAddress )
 	volatile uint32_t _BFAR __attribute__((unused));
 	volatile uint32_t _MMAR __attribute__((unused));
 
-	r0  = faultStackedAddress[ 0 ];
-	r1  = faultStackedAddress[ 1 ];
-	r2  = faultStackedAddress[ 2 ];
-	r3  = faultStackedAddress[ 3 ];
-	r12 = faultStackedAddress[ 4 ];
-	lr  = faultStackedAddress[ 5 ];
-	pc  = faultStackedAddress[ 6 ];
-	psr = faultStackedAddress[ 7 ];
-
-	// Configurable Fault Status Register
-	// Consists of MMSR, BFSR and UFSR
-	_CFSR = (*((volatile CFSR_t *)(0xE000ED28))) ;
-
-	// Hard Fault Status Register
-	_HFSR = (*((volatile HFSR_t *)(0xE000ED2C))) ;
-
-	// Debug Fault Status Register
-	_DFSR = (*((volatile DFSR_t *)(0xE000ED30))) ;
-
-	// Auxiliary Fault Status Register ( Vendor Specific )
-	_AFSR = (*((volatile unsigned long *)(0xE000ED3C))) ;
-
-	// Fault Address Registers. These may not contain valid values.
-	// Check BFARVALID/MMARVALID to see if they are valid values
-
-	// MemManage Fault Address Register
-	_MMAR = (*((volatile unsigned long *)(0xE000ED34))) ;
-	// Bus Fault Address Register
-	_BFAR = (*((volatile unsigned long *)(0xE000ED38))) ;
+	stack = *(StackFrame_t*) faultStackedAddress; // Previous stack frame
+	_CFSR = *CFSR; // Configurable Fault Status Register
+	_HFSR = *HFSR; // Hard Fault Status Register
+	_DFSR = *DFSR; // Debug Fault Status Register
+	_AFSR = SCB->AFSR; // Auxiliary Fault Status Register ( Vendor Specific )
+	_MMAR = SCB->MMFAR; // MemManage Fault Address Register
+	_BFAR = SCB->BFAR; // Bus Fault Address Register
 
 	/* gdb:
 	 *      set output-radix 16
 	 *      info locals
 	 *      x/i _MMAR
 	 *      x/i _BFAR
-	 *      x/i pc
+	 *      x/i stack.pc
 	 */
-	__asm volatile("BKPT #01");
-	for( ;; );
+	fault_isr();
 }
 
-// Causes more BusFaults to be precise (good for debugging)
-void disable_write_buffering() {
-	SCnSCB->ACTLR |= SCnSCB_ACTLR_DISDEFWBUF_Msk;
+void memfault_handler( uint32_t *faultStackedAddress ) {
+	volatile StackFrame_t frame = *(StackFrame_t*) faultStackedAddress;
+	volatile MMFSR_t MMFSR = CFSR->MMFSR;
+	uint32_t MMFAR = SCB->MMFAR;
+	print("MemFault!" NL);
+
+	if (MMFSR.MMARVALID) {
+		print(" Attempt to access address ");
+		printHex32(MMFAR);
+		print(NL);
+	}
+	if (MMFSR.DACCVIOL) {
+		print(" Operation not permitted" NL);
+		print(" PC = ");
+		printHex32(frame.pc);
+		print(NL);
+	}
+	if (MMFSR.IACCVIOL) {
+		print(" Non-executable region" NL);
+		print(" PC = ");
+		printHex32(frame.pc);
+		print(NL);
+	}
+	if (MMFSR.MSTKERR) {
+		print(" Stacking error" NL);
+	}
+
+	fault_isr();
+}
+
+void busfault_handler( uint32_t *faultStackedAddress ) {
+	volatile StackFrame_t frame = *(StackFrame_t*) faultStackedAddress;
+	volatile BFSR_t BFSR = CFSR->BFSR;
+	uint32_t BFAR = SCB->BFAR;
+	print("BusFault!" NL);
+
+	if (BFSR.BFARVALID) {
+		print(" Attempt to access address ");
+		printHex32(BFAR);
+		print(NL);
+	}
+	if (BFSR.PRECISERR) {
+		print(" PC = ");
+		printHex32(frame.pc);
+		print(NL);
+	}
+	if (BFSR.IBUSERR) {
+		print(" Error fetching instruction" NL);
+	}
+	if (BFSR.STKERR) {
+		print(" Stacking error" NL);
+	}
+
+	fault_isr();
+}
+
+void usagefault_handler( uint32_t *faultStackedAddress ) {
+	volatile StackFrame_t frame = *(StackFrame_t*) faultStackedAddress;
+	volatile UFSR_t UFSR = CFSR->UFSR;
+	print("UsageFault!" NL);
+
+	if (UFSR.DIVBYZERO) {
+		print(" Divide by 0" NL);
+		print(" PC = ");
+		printHex32(frame.pc);
+		print(NL);
+	}
+	if (UFSR.UNDEFINSTR) {
+		print(" Undefined instruction" NL);
+	}
+
+	fault_isr();
 }
 
 void mpu_setup_region(uint8_t region, uint32_t *start, uint32_t *end, uint32_t attr) {
@@ -145,5 +200,6 @@ void mpu_setup_region(uint8_t region, uint32_t *start, uint32_t *end, uint32_t a
 
 void mpu_enable() {
 	//MPU->CTRL = MPU_CTRL_PRIVDEFENA_Msk | MPU_CTRL_ENABLE_Msk;
+	SCB->SHCSR |= SCB_SHCSR_MEMFAULTENA_Msk;
 	MPU->CTRL = MPU_CTRL_ENABLE_Msk;
 }

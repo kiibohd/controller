@@ -24,6 +24,7 @@
 // ----- Includes -----
 
 // Compiler Includes
+#include <stdint.h>
 
 // Project Includes
 #include <Lib/mcu_compat.h>

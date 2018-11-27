@@ -28,7 +28,7 @@
 // ----- Defines -----
 
 // Helpers
-#define _STR_HELPER(x)
+#define _STR_HELPER(x) #x
 #define _STR(x) _STR_HELPER(x)
 
 // You can change these to give your code its own name.

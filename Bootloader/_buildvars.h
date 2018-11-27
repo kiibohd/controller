@@ -27,6 +27,10 @@
 
 // ----- Defines -----
 
+// Helpers
+#define _STR_HELPER(x) #x
+#define _STR(x) _STR_HELPER(x)
+
 // You can change these to give your code its own name.
 #define STR_MANUFACTURER        u"@MANUFACTURER@"
 #define STR_PRODUCT             u"@BOOT_PRODUCT_STR@"

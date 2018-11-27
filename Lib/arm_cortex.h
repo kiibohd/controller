@@ -21,19 +21,34 @@
 
 #pragma once
 #include <stdint.h>
+#include <core_cm4.h>
 
 // ----- Defines -----
 
-#include <core_cm4.h>
-
+/* Memory Regions */
 #define PERIPH_START ((uint32_t*)0x40000000)
 #define PERIPH_END   ((uint32_t*)0x40200000)
 
 #define SYSTEM_START ((uint32_t*)0xE0000000)
 #define SYSTEM_END   ((uint32_t*)0xE000F000)
 
-/* MPU Aliases */
+/* Fault Helpers */
+#define CFSR ((CFSR_t*)SCB->CFSR)
+#define HFSR ((HFSR_t*)SCB->HFSR)
+#define DFSR ((DFSR_t*)SCB->DFSR)
 
+// Calls `handler` passing in the location of the stacked fault frame
+#define STACKED_ISR(handler) \
+	__asm volatile( \
+		"tst lr, #4\t\n" \
+		"ite eq\t\n" \
+		"mrseq r0, msp\t\n" \
+		"mrsne r0, psp\t\n" \
+		"b " _STR(handler) "\t\n" \
+		: : : "r0" \
+	);
+
+/* MPU Aliases */
 #define MPU_ATTR_XN     (( 1 << MPU_RASR_XN_Pos) & MPU_RASR_XN_Msk)
 #define MPU_ATTR_AP(ap) ((ap << MPU_RASR_AP_Pos) & MPU_RASR_AP_Msk)
 
@@ -175,6 +190,17 @@ typedef struct __attribute__((packed)) {
 	uint32_t: 28;
 } DFSR_t;
 
+typedef struct __attribute__((packed)) {
+	uint32_t r0;
+	uint32_t r1;
+	uint32_t r2;
+	uint32_t r3;
+	uint32_t r12;
+	uint32_t lr;
+	uint32_t pc;
+	uint32_t xpsr;
+} StackFrame_t;
+
 
 // ----- Variables -----
 
@@ -183,11 +209,16 @@ extern uint32_t _sidata, _sdata, _edata, _sbss, _ebss, _app_rom, _app_rom_end, _
 
 // ----- Functions -----
 
-extern void __attribute__((naked)) debug_isr ( void );
-
-Cortex_IRQ get_current_isr();
-void read_stacked_fault_frame( uint32_t *faultStackedAddress );
+void cm4_init();
 void disable_write_buffering();
+Cortex_IRQ get_current_isr();
+
+// Premade fault handlers
+void hardfault_handler( uint32_t *faultStackedAddress );
+void memfault_handler( uint32_t *faultStackedAddress );
+void busfault_handler( uint32_t *faultStackedAddress );
+void usagefault_handler( uint32_t *faultStackedAddress );
+extern void fault_isr(); // Requires implementation
 
 void mpu_setup_region(uint8_t region, uint32_t *start, uint32_t *end, uint32_t attr);
 void mpu_enable();
