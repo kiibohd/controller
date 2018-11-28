@@ -28,14 +28,14 @@
 
 #define _CONCAT(x,y) _CONCAT1(x,y)
 #define _CONCAT1(x,y) x ## y
-#define _STR(a) #a
+#define _STR_(a) #a
 
 typedef __CHAR16_TYPE__ char16_t;
 
 #define __packed __attribute__((__packed__))
 
 /* From FreeBSD: compile-time asserts */
-#define CTASSERT(x)             _Static_assert(x, _STR(x))
+#define CTASSERT(x)             _Static_assert(x, _STR_(x))
 
 #define CTASSERT_SIZE_BYTE(t, s)     CTASSERT(sizeof(t) == (s))
 #define CTASSERT_SIZE_BIT(t, s)     CTASSERT(sizeof(t) * 8 == (s))

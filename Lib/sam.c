@@ -105,7 +105,11 @@ void __stack_chk_fail(void)
 	uint32_t sp = __get_MSP();
 	print("Stack overflow!" NL );
 	print(" SP = ");
+#if defined(_bootloader_)
 	printHex(sp);
+#else
+	printHex32(sp);
+#endif
 	print(NL NL);
 	fault_isr();
 }
@@ -116,7 +120,11 @@ void unused_isr()
 	Cortex_IRQ irq = get_current_isr();
 	print("Unhandled ISR!" NL);
 	print(" IRQn = ");
+#if defined(_bootloader_)
 	printHex(irq);
+#else
+	printHex32(irq);
+#endif
 	print(NL NL);
 	fault_isr();
 }
