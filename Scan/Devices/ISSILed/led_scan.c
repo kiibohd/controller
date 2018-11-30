@@ -571,8 +571,11 @@ void LED_reset()
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
 
 #if ISSI_Chip_31FL3733_define == 1
-		// Enable master sync for the first chip and disable software shutdown
-		if ( ch == 0 )
+		// Enable master sync for the last chip and disable software shutdown
+		// XXX (HaaTa); The last chip is used as it is the last chip all of the frame data is sent to
+		// This is imporant as it may take more time to send the packet than the ISSI chip can handle
+		// between frames.
+		if ( ch == ISSI_Chips_define - 1 )
 		{
 			LED_writeReg( bus, addr, 0x00, 0x41, ISSI_ConfigPage );
 		}
