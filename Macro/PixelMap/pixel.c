@@ -1377,6 +1377,11 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 		PixelElement *mod_elem = 0;
 		Pixel_fillPixelLookup( mod, &mod_elem, 0, stack_elem, &valid );
 
+		// Data variable for PixelModElement
+		// TODO (HaaTa) Allow for smaller bit widths than 8, and sizes larger than 24-bits
+		const uint8_t data_max_size = sizeof( PixelModElement ) + ( sizeof( PixelModDataElement ) + 1 ) * 3;
+		uint8_t interp_data[ data_max_size ];
+
 		// Make sure mod_elem is pointing to something, if not, this could be a blank
 		// In which case continue to the next definition
 		if ( mod_elem == 0 )
@@ -1393,9 +1398,26 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 		PixelElement *elem = 0;
 
 		// Prepare tweened PixelModElement
-		// TODO (HaaTa) Allow for smaller bit widths than 8, and sizes larger than 24-bits
-		uint8_t data_size = sizeof( PixelModElement ) + ( sizeof( PixelModDataElement ) + mod_elem->width / 8 ) * mod_elem->channels;
-		uint8_t interp_data[ sizeof( PixelModElement ) + ( sizeof( PixelModDataElement ) + 1 ) * 3 ];
+#if Pixel_HardCode_ChanWidth_define != 0 && Pixel_HardCode_Channels_define != 0
+		// More efficient tweening, as we know the number of channels and width at compile time in all cases.
+		uint8_t data_size = (
+			( Pixel_HardCode_ChanWidth_define / 8 + sizeof( PixelChange ) )
+			* Pixel_HardCode_Channels_define
+		) + sizeof( PixelModElement );
+#else
+		uint8_t data_size = prev_elem != 0
+			? sizeof( PixelModElement ) + ( sizeof( PixelModDataElement ) + prev_elem->width / 8 ) * prev_elem->channels
+			: sizeof( PixelModElement ) + ( sizeof( PixelModDataElement ) + mod_elem->width / 8 ) * mod_elem->channels;
+#endif
+		if ( data_size > data_max_size )
+		{
+			warn_msg("Bad data size for this frame: ");
+			printInt8( data_size );
+			print(" instead of ");
+			printInt8( data_max_size );
+			print(NL);
+			data_size = data_max_size;
+		}
 		PixelModElement *interp_mod = (PixelModElement*)&interp_data;
 		memcpy( interp_mod, mod, data_size );
 
