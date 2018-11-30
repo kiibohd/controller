@@ -269,6 +269,8 @@ ISSILedMask2 = "
 ";
 
 
+### Gamma Correction ###
+LEDGamma = 1.0; # Windows defaults to 2.2
 
 ### Pixel Buffer Setup ###
 # Defines channel mappings, changing the order will affect Pixel definitions

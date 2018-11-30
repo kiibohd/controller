@@ -73,8 +73,6 @@ typedef enum PixelTest {
 	PixelTest_XY_Roll,
 } PixelTest;
 
-
-
 // ----- Variables -----
 
 #if Storage_Enable_define == 1
@@ -124,6 +122,10 @@ CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
 	CLIDict_Item( rectDisp ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
+
+// Gamma correction
+extern const uint8_t gamma_table[];
+static bool gamma_enabled = true;
 
 // Debug states
 PixelTest Pixel_testMode;
@@ -187,6 +189,40 @@ AnimationStackElement *Pixel_lookupAnimation( uint16_t index, uint16_t prev );
 
 
 // ----- Capabilities -----
+//
+void Pixel_GammaControl_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Pixel_GammaControl_capability(func)");
+		return;
+	default:
+		return;
+	}
+
+	uint8_t arg  = *(uint8_t*)(&args[0]);
+
+	// Decide how to handle function
+	switch ( arg )
+	{
+	case 0: // Disabled
+		gamma_enabled = false;
+		break;
+	case 1: // Enabled
+		gamma_enabled = true;
+		break;
+	default: // Toggle
+		gamma_enabled = !gamma_enabled;
+		break;
+	}
+}
 
 void Pixel_AnimationIndex_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
@@ -1890,13 +1926,20 @@ void Pixel_SecondaryProcessing()
 					}
 
 					val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+					if (gamma_enabled) {
+						val = gamma_table[val];
+					}
 					val *= profile->pos;
 					val >>= period->end;
 					((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
 					break;
 				// On hold time
 				case PixelPeriodIndex_On:
-					// Do nothing
+					if (gamma_enabled) {
+						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+						val = gamma_table[val];
+						((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
+					}
 					break;
 				// Off hold time
 				case PixelPeriodIndex_Off:
@@ -1915,6 +1958,9 @@ void Pixel_SecondaryProcessing()
 					if ( prev->start != 0 )
 					{
 						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+						if (gamma_enabled) {
+							val = gamma_table[val];
+						}
 						val *= (1 << prev->start) - 1;
 						val >>= prev->end;
 					}

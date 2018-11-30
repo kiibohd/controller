@@ -12,6 +12,13 @@ animation => Pixel_Animation_capability( index : 2, loops : 1, pfunc : 1, divmas
 animationIndex => Pixel_AnimationIndex_capability( settingindex : 2 );
 pixel => Pixel_Pixel_capability();
 
+# Gamma Correction
+# 0 - Disabled
+# 1 - Enabled
+# 2 - Toggle
+gamma => Pixel_GammaControl_capability( func : 1 );
+LEDGamma = 1.0;
+
 # Animation Control
 # 0 - Pause/Resume
 # 1 - ForwardOne
