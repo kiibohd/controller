@@ -1,12 +1,12 @@
 # Kira Base Configuration
 
 Name = Kira;
-Version = 0.6;
+Version = 0.7;
 Author = "HaaTa (Jacob Alexander) 2017-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-11-13;
+Date = 2018-11-29;
 
 
 # Kira
@@ -526,7 +526,7 @@ S[83]    <= x:138.10;  # N
 S[46]    <= x:142.88;  # U
 S[65]    <= x:147.64;  # J
 
-S[ 9,28] <= x:142.4;   # F8, Number 8
+S[ 9,28] <= x:152.4;   # F8, Number 8
 S[84]    <= x:157.16;  # M
 S[47]    <= x:161.93;  # I
 S[66]    <= x:166.69;  # K
