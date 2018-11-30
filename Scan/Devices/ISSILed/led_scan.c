@@ -1064,20 +1064,20 @@ void LED_control( LedControl control, uint8_t arg )
 		return;
 
 	case LedControl_set_fps:
-		LED_displayFPS = (uint32_t)arg;
+		LED_framerate = (uint32_t)arg;
 		return;
 
 	case LedControl_increase_fps:
-		if ( LED_displayFPS < 0xFF )
+		if ( LED_framerate < 0xFF )
 		{
-			LED_displayFPS += arg;
+			LED_framerate += arg;
 		}
 		return;
 
 	case LedControl_decrease_fps:
-		if ( LED_displayFPS > 1 )
+		if ( LED_framerate > 1 )
 		{
-			LED_displayFPS -= arg;
+			LED_framerate -= arg;
 		}
 		return;
 	}

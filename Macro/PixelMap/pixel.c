@@ -2379,8 +2379,9 @@ inline void Pixel_setup()
 	// Disable test modes by default, start at position 0
 	Pixel_testMode = Pixel_Test_Mode_define;
 
-	// Clear animation stack
+	// Clear animation stack and Pixels
 	Pixel_clearAnimations();
+	Pixel_clearPixels();
 
 	// Set default animation control
 	Pixel_animationControl = AnimationControl_Forward;
