@@ -76,6 +76,12 @@ fi
 # Override CMakeLists path
 CMakeListsPath="../../.."
 
+# Not Supported on Cygwin
+if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
+	echo "macrotest.bash is unsupported on Cygwin. As are any host-side kll tests."
+	exit 0
+fi
+
 # Load the library
 source "../cmake.bash"
 
@@ -84,12 +90,6 @@ source "../common.bash"
 
 # Run tests
 cd "${BuildPath}"
-
-# Not Supported on Cygwin
-if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
-	echo "macrotest.bash is unsupported on Cygwin. As are any host-side kll tests."
-	exit 0
-fi
 
 cmd python3 Tests/test.py
 cmd python3 Tests/animation.py
