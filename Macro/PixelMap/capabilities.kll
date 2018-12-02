@@ -16,8 +16,11 @@ pixel => Pixel_Pixel_capability();
 # 0 - Disabled
 # 1 - Enabled
 # 2 - Toggle
+# See: https://github.com/kiibohd/controller/issues/255 for details
 gamma => Pixel_GammaControl_capability( func : 1 );
-LEDGamma = 1.0;
+LEDGamma = 2.2;
+gamma_enabled => Pixel_gamma_default_define;
+gamma_enabled = "0"; # 0 - Disabled, 1 - Enabled
 
 # Animation Control
 # 0 - Pause/Resume

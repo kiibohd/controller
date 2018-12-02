@@ -125,7 +125,7 @@ CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
 
 // Gamma correction
 extern const uint8_t gamma_table[];
-static bool gamma_enabled = true;
+static uint8_t gamma_enabled;
 
 // Debug states
 PixelTest Pixel_testMode;
@@ -213,10 +213,10 @@ void Pixel_GammaControl_capability( TriggerMacro *trigger, uint8_t state, uint8_
 	switch ( arg )
 	{
 	case 0: // Disabled
-		gamma_enabled = false;
+		gamma_enabled = 0;
 		break;
 	case 1: // Enabled
-		gamma_enabled = true;
+		gamma_enabled = 1;
 		break;
 	default: // Toggle
 		gamma_enabled = !gamma_enabled;
@@ -1837,6 +1837,9 @@ void Pixel_SecondaryProcessing_profile_init()
 
 void Pixel_SecondaryProcessing_setup()
 {
+	// Set default gamma setting
+	gamma_enabled = Pixel_gamma_default_define;
+
 	// Disable all fade profiles (active defaults afterwards)
 	memset( Pixel_pixel_fade_profile, 0, Pixel_TotalPixels_KLL );
 

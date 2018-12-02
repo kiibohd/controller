@@ -1,12 +1,12 @@
 # Gemini Dusk/Dawn Base Configuration
 
 Name = GeminiDuskDawn;
-Version = 0.3;
+Version = 0.4;
 Author = "HaaTa (Jacob Alexander) 2015-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-11-14;
+Date = 2018-12-01;
 
 
 # ScanCode Strobe List
@@ -257,6 +257,12 @@ ISSILedMask2 = "
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, /* CS1 -> CS16 (SW5  -> SW8)  */
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, /* CS1 -> CS16 (SW9  -> SW12) */
 ";
+
+
+
+### Gamma Correction ###
+LEDGamma = 2.2; # Windows defaults to 2.2
+gamma_enabled = "0"; # 0 - Disabled, 1 - Enabled
 
 
 

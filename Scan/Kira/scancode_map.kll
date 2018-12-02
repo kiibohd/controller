@@ -1,12 +1,12 @@
 # Kira Base Configuration
 
 Name = Kira;
-Version = 0.7;
+Version = 0.8;
 Author = "HaaTa (Jacob Alexander) 2017-2018";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-11-29;
+Date = 2018-12-01;
 
 
 # Kira
@@ -269,8 +269,12 @@ ISSILedMask2 = "
 ";
 
 
+
 ### Gamma Correction ###
-LEDGamma = 1.0; # Windows defaults to 2.2
+LEDGamma = 2.2; # Windows defaults to 2.2
+gamma_enabled = "0"; # 0 - Disabled, 1 - Enabled
+
+
 
 ### Pixel Buffer Setup ###
 # Defines channel mappings, changing the order will affect Pixel definitions
