@@ -1070,14 +1070,16 @@ void LED_control( LedControl control, uint8_t arg )
 	case LedControl_increase_fps:
 		if ( LED_framerate < 0xFF )
 		{
-			LED_framerate += arg;
+			// Smaller timeout, higher FPS
+			LED_framerate -= arg;
 		}
 		return;
 
 	case LedControl_decrease_fps:
 		if ( LED_framerate > 1 )
 		{
-			LED_framerate -= arg;
+			// Higher timeout, lower FPS
+			LED_framerate += arg;
 		}
 		return;
 	}
