@@ -48,6 +48,7 @@ if [[ "${1}" != "win" ]] && ${EnableHostOnlyBuild}; then
 	fi
 
 	# NOTE: Infinity Ergodox is not tested as Interconnect and LCD needs more infrastructure to test
+	cmd "bash ./60v2.bash"
 	cmd "bash ./geminiduskdawn.bash"
 	cmd "bash ./infinity.alphabet.bash"
 	cmd "bash ./infinity.hacker.bash"
@@ -77,6 +78,7 @@ fi
 
 # Run builds, normal
 if [ "${1}" != "win" ]; then
+	cmd_cpy "bash ./60v2.bash"                     kiibohd.dfu.bin firmware/60v2.dfu.bin
 	cmd_cpy "bash ./ergodox-l.bash"                kiibohd.dfu.bin firmware/ergodox.left.dfu.bin
 	cmd_cpy "bash ./ergodox-r.bash"                kiibohd.dfu.bin firmware/ergodox.right.dfu.bin
 	cmd_cpy "bash ./geminiduskdawn.bash"           kiibohd.dfu.bin firmware/geminiduskdawn.dfu.bin
@@ -105,6 +107,7 @@ if [ "${1}" != "win" ]; then
 else
 	env
 
+	cmd_cpy "bash ./60v2.bash"                     kiibohd.dfu.bin firmware/60v2.dfu.bin
 	cmd_cpy "bash ./geminiduskdawn.bash"           kiibohd.dfu.bin firmware/geminiduskdawn.dfu.bin
 	cmd_cpy "bash ./ergodox-l.bash"                kiibohd.dfu.bin firmware/ergodox.left.dfu.bin
 	cmd_cpy "bash ./ergodox-r.bash"                kiibohd.dfu.bin firmware/ergodox.right.dfu.bin

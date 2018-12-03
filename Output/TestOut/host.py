@@ -224,6 +224,15 @@ class Commands:
         '''
         cast(control.kiibohd.Output_DebugMode, POINTER(c_uint8))[0] = debug
 
+    def setKbdProtocol(self, value):
+        '''
+        Set NKRO or 6KRO mode
+        0 - NKRO Mode
+        1 - 6KRO Mode
+        '''
+        cast(control.kiibohd.USBKeys_Protocol_New, POINTER(c_uint8))[0] = value
+        cast(control.kiibohd.USBKeys_Protocol_Change, POINTER(c_uint8))[0] = 1
+
     def setRawIOLoopback( self, enable=True ):
         '''
         Enable/Disable RawIO loopback

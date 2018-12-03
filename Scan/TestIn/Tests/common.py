@@ -219,6 +219,9 @@ class KLLTest:
 
             ## TODO Run Permutation Start
 
+            # Make sure we're in NKRO mode
+            interface.control.cmd('setKbdProtocol')(1)
+
             # Prepare layer setting
             # Run loop, to make sure layer is engaged already
             interface.control.cmd('lockLayer')(test.layer)
