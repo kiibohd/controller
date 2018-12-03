@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-kll = ">=0.5.6.9"
+kll = ">=0.5.7.1"
 
 [dev-packages]
 
