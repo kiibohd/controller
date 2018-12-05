@@ -107,6 +107,7 @@ cmd_cpy() {
 		rm -f ${3}
 	else
 		# Copy file
+		echo "${src_path}/${2} --> ${3}"
 		cp -f ${src_path}/${2} ${3}
 	fi
 

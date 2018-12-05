@@ -10,6 +10,14 @@
 # Enables host-build tests
 export EnableHostOnlyBuild=${EnableHostOnlyBuild:-false}
 
+# If git tag is set, append to each copied firmware file
+git_tag=${git_tag:-""}
+isuffix=".dfu.bin"
+if [[ "${git_tag}" != "" ]]; then
+	suffix=".${git_tag}${isuffix}"
+else
+	suffix="${isuffix}"
+fi
 
 
 
@@ -78,45 +86,47 @@ fi
 
 # Run builds, normal
 if [ "${1}" != "win" ]; then
-	cmd_cpy "bash ./60v2.bash"                     kiibohd.dfu.bin firmware/60v2.dfu.bin
-	cmd_cpy "bash ./ergodox-l.bash"                kiibohd.dfu.bin firmware/ergodox.left.dfu.bin
-	cmd_cpy "bash ./ergodox-r.bash"                kiibohd.dfu.bin firmware/ergodox.right.dfu.bin
-	cmd_cpy "bash ./geminiduskdawn.bash"           kiibohd.dfu.bin firmware/geminiduskdawn.dfu.bin
-	cmd_cpy "bash ./infinity.alphabet.bash"        kiibohd.dfu.bin firmware/infinity.alphabet.dfu.bin
-	cmd_cpy "bash ./infinity.hacker.bash"          kiibohd.dfu.bin firmware/infinity.hacker.dfu.bin
-	cmd_cpy "bash ./infinity.standard.bash"        kiibohd.dfu.bin firmware/infinity.standard.dfu.bin
-	cmd_cpy "bash ./infinity_led.alphabet.bash"    kiibohd.dfu.bin firmware/infinity_led.alphabet.dfu.bin
-	cmd_cpy "bash ./infinity_led.hacker.bash"      kiibohd.dfu.bin firmware/infinity_led.hacker.dfu.bin
-	cmd_cpy "bash ./infinity_led.standard.bash"    kiibohd.dfu.bin firmware/infinity_led.standard.dfu.bin
-	cmd_cpy "bash ./k-type.bash"                   kiibohd.dfu.bin firmware/k-type.dfu.bin
-	cmd_cpy "bash ./kira.bash"                     kiibohd.dfu.bin firmware/kira.dfu.bin
-	cmd_cpy "bash ./whitefox.aria.bash"            kiibohd.dfu.bin firmware/whitefox.aria.dfu.bin
-	cmd_cpy "bash ./whitefox.iso.bash"             kiibohd.dfu.bin firmware/whitefox.iso.dfu.bin
-	cmd_cpy "bash ./whitefox.jackofalltrades.bash" kiibohd.dfu.bin firmware/whitefox.jackofalltrades.dfu.bin
-	cmd_cpy "bash ./whitefox.truefox.bash"         kiibohd.dfu.bin firmware/whitefox.truefox.dfu.bin
-	cmd_cpy "bash ./whitefox.vanilla.bash"         kiibohd.dfu.bin firmware/whitefox.vanilla.dfu.bin
-	cmd_cpy "bash ./whitefox.winkeyless.bash"      kiibohd.dfu.bin firmware/whitefox.winkeyless.dfu.bin
-	cmd_cpy "bash ./whitefox_sam4s.aria.bash"            kiibohd.dfu.bin firmware/whitefox_sam4s.aria.dfu.bin
-	cmd_cpy "bash ./whitefox_sam4s.iso.bash"             kiibohd.dfu.bin firmware/whitefox_sam4s.iso.dfu.bin
-	cmd_cpy "bash ./whitefox_sam4s.jackofalltrades.bash" kiibohd.dfu.bin firmware/whitefox_sam4s.jackofalltrades.dfu.bin
-	cmd_cpy "bash ./whitefox_sam4s.truefox.bash"         kiibohd.dfu.bin firmware/whitefox_sam4s.truefox.dfu.bin
-	cmd_cpy "bash ./whitefox_sam4s.vanilla.bash"         kiibohd.dfu.bin firmware/whitefox_sam4s.vanilla.dfu.bin
-	cmd_cpy "bash ./whitefox_sam4s.winkeyless.bash"      kiibohd.dfu.bin firmware/whitefox_sam4s.winkeyless.dfu.bin
+	test -d firmware && rm -rf firmware
+	cmd_cpy "bash ./60v2.bash"                     kiibohd${isuffix} firmware/60v2${suffix}
+	cmd_cpy "bash ./ergodox-l.bash"                kiibohd${isuffix} firmware/ergodox.left${suffix}
+	cmd_cpy "bash ./ergodox-r.bash"                kiibohd${isuffix} firmware/ergodox.right${suffix}
+	cmd_cpy "bash ./geminiduskdawn.bash"           kiibohd${isuffix} firmware/geminiduskdawn${suffix}
+	cmd_cpy "bash ./infinity.alphabet.bash"        kiibohd${isuffix} firmware/infinity.alphabet${suffix}
+	cmd_cpy "bash ./infinity.hacker.bash"          kiibohd${isuffix} firmware/infinity.hacker${suffix}
+	cmd_cpy "bash ./infinity.standard.bash"        kiibohd${isuffix} firmware/infinity.standard${suffix}
+	cmd_cpy "bash ./infinity_led.alphabet.bash"    kiibohd${isuffix} firmware/infinity_led.alphabet${suffix}
+	cmd_cpy "bash ./infinity_led.hacker.bash"      kiibohd${isuffix} firmware/infinity_led.hacker${suffix}
+	cmd_cpy "bash ./infinity_led.standard.bash"    kiibohd${isuffix} firmware/infinity_led.standard${suffix}
+	cmd_cpy "bash ./k-type.bash"                   kiibohd${isuffix} firmware/k-type${suffix}
+	cmd_cpy "bash ./kira.bash"                     kiibohd${isuffix} firmware/kira${suffix}
+	cmd_cpy "bash ./whitefox.aria.bash"            kiibohd${isuffix} firmware/whitefox.aria${suffix}
+	cmd_cpy "bash ./whitefox.iso.bash"             kiibohd${isuffix} firmware/whitefox.iso${suffix}
+	cmd_cpy "bash ./whitefox.jackofalltrades.bash" kiibohd${isuffix} firmware/whitefox.jackofalltrades${suffix}
+	cmd_cpy "bash ./whitefox.truefox.bash"         kiibohd${isuffix} firmware/whitefox.truefox${suffix}
+	cmd_cpy "bash ./whitefox.vanilla.bash"         kiibohd${isuffix} firmware/whitefox.vanilla${suffix}
+	cmd_cpy "bash ./whitefox.winkeyless.bash"      kiibohd${isuffix} firmware/whitefox.winkeyless${suffix}
+	cmd_cpy "bash ./whitefox_sam4s.aria.bash"            kiibohd${isuffix} firmware/whitefox_sam4s.aria${suffix}
+	cmd_cpy "bash ./whitefox_sam4s.iso.bash"             kiibohd${isuffix} firmware/whitefox_sam4s.iso${suffix}
+	cmd_cpy "bash ./whitefox_sam4s.jackofalltrades.bash" kiibohd${isuffix} firmware/whitefox_sam4s.jackofalltrades${suffix}
+	cmd_cpy "bash ./whitefox_sam4s.truefox.bash"         kiibohd${isuffix} firmware/whitefox_sam4s.truefox${suffix}
+	cmd_cpy "bash ./whitefox_sam4s.vanilla.bash"         kiibohd${isuffix} firmware/whitefox_sam4s.vanilla${suffix}
+	cmd_cpy "bash ./whitefox_sam4s.winkeyless.bash"      kiibohd${isuffix} firmware/whitefox_sam4s.winkeyless${suffix}
 
 # Windows (no symlinks)
 else
 	env
 
-	cmd_cpy "bash ./60v2.bash"                     kiibohd.dfu.bin firmware/60v2.dfu.bin
-	cmd_cpy "bash ./geminiduskdawn.bash"           kiibohd.dfu.bin firmware/geminiduskdawn.dfu.bin
-	cmd_cpy "bash ./ergodox-l.bash"                kiibohd.dfu.bin firmware/ergodox.left.dfu.bin
-	cmd_cpy "bash ./ergodox-r.bash"                kiibohd.dfu.bin firmware/ergodox.right.dfu.bin
-	cmd_cpy "bash ./infinity.bash"                 kiibohd.dfu.bin firmware/infinity.dfu.bin
-	cmd_cpy "bash ./infinity_led.bash"             kiibohd.dfu.bin firmware/infinity_led.dfu.bin
-	cmd_cpy "bash ./k-type.bash"                   kiibohd.dfu.bin firmware/k-type.dfu.bin
-	cmd_cpy "bash ./kira.bash"                     kiibohd.dfu.bin firmware/kira.dfu.bin
-	cmd_cpy "bash ./whitefox.bash"                 kiibohd.dfu.bin firmware/whitefox.dfu.bin
-	cmd_cpy "bash ./whitefox_sam4s.bash"           kiibohd.dfu.bin firmware/whitefox_sam4s.dfu.bin
+	test -d firmware && rm -rf firmware
+	cmd_cpy "bash ./60v2.bash"                     kiibohd${isuffix} firmware/60v2${suffix}
+	cmd_cpy "bash ./geminiduskdawn.bash"           kiibohd${isuffix} firmware/geminiduskdawn${suffix}
+	cmd_cpy "bash ./ergodox-l.bash"                kiibohd${isuffix} firmware/ergodox.left${suffix}
+	cmd_cpy "bash ./ergodox-r.bash"                kiibohd${isuffix} firmware/ergodox.right${suffix}
+	cmd_cpy "bash ./infinity.bash"                 kiibohd${isuffix} firmware/infinity${suffix}
+	cmd_cpy "bash ./infinity_led.bash"             kiibohd${isuffix} firmware/infinity_led${suffix}
+	cmd_cpy "bash ./k-type.bash"                   kiibohd${isuffix} firmware/k-type${suffix}
+	cmd_cpy "bash ./kira.bash"                     kiibohd${isuffix} firmware/kira${suffix}
+	cmd_cpy "bash ./whitefox.bash"                 kiibohd${isuffix} firmware/whitefox${suffix}
+	cmd_cpy "bash ./whitefox_sam4s.bash"           kiibohd${isuffix} firmware/whitefox_sam4s${suffix}
 fi
 
 # Tally results
