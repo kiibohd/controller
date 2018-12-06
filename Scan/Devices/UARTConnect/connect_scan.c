@@ -340,7 +340,7 @@ void Connect_send_ScanCode( uint8_t id, TriggerEvent *scanCodeStateList, uint8_t
 	Connect_addBytes( header, sizeof( header ), UART_Master );
 
 	// Send each of the scan codes
-	Connect_addBytes( (uint8_t*)scanCodeStateList, numScanCodes * TriggerGuideSize, UART_Master );
+	Connect_addBytes( (uint8_t*)scanCodeStateList, numScanCodes * sizeof( TriggerEvent ), UART_Master );
 
 	// Unlock Tx
 	uart_unlockTx( UART_Master );
@@ -626,7 +626,7 @@ uint8_t Connect_receive_IdReport( uint8_t id, uint16_t *pending_bytes, uint8_t u
 }
 
 // - Scan Code Variables -
-static TriggerGuide Connect_receive_ScanCodeBuffer;
+static TriggerEvent Connect_receive_ScanCodeBuffer;
 static uint8_t Connect_receive_ScanCodeBufferPos;
 static uint8_t Connect_receive_ScanCodeDeviceId;
 
@@ -646,7 +646,7 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 		break;
 
 	case BYTE_COUNT_START - 1: // Number of TriggerGuides in bytes (byte * 3)
-		*pending_bytes = byte * sizeof( TriggerGuide );
+		*pending_bytes = byte * sizeof( TriggerEvent );
 		Connect_receive_ScanCodeBufferPos = 0;
 		break;
 
@@ -656,7 +656,7 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 
 		// Reset the BufferPos if higher than sizeof TriggerGuide
 		// And send the TriggerGuide to the Macro Module
-		if ( Connect_receive_ScanCodeBufferPos >= sizeof( TriggerGuide ) )
+		if ( Connect_receive_ScanCodeBufferPos >= sizeof( TriggerEvent ) )
 		{
 			Connect_receive_ScanCodeBufferPos = 0;
 
@@ -713,7 +713,7 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 		break;
 	}
 	case BYTE_COUNT_START - 1: // Number of TriggerGuides in bytes
-		*pending_bytes = byte * sizeof( TriggerGuide );
+		*pending_bytes = byte * sizeof( TriggerEvent );
 		Connect_receive_ScanCodeBufferPos = 0;
 
 		// Pass through byte
@@ -1340,8 +1340,11 @@ void cliFunc_connectCmd( char* args )
 
 	case ScanCode:
 	{
+		// TODO Fixme
+		/*
 		TriggerEvent scanCodes[] = { { 0x00, 0x01, 0x05 }, { 0x00, 0x03, 0x16 } };
 		Connect_send_ScanCode( 10, scanCodes, 2 );
+		*/
 		break;
 	}
 	case RemoteCapability:

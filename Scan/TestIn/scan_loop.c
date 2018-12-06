@@ -125,13 +125,15 @@ inline void Scan_finishedWithOutput( uint8_t sentKeys )
 int Scan_setTriggerCode( uint8_t index, uint8_t type, uint8_t state )
 {
 	// Add trigger event to macro key buffer
-	TriggerGuide guide = {
-		.type     = type,
-		.state    = state,
-		.scanCode = index,
+	TriggerEvent event = {
+		.type   = type,
+		.state  = state,
+		.index  = index,
+		.time   = Time_now(),
+		.status = TriggerEventStatus_New,
 	};
 
-	return Macro_pressReleaseAdd( &guide );
+	return Macro_pressReleaseAdd( &event );
 }
 
 
@@ -142,13 +144,15 @@ int Scan_setTriggerCode( uint8_t index, uint8_t type, uint8_t state )
 int Scan_addScanCode( uint8_t index, uint8_t type )
 {
 	// Add key event to macro key buffer
-	TriggerGuide guide = {
-		.type     = type,
-		.state    = ScheduleType_P, // Press
-		.scanCode = index,
+	TriggerEvent event = {
+		.type   = type,
+		.state  = ScheduleType_P, // Press
+		.index  = index,
+		.time   = Time_now(),
+		.status = TriggerEventStatus_New,
 	};
 
-	return Macro_pressReleaseAdd( &guide );
+	return Macro_pressReleaseAdd( &event );
 }
 
 
@@ -159,13 +163,15 @@ int Scan_addScanCode( uint8_t index, uint8_t type )
 int Scan_removeScanCode( uint8_t index, uint8_t type )
 {
 	// Add key event to macro key buffer
-	TriggerGuide guide = {
-		.type     = type,
-		.state    = ScheduleType_R, // Release
-		.scanCode = index,
+	TriggerEvent event = {
+		.type   = type,
+		.state  = ScheduleType_R, // Release
+		.index  = index,
+		.time   = Time_now(),
+		.status = TriggerEventStatus_New,
 	};
 
-	return Macro_pressReleaseAdd( &guide );
+	return Macro_pressReleaseAdd( &event );
 }
 
 

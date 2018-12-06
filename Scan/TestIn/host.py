@@ -84,6 +84,35 @@ class ScheduleState:
 
     Debug  = 0xFF # Print capability name
 
+    def name(self, name):
+        '''
+        Converts string name to numerical
+
+        @param name: String name of state
+        '''
+        if isinstance(name, int):
+            return name
+
+        names = {
+            'P' : 0x01,
+            'H' : 0x02,
+            'R' : 0x03,
+            'O' : 0x00,
+            'UP' : 0x04,
+            'UR' : 0x05,
+            'A' : 0x01,
+            'On' : 0x02,
+            'D' : 0x03,
+            'Off' : 0x00,
+            'Done' : 0x06,
+            'Repeat' : 0x07,
+            'Shift' : 0x10,
+            'Latch' : 0x20,
+            'Lock' : 0x40,
+        }
+
+        return names[name]
+
 
 class TriggerType:
     '''

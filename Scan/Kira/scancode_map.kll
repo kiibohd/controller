@@ -8,6 +8,11 @@ Author = "HaaTa (Jacob Alexander) 2017-2019";
 Date = 2019-02-01;
 
 
+# CPU Frequency
+# XXX (HaaTa): Must match compiler defined F_CPU or will not compile
+CPU_Frequency = "120000000";
+
+
 # Kira
 kiraKeyboard => Scan_KiraKeyboard_define;
 kiraKeyboard = "1";

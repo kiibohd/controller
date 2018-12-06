@@ -125,6 +125,9 @@ message ( STATUS "kll Layouts Cache Path: ${kll_cache_path}" )
 
 #| KLL_DEPENDS is used to build a dependency tree for kll.py, this way when files are changed, kll.py gets re-run
 
+#| Add Lib/settings.kll
+set ( Config_Args ${Config_Args} ${PROJECT_SOURCE_DIR}/Lib/settings.kll )
+
 #| Add each of the detected capabilities.kll
 foreach ( filename ${ScanModule_KLL} ${MacroModule_KLL} ${OutputModule_KLL} ${DebugModule_KLL} ${Device_KLL})
 	set ( Config_Args ${Config_Args} ${filename} )

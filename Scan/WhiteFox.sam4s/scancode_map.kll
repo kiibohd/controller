@@ -13,6 +13,11 @@ Date = 2018-11-14;
 #
 
 
+# CPU Frequency
+# XXX (HaaTa): Must match compiler defined F_CPU or will not compile
+CPU_Frequency = "120000000";
+
+
 # ScanCode Strobe List
 # This specified which the column (strobe) GPIOs for the matrix
 # gpio(<label>, <index>)

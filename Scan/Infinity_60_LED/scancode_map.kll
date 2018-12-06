@@ -11,6 +11,11 @@ Date = 2018-11-13;
 # Defines available to the MD1_1 Scan Module
 
 
+# CPU Frequency
+# XXX (HaaTa): Must match compiler defined F_CPU or will not compile
+CPU_Frequency = "72000000";
+
+
 # ScanCode Strobe List
 # This specified which the column (strobe) GPIOs for the matrix
 # gpio(<label>, <index>)

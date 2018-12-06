@@ -25,6 +25,7 @@
 
 // Local Includes
 #include "trigger.h"
+#include "result.h"
 #include "layer.h"
 #include "kll.h"
 
@@ -34,9 +35,12 @@
 
 // Bit positions are important, passes (correct key) always trump incorrect key votes
 typedef enum TriggerMacroVote {
-	TriggerMacroVote_Release          = 0x10, // Correct key
-	TriggerMacroVote_PassRelease      = 0x18, // Correct key (both pass and release)
-	TriggerMacroVote_Pass             = 0x8,  // Correct key
+	TriggerMacroVote_Release          = 0x80, // Correct key
+	TriggerMacroVote_PassRelease      = 0xC0, // Correct key (both pass and release)
+	TriggerMacroVote_Pass             = 0x40, // Correct key
+	TriggerMacroVote_SustainEvent     = 0x20, // Keep event around for the next processing cycle
+	TriggerMacroVote_Reserved2        = 0x10,
+	TriggerMacroVote_Reserved1        = 0x8,
 	TriggerMacroVote_DoNothingRelease = 0x4,  // Incorrect key
 	TriggerMacroVote_DoNothing        = 0x2,  // Incorrect key
 	TriggerMacroVote_Fail             = 0x1,  // Incorrect key
@@ -90,7 +94,8 @@ index_uint_t macroTriggerMacroPendingListSize = 0;
 
 // ----- Protected Macro Functions -----
 
-extern void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro );
+extern uint8_t Macro_scheduleLookup( state_uint_t state, Schedule **schedule );
+extern ScheduleParam Macro_determineGenericTrigger( state_uint_t state );
 
 
 
@@ -179,6 +184,105 @@ uint8_t Trigger_isLongTriggerMacro( const TriggerMacro *macro )
 }
 
 
+// Determine if combo element is state-scheduled
+uint8_t Trigger_isStateScheduled( TriggerGuide *guide )
+{
+	Schedule *schedule = NULL;
+	print(" A ");
+	// If the schedule is invalid, or 0 length, handle as a generic state
+	if ( !Macro_scheduleLookup( guide->state, &schedule ) || schedule->count == 0 )
+	{
+		// Invalid lookup, use generic state
+		return 0;
+	}
+	print(" B ");
+
+	// Generic triggers only contain a single Generic state in the schedule
+	// and may (or may not) have a time scheduled
+	if ( schedule->count == 1 && schedule->params[0].state & ScheduleType_Gen )
+	{
+		switch ( guide->type )
+		{
+		// Normal State Type
+		case TriggerType_Switch1:
+		case TriggerType_Switch2:
+		case TriggerType_Switch3:
+		case TriggerType_Switch4:
+		// LED State Type
+		case TriggerType_LED1:
+		// Layer State Type
+		case TriggerType_Layer1:
+		case TriggerType_Layer2:
+		case TriggerType_Layer3:
+		case TriggerType_Layer4:
+		// Activity State Types
+		case TriggerType_Sleep1:
+		case TriggerType_Resume1:
+		case TriggerType_Inactive1:
+		case TriggerType_Active1:
+		// Animation State Type
+		case TriggerType_Animation1:
+		case TriggerType_Animation2:
+		case TriggerType_Animation3:
+		case TriggerType_Animation4:
+			// Generic state
+			print(" C ");
+			return 0;
+
+		// Analog State Type
+		case TriggerType_Analog1:
+		case TriggerType_Analog2:
+		case TriggerType_Analog3:
+		case TriggerType_Analog4:
+		// Rotation State Type
+		case TriggerType_Rotation1:
+		default:
+			// Should be state scheduled even though state is set to Generic
+			print(" D ");
+			break;
+		}
+	}
+
+	// Otherwise, this guide is state scheduled
+	print(" E ");
+	return 1;
+}
+
+
+// Evaluate timing
+// TODO, be able to mark dual states
+//       - Should evaluate timing after state
+//       - If bad, mask out any pass criteria
+//       - If not set to auto state (guide), long triggers do not fail out immediately
+TriggerMacroVote Trigger_evalTiming( Time elapsed, Time schedule )
+{
+	// Compare times
+	// Not enough time has elapsed
+	if ( Time_compare( schedule, elapsed ) == -1 )
+	{
+		return TriggerMacroVote_Fail;
+	}
+	// Exact, or sufficient time has elapsed
+	return TriggerMacroVote_Pass;
+}
+
+// Handle short trigger PHRO/AODO state transitions
+TriggerMacroVote Trigger_evalShortTriggerMacroVote_PHRO_(
+	ScheduleState in_state,
+	Schedule guide_state
+)
+{
+	// TODO
+	// 1) Use the voting stage to determine the state of the schedule
+	// 2) If a stage has been passed, indicate the new stage
+	// 3) If all stages have been passed, indicate a pass
+	// -- At the end of voting if there
+	// Continued triggers must be claimed each cycle in order to stay around, otherwise they are ejected
+	// Claiming: Continued triggers are run through the layer mapping using the incoming triggers mappings
+	//  - This must be done through the same layer as the incoming trigger mapping (may have to store during the cycle?)
+	return TriggerMacroVote_Pass;
+}
+
 // Handle short trigger PHRO/AODO state transitions
 TriggerMacroVote Trigger_evalShortTriggerMacroVote_PHRO( ScheduleState state )
 {
@@ -221,11 +325,19 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote_DRO( ScheduleState state )
 
 
 // Votes on the given key vs. guide, short macros
-TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, TriggerGuide *guide, TriggerMacroVote *cur_vote )
+TriggerMacroVote Trigger_evalShortTriggerMacroVote(
+	Time *last_event,
+	TriggerEvent *event,
+	TriggerGuide *guide,
+	TriggerMacroVote *cur_vote
+)
 {
 	// Lookup full index
 	var_uint_t guide_index = KLL_TriggerIndex_loopkup( guide->type, guide->scanCode );
 	var_uint_t event_index = KLL_TriggerIndex_loopkup( event->type, event->index );
+
+	// Lookup generic schedule
+	ScheduleParam gen_schedule = Macro_determineGenericTrigger( guide->state );
 
 	// Return value
 	TriggerMacroVote vote = TriggerMacroVote_Invalid;
@@ -257,54 +369,31 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 			guide_index == event_index &&
 			guide->type == event->type &&
 			(
-				(guide->state & 0x70) == (event->state & 0x70) ||
-				(guide->state & 0x70) == 0x00
+				(gen_schedule.state & 0x70) == (event->state & 0x70) ||
+				(gen_schedule.state & 0x70) == 0x00
 			)
 		)
 		{
-			// If this trigger is generic, we can just vote based on the incoming state
-			if ( guide->state & ScheduleType_Gen )
+			// Make sure timing has been satisfied
+			Time elapsed = Time_duration( *last_event );
+			if ( Trigger_evalTiming( elapsed, gen_schedule.time ) == TriggerMacroVote_Pass )
 			{
 				vote = Trigger_evalShortTriggerMacroVote_PHRO( event->state );
 				break;
 			}
 
-			// TODO (HaaTa) Implement state scheduling
-			erro_print("State Scheduling not implemented yet...");
+			// Otherwise do nothing
 		}
 
 		vote = TriggerMacroVote_DoNothing;
 		break;
-
-	/*
-	// LED State Type
-	case TriggerType_LED1:
-		// XXX (HaaTa) This is an initial version of State Scheduling
-		//             For any state match that is not ScheduleType_A, set to ScheduleType_A
-		//             as this will indicate a pulse to the capability.
-		if (
-			guide_index == event_index &&
-			guide->type == event->type
-		)
-		{
-			// When state scheduling is specified
-			// TODO (HaaTa); We should probably move to another state type for "auto" schedule types
-			if ( guide->state == event->state && guide->state != ScheduleType_A )
-			{
-				return Trigger_evalShortTriggerMacroVote_PHRO( ScheduleType_A );
-			}
-			//return Trigger_evalShortTriggerMacroVote_PHRO( event->state );
-		}
-
-		return TriggerMacroVote_DoNothing;
-	*/
 
 	// Analog State Type
 	case TriggerType_Analog1:
 	case TriggerType_Analog2:
 	case TriggerType_Analog3:
 	case TriggerType_Analog4:
-		erro_print("Analog State Type - Not implemented...");
+		erro_print("Analog State Type - Generic not implemented...");
 		break;
 
 	// Animation State Type
@@ -312,38 +401,12 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 	case TriggerType_Animation2:
 	case TriggerType_Animation3:
 	case TriggerType_Animation4:
-		// For short TriggerMacros completely ignore incorrect triggers
-		if (
-			guide_index == event_index &&
-			guide->type == event->type &&
-			guide->state == event->state
-		)
-		{
-			vote = Trigger_evalShortTriggerMacroVote_DRO( event->state );
-			break;
-		}
-
-		vote = TriggerMacroVote_DoNothing;
+		erro_print("Animation State Type - Generic not implemented...");
 		break;
 
 	// Rotation State Type
 	case TriggerType_Rotation1:
-		// Rotation triggers use state as the index, rather than encoding a type of action
-		// There is only "activated" state for rotations, which is only sent once
-		// This makes rotations not so useful for long macros
-		// (though it may be possible to implement it if there is demand)
-		if (
-			guide_index == event_index &&
-			guide->type == event->type &&
-			guide->state == event->state // <== This is the rotation position
-		)
-		{
-			// Only ever "Pressed", other states are not used with rotations
-			vote = Trigger_evalShortTriggerMacroVote_PHRO( ScheduleType_P );
-			break;
-		}
-
-		vote = TriggerMacroVote_DoNothing;
+		erro_print("Rotation State Type - Generic is invalid, this is a bug.");
 		break;
 
 	// Invalid State Type
@@ -448,11 +511,19 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote_DRO( ScheduleState state, uint
 
 // Votes on the given key vs. guide, long macros
 // A long macro is defined as a guide with more than 1 combo
-TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerGuide *guide, TriggerMacroVote *cur_vote )
+TriggerMacroVote Trigger_evalLongTriggerMacroVote(
+	Time *last_event,
+	TriggerEvent *event,
+	TriggerGuide *guide,
+	TriggerMacroVote *cur_vote
+)
 {
 	// Lookup full index
 	var_uint_t guide_index = KLL_TriggerIndex_loopkup( guide->type, guide->scanCode );
 	var_uint_t event_index = KLL_TriggerIndex_loopkup( event->type, event->index );
+
+	// Lookup generic schedule
+	ScheduleParam gen_schedule = Macro_determineGenericTrigger( guide->state );
 
 	// Depending on key type
 	switch ( guide->type )
@@ -482,27 +553,28 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 			guide_index == event_index &&
 			guide->type == event->type &&
 			(
-				(guide->state & 0x70) == (event->state & 0x70) ||
-				(guide->state & 0x70) == 0x00
+				(gen_schedule.state & 0x70) == (event->state & 0x70) ||
+				(gen_schedule.state & 0x70) == 0x00
 			)
 		)
 		{
-			return Trigger_evalLongTriggerMacroVote_PHRO( event->state, 1 );
-		}
-		// Incorrect key
-		else
-		{
-			return Trigger_evalLongTriggerMacroVote_PHRO( event->state, 0 );
+			// Make sure timing has been satisfied
+			Time elapsed = Time_duration( *last_event );
+			if ( Trigger_evalTiming( elapsed, gen_schedule.time ) == TriggerMacroVote_Pass )
+			{
+				return Trigger_evalLongTriggerMacroVote_PHRO( event->state, 1 );
+			}
 		}
 
-		break;
+		// Incorrect key
+		return Trigger_evalLongTriggerMacroVote_PHRO( event->state, 0 );
 
 	// Analog State Type
 	case TriggerType_Analog1:
 	case TriggerType_Analog2:
 	case TriggerType_Analog3:
 	case TriggerType_Analog4:
-		erro_print("Analog State Type - Not implemented...");
+		erro_print("Analog State Type (long) - Generic not implemented...");
 		break;
 
 	// Animation State Type
@@ -510,22 +582,7 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 	case TriggerType_Animation2:
 	case TriggerType_Animation3:
 	case TriggerType_Animation4:
-		// Depending on the state of the buffered key, make voting decision
-		// Correct trigger
-		if (
-			guide_index == event_index &&
-			guide->type == event->type &&
-			guide->state == event->state
-		)
-		{
-			return Trigger_evalLongTriggerMacroVote_DRO( event->state, 1 );
-		}
-		// Incorrect trigger
-		else
-		{
-			return Trigger_evalLongTriggerMacroVote_DRO( event->state, 0 );
-		}
-
+		erro_print("Animation State Type (long) - Generic not implemented...");
 		break;
 
 	// Rotation State Type
@@ -534,8 +591,7 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 		// There is only "activated" state for rotations, which is only sent once
 		// This makes rotations not so useful for long macros
 		// (though it may be possible to implement it if there is demand)
-		// TODO
-		erro_print("Rotation State Type (Long Macros) - Not implemented...");
+		erro_print("Rotation State Type (Long Macros) - Not implemented/Invalid...");
 		break;
 
 	// Invalid State Type
@@ -546,6 +602,126 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 
 	// XXX Shouldn't reach here
 	return TriggerMacroVote_Invalid;
+}
+
+
+// Votes on the given key vs. guide, state scheduled (long or short macro)
+TriggerMacroVote Trigger_evalStateScheduledTriggerMacroVote(
+	Time *last_event,
+	uint8_t *schedule_index,
+	TriggerEvent *event,
+	TriggerGuide *guide,
+	TriggerMacroVote *cur_vote
+)
+{
+	// Lookup full index
+	var_uint_t guide_index = KLL_TriggerIndex_loopkup( guide->type, guide->scanCode );
+	var_uint_t event_index = KLL_TriggerIndex_loopkup( event->type, event->index );
+
+	// Lookup schedule
+	// For state scheduling, the schedule must be valid
+	Schedule *schedule = NULL;
+	if ( !Macro_scheduleLookup( guide->state, &schedule ) )
+	{
+		return TriggerMacroVote_Fail;
+	}
+	ScheduleParam *cur_schedule = &schedule->params[ *schedule_index ];
+
+	// Return value
+	TriggerMacroVote vote = TriggerMacroVote_Invalid;
+
+	// Handle special cases
+	// default handles usual case
+	switch ( guide->type )
+	{
+	// Layer State Type
+	case TriggerType_Layer1:
+	case TriggerType_Layer2:
+	case TriggerType_Layer3:
+	case TriggerType_Layer4:
+		// Match index, type and state
+		// Only monitor 0x70 bits if set in the guide, otherwise ensure they are 0x00
+		// Used for Layer state information
+		if (
+			guide_index == event_index &&
+			guide->type == event->type &&
+			(cur_schedule->state & 0x0F) == (event->state & 0x0F) &&
+			(
+				(cur_schedule->state & 0x70) == (event->state & 0x70) ||
+				(cur_schedule->state & 0x70) == 0x00
+			)
+		)
+		{
+			// Make sure timing has been satisfied
+			// Timing parameter always exists, but it may be set to 0 (where it will always pass)
+			Time elapsed = Time_duration( *last_event );
+			if ( Trigger_evalTiming( elapsed, cur_schedule->time ) == TriggerMacroVote_Pass )
+			{
+				// If this is an old event, update last event
+				(*schedule_index)++;
+
+				// Since this event was valid, indicate that we should sustain the event
+				if ( *schedule_index < schedule->count )
+				{
+					vote = TriggerMacroVote_SustainEvent;
+					break;
+				}
+
+				// Unless this is the final scheduled item, in which case this should be a pass release
+				vote = TriggerMacroVote_PassRelease;
+				break;
+			}
+		}
+
+		// Otherwise, ignore
+		vote = TriggerMacroVote_DoNothing;
+		break;
+
+	// Analog State Type
+	case TriggerType_Analog1:
+	case TriggerType_Analog2:
+	case TriggerType_Analog3:
+	case TriggerType_Analog4:
+		// TODO
+		erro_print("Analog State Type - Not implemented...");
+		break;
+
+	// Default Case
+	default:
+		// Match index, type and state
+		if (
+			guide_index == event_index &&
+			guide->type == event->type &&
+			cur_schedule->state == event->state
+		)
+		{
+			// Make sure timing has been satisfied
+			// Timing parameter always exists, but it may be set to 0 (where it will always pass)
+			Time elapsed = Time_duration( *last_event );
+			if ( Trigger_evalTiming( elapsed, cur_schedule->time ) == TriggerMacroVote_Pass )
+			{
+				// If this is an old event, update last event
+				(*schedule_index)++;
+
+				// Since this event was valid, indicate that we should sustain the event
+				if ( *schedule_index < schedule->count )
+				{
+					vote = TriggerMacroVote_SustainEvent;
+					break;
+				}
+
+				// Unless this is the final scheduled item, in which case this should be a pass release
+				vote = TriggerMacroVote_PassRelease;
+				break;
+			}
+		}
+
+		// Otherwise, ignore
+		vote = TriggerMacroVote_DoNothing;
+		break;
+	}
+
+	return vote;
 }
 
 
@@ -571,6 +747,15 @@ TriggerMacroVote Trigger_overallVote(
 		// Assign TriggerGuide element (key type, state and scancode)
 		TriggerGuide *guide = (TriggerGuide*)(&macro->guide[ comboItem ]);
 
+		// Determine the last event time (starts with trigger macro record)
+		// However, if there is an old event (from a prior periodic loop), then that will take
+		// precedence (override)
+		Time last_event = record->last_pos_event;
+
+		// For state-scheduled elements we'll need to keep track of which schedule element
+		// we're currently processing
+		uint8_t schedule_index = 0;
+
 		TriggerMacroVote vote = TriggerMacroVote_Invalid;
 		// Iterate through the key buffer, comparing to each key in the combo
 		for ( var_uint_t key = 0; key < macroTriggerEventBufferSize; key++ )
@@ -578,10 +763,45 @@ TriggerMacroVote Trigger_overallVote(
 			// Lookup key information
 			TriggerEvent *triggerInfo = &macroTriggerEventBuffer[ key ];
 
+			// Determine if this element is state scheduled
+			if ( Trigger_isStateScheduled( guide ) )
+			{
+				vote |= Trigger_evalStateScheduledTriggerMacroVote(
+					&last_event,
+					&schedule_index,
+					triggerInfo,
+					guide,
+					&overallVote
+				);
+
+				// Check for sustained vote
+				// Used to determine whether an event is sustained
+				if ( vote & TriggerMacroVote_SustainEvent )
+				{
+					// Sustain event
+					triggerInfo->status = TriggerEventStatus_Hold;
+
+					// Sustained vote is cleared after reading
+					vote &= ~(TriggerMacroVote_SustainEvent);
+				}
+				continue;
+			}
+
+			// Otherwise determine what to do based on state and context
 			// Vote on triggers
 			vote |= long_trigger_macro
-				? Trigger_evalLongTriggerMacroVote( triggerInfo, guide, &overallVote )
-				: Trigger_evalShortTriggerMacroVote( triggerInfo, guide, &overallVote );
+				? Trigger_evalLongTriggerMacroVote(
+					&last_event,
+					triggerInfo,
+					guide,
+					&overallVote
+				)
+				: Trigger_evalShortTriggerMacroVote(
+					&last_event,
+					triggerInfo,
+					guide,
+					&overallVote
+				);
 		}
 
 		// Mask out incorrect votes, if anything indicates a pass
@@ -623,6 +843,7 @@ TriggerMacroEval Trigger_evalTriggerMacro( var_uint_t triggerMacroIndex )
 		{
 			record->prevPos = record->pos;
 			record->pos = record->pos + macro->guide[ record->pos ] * TriggerGuideSize + 1;
+			record->last_pos_event = Time_now();
 		}
 
 		// Current Macro position
@@ -641,6 +862,7 @@ TriggerMacroEval Trigger_evalTriggerMacro( var_uint_t triggerMacroIndex )
 
 		// If this is a sequence, and have processed at least one vote already
 		// then we need to keep track of releases
+		// TODO - Different for state scheduling (only for generic triggers)
 		if ( pos != 0 )
 		{
 			overallVote |= Trigger_overallVote( macro, record, long_trigger_macro, record->prevPos );
@@ -748,19 +970,36 @@ TriggerMacroEval Trigger_evalTriggerMacro( var_uint_t triggerMacroIndex )
 		)
 		{
 			record->state = TriggerMacro_Press;
+			print("RIGHTHERE");
 
 			// Long result macro (more than 1 combo)
+			// TODO - If a 1 combo, and 1 element is state-scheduled, also considered a long result macro
 			if ( Trigger_isLongResultMacro( &ResultMacroList[ macro->result ] ) )
 			{
+				print("-FORME");
 				// Only ever trigger result once, on press
 				if ( overallVote == TriggerMacroVote_Pass )
 				{
 					return TriggerMacroEval_DoResultAndRemove;
 				}
 			}
+			// State Scheduled Trigger
+			else if ( Trigger_isStateScheduled( (TriggerGuide*)&macro->guide[1] ) )
+			{
+				print("YSSSSS");
+				// Only ever trigger result once, on press
+				if ( overallVote == TriggerMacroVote_PassRelease )
+				{
+					print("MEEE");
+					return TriggerMacroEval_DoResultAndRemove;
+				}
+			}
+			// State Scheduled Result
+			// TODO
 			// Short result macro
 			else
 			{
+				print("FOR YOU");
 				// Trigger result continuously
 				return TriggerMacroEval_DoResult;
 			}
@@ -768,6 +1007,7 @@ TriggerMacroEval Trigger_evalTriggerMacro( var_uint_t triggerMacroIndex )
 		// Otherwise, just remove the macro on key release
 		else if ( overallVote & TriggerMacroVote_Release )
 		{
+			print("DITSSS");
 			// Long result macro (more than 1 combo) are ignored (only on press)
 			if ( !Trigger_isLongResultMacro( &ResultMacroList[ macro->result ] ) )
 			{
@@ -798,21 +1038,21 @@ void Trigger_updateTriggerMacroPendingList()
 		uint8_t latch_expire = event->state == ScheduleType_R;
 
 		// Lookup Trigger List
-		nat_ptr_t *triggerList = Layer_layerLookup( event, latch_expire );
+		LayerTrigger lookup = Layer_layerLookup( event, latch_expire );
 
 		// If there was an error during lookup, skip
-		if ( triggerList == 0 )
+		if ( lookup.trigger_list == 0 )
 			continue;
 
 		// Number of Triggers in list
-		nat_ptr_t triggerListSize = triggerList[0];
+		nat_ptr_t triggerListSize = lookup.trigger_list[0];
 
 		// Iterate over triggerList to see if any TriggerMacros need to be added
 		// First item is the number of items in the TriggerList
 		for ( var_uint_t macro = 1; macro < triggerListSize + 1; macro++ )
 		{
 			// Lookup trigger macro index
-			var_uint_t triggerMacroIndex = triggerList[ macro ];
+			var_uint_t triggerMacroIndex = lookup.trigger_list[ macro ];
 
 			// Iterate over macroTriggerMacroPendingList to see if any macro in the scancode's
 			//  triggerList needs to be added
@@ -831,9 +1071,11 @@ void Trigger_updateTriggerMacroPendingList()
 				macroTriggerMacroPendingList[ macroTriggerMacroPendingListSize++ ] = triggerMacroIndex;
 
 				// Reset macro position
-				TriggerMacroRecordList[ triggerMacroIndex ].pos     = 0;
-				TriggerMacroRecordList[ triggerMacroIndex ].prevPos = 0;
-				TriggerMacroRecordList[ triggerMacroIndex ].state   = TriggerMacro_Waiting;
+				TriggerMacroRecordList[ triggerMacroIndex ].pos            = 0;
+				TriggerMacroRecordList[ triggerMacroIndex ].prevPos        = 0;
+				TriggerMacroRecordList[ triggerMacroIndex ].state          = TriggerMacro_Waiting;
+				TriggerMacroRecordList[ triggerMacroIndex ].last_pos_event = Time_now();
+				TriggerMacroRecordList[ triggerMacroIndex ].layer          = lookup.layer;
 			}
 		}
 	}
@@ -888,9 +1130,11 @@ void Trigger_setup()
 	// Initialize TriggerMacro states
 	for ( var_uint_t macro = 0; macro < TriggerMacroNum; macro++ )
 	{
-		TriggerMacroRecordList[ macro ].pos     = 0;
-		TriggerMacroRecordList[ macro ].prevPos = 0;
-		TriggerMacroRecordList[ macro ].state   = TriggerMacro_Waiting;
+		TriggerMacroRecordList[ macro ].pos            = 0;
+		TriggerMacroRecordList[ macro ].prevPos        = 0;
+		TriggerMacroRecordList[ macro ].state          = TriggerMacro_Waiting;
+		TriggerMacroRecordList[ macro ].last_pos_event = Time_init();
+		TriggerMacroRecordList[ macro ].layer          = 0;
 	}
 }
 
@@ -930,7 +1174,9 @@ void Trigger_process()
 			}
 			// Append ResultMacro to PendingList
 			Result_appendResultMacroToPendingList(
-				&TriggerMacroList[ cur_macro ]
+				&TriggerMacroList[ cur_macro ],
+				&TriggerMacroRecordList[ cur_macro ],
+				ResultMacroAction_Tracking
 			);
 
 		default:
@@ -949,7 +1195,9 @@ void Trigger_process()
 			}
 			// Append ResultMacro to PendingList
 			Result_appendResultMacroToPendingList(
-				&TriggerMacroList[ cur_macro ]
+				&TriggerMacroList[ cur_macro ],
+				&TriggerMacroRecordList[ cur_macro ],
+				ResultMacroAction_OneShot
 			);
 
 		// Remove Macro from Pending List, nothing to do, removing by default

@@ -716,6 +716,7 @@ class TriggerElem:
         self.parent = parent
         self.elem = elem
         self.schedule = schedule
+        self.iteration = 0
 
     def eval(self):
         '''
@@ -725,12 +726,20 @@ class TriggerElem:
         @return: True if evaluated, False if not.
         '''
         # TODO (HaaTa) Handle scheduling
+        # - Return False to stay at this state
+        # - To evaluate P, send scancode
+        # - To evaluate H, send scancode, then wait
+        # - To evaluate R, release scancode
+        # Compute list of actions using schedule (should be pre-computed)
         import interface as i
         LayerStateType = i.control.scan.LayerStateType
         ScheduleState = i.control.scan.ScheduleState
         TriggerType = i.control.scan.TriggerType
 
         logger.debug("TriggerElem eval {} {}", self.elem, self.schedule)
+        self.iteration += 1
+
+
 
         # Determine which kind trigger element
         # ScanCode
@@ -765,6 +774,7 @@ class TriggerElem:
         else:
             logger.warning("Unknown TriggerElem {}", self.elem)
 
+        self.iteration = 0
         return True
 
     def cleanup(self):
@@ -868,7 +878,7 @@ class ResultElem:
                         new_args.append(arg['value'])
 
                 # If any processing of args was necessary
-                if len(new_args) > 0:
+                if new_args:
                     self.expected_args = new_args
         elif elemtype == 'Animation':
             # Expected arg needs to be looked up for Animations
@@ -912,10 +922,15 @@ class ResultElem:
         import interface as i
         TriggerType = i.control.scan.TriggerType
 
+        logger.info("Name: {}", self.name)
+        logger.info("State: {}", state)
         # Lookup capability history, success if any capabilities match
         match = None
         for cap in i.control.data.capability_history.all():
             data = cap.callbackdata
+            logger.info("Data: {}", data)
+            logger.info(" State: {}", data.state)
+            logger.info(" Name: {}", data.read_capability()[0])
             # Validate state and capability name
             # Rotations use states beyond 0x0F
             if (
@@ -979,11 +994,19 @@ class ResultElem:
 
         @return: True if found, False if not.
         '''
+        import interface as i
+        ScheduleState = i.control.scan.ScheduleState
+
         # TODO (HaaTa) Handle scheduling
-        if len(self.parent.parent.trigger.entry[-1][-1]['schedule']) > 0:
+        if self.parent.parent.trigger.entry[-1][-1]['schedule']:
             state = self.parent.parent.trigger.entry[-1][-1]['schedule'][0]['state']
+            # If no state defined, this is a press
+            if state is None:
+                state = 1
         else:
             state = 1
+
+        state = ScheduleState().name(state)
 
         # Check capability state
         result = self.monitor_state(state)
@@ -1005,22 +1028,20 @@ class ResultElem:
 
         # If not a generic trigger, don't check for cleanup
         trigger = self.parent.parent.trigger.entry[-1][-1]
-        if trigger['type'] == 'GenericTrigger':
+        if len(trigger['schedule']) == 0:
             # If this is a rotation trigger, don't check for cleanup (single-shot)
-            if trigger['idcode'] == TriggerType.Rotation1:
+            if 'idcode' in trigger.keys() and trigger['idcode'] == TriggerType.Rotation1:
                 return True
 
-            # If this is a layer trigger, don't check for clenau
+        # If this is a layer trigger, don't check for cleanup
 
-            # Check capability state
-            result = self.monitor_state(3)
+        # Check capability state
+        result = self.monitor_state(3)
 
-            # Validate capability result cleanup
-            result = result and self.validation.verify(3)
+        # Validate capability result cleanup
+        result = result and self.validation.verify(3)
 
-            return result
-
-        return True
+        return result
 
     def __repr__(self):
         '''

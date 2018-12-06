@@ -110,7 +110,7 @@ typedef struct ScanCodeCommand {
 	Command command;
 	uint8_t id;
 	uint8_t numScanCodes;
-	TriggerGuide firstScanCode[0];
+	TriggerEvent firstScanCode[0];
 } ScanCodeCommand;
 
 // Remote Capability Command

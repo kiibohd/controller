@@ -157,26 +157,33 @@ typedef enum CapabilityState {
 	CapabilityState_Debug   = 0xFF, // Debug trigger
 } CapabilityState;
 
-// Schedule container
+// Schedule parameter container
 // time   - Time constraints for parameter
 //          Set to 0.0 if unused
 // state  - Required state condition
 // analog - Analog threshold condition
 // index  - Used for rotation state
-typedef struct Schedule {
+typedef struct ScheduleParam {
 	Time time; // ms systick + cycletick (e.g. 13.889 ns per tick for 72 MHz)
 	union {
 		ScheduleState state;
 		uint8_t analog;
 		uint8_t index;
 	};
+} ScheduleParam;
+
+// Main schedule container
+// params - Pointer to list of ScheduleParams
+// count  - Number of ScheduleParams
+typedef struct Schedule {
+	ScheduleParam *params;
+	uint8_t count;
 } Schedule;
 
-// TODO Add to KLL, compute based on number of schedules
-#define ScheduleNum_KLL 2
+// Schedule lookup container
 typedef struct ScheduleLookup {
-	Schedule schedule[ ScheduleNum_KLL ];
 	state_uint_t count;
+	Schedule schedule[ ScheduleNum_KLL ];
 } ScheduleLookup;
 
 
@@ -191,10 +198,18 @@ typedef struct ScheduleLookup {
 //
 // ResultMacro.guide -> [<combo length>|<capability index>|<state>|<arg1>|<argn>|<capability index>|...|<combo length>|...|0]
 //
-// ResultMacroRecord.pos       -> <current combo position>
-// ResultMacroRecord.prevPos   -> <previous combo position>
-// ResultMacroRecord.state     -> <last key state>
-// ResultMacroRecord.stateType -> <last key state type>
+// ResultMacroRecord.pos         -> <current combo position>
+// ResultMacroRecord.prevPos     -> <previous combo position>
+// ResultMacroRecord.state       -> <last key state>
+// ResultMacroRecord.stateType   -> <last key state type>
+// ResultMacroRecord.action      -> <action type of result macro>
+// ResultMacroRecord.schedulePos -> <state scheduled position>
+
+typedef enum ResultMacroAction {
+	ResultMacroAction_Tracking = 0, // A new trigger action will be called for each state change
+	ResultMacroAction_OneShot  = 1, // Only a single trigger action will be called
+	                                // The result macro, if necessary, must complete all state changes
+} ResultMacroAction;
 
 // ResultMacro struct, one is created per ResultMacro, no duplicates
 typedef struct ResultMacro {
@@ -202,17 +217,19 @@ typedef struct ResultMacro {
 } ResultMacro;
 
 typedef struct ResultMacroRecord {
-	var_uint_t pos;
-	var_uint_t prevPos;
-	uint8_t  state;
-	uint8_t  stateType;
+	var_uint_t        pos;
+	var_uint_t        prevPos;
+	uint8_t           state;
+	uint8_t           stateType;
+	ResultMacroAction action;
+	uint8_t           schedulePos;
 } ResultMacroRecord;
 
 // Guide, key element
 #define ResultGuideSize( guidePtr ) sizeof( ResultGuide ) - 1 + CapabilitiesList[ (guidePtr)->index ].argCount
 typedef struct ResultGuide {
 	uint8_t      index;
-	//state_uint_t state; // TODO
+	state_uint_t state;
 	uint8_t      args; // This is used as an array pointer (but for packing purposes, must be 8 bit)
 } ResultGuide;
 
@@ -300,16 +317,32 @@ typedef enum TriggerMacroState {
 	                                 // Used during sequence macros
 } TriggerMacroState;
 
+// TriggerEvent Status
+typedef enum TriggerEventStatus {
+	TriggerEventStatus_New  = 0x0, // Event generate within the current cycle
+	TriggerEventStatus_Hold = 0x1, // Maintain event for next cycle
+	TriggerEventStatus_Old  = 0x2, // Event from a previous cycle, eject unless it can be maintained
+} TriggerEventStatus;
+
+// TriggerMacroType
+typedef enum TriggerMacroType {
+	TriggerMacroType_Default  = 0x0, // Default macro type
+	TriggerMacroType_Isolated = 0x1, // Isolated macro, takes precedence over (and cancels) default macros
+} TriggerMacroType;
+
 // TriggerMacro struct, one is created per TriggerMacro, no duplicates
 typedef struct TriggerMacro {
-	const uint8_t *guide;
-	const var_uint_t result;
+	const uint8_t         *guide;
+	const var_uint_t       result;
+	const TriggerMacroType type;
 } TriggerMacro;
 
 typedef struct TriggerMacroRecord {
-	var_uint_t pos;
-	var_uint_t prevPos;
+	var_uint_t        pos;
+	var_uint_t        prevPos;
 	TriggerMacroState state;
+	Time              last_pos_event; // Updated whenever pos is updated
+	uint16_t          layer;
 } TriggerMacroRecord;
 
 // Guide, key element
@@ -323,9 +356,11 @@ typedef struct TriggerGuide {
 
 // Used for incoming Trigger events
 typedef struct TriggerEvent {
-	TriggerType   type;
-	state_uint_t  state;
-	uint8_t       index;
+	TriggerType        type;   // Type of trigger
+	state_uint_t       state;  // Incoming trigger state
+	uint8_t            index;  // Index mapping of the trigger (uid)
+	Time               time;   // When trigger event was generated
+	TriggerEventStatus status; // Status of trigger event
 } TriggerEvent;
 
 extern var_uint_t KLL_TriggerIndex_loopkup( TriggerType type, uint8_t index );
@@ -336,9 +371,12 @@ extern var_uint_t KLL_TriggerIndex_loopkup( TriggerType type, uint8_t index );
 
 // Result pending list struct
 typedef struct ResultPendingElem {
-	TriggerMacro     *trigger;
-	index_uint_t      index;
-	ResultMacroRecord record;
+	TriggerMacro     *trigger;      // Source trigger
+	index_uint_t      index;        // Source index of trigger
+	ResultMacroRecord record;       // Result status
+	TriggerMacroType  trigger_type; // Trigger expression type
+	uint16_t          layer;        // Source layer trigger came from
+	                                // This is the expression layer, not the "top" layer
 } ResultPendingElem;
 
 // Results Pending - Ring-buffer definition
@@ -401,7 +439,7 @@ typedef struct Capability {
 //  * index   - Trigger Macro index number
 //  * result  - Result Macro index number which is triggered by this Trigger Macro
 #define Guide_TM( index ) const uint8_t tm##index##_guide[]
-#define Define_TM( index, result ) { tm##index##_guide, result }
+#define Define_TM( index, result, type ) { tm##index##_guide, result, type }
 
 
 // -- Trigger Macro List

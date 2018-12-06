@@ -7,6 +7,11 @@ Author = "HaaTa (Jacob Alexander) 2016-2018";
 Date = 2018-10-11;
 
 
+# CPU Frequency
+# XXX (HaaTa): Must match compiler defined F_CPU or will not compile
+CPU_Frequency = "120000000";
+
+
 # Function Row
 S0x01 : U"Esc";
 S0x02 : U"F1";

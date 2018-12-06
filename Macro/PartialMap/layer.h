@@ -26,11 +26,20 @@
 
 
 
+// ----- Structs -----
+
+typedef struct LayerTrigger {
+	nat_ptr_t *trigger_list;
+	uint16_t   layer;
+} LayerTrigger;
+
+
+
 // ----- Functions -----
 
 void Layer_setup();
 void Layer_clearLayers();
 index_uint_t Layer_topActive();
 
-nat_ptr_t *Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire );
+LayerTrigger Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire );
 

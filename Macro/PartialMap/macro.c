@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2018 by Jacob Alexander
+/* Copyright (C) 2014-2019 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -45,6 +45,11 @@
 #include "trigger.h"
 #include "result.h"
 #include "macro.h"
+
+// CPU Frequency must match
+#if CPU_Frequency_define != F_CPU && !defined(_host_)
+#warning "CPU_Frequency (kll) must match F_CPU (cmake)"
+#endif
 
 
 
@@ -146,7 +151,8 @@ static uint8_t macroLatencyResource;
 
 
 // Incoming Trigger Event Buffer
-TriggerEvent macroTriggerEventBuffer[ MaxScanCode_KLL + 1 ];
+#define MaxTriggerEventBufferSize MaxScanCode_KLL + 1
+TriggerEvent macroTriggerEventBuffer[ MaxTriggerEventBufferSize ];
 var_uint_t macroTriggerEventBufferSize;
 
 extern ResultsPending macroResultMacroPendingList;
@@ -346,7 +352,7 @@ void Macro_showScheduleType( ScheduleState state )
 }
 
 // Shows a Schedule
-void Macro_showSchedule( Schedule *param, uint8_t analog )
+void Macro_showScheduleParam( ScheduleParam *param, uint8_t analog )
 {
 	// Analog
 	if ( analog )
@@ -364,6 +370,20 @@ void Macro_showSchedule( Schedule *param, uint8_t analog )
 	printInt32( param->time.ms );
 	print(".");
 	printInt32( param->time.ticks );
+}
+
+// Shows a Schedule
+void Macro_showSchedule( Schedule *schedule, uint8_t analog )
+{
+	// Show first element
+	Macro_showScheduleParam( &schedule->params[0], analog );
+
+	// Iterate over each additional parameter of the schedule
+	for ( uint8_t c = 1; c < schedule->count; c++ )
+	{
+		print(",");
+		Macro_showScheduleParam( &schedule->params[c], analog );
+	}
 }
 
 // Shows a TriggerType
@@ -587,6 +607,25 @@ uint8_t Macro_pressReleaseAdd( void *trigger_ptr )
 }
 #endif
 
+// Convenience function to add to macroTriggerEventBuffer
+void Macro_add_event( TriggerType type, uint8_t state, uint8_t index )
+{
+	if ( macroTriggerEventBufferSize >= MaxTriggerEventBufferSize )
+	{
+		warn_print("Exceeding maximum number of trigger events... ");
+		printInt32( macroTriggerEventBufferSize );
+		print(NL);
+		return;
+	}
+
+	TriggerEvent *event = &macroTriggerEventBuffer[ macroTriggerEventBufferSize++ ];
+	event->index  = index;
+	event->state  = state;
+	event->type   = type;
+	event->time   = Time_now();
+	event->status = TriggerEventStatus_New;
+}
+
 
 // Update the scancode key state
 // States:
@@ -651,10 +690,8 @@ void Macro_keyState( uint16_t scanCode, uint8_t state )
 			type = TriggerType_Switch4;
 		}
 
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].index = index;
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].state = state;
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].type  = type;
-		macroTriggerEventBufferSize++;
+		// Add event
+		Macro_add_event( type, state, index );
 		break;
 	}
 }
@@ -696,10 +733,8 @@ void Macro_analogState( uint16_t scanCode, uint8_t state )
 		type = TriggerType_Analog4;
 	}
 
-	macroTriggerEventBuffer[ macroTriggerEventBufferSize ].index = index;
-	macroTriggerEventBuffer[ macroTriggerEventBufferSize ].state = state;
-	macroTriggerEventBuffer[ macroTriggerEventBufferSize ].type  = type;
-	macroTriggerEventBufferSize++;
+	// Add event
+	Macro_add_event( type, state, index );
 }
 
 
@@ -721,10 +756,8 @@ void Macro_ledState( uint16_t ledCode, uint8_t state )
 	case ScheduleType_A:  // Activate
 	case ScheduleType_On: // On
 	case ScheduleType_D:  // Deactivate
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].index = index;
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].state = state;
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].type  = type;
-		macroTriggerEventBufferSize++;
+		// Add event
+		Macro_add_event( type, state, index );
 		break;
 	}
 }
@@ -776,10 +809,8 @@ void Macro_animationState( uint16_t animationIndex, uint8_t state )
 			type = TriggerType_Animation4;
 		}
 
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].index = index;
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].state = state;
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].type  = type;
-		macroTriggerEventBufferSize++;
+		// Add event
+		Macro_add_event( type, state, index );
 		break;
 	}
 }
@@ -834,10 +865,8 @@ void Macro_layerState( uint16_t layerIndex, uint8_t state )
 			type = TriggerType_Layer4;
 		}
 
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].index = index;
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].state = state;
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].type  = type;
-		macroTriggerEventBufferSize++;
+		// Add event
+		Macro_add_event( type, state, index );
 		break;
 	}
 }
@@ -886,10 +915,8 @@ void Macro_timeState( uint8_t type, uint16_t cur_time, uint8_t state )
 	case ScheduleType_A:  // Activate
 	case ScheduleType_On: // On
 	case ScheduleType_D:  // Deactivate
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].index = index;
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].state = state;
-		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].type  = type;
-		macroTriggerEventBufferSize++;
+		// Add event
+		Macro_add_event( type, state, index );
 		break;
 	}
 }
@@ -945,10 +972,7 @@ void Macro_rotationState( uint8_t index, int8_t increment )
 	Macro_rotation_store[index] = position;
 
 	// Queue event
-	macroTriggerEventBuffer[ macroTriggerEventBufferSize ].index = index;
-	macroTriggerEventBuffer[ macroTriggerEventBufferSize ].state = position;
-	macroTriggerEventBuffer[ macroTriggerEventBufferSize ].type  = type;
-	macroTriggerEventBufferSize++;
+	Macro_add_event( type, type, index );
 }
 
 
@@ -992,6 +1016,77 @@ uint8_t Macro_tick_update( TickStore *store, uint8_t type )
 
 done:
 	return signal_sent;
+}
+
+
+// Reset trigger list event buffer
+// Used maintain events that will be used on the next cycle
+// And remove the ones that will not be
+void Macro_resetTriggerEvents()
+{
+	// Iterate over event buffer looking for status field being set to Hold
+	// If set to hold pack stack, overwriting events that should be ejected
+	var_uint_t new_packing_index = 0;
+	for ( var_uint_t event = 0; event < macroTriggerEventBufferSize; event++ )
+	{
+		// Check for Hold status
+		if ( macroTriggerEventBuffer[ event ].status == TriggerEventStatus_Hold )
+		{
+			// Make sure we're not already in the correct packing position
+			if ( event != new_packing_index )
+			{
+				macroTriggerEventBuffer[ new_packing_index ] = macroTriggerEventBuffer[ event ];
+			}
+
+			// Increment packing index
+			new_packing_index++;
+		}
+	}
+
+	// Set the new buffer size
+	macroTriggerEventBufferSize = new_packing_index;;
+}
+
+
+// Schedule Lookup
+// Returns 0 if lookup is invalid
+// Returns 1 if lookup is valid
+uint8_t Macro_scheduleLookup( state_uint_t state, Schedule **schedule )
+{
+	// Make sure this lookup is valid
+	if ( state >= ScheduleLookupTable.count )
+	{
+		warn_print("Invalid schedule lookup: ");
+		printInt32( state );
+		print(NL);
+		return 0;
+	}
+
+	*schedule = (Schedule*)&ScheduleLookupTable.schedule[ state ];
+	return 1;
+}
+
+
+// Determine generic trigger
+// Query for generic trigger parameters
+// - Layer flags
+// - Timing
+// When not found, use a plain generic trigger
+// Always a single element state schedule, so there's no need to pass an index
+ScheduleParam Macro_determineGenericTrigger( state_uint_t state )
+{
+	ScheduleParam param = { .state = ScheduleType_Gen };
+
+	// Lookup schedule
+	Schedule *schedule = NULL;
+	if ( Macro_scheduleLookup( state, &schedule ) )
+	{
+		// Update parameter
+		param.state = schedule->params[0].state;
+		param.time = schedule->params[0].time;
+	}
+
+	return param;
 }
 
 
@@ -1144,7 +1239,7 @@ void Macro_periodic()
 	var_uint_t macroTriggerEventBufferSize_processed = macroTriggerEventBufferSize;
 
 	// Reset TriggerList buffer
-	macroTriggerEventBufferSize = 0;
+	Macro_resetTriggerEvents();
 
 
 	// Process result macros

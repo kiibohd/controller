@@ -21,6 +21,9 @@
 // Compiler Includes
 #include <stdint.h>
 
+// Local Includes
+#include "kll.h"
+
 
 
 // ----- Functions -----
@@ -32,4 +35,6 @@ void Result_add( uint32_t result );
 void Result_process();
 void Result_process_delayed();
 void Result_setup();
+
+void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro, TriggerMacroRecord *triggerRecord, ResultMacroAction action );
 

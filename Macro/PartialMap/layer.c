@@ -34,6 +34,7 @@
 
 // Local Includes
 #include "kll.h"
+#include "layer.h"
 #include "trigger.h"
 
 
@@ -448,7 +449,8 @@ void Layer_setup()
 
 // Looks up the trigger list for the given scan code (from the active layer)
 // NOTE: Calling function must handle the NULL pointer case
-nat_ptr_t *Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire )
+// TODO Return struct with pointer and layer it is found on
+LayerTrigger Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 {
 	uint8_t index = event->index;
 
@@ -497,7 +499,11 @@ nat_ptr_t *Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 #endif
 		}
 
-		return trigger_list;
+		LayerTrigger output = {
+			.trigger_list = trigger_list,
+			.layer = cachedLayer,
+		};
+		return output;
 	}
 
 	// If no trigger macro is defined at the given layer, fallthrough to the next layer
@@ -517,18 +523,19 @@ nat_ptr_t *Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 		}
 
 		// Lookup Layer
-		const Layer *layer = &LayerIndex[ macroLayerIndexStack[ layerIndex ] ];
+		index_uint_t layer_pos = macroLayerIndexStack[ layerIndex ];
+		const Layer *layer = &LayerIndex[ layer_pos ];
 
 		// Lookup each of the states
-		uint8_t shift = LayerState[ macroLayerIndexStack[ layerIndex ] ] & LayerStateType_Shift;
-		uint8_t latch = LayerState[ macroLayerIndexStack[ layerIndex ] ] & LayerStateType_Latch;
-		uint8_t lock = LayerState[ macroLayerIndexStack[ layerIndex ] ] & LayerStateType_Lock;
+		uint8_t shift = LayerState[ layer_pos ] & LayerStateType_Shift;
+		uint8_t latch = LayerState[ layer_pos ] & LayerStateType_Latch;
+		uint8_t lock = LayerState[ layer_pos ] & LayerStateType_Lock;
 
 		// Check if latch has been pressed for this layer
 		// XXX Regardless of whether a key is found, the latch is removed on first lookup
 		if ( latch && latch_expire )
 		{
-			Layer_layerStateSet( 0, 0, 0, macroLayerIndexStack[ layerIndex ], LayerStateType_Latch );
+			Layer_layerStateSet( 0, 0, 0, layer_pos, LayerStateType_Latch );
 		}
 
 		// Only use layer, if state is valid
@@ -547,9 +554,13 @@ nat_ptr_t *Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 				&& *map[ index - layer->first ] != 0 )
 			{
 				// Set the layer cache
-				macroTriggerEventLayerCache[ index ] = macroLayerIndexStack[ layerIndex ];
+				macroTriggerEventLayerCache[ index ] = layer_pos;
 
-				return map[ index - layer->first ];
+				LayerTrigger output = {
+					.trigger_list = map[ index - layer->first ],
+					.layer = layer_pos,
+				};
+				return output;
 			}
 		}
 	}
@@ -569,12 +580,20 @@ nat_ptr_t *Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 		// Set the layer cache to default map
 		macroTriggerEventLayerCache[ index ] = 0;
 
-		return map[ index - layer->first ];
+		LayerTrigger output = {
+			.trigger_list = map[ index - layer->first ],
+			.layer = 0,
+		};
+		return output;
 	}
 
 	// Otherwise no defined Trigger Macro
 	// Just ignore it
-	return 0;
+	LayerTrigger output = {
+		.trigger_list = 0,
+		.layer = 0,
+	};
+	return output;
 }
 
 // Layer active at top of the stack

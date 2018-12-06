@@ -96,7 +96,7 @@ extern int Output_callback( char* command, char* args );
 #endif
 
 
-void Result_evalResultMacroCombo(
+uint8_t Result_evalResultMacroCombo(
 	ResultPendingElem *resultElem,
 	const ResultMacro *macro,
 	ResultMacroRecord *record,
@@ -110,11 +110,35 @@ void Result_evalResultMacroCombo(
 	uint8_t pos = *comboItem - 1;
 	uint8_t comboLength = macro->guide[ pos ];
 
+	// Further state processing required for this combo
+	uint8_t further_state = 0;
+	uint8_t record_state = record->state;
+
+	// TODO State Scheduling
+	// In the case of state scheduling, single shot actions may only require a single iteration
+	// Generic schedules will require at least 2
+	// XXX This code will not work for state scheduling
+	if ( record->action == ResultMacroAction_OneShot )
+	{
+		if ( record->schedulePos == 0 )
+		{
+			further_state = 1;
+		}
+		if ( record->schedulePos == 1 )
+		{
+			record_state = ScheduleType_R;
+		}
+	}
+
 	// Iterate through the Result Combo
 	while ( funcCount < comboLength )
 	{
 		// Assign TriggerGuide element (key type, state and scancode)
 		ResultGuide *guide = (ResultGuide*)(&macro->guide[ *comboItem ]);
+
+		// TODO
+		// Determine state scheduled position
+		// Evaluate if state can be scheduled
 
 		// Determine if this is a safe capability (i.e. can be execute it immediately)
 		if ( CapabilitiesList[ guide->index ].features & CapabilityFeature_Safe )
@@ -134,7 +158,7 @@ void Result_evalResultMacroCombo(
 #if defined(_host_)
 			// Callback to indicate a capability has been called
 			resultCapabilityCallbackData.trigger         = resultElem->trigger;
-			resultCapabilityCallbackData.state           = record->state;
+			resultCapabilityCallbackData.state           = record_state;
 			resultCapabilityCallbackData.stateType       = record->stateType;
 			resultCapabilityCallbackData.capabilityIndex = guide->index;
 			resultCapabilityCallbackData.args            = &guide->args;
@@ -143,7 +167,7 @@ void Result_evalResultMacroCombo(
 #endif
 
 			// Call capability
-			capability( resultElem->trigger, record->state, record->stateType, &guide->args );
+			capability( resultElem->trigger, record_state, record->stateType, &guide->args );
 		}
 		// Otherwise, queue up the capability for later
 		else if ( macroResultDelayedCapabilities.size < ResultCapabilityStackSize_define )
@@ -157,7 +181,7 @@ void Result_evalResultMacroCombo(
 				// Check each of the conditions
 				if (
 					item->trigger == resultElem->trigger &&
-					item->state == record->state &&
+					item->state == record_state &&
 					item->stateType == record->stateType &&
 					item->capabilityIndex == guide->index
 				)
@@ -181,7 +205,7 @@ void Result_evalResultMacroCombo(
 			{
 				volatile ResultCapabilityStackItem *item = &macroResultDelayedCapabilities.stack[ size ];
 				item->trigger         = resultElem->trigger;
-				item->state           = record->state;
+				item->state           = record_state;
 				item->stateType       = record->stateType;
 				item->capabilityIndex = guide->index;
 				item->args            = &guide->args;
@@ -197,11 +221,13 @@ void Result_evalResultMacroCombo(
 		funcCount++;
 		*comboItem += ResultGuideSize( (ResultGuide*)(&macro->guide[ *comboItem ]) );
 	}
+
+	return further_state;
 }
 
 
 // Append result macro to pending list, duplicates are ok
-void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
+void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro, TriggerMacroRecord *triggerRecord, ResultMacroAction action )
 {
 	// Lookup result macro index
 	var_uint_t resultMacroIndex = triggerMacro->result;
@@ -327,6 +353,20 @@ void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 	// Assign state and state type
 	elem->record.state     = event->state;
 	elem->record.stateType = event->type;
+	elem->record.action    = action;
+
+	// Set the expression type
+	// We need to track both what each expression is
+	// and the overall status of expressions
+	//
+	// For example, if any isolated expression is found
+	// that expression must be noted as isolated, and the fact that any
+	// expression was labelled as isolated will affect which results are
+	// evaluated.
+	// Isolated expressions are evaluated on a per-layer basis.
+	// i.e. you can only isolate layers, this includes fall-through.
+	elem->trigger_type = triggerMacro->type;
+	elem->layer = triggerRecord->layer;
 
 	// If this is a Layer stateType, mask the Shift/Latch/Lock information
 	switch ( elem->record.stateType )
@@ -347,6 +387,7 @@ void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 	// Reset the macro position
 	elem->record.prevPos = 0;
 	elem->record.pos = 0;
+	elem->record.schedulePos = 0;
 }
 
 
@@ -382,19 +423,26 @@ ResultMacroEval Result_evalResultMacro( ResultPendingElem *resultElem )
 	}
 
 	// Evaluate Combo
-	Result_evalResultMacroCombo( resultElem, macro, record, &comboItem );
+	if ( Result_evalResultMacroCombo( resultElem, macro, record, &comboItem ) )
+	{
+		record->schedulePos++;
+		return ResultMacroEval_DoNothing;
+	}
 
 	// Move to next item in the sequence
 	record->prevPos = record->pos;
 	record->pos = comboItem;
+	record->schedulePos = 0;
 
 	// If the ResultMacro is finished, remove
 	if ( macro->guide[ comboItem ] == 0 )
 	{
 		record->prevPos = 0;
 		record->pos = 0;
+		print("REMOVEEED");
 		return ResultMacroEval_Remove;
 	}
+	print("DONOTHING");
 
 	// Otherwise leave the macro in the list
 	return ResultMacroEval_DoNothing;
