@@ -28,6 +28,11 @@
 #include <print.h>
 #include <output_com.h>
 
+// Interconnect module if compiled in
+#if defined(ConnectEnabled_define)
+#include <connect_scan.h>
+#endif
+
 // Local Includes
 #include "pixel.h"
 
@@ -209,6 +214,27 @@ void Pixel_GammaControl_capability( TriggerMacro *trigger, uint8_t state, uint8_
 
 	uint8_t arg  = *(uint8_t*)(&args[0]);
 
+	// Interconnect broadcasting
+#if defined(ConnectEnabled_define)
+	// By default send to the *next* node, which will determine where to go next
+	extern uint8_t Connect_id; // connect_scan.c
+	uint8_t addr = Connect_id + 1;
+
+	// Send interconnect remote capability packet
+	// generatedKeymap.h
+	extern const Capability CapabilitiesList[];
+
+	// Broadcast layerStackExact remote capability (0xFF is the broadcast id)
+	Connect_send_RemoteCapability(
+		addr,
+		Pixel_GammaControl_capability_index,
+		state,
+		stateType,
+		CapabilitiesList[ Pixel_GammaControl_capability_index ].argCount,
+		args
+	);
+#endif
+
 	// Decide how to handle function
 	switch ( arg )
 	{
@@ -243,6 +269,27 @@ void Pixel_AnimationIndex_capability( TriggerMacro *trigger, uint8_t state, uint
 		return;
 	}
 
+	// Interconnect broadcasting
+#if defined(ConnectEnabled_define)
+	// By default send to the *next* node, which will determine where to go next
+	extern uint8_t Connect_id; // connect_scan.c
+	uint8_t addr = Connect_id + 1;
+
+	// Send interconnect remote capability packet
+	// generatedKeymap.h
+	extern const Capability CapabilitiesList[];
+
+	// Broadcast layerStackExact remote capability (0xFF is the broadcast id)
+	Connect_send_RemoteCapability(
+		addr,
+		Pixel_AnimationIndex_capability_index,
+		state,
+		stateType,
+		CapabilitiesList[ Pixel_AnimationIndex_capability_index ].argCount,
+		args
+	);
+#endif
+
 	// Lookup animation settings
 	uint16_t index = *(uint16_t*)(&args[0]);
 
@@ -261,6 +308,7 @@ void Pixel_AnimationIndex_capability( TriggerMacro *trigger, uint8_t state, uint
 	Pixel_addAnimation( &element, cstate );
 }
 
+// XXX (HaaTa): It's not recommended to use this capability, use AnimationIndex instead
 void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	CapabilityState cstate = KLL_CapabilityState( state, stateType );
@@ -292,6 +340,7 @@ void Pixel_Animation_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	Pixel_addAnimation( &element, cstate );
 }
 
+// XXX (HaaTa): TODO
 void Pixel_Pixel_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	CapabilityState cstate = KLL_CapabilityState( state, stateType );
@@ -334,6 +383,27 @@ void Pixel_AnimationControl_capability( TriggerMacro *trigger, uint8_t state, ui
 	default:
 		return;
 	}
+
+	// Interconnect broadcasting
+#if defined(ConnectEnabled_define)
+	// By default send to the *next* node, which will determine where to go next
+	extern uint8_t Connect_id; // connect_scan.c
+	uint8_t addr = Connect_id + 1;
+
+	// Send interconnect remote capability packet
+	// generatedKeymap.h
+	extern const Capability CapabilitiesList[];
+
+	// Broadcast layerStackExact remote capability (0xFF is the broadcast id)
+	Connect_send_RemoteCapability(
+		addr,
+		Pixel_AnimationControl_capability_index,
+		state,
+		stateType,
+		CapabilitiesList[ Pixel_AnimationControl_capability_index ].argCount,
+		args
+	);
+#endif
 
 	uint8_t arg  = *(uint8_t*)(&args[0]);
 
@@ -395,6 +465,27 @@ void Pixel_FadeSet_capability( TriggerMacro *trigger, uint8_t state, uint8_t sta
 		return;
 	}
 
+	// Interconnect broadcasting
+#if defined(ConnectEnabled_define)
+	// By default send to the *next* node, which will determine where to go next
+	extern uint8_t Connect_id; // connect_scan.c
+	uint8_t addr = Connect_id + 1;
+
+	// Send interconnect remote capability packet
+	// generatedKeymap.h
+	extern const Capability CapabilitiesList[];
+
+	// Broadcast layerStackExact remote capability (0xFF is the broadcast id)
+	Connect_send_RemoteCapability(
+		addr,
+		Pixel_FadeSet_capability_index,
+		state,
+		stateType,
+		CapabilitiesList[ Pixel_FadeSet_capability_index ].argCount,
+		args
+	);
+#endif
+
 	// Get arguments
 	uint8_t profile = *(uint8_t*)(&args[0]);
 	uint8_t config = *(uint8_t*)(&args[1]);
@@ -434,6 +525,27 @@ void Pixel_FadeLayerHighlight_capability( TriggerMacro *trigger, uint8_t state, 
 	default:
 		return;
 	}
+
+	// Interconnect broadcasting
+#if defined(ConnectEnabled_define)
+	// By default send to the *next* node, which will determine where to go next
+	extern uint8_t Connect_id; // connect_scan.c
+	uint8_t addr = Connect_id + 1;
+
+	// Send interconnect remote capability packet
+	// generatedKeymap.h
+	extern const Capability CapabilitiesList[];
+
+	// Broadcast layerStackExact remote capability (0xFF is the broadcast id)
+	Connect_send_RemoteCapability(
+		addr,
+		Pixel_FadeLayerHighlight_capability_index,
+		state,
+		stateType,
+		CapabilitiesList[ Pixel_FadeLayerHighlight_capability_index ].argCount,
+		args
+	);
+#endif
 
 	// Get argument
 	uint16_t layer = *(uint16_t*)(&args[0]);

@@ -346,27 +346,6 @@ void Connect_send_ScanCode( uint8_t id, TriggerEvent *scanCodeStateList, uint8_t
 	uart_unlockTx( UART_Master );
 }
 
-// id is the currently assigned id to the slave
-// paramList is an array of [param, value]'s (8 bit values)
-// numParams is the number of params to parse from the array
-void Connect_send_Animation( uint8_t id, uint8_t *paramList, uint8_t numParams )
-{
-	// Lock slave bound Tx
-	uart_lockTx( UART_Slave );
-
-	// Prepare header
-	uint8_t header[] = { Command_SYN, SOH, Animation, id, numParams };
-
-	// Send header
-	Connect_addBytes( header, sizeof( header ), UART_Slave );
-
-	// Send each of the scan codes
-	Connect_addBytes( paramList, numParams, UART_Slave );
-
-	// Unlock Tx
-	uart_unlockTx( UART_Slave );
-}
-
 // Send a remote capability command using capability index
 // This may not be what's expected (especially if the firmware is not the same on each node)
 // To broadcast to all slave nodes, set id to 255 instead of a specific id
@@ -755,12 +734,6 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 	return *pending_bytes == 0 ? 1 : 0;
 }
 
-uint8_t Connect_receive_Animation( uint8_t byte, uint16_t *pending_bytes, uint8_t uart_num )
-{
-	dbug_print("Animation");
-	return 1;
-}
-
 // - Remote Capability Variables -
 #define Connect_receive_RemoteCapabilityMaxArgs 25 // XXX Calculate the max using kll
 RemoteCapabilityCommand Connect_receive_RemoteCapabilityBuffer;
@@ -929,7 +902,6 @@ void *Connect_receiveFunctions[] = {
 	Connect_receive_IdEnumeration,
 	Connect_receive_IdReport,
 	Connect_receive_ScanCode,
-	Connect_receive_Animation,
 	Connect_receive_RemoteCapability,
 	Connect_receive_RemoteOutput,
 	Connect_receive_RemoteInput,
@@ -1372,9 +1344,6 @@ void cliFunc_connectCmd( char* args )
 		Connect_send_ScanCode( 10, scanCodes, 2 );
 		break;
 	}
-	case Animation:
-		break;
-
 	case RemoteCapability:
 		// TODO
 		break;
@@ -1431,7 +1400,6 @@ void cliFunc_connectLst( char* args )
 		"IdEnumeration",
 		"IdReport",
 		"ScanCode",
-		"Animation",
 		"RemoteCapability",
 		"RemoteOutput",
 		"RemoteInput",

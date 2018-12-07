@@ -45,7 +45,6 @@ typedef enum Command {
 	IdReport,         // Slave initialization complete, report id to master
 
 	ScanCode,         // ScanCode event status change
-	Animation,        // Master trigger animation event (same command is sent back to master when ready)
 
 	RemoteCapability, // Activate a capability on the given node
 	RemoteOutput,     // Remote debug output from a given node
@@ -113,21 +112,6 @@ typedef struct ScanCodeCommand {
 	uint8_t numScanCodes;
 	TriggerGuide firstScanCode[0];
 } ScanCodeCommand;
-
-// Animation Command
-// Initiated by the master whenever an animation id should modify it's state
-// Then after the leaf slave node receives the command, send it back to the master
-// On the way back, each device can begin the animation adjustment
-//
-// The master->leaf command should indicate to each device that it should finish sending the
-// current slave->master data and wait for the leaf->master command
-// This allows for a tighter synchronization of animation events
-typedef struct AnimationCommand {
-	Command command;
-	uint8_t animationId;
-	uint8_t numParams;
-	uint8_t firstParam[0];
-} AnimationCommand;
 
 // Remote Capability Command
 // Initiated by the master to trigger a capability on a given node
