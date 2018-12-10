@@ -291,7 +291,7 @@ uint8_t Matrix_single_scan()
 
 		// Check bounds, before attempting to scan
 		// 1-indexed as ScanCode 0 is not used
-		if ( key + 1 > MaxScanCode_KLL )
+		if ( key_disp > MaxScanCode_KLL || key_disp == 0 )
 		{
 			continue;
 		}

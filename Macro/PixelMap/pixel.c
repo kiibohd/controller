@@ -506,8 +506,6 @@ void Pixel_FadeSet_capability( TriggerMacro *trigger, uint8_t state, uint8_t sta
 void Pixel_FadeLayerHighlight_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	CapabilityState cstate = KLL_CapabilityState( state, stateType );
-	// TODO (HaaTa): FIXME
-	return;
 
 	switch ( cstate )
 	{
@@ -550,6 +548,12 @@ void Pixel_FadeLayerHighlight_capability( TriggerMacro *trigger, uint8_t state, 
 	// Get argument
 	uint16_t layer = *(uint16_t*)(&args[0]);
 
+	// Ignore if an invalid layer
+	if ( layer >= LayerNum )
+	{
+		return;
+	}
+
 	// Lookup layer
 	const Layer *layer_map = &LayerIndex[layer];
 
@@ -557,6 +561,13 @@ void Pixel_FadeLayerHighlight_capability( TriggerMacro *trigger, uint8_t state, 
 	for ( uint8_t key = layer_map->first; key <= layer_map->last; key++ )
 	{
 		uint8_t index = key - layer_map->first;
+
+		// Skip 0 index, as scancodes start at 1
+		if ( index == 0 )
+		{
+			continue;
+		}
+
 		// If the first entry in trigger list is a 0, ignore (otherwise, key is in layer)
 		if ( layer_map->triggerMap[index][0] == 0 )
 		{
@@ -566,8 +577,14 @@ void Pixel_FadeLayerHighlight_capability( TriggerMacro *trigger, uint8_t state, 
 		// Lookup pixel associated with scancode (remember -1 as all pixels and scancodes start at 1, not 0)
 		uint16_t pixel = Pixel_ScanCodeToPixel[key - 1];
 
-		// Set pixel to group #4 (index 3)
-		Pixel_pixel_fade_profile[pixel - 1] = 3;
+		// If pixel is 0, ignore
+		if ( pixel == 0 )
+		{
+			continue;
+		}
+
+		// Set pixel to group #4
+		Pixel_pixel_fade_profile[pixel - 1] = 4;
 	}
 }
 
@@ -1997,7 +2014,7 @@ void Pixel_SecondaryProcessing()
 		// Select profile
 		uint8_t profile_in = Pixel_pixel_fade_profile[pxin];
 
-		// Nothing to do (fade disabled for this pixel)
+		// Nothing to do
 		if ( profile_in == 0 )
 		{
 			continue;
@@ -2014,6 +2031,7 @@ void Pixel_SecondaryProcessing()
 			// Lookup PixelBuf containing the channel
 			uint16_t chan = elem->indices[ch];
 			PixelBuf *buf = LED_bufferMap( chan );
+			PixelBuf *bufin = Pixel_bufferMap( chan );
 
 			// Lookup memory location
 			// Then apply fade depending on the current position
@@ -2040,7 +2058,7 @@ void Pixel_SecondaryProcessing()
 						break;
 					}
 
-					val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+					val = (uint8_t)((uint16_t*)bufin->data)[chan - bufin->offset];
 					if (gamma_enabled) {
 						val = gamma_table[val];
 					}
@@ -2051,7 +2069,7 @@ void Pixel_SecondaryProcessing()
 				// On hold time
 				case PixelPeriodIndex_On:
 					if (gamma_enabled) {
-						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+						val = (uint8_t)((uint16_t*)bufin->data)[chan - bufin->offset];
 						val = gamma_table[val];
 						((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
 					}
@@ -2064,6 +2082,11 @@ void Pixel_SecondaryProcessing()
 					// If the previous config was disabled, do not set to 0
 					if ( prev->start == 0 && prev->end == 0 )
 					{
+						val = (uint8_t)((uint16_t*)bufin->data)[chan - bufin->offset];
+						if (gamma_enabled) {
+							val = gamma_table[val];
+						}
+						((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
 						break;
 					}
 
@@ -2072,7 +2095,7 @@ void Pixel_SecondaryProcessing()
 					val = 0;
 					if ( prev->start != 0 )
 					{
-						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+						val = (uint8_t)((uint16_t*)bufin->data)[chan - bufin->offset];
 						if (gamma_enabled) {
 							val = gamma_table[val];
 						}
