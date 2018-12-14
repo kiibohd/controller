@@ -486,6 +486,12 @@ int8_t storage_block_position()
 // storage_init() must be called first
 uint8_t storage_is_storage_cleared()
 {
+	// Check to see if this page is empty
+	if ( !find_cleared_block(storage_buffer) )
+	{
+		return 1;
+	}
+
 	return cleared_block;
 }
 
