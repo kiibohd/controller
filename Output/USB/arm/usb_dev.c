@@ -542,9 +542,6 @@ void usb_setup()
 	}
 
 	case 0x0300: // SET_FEATURE (device)
-		warn_msg("(SET_FEATURE, SETUP)  - ");
-		printHex32( setup.wValue );
-		print(NL);
 		switch ( setup.wValue )
 		{
 		// XXX: Only used to confirm Remote Wake
@@ -577,9 +574,6 @@ void usb_setup()
 			break;
 		}
 
-		warn_msg("SET_FEATURE - Device wValue(");
-		printHex( setup.wValue );
-		print( ")" NL );
 		endpoint0_stall();
 		return;
 
