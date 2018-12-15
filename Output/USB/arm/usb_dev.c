@@ -1769,6 +1769,7 @@ restart:
 			USB_INTEN_STALLEN |
 			USB_INTEN_ERROREN |
 			USB_INTEN_USBRSTEN |
+			USB_INTEN_RESUMEEN |
 			USB_INTEN_SLEEPEN;
 
 		// is this necessary?

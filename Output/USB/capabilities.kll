@@ -126,5 +126,5 @@ enableVirtualSerialPort = 1;
 
 # Raw I/O Endpoint
 enableRawIO => enableRawIO_define;
-enableRawIO = 1;
+enableRawIO = 0;
 
