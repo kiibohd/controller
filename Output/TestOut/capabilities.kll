@@ -13,3 +13,6 @@ Date = 2018-01-07;
 Output_TestOutEnabled = "1";
 Output_TestOutEnabled => Output_TestOutEnabled_define;
 
+# Make sure RawIO is enabled
+enableRawIO = 1;
+
