@@ -66,6 +66,16 @@
 
 
 
+// ----- Enumerations -----
+
+typedef enum {
+	OutputReset_None       = 0, // Do nothing
+	OutputReset_Restart    = 1, // Clear USB stack and restart the firmware
+	OutputReset_Bootloader = 2, // Clear USB stack and jump to bootloader
+} OutputReset;
+
+
+
 // ----- Function Declarations -----
 
 void cliFunc_idle       ( char* args );
@@ -146,6 +156,11 @@ volatile uint16_t USBInit_Ticks;
 
 // USB Address - Set by host, unique to the bus
 volatile uint8_t USBDev_Address;
+
+// Scheduled USB resets, used to clear USB packets before bringing down the USB stack
+// This is useful for OSs like Windows where then OS doesn't clear the current state
+// after the keyboard is disconnected (i.e. Ctrl keeps being held until Ctrl is pressed again).
+volatile static uint8_t Output_reset_schedule;
 
 // Latency measurement resource
 static uint8_t outputPeriodicLatencyResource;
@@ -710,6 +725,14 @@ void USB_flushBuffers()
 
 	// Reset USBKeys_Keys size
 	USBKeys_Sent = 0;
+
+	// Clear mouse state
+	USBMouse_Buttons = 0;
+	USBMouse_Relative_x = 0;
+	USBMouse_Relative_y = 0;
+	USBMouse_VertWheel = 0;
+	USBMouse_HoriWheel = 0;
+	USBMouse_Changed = 0;
 }
 
 
@@ -732,16 +755,11 @@ inline void USB_setup()
 	USBKeys_LEDs_prev = 0;
 	USBKeys_LEDs = 0;
 
-	// Clear mouse state
-	USBMouse_Buttons = 0;
-	USBMouse_Relative_x = 0;
-	USBMouse_Relative_y = 0;
-	USBMouse_VertWheel = 0;
-	USBMouse_HoriWheel = 0;
-	USBMouse_Changed = 0;
-
 	// Clear USB address
 	USBDev_Address = 0;
+
+	// Clear USB reset state
+	Output_reset_schedule = OutputReset_None;
 
 	// Flush key buffers
 	USB_flushBuffers();
@@ -885,10 +903,21 @@ inline void USB_periodic()
 	// Start latency measurement
 	Latency_start_time( outputPeriodicLatencyResource );
 
+	// Check to see if we need to reset the USB buffers
+	switch ( Output_reset_schedule )
+	{
+	case OutputReset_Restart:
+	case OutputReset_Bootloader:
+		USB_flushBuffers();
+		break;
+	}
+
 #if enableMouse_define == 1
 	// Process mouse actions
 	while ( USBMouse_Changed )
+	{
 		usb_mouse_send();
+	}
 #endif
 
 #if enableKeyboard_define == 1
@@ -935,6 +964,26 @@ inline void USB_periodic()
 	// Monitor USB Suspend/Sleep State
 	USB_suspend_status_update();
 #endif
+
+	// Check if a reset needs to be scheduled
+	switch ( Output_reset_schedule )
+	{
+	case OutputReset_Restart:
+		// Clear schedule
+		Output_reset_schedule = OutputReset_None;
+
+		// Restart firmware
+		usb_device_software_reset();
+		break;
+
+	case OutputReset_Bootloader:
+		// Clear schedule
+		Output_reset_schedule = OutputReset_None;
+
+		// Jump to bootloader
+		usb_device_reload();
+		break;
+	}
 
 	// End latency measurement
 	Latency_end_time( outputPeriodicLatencyResource );
@@ -1001,14 +1050,14 @@ void USB_NKRODebug( USBKeys *buffer )
 // Sets the device into firmware reload mode
 inline void USB_firmwareReload()
 {
-	usb_device_reload();
+	Output_reset_schedule = OutputReset_Bootloader;
 }
 
 
 // Soft Chip Reset
 inline void USB_softReset()
 {
-	usb_device_software_reset();
+	Output_reset_schedule = OutputReset_Restart;
 }
 
 
