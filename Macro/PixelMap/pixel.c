@@ -2054,9 +2054,11 @@ void Pixel_SecondaryProcessing()
 					// If start and end are set to 0, ignore
 					if ( period->end == 0 && period->start == 0 )
 					{
-						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
-						val = gamma_table[val];
-						((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
+						if (gamma_enabled) {
+							val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+							val = gamma_table[val];
+							((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
+						}
 						break;
 					}
 
