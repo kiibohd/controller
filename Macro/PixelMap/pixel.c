@@ -2031,7 +2031,6 @@ void Pixel_SecondaryProcessing()
 			// Lookup PixelBuf containing the channel
 			uint16_t chan = elem->indices[ch];
 			PixelBuf *buf = LED_bufferMap( chan );
-			PixelBuf *bufin = Pixel_bufferMap( chan );
 
 			// Lookup memory location
 			// Then apply fade depending on the current position
@@ -2055,10 +2054,13 @@ void Pixel_SecondaryProcessing()
 					// If start and end are set to 0, ignore
 					if ( period->end == 0 && period->start == 0 )
 					{
+						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+						val = gamma_table[val];
+						((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
 						break;
 					}
 
-					val = (uint8_t)((uint16_t*)bufin->data)[chan - bufin->offset];
+					val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
 					if (gamma_enabled) {
 						val = gamma_table[val];
 					}
@@ -2069,7 +2071,7 @@ void Pixel_SecondaryProcessing()
 				// On hold time
 				case PixelPeriodIndex_On:
 					if (gamma_enabled) {
-						val = (uint8_t)((uint16_t*)bufin->data)[chan - bufin->offset];
+						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
 						val = gamma_table[val];
 						((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
 					}
@@ -2082,7 +2084,7 @@ void Pixel_SecondaryProcessing()
 					// If the previous config was disabled, do not set to 0
 					if ( prev->start == 0 && prev->end == 0 )
 					{
-						val = (uint8_t)((uint16_t*)bufin->data)[chan - bufin->offset];
+						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
 						if (gamma_enabled) {
 							val = gamma_table[val];
 						}
@@ -2095,7 +2097,7 @@ void Pixel_SecondaryProcessing()
 					val = 0;
 					if ( prev->start != 0 )
 					{
-						val = (uint8_t)((uint16_t*)bufin->data)[chan - bufin->offset];
+						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
 						if (gamma_enabled) {
 							val = gamma_table[val];
 						}
