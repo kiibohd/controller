@@ -498,6 +498,11 @@ void LED_reset()
 	// Disable FPS by default
 	LED_displayFPS = 0;
 
+	// Enable Hardware shutdown (pull low)
+	GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
+	GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
+	delay_us(50);
+
 #if ISSI_Chip_31FL3733_define == 1
 	// Reset I2C bus
 	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
@@ -505,6 +510,12 @@ void LED_reset()
 	delay_us(50);
 	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
 #endif
+
+	// Disable Hardware shutdown of ISSI chips (pull high)
+	if ( LED_enable && LED_enable_current )
+	{
+		GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveHigh, GPIO_Config_Pullup );
+	}
 
 	// Clear LED Pages
 	// Enable LEDs based upon mask
