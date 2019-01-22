@@ -40,6 +40,7 @@
 #endif
 
 // Local Includes
+#include <kll_defs.h>
 #include "entropy.h"
 #include "kinetis.h"
 
@@ -999,7 +1000,7 @@ void ResetHandler()
 	// Default all interrupts to medium priority level
 	for ( unsigned int i = 0; i < NVIC_NUM_INTERRUPTS; i++ )
 	{
-		NVIC_SET_PRIORITY( i, 128 );
+		NVIC_SET_PRIORITY( i, Default_Priority_define );
 	}
 
 	// FLL at 48MHz
@@ -1018,7 +1019,7 @@ void ResetHandler()
 	// default all interrupts to medium priority level
 	for ( unsigned int i = 0; i < NVIC_NUM_INTERRUPTS; i++ )
 	{
-		NVIC_SET_PRIORITY( i, 128 );
+		NVIC_SET_PRIORITY( i, Default_Priority_define );
 	}
 
 	// start in FEI mode

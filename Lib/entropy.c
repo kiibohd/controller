@@ -26,6 +26,7 @@
 
 // ----- Target Includes -----
 
+#include <kll_defs.h>
 #include "mcu_compat.h"
 
 
@@ -290,7 +291,7 @@ void rand_initialize()
 	NVIC_EnableIRQ( TC1_IRQn );
 
 	// Set TC1 interrupt to a low priority
-	NVIC_SetPriority( TC1_IRQn, 200 );
+	NVIC_SetPriority( TC1_IRQn, Entropy_Priority_define );
 }
 
 // Disables interrupt, thus stopping CPU usage generating entropy

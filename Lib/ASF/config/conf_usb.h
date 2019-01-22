@@ -37,6 +37,7 @@
 #pragma once
 
 #include <buildvars.h>
+#include <kll_defs.h>
 #include "compiler.h"
 
 /**
@@ -52,6 +53,10 @@
 #define  USB_DEVICE_ATTR                  (USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_SELF_POWERED)
 //	(USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_BUS_POWERED)
 //	(USB_CONFIG_ATTR_BUS_POWERED)
+
+#ifdef USB_Priority_define
+#define UDD_USB_INT_LEVEL USB_Priority_define
+#endif
 
 
 /**

@@ -275,10 +275,10 @@ void uart_serial_setup()
 
 	// Add interrupt to the vector table (slightly higher than USB)
 #if defined(_kinetis_)
-	NVIC_SET_PRIORITY( IRQ_UART_STATUS, 111 );
+	NVIC_SET_PRIORITY( IRQ_UART_STATUS, UART_Priority_define );
 	NVIC_ENABLE_IRQ( IRQ_UART_STATUS );
 #elif defined(_sam_)
-	NVIC_SetPriority( UART_IRQ, 111 );
+	NVIC_SetPriority( UART_IRQ, UART_Priority_define );
 	NVIC_EnableIRQ( UART_IRQ );
 #endif
 

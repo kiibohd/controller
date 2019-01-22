@@ -1924,7 +1924,7 @@ uint8_t usb_init()
 	USB0_INTEN = USB_INTEN_USBRSTEN;
 
 	// enable interrupt in NVIC...
-	NVIC_SET_PRIORITY( IRQ_USBOTG, 112 );
+	NVIC_SET_PRIORITY( IRQ_USBOTG, USB_Priority_define );
 	NVIC_ENABLE_IRQ( IRQ_USBOTG );
 
 	// enable d+ pullup

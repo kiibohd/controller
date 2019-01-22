@@ -111,6 +111,9 @@ if ( "${CPU}" MATCHES "cortex-m4" )
 	list( APPEND COMPILER_SRCS
 		Lib/arm_cortex.c
 	)
+
+	# KLL Options
+	set( Device_KLL "${CMAKE_CURRENT_SOURCE_DIR}/Lib/arm_cortex.kll" )
 endif ()
 
 #| SAM Sources

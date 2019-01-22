@@ -147,7 +147,7 @@ void i2c_setup()
 			NVIC_ENABLE_IRQ( IRQ_I2C0 );
 
 			// Set priority below USB, but not too low to maintain performance
-			NVIC_SET_PRIORITY( IRQ_PIT_CH0, 150 );
+			NVIC_SET_PRIORITY( IRQ_PIT_CH0, I2C_Priority_define );
 			break;
 
 	#if defined(_kii_v2_)
@@ -157,7 +157,7 @@ void i2c_setup()
 			NVIC_ENABLE_IRQ( IRQ_I2C1 );
 
 			// Set priority below USB, but not too low to maintain performance
-			NVIC_SET_PRIORITY( IRQ_PIT_CH1, 150 );
+			NVIC_SET_PRIORITY( IRQ_PIT_CH1, I2C_Priority_define );
 			break;
 	#endif
 		}
@@ -200,11 +200,11 @@ void i2c_setup()
 		switch ( ch )
 		{
 		case 0:
-			NVIC_SetPriority(TWI0_IRQn, 150);
+			NVIC_SetPriority(TWI0_IRQn, I2C_Priority_define);
 			NVIC_EnableIRQ(TWI0_IRQn);
 			break;
 		case 1:
-			NVIC_SetPriority(TWI1_IRQn, 150);
+			NVIC_SetPriority(TWI1_IRQn, I2C_Priority_define);
 			NVIC_EnableIRQ(TWI1_IRQn);
 			break;
 		}

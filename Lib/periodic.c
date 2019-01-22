@@ -22,6 +22,7 @@
 
 // ----- Includes -----
 
+#include <kll_defs.h>
 #include "mcu_compat.h"
 
 #if defined(_kinetis_)
@@ -73,7 +74,7 @@ void Periodic_init( uint32_t cycles )
 	NVIC_ENABLE_IRQ( IRQ_PIT_CH0 );
 
 	// Set PIT0 interrupt to a low priority
-	NVIC_SET_PRIORITY( IRQ_PIT_CH0, 200 );
+	NVIC_SET_PRIORITY( IRQ_PIT_CH0, Periodic_Priority_define );
 }
 
 void Periodic_enable()
@@ -130,7 +131,7 @@ void Periodic_init( uint32_t cycles )
 	NVIC_EnableIRQ( TC0_IRQn );
 
 	// Set TC0 interrupt to a low priority
-	NVIC_SetPriority( TC0_IRQn, 200 );
+	NVIC_SetPriority( TC0_IRQn, Periodic_Priority_define );
 }
 
 void Periodic_function( void *func )
