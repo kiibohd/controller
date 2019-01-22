@@ -67,7 +67,6 @@ static uint8_t transmit_previous_timeout = 0;
 
 // Process pending mouse commands
 // XXX Proper support will require KLL generation of the USB descriptors
-//     Similar support will be required for joystick control
 void usb_mouse_send()
 {
 	Time start = Time_now();

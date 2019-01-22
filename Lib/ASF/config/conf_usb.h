@@ -136,6 +136,23 @@ extern void usb_cdc_rx_notify_callback(uint8_t port);
 
 
 
+/**
+ * Configuration of HID Generic interface
+ * @{
+ */
+//! Interface callback definition
+#define  UDI_HID_GENERIC_ENABLE_EXT() usb_hid_raw_enable_callback()
+extern bool usb_hid_raw_enable_callback();
+#define  UDI_HID_GENERIC_DISABLE_EXT() usb_hid_raw_disable_callback()
+extern bool usb_hid_raw_disable_callback();
+#define  UDI_HID_GENERIC_REPORT_OUT(ptr) usb_hid_raw_report_out(ptr)
+extern void usb_hid_raw_report_out(uint8_t *report);
+
+//@}
+//@}
+
+
+
 //! The includes of classes and other headers must be done at the end of this file to avoid compile error
 // ===== Bootloader =====
 #if defined(_bootloader_)
@@ -162,6 +179,14 @@ extern bool main_extra_string();
 #define USB_DEVICE_SPECIFIC_REQUEST my_udi_hid_setup
 #define USB_CONFIGURATION_CHANGED usb_set_configuration
 #define  USB_DEVICE_POWER                 500 // Consumption on Vbus line (mA)
+
+//! Sizes of I/O reports
+#define  UDI_HID_REPORT_IN_SIZE             RAWIO_RX_SIZE
+#define  UDI_HID_REPORT_OUT_SIZE            RAWIO_TX_SIZE
+
+//! Endpoint number used by HID generic interface
+#define  UDI_HID_GENERIC_EP_IN    (RAWIO_RX_ENDPOINT | USB_EP_DIR_IN)
+#define  UDI_HID_GENERIC_EP_OUT   (RAWIO_TX_ENDPOINT | USB_EP_DIR_OUT)
 
 #endif
 

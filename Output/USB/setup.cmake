@@ -1,6 +1,6 @@
 ###| CMake Kiibohd Controller Output Module |###
 #
-# Written by Jacob Alexander in 2011-2018 for the Kiibohd Controller
+# Written by Jacob Alexander in 2011-2019 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -36,7 +36,6 @@ elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 		output_usb.c
 		arm/usb_desc.c
 		arm/usb_dev.c
-		arm/usb_joystick.c
 		arm/usb_keyboard.c
 		arm/usb_mem.c
 		arm/usb_mouse.c
@@ -50,6 +49,8 @@ elseif ( ${COMPILER_FAMILY} MATCHES "arm" )
 		../../Lib/ASF/sam/drivers/udp/udp_device.c
 		../../Lib/ASF/common/services/usb/udc/udc.c
 		../../Lib/ASF/common/services/usb/class/cdc/device/udi_cdc.c
+		../../Lib/ASF/common/services/usb/class/hid/device/udi_hid.c
+		../../Lib/ASF/common/services/usb/class/hid/device/generic/udi_hid_generic.c
 	)
 	endif ( )
 

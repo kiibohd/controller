@@ -1,16 +1,20 @@
 # SAM
 
 Name = SAMCapabilities;
-Version = 0.1;
+Version = 0.2;
 Author = "HaaTa (Jacob Alexander) 2019";
 KLL = 0.5;
 
 # Modified Date
-Date = 2019-01-28;
+Date = 2019-03-08;
 
 # 0 is most urgent
 # See arm_cortex.kll for defaults
 i2cPriority = 112; # NOTE: I2C priority must be higher than USB otherwise ISSI frames get corrupted
                    #       when there are large streams of USB interrupts (i.e. packets or errors)
 usbPriority = 113;
+
+# Virtual Serial Port is no longer used on SAM4S
+# See HID-IO and Raw HID (can be used for debug)
+enableVirtualSerialPort = 0;
 

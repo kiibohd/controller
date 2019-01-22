@@ -24,6 +24,7 @@ include_directories(
 	"Lib/ASF/common/services/usb/class/hid"
 	"Lib/ASF/common/services/usb/class/hid/device"
 	"Lib/ASF/common/services/usb/class/hid/device/kbd"
+	"Lib/ASF/common/services/usb/class/hid/device/generic"
 	"Lib/ASF/common/services/usb/udc"
 	"Lib/ASF/common/utils"
 	"Lib/ASF/sam/boards"

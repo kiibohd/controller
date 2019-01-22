@@ -44,6 +44,7 @@
 #if defined(_sam_)
 #include <print.h>
 #include <udi_cdc.h>
+#include <udi_hid_generic.h>
 #endif
 
 
@@ -402,55 +403,6 @@ static uint8_t mouse_report_desc[] = {
 #endif
 
 
-// Joystick Protocol, HID 1.11 spec, Apendix D, page 64-65
-#if enableJoystick_define == 1
-static uint8_t joystick_report_desc[] = {
-	0x05, 0x01,                     // Usage Page (Generic Desktop)
-	0x09, 0x04,                     // Usage (Joystick)
-	0xA1, 0x01,                     // Collection (Application)
-	0x15, 0x00,                     // Logical Minimum (0)
-	0x25, 0x01,                     // Logical Maximum (1)
-	0x75, 0x01,                     // Report Size (1)
-	0x95, 0x20,                     // Report Count (32)
-	0x05, 0x09,                     // Usage Page (Button)
-	0x19, 0x01,                     // Usage Minimum (Button #1)
-	0x29, 0x20,                     // Usage Maximum (Button #32)
-	0x81, 0x02,                     // Input (variable,absolute)
-	0x15, 0x00,                     // Logical Minimum (0)
-	0x25, 0x07,                     // Logical Maximum (7)
-	0x35, 0x00,                     // Physical Minimum (0)
-	0x46, 0x3B, 0x01,               // Physical Maximum (315)
-	0x75, 0x04,                     // Report Size (4)
-	0x95, 0x01,                     // Report Count (1)
-	0x65, 0x14,                     // Unit (20)
-	0x05, 0x01,                     // Usage Page (Generic Desktop)
-	0x09, 0x39,                     // Usage (Hat switch)
-	0x81, 0x42,                     // Input (variable,absolute,null_state)
-	0x05, 0x01,                     // Usage Page (Generic Desktop)
-	0x09, 0x01,                     // Usage (Pointer)
-	0xA1, 0x00,                     // Collection ()
-	0x15, 0x00,                     //   Logical Minimum (0)
-	0x26, 0xFF, 0x03,               //   Logical Maximum (1023)
-	0x75, 0x0A,                     //   Report Size (10)
-	0x95, 0x04,                     //   Report Count (4)
-	0x09, 0x30,                     //   Usage (X)
-	0x09, 0x31,                     //   Usage (Y)
-	0x09, 0x32,                     //   Usage (Z)
-	0x09, 0x35,                     //   Usage (Rz)
-	0x81, 0x02,                     //   Input (variable,absolute)
-	0xC0,                           // End Collection
-	0x15, 0x00,                     // Logical Minimum (0)
-	0x26, 0xFF, 0x03,               // Logical Maximum (1023)
-	0x75, 0x0A,                     // Report Size (10)
-	0x95, 0x02,                     // Report Count (2)
-	0x09, 0x36,                     // Usage (Slider)
-	0x09, 0x36,                     // Usage (Slider)
-	0x81, 0x02,                     // Input (variable,absolute)
-	0xC0                            // End Collection
-};
-#endif
-
-
 
 // ----- USB Configuration -----
 
@@ -466,11 +418,6 @@ static uint8_t joystick_report_desc[] = {
 #define MOUSE_INTERFACES 0
 #endif
 
-#if enableJoystick_define != 1
-#undef  JOYSTICK_INTERFACES
-#define JOYSTICK_INTERFACES 0
-#endif
-
 #if enableVirtualSerialPort_define != 1
 #undef  CDC_INTERFACES
 #define CDC_INTERFACES 0
@@ -482,7 +429,7 @@ static uint8_t joystick_report_desc[] = {
 #endif
 
 // Determine number of interfaces
-#define NUM_INTERFACE (KEYBOARD_INTERFACES + CDC_INTERFACES + MOUSE_INTERFACES + JOYSTICK_INTERFACES + RAWIO_INTERFACES)
+#define NUM_INTERFACE (KEYBOARD_INTERFACES + CDC_INTERFACES + MOUSE_INTERFACES + RAWIO_INTERFACES)
 
 
 // USB Configuration Descriptor.  This huge descriptor tells all
@@ -608,6 +555,103 @@ static uint8_t config_descriptor[] = {
 
 
 //
+// --- Raw IO Endpoint Descriptors ---
+//
+#if enableRawIO_define == 1
+#define RAWIO_DESC_TOTAL_OFFSET (RAWIO_DESC_SIZE)
+
+#if enableVirtualSerialPort_define == 1 && defined(_sam4s_)
+#error "SAM4S MCU support virtual serial port OR rawIO, not both!"
+#endif
+
+// --- Vendor Specific / RAW I/O ---
+// - 9 bytes -
+	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
+	9,                                      // bLength
+	4,                                      // bDescriptorType
+	RAWIO_INTERFACE,                        // bInterfaceNumber
+	0,                                      // bAlternateSetting
+	2,                                      // bNumEndpoints
+	0x03,                                   // bInterfaceClass (0x03)
+	0x00,                                   // bInterfaceSubClass
+	0x00,                                   // bInterfaceProtocol
+	RAWIO_INTERFACE + 5,                    // iInterface
+
+// - 9 bytes -
+	// HID interface descriptor, HID 1.11 spec, section 6.2.1
+	9,                                      // bLength
+	0x21,                                   // bDescriptorType
+	0x11, 0x01,                             // bcdHID
+	0,                                      // bCountryCode
+	1,                                      // bNumDescriptors
+	0x22,                                   // bDescriptorType
+	LSB(sizeof(rawio_report_desc)),         // wDescriptorLength
+	MSB(sizeof(rawio_report_desc)),
+
+// - 7 bytes -
+	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+	7,                                      // bLength
+	5,                                      // bDescriptorType
+	RAWIO_TX_ENDPOINT | 0x80,               // bEndpointAddress
+	0x03,                                   // bmAttributes (0x03=intr)
+	RAWIO_TX_SIZE, 0,                       // wMaxPacketSize
+	RAWIO_TX_INTERVAL,                      // bInterval
+
+// - 7 bytes -
+	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+	7,                                      // bLength
+	5,                                      // bDescriptorType
+	RAWIO_RX_ENDPOINT,                      // bEndpointAddress
+	0x03,                                   // bmAttributes (0x03=intr)
+	RAWIO_RX_SIZE, 0,                       // wMaxPacketSize
+	RAWIO_RX_INTERVAL,                      // bInterval
+#else
+#define RAWIO_DESC_TOTAL_OFFSET (0)
+#endif
+
+
+//
+// --- Mouse Endpoint Descriptors ---
+//
+#if enableMouse_define == 1
+#define MOUSE_DESC_TOTAL_OFFSET (MOUSE_DESC_SIZE)
+
+// --- Mouse Interface ---
+// - 9 bytes -
+	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
+	9,                                      // bLength
+	4,                                      // bDescriptorType
+	MOUSE_INTERFACE,                        // bInterfaceNumber
+	0,                                      // bAlternateSetting
+	1,                                      // bNumEndpoints
+	0x03,                                   // bInterfaceClass (0x03 = HID)
+	0x00,                                   // bInterfaceSubClass (0x01 = Boot)
+	0x02,                                   // bInterfaceProtocol (0x02 = Mouse)
+	MOUSE_INTERFACE + 5,                    // iInterface
+// - 9 bytes -
+	// HID interface descriptor, HID 1.11 spec, section 6.2.1
+	9,                                      // bLength
+	0x21,                                   // bDescriptorType
+	0x11, 0x01,                             // bcdHID
+	0,                                      // bCountryCode
+	1,                                      // bNumDescriptors
+	0x22,                                   // bDescriptorType
+	LSB(sizeof(mouse_report_desc)),         // wDescriptorLength
+	MSB(sizeof(mouse_report_desc)),
+// - 7 bytes -
+	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
+	7,                                      // bLength
+	5,                                      // bDescriptorType
+	MOUSE_ENDPOINT | 0x80,                  // bEndpointAddress
+	0x03,                                   // bmAttributes (0x03=intr)
+	MOUSE_SIZE, 0,                          // wMaxPacketSize
+	MOUSE_INTERVAL,                         // bInterval
+#else
+#define MOUSE_DESC_TOTAL_OFFSET (0)
+#endif
+
+
+//
 // --- CDC / Serial Port Endpoint Descriptors ---
 //
 #if enableVirtualSerialPort_define == 1
@@ -702,140 +746,6 @@ static uint8_t config_descriptor[] = {
 #define SERIAL_CDC_DESC_TOTAL_OFFSET (0)
 #endif
 
-
-//
-// --- Mouse Endpoint Descriptors ---
-//
-#if enableMouse_define == 1
-#define MOUSE_DESC_TOTAL_OFFSET (MOUSE_DESC_SIZE)
-
-// --- Mouse Interface ---
-// - 9 bytes -
-	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
-	9,                                      // bLength
-	4,                                      // bDescriptorType
-	MOUSE_INTERFACE,                        // bInterfaceNumber
-	0,                                      // bAlternateSetting
-	1,                                      // bNumEndpoints
-	0x03,                                   // bInterfaceClass (0x03 = HID)
-	0x00,                                   // bInterfaceSubClass (0x01 = Boot)
-	0x02,                                   // bInterfaceProtocol (0x02 = Mouse)
-	MOUSE_INTERFACE + 5,                    // iInterface
-// - 9 bytes -
-	// HID interface descriptor, HID 1.11 spec, section 6.2.1
-	9,                                      // bLength
-	0x21,                                   // bDescriptorType
-	0x11, 0x01,                             // bcdHID
-	0,                                      // bCountryCode
-	1,                                      // bNumDescriptors
-	0x22,                                   // bDescriptorType
-	LSB(sizeof(mouse_report_desc)),         // wDescriptorLength
-	MSB(sizeof(mouse_report_desc)),
-// - 7 bytes -
-	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-	7,                                      // bLength
-	5,                                      // bDescriptorType
-	MOUSE_ENDPOINT | 0x80,                  // bEndpointAddress
-	0x03,                                   // bmAttributes (0x03=intr)
-	MOUSE_SIZE, 0,                          // wMaxPacketSize
-	MOUSE_INTERVAL,                         // bInterval
-#else
-#define MOUSE_DESC_TOTAL_OFFSET (0)
-#endif
-
-
-//
-// --- Raw IO Endpoint Descriptors ---
-//
-#if enableRawIO_define == 1
-#define RAWIO_DESC_TOTAL_OFFSET (RAWIO_DESC_SIZE)
-
-// --- Vendor Specific / RAW I/O ---
-// - 9 bytes -
-	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
-	9,                                      // bLength
-	4,                                      // bDescriptorType
-	RAWIO_INTERFACE,                        // bInterfaceNumber
-	0,                                      // bAlternateSetting
-	2,                                      // bNumEndpoints
-	0x03,                                   // bInterfaceClass (0x03)
-	0x00,                                   // bInterfaceSubClass
-	0x00,                                   // bInterfaceProtocol
-	RAWIO_INTERFACE + 5,                    // iInterface
-
-// - 9 bytes -
-	// HID interface descriptor, HID 1.11 spec, section 6.2.1
-	9,                                      // bLength
-	0x21,                                   // bDescriptorType
-	0x11, 0x01,                             // bcdHID
-	0,                                      // bCountryCode
-	1,                                      // bNumDescriptors
-	0x22,                                   // bDescriptorType
-	LSB(sizeof(rawio_report_desc)),         // wDescriptorLength
-	MSB(sizeof(rawio_report_desc)),
-
-// - 7 bytes -
-	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-	7,                                      // bLength
-	5,                                      // bDescriptorType
-	RAWIO_TX_ENDPOINT | 0x80,               // bEndpointAddress
-	0x03,                                   // bmAttributes (0x03=intr)
-	RAWIO_TX_SIZE, 0,                       // wMaxPacketSize
-	RAWIO_TX_INTERVAL,                      // bInterval
-
-// - 7 bytes -
-	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-	7,                                      // bLength
-	5,                                      // bDescriptorType
-	RAWIO_RX_ENDPOINT,                      // bEndpointAddress
-	0x03,                                   // bmAttributes (0x03=intr)
-	RAWIO_RX_SIZE, 0,                       // wMaxPacketSize
-	RAWIO_RX_INTERVAL,                      // bInterval
-#else
-#define RAWIO_DESC_TOTAL_OFFSET (0)
-#endif
-
-
-//
-// --- Joystick Endpoint Descriptors ---
-//
-#if enableJoystick_define == 1
-#define JOYSTICK_DESC_TOTAL_OFFSET (JOYSTICK_DESC_SIZE)
-
-// --- Joystick Interface ---
-// - 9 bytes -
-	// interface descriptor, USB spec 9.6.5, page 267-269, Table 9-12
-	9,                                      // bLength
-	4,                                      // bDescriptorType
-	JOYSTICK_INTERFACE,                     // bInterfaceNumber
-	0,                                      // bAlternateSetting
-	1,                                      // bNumEndpoints
-	0x03,                                   // bInterfaceClass (0x03 = HID)
-	0x00,                                   // bInterfaceSubClass
-	0x00,                                   // bInterfaceProtocol
-	JOYSTICK_INTERFACE + 5,                 // iInterface
-// - 9 bytes -
-	// HID interface descriptor, HID 1.11 spec, section 6.2.1
-	9,                                      // bLength
-	0x21,                                   // bDescriptorType
-	0x11, 0x01,                             // bcdHID
-	0,                                      // bCountryCode
-	1,                                      // bNumDescriptors
-	0x22,                                   // bDescriptorType
-	LSB(sizeof(joystick_report_desc)),      // wDescriptorLength
-	MSB(sizeof(joystick_report_desc)),
-// - 7 bytes -
-	// endpoint descriptor, USB spec 9.6.6, page 269-271, Table 9-13
-	7,                                      // bLength
-	5,                                      // bDescriptorType
-	JOYSTICK_ENDPOINT | 0x80,               // bEndpointAddress
-	0x03,                                   // bmAttributes (0x03=intr)
-	JOYSTICK_SIZE, 0,                       // wMaxPacketSize
-	JOYSTICK_INTERVAL,                      // bInterval
-#else
-#define JOYSTICK_DESC_TOTAL_OFFSET (0)
-#endif
-
 };
 
 uint8_t *usb_bMaxPower = &config_descriptor[8];
@@ -892,10 +802,6 @@ usb_string_descriptor( usb_string_rawio_name, RAWIO_NAME );
 usb_string_descriptor( usb_string_mouse_name, MOUSE_NAME );
 #endif
 
-#if enableJoystick_define == 1
-usb_string_descriptor( usb_string_joystick_name, JOYSTICK_NAME );
-#endif
-
 
 
 // ----- Descriptors List -----
@@ -937,11 +843,6 @@ const usb_descriptor_list_t usb_descriptor_list[] = {
 	iInterfaceString( SYS_CTRL_INTERFACE, usb_string_sys_ctrl_name ),
 #endif
 
-#if enableVirtualSerialPort_define == 1
-	iInterfaceString( CDC_STATUS_INTERFACE, usb_string_cdc_status_name ),
-	iInterfaceString( CDC_DATA_INTERFACE, usb_string_cdc_data_name ),
-#endif
-
 #if enableRawIO_define == 1
 	{0x2200, RAWIO_INTERFACE, rawio_report_desc, sizeof(rawio_report_desc)},
 	{0x2100, RAWIO_INTERFACE, config_descriptor + RAWIO_DESC_BASE_OFFSET, 9},
@@ -954,10 +855,9 @@ const usb_descriptor_list_t usb_descriptor_list[] = {
 	iInterfaceString( MOUSE_INTERFACE, usb_string_mouse_name ),
 #endif
 
-#if enableJoystick_define == 1
-	{0x2200, JOYSTICK_INTERFACE, joystick_report_desc, sizeof(joystick_report_desc)},
-	{0x2100, JOYSTICK_INTERFACE, config_descriptor + JOYSTICK_DESC_BASE_OFFSET, 9},
-	iInterfaceString( JOYSTICK_INTERFACE, usb_string_joystick_name ),
+#if enableVirtualSerialPort_define == 1
+	iInterfaceString( CDC_STATUS_INTERFACE, usb_string_cdc_status_name ),
+	iInterfaceString( CDC_DATA_INTERFACE, usb_string_cdc_data_name ),
 #endif
 
 	{0, 0, NULL, 0}
@@ -1088,6 +988,17 @@ udi_api_t udi_api_hid = {
         .sof_notify = (void(*)(void))udi_hid_sof,
 };
 
+extern bool udi_hid_generic_enable(void);
+extern void udi_hid_generic_disable(void);
+
+udi_api_t udi_api_hid_rawio = {
+	.enable = (bool(*)(void))udi_hid_generic_enable,
+	.disable = (void (*)(void))udi_hid_generic_disable,
+        .setup = (bool(*)(void))my_udi_hid_setup,
+        .getsetting = (uint8_t(*)(void))udi_hid_getsetting,
+	.sof_notify = NULL,
+};
+
 //! Associate an UDI for each USB interface
 udi_api_t* udi_apis[] = {
 #if enableKeyboard_define == 1
@@ -1095,15 +1006,15 @@ udi_api_t* udi_apis[] = {
 	&udi_api_hid,
 	&udi_api_hid,
 #endif
-#if enableVirtualSerialPort_define == 1
-	&udi_api_cdc_comm,
-	&udi_api_cdc_data,
+#if enableRawIO_define == 1
+	&udi_api_hid_rawio,
 #endif
 #if enableMouse_define == 1
 	&udi_api_hid,
 #endif
-#if enableRawIO_define == 1
-	&udi_api_hid,
+#if enableVirtualSerialPort_define == 1
+	&udi_api_cdc_comm,
+	&udi_api_cdc_data,
 #endif
 };
 #define __STR(a) #a
