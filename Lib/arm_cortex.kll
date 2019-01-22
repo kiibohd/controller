@@ -12,14 +12,15 @@ Date = 2019-01-21;
 uartPriority => UART_Priority_define;
 usbPriority => USB_Priority_define;
 defaultPriority => Default_Priority_define;
-I2CPriority => I2C_Priority_define;
+i2cPriority => I2C_Priority_define;
 entropyPriority => Entropy_Priority_define;
 periodicPriority => Periodic_Priority_define;
 
 # 0 is most urgent
 uartPriority = 111;
-usbPriority = 112;
+i2cPriority = 112; # NOTE: I2C priority must be higher than USB otherwise ISSI frames get corrupted
+                   #       when there are large streams of USB interrupts (i.e. packets or errors)
+usbPriority = 113;
 defaultPriority = 128;
-I2CPriority = 150;
 entropyPriority = 200;
 periodicPriority = 200;
