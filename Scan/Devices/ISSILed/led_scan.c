@@ -1113,6 +1113,14 @@ void LED_control( LedControl control, uint8_t arg )
 #endif
 }
 
+void LED_SetPixels( uint8_t shouldSetOn )
+{
+	if ( shouldSetOn )
+		LED_control( LedControl_on, 0 );
+	else
+		LED_control( LedControl_off, 0 );
+}
+
 void LED_control_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
 {
 	CapabilityState cstate = KLL_CapabilityState( state, stateType );

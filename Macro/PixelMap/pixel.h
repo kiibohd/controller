@@ -277,3 +277,5 @@ void Pixel_setup();
 
 void Pixel_setAnimationControl( AnimationControl control );
 
+void LED_SetPixels( uint8_t shouldSetOn );
+
