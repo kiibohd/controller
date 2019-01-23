@@ -2544,6 +2544,11 @@ pixel_process_final:
 	Latency_end_time( pixelLatencyResource );
 }
 
+//Screensaver periodic activity check to block animations/disable LEDs
+void Screensaver_periodic()
+{
+    //TODO
+}
 
 inline void Pixel_setup()
 {

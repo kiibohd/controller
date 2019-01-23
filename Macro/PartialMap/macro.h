@@ -39,6 +39,8 @@ void Macro_rotationState( uint8_t index, int8_t increment );
 uint8_t Macro_tick_update( TickStore *store, uint8_t type );
 
 void Macro_periodic();
+void Screensaver_periodic();
+
 void Macro_poll();
 void Macro_setup();
 
