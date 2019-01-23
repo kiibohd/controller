@@ -132,6 +132,14 @@ CLIDict_Def( pixelCLIDict, "Pixel Module Commands" ) = {
 extern const uint8_t gamma_table[];
 static uint8_t gamma_enabled;
 
+//Keyboard screensaver
+static uint32_t screensaver_led_shutdown;
+static uint32_t screensaver_block_animation;
+
+//ms when the last keystroke happened (valid iff screensaver is enabled)
+static volatile uint32_t last_key_stroke_time_ms;
+
+
 // Debug states
 PixelTest Pixel_testMode;
 volatile uint16_t  Pixel_testPos = 0;
@@ -586,6 +594,17 @@ void Pixel_FadeLayerHighlight_capability( TriggerMacro *trigger, uint8_t state, 
 		// Set pixel to group #4
 		Pixel_pixel_fade_profile[pixel - 1] = 4;
 	}
+}
+
+void Pixel_AnimationScreenSaverUpdate( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+    if ( screensaver_led_shutdown ) {
+        last_key_stroke_time_ms = Time_now().ms;
+        LED_SetPixels(1);
+        if ( screensaver_block_animation ) {
+            Pixel_animationControl = AnimationControl_Pause;
+        }
+    }
 }
 
 
@@ -1969,6 +1988,10 @@ void Pixel_SecondaryProcessing_setup()
 	// Set default gamma setting
 	gamma_enabled = Pixel_gamma_default_define;
 
+	// Set default screensaver settings
+	screensaver_block_animation = Pixel_screensaver_default_block_animation;
+	screensaver_led_shutdown = Pixel_screensaver_default_led_shutdown;
+
 	// Disable all fade profiles (active defaults afterwards)
 	memset( Pixel_pixel_fade_profile, 0, Pixel_TotalPixels_KLL );
 
@@ -2547,7 +2570,21 @@ pixel_process_final:
 //Screensaver periodic activity check to block animations/disable LEDs
 void Screensaver_periodic()
 {
-    //TODO
+    if ( screensaver_led_shutdown ) {
+        const uint32_t now = Time_now().ms;
+        if ( now <= last_key_stroke_time_ms+screensaver_block_animation ) {
+            return;
+        }
+
+        if ( now <= last_key_stroke_time_ms+(screensaver_led_shutdown*1000) ) {
+            if ( screensaver_block_animation ) {
+                Pixel_animationControl = AnimationControl_Forward;
+            }
+            return;
+        }
+
+        LED_SetPixels(0);
+    }
 }
 
 inline void Pixel_setup()
