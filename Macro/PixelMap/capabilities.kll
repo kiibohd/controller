@@ -26,7 +26,7 @@ pixel => Pixel_Pixel_capability();
 gamma => Pixel_GammaControl_capability( func : 1 );
 LEDGamma = 2.2;
 gamma_enabled => Pixel_gamma_default_define;
-gamma_enabled = "1"; # 0 - Disabled, 1 - Enabled
+gamma_enabled = "0"; # 0 - Disabled, 1 - Enabled
 
 # Keyboard screensaver settings: block animations on a given key press for some ms/shut down LEDs after some s of inactivity
 animation_screensaver_update => Pixel_AnimationScreenSaverUpdate();
