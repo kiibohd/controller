@@ -34,7 +34,7 @@ screensaver_led_shutdown => Pixel_screensaver_default_led_shutdown;
 screensaver_led_shutdown = "0"; # number of seconds before the leds are shutdown; if 0, screensaver is disabled
 screensaver_block_animation => Pixel_screensaver_default_block_animation;
 screensaver_block_animation = "0"; #number of MILLIseconds to block animation when key is pressed; if 0, animation is not blocked, if screensaver disabled this is ignored
-U[4-101,103-164,176-221,224-231,240-289] :+ animation_screensaver_update(); #key codes counting as an 'action' to stop screensaver to go to sleep (here all keys)
+# enable screensaver with 'U[4-101,103-164,176-221,224-231,240-289] :+ animation_screensaver_update();' , the key codes counting as an 'action' to stop screensaver to go to sleep (here all kira keys)
 
 # Animation Control
 # 0 - Pause/Resume
