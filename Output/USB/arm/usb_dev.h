@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2014-2018
+ * Modifications by Jacob Alexander 2014-2019
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -87,6 +87,10 @@ static inline uint32_t usb_rx_byte_count(uint32_t endpoint)
 	return 0;
 #endif
 }
+
+#if defined(_sam_)
+void usb_sof_event();
+#endif
 
 void usb_set_sleep_state(bool sleep);
 

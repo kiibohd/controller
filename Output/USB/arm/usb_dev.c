@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander (2013-2018)
+ * Modifications by Jacob Alexander (2013-2019)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -1762,8 +1762,14 @@ restart:
 		// set the address to zero during enumeration
 		USB0_ADDR = 0;
 
-		// enable other interrupts (except USB Resume)
-		USB0_ERREN = 0xFF;
+		// Enable other interrupts (except USB Resume)
+		USB0_ERREN = USB_ERREN_BTSERREN |
+			USB_ERREN_DMAERREN |
+			USB_ERREN_BTOERREN |
+			USB_ERREN_DFN8EN |
+			USB_ERREN_CRC16EN |
+			USB_ERREN_CRC5EOFEN |
+			USB_ERREN_PIDERREN;
 		USB0_INTEN = USB_INTEN_TOKDNEEN |
 			USB_INTEN_SOFTOKEN |
 			USB_INTEN_STALLEN |
@@ -1792,6 +1798,9 @@ restart:
 		//serial_phex(err);
 		//serial_print("\n");
 		USB0_ISTAT = USB_ISTAT_ERROR;
+
+		// A USB error of some type occurred, increment error counter
+		USBStatus_FrameErrors++;
 	}
 
 	// USB Host signalling device to enter 'sleep' state
@@ -1847,6 +1856,18 @@ void usb_set_sleep_state(bool sleep) {
 		Output_update_usb_current( *usb_bMaxPower * 2 );
 	}
 }
+
+#if defined(_sam_)
+// Called on an SOF interrupt, used to record errors
+void usb_sof_event()
+{
+	// Check for error
+	if ( Is_udd_frame_number_crc_error() )
+	{
+		USBStatus_FrameErrors++;
+	}
+}
+#endif
 
 uint8_t usb_init()
 {

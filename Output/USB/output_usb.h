@@ -129,6 +129,8 @@ extern volatile uint16_t USBInit_Ticks;     // Number of times the end time has 
 
 extern volatile uint8_t  USBDev_Address;    // USB Address - Set by host, unique to the bus
 
+extern volatile uint32_t USBStatus_FrameErrors; // Counter of SOF (start of frame) errors
+
 
 
 // ----- Functions -----

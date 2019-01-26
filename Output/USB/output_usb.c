@@ -84,6 +84,7 @@ void cliFunc_readLEDs   ( char* args );
 void cliFunc_usbAddr    ( char* args );
 void cliFunc_usbConf    ( char* args );
 void cliFunc_usbInitTime( char* args );
+void cliFunc_usbErrors  ( char* args );
 
 
 
@@ -96,6 +97,7 @@ CLIDict_Entry( readLEDs,    "Read LED byte:" NL "\t\t1 NumLck, 2 CapsLck, 4 Scrl
 CLIDict_Entry( usbAddr,     "Shows the negotiated USB unique Id, given to device by host." );
 CLIDict_Entry( usbConf,     "Shows whether USB is configured or not." );
 CLIDict_Entry( usbInitTime, "Displays the time in ms from usb_init() till the last setup call." );
+CLIDict_Entry( usbErrors,   "Displays number of usb errors since startup." );
 
 CLIDict_Def( usbCLIDict, "USB Module Commands" ) = {
 	CLIDict_Item( idle ),
@@ -104,6 +106,7 @@ CLIDict_Def( usbCLIDict, "USB Module Commands" ) = {
 	CLIDict_Item( usbAddr ),
 	CLIDict_Item( usbConf ),
 	CLIDict_Item( usbInitTime ),
+	CLIDict_Item( usbErrors ),
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
@@ -156,6 +159,9 @@ volatile uint16_t USBInit_Ticks;
 
 // USB Address - Set by host, unique to the bus
 volatile uint8_t USBDev_Address;
+
+// USB Errors
+volatile uint32_t USBStatus_FrameErrors;
 
 // Scheduled USB resets, used to clear USB packets before bringing down the USB stack
 // This is useful for OSs like Windows where then OS doesn't clear the current state
@@ -739,6 +745,9 @@ void USB_flushBuffers()
 // USB Module Setup
 inline void USB_setup()
 {
+	// Reset frame error counter
+	USBStatus_FrameErrors = 0;
+
 	// Initialize the USB
 	// If a USB connection does not exist, just ignore it
 	// All usb related functions will non-fatally fail if called
@@ -1247,5 +1256,13 @@ void cliFunc_usbInitTime( char* args )
 	print(" ms - ");
 	printInt16( USBInit_Ticks );
 	print(" ticks");
+}
+
+
+void cliFunc_usbErrors( char* args )
+{
+	print(NL);
+	info_msg("USB Frame Errors: ");
+	printInt32( USBStatus_FrameErrors );
 }
 

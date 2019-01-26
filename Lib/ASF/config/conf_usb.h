@@ -64,12 +64,9 @@
  * @{
  */
 //#define  UDC_VBUS_EVENT(b_vbus_high)
-//#define  UDC_SOF_EVENT()                  main_sof_action()
 //! Mandatory when USB_DEVICE_ATTR authorizes remote wakeup feature
 #define  UDC_REMOTEWAKEUP_ENABLE()
 #define  UDC_REMOTEWAKEUP_DISABLE()
-//! When a extra string descriptor must be supported
-//! other than manufacturer, product and serial string
 //@}
 
 //@}
@@ -163,6 +160,7 @@ extern bool main_extra_string();
 #include "Output/USB/arm/usb_desc.h"
 #define  UDC_SUSPEND_EVENT()              usb_set_sleep_state(1)
 #define  UDC_RESUME_EVENT()               usb_set_sleep_state(0)
+#define  UDC_SOF_EVENT()                  usb_sof_event()
 #define USB_DEVICE_SPECIFIC_REQUEST my_udi_hid_setup
 #define USB_CONFIGURATION_CHANGED usb_set_configuration
 
