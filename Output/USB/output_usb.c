@@ -840,6 +840,12 @@ void USB_indicator_update()
 		// Detect if on
 		else if ( cur && cur == prev )
 		{
+			// On
+			Macro_ledState( id, ScheduleType_On );
+		}
+		// Detect if press
+		else if ( cur )
+		{
 			// TODO (HaaTa): Temporary Lock led control
 #if Scan_KiraKeyboard_define == 1 && !defined(_host_)
 			switch ( id )
@@ -857,12 +863,6 @@ void USB_indicator_update()
 				break;
 			}
 #endif
-			// On
-			Macro_ledState( id, ScheduleType_On );
-		}
-		// Detect if press
-		else if ( cur )
-		{
 			// Activate
 			Macro_ledState( id, ScheduleType_A );
 		}
