@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2018 by Jacob Alexander
+/* Copyright (C) 2015-2019 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,19 +78,22 @@ typedef enum PixelTest {
 	PixelTest_XY_Roll,
 } PixelTest;
 
+
+
 // ----- Variables -----
 
 #if Storage_Enable_define == 1
 typedef struct {
-	uint8_t animation_indices[Pixel_AnimationStackSize];
+	uint8_t index;
+	uint8_t pos;
+} PixelConfigElem;
+
+typedef struct {
+	PixelConfigElem animations[Pixel_AnimationStackSize];
 	PixelPeriodConfig fade_periods[4][4];
 } PixelConfig;
 
-static PixelConfig defaults = {
-	.animation_indices = {[0 ... Pixel_AnimationStackSize-1] = 255}, //Todo, use some kll define
-	// .fade_periods initialized later
-};
-
+static PixelConfig defaults;
 static PixelConfig settings;
 
 static StorageModule PixelStorage = {
@@ -2553,8 +2556,15 @@ inline void Pixel_setup()
 
 	// Register storage module
 #if Storage_Enable_define == 1
-	for (uint8_t profile=0; profile<4; profile++) {
-		for (uint8_t config=0; config<4; config++) {
+	for ( uint8_t animation = 0; animation < Pixel_AnimationStackSize; animation++ )
+	{
+		defaults.animations[animation].index = 255;
+		defaults.animations[animation].pos = 0;
+	}
+	for ( uint8_t profile = 0; profile < 4; profile++ )
+	{
+		for ( uint8_t config = 0; config < 4; config++ )
+		{
 			defaults.fade_periods[profile][config] =
 				Pixel_LED_FadePeriods[Pixel_LED_FadePeriod_Defaults[profile][config]];
 		}
@@ -3107,11 +3117,16 @@ void Pixel_loadConfig() {
 	// Animations
 	for ( uint8_t pos = 0; pos < Pixel_AnimationStackSize; pos++ )
 	{
-		uint8_t index = settings.animation_indices[pos];
+		uint8_t index = settings.animations[pos].index;
 		if (index != 255) {
 			AnimationStackElement element = Pixel_AnimationSettings[ index ];
 			element.state = AnimationPlayState_Start;
-			Pixel_addAnimation( &element, CapabilityState_None );
+
+			// If animation was added to the stack (not a modification), adjust position as well
+			if ( Pixel_addAnimation( &element, CapabilityState_None ) )
+			{
+				Pixel_AnimationStack.stack[Pixel_AnimationStack.size]->pos = settings.animations[pos].pos;
+			}
 		}
 	}
 
@@ -3132,9 +3147,11 @@ void Pixel_saveConfig() {
 	{
 		if (pos < Pixel_AnimationStack.size) {
 			AnimationStackElement *elem = Pixel_AnimationStack.stack[pos];
-			settings.animation_indices[pos] = elem->index;
+			settings.animations[pos].index = elem->index;
+			settings.animations[pos].pos = elem->pos;
 		} else {
-			settings.animation_indices[pos] = 255;
+			settings.animations[pos].index = 255;
+			settings.animations[pos].pos = 0;
 		}
 	}
 
@@ -3155,12 +3172,15 @@ void Pixel_printConfig() {
 	print(" \033[35mAnimations\033[0m" NL);
 	for ( uint8_t pos = 0; pos < Pixel_AnimationStackSize; pos++ )
 	{
-		uint8_t index = settings.animation_indices[pos];
+		uint8_t index = settings.animations[pos].index;
+		uint8_t fpos = settings.animations[pos].pos;
 		if (index != 255) {
 			print("AnimationStack.stack[");
 			printInt8(pos);
 			print("]->index = ");
 			printInt8(index);
+			print(" ->pos = ");
+			printInt8(fpos);
 			print(NL);
 		}
 	}
@@ -3180,6 +3200,7 @@ void Pixel_printConfig() {
 			printInt8(period.start);
 			print(", ");
 			printInt8(period.end);
+			print("}");
 			print(NL);
 		}
 	}
