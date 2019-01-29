@@ -209,6 +209,9 @@ static void endpoint0_stall()
 #if defined(_kinetis_)
 	USB0_ENDPT0 = USB_ENDPT_EPSTALL | USB_ENDPT_EPRXEN | USB_ENDPT_EPTXEN | USB_ENDPT_EPHSHK;
 #elif defined(_sam_)
+	// XXX (HaaTa): Only for setup packets (must ack received packet before stalling)
+	udd_ack_setup_received( 0 );
+
 	udd_ctrl_stall_data();
 #endif
 }

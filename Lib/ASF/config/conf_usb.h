@@ -49,10 +49,7 @@
 #define  USB_DEVICE_VENDOR_ID             VENDOR_ID
 #define  USB_DEVICE_PRODUCT_ID            PRODUCT_ID
 #define  USB_DEVICE_VERSION               BCD_VERSION
-#define  USB_DEVICE_POWER                 100 // Consumption on Vbus line (mA)
-#define  USB_DEVICE_ATTR                  (USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_SELF_POWERED)
-//	(USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_BUS_POWERED)
-//	(USB_CONFIG_ATTR_BUS_POWERED)
+#define  USB_DEVICE_ATTR                  (USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_BUS_POWERED)
 
 #ifdef USB_Priority_define
 #define UDD_USB_INT_LEVEL USB_Priority_define
@@ -149,6 +146,7 @@ extern bool main_extra_string();
 #define USB_DEVICE_SPECIFIC_REQUEST udi_dfu_atmel_setup
 #define UDC_GET_EXTRA_STRING() main_extra_string()
 #define USB_DEVICE_MAX_EP 1
+#define  USB_DEVICE_POWER                 100 // Consumption on Vbus line (mA)
 #include "udi_dfu_atmel_conf.h"
 
 // ===== Firmware =====
@@ -163,6 +161,7 @@ extern bool main_extra_string();
 #define  UDC_SOF_EVENT()                  usb_sof_event()
 #define USB_DEVICE_SPECIFIC_REQUEST my_udi_hid_setup
 #define USB_CONFIGURATION_CHANGED usb_set_configuration
+#define  USB_DEVICE_POWER                 500 // Consumption on Vbus line (mA)
 
 #endif
 
