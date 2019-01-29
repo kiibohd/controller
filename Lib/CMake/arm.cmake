@@ -126,6 +126,15 @@ if ( "${CHIP_SUPPORT}" MATCHES "sam" )
 		Lib/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.c
 		Lib/ASF/sam/services/flash_efc/flash_efc.c
 	)
+
+	# KLL Options
+	set( Device_KLL ${Device_KLL} "${CMAKE_CURRENT_SOURCE_DIR}/Lib/sam.kll" )
+endif ()
+
+#| Kinetis Sources
+if ( "${CHIP_SUPPORT}" MATCHES "kinetis" )
+	# KLL Options
+	set( Device_KLL ${Device_KLL} "${CMAKE_CURRENT_SOURCE_DIR}/Lib/kinetis.kll" )
 endif ()
 
 #| Clang needs a few more functions for linking

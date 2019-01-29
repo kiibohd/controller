@@ -1,0 +1,16 @@
+# Kinetis
+
+Name = KinetisCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2019";
+KLL = 0.5;
+
+# Modified Date
+Date = 2019-01-28;
+
+# Kinetis must have USB as the highest priority in order to meet framerate timings
+# 0 is most urgent
+# See arm_cortex.kll for defaults
+usbPriority = 112;
+i2cPriority = 150;
+

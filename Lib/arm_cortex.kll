@@ -6,7 +6,7 @@ Author = "Smasher816 (Rowan Decker) 2019";
 KLL = 0.5;
 
 # Modified Date
-Date = 2019-01-21;
+Date = 2019-01-29;
 
 # NVIC Interrupt priorities
 uartPriority => UART_Priority_define;
@@ -18,9 +18,9 @@ periodicPriority => Periodic_Priority_define;
 
 # 0 is most urgent
 uartPriority = 111;
-i2cPriority = 112; # NOTE: I2C priority must be higher than USB otherwise ISSI frames get corrupted
-                   #       when there are large streams of USB interrupts (i.e. packets or errors)
-usbPriority = 113;
+usbPriority = 112;
 defaultPriority = 128;
+i2cPriority = 150;
 entropyPriority = 200;
 periodicPriority = 200;
+
