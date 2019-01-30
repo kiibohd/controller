@@ -2264,6 +2264,7 @@ inline void Pixel_process()
 		Pixel_FrameState = FrameState_Update;
 		Pixel_clearAnimations();
 		Pixel_clearPixels();
+		Pixel_SecondaryProcessing_setup(); // Reset fade and gamma correction
 		Pixel_animationControl = AnimationControl_Forward;
 		Pixel_initializeStartAnimations();
 		break;

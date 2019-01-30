@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller KLL Configurator |###
 #
-# Written by Jacob Alexander in 2014-2018 for the Kiibohd Controller
+# Written by Jacob Alexander in 2014-2019 for the Kiibohd Controller
 #
 # Released into the Public Domain
 #
@@ -43,7 +43,7 @@ endif ()
 message ( STATUS "Checking for kll" )
 
 ### XXX XXX XXX - Remember to update Pipfile as well when you change the version! ###
-set ( KLL_MIN_VERSION "0.5.7.3" )
+set ( KLL_MIN_VERSION "0.5.7.4" )
 
 # 1) Check for environment variable
 if ( NOT DEFINED KLL_EXECUTABLE )
