@@ -100,7 +100,7 @@ inline void TestOut_periodic()
 {
 #if enableMouse_define == 1
 	// Process mouse actions
-	while ( USBMouse_Changed )
+	while ( USBMouse_primary.changed )
 	{
 		Output_callback( "mouse_send", "" );
 	}

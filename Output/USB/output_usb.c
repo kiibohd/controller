@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2018 by Jacob Alexander
+/* Copyright (C) 2011-2019 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -122,16 +122,8 @@ volatile uint8_t  USBKeys_Sent;
 volatile uint8_t  USBKeys_LEDs;
 volatile uint8_t  USBKeys_LEDs_prev;
 
-// Currently pressed mouse buttons, bitmask, 0 represents no buttons pressed
-volatile uint16_t USBMouse_Buttons;
-
-// Relative mouse axis movement, stores pending movement
-volatile int16_t USBMouse_Relative_x;
-volatile int16_t USBMouse_Relative_y;
-
-// Mouse wheel pending action
-volatile int8_t USBMouse_VertWheel;
-volatile int8_t USBMouse_HoriWheel;
+// USBMouse Buffer
+volatile USBMouse USBMouse_primary; // Primary mouse send buffer
 
 // Protocol setting from the host.
 // 0 - Boot Mode
@@ -139,9 +131,6 @@ volatile int8_t USBMouse_HoriWheel;
 volatile uint8_t  USBKeys_Protocol = USBProtocol_define;
 volatile uint8_t  USBKeys_Protocol_New = USBProtocol_define;
 volatile uint8_t  USBKeys_Protocol_Change; // New value to set to USBKeys_Protocol if _Change is set
-
-// Indicate if USB should send update
-USBMouseChangeState USBMouse_Changed;
 
 // the idle configuration, how often we send the report to the
 // host (ms * 4) even when it hasn't changed
@@ -635,23 +624,23 @@ void Output_usbMouse_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 		// Press/Hold
 		if ( mouse_button )
 		{
-			USBMouse_Buttons |= (1 << mouse_button_shift);
+			USBMouse_primary.buttons |= (1 << mouse_button_shift);
 		}
 
 		if ( mouse_x )
 		{
-			USBMouse_Relative_x = mouse_x;
+			USBMouse_primary.relative_x = mouse_x;
 		}
 		if ( mouse_y )
 		{
-			USBMouse_Relative_y = mouse_y;
+			USBMouse_primary.relative_y = mouse_y;
 		}
 		break;
 	case CapabilityState_Last:
 		// Release
 		if ( mouse_button )
 		{
-			USBMouse_Buttons &= ~(1 << mouse_button_shift);
+			USBMouse_primary.buttons &= ~(1 << mouse_button_shift);
 		}
 		break;
 	case CapabilityState_Debug:
@@ -665,12 +654,12 @@ void Output_usbMouse_capability( TriggerMacro *trigger, uint8_t state, uint8_t s
 	// Trigger updates
 	if ( mouse_button )
 	{
-		USBMouse_Changed |= USBMouseChangeState_Buttons;
+		USBMouse_primary.changed |= USBMouseChangeState_Buttons;
 	}
 
 	if ( mouse_x || mouse_y )
 	{
-		USBMouse_Changed |= USBMouseChangeState_Relative;
+		USBMouse_primary.changed |= USBMouseChangeState_Relative;
 	}
 }
 
@@ -694,14 +683,14 @@ void Output_usbMouseWheel_capability( TriggerMacro *trigger, uint8_t state, uint
 		// Press/Hold
 		if ( wheel_vert )
 		{
-			USBMouse_VertWheel = wheel_vert;
-			USBMouse_Changed |= USBMouseChangeState_WheelVert;
+			USBMouse_primary.vertwheel = wheel_vert;
+			USBMouse_primary.changed |= USBMouseChangeState_WheelVert;
 		}
 
 		if ( wheel_hori )
 		{
-			USBMouse_HoriWheel = wheel_hori;
-			USBMouse_Changed |= USBMouseChangeState_WheelHori;
+			USBMouse_primary.horiwheel = wheel_hori;
+			USBMouse_primary.changed |= USBMouseChangeState_WheelHori;
 		}
 		break;
 	case CapabilityState_Debug:
@@ -733,17 +722,17 @@ void USB_flushBuffers()
 	USBKeys_Sent = 0;
 
 	// Clear mouse state
-	USBMouse_Buttons = 0;
-	USBMouse_Relative_x = 0;
-	USBMouse_Relative_y = 0;
-	USBMouse_VertWheel = 0;
-	USBMouse_HoriWheel = 0;
-	USBMouse_Changed = 0;
+	USBMouse_primary.buttons = 0;
+	USBMouse_primary.relative_x = 0;
+	USBMouse_primary.relative_y = 0;
+	USBMouse_primary.vertwheel = 0;
+	USBMouse_primary.horiwheel = 0;
+	USBMouse_primary.changed = 0;
 
 	// Make sure everything actually flushes
 	USBKeys_primary.changed = 1;
 	USBKeys_idle.changed = 1;
-	USBMouse_Changed = 1;
+	USBMouse_primary.changed = 1;
 }
 
 
@@ -928,7 +917,7 @@ inline void USB_periodic()
 
 #if enableMouse_define == 1
 	// Process mouse actions
-	while ( USBMouse_Changed )
+	while ( USBMouse_primary.changed )
 	{
 		usb_mouse_send();
 	}

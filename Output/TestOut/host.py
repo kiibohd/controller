@@ -2,7 +2,7 @@
 Host-Side Python Commands for TestOut Output Module
 '''
 
-# Copyright (C) 2016-2018 by Jacob Alexander
+# Copyright (C) 2016-2019 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@ import copy
 import os
 import sys
 
-from ctypes import POINTER, cast, c_char_p, c_uint8, c_uint16, Structure
+from ctypes import POINTER, cast, c_char_p, c_int8, c_int16, c_uint8, c_uint16, Structure
 
 import kiilogger
 
@@ -121,6 +121,33 @@ class USBKeys( Structure ):
             self.keys,
             self.sys_ctrl,
             self.cons_ctrl,
+            self.changed,
+        )
+        return val
+
+
+class USBMouse( Structure ):
+    '''
+    USBMouse struct
+    See Output/USB/output_usb.h
+    '''
+
+    _fields_ = [
+        ( 'buttons',    c_uint16 ),
+        ( 'relative_x', c_int16 ),
+        ( 'relative_y', c_int16 ),
+        ( 'vertwheel',  c_int8 ),
+        ( 'horiwheel',  c_int8 ),
+        ( 'changed',    c_uint8 ),
+    ]
+
+    def __repr__( self ):
+        val = "(buttons={}, relative_x={}, relative_y={}, vertwheel={}, horiwheel={}, changed={})".format(
+            self.buttons,
+            self.relative_x,
+            self.relative_y,
+            self.vertwheel,
+            self.horiwheel,
             self.changed,
         )
         return val
@@ -306,9 +333,16 @@ class Callbacks:
 
     def mouse_send( self, args ):
         '''
-        TODO
+        Callback received when Host-side KLL is ready to send USB mouse commands
+
+        TODO - Not fully implemented
         '''
+        usb_mouse = cast( control.kiibohd.USBMouse_primary, POINTER( USBMouse ) )[0]
+
         logger.warning("mouse_send not implemented")
+
+        # Indicate we are done with the buffer
+        usb_mouse.changed = 0
 
     def rawio_available( self, args ):
         '''

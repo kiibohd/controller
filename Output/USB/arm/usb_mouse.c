@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2015-2018)
+ * Modified by Jacob Alexander (2015-2019)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -96,12 +96,12 @@ void usb_mouse_send()
 			warn_print("USB Transmit Timeout...");
 
 			// Clear status and state
-			USBMouse_Buttons = 0;
-			USBMouse_Relative_x = 0;
-			USBMouse_Relative_y = 0;
-			USBMouse_VertWheel = 0;
-			USBMouse_HoriWheel = 0;
-			USBMouse_Changed = 0;
+			USBMouse_primary.buttons = 0;
+			USBMouse_primary.relative_x = 0;
+			USBMouse_primary.relative_y = 0;
+			USBMouse_primary.vertwheel = 0;
+			USBMouse_primary.horiwheel = 0;
+			USBMouse_primary.changed = 0;
 			return;
 		}
 		yield();
@@ -112,20 +112,20 @@ void usb_mouse_send()
 	// Prepare USB Mouse Packet
 	// TODO (HaaTa): Dynamically generate this code based on KLL requirements
 	uint16_t *packet_data = (uint16_t*)(&tx_packet->buf[0]);
-	packet_data[0] = USBMouse_Buttons;
-	packet_data[1] = (uint16_t)USBMouse_Relative_x;
-	packet_data[2] = (uint16_t)USBMouse_Relative_y;
-	packet_data[3] = (uint16_t)(USBMouse_VertWheel | (USBMouse_HoriWheel << 8));
+	packet_data[0] = USBMouse_primary.buttons;
+	packet_data[1] = (uint16_t)USBMouse_primary.relative_x;
+	packet_data[2] = (uint16_t)USBMouse_primary.relative_y;
+	packet_data[3] = (uint16_t)(USBMouse_primary.vertwheel | (USBMouse_primary.horiwheel << 8));
 	tx_packet->len = 8;
 	usb_tx( MOUSE_ENDPOINT, tx_packet );
 
 	// Clear status and state
-	USBMouse_Buttons = 0;
-	USBMouse_Relative_x = 0;
-	USBMouse_Relative_y = 0;
-	USBMouse_VertWheel = 0;
-	USBMouse_HoriWheel = 0;
-	USBMouse_Changed = 0;
+	USBMouse_primary.buttons = 0;
+	USBMouse_primary.relative_x = 0;
+	USBMouse_primary.relative_y = 0;
+	USBMouse_primary.vertwheel = 0;
+	USBMouse_primary.horiwheel = 0;
+	USBMouse_primary.changed = 0;
 }
 #endif
 

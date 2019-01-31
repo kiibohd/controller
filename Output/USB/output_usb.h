@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2018 by Jacob Alexander
+/* Copyright (C) 2013-2019 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -87,6 +87,24 @@ typedef struct USBKeys {
 	USBKeyChangeState changed;
 } USBKeys;
 
+// Buffer structure for USB HID mouse output
+typedef struct USBMouse {
+	// Currently pressed mouse buttons, bitmask, 0 represents no buttons pressed
+	uint16_t buttons;
+
+	// Relative mouse axis movement, stores pending movement
+	int16_t  relative_x;
+	int16_t  relative_y;
+
+	// Mouse wheel pending action
+	int8_t   vertwheel;
+	int8_t   horiwheel;
+
+	// Indicate if USB should send update
+	// OS only needs update if there has been a change in state
+	USBMouseChangeState changed;
+} USBMouse;
+
 
 
 // ----- Variables -----
@@ -104,18 +122,12 @@ extern volatile uint8_t  USBKeys_Protocol; // 0 - Boot Mode, 1 - NKRO Mode
 extern volatile uint8_t  USBKeys_Protocol_New;
 extern volatile uint8_t  USBKeys_Protocol_Change;
 
-extern volatile uint16_t USBMouse_Buttons; // Bitmask for mouse buttons
-extern volatile int16_t  USBMouse_Relative_x;
-extern volatile int16_t  USBMouse_Relative_y;
-extern volatile int8_t   USBMouse_VertWheel;
-extern volatile int8_t   USBMouse_HoriWheel;
+extern volatile USBMouse USBMouse_primary;
 
 // Keeps track of the idle timeout refresh (used on Mac OSX)
 extern volatile uint8_t  USBKeys_Idle_Config;
 extern volatile uint32_t USBKeys_Idle_Expiry;
 extern volatile uint8_t  USBKeys_Idle_Count; // AVR only
-
-extern USBMouseChangeState USBMouse_Changed;
 
 extern volatile uint8_t  Output_Available; // 0 - Output module not fully functional, 1 - Output module working
 
