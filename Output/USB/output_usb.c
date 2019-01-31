@@ -739,6 +739,11 @@ void USB_flushBuffers()
 	USBMouse_VertWheel = 0;
 	USBMouse_HoriWheel = 0;
 	USBMouse_Changed = 0;
+
+	// Make sure everything actually flushes
+	USBKeys_primary.changed = 1;
+	USBKeys_idle.changed = 1;
+	USBMouse_Changed = 1;
 }
 
 
