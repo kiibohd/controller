@@ -1007,8 +1007,7 @@ void keyboard_control(uint8_t *buf) {
 		// NKRO Keyboard Interface
 		case NKRO_KEYBOARD_INTERFACE:
 			// Already set with the control sequence
-			// Only use 2nd byte, first byte is the report id
-			USBKeys_LEDs = buf[1];
+			USBKeys_LEDs = buf[0];
 			break;
 		default:
 			warn_msg("(SET_REPORT, BULK) Unknown interface - ");

@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander 2013-2018
+ * Modifications by Jacob Alexander 2013-2019
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -273,9 +273,8 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 			tx_packet->len = 0;
 
 			// Modifiers
-			*tx_buf++ = 0x01; // ID
 			*tx_buf++ = buffer->modifiers;
-			tx_packet->len += 2;
+			tx_packet->len += 1;
 
 			// 4-164 (first 21 bytes)
 			// 0-3 and 165-168 are masked by the descriptor (padding)

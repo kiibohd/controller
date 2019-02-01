@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2013-2018)
+ * Modified by Jacob Alexander (2013-2019)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -177,7 +177,6 @@ static uint8_t nkro_keyboard_report_desc[] = {
 	0xA1, 0x01,          // Collection (Application) - Keyboard,
 
 	// LED Report
-	0x85, 0x01,          //   Report ID (1),
 	0x75, 0x01,          //   Report Size (1),
 	0x95, 0x05,          //   Report Count (5),
 	0x05, 0x08,          //   Usage Page (LEDs),
