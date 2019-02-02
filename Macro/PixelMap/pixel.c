@@ -2321,13 +2321,13 @@ inline void Pixel_process()
 	{
 	// Single channel control
 	case PixelTest_Chan_Single:
-		// Toggle channel
-		Pixel_channelToggle( Pixel_testPos );
-
 		// Increment channel
-		Pixel_testPos++;
 		if ( Pixel_testPos >= Pixel_TotalChannels_KLL )
 			Pixel_testPos = 0;
+		Pixel_testPos++;
+
+		// Toggle channel
+		Pixel_channelToggle( Pixel_testPos - 1 );
 
 		// Disable test mode
 		Pixel_testMode = PixelTest_Off;
@@ -2336,13 +2336,17 @@ inline void Pixel_process()
 
 	// Single channel control reverse
 	case PixelTest_Chan_SingleReverse:
-		// Toggle channel
-		Pixel_channelToggle( Pixel_testPos );
+		// Make sure we don't start as 0
+		if ( Pixel_testPos == 0 )
+			Pixel_testPos++;
 
 		// Decrement channel
-		if ( Pixel_testPos == 0 )
-			Pixel_testPos = Pixel_TotalChannels_KLL;
+		if ( Pixel_testPos == 1 )
+			Pixel_testPos = Pixel_TotalChannels_KLL + 1;
 		Pixel_testPos--;
+
+		// Toggle channel
+		Pixel_channelToggle( Pixel_testPos - 1 );
 
 		// Disable test mode
 		Pixel_testMode = PixelTest_Off;
@@ -2396,13 +2400,13 @@ inline void Pixel_process()
 
 	// Single pixel control
 	case PixelTest_Pixel_Single:
+		// Increment channel
+		if ( Pixel_testPos >= Pixel_TotalPixels_KLL )
+			Pixel_testPos = 0;
+		Pixel_testPos++;
+
 		// Toggle channel
 		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ Pixel_testPos - 1 ] );
-
-		// Increment channel
-		Pixel_testPos++;
-		if ( Pixel_testPos >= Pixel_TotalChannels_KLL )
-			Pixel_testPos = 0;
 
 		// Disable test mode
 		Pixel_testMode = PixelTest_Off;
@@ -2411,13 +2415,17 @@ inline void Pixel_process()
 
 	// Single pixel control reverse
 	case PixelTest_Pixel_SingleReverse:
-		// Toggle channel
-		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ Pixel_testPos - 1 ] );
+		// Make sure we don't start as 0
+		if ( Pixel_testPos == 0 )
+			Pixel_testPos++;
 
 		// Decrement channel
-		if ( Pixel_testPos == 0 )
-			Pixel_testPos = Pixel_TotalPixels_KLL;
+		if ( Pixel_testPos == 1 )
+			Pixel_testPos = Pixel_TotalPixels_KLL + 1;
 		Pixel_testPos--;
+
+		// Toggle channel
+		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ Pixel_testPos - 1 ] );
 
 		// Disable test mode
 		Pixel_testMode = PixelTest_Off;
