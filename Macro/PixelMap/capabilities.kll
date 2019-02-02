@@ -1,11 +1,11 @@
 # PixelMap
 Name = PixelMapCapabilities;
-Version = 0.5;
-Author = "HaaTa (Jacob Alexander) 2015-2018";
+Version = 0.6;
+Author = "HaaTa (Jacob Alexander) 2015-2019";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-12-07;
+Date = 2019-02-01;
 
 ## Capabilities ##
 # XXX (HaaTa): Don't use animation capability, it is deprecated
@@ -17,6 +17,34 @@ animationIndex => Pixel_AnimationIndex_capability( settingindex : 2 );
 
 # XXX (HaaTa): Not yet complete, do not use
 pixel => Pixel_Pixel_capability();
+
+# LED Test
+# test: WHich test to enable
+#  * See Macro/PixelMap/pixel.c:PixelTest for current list
+#  0  - Off
+#  1  - Channel Single Step
+#  2  - Channel Single Step Reverse
+#  3  - Channel Flash All
+#  4  - Channel Roll
+#  5  - Channel All On
+#  6  - Channel All Off
+#  10 - Pixel Single Step
+#  11 - Pixel Single Step Reverse
+#  12 - Pixel Flash All
+#  13 - Pixel Roll
+#  14 - Pixel All On
+#  15 - Pixel All Off
+#  20 - ScanCode Pixel Single
+#  21 - ScanCode Pixel Single Reverse
+#  22 - ScanCode Pixel Flash All
+#  23 - ScanCode Pixel Roll
+#  30 - XY Pixel Single
+#  31 - XY Pixel Single Reverse
+#  32 - XY Pixel Flash All
+#  33 - XY Pixel Roll
+# index: Where to start test (not relevant for all tests)
+#  * 0xFFFF is a special value that starts from the current position
+ledTest => Pixel_LEDTest_capability( test : 1, index : 2 );
 
 # Gamma Correction
 # 0 - Disabled

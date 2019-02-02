@@ -59,23 +59,27 @@ void cliFunc_rectDisp   ( char* args );
 // ----- Enums -----
 
 typedef enum PixelTest {
-	PixelTest_Off = 0,    // Disabled
-	PixelTest_Chan_Single,
-	PixelTest_Chan_All,   // Enable all positions
-	PixelTest_Chan_Roll,  // Iterate over all positions
-	PixelTest_Chan_Full,  // Turn on all pixels
-	PixelTest_Chan_Off,   // Turn off all pixels
-	PixelTest_Pixel_Single,
-	PixelTest_Pixel_All,  // Enable all positions
-	PixelTest_Pixel_Roll, // Iterate over all positions
-	PixelTest_Pixel_Full, // Turn on all pixels
-	PixelTest_Pixel_Off,  // Turn off all pixels
-	PixelTest_Scan_Single,
-	PixelTest_Scan_All,
-	PixelTest_Scan_Roll,
-	PixelTest_XY_Single,
-	PixelTest_XY_All,
-	PixelTest_XY_Roll,
+	PixelTest_Off                 = 0,   // Disabled
+	PixelTest_Chan_Single         = 1,
+	PixelTest_Chan_SingleReverse  = 2,
+	PixelTest_Chan_All            = 3,   // Enable all positions
+	PixelTest_Chan_Roll           = 4,   // Iterate over all positions
+	PixelTest_Chan_Full           = 5,   // Turn on all pixels
+	PixelTest_Chan_Off            = 6,   // Turn off all pixels
+	PixelTest_Pixel_Single        = 10,
+	PixelTest_Pixel_SingleReverse = 11,
+	PixelTest_Pixel_All           = 12,  // Enable all positions
+	PixelTest_Pixel_Roll          = 13,  // Iterate over all positions
+	PixelTest_Pixel_Full          = 14,  // Turn on all pixels
+	PixelTest_Pixel_Off           = 15,  // Turn off all pixels
+	PixelTest_Scan_Single         = 20,
+	PixelTest_Scan_SingleReverse  = 21,
+	PixelTest_Scan_All            = 22,
+	PixelTest_Scan_Roll           = 23,
+	PixelTest_XY_Single           = 30,
+	PixelTest_XY_SingleReverse    = 31,
+	PixelTest_XY_All              = 32,
+	PixelTest_XY_Roll             = 33,
 } PixelTest;
 
 
@@ -589,6 +593,37 @@ void Pixel_FadeLayerHighlight_capability( TriggerMacro *trigger, uint8_t state, 
 		// Set pixel to group #4
 		Pixel_pixel_fade_profile[pixel - 1] = 4;
 	}
+}
+
+void Pixel_LEDTest_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only activate on press event
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Pixel_LEDTest_capability(test)");
+		return;
+	default:
+		return;
+	}
+
+	// Get arguments
+	PixelTest test = *(PixelTest*)(&args[0]);
+	uint16_t index = *(uint16_t*)(&args[1]);
+
+	// If index is not set to 0xFFFF, make sure to update the test position
+	if ( index != 0xFFFF )
+	{
+		Pixel_testPos = index;
+	}
+
+	// Set the test mode
+	Pixel_testMode = test;
 }
 
 
@@ -2302,6 +2337,21 @@ inline void Pixel_process()
 
 		goto pixel_process_done;
 
+	// Single channel control reverse
+	case PixelTest_Chan_SingleReverse:
+		// Toggle channel
+		Pixel_channelToggle( Pixel_testPos );
+
+		// Decrement channel
+		if ( Pixel_testPos == 0 )
+			Pixel_testPos = Pixel_TotalChannels_KLL;
+		Pixel_testPos--;
+
+		// Disable test mode
+		Pixel_testMode = PixelTest_Off;
+
+		goto pixel_process_done;
+
 	// Toggle current position, then increment
 	case PixelTest_Chan_Roll:
 		// Toggle channel
@@ -2356,6 +2406,21 @@ inline void Pixel_process()
 		Pixel_testPos++;
 		if ( Pixel_testPos >= Pixel_TotalChannels_KLL )
 			Pixel_testPos = 0;
+
+		// Disable test mode
+		Pixel_testMode = PixelTest_Off;
+
+		goto pixel_process_done;
+
+	// Single pixel control reverse
+	case PixelTest_Pixel_SingleReverse:
+		// Toggle channel
+		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ Pixel_testPos - 1 ] );
+
+		// Decrement channel
+		if ( Pixel_testPos == 0 )
+			Pixel_testPos = Pixel_TotalPixels_KLL;
+		Pixel_testPos--;
 
 		// Disable test mode
 		Pixel_testMode = PixelTest_Off;
@@ -2420,6 +2485,31 @@ inline void Pixel_process()
 		Pixel_testPos++;
 		if ( Pixel_testPos >= MaxScanCode_KLL )
 			Pixel_testPos = 0;
+
+		// Ignore if pixel set to 0
+		if ( pixel == 0 )
+		{
+			goto pixel_process_final;
+		}
+
+		// Toggle channel
+		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ pixel - 1 ] );
+
+		// Disable test mode
+		Pixel_testMode = PixelTest_Off;
+
+		goto pixel_process_done;
+	}
+	// Single scan control reverse
+	case PixelTest_Scan_SingleReverse:
+	{
+		// Lookup pixel
+		uint16_t pixel = Pixel_ScanCodeToPixel[ Pixel_testPos ];
+
+		// Increment pixel
+		if ( Pixel_testPos == 0 )
+			Pixel_testPos = MaxScanCode_KLL;
+		Pixel_testPos--;
 
 		// Ignore if pixel set to 0
 		if ( pixel == 0 )
