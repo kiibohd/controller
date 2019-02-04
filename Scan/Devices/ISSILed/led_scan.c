@@ -213,17 +213,17 @@ CLIDict_Def( ledCLIDict, "ISSI LED Module Commands" ) = {
 	{ 0, 0, 0 } // Null entry for dictionary end
 };
 
-#if Storage_Enable_define == 1
 // Storage Module
 typedef struct {
 	uint8_t brightness;
 } LedConfig;
 
+static LedConfig settings;
+
+#if Storage_Enable_define == 1
 static LedConfig defaults = {
 	.brightness = ISSI_Global_Brightness_define
 };
-
-static LedConfig settings;
 
 static StorageModule LedStorage = {
 	.name = "LED Scan",
@@ -550,7 +550,7 @@ void LED_reset()
 	}
 
 	// Reset global brightness
-	LED_brightness = ISSI_Global_Brightness_define;
+	LED_brightness = settings.brightness;
 
 #if ISSI_Chip_31FL3733_define == 1
 	// Enable pull-up and pull-down anti-ghosting resistors
@@ -1279,7 +1279,7 @@ void cliFunc_ledSet( char* args )
 	// Reset brightness
 	if ( *arg1Ptr == '\0' )
 	{
-		LED_setBrightness( ISSI_Global_Brightness_define );
+		LED_setBrightness( settings.brightness );
 	}
 	else
 	{

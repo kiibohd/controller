@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2018 by Jacob Alexander
+/* Copyright (C) 2015-2019 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,11 +104,12 @@ typedef enum PixelAddressType {
 
 // Animation Replace Type
 typedef enum AnimationReplaceType {
-	AnimationReplaceType_None  = 0, // Don't replace (add new animation to stack if not full)
-	AnimationReplaceType_Basic = 1, // Replace only if the same trigger initiated
-	AnimationReplaceType_All   = 2, // Replace no matter what trigger initiated
-	AnimationReplaceType_State = 3, // Using same trigger, start on Activate/Press, stop on Deactivate/Release
-	AnimationReplaceType_Clear = 4, // Clear all other animations before addi
+	AnimationReplaceType_None        = 0, // Don't replace (add new animation to stack if not full)
+	AnimationReplaceType_Basic       = 1, // Replace only if the same trigger initiated
+	AnimationReplaceType_All         = 2, // Replace no matter what trigger initiated
+	AnimationReplaceType_State       = 3, // Using same trigger, start on Activate/Press, stop on Deactivate/Release
+	AnimationReplaceType_Clear       = 4, // Clear all other animations before adding
+	AnimationReplaceType_ClearActive = 5, // Clear all other animations before adding, except paused (replace those)
 } AnimationReplaceType;
 
 // Animation Play State

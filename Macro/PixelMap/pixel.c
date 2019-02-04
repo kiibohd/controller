@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2018 by Jacob Alexander
+/* Copyright (C) 2015-2019 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,20 +82,24 @@ typedef enum PixelTest {
 	PixelTest_XY_Roll             = 33,
 } PixelTest;
 
+
+
 // ----- Variables -----
 
-#if Storage_Enable_define == 1
 typedef struct {
-	uint8_t animation_indices[Pixel_AnimationStackSize];
+	uint8_t index;
+	uint8_t pos;
+} PixelConfigElem;
+
+typedef struct {
+	PixelConfigElem animations[Pixel_AnimationStackSize];
 	PixelPeriodConfig fade_periods[4][4];
 } PixelConfig;
 
-static PixelConfig defaults = {
-	.animation_indices = {[0 ... Pixel_AnimationStackSize-1] = 255}, //Todo, use some kll define
-	// .fade_periods initialized later
-};
-
 static PixelConfig settings;
+
+#if Storage_Enable_define == 1
+static PixelConfig defaults;
 
 static StorageModule PixelStorage = {
 	.name = "Pixel Map",
@@ -756,6 +760,49 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState csta
 	// Clear all current animations from stack before adding new animation
 	case AnimationReplaceType_Clear:
 		Pixel_clearAnimations();
+		break;
+
+	// Clear all current animations from stack before adding new animation
+	// Unless it's paused, and if it's paused do a replace if necessary
+	case AnimationReplaceType_ClearActive:
+		found = Pixel_lookupAnimation( element->index, 0 );
+		// If found, modify stack element
+		if ( found )
+		{
+			found->pos = element->pos;
+			found->subpos = element->subpos;
+			found->loops = element->loops;
+			found->pfunc = element->pfunc;
+			found->ffunc = element->ffunc;
+			found->framedelay = element->framedelay;
+			found->frameoption = element->frameoption;
+			found->replace = element->replace;
+			found->state = element->state;
+			return 0;
+		}
+
+		// Iterate through stack, stopping animations that are not paused
+		// and ignoring the found animation
+		for ( uint16_t pos = 0; pos < Pixel_AnimationStack.size; pos++ )
+		{
+			// Ignore found animation
+			if ( Pixel_AnimationStack.stack[pos] == found )
+			{
+				continue;
+			}
+
+			// Ignore paused animations (single will be paused on the next frame)
+			if (
+				Pixel_AnimationStack.stack[pos]->state == AnimationPlayState_Pause ||
+				Pixel_AnimationStack.stack[pos]->state == AnimationPlayState_Single
+			)
+			{
+				continue;
+			}
+
+			// Otherwise stop
+			Pixel_AnimationStack.stack[pos]->state = AnimationPlayState_Stop;
+		}
 		break;
 
 	default:
@@ -2016,13 +2063,9 @@ void Pixel_SecondaryProcessing_setup()
 		// Each of the periods
 		for ( uint8_t pr = 0; pr < 4; pr++ )
 		{
-			// Lookup period using index
-			uint8_t period_index = Pixel_LED_FadePeriod_Defaults[pf][pr];
-			PixelPeriodConfig conf = Pixel_LED_FadePeriods[period_index];
-
 			// Set period to profile
-			Pixel_pixel_fade_profile_entries[pf].conf[pr].start = conf.start;
-			Pixel_pixel_fade_profile_entries[pf].conf[pr].end = conf.end;
+			PixelPeriodConfig conf = settings.fade_periods[pf][pr];
+			Pixel_pixel_fade_profile_entries[pf].conf[pr] = conf;
 		}
 
 		// Reset state
@@ -2245,23 +2288,21 @@ void Pixel_setAnimationControl( AnimationControl control )
 // Starting Animation setup
 void Pixel_initializeStartAnimations()
 {
-	// Iterate over starting animations
-	for ( uint32_t index = 0; index < Pixel_AnimationSettingsNum_KLL; index++ )
+	// Animations
+	for ( uint8_t pos = 0; pos < Pixel_AnimationStackSize; pos++ )
 	{
-		// Check if a starting animation
-		if ( Pixel_AnimationSettings[ index ].state == AnimationPlayState_Start )
-		{
-			// Default animations are noted by the TriggerMacro *trigger pointer being set to 1
-			if ( (uintptr_t)(Pixel_AnimationSettings[ index ].trigger) == 1 )
+		uint8_t index = settings.animations[pos].index;
+		if (index != 255) {
+			AnimationStackElement element = Pixel_AnimationSettings[ index ];
+
+			// Only update state if not already defined
+			if ( element.state == AnimationPlayState_Pause )
 			{
-				// Start animation
-				if ( Pixel_addDefaultAnimation( index ) == 0 )
-				{
-					warn_msg("Failed to start starting animation index: ");
-					printInt32( index );
-					print( NL );
-				}
+				element.state = AnimationPlayState_Start;
 			}
+
+			element.pos = settings.animations[pos].pos;
+			Pixel_addAnimation( &element, CapabilityState_None );
 		}
 	}
 }
@@ -2649,14 +2690,58 @@ inline void Pixel_setup()
 	// Register Pixel CLI dictionary
 	CLI_registerDictionary( pixelCLIDict, pixelCLIDictName );
 
-	// Register storage module
+	// Iterate over starting animations
+	uint8_t add_animations = 0;
+	for ( uint32_t index = 0; index < Pixel_AnimationSettingsNum_KLL; index++ )
+	{
+		// Check if a starting animation
+		if ( Pixel_AnimationSettings[ index ].state == AnimationPlayState_Start )
+		{
+			// Default animations are noted by the TriggerMacro *trigger pointer being set to 1
+			if ( (uintptr_t)(Pixel_AnimationSettings[ index ].trigger) == 1 )
+			{
+				// Add animation to the defaults stack
 #if Storage_Enable_define == 1
-	for (uint8_t profile=0; profile<4; profile++) {
-		for (uint8_t config=0; config<4; config++) {
-			defaults.fade_periods[profile][config] =
-				Pixel_LED_FadePeriods[Pixel_LED_FadePeriod_Defaults[profile][config]];
+				defaults.animations[add_animations].index = index;
+				defaults.animations[add_animations].pos = Pixel_AnimationSettings[index].pos;
+#else
+				settings.animations[add_animations].index = index;
+				settings.animations[add_animations].pos = Pixel_AnimationSettings[index].pos;
+#endif
+				add_animations++;
+			}
 		}
 	}
+
+	// Fill in rest of stack
+	for ( uint8_t animation = add_animations; animation < Pixel_AnimationStackSize; animation++ )
+	{
+#if Storage_Enable_define == 1
+		defaults.animations[animation].index = 255;
+		defaults.animations[animation].pos = 0;
+#else
+		settings.animations[animation].index = 255;
+		settings.animations[animation].pos = 0;
+#endif
+	}
+
+	// Setup fade defaults
+	for ( uint8_t profile = 0; profile < 4; profile++ )
+	{
+		for ( uint8_t config = 0; config < 4; config++ )
+		{
+#if Storage_Enable_define == 1
+			defaults.fade_periods[profile][config] =
+				Pixel_LED_FadePeriods[Pixel_LED_FadePeriod_Defaults[profile][config]];
+#else
+			settings.fade_periods[profile][config] =
+				Pixel_LED_FadePeriods[Pixel_LED_FadePeriod_Defaults[profile][config]];
+#endif
+		}
+	}
+
+	// Register storage module
+#if Storage_Enable_define == 1
 	Storage_registerModule(&PixelStorage);
 #endif
 
@@ -3201,27 +3286,13 @@ void cliFunc_rectDisp( char* args )
 
 
 #if Storage_Enable_define == 1
-void Pixel_loadConfig() {
-	// Animations
-	for ( uint8_t pos = 0; pos < Pixel_AnimationStackSize; pos++ )
-	{
-		uint8_t index = settings.animation_indices[pos];
-		if (index != 255) {
-			AnimationStackElement element = Pixel_AnimationSettings[ index ];
-			element.state = AnimationPlayState_Start;
-			Pixel_addAnimation( &element, CapabilityState_None );
-		}
-	}
+void Pixel_loadConfig()
+{
+	// Animation setup
+	Pixel_initializeStartAnimations();
 
 	// Fade periods
-	for (uint8_t profile=0; profile<4; profile++)
-	{
-		for (uint8_t config=0; config<4; config++)
-		{
-			PixelPeriodConfig period_config = settings.fade_periods[profile][config];
-			Pixel_pixel_fade_profile_entries[profile].conf[config] = period_config;
-		}
-	}
+	Pixel_SecondaryProcessing_setup();
 }
 
 void Pixel_saveConfig() {
@@ -3230,9 +3301,20 @@ void Pixel_saveConfig() {
 	{
 		if (pos < Pixel_AnimationStack.size) {
 			AnimationStackElement *elem = Pixel_AnimationStack.stack[pos];
-			settings.animation_indices[pos] = elem->index;
+			settings.animations[pos].index = elem->index;
+
+			// Save position, only if paused
+			if ( elem->state == AnimationPlayState_Pause )
+			{
+				settings.animations[pos].pos = elem->pos - 1;
+			}
+			else
+			{
+				settings.animations[pos].pos = 0;
+			}
 		} else {
-			settings.animation_indices[pos] = 255;
+			settings.animations[pos].index = 255;
+			settings.animations[pos].pos = 0;
 		}
 	}
 
@@ -3253,12 +3335,15 @@ void Pixel_printConfig() {
 	print(" \033[35mAnimations\033[0m" NL);
 	for ( uint8_t pos = 0; pos < Pixel_AnimationStackSize; pos++ )
 	{
-		uint8_t index = settings.animation_indices[pos];
+		uint8_t index = settings.animations[pos].index;
+		uint8_t fpos = settings.animations[pos].pos;
 		if (index != 255) {
 			print("AnimationStack.stack[");
 			printInt8(pos);
 			print("]->index = ");
 			printInt8(index);
+			print("; pos = ");
+			printInt8(fpos);
 			print(NL);
 		}
 	}
@@ -3278,6 +3363,7 @@ void Pixel_printConfig() {
 			printInt8(period.start);
 			print(", ");
 			printInt8(period.end);
+			print("}");
 			print(NL);
 		}
 	}

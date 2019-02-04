@@ -1,6 +1,6 @@
 /**
  * Copyright (c) 2012 Atmel Corporation. All rights reserved.
- * Modified by Jacob Alexander 2018
+ * Modified by Jacob Alexander 2018-2019
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -266,6 +266,12 @@ void storage_init()
 				storage_buffer[i] = page_buffer[i + 449];
 #endif
 			}
+
+			// If this is the first page, then set the cleared flag as no flash has been written
+			if ( page_walker == 0 )
+			{
+				cleared_block = 1;
+			}
 		}
 		// If the block is within a page, go to previous block and fetch the data
 		else
@@ -348,6 +354,13 @@ uint8_t storage_write(uint8_t* data, uint16_t address, uint16_t size, uint8_t cl
 	if ( size + address > STORAGE_SIZE )
 	{
 		return 0;
+	}
+
+	// Make sure this isn't the same data already set in flash
+	// If so, just exit, no need to wear the flash any further
+	if ( memcmp( storage_buffer, data, size ) == 0 )
+	{
+		return 1;
 	}
 
 	// Set internal buffer to all 0xffs
@@ -482,16 +495,10 @@ int8_t storage_block_position()
 }
 
 // Returns 1 if storage has been cleared and will not have conflicts when changing the block size
-// Or if there is no useful data in the non-volatile storage
+// Or if there is no useful data in the non-volatile storage (i.e. completely empty, fresh erase)
 // storage_init() must be called first
 uint8_t storage_is_storage_cleared()
 {
-	// Check to see if this page is empty
-	if ( !find_cleared_block(storage_buffer) )
-	{
-		return 1;
-	}
-
 	return cleared_block;
 }
 
