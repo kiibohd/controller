@@ -977,25 +977,28 @@ void keyboard_control(uint8_t *buf) {
 	// XXX - Getting lots of NAKs in Linux
 	if ( setup.wRequestAndType == 0x0921 && setup.wValue & 0x200 )
 	{
-		#ifdef UART_DEBUG
-		print("report_type(");
-		printHex( setup.wValue >> 8 );
-		print(")report_id(");
-		printHex( setup.wValue & 0xFF );
-		print(")interface(");
-		printHex( setup.wIndex );
-		print(")len(");
-		printHex( setup.wLength );
-		print(")[");
-
-		for ( size_t len = 0; len < setup.wLength; len++ )
+		// Show USB report for Lock LEDs when output debug is enabled
+		// Very useful when debugging OS Lock LED oddness
+		if ( Output_DebugMode )
 		{
-			printHex( buf[ len ] );
-			print(" ");
+			print("report_type(");
+			printHex( setup.wValue >> 8 );
+			print(")report_id(");
+			printHex( setup.wValue & 0xFF );
+			print(")interface(");
+			printHex( setup.wIndex );
+			print(")len(");
+			printHex( setup.wLength );
+			print(")[");
+
+			for ( size_t len = 0; len < setup.wLength; len++ )
+			{
+				printHex( buf[ len ] );
+				print(" ");
+			}
+			print("]");
+			print( NL );
 		}
-		print("]");
-		print( NL );
-		#endif
 
 		// Interface
 		switch ( setup.wIndex & 0xFF )
