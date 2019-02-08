@@ -181,45 +181,27 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 	// Pointer to USB tx packet buffer
 	uint8_t *tx_buf = tx_packet->buf;
 
-	// Check system control keys
-	if ( buffer->changed & USBKeyChangeState_System )
+	// Check system control and consumer control keys
+	if ( buffer->changed & USBKeyChangeState_System || buffer->changed & USBKeyChangeState_Consumer )
 	{
 		if ( Output_DebugMode )
 		{
 			USB_SysCtrlDebug( buffer );
-		}
-
-		// Store update for idle packet
-		USBKeys_idle.sys_ctrl = buffer->sys_ctrl;
-
-		*tx_buf++ = 0x02; // ID
-		*tx_buf   = buffer->sys_ctrl;
-		tx_packet->len = 2;
-
-		// Send USB Packet
-		usb_tx( SYS_CTRL_ENDPOINT, tx_packet );
-		buffer->changed &= ~USBKeyChangeState_System; // Mark sent
-		return;
-	}
-
-	// Check consumer control keys
-	if ( buffer->changed & USBKeyChangeState_Consumer )
-	{
-		if ( Output_DebugMode )
-		{
 			USB_ConsCtrlDebug( buffer );
 		}
 
 		// Store update for idle packet
+		USBKeys_idle.sys_ctrl = buffer->sys_ctrl;
 		USBKeys_idle.cons_ctrl = buffer->cons_ctrl;
 
-		*tx_buf++ = 0x03; // ID
+		*tx_buf++ = buffer->sys_ctrl;
 		*tx_buf++ = (uint8_t)(buffer->cons_ctrl & 0x00FF);
 		*tx_buf   = (uint8_t)(buffer->cons_ctrl >> 8);
 		tx_packet->len = 3;
 
 		// Send USB Packet
 		usb_tx( SYS_CTRL_ENDPOINT, tx_packet );
+		buffer->changed &= ~USBKeyChangeState_System; // Mark sent
 		buffer->changed &= ~USBKeyChangeState_Consumer; // Mark sent
 		return;
 	}
