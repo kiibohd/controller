@@ -1,4 +1,4 @@
-FROM base/archlinux
+FROM archlinux/base
 
 RUN echo "LANG=en_US.UTF-8" > /etc/locale.conf
 RUN echo "en_US.UTF-8 UTF-8" >> /etc/locale.gen
