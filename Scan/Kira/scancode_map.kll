@@ -205,7 +205,11 @@ ISSI_IIRSTPin => ISSI_IIRSTPin_define;
 ISSI_IIRSTPin = "gpio(A,17)";
 
 # Global Brightness
-ISSI_Global_Brightness = 255; # 0xFF by default (max)
+# Limited to 180 as the different LEDs on the bottom of the PCB as well as the Lock LEDs are different than
+# the switch LEDs. This means that some of the channels (particularily the Red one) will be more vivid on
+# one of the 2 LED drivers on Kira.
+# Lowering the default brightness, balance the colors better when showing white.
+ISSI_Global_Brightness = 180; # Up to 0xFF
 
 # Available ISSI Chips
 ISSI_Chips = 2; # 2 by default
