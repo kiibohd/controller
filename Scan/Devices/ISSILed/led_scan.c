@@ -218,7 +218,9 @@ typedef struct {
 	uint8_t brightness;
 } LedConfig;
 
-static LedConfig settings;
+static LedConfig settings = {
+	.brightness = ISSI_Global_Brightness_define
+};
 
 #if Storage_Enable_define == 1
 static LedConfig defaults = {
