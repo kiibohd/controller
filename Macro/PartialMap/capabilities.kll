@@ -1,11 +1,11 @@
 # PartialMap
 Name = PartialMapCapabilities;
-Version = 0.9;
-Author = "HaaTa (Jacob Alexander) 2014-2018";
+Version = 0.10;
+Author = "HaaTa (Jacob Alexander) 2014-2019";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-03-01;
+Date = 2019-02-17;
 
 
 # Capabilties available to the PartialMap module
@@ -18,6 +18,9 @@ layerShift  => Layer_layerShift_capability( layer : 2 );
 # But still sets the layer stack using the layerLock/unlock mechanism
 # Argument 0 -> Next, 1 -> Previous
 layerRotate => Layer_layerRotate_capability( previous : 1 );
+# Clears all layer state
+# Not recommended to be called when a layer shift key is being held
+clearLayers => Layer_clearLayers_capability();
 
 # Null/None/noop Capability
 none => Macro_none_capability();

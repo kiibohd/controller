@@ -40,6 +40,10 @@
 
 // ----- Function Declarations -----
 
+void Layer_clearLayers();
+
+
+
 // ----- Variables -----
 
 // Layer debug flag - If set, displays any changes to layers and the full layer stack on change
@@ -390,6 +394,29 @@ void Layer_layerRotate_capability( TriggerMacro *trigger, uint8_t state, uint8_t
 	Layer_layerStateSet( trigger, state, stateType, Layer_rotationLayer, LayerStateType_Lock );
 }
 
+
+// Clear layer states
+// XXX (HaaTa): Does not send trigger events
+void Layer_clearLayers_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Layer_clearLayers()");
+		return;
+	default:
+		return;
+	}
+
+	// Clear layer states
+	Layer_clearLayers();
+}
 
 
 // ----- Functions -----
