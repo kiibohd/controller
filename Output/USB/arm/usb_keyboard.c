@@ -194,9 +194,9 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 		USBKeys_idle.sys_ctrl = buffer->sys_ctrl;
 		USBKeys_idle.cons_ctrl = buffer->cons_ctrl;
 
-		*tx_buf++ = buffer->sys_ctrl;
 		*tx_buf++ = (uint8_t)(buffer->cons_ctrl & 0x00FF);
-		*tx_buf   = (uint8_t)(buffer->cons_ctrl >> 8);
+		*tx_buf++ = (uint8_t)(buffer->cons_ctrl >> 8);
+		*tx_buf   = buffer->sys_ctrl;
 		tx_packet->len = 3;
 
 		// Send USB Packet
