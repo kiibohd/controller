@@ -1,11 +1,11 @@
 # ISSILed
 Name = ISSILedCapabilities;
-Version = 0.4;
-Author = "HaaTa (Jacob Alexander) 2015-2017";
+Version = 0.5;
+Author = "HaaTa (Jacob Alexander) 2015-2019";
 KLL = 0.5;
 
 # Modified Date
-Date = 2018-09-15;
+Date = 2019-02-17;
 
 # Basic ISSI Capabilities
 # Modes
@@ -18,6 +18,8 @@ Date = 2018-09-15;
 #  6: Set framerate (1000 / value = fps) i.e. ms per frame
 #  7: Increase fps (1000 / value = fps)
 #  8: Decrease fps (1000 / value = fps)
+#  9: Set default fps (amount ignored)
+# 10: Set default brightness (amount ignored)
 # Amount -> 0 -> 255
 ledControl => LED_control_capability( mode : 1, amount : 1 );
 

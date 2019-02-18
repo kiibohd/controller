@@ -216,15 +216,18 @@ CLIDict_Def( ledCLIDict, "ISSI LED Module Commands" ) = {
 // Storage Module
 typedef struct {
 	uint8_t brightness;
+	uint8_t framerate;
 } LedConfig;
 
 static LedConfig settings = {
-	.brightness = ISSI_Global_Brightness_define
+	.brightness = ISSI_Global_Brightness_define,
+	.framerate = ISSI_FrameRate_ms_define,
 };
 
 #if Storage_Enable_define == 1
 static LedConfig defaults = {
-	.brightness = ISSI_Global_Brightness_define
+	.brightness = ISSI_Global_Brightness_define,
+	.framerate = ISSI_FrameRate_ms_define,
 };
 
 static StorageModule LedStorage = {
@@ -1019,6 +1022,7 @@ typedef enum LedControl {
 	LedControl_brightness_decrease_all = 0,
 	LedControl_brightness_increase_all = 1,
 	LedControl_brightness_set_all      = 2,
+	LedControl_brightness_default      = 10,
 	// Set all LEDs - no argument
 	LedControl_off                     = 3,
 	LedControl_on                      = 4,
@@ -1027,6 +1031,7 @@ typedef enum LedControl {
 	LedControl_set_fps                 = 6,
 	LedControl_increase_fps            = 7,
 	LedControl_decrease_fps            = 8,
+	LedControl_default_fps             = 9,
 } LedControl;
 
 void LED_control( LedControl control, uint8_t arg )
@@ -1094,6 +1099,14 @@ void LED_control( LedControl control, uint8_t arg )
 			// Higher timeout, lower FPS
 			LED_framerate += arg;
 		}
+		return;
+
+	case LedControl_default_fps:
+		LED_framerate = ISSI_FrameRate_ms_define;
+		return;
+
+	case LedControl_brightness_default:
+		LED_brightness = ISSI_Global_Brightness_define;
 		return;
 	}
 
@@ -1295,15 +1308,20 @@ void cliFunc_ledSet( char* args )
 #if Storage_Enable_define == 1
 void LED_loadConfig() {
 	LED_setBrightness(settings.brightness);
+	LED_framerate = settings.framerate;
 }
 
 void LED_saveConfig() {
 	settings.brightness = LED_brightness;
+	settings.framerate = LED_framerate;
 }
 
 void LED_printConfig() {
-	print(" \033[35mBrightness\033[0m    ");
+	print(" \033[35mBrightness\033[0m       ");
 	printInt8(settings.brightness);
+	print( NL );
+	print(" \033[35mFramerate (ms/f)\033[0m ");
+	printInt8(settings.framerate);
 	print( NL );
 }
 #endif
