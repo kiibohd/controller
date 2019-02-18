@@ -290,9 +290,9 @@ static uint8_t sys_ctrl_report_desc[] = {
 	0x05, 0x01,          //  Usage Page (Generic Desktop),
 	0x75, 0x08,          //   Report Size (8),
 	0x95, 0x01,          //   Report Count (1),
-	0x15, 0x81,          //   Logical Minimum (129), <-- Must be 0x81/129 to fix macOS scrollbar issues
-	0x25, 0xB7,          //   Logical Maximum (183),
-	0x19, 0x81,          //   Usage Minimum (129),
+	0x15, 0x01,          //   Logical Minimum (1), <-- Must start from 1 to resolve MS Windows problems
+	0x25, 0x37,          //   Logical Maximum (55),
+	0x19, 0x81,          //   Usage Minimum (129), <-- Must be 0x81/129 to fix macOS scrollbar issues
 	0x29, 0xB7,          //   Usage Maximum (183),
 	0x81, 0x00,          //   Input (Data, Array),
 	0xC0,                // End Collection - Consumer Control
