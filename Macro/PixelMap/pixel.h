@@ -240,6 +240,7 @@ typedef struct PixelFadeProfile {
 	PixelPeriodConfig conf[4];
 	uint32_t pos;                 // Current position with the current PixelPeriodConfig
 	PixelPeriodIndex period_conf; // Which PixelPeriodConfig is being processed
+	uint8_t brightness;
 } PixelFadeProfile;
 
 typedef struct PixelLEDGroupEntry {
@@ -258,6 +259,7 @@ extern const AnimationStackElement Pixel_AnimationSettings[];
 extern const PixelLEDGroupEntry Pixel_LED_DefaultFadeGroups[];
 extern const PixelPeriodConfig  Pixel_LED_FadePeriods[];
 extern const uint8_t            Pixel_LED_FadePeriod_Defaults[4][4];
+extern const uint8_t            Pixel_LED_FadeBrightness[4];
 
 extern       PixelBuf     Pixel_Buffers[];
 extern       PixelBuf     LED_Buffers[];

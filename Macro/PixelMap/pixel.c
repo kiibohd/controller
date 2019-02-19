@@ -82,6 +82,16 @@ typedef enum PixelTest {
 	PixelTest_XY_Roll             = 33,
 } PixelTest;
 
+typedef enum PixelFadeControl {
+	PixelFadeControl_Reset                = 0, // Resets fade profile to defaults (arg ignored)
+	PixelFadeControl_Reset_All            = 1, // Resets all fade profiles to defaults (profile, arg ignored)
+	PixelFadeControl_Brightness_Set       = 2, // Sets fade profile to a given brightness
+	PixelFadeControl_Brightness_Increment = 3, // Increment brightness by given amount
+	PixelFadeControl_Brightness_Decrement = 4, // Decrement brightness by given amount
+	PixelFadeControl_Brightness_Default   = 5, // Set profile brightness to default
+	PixelFadeControl_LAST,
+} PixelFadeControl;
+
 
 
 // ----- Variables -----
@@ -94,6 +104,7 @@ typedef struct {
 typedef struct {
 	PixelConfigElem animations[Pixel_AnimationStackSize];
 	PixelPeriodConfig fade_periods[4][4];
+	uint8_t fade_brightness[4];
 } PixelConfig;
 
 static PixelConfig settings;
@@ -593,6 +604,100 @@ void Pixel_FadeLayerHighlight_capability( TriggerMacro *trigger, uint8_t state, 
 
 		// Set pixel to group #4
 		Pixel_pixel_fade_profile[pixel - 1] = 4;
+	}
+}
+
+void Pixel_FadeControl_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only activate on press event
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Pixel_FadeControl_capability(test)");
+		return;
+	default:
+		return;
+	}
+
+	// Get arguments
+	uint8_t profile = args[0];
+	uint8_t command = args[1];
+	uint8_t arg = args[2];
+
+	// Make sure profile is valid
+	if ( profile >= sizeof(Pixel_pixel_fade_profile_entries) )
+	{
+		return;
+	}
+
+	// Process command
+	uint8_t tmp;
+	switch ( command )
+	{
+	case PixelFadeControl_Reset:
+		for ( uint8_t config = 0; config < 4; config++ )
+		{
+			Pixel_pixel_fade_profile_entries[profile].conf[config] = \
+				Pixel_LED_FadePeriods[Pixel_LED_FadePeriod_Defaults[profile][config]];
+		}
+		Pixel_pixel_fade_profile_entries[profile].pos = 0;
+		Pixel_pixel_fade_profile_entries[profile].period_conf = PixelPeriodIndex_Off_to_On;
+		Pixel_pixel_fade_profile_entries[profile].brightness = Pixel_LED_FadeBrightness[profile];
+		break;
+
+	case PixelFadeControl_Reset_All:
+		// Setup fade defaults
+		for ( uint8_t pr = 0; pr < 4; pr++ )
+		{
+			for ( uint8_t config = 0; config < 4; config++ )
+			{
+				Pixel_pixel_fade_profile_entries[pr].conf[config] = \
+					Pixel_LED_FadePeriods[Pixel_LED_FadePeriod_Defaults[pr][config]];
+			}
+			Pixel_pixel_fade_profile_entries[pr].pos = 0;
+			Pixel_pixel_fade_profile_entries[pr].period_conf = PixelPeriodIndex_Off_to_On;
+			Pixel_pixel_fade_profile_entries[profile].brightness = Pixel_LED_FadeBrightness[pr];
+		}
+		break;
+
+	case PixelFadeControl_Brightness_Set:
+		// Set brightness
+		Pixel_pixel_fade_profile_entries[profile].brightness = arg;
+		break;
+
+	case PixelFadeControl_Brightness_Increment:
+		// Increment with no rollover
+		tmp = Pixel_pixel_fade_profile_entries[profile].brightness;
+		if ( tmp + arg < tmp )
+		{
+			Pixel_pixel_fade_profile_entries[profile].brightness = 0xFF;
+			break;
+		}
+		Pixel_pixel_fade_profile_entries[profile].brightness += arg;
+		break;
+
+	case PixelFadeControl_Brightness_Decrement:
+		// Decrement with no rollover
+		tmp = Pixel_pixel_fade_profile_entries[profile].brightness;
+		if ( tmp - arg > tmp )
+		{
+			Pixel_pixel_fade_profile_entries[profile].brightness = 0x00;
+			break;
+		}
+		Pixel_pixel_fade_profile_entries[profile].brightness -= arg;
+		break;
+
+	case PixelFadeControl_Brightness_Default:
+		Pixel_pixel_fade_profile_entries[profile].brightness = Pixel_LED_FadeBrightness[profile];
+		break;
+
+	default:
+		return;
 	}
 }
 
@@ -2071,7 +2176,25 @@ void Pixel_SecondaryProcessing_setup()
 		// Reset state
 		Pixel_pixel_fade_profile_entries[pf].pos = 0;
 		Pixel_pixel_fade_profile_entries[pf].period_conf = PixelPeriodIndex_Off_to_On;
+		Pixel_pixel_fade_profile_entries[pf].brightness = settings.fade_brightness[pf];
 	}
+}
+
+// Given a starting value and profile, calculate the resulting brightness
+// The returned value is always equal to or less than val
+static inline uint32_t Pixel_ApplyFadeBrightness( uint8_t brightness, uint32_t val )
+{
+	// No need to calculate if brightness is max or 0
+	if ( brightness == 255 )
+	{
+		return val;
+	}
+	if ( brightness == 0 )
+	{
+		return 0;
+	}
+	uint32_t result = (val * brightness) >> 8; // val * brightness / 255
+	return result;
 }
 
 void Pixel_SecondaryProcessing()
@@ -2132,15 +2255,17 @@ void Pixel_SecondaryProcessing()
 					// If start and end are set to 0, ignore
 					if ( period->end == 0 && period->start == 0 )
 					{
+						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+						val = Pixel_ApplyFadeBrightness(profile->brightness, val);
 						if (gamma_enabled) {
-							val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
 							val = gamma_table[val];
-							((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
 						}
+						((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
 						break;
 					}
 
 					val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+					val = Pixel_ApplyFadeBrightness(profile->brightness, val);
 					if (gamma_enabled) {
 						val = gamma_table[val];
 					}
@@ -2150,11 +2275,12 @@ void Pixel_SecondaryProcessing()
 					break;
 				// On hold time
 				case PixelPeriodIndex_On:
+					val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+					val = Pixel_ApplyFadeBrightness(profile->brightness, val);
 					if (gamma_enabled) {
-						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
 						val = gamma_table[val];
-						((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
 					}
+					((uint16_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
 					break;
 				// Off hold time
 				case PixelPeriodIndex_Off:
@@ -2165,6 +2291,7 @@ void Pixel_SecondaryProcessing()
 					if ( prev->start == 0 && prev->end == 0 )
 					{
 						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+						val = Pixel_ApplyFadeBrightness(profile->brightness, val);
 						if (gamma_enabled) {
 							val = gamma_table[val];
 						}
@@ -2178,6 +2305,7 @@ void Pixel_SecondaryProcessing()
 					if ( prev->start != 0 )
 					{
 						val = (uint8_t)((uint16_t*)buf->data)[chan - buf->offset];
+						val = Pixel_ApplyFadeBrightness(profile->brightness, val);
 						if (gamma_enabled) {
 							val = gamma_table[val];
 						}
@@ -2738,6 +2866,11 @@ inline void Pixel_setup()
 				Pixel_LED_FadePeriods[Pixel_LED_FadePeriod_Defaults[profile][config]];
 #endif
 		}
+#if Storage_Enable_define == 1
+		defaults.fade_brightness[profile] = Pixel_LED_FadeBrightness[profile];
+#else
+		settings.fade_brightness[profile] = Pixel_LED_FadeBrightness[profile];
+#endif
 	}
 
 	// Register storage module
@@ -3327,6 +3460,7 @@ void Pixel_saveConfig() {
 			const PixelPeriodConfig period_config = Pixel_pixel_fade_profile_entries[profile].conf[config];
 			settings.fade_periods[profile][config] = period_config;
 		}
+		settings.fade_brightness[profile] = Pixel_pixel_fade_profile_entries[profile].brightness;
 	}
 }
 
@@ -3366,6 +3500,16 @@ void Pixel_printConfig() {
 			print("}");
 			print(NL);
 		}
+	}
+
+	// Profile brightness
+	print(NL " \033[35mProfile Brightnesses\033[0m" NL);
+	for (uint8_t profile=0; profile<4; profile++)
+	{
+		printInt8(profile);
+		print(" ");
+		printInt8(settings.fade_brightness[profile]);
+		print(NL);
 	}
 }
 #endif

@@ -1,11 +1,11 @@
 # PixelMap
 Name = PixelMapCapabilities;
-Version = 0.6;
+Version = 0.7;
 Author = "HaaTa (Jacob Alexander) 2015-2019";
 KLL = 0.5;
 
 # Modified Date
-Date = 2019-02-01;
+Date = 2019-02-18;
 
 ## Capabilities ##
 # XXX (HaaTa): Don't use animation capability, it is deprecated
@@ -85,6 +85,28 @@ animation_control => Pixel_AnimationControl_capability( func : 1 );
 #  * Fading is processed after animations
 fade_set => Pixel_FadeSet_capability( profile : 1, config : 1, period : 1 );
 fade_layer_highlight => Pixel_FadeLayerHighlight_capability( layer : 2 );
+
+# Fade Control
+# Fade brightness is applied before the fade computation is applied
+# Profile: 0..3
+# Command:
+#  0) Resets profile to defaults (arg ignored)
+#  1) Resets all fade profiles to defaults (profile ignored, arg ignored)
+#  2) Sets profile brightness
+#  3) Increment profile brightness
+#  4) Decrement profile brightness
+#  5) Set profile brightness to default
+# Resets all fade profiles to default settings
+fade_control => Pixel_FadeControl_capability( profile : 1, command : 1, arg : 1 );
+
+# Fade Brightness (per profile)
+# From 0 to 255, this is an adjustment on the default brightness using the color PWM
+# One brightness setting per fade group
+KLL_LED_FadeBrightness => KLL_LED_FadeBrightness_define;
+KLL_LED_FadeBrightness[0] = 255;
+KLL_LED_FadeBrightness[1] = 255;
+KLL_LED_FadeBrightness[2] = 255;
+KLL_LED_FadeBrightness[3] = 255;
 
 # Fade Period
 # .start and .end must be between 0 and 15
