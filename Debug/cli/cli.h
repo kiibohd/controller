@@ -85,6 +85,7 @@ typedef struct CLIDictItem {
 // ----- Variables -----
 
 char    CLILineBuffer[CLILineBufferMaxSize+1]; // +1 for an additional NULL
+uint8_t CLILineBufferPrev;
 uint8_t CLILineBufferCurrent;
 
 // Main command dictionary

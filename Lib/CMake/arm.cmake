@@ -282,4 +282,3 @@ if ( "${COMPILER}" MATCHES "clang" )
 else ()
 	set( LSS_FLAGS -h -S -z )
 endif ()
-

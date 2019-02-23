@@ -177,7 +177,7 @@ void Storage_StorageControl_capability( TriggerMacro *trigger, uint8_t state, ui
 		break;
 	case CapabilityState_Debug:
 		// Display capability name
-		print("Pixel_AnimationControl_capability(func)");
+		print("Storage_StorageControl_capability(func)");
 		return;
 	default:
 		return;

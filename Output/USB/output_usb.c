@@ -1102,6 +1102,10 @@ inline int USB_getchar()
 // USB Send Character to output buffer
 inline int USB_putchar( char c )
 {
+	if (HIDIO_VT_Connected) {
+		return HIDIO_putchar( c );
+	}
+
 #if enableVirtualSerialPort_define == 1
 	return usb_serial_putchar( c );
 #else
@@ -1122,6 +1126,10 @@ inline int USB_putstr( char* str )
 	// Count characters until NULL character, then send the amount counted
 	while ( str[count] != '\0' )
 		count++;
+
+	if (HIDIO_VT_Connected) {
+		return HIDIO_putstr( str, count );
+	}
 
 	return usb_serial_write( str, count );
 #else
@@ -1147,7 +1155,7 @@ int USB_rawio_getbuffer( char* buffer )
 {
 #if enableRawIO_define == 1
 	// No timeout, fail immediately
-	return usb_rawio_rx( (void*)buffer, 0 );
+	return usb_rawio_rx( (void*)buffer, 100 );
 #else
 	return 0;
 #endif
@@ -1160,7 +1168,7 @@ int USB_rawio_sendbuffer( char* buffer )
 {
 #if enableRawIO_define == 1
 	// No timeout, fail immediately
-	return usb_rawio_tx( (void*)buffer, 0 );
+	return usb_rawio_tx( (void*)buffer, 100 );
 #else
 	return 0;
 #endif
