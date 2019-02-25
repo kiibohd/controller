@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2016-2018
+# Jacob Alexander 2016-2019
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -53,6 +53,7 @@ set( COMPILER_SRCS
 	Lib/host.c
 	Lib/periodic.c
 	Lib/time.c
+	Lib/utf8.c
 )
 
 #| Clang needs a few more functions for linking
