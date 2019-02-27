@@ -2832,10 +2832,9 @@ inline void Pixel_setup()
 #if Storage_Enable_define == 1
 				defaults.animations[add_animations].index = index;
 				defaults.animations[add_animations].pos = Pixel_AnimationSettings[index].pos;
-#else
+#endif
 				settings.animations[add_animations].index = index;
 				settings.animations[add_animations].pos = Pixel_AnimationSettings[index].pos;
-#endif
 				add_animations++;
 			}
 		}
@@ -2847,10 +2846,9 @@ inline void Pixel_setup()
 #if Storage_Enable_define == 1
 		defaults.animations[animation].index = 255;
 		defaults.animations[animation].pos = 0;
-#else
+#endif
 		settings.animations[animation].index = 255;
 		settings.animations[animation].pos = 0;
-#endif
 	}
 
 	// Setup fade defaults
@@ -2861,16 +2859,14 @@ inline void Pixel_setup()
 #if Storage_Enable_define == 1
 			defaults.fade_periods[profile][config] =
 				Pixel_LED_FadePeriods[Pixel_LED_FadePeriod_Defaults[profile][config]];
-#else
+#endif
 			settings.fade_periods[profile][config] =
 				Pixel_LED_FadePeriods[Pixel_LED_FadePeriod_Defaults[profile][config]];
-#endif
 		}
 #if Storage_Enable_define == 1
 		defaults.fade_brightness[profile] = Pixel_LED_FadeBrightness[profile];
-#else
-		settings.fade_brightness[profile] = Pixel_LED_FadeBrightness[profile];
 #endif
+		settings.fade_brightness[profile] = Pixel_LED_FadeBrightness[profile];
 	}
 
 	// Register storage module
