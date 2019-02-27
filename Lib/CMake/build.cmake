@@ -27,6 +27,7 @@ include_directories(
 	"Lib/ASF/common/services/usb/udc"
 	"Lib/ASF/common/utils"
 	"Lib/ASF/sam/boards"
+	"Lib/ASF/sam/drivers/adc"
 	"Lib/ASF/sam/drivers/efc"
 	"Lib/ASF/sam/drivers/pio"
 	"Lib/ASF/sam/drivers/pmc"
@@ -206,7 +207,7 @@ endif ()
 
 #| Compiler Selection Record
 add_custom_command( TARGET ${TARGET} POST_BUILD
-	COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/writer compiler ${COMPILER_FAMILY}
+	COMMAND /usr/bin/env bash ${CMAKE_SOURCE_DIR}/Lib/CMake/writer compiler ${COMPILER_FAMILY}
 )
 
 
@@ -218,8 +219,8 @@ add_custom_command( TARGET ${TARGET} POST_BUILD
 if ( NOT DEFINED HOST )
 	# After Changes Size Information
 	add_custom_target( SizeAfter ALL
-		COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} ram   ${TARGET_OUT} ${SIZE_RAM}   " SRAM"
-		COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} flash ${TARGET_OUT} ${SIZE_FLASH} "Flash"
+		COMMAND /usr/bin/env bash ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} ram   ${TARGET_OUT} ${SIZE_RAM}   " SRAM"
+		COMMAND /usr/bin/env bash ${CMAKE_SOURCE_DIR}/Lib/CMake/sizeCalculator ${CMAKE_SIZE} flash ${TARGET_OUT} ${SIZE_FLASH} "Flash"
 		DEPENDS ${TARGET}
 		COMMENT "Chip usage for ${CHIP}"
 	)
@@ -227,7 +228,7 @@ if ( NOT DEFINED HOST )
 	# DFU Specific message
 	if ( DEFINED DFU )
 		add_custom_target( DFUMessage ALL
-			COMMAND ${CMAKE_SOURCE_DIR}/Lib/CMake/dfuMessage ${TARGET}
+			COMMAND /usr/bin/env bash ${CMAKE_SOURCE_DIR}/Lib/CMake/dfuMessage ${TARGET}
 			DEPENDS ${TARGET}
 			COMMENT "Message for DFU targets"
 		)

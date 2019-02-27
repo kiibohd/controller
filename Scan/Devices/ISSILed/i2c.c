@@ -113,7 +113,7 @@ void i2c_setup()
 		// 0x0E => ICR(56)
 		*I2C_F = 0x4E;
 		*I2C_FLT = 0x04;
-	#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define == 1
+	#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 		/*
 		// Works
 		// 0x84 -> 36 MHz / (4 * 28) = 321.428 kBaud
@@ -167,7 +167,7 @@ void i2c_setup()
 #if ISSI_Chip_31FL3731_define == 1
 #define BAUD 400000
 #define CK 1
-#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define == 1
+#elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 #define BAUD 800000
 #define CK 0
 #endif
@@ -656,7 +656,7 @@ i2c_isr_stop:
 		// Delay before starting linked function
 #if ISSI_Chip_31FL3731_define == 1 || ISSI_Chip_31FL3732_define == 1
 		delay_us(25);
-#elif ISSI_Chip_31FL3733_define == 1
+#elif ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 		delay_us(10);
 #endif
 		( *channel->callback_fn )( channel->user_data );

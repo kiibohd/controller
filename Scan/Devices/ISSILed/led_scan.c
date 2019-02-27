@@ -133,6 +133,39 @@
 #define ISSI_Ch15 0xBC
 #define ISSI_Ch16 0xBE
 
+// IS31FL3736 (max 16 channels per bus)
+#elif ISSI_Chip_31FL3736_define == 1
+#define LED_BufferLength       192
+#define LED_EnableBufferLength  24
+
+#define ISSI_ConfigPage        0x03
+#define ISSI_ConfigPageLength  0x10
+#define ISSI_LEDControlPage    0x00
+#define ISSI_LEDPwmPage        0x01
+#define ISSI_LEDPwmRegStart    0x00
+#define ISSI_PageLength        0xBF
+#define ISSI_SendDelay          70
+#define ISSI_LEDPages            3
+#define ISSI_LEDBlink            0
+#define ISSI_LEDCtrlLength       0
+
+#define ISSI_Ch1  0xA0
+#define ISSI_Ch2  0xA2
+#define ISSI_Ch3  0xA4
+#define ISSI_Ch4  0xA6
+#define ISSI_Ch5  0xA8
+#define ISSI_Ch6  0xAA
+#define ISSI_Ch7  0xAC
+#define ISSI_Ch8  0xAE
+#define ISSI_Ch9  0xB0
+#define ISSI_Ch10 0xB2
+#define ISSI_Ch11 0xB4
+#define ISSI_Ch12 0xB6
+#define ISSI_Ch13 0xB8
+#define ISSI_Ch14 0xBA
+#define ISSI_Ch15 0xBC
+#define ISSI_Ch16 0xBE
+
 #else
 #error "ISSI Driver Chip not defined in Scan scancode_map.kll..."
 #endif
@@ -293,7 +326,7 @@ const LED_EnableBuffer LED_ledEnableMask[ISSI_Chips_define] = {
 
 // GPIO Pins
 static const GPIO_Pin hardware_shutdown_pin = ISSI_HardwareShutdownPin_define;
-#if ISSI_Chip_31FL3733_define == 1
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 static const GPIO_Pin iirst_pin = ISSI_IIRSTPin_define;
 #endif
 
@@ -308,7 +341,7 @@ static uint8_t ledLatencyResource;
 // IS31FL3733 requires unlocking the 0xFD register
 void LED_setupPage( uint8_t bus, uint8_t addr, uint8_t page )
 {
-#if ISSI_Chip_31FL3733_define == 1
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 	// See http://www.issi.com/WW/pdf/31FL3733.pdf Table 3 Page 12
 	// See http://www.issi.com/WW/pdf/31FL3736.pdf Table 3 Page 13
 	uint16_t pageEnable[] = { addr, 0xFE, 0xC5 };
@@ -508,7 +541,7 @@ void LED_reset()
 	GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
 	delay_us(50);
 
-#if ISSI_Chip_31FL3733_define == 1
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 	// Reset I2C bus
 	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
 	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveHigh, GPIO_Config_Pullup );
@@ -529,7 +562,7 @@ void LED_reset()
 		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
 
-#if ISSI_Chip_31FL3733_define == 1
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 		// POR (Power-on-Reset)
 		// Clears all registers to default value (i.e. zeros)
 		LED_readReg( bus, addr, 0x11, ISSI_ConfigPage );
@@ -557,7 +590,7 @@ void LED_reset()
 	// Reset global brightness
 	LED_brightness = settings.brightness;
 
-#if ISSI_Chip_31FL3733_define == 1
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 	// Enable pull-up and pull-down anti-ghosting resistors
 	// Set global brightness control
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
@@ -586,7 +619,7 @@ void LED_reset()
 		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
 
-#if ISSI_Chip_31FL3733_define == 1
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 		// Enable master sync for the last chip and disable software shutdown
 		// XXX (HaaTa); The last chip is used as it is the last chip all of the frame data is sent to
 		// This is imporant as it may take more time to send the packet than the ISSI chip can handle
@@ -635,7 +668,7 @@ void LED_reset()
 // Only works with IS31FL3733
 void LED_shortOpenDetect()
 {
-#if ISSI_Chip_31FL3733_define == 1
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 	// Pause ISSI processing
 	LED_pause = 1;
 
@@ -766,7 +799,7 @@ inline void LED_setup()
 	GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
 	GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
 
-#if ISSI_Chip_31FL3733_define == 1
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 	// Reset I2C bus (pull high, then low)
 	// NOTE: This GPIO may be shared with the debug LED
 	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
@@ -1110,14 +1143,14 @@ void LED_control( LedControl control, uint8_t arg )
 		return;
 	}
 
-#if ISSI_Chip_31FL3733_define || ISSI_Chip_31FL3732_define
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3736_define == 1
 	// Update brightness
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
 		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
 
-#if ISSI_Chip_31FL3733_define == 1
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 		LED_writeReg( bus, addr, 0x01, LED_brightness, ISSI_ConfigPage );
 #elif ISSI_Chip_31FL3732_define == 1
 		LED_writeReg( bus, addr, 0x04, LED_brightness, ISSI_ConfigPage );
@@ -1191,7 +1224,7 @@ void cliFunc_ledReset( char* args )
 	print( NL ); // No \r\n by default after the command is entered
 
 	// Reset I2C bus
-#if ISSI_Chip_31FL3733_define == 1
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
 	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveHigh, GPIO_Config_Pullup );
 	delay_us(50);
@@ -1261,14 +1294,14 @@ void cliFunc_ledToggle( char* args )
 void LED_setBrightness(uint8_t brightness) {
 	LED_brightness = brightness;
 
-#if ISSI_Chip_31FL3733_define || ISSI_Chip_31FL3732_define
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3736_define == 1
 	// Update brightness
 	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
 		uint8_t addr = LED_ChannelMapping[ ch ].addr;
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
 
-#if ISSI_Chip_31FL3733_define == 1
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 		LED_writeReg( bus, addr, 0x01, LED_brightness, ISSI_ConfigPage );
 #elif ISSI_Chip_31FL3732_define == 1
 		LED_writeReg( bus, addr, 0x04, LED_brightness, ISSI_ConfigPage );
@@ -1302,7 +1335,6 @@ void cliFunc_ledSet( char* args )
 	}
 
 	info_msg("LED Brightness Set");
-
 }
 
 #if Storage_Enable_define == 1

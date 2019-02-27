@@ -31,10 +31,12 @@
 #define NOP() do {} while ( 0 )
 
 //TODO: Do these seperately in mcu_compat
+#if !defined(_sam4s_a_)
 #define _SAM4S_USART1_INSTANCE_
 #define _SAM4S_HSMCI_INSTANCE_
 #define _SAM4S_TC1_INSTANCE_
 #define _SAM4S_DACC_INSTANCE_
+#endif
 
 // Secrure bootloader
 #define GPBR_SECURE1 GPBR->SYS_GPBR[6]

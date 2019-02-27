@@ -78,6 +78,31 @@ void printChar( char c )
 }
 
 
+// Pad routine
+static void pad( char *str, uint8_t len )
+{
+	// Find final null, and move it
+	uint8_t pad_rest = 0;
+	for ( uint8_t c = 0; c < len - 1; c++ )
+	{
+		// Already found null, just pad now
+		if ( pad_rest )
+		{
+			str[c] = ' ';
+			continue;
+		}
+
+		// Looking for first null only
+		if ( str[c] == '\0' )
+		{
+			pad_rest = 1;
+			str[c] = ' ';
+		}
+	}
+
+	// Last character is always a null
+	str[len - 1] = '\0';
+}
 
 // Number Printing Functions
 void printInt8( uint8_t in )
@@ -87,6 +112,21 @@ void printInt8( uint8_t in )
 
 	// Convert number
 	int8ToStr( in, tmpStr );
+
+	// Print number
+	dPrintStr( tmpStr );
+}
+
+void printInt8Pad( uint8_t in )
+{
+	// Max number of characters is 3 + 1 for null
+	char tmpStr[4];
+
+	// Convert number
+	int8ToStr( in, tmpStr );
+
+	// Find final null, and move it
+	pad( tmpStr, sizeof(tmpStr) );
 
 	// Print number
 	dPrintStr( tmpStr );
@@ -104,6 +144,21 @@ void printInt16( uint16_t in )
 	dPrintStr( tmpStr );
 }
 
+void printInt16Pad( uint16_t in )
+{
+	// Max number of characters is 5 + 1 for null
+	char tmpStr[6];
+
+	// Convert number
+	int16ToStr( in, tmpStr );
+
+	// Find final null, and move it
+	pad( tmpStr, sizeof(tmpStr) );
+
+	// Print number
+	dPrintStr( tmpStr );
+}
+
 void printInt32( uint32_t in )
 {
 	// Max number of characters is 10 + 1 for null
@@ -111,6 +166,21 @@ void printInt32( uint32_t in )
 
 	// Convert number
 	int32ToStr( in, tmpStr );
+
+	// Print number
+	dPrintStr( tmpStr );
+}
+
+void printInt32Pad( uint32_t in )
+{
+	// Max number of characters is 10 + 1 for null
+	char tmpStr[11];
+
+	// Convert number
+	int32ToStr( in, tmpStr );
+
+	// Find final null, and move it
+	pad( tmpStr, sizeof(tmpStr) );
 
 	// Print number
 	dPrintStr( tmpStr );

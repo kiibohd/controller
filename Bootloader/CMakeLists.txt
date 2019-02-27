@@ -203,6 +203,7 @@ include_directories (
 	"../Lib/ASF/common/utils"
 	"../Lib/ASF/sam/boards"
 	"../Lib/ASF/sam/boards/sam4s_xplained_pro"
+	"../Lib/ASF/sam/drivers/adc"
 	"../Lib/ASF/sam/drivers/efc"
 	"../Lib/ASF/sam/drivers/matrix"
 	"../Lib/ASF/sam/drivers/pio"

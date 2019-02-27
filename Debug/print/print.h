@@ -104,6 +104,10 @@ void printInt32   ( uint32_t in );
 void printHex_op  ( uint16_t in, uint8_t op );
 void printHex32_op( uint32_t in, uint8_t op );
 
+void printInt8Pad ( uint8_t  in );
+void printInt16Pad( uint16_t in );
+void printInt32Pad( uint32_t in );
+
 
 // String Functions
 #define hexToStr(hex, out) hexToStr_op(hex, out, 1)

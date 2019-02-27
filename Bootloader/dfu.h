@@ -47,7 +47,7 @@
 #define USB_DFU_TRANSFER_SIZE FLASH_SECTOR_SIZE / 2
 
 // 16 pages is the smallest erase for 48/64k areas, Section 8.1.3.1
-#elif defined(_sam4s8_)
+#elif defined(_sam4s_)
 #define USB_DFU_TRANSFER_SIZE (8*FLASH_PAGE_SIZE) //4096
 
 #endif

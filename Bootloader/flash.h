@@ -29,7 +29,7 @@
 #define FLASH_SECTOR_SIZE 2048
 #elif defined(_mk22fx512avlh12_)
 #define FLASH_SECTOR_SIZE 4096
-#elif defined(_sam4s8_)
+#elif defined(_sam4s_)
 #define FLASH_SECTOR_SIZE 65536ul
 #define LOCK_REGION_SIZE  8192
 #define FLASH_PAGE_SIZE   512

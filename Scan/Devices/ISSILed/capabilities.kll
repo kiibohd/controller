@@ -33,12 +33,15 @@ ledControl => LED_control_capability( mode : 1, amount : 1 );
 #  31FL3731 - http://www.issi.com/WW/pdf/31FL3731.pdf (31FL3731C has the same datasheet)
 #  31FL3732 - http://www.issi.com/WW/pdf/31FL3732.pdf
 #  31FL3733 - http://www.issi.com/WW/pdf/31FL3733.pdf
+#  31FL3736 - http://www.issi.com/WW/pdf/31FL3736.pdf
 ISSI_Chip_31FL3731 => ISSI_Chip_31FL3731_define;
 ISSI_Chip_31FL3732 => ISSI_Chip_31FL3732_define;
 ISSI_Chip_31FL3733 => ISSI_Chip_31FL3733_define;
+ISSI_Chip_31FL3736 => ISSI_Chip_31FL3736_define;
 ISSI_Chip_31FL3731 = 0;
 ISSI_Chip_31FL3732 = 0;
 ISSI_Chip_31FL3733 = 0;
+ISSI_Chip_31FL3736 = 0;
 
 
 # Chip:Bus Mapping
