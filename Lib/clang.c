@@ -1,4 +1,4 @@
-/* Copyright (C) 2016 by Jacob Alexander
+/* Copyright (C) 2016-2019 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,10 @@
 
 // Compiler Includes
 #include <string.h>
+
+
+
+// ----- Functions -----
 
 // Not necessary when doing host compilation on macOS
 #if !defined(_APPLE_)

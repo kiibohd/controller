@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2017 by Jacob Alexander
+/* Copyright (C) 2011-2019 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -181,6 +181,39 @@ void printInt32Pad( uint32_t in )
 
 	// Find final null, and move it
 	pad( tmpStr, sizeof(tmpStr) );
+
+	// Print number
+	dPrintStr( tmpStr );
+}
+
+void printDecimal32( uint32_t in, uint32_t mul )
+{
+	// Max number of characters is 10 + 1 + 1 for null and decimal
+	char tmpStr[12];
+
+	// Determine number of decimal places
+	int32_t places = mul / 10;
+
+	// Convert base to a string
+	int32ToStr( in, tmpStr );
+
+	// Ignore if no decimal places
+	if ( places > 0 && tmpStr[0] != '\0' )
+	{
+		// Find final null
+		uint8_t null_pos = 0;
+		while ( tmpStr[++null_pos] != '\0' );
+
+		// Move least significant digit over 1 while places is greater than 0
+		while ( places-- + 1 > 0 )
+		{
+			tmpStr[null_pos + 1] = tmpStr[null_pos];
+			null_pos--;
+		}
+
+		// Place decimal
+		tmpStr[null_pos + 1] = '.';
+	}
 
 	// Print number
 	dPrintStr( tmpStr );

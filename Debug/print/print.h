@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2017 by Jacob Alexander
+/* Copyright (C) 2011-2019 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -107,6 +107,12 @@ void printHex32_op( uint32_t in, uint8_t op );
 void printInt8Pad ( uint8_t  in );
 void printInt16Pad( uint16_t in );
 void printInt32Pad( uint32_t in );
+
+// The given number is divided by a power a 10 (e.g. 10, 100, 100)
+// Any value less than the mul, is after the decimal
+// Any value greater than the mul, is before the decimal
+// in * mul must not exceed the maximum size of in
+void printDecimal32( uint32_t in, uint32_t mul );
 
 
 // String Functions
