@@ -13,5 +13,4 @@ The main exception to this is dealing with KLL itself.
 
 ## [Keyboards](Keyboards)
 
-For each keyboard [Input Club](https://input.club) design, a manual is created [here](Keyboards).
-
+* This section is deprecated, please refer to the [Wiki](https://kiibohd.github.io/wiki/#/Quickstart)
