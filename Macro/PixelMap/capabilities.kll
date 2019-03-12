@@ -2,7 +2,6 @@
 Name = PixelMapCapabilities;
 Version = 0.7;
 Author = "HaaTa (Jacob Alexander) 2015-2019";
-KLL = 0.5;
 
 # Modified Date
 Date = 2019-02-18;

@@ -2,7 +2,6 @@
 Name = PortSwapCapabilities;
 Version = 0.2;
 Author = "HaaTa (Jacob Alexander) 2015-2018";
-KLL = 0.3d;
 
 # Modified Date
 Date = 2018-11-14;

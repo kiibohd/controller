@@ -3,7 +3,6 @@
 Name = "Infinity 60% LED";
 Version = 0.9;
 Author = "HaaTa (Jacob Alexander) 2014-2018";
-KLL = 0.5;
 
 # Modified Date
 Date = 2018-11-13;

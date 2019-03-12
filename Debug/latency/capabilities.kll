@@ -2,7 +2,6 @@
 Name = latency;
 Version = 0.2;
 Author = "HaaTa (Jacob Alexander) 2017-2018";
-KLL = 0.5;
 
 # Modified Date
 Date = 2018-04-04;

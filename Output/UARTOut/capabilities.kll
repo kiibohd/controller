@@ -3,7 +3,6 @@
 Name = UARTOutCapabilities;
 Version = 0.4;
 Author = "HaaTa (Jacob Alexander) 2014-2017";
-KLL = 0.5;
 
 # Modified Date
 Date = 2017-12-17;

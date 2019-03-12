@@ -3,7 +3,6 @@
 Name = TestOutCapabilities;
 Version = 0.3;
 Author = "HaaTa (Jacob Alexander) 2014-2018";
-KLL = 0.5;
 
 # Modified Date
 Date = 2018-01-07;

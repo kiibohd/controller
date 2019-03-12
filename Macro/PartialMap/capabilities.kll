@@ -2,7 +2,6 @@
 Name = PartialMapCapabilities;
 Version = 0.10;
 Author = "HaaTa (Jacob Alexander) 2014-2019";
-KLL = 0.5;
 
 # Modified Date
 Date = 2019-02-17;

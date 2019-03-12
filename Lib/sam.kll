@@ -3,7 +3,6 @@
 Name = SAMCapabilities;
 Version = 0.1;
 Author = "HaaTa (Jacob Alexander) 2019";
-KLL = 0.5;
 
 # Modified Date
 Date = 2019-01-28;

@@ -1,7 +1,7 @@
+# UARTConnectCapabilities
 Name = UARTConnectCapabilities;
 Version = 0.1;
 Author = "HaaTa (Jacob Alexander) 2015";
-KLL = 0.3a;
 
 # Modified Date
 Date = 2015-03-15;

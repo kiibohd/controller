@@ -19,7 +19,6 @@
 Name = PS2;
 Version = 0.1;
 Author = "Ivor Wanders";
-KLL = 0.3c;
 
 # Modified Date
 Date = 2017-02-06;
