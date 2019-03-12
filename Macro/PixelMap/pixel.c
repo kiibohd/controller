@@ -2823,7 +2823,7 @@ inline void Pixel_setup()
 	for ( uint32_t index = 0; index < Pixel_AnimationSettingsNum_KLL; index++ )
 	{
 		// Check if a starting animation
-		if ( Pixel_AnimationSettings[ index ].state == AnimationPlayState_Start )
+		if ( Pixel_AnimationSettings[ index ].state & AnimationPlayState_AutoStart )
 		{
 			// Default animations are noted by the TriggerMacro *trigger pointer being set to 1
 			if ( (uintptr_t)(Pixel_AnimationSettings[ index ].trigger) == 1 )

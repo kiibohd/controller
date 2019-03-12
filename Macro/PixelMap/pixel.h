@@ -114,10 +114,15 @@ typedef enum AnimationReplaceType {
 
 // Animation Play State
 typedef enum AnimationPlayState {
-	AnimationPlayState_Start  = 0, // Start animation
-	AnimationPlayState_Pause  = 1, // Pause animation (default set by KLL Compiler)
-	AnimationPlayState_Stop   = 2, // Stop animation (removes animation state)
-	AnimationPlayState_Single = 3, // Play a single frame of the animation
+	AnimationPlayState_Start     = 0,    // Start animation
+	AnimationPlayState_Pause     = 1,    // Pause animation (default set by KLL Compiler)
+	AnimationPlayState_Stop      = 2,    // Stop animation (removes animation state)
+	AnimationPlayState_Single    = 3,    // Play a single frame of the animation
+	AnimationPlayState_AutoStart = 0x80, // Set if animation is autostarting
+	                                     // Multiple conditions must be met to autostart an animation
+					     // This flag must be set
+					     // Only default animations can be autostarted
+					     // Exception would be NVM saved animations
 } AnimationPlayState;
 
 typedef enum AnimationControl {
