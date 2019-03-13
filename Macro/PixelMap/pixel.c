@@ -898,8 +898,8 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState csta
 
 			// Ignore paused animations (single will be paused on the next frame)
 			if (
-				Pixel_AnimationStack.stack[pos]->state == AnimationPlayState_Pause ||
-				Pixel_AnimationStack.stack[pos]->state == AnimationPlayState_Single
+				( Pixel_AnimationStack.stack[pos]->state & 0x7F ) == AnimationPlayState_Pause ||
+				( Pixel_AnimationStack.stack[pos]->state & 0x7F ) == AnimationPlayState_Single
 			)
 			{
 				continue;
@@ -1947,7 +1947,7 @@ uint8_t Pixel_animationProcess( AnimationStackElement *elem )
 	}
 
 	// Check the play state
-	switch ( elem->state )
+	switch ( elem->state & 0x7F )
 	{
 	// Pause animation (paused animations will take up animation stack memory)
 	case AnimationPlayState_Pause:
@@ -2424,7 +2424,7 @@ void Pixel_initializeStartAnimations()
 			AnimationStackElement element = Pixel_AnimationSettings[ index ];
 
 			// Only update state if not already defined
-			if ( element.state == AnimationPlayState_Pause )
+			if ( ( element.state & 0x7F ) == AnimationPlayState_Pause )
 			{
 				element.state = AnimationPlayState_Start;
 			}
@@ -3433,7 +3433,7 @@ void Pixel_saveConfig() {
 			settings.animations[pos].index = elem->index;
 
 			// Save position, only if paused
-			if ( elem->state == AnimationPlayState_Pause )
+			if ( ( elem->state & 0x7F ) == AnimationPlayState_Pause )
 			{
 				settings.animations[pos].pos = elem->pos - 1;
 			}
