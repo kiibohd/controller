@@ -190,7 +190,8 @@ ISSI_Chip_31FL3733 = 1;
 #   5 - 0.08 A
 #   1 - 0.06 A
 #   0 - 0.05 A
-ISSI_Global_Brightness = 128; # Half brightness, approx. 1 A @ All White
+#ISSI_Global_Brightness = 128; # Half brightness, approx. 1 A @ All White
+ISSI_Global_Brightness = 100;
 
 # Available ISSI Chips
 ISSI_Chips = 2; # 2 by default
