@@ -2477,6 +2477,7 @@ inline void Pixel_process()
 		Pixel_clearPixels();
 		goto pixel_process_done;
 	case AnimationControl_Clear: // Clears the display, animations continue
+		Pixel_animationControl = AnimationControl_Forward;
 		Pixel_FrameState = FrameState_Update;
 		Pixel_clearPixels();
 		break;
