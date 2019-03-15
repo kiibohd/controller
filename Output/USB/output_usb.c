@@ -917,7 +917,7 @@ inline void USB_periodic()
 
 #if enableMouse_define == 1
 	// Process mouse actions
-	while ( USBMouse_primary.changed )
+	while ( USBMouse_primary.changed && usb_configured() )
 	{
 		usb_mouse_send();
 	}
@@ -945,7 +945,7 @@ inline void USB_periodic()
 	}
 
 	// Send keypresses while there are pending changes
-	while ( USBKeys_primary.changed )
+	while ( USBKeys_primary.changed && usb_configured() )
 	{
 		usb_keyboard_send( (USBKeys*)&USBKeys_primary, USBKeys_Protocol );
 	}
