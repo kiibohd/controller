@@ -3,13 +3,18 @@
 # Keyboard: Ergodox
 #
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015-2017
+# Jacob Alexander 2015-2019
 
 
 
 #################
 # Configuration #
 #################
+
+
+# VID:PID Mapping
+export VENDOR_ID="0x308F"
+export PRODUCT_ID="0x0004"
 
 
 # Feel free to change the variables in this section to configure your keyboard

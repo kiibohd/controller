@@ -531,6 +531,16 @@ uint8_t Macro_pressReleaseAdd( void *trigger_ptr )
 	case TriggerType_Rotation1:
 		break;
 
+	case TriggerType_Animation1:
+	case TriggerType_Animation2:
+	case TriggerType_Animation3:
+	case TriggerType_Animation4:
+	case TriggerType_Sleep1:
+	case TriggerType_Resume1:
+	case TriggerType_Active1:
+	case TriggerType_Inactive1:
+		break;
+
 	// Invalid TriggerGuide type for Interconnect
 	default:
 		erro_msg("Invalid type - ");
@@ -1058,13 +1068,21 @@ void Macro_periodic()
 				break;
 
 			case TriggerType_Rotation1:
+			case TriggerType_Animation1:
+			case TriggerType_Animation2:
+			case TriggerType_Animation3:
+			case TriggerType_Animation4:
+			case TriggerType_Sleep1:
+			case TriggerType_Resume1:
+			case TriggerType_Active1:
+			case TriggerType_Inactive1:
 				// Do not re-add
 				break;
 
 			// Not implemented
 			default:
 				erro_msg("Interconnect Trigger Event Type - Not Implemented ");
-				printInt8( macroInterconnectCache[ c ].type );
+				printHex( macroInterconnectCache[ c ].type );
 				print( NL );
 				break;
 			}
