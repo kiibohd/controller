@@ -822,6 +822,7 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState csta
 			found->state = element->state;
 			return 0;
 		}
+		break;
 
 	// Replace on press and release
 	// Press starts the animation
@@ -834,7 +835,7 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState csta
 		// Press
 		case CapabilityState_Initial:
 			// If found, modify stack element
-			if ( found )
+			if ( found && found->trigger == element->trigger )
 			{
 				found->pos = element->pos;
 				found->subpos = element->subpos;
@@ -852,7 +853,7 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState csta
 		// Release
 		case CapabilityState_Last:
 			// Only need to do something if the animation was found (which is stop)
-			if ( found )
+			if ( found && found->trigger == element->trigger )
 			{
 				found->state = AnimationPlayState_Stop;
 			}
@@ -861,6 +862,7 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState csta
 		default:
 			break;
 		}
+		break;
 
 	// Clear all current animations from stack before adding new animation
 	case AnimationReplaceType_Clear:
