@@ -814,6 +814,18 @@ inline void USB_poll()
 }
 
 
+// Check if USB is ready
+// Returns 1 if ready, 0 if not
+uint8_t USB_ready()
+{
+#if !defined(_host_)
+	return usb_configured();
+#else
+	return 1;
+#endif
+}
+
+
 // Gather USB HID LED states
 // Keeps track of previous state, and sends new state to PartialMap
 void USB_indicator_update()
@@ -917,7 +929,7 @@ inline void USB_periodic()
 
 #if enableMouse_define == 1
 	// Process mouse actions
-	while ( USBMouse_primary.changed && usb_configured() )
+	while ( USBMouse_primary.changed && USB_ready() )
 	{
 		usb_mouse_send();
 	}
@@ -945,7 +957,7 @@ inline void USB_periodic()
 	}
 
 	// Send keypresses while there are pending changes
-	while ( USBKeys_primary.changed && usb_configured() )
+	while ( USBKeys_primary.changed && USB_ready() )
 	{
 		usb_keyboard_send( (USBKeys*)&USBKeys_primary, USBKeys_Protocol );
 	}
