@@ -585,8 +585,3 @@ bool main_kbd_enable(void)
 	return true;
 }
 
-
-// ----- RAM Setup -----
-
-// ----- Interrupt Execution Priority -----
-

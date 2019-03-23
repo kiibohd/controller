@@ -190,6 +190,15 @@ int main()
 #if defined(_sam_)
 		// Not locked up... Reset the watchdog timer
 		WDT->WDT_CR = WDT_CR_KEY_PASSWD | WDT_CR_WDRSTT;
+#elif defined(_kinetis_)
+		// Not locked up... Reset the watchdog timer
+		if ( WDOG_STCTRLH_WDOGEN && WDOG_TMROUTL > 2 )
+		{
+			__disable_irq();
+			WDOG_REFRESH = WDOG_REFRESH_SEQ1;
+			WDOG_REFRESH = WDOG_REFRESH_SEQ2;
+			__enable_irq();
+		}
 #endif
 	}
 }

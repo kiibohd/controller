@@ -270,7 +270,7 @@ void main()
 
 	// Prepared debug output (when supported)
 	uart_serial_setup();
-	printNL( NL "==> Bootloader DFU-Mode" );
+	printNL( NL "==> Bootloader" );
 
 	// Early setup
 	Chip_reset();
@@ -299,19 +299,12 @@ void main()
 		|| memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0
 	)
 	{
+		printNL("-> DFU-Mode");
 		// Bootloader mode
 		memset( (uint8_t*)&VBAT, 0, sizeof(sys_reset_to_loader_magic) );
 	}
 	else
 	{
-		// Enable Watchdog before jumping
-		// XXX (HaaTa) This watchdog cannot trigger an IRQ, as we're relocating the vector table
-		WDOG_UNLOCK = WDOG_UNLOCK_SEQ1;
-		WDOG_UNLOCK = WDOG_UNLOCK_SEQ2;
-		WDOG_TOVALH = 0;
-		WDOG_TOVALL = 1000;
-		WDOG_STCTRLH |= WDOG_STCTRLH_WDOGEN;
-
 		// Firmware mode
 		print( NL "==> Booting Firmware..." );
 		uint32_t addr = (uintptr_t)&_app_rom;
@@ -327,6 +320,7 @@ void main()
 		|| memcmp( (uint8_t*)GPBR, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0
 	)
 	{
+		printNL("-> DFU-Mode");
 		// Bootloader mode
 		for ( int pos = 0; pos <= sizeof(sys_reset_to_loader_magic)/sizeof(GPBR->SYS_GPBR[0]); pos++ )
 			GPBR->SYS_GPBR[ pos ] = 0x00000000;
@@ -430,6 +424,13 @@ void main()
 	for (;;)
 	{
 #if defined(_kinetis_)
+		// Stroke watchdog
+		if ( WDOG_TMROUTL > 2 )
+		{
+			WDOG_REFRESH = WDOG_REFRESH_SEQ1;
+			WDOG_REFRESH = WDOG_REFRESH_SEQ2;
+		}
+
 		dfu_usb_poll();
 #endif
 
