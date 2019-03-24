@@ -34,7 +34,6 @@
 #include "hidio_com.h"
 
 #include <kll_defs.h>
-const char* unicode_strings[] = { UnicodeStringList_define };
 const char* url_strings[] = { URLList_define };
 const char* strings_list[] = { StringList_define };
 const char* layout_strings[] = { LayoutList_define };
@@ -1417,7 +1416,7 @@ void HIDIO_Unicode_String_capability( TriggerMacro *trigger, uint8_t state, uint
 
 	uint8_t arg  = *(uint8_t*)(&args[0]);
 
-	char* text_buf = unicode_strings[arg];
+	char* text_buf = UTF8_Strings[arg];
 	uint16_t payload_len = 5;
 
 	uint16_t pos = 0;
@@ -1519,7 +1518,7 @@ void HIDIO_Open_url_capability( TriggerMacro *trigger, uint8_t state, uint8_t st
 			&text_buf[pos],
 			1,
 			HIDIO_Packet_Type__Data,
-			0x21
+			0x17
 		);
 	}
 }
@@ -1557,7 +1556,7 @@ void HIDIO_layout_capability( TriggerMacro *trigger, uint8_t state, uint8_t stat
 			&text_buf[pos],
 			1,
 			HIDIO_Packet_Type__Data,
-			0x23
+			0x31
 		);
 	}
 }
@@ -1645,7 +1644,7 @@ void HIDIO_print_flush()
 			&HIDIO_print_buf_data[pos],
 			HIDIO_print_buf_count,
 			HIDIO_Packet_Type__Data,
-			0x22
+			0x31
 		);
 	}
 
