@@ -34,6 +34,8 @@
 #include <led.h>
 #include <print.h>
 
+#include <Output/HID-IO/hidio_com.h>
+
 // KLL Includes
 #include <kll_defs.h>
 
@@ -96,6 +98,7 @@ void prompt()
 {
 	print("\033[2K\r"); // Erases the current line and resets cursor to beginning of line
 	print("\033[1;34m:\033[0m "); // Blue bold prompt
+	HIDIO_print_flush();
 }
 
 // Initialize the CLI
@@ -135,33 +138,38 @@ int CLI_process()
 	// Current buffer position
 	uint8_t prev_buf_pos = CLILineBufferCurrent;
 
-	// Process each character while available
-	while ( 1 )
-	{
-		// No more characters to process
-		if ( Output_availablechar() == 0 )
-			break;
-
-		// Retrieve from output module
-		char cur_char = (char)Output_getchar();
-
-		// Make sure buffer isn't full
-		if ( CLILineBufferCurrent >= CLILineBufferMaxSize )
+	if (CLILineBufferPrev != 255) {
+		prev_buf_pos = CLILineBufferPrev;
+		CLILineBufferPrev = 255;
+	} else {
+		// Process each character while available
+		while ( 1 )
 		{
-			print( NL );
-			erro_print("Serial line buffer is full, dropping character and resetting...");
+			// No more characters to process
+			if ( Output_availablechar() == 0 )
+				break;
 
-			// Clear buffer
-			CLILineBufferCurrent = 0;
+			// Retrieve from output module
+			char cur_char = (char)Output_getchar();
 
-			// Reset the prompt
-			prompt();
+			// Make sure buffer isn't full
+			if ( CLILineBufferCurrent >= CLILineBufferMaxSize )
+			{
+				print( NL );
+				erro_print("Serial line buffer is full, dropping character and resetting...");
 
-			return 0;
+				// Clear buffer
+				CLILineBufferCurrent = 0;
+
+				// Reset the prompt
+				prompt();
+
+				return 0;
+			}
+
+			// Place into line buffer
+			CLILineBuffer[CLILineBufferCurrent++] = cur_char;
 		}
-
-		// Place into line buffer
-		CLILineBuffer[CLILineBufferCurrent++] = cur_char;
 	}
 
 	// Display Hex Key Input if enabled
@@ -181,6 +189,7 @@ int CLI_process()
 	}
 
 	// If buffer has changed, output to screen while there are still characters in the buffer not displayed
+	uint8_t dirty = CLILineBufferCurrent > prev_buf_pos;
 	while ( CLILineBufferCurrent > prev_buf_pos )
 	{
 		// Check for control characters
@@ -237,7 +246,7 @@ int CLI_process()
 
 			// XXX There is a potential bug here when resetting the buffer (losing valid keypresses)
 			//     Doesn't look like it will happen *that* often, so not handling it for now -HaaTa
-			return 0;
+			break;
 
 		case 0x09: // Tab
 			// Tab completion for the current command
@@ -247,7 +256,7 @@ int CLI_process()
 
 			// XXX There is a potential bug here when resetting the buffer (losing valid keypresses)
 			//     Doesn't look like it will happen *that* often, so not handling it for now -HaaTa
-			return 0;
+			break;
 
 		case 0x1B: // Esc / Escape codes
 			// Check for other escape sequence
@@ -281,7 +290,7 @@ int CLI_process()
 					CLI_retreiveHistory( CLIHistoryCurrent );
 				}
 			}
-			return 0;
+			break;
 
 		case 0x08:
 		case 0x7F: // Backspace
@@ -305,13 +314,15 @@ int CLI_process()
 			CLILineBuffer[CLILineBufferCurrent] = '\0';
 
 			// Output buffer to screen
-			dPrint( &CLILineBuffer[prev_buf_pos] );
+			printChar( CLILineBuffer[prev_buf_pos] );
 
 			// Buffer reset
 			prev_buf_pos++;
-
-			break;
 		}
+	}
+
+	if (dirty) {
+		HIDIO_print_flush();
 	}
 
 	return 0;
@@ -547,6 +558,8 @@ void cliFunc_exit( char* args )
 
 void cliFunc_help( char* args )
 {
+	HIDIO_print_flush();
+	HIDIO_print_mode( HIDIO_PRINT_BUFFER_BULK );
 	// Scan array of dictionaries and print every description
 	//  (no alphabetical here, too much processing/memory to sort...)
 	for ( uint8_t dict = 0; dict < CLIDictionariesUsed; dict++ )
@@ -570,6 +583,8 @@ void cliFunc_help( char* args )
 			print( NL );
 		}
 	}
+	HIDIO_print_flush();
+	HIDIO_print_mode( HIDIO_PRINT_BUFFER_LINE );
 }
 
 void printLatency( uint8_t resource )

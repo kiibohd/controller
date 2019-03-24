@@ -109,14 +109,14 @@
 #define MOUSE_NAME              L"Mouse"
 
 #define RAWIO_INTERFACE         6 // RawIO
-#define RAWIO_TX_ENDPOINT       8
+#define RAWIO_TX_ENDPOINT       9
 #define RAWIO_TX_SIZE           64
 #define RAWIO_TX_INTERVAL       1
-#define RAWIO_RX_ENDPOINT       9
+#define RAWIO_RX_ENDPOINT       8
 #define RAWIO_RX_SIZE           64
 #define RAWIO_RX_INTERVAL       1
-#define RAWIO_USAGE_PAGE        0xFFFF
-#define RAWIO_USAGE             0xFFFF
+#define RAWIO_USAGE_PAGE        0xFF1C
+#define RAWIO_USAGE             0x1100
 #define RAWIO_NAME              L"RawIO API Interface"
 
 #define JOYSTICK_INTERFACE      7 // Joystick

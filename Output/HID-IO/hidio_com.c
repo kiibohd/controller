@@ -33,16 +33,24 @@
 // Local Includes
 #include "hidio_com.h"
 
+extern const char* UTF8_Strings[];
+#include <kll_defs.h>
 
+#if 0
+const char* url_strings[] = { URLList_define };
+const char* strings_list[] = { StringList_define };
+const char* layout_strings[] = { LayoutList_define };
+#endif
 
 // ----- Defines -----
 
 #define HIDIO_Id_List_MaxSize 20
 #define HIDIO_Max_ACK_Payload 70
 #define HIDIO_Max_Payload 200
-#define HIDIO_Max_Tx_Payload 200
+#define HIDIO_Max_Tx_Payload 8000
 
-
+// Enable debugging over ttyACM, UART, or other secondary channel
+//#define HIDIO_DEBUG 1
 
 // ----- Macros -----
 
@@ -85,7 +93,7 @@ HIDIO_Id_Entry HIDIO_Id_List[ HIDIO_Id_List_MaxSize ];
 uint32_t HIDIO_Id_List_Size;
 
 // Packet information
-uint16_t HIDIO_Packet_Size;
+uint16_t HIDIO_Packet_Size = 0;
 
 // Assembly Ring Buffer
 uint8_t HIDIO_assembly_buf_data[HIDIO_Max_Payload + sizeof(HIDIO_Buffer_Entry)];
@@ -103,6 +111,15 @@ HIDIO_Buffer_Entry *HIDIO_ack_buf;
 uint8_t HIDIO_tx_buf_data[HIDIO_Max_Tx_Payload + sizeof(HIDIO_Packet)];
 HIDIO_Buffer HIDIO_tx_buf;
 
+// VT Print Butter
+char HIDIO_print_buf_data[50]; // TODO: Figure out >64
+uint8_t HIDIO_print_buf_count;
+uint8_t HIDIO_print_buffer_mode;
+
+// Incoming Trigger Event Buffer
+extern TriggerEvent macroTriggerEventBuffer[];
+extern var_uint_t macroTriggerEventBufferSize;
+extern var_uint_t macroTriggerEventLayerCache[];
 
 
 // ----- Capabilities -----
@@ -179,11 +196,14 @@ uint8_t HIDIO_buffer_pop_bytes( HIDIO_Buffer *buffer, uint16_t len )
 	// Check if len is longer than total buffer
 	if ( len > buffer->len )
 	{
-		erro_msg("Requested HIDIO buffer pop larger than entire buffer: ");
-		printInt16( len );
-		print(":");
-		printInt16( buffer->len );
-		print(NL);
+		uint16_t connected = HIDIO_VT_Connected;
+		HIDIO_VT_Connected = 0;
+			erro_msg("Requested HIDIO buffer pop larger than entire buffer: ");
+			printInt16( len );
+			print(":");
+			printInt16( buffer->len );
+			print(NL);
+		HIDIO_VT_Connected = connected;
 		return 0;
 	}
 
@@ -316,8 +336,7 @@ uint16_t HIDIO_buffer_generate_packet(
 	uint32_t id
 )
 {
-	/*
-	print("head: ");
+	/*print("head: ");
 	printInt16( buf->head );
 	print(" tail: ");
 	printInt16( buf->tail );
@@ -325,8 +344,7 @@ uint16_t HIDIO_buffer_generate_packet(
 	printInt16( HIDIO_buffer_free_bytes( buf ) );
 	print(" request: ");
 	printInt16( data_len );
-	print(NL);
-	*/
+	print(NL);*/
 
 	// Determine payload max
 	uint8_t width = HIDIO_id_width( id );
@@ -349,14 +367,18 @@ uint16_t HIDIO_buffer_generate_packet(
 	uint16_t requested = payload_len - pos + sizeof(HIDIO_Packet) * ( packet_count - cur_packet );
 	if ( requested > HIDIO_buffer_free_bytes( buf ) )
 	{
-		erro_msg("Not enough bytes in HIDIO buffer: ");
-		printInt16( HIDIO_buffer_free_bytes( buf ) );
-		print(" bytes left, ");
-		printInt16( buf->len );
-		print(" bytes total ");
-		printInt16( requested );
-		print(" bytes requested");
-		print(NL);
+		uint16_t connected = HIDIO_VT_Connected;
+		HIDIO_VT_Connected = 0;
+			erro_msg("Not enough bytes in HIDIO buffer: ");
+			printInt16( HIDIO_buffer_free_bytes( buf ) );
+			print(" bytes left, ");
+			printInt16( buf->len );
+			print(" bytes total ");
+			printInt16( requested );
+			print(" bytes requested");
+			print(NL);
+			HIDIO_flush();
+		HIDIO_VT_Connected = connected;
 		return payload_len;
 	}
 
@@ -516,6 +538,67 @@ void HIDIO_info_1_request( uint8_t property )
 HIDIO_Return HIDIO_info_1_call( uint16_t buf_pos, uint8_t irq )
 {
 	// TODO
+
+#if 0
+	// TODO (HaaTa) - Add option to process optionally inside irqs
+	if ( irq )
+	{
+		return HIDIO_Return__Delay;
+	}
+
+	// Munch buffer entry header, not including data
+	uint8_t tmpbuf[ sizeof(HIDIO_Buffer_Entry) ];
+	uint8_t *buf = HIDIO_buffer_munch( &HIDIO_assembly_buf, (uint8_t*)&tmpbuf, buf_pos, sizeof(HIDIO_Buffer_Entry) );
+	HIDIO_Buffer_Entry *entry = (HIDIO_Buffer_Entry*)buf;
+
+	// Make sure entry is ready
+	if ( !entry->done )
+	{
+		return HIDIO_Return__Delay;
+	}
+
+	// Get size and iterate through payload
+	uint16_t transitions = 0;
+	uint8_t last_byte = 0;
+
+	uint8_t prev_buf_pos = CLILineBufferCurrent;
+	for ( uint16_t pos = 0; pos < entry->size; pos++ )
+	{
+		uint16_t pos = 0;
+		uint16_t calc_buf_pos = HIDIO_buffer_position( &HIDIO_assembly_buf, buf_pos + sizeof(HIDIO_Buffer_Entry), pos );
+		uint8_t *byte = HIDIO_buffer_munch( &HIDIO_assembly_buf, &buf, calc_buf_pos, 1 );
+
+		switch (*byte) {
+			case HIDIO_Info_1_Property__Major_Verion:
+			      break;
+			case HIDIO_Info_1_Property__Minor_Verion:
+			      break;
+			case HIDIO_Info_1_Property__Patch_Verion:
+			      break;
+			case HIDIO_Info_1_Property__OS_Type:
+			      break;
+			case HIDIO_Info_1_Property__OS_Version:
+			      break;
+		}
+	}
+
+	// Prepare ACK
+	uint16_t pos = 0;
+	while ( pos < entry->size )
+	{
+		pos = HIDIO_buffer_generate_packet(
+			&HIDIO_ack_send_buf,
+			pos,
+			entry->size,
+			&last_byte,
+			1,
+			HIDIO_Packet_Type__ACK,
+			2
+		);
+	}
+#endif
+
+	// Buffer is automatically released for us
 	return HIDIO_Return__Ok;
 }
 
@@ -608,6 +691,7 @@ HIDIO_Return HIDIO_test_2_call( uint16_t buf_pos, uint8_t irq )
 	}
 
 	// Buffer is automatically released for us
+	//print("[TEST OK]" NL);
 	return HIDIO_Return__Ok;
 }
 
@@ -649,6 +733,77 @@ HIDIO_Return HIDIO_test_2_reply( HIDIO_Buffer_Entry *buf, uint8_t irq )
 	}
 
 	// Buffer is automatically released for us
+	return HIDIO_Return__Ok;
+}
+
+HIDIO_Return HIDIO_terminal_call( uint16_t buf_pos, uint8_t irq )
+{
+	HIDIO_VT_Connected = 1;
+
+	// TODO (HaaTa) - Add option to process optionally inside irqs
+	if ( irq )
+	{
+		return HIDIO_Return__Delay;
+	}
+
+	// Munch buffer entry header, not including data
+	uint8_t tmpbuf[ sizeof(HIDIO_Buffer_Entry) ];
+	uint8_t *buf = HIDIO_buffer_munch( &HIDIO_assembly_buf, (uint8_t*)&tmpbuf, buf_pos, sizeof(HIDIO_Buffer_Entry) );
+	HIDIO_Buffer_Entry *entry = (HIDIO_Buffer_Entry*)buf;
+
+	// Make sure entry is ready
+	if ( !entry->done )
+	{
+		return HIDIO_Return__Delay;
+	}
+
+	// Get size and iterate through payload
+	uint8_t last_byte = 0;
+
+	uint8_t prev_buf_pos = CLILineBufferCurrent;
+	for ( uint16_t pos = 0; pos < entry->size; pos++ )
+	{
+		if ( CLILineBufferCurrent >= CLILineBufferMaxSize ) {
+			uint16_t connected = HIDIO_VT_Connected;
+			HIDIO_VT_Connected = 0;
+			erro_print("Serial line buffer is full, dropping character and resetting...");
+			HIDIO_VT_Connected = connected;
+
+			// This will automatically NAK for us
+			return HIDIO_Return__InBuffer_Fail;
+		}
+
+		uint8_t buf;
+		uint16_t calc_buf_pos = HIDIO_buffer_position( &HIDIO_assembly_buf, buf_pos + sizeof(HIDIO_Buffer_Entry), pos );
+		uint8_t *byte = HIDIO_buffer_munch( &HIDIO_assembly_buf, &buf, calc_buf_pos, 1 );
+		CLILineBuffer[CLILineBufferCurrent++] = *byte;
+	}
+
+	// Prepare ACK
+	uint16_t pos = 0;
+	while ( pos < entry->size )
+	{
+		pos = HIDIO_buffer_generate_packet(
+			&HIDIO_ack_send_buf,
+			pos,
+			entry->size,
+			&last_byte,
+			1,
+			HIDIO_Packet_Type__ACK,
+			2
+		);
+	}
+
+	// Flag CLI as updated
+	CLILineBufferPrev = prev_buf_pos;
+
+	// Buffer is automatically released for us
+	return HIDIO_Return__Ok;
+}
+
+// Test reply
+HIDIO_Return HIDIO_terminal_reply( HIDIO_Buffer_Entry *buf, uint8_t irq )
+{
 	return HIDIO_Return__Ok;
 }
 
@@ -697,6 +852,12 @@ void HIDIO_register_id( uint32_t id, void* incoming_call_func, void* incoming_re
 // irq - Set to 1 if called from an IRQ
 HIDIO_Return HIDIO_call_id( uint32_t id, uint16_t buf_pos, uint8_t irq )
 {
+#ifdef HIDIO_DEBUG
+	print("HIDIO CALL: ");
+	printInt8(id);
+	print(NL);
+#endif
+
 	HIDIO_Return retval = HIDIO_Return__Unknown;
 
 	// Find id
@@ -840,16 +1001,36 @@ void HIDIO_packet_interrupt( uint8_t *buf )
 	print("YAY");
 }
 
+// Remove all unprocessed data
+void HIDIO_flush()
+{
+	HIDIO_assembly_buf.head = 0;
+	HIDIO_assembly_buf.tail = 0;
+	HIDIO_assembly_buf.cur_buf_head = 0;
+
+	HIDIO_ack_send_buf.head = 0;
+	HIDIO_ack_send_buf.tail = 0;
+	HIDIO_ack_send_buf.cur_buf_head = 0;
+
+	HIDIO_tx_buf.head = 0;
+	HIDIO_tx_buf.tail = 0;
+	HIDIO_tx_buf.cur_buf_head = 0;
+}
+
 // HID-IO Module Setup
 inline void HIDIO_setup()
 {
 	// Default packet size (i.e. lowest supported)
-	HIDIO_Packet_Size = 8;
+	HIDIO_Packet_Size = 64; //8;
+
+	HIDIO_flush();
+
+	// Setup print buffer
+	HIDIO_print_buf_count = 0;
+	HIDIO_print_buffer_mode = HIDIO_PRINT_BUFFER_LINE;
+	HIDIO_VT_Connected = 0;
 
 	// Setup Assembly Buffer
-	HIDIO_assembly_buf.head = 0;
-	HIDIO_assembly_buf.tail = 0;
-	HIDIO_assembly_buf.cur_buf_head = 0;
 	HIDIO_assembly_buf.len = sizeof(HIDIO_assembly_buf_data);
 	HIDIO_assembly_buf.packets_ready = 0;
 	HIDIO_assembly_buf.waiting = 0;
@@ -862,18 +1043,12 @@ inline void HIDIO_setup()
 	HIDIO_ack_buf->done = 0;
 
 	// Setup ACK Send Buffer
-	HIDIO_ack_send_buf.head = 0;
-	HIDIO_ack_send_buf.tail = 0;
-	HIDIO_ack_send_buf.cur_buf_head = 0;
 	HIDIO_ack_send_buf.len = sizeof(HIDIO_ack_send_data);
 	HIDIO_ack_send_buf.packets_ready = 0;
 	HIDIO_ack_send_buf.waiting = 0;
 	HIDIO_ack_send_buf.data = HIDIO_ack_send_data;
 
 	// Setup Tx Buffer
-	HIDIO_tx_buf.head = 0;
-	HIDIO_tx_buf.tail = 0;
-	HIDIO_tx_buf.cur_buf_head = 0;
 	HIDIO_tx_buf.len = sizeof(HIDIO_tx_buf_data);
 	HIDIO_tx_buf.packets_ready = 0;
 	HIDIO_tx_buf.waiting = 0;
@@ -888,10 +1063,11 @@ inline void HIDIO_setup()
 	// Reset internal id list
 	HIDIO_Id_List_Size = 0;
 
-	// Register internal Ids
-	HIDIO_register_id( 0, (void*)HIDIO_supported_0_call, (void*)HIDIO_supported_0_reply );
-	HIDIO_register_id( 1, (void*)HIDIO_info_1_call, (void*)HIDIO_info_1_reply );
-	HIDIO_register_id( 2, (void*)HIDIO_test_2_call, (void*)HIDIO_test_2_reply );
+	// Register internal Ids (for incoming packets)
+	HIDIO_register_id( 0x00, (void*)HIDIO_supported_0_call, (void*)HIDIO_supported_0_reply );
+	HIDIO_register_id( 0x01, (void*)HIDIO_info_1_call, (void*)HIDIO_info_1_reply );
+	HIDIO_register_id( 0x02, (void*)HIDIO_test_2_call, (void*)HIDIO_test_2_reply );
+	HIDIO_register_id( 0x31, (void*)HIDIO_terminal_call, (void*)HIDIO_terminal_reply );
 }
 
 // HID-IO Process Packet
@@ -900,14 +1076,40 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 	// Map structure to packet data
 	HIDIO_Packet *packet = (HIDIO_Packet*)buf;
 
+#ifdef HIDIO_DEBUG
+	print("Type: ");
+	printInt8(packet->type);
+	print(NL);
+	print("Cont: ");
+	printInt8(packet->cont);
+	print(NL);
+	print("ID width: ");
+	printInt8(packet->id_width);
+	print(NL);
+	print("upper_len: ");
+	printInt16(packet->upper_len);
+	print(NL);
+	print("lower_len: ");
+	printInt16(packet->len);
+	print(NL);
+#endif
+
 	// Check header packet type to see if a valid packet
-	if ( packet->type > HIDIO_Packet_Type__Continued )
+	if ( packet->type > HIDIO_Packet_Type__Continued ) {
+		warn_print("Reserved packet type. Bug?");
 		return;
+	}
 
 	// Check if the length is valid
 	uint16_t packet_len = (packet->upper_len << 8) | packet->len;
-	if ( packet_len > HIDIO_Packet_Size )
+	if ( packet_len > HIDIO_Packet_Size ) {
+		warn_print("Unsupported length");
+		print("length: ");
+		printInt16(packet_len);
+		print(NL);
+
 		return;
+	}
 
 	// Packet type
 	HIDIO_Packet_Type type = packet->type;
@@ -917,6 +1119,11 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 
 	// Payload length, excludes the Id length from the packet length
 	uint16_t payload_len = packet_len - id_width_len;
+#ifdef HIDIO_DEBUG
+	print("Payload len: ");
+	printInt16(payload_len);
+	print(NL);
+#endif
 
 	// Check if valid Id
 	uint32_t id = 0;
@@ -924,15 +1131,16 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 	switch ( type )
 	{
 	case HIDIO_Packet_Type__Sync:
-		// TODO
-		print("SYNC");
-		break;
+		//print("SYNC" NL);
+		HIDIO_VT_Connected = 1;
+		HIDIO_flush();
+		return;
 
 	// XXX Falls through on purpose
 	// We first determine if we're reassembling in the data or ack buffers
 	case HIDIO_Packet_Type__Continued:
 		// Modify type so we know what to do with the payload
-		type = HIDIO_ack_buf->done ? HIDIO_Packet_Type__Data : HIDIO_Packet_Type__ACK;
+		type = !HIDIO_ack_buf->done ? HIDIO_Packet_Type__Data : HIDIO_Packet_Type__ACK;
 
 	// Most packet types
 	default:
@@ -961,16 +1169,19 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 			// If there isn't, we drop the packet
 			if ( HIDIO_buffer_free_bytes( &HIDIO_assembly_buf ) < sizeof(HIDIO_Buffer_Entry) + payload_len )
 			{
-				warn_print("Dropping incoming Data packet, not enough buffer space...");
-				print("head: ");
-				printInt16( HIDIO_assembly_buf.head );
-				print(" tail: ");
-				printInt16( HIDIO_assembly_buf.tail );
-				print(" bytes_left: ");
-				printInt16( HIDIO_buffer_free_bytes( &HIDIO_assembly_buf ) );
-				print(" request: ");
-				printInt16( sizeof(HIDIO_Buffer_Entry) + payload_len );
-				print(NL);
+				uint16_t connected = HIDIO_VT_Connected;
+				HIDIO_VT_Connected = 0;
+					warn_print("Dropping incoming Data packet, not enough buffer space...");
+					print("head: ");
+					printInt16( HIDIO_assembly_buf.head );
+					print(" tail: ");
+					printInt16( HIDIO_assembly_buf.tail );
+					print(" bytes_left: ");
+					printInt16( HIDIO_buffer_free_bytes( &HIDIO_assembly_buf ) );
+					print(" request: ");
+					printInt16( sizeof(HIDIO_Buffer_Entry) + payload_len );
+					print(NL);
+				HIDIO_VT_Connected = connected;
 				return;
 			}
 
@@ -1064,7 +1275,7 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 		// Otherwise do a simple ACK
 		else
 		{
-			HIDIO_nopayload_ack( id );
+			//HIDIO_nopayload_ack( id );
 		}
 		break;
 
@@ -1188,3 +1399,326 @@ inline void HIDIO_process()
 
 // ----- CLI Command Functions -----
 
+
+void HIDIO_Unicode_String_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("HIDIO_Unicode_String_capability(func)");
+		return;
+	default:
+		return;
+	}
+
+	uint8_t arg  = *(uint8_t*)(&args[0]);
+
+	const char* text_buf = UTF8_Strings[arg];
+	uint16_t payload_len = 5;
+
+	uint16_t pos = 0;
+	while ( pos < payload_len )
+	{
+		pos = HIDIO_buffer_generate_packet(
+			&HIDIO_tx_buf,
+			pos,
+			payload_len,
+			&text_buf[pos],
+			1,
+			HIDIO_Packet_Type__Data,
+			0x17
+		);
+	}
+}
+
+void HIDIO_Unicode_state_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	uint8_t pressed;
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		pressed = 1;
+		break;
+	case CapabilityState_Last:
+		pressed = 0;
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("HIDIO_Unicode_String_capability(func)");
+		return;
+	default:
+		return;
+	}
+
+	const char* text_buf = "";
+	uint16_t payload_len = 0;
+	uint8_t arg  = *(uint8_t*)(&args[0]);
+
+	if (pressed) {
+		text_buf = UTF8_Strings[arg];
+		for (payload_len=0; text_buf[payload_len]!='\0'; payload_len++);
+	}
+
+	if (payload_len == 0) {
+		payload_len = 1;
+	}
+
+	uint16_t pos = 0;
+	while ( pos < payload_len )
+	{
+		pos = HIDIO_buffer_generate_packet(
+			&HIDIO_tx_buf,
+			pos,
+			payload_len,
+			&text_buf[pos],
+			1,
+			HIDIO_Packet_Type__Data,
+			0x18
+		);
+	}
+}
+
+void HIDIO_Open_url_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("HIDIO_Unicode_String_capability(func)");
+		return;
+	default:
+		return;
+	}
+
+	uint16_t payload_len;
+	uint8_t arg  = *(uint8_t*)(&args[0]);
+
+#ifdef url_strings
+	char* text_buf = url_strings[arg];
+#else
+	char* text_buf = NULL;
+#endif
+	for (payload_len=0; text_buf[payload_len]!='\0'; payload_len++);
+
+	uint16_t pos = 0;
+	while ( pos < payload_len )
+	{
+		pos = HIDIO_buffer_generate_packet(
+			&HIDIO_tx_buf,
+			pos,
+			payload_len,
+			&text_buf[pos],
+			1,
+			HIDIO_Packet_Type__Data,
+			0x17
+		);
+	}
+}
+
+void HIDIO_layout_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("HIDIO_Unicode_String_capability(func)");
+		return;
+	default:
+		return;
+	}
+
+	uint16_t payload_len;
+	uint8_t arg  = *(uint8_t*)(&args[0]);
+
+#ifdef layout_strings
+	char* text_buf = layout_strings[arg];
+#else
+	char* text_buf = NULL;
+#endif
+	for (payload_len=0; text_buf[payload_len]!='\0'; payload_len++);
+
+	uint16_t pos = 0;
+	while ( pos < payload_len )
+	{
+		pos = HIDIO_buffer_generate_packet(
+			&HIDIO_tx_buf,
+			pos,
+			payload_len,
+			&text_buf[pos],
+			1,
+			HIDIO_Packet_Type__Data,
+			0x31
+		);
+	}
+}
+
+void HIDIO_trigger_state_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("HIDIO_Unicode_String_capability(func)");
+		return;
+	default:
+		return;
+	}
+
+	print("SENDING TRIGGER STATE" NL);
+	printInt16(macroTriggerEventBufferSize);
+	print(" bytes" NL);
+
+	uint16_t payload_len = macroTriggerEventBufferSize;
+	if (payload_len > 51) {
+		payload_len = 51; //sizeof(TriggerEvent)*17
+	}
+
+	uint16_t pos = 0;
+	while ( pos < payload_len )
+	{
+		pos = HIDIO_buffer_generate_packet(
+			&HIDIO_tx_buf,
+			pos,
+			payload_len,
+			&macroTriggerEventBuffer[pos],
+			1,
+			HIDIO_Packet_Type__Data,
+			0x20
+		);
+	}
+}
+
+void HIDIO_print_capability( TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args )
+{
+	CapabilityState cstate = KLL_CapabilityState( state, stateType );
+
+	switch ( cstate )
+	{
+	case CapabilityState_Initial:
+		// Only use capability on press
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("HIDIO_Unicode_String_capability(func)");
+		return;
+	default:
+		return;
+	}
+
+	uint16_t payload_len;
+	uint8_t arg  = *(uint8_t*)(&args[0]);
+#ifdef strings_list
+	char* text_buf = strings_list[arg];
+#else
+	char* text_buf = NULL;
+#endif
+
+	for (payload_len=0; text_buf[payload_len]!='\0'; payload_len++);
+	HIDIO_putstr(text_buf, payload_len);
+}
+
+void HIDIO_print_flush()
+{
+#ifdef HIDIO_DEBUG
+	usb_serial_write("<FLUSH>", 7);
+#endif
+
+	// TODO: Handle bulk vs. chunk
+
+	uint16_t pos = 0;
+	while ( pos < HIDIO_print_buf_count )
+	{
+		//Output_putchar(str[pos]);
+		pos = HIDIO_buffer_generate_packet(
+			&HIDIO_tx_buf,
+			pos,
+			HIDIO_print_buf_count,
+			&HIDIO_print_buf_data[pos],
+			HIDIO_print_buf_count,
+			HIDIO_Packet_Type__Data,
+			0x31
+		);
+	}
+
+	HIDIO_print_buf_count = 0;
+}
+
+void HIDIO_print_mode( uint8_t mode )
+{
+	HIDIO_print_buffer_mode = mode;
+}
+
+void HIDIO_print_enque( char* str, uint16_t count )
+{
+	usb_serial_write(str, count);
+	memcpy(&HIDIO_print_buf_data[HIDIO_print_buf_count], str, count);
+	HIDIO_print_buf_count += count;
+}
+
+int HIDIO_putchar( char c )
+{
+	return HIDIO_putstr(&c, 1);
+}
+
+int HIDIO_putstr( char* str, uint16_t count )
+{
+	// Send large chunks
+	uint16_t start = 0;
+	uint16_t remaining = count;
+
+	uint16_t available = sizeof(HIDIO_print_buf_data) - HIDIO_print_buf_count;
+	while (remaining > available) {
+		HIDIO_print_enque(&str[start], available);
+		HIDIO_print_flush();
+		start += available;
+		remaining -= available;
+		available = sizeof(HIDIO_print_buf_data) - HIDIO_print_buf_count;
+	}
+
+	// Send lines
+	if (HIDIO_print_buffer_mode == HIDIO_PRINT_BUFFER_LINE) {
+		for (uint16_t i=start; i<count; i++) {
+			if (str[i] == '\n') {
+				uint16_t len = i - start;
+				HIDIO_print_enque(&str[start], len);
+				HIDIO_print_flush();
+				start = i;
+			}
+		}
+	}
+
+	// Buffer the rest
+	remaining = count - start;
+	HIDIO_print_enque(&str[start], remaining);
+	if (HIDIO_print_buffer_mode == HIDIO_PRINT_BUFFER_NONE) {
+		HIDIO_print_flush();
+	}
+
+	//print(NL);
+	return count;
+}

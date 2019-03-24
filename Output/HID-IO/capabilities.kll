@@ -12,6 +12,12 @@ Date = 2017-12-17;
 Output_HIDIOEnabled = "1";
 Output_HIDIOEnabled => Output_HIDIOEnabled_define;
 
+unicode_text => HIDIO_Unicode_String_capability( c : 1 );
+unicode_state => HIDIO_Unicode_state_capability( c : 1 );
+open_url => HIDIO_Open_url_capability( c : 1 );
+hidio_print => HIDIO_print_capability( c : 1 );
+ime_layout => HIDIO_layout_capability( c : 1 );
+send_trigger_state => HIDIO_trigger_state_capability();
 
 # TODO
 # - PixelAPI
