@@ -318,8 +318,6 @@ int CLI_process()
 
 			// Buffer reset
 			prev_buf_pos++;
-
-			//break;
 		}
 	}
 

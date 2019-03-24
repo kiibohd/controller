@@ -33,10 +33,14 @@
 // Local Includes
 #include "hidio_com.h"
 
+extern const char* UTF8_Strings[];
 #include <kll_defs.h>
+
+#if 0
 const char* url_strings[] = { URLList_define };
 const char* strings_list[] = { StringList_define };
 const char* layout_strings[] = { LayoutList_define };
+#endif
 
 // ----- Defines -----
 
@@ -754,7 +758,6 @@ HIDIO_Return HIDIO_terminal_call( uint16_t buf_pos, uint8_t irq )
 	}
 
 	// Get size and iterate through payload
-	uint16_t transitions = 0;
 	uint8_t last_byte = 0;
 
 	uint8_t prev_buf_pos = CLILineBufferCurrent;
@@ -1416,7 +1419,7 @@ void HIDIO_Unicode_String_capability( TriggerMacro *trigger, uint8_t state, uint
 
 	uint8_t arg  = *(uint8_t*)(&args[0]);
 
-	char* text_buf = UTF8_Strings[arg];
+	const char* text_buf = UTF8_Strings[arg];
 	uint16_t payload_len = 5;
 
 	uint16_t pos = 0;
@@ -1457,7 +1460,7 @@ void HIDIO_Unicode_state_capability( TriggerMacro *trigger, uint8_t state, uint8
 		return;
 	}
 
-	char* text_buf = "";
+	const char* text_buf = "";
 	uint16_t payload_len = 0;
 	uint8_t arg  = *(uint8_t*)(&args[0]);
 
@@ -1505,7 +1508,11 @@ void HIDIO_Open_url_capability( TriggerMacro *trigger, uint8_t state, uint8_t st
 	uint16_t payload_len;
 	uint8_t arg  = *(uint8_t*)(&args[0]);
 
+#ifdef url_strings
 	char* text_buf = url_strings[arg];
+#else
+	char* text_buf = NULL;
+#endif
 	for (payload_len=0; text_buf[payload_len]!='\0'; payload_len++);
 
 	uint16_t pos = 0;
@@ -1543,7 +1550,11 @@ void HIDIO_layout_capability( TriggerMacro *trigger, uint8_t state, uint8_t stat
 	uint16_t payload_len;
 	uint8_t arg  = *(uint8_t*)(&args[0]);
 
+#ifdef layout_strings
 	char* text_buf = layout_strings[arg];
+#else
+	char* text_buf = NULL;
+#endif
 	for (payload_len=0; text_buf[payload_len]!='\0'; payload_len++);
 
 	uint16_t pos = 0;
@@ -1621,7 +1632,11 @@ void HIDIO_print_capability( TriggerMacro *trigger, uint8_t state, uint8_t state
 
 	uint16_t payload_len;
 	uint8_t arg  = *(uint8_t*)(&args[0]);
+#ifdef strings_list
 	char* text_buf = strings_list[arg];
+#else
+	char* text_buf = NULL;
+#endif
 
 	for (payload_len=0; text_buf[payload_len]!='\0'; payload_len++);
 	HIDIO_putstr(text_buf, payload_len);
@@ -1629,7 +1644,9 @@ void HIDIO_print_capability( TriggerMacro *trigger, uint8_t state, uint8_t state
 
 void HIDIO_print_flush()
 {
+#ifdef HIDIO_DEBUG
 	usb_serial_write("<FLUSH>", 7);
+#endif
 
 	// TODO: Handle bulk vs. chunk
 

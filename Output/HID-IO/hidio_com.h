@@ -122,4 +122,5 @@ void HIDIO_print_mode( uint8_t mode );
 void HIDIO_print_flush();
 int HIDIO_putchar( char c );
 int HIDIO_putstr( char* str, uint16_t count );
+void HIDIO_flush();
 uint8_t HIDIO_VT_Connected;
