@@ -326,6 +326,8 @@ void usb_serial_flush_callback()
 #include <udi_cdc.h>
 #include <arm/usb_desc.h>
 
+// Local Includes
+#include "usb_serial.h"
 
 
 // ----- Defines -----
@@ -364,6 +366,12 @@ int usb_serial_available()
 	}
 
 	return (int)udi_cdc_get_nb_received_data();
+}
+
+// transmit a character.  0 returned on success, -1 on error
+int usb_serial_putchar( uint8_t c )
+{
+	return usb_serial_write( &c, 1 );
 }
 
 int usb_serial_write( const void *buffer, uint32_t size )

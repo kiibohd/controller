@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2019 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -98,7 +98,9 @@ void prompt()
 {
 	print("\033[2K\r"); // Erases the current line and resets cursor to beginning of line
 	print("\033[1;34m:\033[0m "); // Blue bold prompt
+#if Output_HIDIOEnabled == 1
 	HIDIO_print_flush();
+#endif
 }
 
 // Initialize the CLI
@@ -321,8 +323,11 @@ int CLI_process()
 		}
 	}
 
-	if (dirty) {
+	if (dirty)
+	{
+#if Output_HIDIOEnabled == 1
 		HIDIO_print_flush();
+#endif
 	}
 
 	return 0;
@@ -558,8 +563,10 @@ void cliFunc_exit( char* args )
 
 void cliFunc_help( char* args )
 {
+#if Output_HIDIOEnabled == 1
 	HIDIO_print_flush();
 	HIDIO_print_mode( HIDIO_PRINT_BUFFER_BULK );
+#endif
 	// Scan array of dictionaries and print every description
 	//  (no alphabetical here, too much processing/memory to sort...)
 	for ( uint8_t dict = 0; dict < CLIDictionariesUsed; dict++ )
@@ -583,8 +590,10 @@ void cliFunc_help( char* args )
 			print( NL );
 		}
 	}
+#if Output_HIDIOEnabled == 1
 	HIDIO_print_flush();
 	HIDIO_print_mode( HIDIO_PRINT_BUFFER_LINE );
+#endif
 }
 
 void printLatency( uint8_t resource )

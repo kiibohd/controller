@@ -26,6 +26,10 @@
 #include <output_com.h>
 #include <print.h>
 
+#if enableVirtualSerialPort_define == 1
+#include <arm/usb_serial.h>
+#endif
+
 // KLL
 #include <kll_defs.h>
 #include <kll.h>
@@ -44,10 +48,17 @@ const char* layout_strings[] = { LayoutList_define };
 
 // ----- Defines -----
 
+#if enableRawIO_define == 1
 #define HIDIO_Id_List_MaxSize 20
 #define HIDIO_Max_ACK_Payload 70
 #define HIDIO_Max_Payload 200
 #define HIDIO_Max_Tx_Payload 8000
+#else
+#define HIDIO_Id_List_MaxSize 0
+#define HIDIO_Max_ACK_Payload 0
+#define HIDIO_Max_Payload 0
+#define HIDIO_Max_Tx_Payload 0
+#endif
 
 // Enable debugging over ttyACM, UART, or other secondary channel
 //#define HIDIO_DEBUG 1
@@ -1429,7 +1440,7 @@ void HIDIO_Unicode_String_capability( TriggerMacro *trigger, uint8_t state, uint
 			&HIDIO_tx_buf,
 			pos,
 			payload_len,
-			&text_buf[pos],
+			(uint8_t*)&text_buf[pos],
 			1,
 			HIDIO_Packet_Type__Data,
 			0x17
@@ -1480,7 +1491,7 @@ void HIDIO_Unicode_state_capability( TriggerMacro *trigger, uint8_t state, uint8
 			&HIDIO_tx_buf,
 			pos,
 			payload_len,
-			&text_buf[pos],
+			(uint8_t*)&text_buf[pos],
 			1,
 			HIDIO_Packet_Type__Data,
 			0x18
@@ -1506,7 +1517,7 @@ void HIDIO_Open_url_capability( TriggerMacro *trigger, uint8_t state, uint8_t st
 	}
 
 	uint16_t payload_len;
-	uint8_t arg  = *(uint8_t*)(&args[0]);
+	//uint8_t arg  = *(uint8_t*)(&args[0]);
 
 #ifdef url_strings
 	char* text_buf = url_strings[arg];
@@ -1522,7 +1533,7 @@ void HIDIO_Open_url_capability( TriggerMacro *trigger, uint8_t state, uint8_t st
 			&HIDIO_tx_buf,
 			pos,
 			payload_len,
-			&text_buf[pos],
+			(uint8_t*)&text_buf[pos],
 			1,
 			HIDIO_Packet_Type__Data,
 			0x17
@@ -1548,7 +1559,7 @@ void HIDIO_layout_capability( TriggerMacro *trigger, uint8_t state, uint8_t stat
 	}
 
 	uint16_t payload_len;
-	uint8_t arg  = *(uint8_t*)(&args[0]);
+	//uint8_t arg  = *(uint8_t*)(&args[0]);
 
 #ifdef layout_strings
 	char* text_buf = layout_strings[arg];
@@ -1564,7 +1575,7 @@ void HIDIO_layout_capability( TriggerMacro *trigger, uint8_t state, uint8_t stat
 			&HIDIO_tx_buf,
 			pos,
 			payload_len,
-			&text_buf[pos],
+			(uint8_t*)&text_buf[pos],
 			1,
 			HIDIO_Packet_Type__Data,
 			0x31
@@ -1605,7 +1616,7 @@ void HIDIO_trigger_state_capability( TriggerMacro *trigger, uint8_t state, uint8
 			&HIDIO_tx_buf,
 			pos,
 			payload_len,
-			&macroTriggerEventBuffer[pos],
+			(uint8_t*)&macroTriggerEventBuffer[pos],
 			1,
 			HIDIO_Packet_Type__Data,
 			0x20
@@ -1631,7 +1642,7 @@ void HIDIO_print_capability( TriggerMacro *trigger, uint8_t state, uint8_t state
 	}
 
 	uint16_t payload_len;
-	uint8_t arg  = *(uint8_t*)(&args[0]);
+	//uint8_t arg  = *(uint8_t*)(&args[0]);
 #ifdef strings_list
 	char* text_buf = strings_list[arg];
 #else
@@ -1658,7 +1669,7 @@ void HIDIO_print_flush()
 			&HIDIO_tx_buf,
 			pos,
 			HIDIO_print_buf_count,
-			&HIDIO_print_buf_data[pos],
+			(uint8_t*)&HIDIO_print_buf_data[pos],
 			HIDIO_print_buf_count,
 			HIDIO_Packet_Type__Data,
 			0x31
@@ -1675,7 +1686,9 @@ void HIDIO_print_mode( uint8_t mode )
 
 void HIDIO_print_enque( char* str, uint16_t count )
 {
+#if enableVirtualSerialPort_define == 1
 	usb_serial_write(str, count);
+#endif
 	memcpy(&HIDIO_print_buf_data[HIDIO_print_buf_count], str, count);
 	HIDIO_print_buf_count += count;
 }
