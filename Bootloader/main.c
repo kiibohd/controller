@@ -281,16 +281,14 @@ void main()
 	// pointer and check for valid app code.  This is no fool
 	// proof method, but it should help for the first flash.
 	//
-	// Purposefully disabling the watchdog *after* the reset check this way
-	// if the chip goes into an odd state we'll reset to the bootloader (invalid firmware image)
-	// RCM_SRS0 & 0x20
+	// Rather than checking the watchdog signal, look for the sys_reset_to_loader_magic
+	// sequence. If not set after a watchdog, try to boot the firmware again.
+	// Otherwise if set, that means the firmware didn't fully initialize and go back to the bootloader
 	//
 	// Also checking for ARM lock-up signal (invalid firmware image)
 	// RCM_SRS1 & 0x02
 	if (    // PIN  (External Reset Pin/Switch)
 		RCM_SRS0 & 0x40
-		// WDOG (Watchdog timeout)
-		|| RCM_SRS0 & 0x20
 		// LOCKUP (ARM Core LOCKUP event)
 		|| RCM_SRS1 & 0x02
 		// Blank flash check
@@ -305,6 +303,10 @@ void main()
 	}
 	else
 	{
+		// Cleared by valid firmwre
+		for ( int pos = 0; pos < sizeof(sys_reset_to_loader_magic); pos++ )
+			(&VBAT)[ pos ] = sys_reset_to_loader_magic[ pos ];
+
 		// Firmware mode
 		print( NL "==> Booting Firmware..." );
 		uint32_t addr = (uintptr_t)&_app_rom;

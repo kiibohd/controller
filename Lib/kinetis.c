@@ -37,6 +37,7 @@
 #include <debug.h>
 #else
 #include <print.h>
+#include <led.h>
 #endif
 
 // Local Includes
@@ -1122,6 +1123,13 @@ void ResetHandler()
 
 	// Intialize entropy for random numbers
 	rand_initialize();
+
+#if !defined(_bootloader_)
+	init_errorLED();
+	errorLED(0);
+
+	memset( (uint8_t*)&VBAT, 0, sizeof(sys_reset_to_loader_magic) );
+#endif
 
 	// Start main
 	main();

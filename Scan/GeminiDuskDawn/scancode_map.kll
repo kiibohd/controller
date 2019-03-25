@@ -210,8 +210,7 @@ ISSI_IIRSTPin = "gpio(A,17)";
 
 # Global Brightness
 # 0xFF (255) is the max
-ISSI_Global_Brightness = 10; # Half brightness
-#ISSI_Global_Brightness = 128; # Half brightness
+ISSI_Global_Brightness = 128; # Half brightness
 
 # Available ISSI Chips
 ISSI_Chips = 2; # 2 by default
@@ -261,7 +260,7 @@ ISSILedMask2 = "
 
 ### Gamma Correction ###
 LEDGamma = 2.2; # Windows defaults to 2.2
-gamma_enabled = "0"; # 0 - Disabled, 1 - Enabled
+gamma_enabled = "1"; # 0 - Disabled, 1 - Enabled
 
 
 
