@@ -21,10 +21,15 @@
 // Compiler Includes
 #include <stdint.h>
 
+// Local Includes
+#include "kll.h"
+
 
 
 // ----- Functions -----
 
 void Trigger_process();
 void Trigger_setup();
+
+uint8_t Trigger_DetermineScanCodeOnTrigger( const Layer *layer, uint8_t index );
 

@@ -107,6 +107,11 @@ KLL_LED_FadeBrightness[1] = 255;
 KLL_LED_FadeBrightness[2] = 255;
 KLL_LED_FadeBrightness[3] = 255;
 
+# Invert Active Layer Fade Selection
+# Chooses the keys not in the active layer to be fade group
+KLL_LED_FadeActiveLayerInvert => KLL_LED_FadeActiveLayerInvert_define;
+KLL_LED_FadeActiveLayerInvert = 0;
+
 # Fade Period
 # .start and .end must be between 0 and 15
 # .start == (1 << start) - 1

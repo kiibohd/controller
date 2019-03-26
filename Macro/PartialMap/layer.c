@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2018 by Jacob Alexander
+/* Copyright (C) 2014-2019 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -574,6 +574,19 @@ nat_ptr_t *Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 
 	// Otherwise no defined Trigger Macro
 	// Just ignore it
+	return 0;
+}
+
+// Layer active at top of the stack
+index_uint_t Layer_topActive()
+{
+	// Top of stack
+	if ( macroLayerIndexStackSize > 0 )
+	{
+		return macroLayerIndexStack[macroLayerIndexStackSize - 1];
+	}
+
+	// Default layer
 	return 0;
 }
 

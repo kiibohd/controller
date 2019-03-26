@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2018 by Jacob Alexander
+/* Copyright (C) 2014-2019 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,7 @@
 
 void Layer_setup();
 void Layer_clearLayers();
+index_uint_t Layer_topActive();
 
 nat_ptr_t *Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire );
 

@@ -840,6 +840,49 @@ void Trigger_updateTriggerMacroPendingList()
 }
 
 
+// Determines whether or not a scancode is used on a trigger
+// index -> index within trigger list
+uint8_t Trigger_DetermineScanCodeOnTrigger( const Layer *layer, uint8_t index )
+{
+	// Check all triggers
+	for ( uint8_t trigger = 1; trigger <= layer->triggerMap[index][0]; trigger++ )
+	{
+		// Trigger element
+		nat_ptr_t elem = layer->triggerMap[index][trigger];
+
+		// Lookup trigger type
+		const uint8_t *pos = TriggerMacroList[elem].guide;
+
+		// If there are no elements, ignore
+		if ( pos[0] == 0 )
+		{
+			continue;
+		}
+
+		// Only look at first type, no need to go further
+		// XXX (HaaTa) This may cause bugs, but it's not as likely
+		//             It's also much faster to only check the first type
+		switch ( pos[1] )
+		{
+		case TriggerType_Switch1:
+		case TriggerType_Switch2:
+		case TriggerType_Switch3:
+		case TriggerType_Switch4:
+		case TriggerType_Analog1:
+		case TriggerType_Analog2:
+		case TriggerType_Analog3:
+		case TriggerType_Analog4:
+			return 1;
+		default:
+			break;
+		}
+	}
+
+	// No triggers
+	return 0;
+}
+
+
 void Trigger_setup()
 {
 	// Initialize TriggerMacro states
