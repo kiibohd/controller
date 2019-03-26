@@ -59,7 +59,7 @@ void Device_setup()
 {
 	// Set LCD backlight on ICED to Red
 	GPIO_Ctrl( red_chan_screen, GPIO_Type_DriveSetup, GPIO_Config_None );
-	GPIO_Ctrl( red_chan_screen, GPIO_Type_DriveHigh, GPIO_Config_None );
+	GPIO_Ctrl( red_chan_screen, GPIO_Type_DriveLow, GPIO_Config_None );
 
 	// Cols (strobe)
 	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveSetup, GPIO_Config_None );
