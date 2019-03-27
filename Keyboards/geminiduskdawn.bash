@@ -17,7 +17,7 @@ PRODUCT_ID="0x0015"
 
 # Feel free to change the variables in this section to configure your keyboard
 
-BuildPath="GeminiDuskDawn"
+BuildPath="Gemini_Dusk_Dawn"
 
 ## KLL Configuration ##
 
@@ -49,7 +49,7 @@ PartialMaps[2]="geminiduskdawn/release.1.layer.2 stdFuncMap"
 # NOTE: Changing any of these variables will require a force build to compile correctly
 
 # Keyboard Module Configuration
-ScanModule="GeminiDuskDawn"
+ScanModule="Gemini_Dusk_Dawn"
 MacroModule="PixelMap"
 OutputModule="USB"
 DebugModule="full"
