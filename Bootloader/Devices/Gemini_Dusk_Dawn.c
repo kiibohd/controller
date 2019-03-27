@@ -74,8 +74,8 @@ void Device_setup()
 	PMC->PMC_PCER0 = (1 << ID_PIOA) | (1 << ID_PIOB);
 
 	// Cols (strobe)
-	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveSetup, GPIO_Config_None );
-	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveHigh, GPIO_Config_None );
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveSetup, GPIO_Config_Pulldown );
+	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveHigh, GPIO_Config_Pulldown );
 
 	// Rows (sense)
 	GPIO_Ctrl( sense_pin, GPIO_Type_ReadSetup, GPIO_Config_Pulldown );
@@ -84,6 +84,10 @@ void Device_setup()
 	// Start, disabled
 	GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveSetup, GPIO_Config_None );
 	GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveLow, GPIO_Config_None );
+
+	// Setup parameters for USB port swap
+	last_ms = 0;
+	attempt = 0;
 }
 
 // Called during each loop of the main bootloader sequence
@@ -111,25 +115,26 @@ void Device_process()
 	// For keyboards with dual usb ports, doesn't do anything on keyboards without them
 	// If a USB connection is not detected in 2 seconds, switch to the other port to see if it's plugged in there
 	// USB not initialized, attempt to swap
-	if ( !Is_udd_configured_state_enabled() )
+	uint32_t wait_ms = systick_millis_count - last_ms;
+	if ( wait_ms > USBPortSwapDelay_ms + attempt / 2 * USBPortSwapDelay_ms )
 	{
-		// Only check for swapping after delay
-		uint32_t wait_ms = systick_millis_count - last_ms;
-		if ( wait_ms < USBPortSwapDelay_ms + attempt / 2 * USBPortSwapDelay_ms )
-		{
-			return;
-		}
-
+		// Update timeout
 		last_ms = systick_millis_count;
 
-		print("USB not initializing, port swapping");
-		GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveToggle, GPIO_Config_None );
+		// USB not initialized, attempt to swap
+		if ( udd_get_configured_address() == 0 )
+		{
+			print("USB not initializing, port swapping");
+			GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveToggle, GPIO_Config_None );
 
-		// Re-initialize USB
-		udc_stop();
-		udc_start();
+			// Re-initialize USB
+			udc_stop();
+			delay_ms(10);
+			udc_stop();
+			udc_start();
 
-		attempt++;
+			attempt++;
+		}
 	}
 }
 

@@ -235,11 +235,9 @@ void init_usb_bootloader( int config )
 {
 	dfu_init( setup_read, setup_write, finish_write, &dfu_ctx );
 
-	// Make sure SysTick counter is disabled (dfu has issues otherwise)
 #if defined(_kinetis_)
+	// Make sure SysTick counter is disabled (dfu has issues otherwise)
 	SYST_CSR = 0;
-#elif defined(_sam_)
-	SysTick->CTRL = ~SysTick_CTRL_ENABLE_Msk;
 #endif
 
 	// Clear verified status
