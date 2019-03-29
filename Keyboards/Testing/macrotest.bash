@@ -91,11 +91,11 @@ source "../common.bash"
 # Run tests
 cd "${BuildPath}"
 
-cmd python3 Tests/test.py
-cmd python3 Tests/animation.py
+#cmd python3 Tests/test.py
+#cmd python3 Tests/animation.py
 cmd python3 Tests/hidio.py
-cmd python3 Tests/cli.py
-cmd python3 Tests/layers.py
+#cmd python3 Tests/cli.py
+#cmd python3 Tests/layers.py
 
 # Tally results
 result

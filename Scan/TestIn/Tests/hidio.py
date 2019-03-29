@@ -60,7 +60,7 @@ logger.info(header("- Single byte packet payload -"))
 i.control.cmd('HIDIO_test_2_request')( 1, 0xAC )
 
 
-# A single processing loop (receivves, then sends packets)
+# A single processing loop (receives, then sends packets)
 i.control.loop(1)
 
 # Check contents of incoming buffer (should be empty in loopback mode)
@@ -110,6 +110,7 @@ check( len( data.rawio_outgoing_buffer ) == 0 )
 
 
 # Send continued packet sequence (2 packets, payload length of 110 bytes, 64 byte packet length)
+# TODO Check that send is actually correct now
 print("")
 logger.info(header("- Two packet continued payload -"))
 i.control.cmd('HIDIO_test_2_request')( 110, 0xAC )
@@ -125,7 +126,7 @@ check( len( data.rawio_incoming_buffer ) == 0 )
 
 # Check contents of outgoing buffer (should have packet in loopback mode)
 logger.info("Outgoing Buf: {}", data.rawio_outgoing_buffer)
-check( len( data.rawio_outgoing_buffer ) == 1 )
+check( len( data.rawio_outgoing_buffer ) == 2 )
 check( data.rawio_outgoing_buffer[0][0].len == 62 )
 check( data.rawio_outgoing_buffer[0][0].type == 0 )
 check( data.rawio_outgoing_buffer[0][0].cont == 1 )

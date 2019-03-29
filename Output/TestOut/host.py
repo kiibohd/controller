@@ -52,11 +52,11 @@ class HIDIO_Packet( Structure ):
     See hidio_com.h in Output/HID-IO
     '''
     _fields_ = [
-        ( 'type',      c_uint8, 3 ),
-        ( 'cont',      c_uint8, 1 ),
-        ( 'id_width',  c_uint8, 1 ),
-        ( 'reserved',  c_uint8, 1 ),
         ( 'upper_len', c_uint8, 2 ),
+        ( 'reserved',  c_uint8, 1 ),
+        ( 'id_width',  c_uint8, 1 ),
+        ( 'cont',      c_uint8, 1 ),
+        ( 'type',      c_uint8, 3 ),
         ( 'len',       c_uint8 ),
     ]
 
@@ -377,6 +377,7 @@ class Callbacks:
         Add 64 byte buffer to rawio_incoming_buffer
         '''
         # TODO (HaaTa): Support packet sizes other than 64 bytes
+        # TODO Support continued and multiple packets (send more than one continued packet at a time)
 
         # Get buffer and packet hdr
         buf = cast( args, POINTER( c_uint8 * 64 ) )[0]
