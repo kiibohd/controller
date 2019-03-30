@@ -144,21 +144,31 @@ extern var_uint_t macroTriggerEventLayerCache[];
 //       If there is a wrap-around, the buffer is copied.
 // buf_pos - Index position in the buffer
 // len - Length of the desired buffer
+typedef struct HIDIO_Munch {
+	uint8_t *buf;      // Pointer to memory of packet
+	uint16_t next_pos; // Position of next packet
+} HIDIO_Munch;
 //
 // A pointer the data is returned, which may or may not be the provided buffer
-uint8_t *HIDIO_buffer_munch( HIDIO_Buffer *buffer, uint8_t *buf, uint16_t buf_pos, uint16_t len )
+HIDIO_Munch HIDIO_buffer_munch( HIDIO_Buffer *buffer, uint8_t *buf, uint16_t buf_pos, uint16_t len )
 {
+	HIDIO_Munch munch;
+
 	// Determine if buffer is contiguous for the length
 	if ( buf_pos + len < buffer->len )
 	{
 		// We can just set the buffer directly
-		return &(buffer->data[ buf_pos ]);
+		munch.buf = &(buffer->data[ buf_pos ]);
+		munch.next_pos = buf_pos + len;
+		return munch;
 	}
 
 	// If just a single byte, just return the first position (wrap-around)
 	if ( len == 1 )
 	{
-		return &(buffer->data[0]);
+		munch.buf = &(buffer->data[0]);
+		munch.next_pos = buf_pos + 1;
+		return munch;
 	}
 
 	// Copy into the buffer
@@ -166,7 +176,9 @@ uint8_t *HIDIO_buffer_munch( HIDIO_Buffer *buffer, uint8_t *buf, uint16_t buf_po
 	memcpy( buf, &(buffer->data[ buf_pos ]), cur_len );
 	memcpy( &buf[ cur_len ], buffer->data, len - cur_len );
 
-	return buf;
+	munch.buf = buf;
+	munch.next_pos = len - cur_len;
+	return munch;
 }
 
 // Push byte to ring buffer
@@ -334,20 +346,21 @@ uint8_t HIDIO_id_width( uint32_t id )
 
 // Generate packet
 // This function can be called multiple times to generate a full packet
-// Continue to call unitil the value returned equals payload_len
+// Continue to call until the value returned equals payload_len
 // If 0 is returned, there has been an error, and the packet is aborted.
 // To start a new packet, start at pos = 0
 uint16_t HIDIO_buffer_generate_packet(
-	HIDIO_Buffer *buf,
-	uint16_t pos,
-	uint16_t payload_len,
-	uint8_t *data,
-	uint16_t data_len,
-	HIDIO_Packet_Type type,
-	uint32_t id
+	HIDIO_Buffer *buf,      // Buffer to use
+	uint16_t pos,           // Position in the packet
+	uint16_t payload_len,   // Total length of payload (if larger than packet size, will be a continued packet)
+	uint8_t *data,          // Pointer to data being copied into buffer
+	uint16_t data_len,      // Length of buffer being copied in
+	HIDIO_Packet_Type type, // Type of packet
+	uint32_t id             // Packet id
 )
 {
-	/*print("head: ");
+	/*
+	print("head: ");
 	printInt16( buf->head );
 	print(" tail: ");
 	printInt16( buf->tail );
@@ -355,7 +368,8 @@ uint16_t HIDIO_buffer_generate_packet(
 	printInt16( HIDIO_buffer_free_bytes( buf ) );
 	print(" request: ");
 	printInt16( data_len );
-	print(NL);*/
+	print(NL);
+	*/
 
 	// Determine payload max
 	uint8_t width = HIDIO_id_width( id );
@@ -651,7 +665,7 @@ HIDIO_Return HIDIO_test_2_call( uint16_t buf_pos, uint8_t irq )
 
 	// Munch buffer entry header, not including data
 	uint8_t tmpbuf[ sizeof(HIDIO_Buffer_Entry) ];
-	uint8_t *buf = HIDIO_buffer_munch( &HIDIO_assembly_buf, (uint8_t*)&tmpbuf, buf_pos, sizeof(HIDIO_Buffer_Entry) );
+	uint8_t *buf = HIDIO_buffer_munch( &HIDIO_assembly_buf, (uint8_t*)&tmpbuf, buf_pos, sizeof(HIDIO_Buffer_Entry) ).buf;
 	HIDIO_Buffer_Entry *entry = (HIDIO_Buffer_Entry*)buf;
 
 	// Make sure entry is ready
@@ -667,7 +681,7 @@ HIDIO_Return HIDIO_test_2_call( uint16_t buf_pos, uint8_t irq )
 	{
 		uint8_t buf;
 		uint16_t calc_buf_pos = HIDIO_buffer_position( &HIDIO_assembly_buf, buf_pos + sizeof(HIDIO_Buffer_Entry), pos );
-		uint8_t *byte = HIDIO_buffer_munch( &HIDIO_assembly_buf, &buf, calc_buf_pos, 1 );
+		uint8_t *byte = HIDIO_buffer_munch( &HIDIO_assembly_buf, &buf, calc_buf_pos, 1 ).buf;
 
 		// Count transitions, should only be 1, from 0 to value
 		if ( *byte != last_byte )
@@ -759,7 +773,7 @@ HIDIO_Return HIDIO_terminal_call( uint16_t buf_pos, uint8_t irq )
 
 	// Munch buffer entry header, not including data
 	uint8_t tmpbuf[ sizeof(HIDIO_Buffer_Entry) ];
-	uint8_t *buf = HIDIO_buffer_munch( &HIDIO_assembly_buf, (uint8_t*)&tmpbuf, buf_pos, sizeof(HIDIO_Buffer_Entry) );
+	uint8_t *buf = HIDIO_buffer_munch( &HIDIO_assembly_buf, (uint8_t*)&tmpbuf, buf_pos, sizeof(HIDIO_Buffer_Entry) ).buf;
 	HIDIO_Buffer_Entry *entry = (HIDIO_Buffer_Entry*)buf;
 
 	// Make sure entry is ready
@@ -786,7 +800,7 @@ HIDIO_Return HIDIO_terminal_call( uint16_t buf_pos, uint8_t irq )
 
 		uint8_t buf;
 		uint16_t calc_buf_pos = HIDIO_buffer_position( &HIDIO_assembly_buf, buf_pos + sizeof(HIDIO_Buffer_Entry), pos );
-		uint8_t *byte = HIDIO_buffer_munch( &HIDIO_assembly_buf, &buf, calc_buf_pos, 1 );
+		uint8_t *byte = HIDIO_buffer_munch( &HIDIO_assembly_buf, &buf, calc_buf_pos, 1 ).buf;
 		CLILineBuffer[CLILineBufferCurrent++] = *byte;
 	}
 
@@ -895,7 +909,7 @@ HIDIO_Return HIDIO_call_id( uint32_t id, uint16_t buf_pos, uint8_t irq )
 	{
 	// HIDIO_Return__Ok, we can pop the most recent assembly_buf packet
 	case HIDIO_Return__Ok:
-		entry = (HIDIO_Buffer_Entry*)HIDIO_buffer_munch( &HIDIO_assembly_buf, tmpdata, HIDIO_assembly_buf.head, sizeof(tmpdata) );
+		entry = (HIDIO_Buffer_Entry*)HIDIO_buffer_munch( &HIDIO_assembly_buf, tmpdata, HIDIO_assembly_buf.head, sizeof(tmpdata) ).buf;
 
 		// Determine size of data
 		datasize = sizeof(HIDIO_Buffer_Entry) + entry->size;
@@ -958,29 +972,44 @@ HIDIO_Return HIDIO_reply_id( uint32_t id, uint8_t *buf, uint8_t irq )
 	// Enough space to store header
 	uint8_t tmpdata[6];
 	uint16_t datasize;
+	uint8_t continued;
 	HIDIO_Packet *packet;
 
 	switch ( retval )
 	{
 	// HIDIO_Return__Ok, we can pop the most recent tx_buf packet
 	case HIDIO_Return__Ok:
-		packet = (HIDIO_Packet*)HIDIO_buffer_munch( &HIDIO_tx_buf, tmpdata, HIDIO_tx_buf.head, sizeof(tmpdata) );
-
-		// Determine size of data
-		datasize = (packet->upper_len << 8) | packet->len;
-
-		// Pop bytes and decrement packet ready counter
-		if ( HIDIO_buffer_pop_bytes( &HIDIO_tx_buf, datasize + 2 ) )
+		// Cleanup until a non-continued packet
+		while ( HIDIO_tx_buf.packets_ready > 0 )
 		{
-			HIDIO_tx_buf.packets_ready--;
-		}
-		// Failed pop, generally popping more buffer than is available
-		// (this is very bad, but recovering anyways)
-		else
-		{
-			HIDIO_tx_buf.packets_ready = 0;
-			HIDIO_tx_buf.head = 0;
-			HIDIO_tx_buf.tail = 0;
+			packet = (HIDIO_Packet*)HIDIO_buffer_munch( &HIDIO_tx_buf, tmpdata, HIDIO_tx_buf.head, sizeof(tmpdata) ).buf;
+
+			// Determine size of data
+			datasize = (packet->upper_len << 8) | packet->len;
+
+			// Check if continued
+			continued = packet->cont;
+
+			// Pop bytes and decrement packet ready counter
+			if ( HIDIO_buffer_pop_bytes( &HIDIO_tx_buf, datasize + 2 ) )
+			{
+				HIDIO_tx_buf.packets_ready--;
+			}
+			// Failed pop, generally popping more buffer than is available
+			// (this is very bad, but recovering anyways)
+			else
+			{
+				HIDIO_tx_buf.packets_ready = 0;
+				HIDIO_tx_buf.head = 0;
+				HIDIO_tx_buf.tail = 0;
+				break;
+			}
+
+			// If there aren't any more packets (continued packets only), stop
+			if ( !continued )
+			{
+				break;
+			}
 		}
 
 		// Unset waiting for ACK packet
@@ -1151,7 +1180,7 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 	// We first determine if we're reassembling in the data or ack buffers
 	case HIDIO_Packet_Type__Continued:
 		// Modify type so we know what to do with the payload
-		type = !HIDIO_ack_buf->done ? HIDIO_Packet_Type__Data : HIDIO_Packet_Type__ACK;
+		type = HIDIO_assembly_buf.waiting ? HIDIO_Packet_Type__Data : HIDIO_Packet_Type__ACK;
 
 	// Most packet types
 	default:
@@ -1223,7 +1252,7 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 				tmpbuf,
 				HIDIO_assembly_buf.cur_buf_head,
 				sizeof(tmpbuf)
-			);
+			).buf;
 
 			// Update entry
 			entry->size += payload_len;
@@ -1283,11 +1312,6 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 				break;
 			}
 		}
-		// Otherwise do a simple ACK
-		else
-		{
-			//HIDIO_nopayload_ack( id );
-		}
 		break;
 
 	case HIDIO_Packet_Type__ACK:
@@ -1307,7 +1331,6 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 		{
 			HIDIO_reply_id( id, (uint8_t*)HIDIO_ack_buf, irq );
 		}
-		break;
 		break;
 
 	default:
@@ -1355,7 +1378,7 @@ inline void HIDIO_process()
 		// Prepare 64 byte packet
 		// TODO (HaaTa): Handle internal max size
 		uint8_t tmpdata[64];
-		uint8_t *buf = HIDIO_buffer_munch( &HIDIO_ack_send_buf, tmpdata, HIDIO_ack_send_buf.head, HIDIO_Packet_Size );
+		uint8_t *buf = HIDIO_buffer_munch( &HIDIO_ack_send_buf, tmpdata, HIDIO_ack_send_buf.head, HIDIO_Packet_Size ).buf;
 		HIDIO_Packet *packet = (HIDIO_Packet*)buf;
 
 		// Send packet
@@ -1385,13 +1408,16 @@ inline void HIDIO_process()
 
 	// Send outgoing packet, we can only send one at a time
 	// and the next one can only be sent after an ACK is recieved
-	if ( HIDIO_tx_buf.packets_ready > 0 && HIDIO_tx_buf.waiting == 0 )
+	uint16_t next_packet_pos = HIDIO_tx_buf.head;
+	uint16_t packets_ready = HIDIO_tx_buf.packets_ready;
+	while ( packets_ready > 0 && HIDIO_tx_buf.waiting == 0 )
 	{
 		// Prepare 64 byte packet
 		// TODO (HaaTa): Handle internal max size
 		uint8_t tmpdata[64];
-		uint8_t *buf = HIDIO_buffer_munch( &HIDIO_tx_buf, tmpdata, HIDIO_tx_buf.head, HIDIO_Packet_Size );
-		HIDIO_Packet *packet = (HIDIO_Packet*)buf;
+		HIDIO_Munch munch = HIDIO_buffer_munch( &HIDIO_tx_buf, tmpdata, next_packet_pos, HIDIO_Packet_Size );
+		HIDIO_Packet *packet = (HIDIO_Packet*)munch.buf;
+		next_packet_pos = munch.next_pos;
 
 		// Send packet
 		// TODO (HaaTa): Check error?
@@ -1399,7 +1425,10 @@ inline void HIDIO_process()
 
 		// Indicate waiting for ACK packet
 		// Once ACK has been received (or NAK) the packet will be released
-		HIDIO_tx_buf.waiting = 1;
+		HIDIO_tx_buf.waiting = packet->cont ? 0 : 1;
+
+		// Next packet
+		packets_ready--;
 	}
 
 	// End latency measurement
@@ -1517,9 +1546,9 @@ void HIDIO_Open_url_capability( TriggerMacro *trigger, uint8_t state, uint8_t st
 	}
 
 	uint16_t payload_len;
-	//uint8_t arg  = *(uint8_t*)(&args[0]);
 
 #ifdef url_strings
+	uint8_t arg  = *(uint8_t*)(&args[0]);
 	char* text_buf = url_strings[arg];
 #else
 	char* text_buf = NULL;
@@ -1559,9 +1588,9 @@ void HIDIO_layout_capability( TriggerMacro *trigger, uint8_t state, uint8_t stat
 	}
 
 	uint16_t payload_len;
-	//uint8_t arg  = *(uint8_t*)(&args[0]);
 
 #ifdef layout_strings
+	uint8_t arg  = *(uint8_t*)(&args[0]);
 	char* text_buf = layout_strings[arg];
 #else
 	char* text_buf = NULL;

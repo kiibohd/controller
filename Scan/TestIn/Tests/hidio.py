@@ -60,7 +60,7 @@ logger.info(header("- Single byte packet payload -"))
 i.control.cmd('HIDIO_test_2_request')( 1, 0xAC )
 
 
-# A single processing loop (receivves, then sends packets)
+# A single processing loop (receives, then sends packets)
 i.control.loop(1)
 
 # Check contents of incoming buffer (should be empty in loopback mode)
@@ -117,7 +117,7 @@ i.control.cmd('HIDIO_test_2_request')( 110, 0xAC )
 
 # A single processing loop (receives, then sends packets)
 i.control.loop(1)
-logger.info(header("Check data packet 1"))
+logger.info(header("Check data packet 1-2"))
 
 # Check contents of incoming buffer (should be empty in loopback mode)
 logger.info("Incoming Buf: {}", data.rawio_incoming_buffer)
@@ -125,7 +125,9 @@ check( len( data.rawio_incoming_buffer ) == 0 )
 
 # Check contents of outgoing buffer (should have packet in loopback mode)
 logger.info("Outgoing Buf: {}", data.rawio_outgoing_buffer)
-check( len( data.rawio_outgoing_buffer ) == 1 )
+check( len( data.rawio_outgoing_buffer ) == 2 )
+
+# Packet 1
 check( data.rawio_outgoing_buffer[0][0].len == 62 )
 check( data.rawio_outgoing_buffer[0][0].type == 0 )
 check( data.rawio_outgoing_buffer[0][0].cont == 1 )
@@ -133,47 +135,18 @@ check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
 check( len( data.rawio_outgoing_buffer[0][2] ) == 60 )
 check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
 
-
-# A single processing loop (receives, then sends packets)
-i.control.loop(1)
-logger.info(header("Check data packet 1 ACK"))
-
-# Check contents of incoming buffer (should be empty in loopback mode)
-logger.info("Incoming Buf: {}", data.rawio_incoming_buffer)
-check( len( data.rawio_incoming_buffer ) == 0 )
-
-# Check contents of outgoing buffer (should have an ACK packet in loopback mode)
-logger.info("Outgoing Buf: {}", data.rawio_outgoing_buffer)
-check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 2 )
-check( data.rawio_outgoing_buffer[0][0].type == 1 )
-check( data.rawio_outgoing_buffer[0][0].cont == 0 )
-check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
-check( len( data.rawio_outgoing_buffer[0][2] ) == 0 )
+# Packet 2
+check( data.rawio_outgoing_buffer[1][0].len == 52 )
+check( data.rawio_outgoing_buffer[1][0].type == 4 )
+check( data.rawio_outgoing_buffer[1][0].cont == 0 )
+check( data.rawio_outgoing_buffer[1][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[1][2] ) == 50 )
+check( data.rawio_outgoing_buffer[1][2][0] == 0xAC ) # Payload check
 
 
 # A single processing loop (receives, then sends packets)
 i.control.loop(1)
-logger.info(header("Check continued data packet 2"))
-
-# Check contents of incoming buffer (should be empty in loopback mode)
-logger.info("Incoming Buf: {}", data.rawio_incoming_buffer)
-check( len( data.rawio_incoming_buffer ) == 0 )
-
-# Check contents of outgoing buffer (should have packet in loopback mode)
-logger.info("Outgoing Buf: {}", data.rawio_outgoing_buffer)
-check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 52 )
-check( data.rawio_outgoing_buffer[0][0].type == 4 )
-check( data.rawio_outgoing_buffer[0][0].cont == 0 )
-check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
-check( len( data.rawio_outgoing_buffer[0][2] ) == 50 )
-check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
-
-
-# A single processing loop (receives, then sends packets)
-i.control.loop(1)
-logger.info(header("Check ACK packets"))
+logger.info(header("Check data packet 1-2 ACK"))
 
 # Check contents of incoming buffer (should be empty in loopback mode)
 logger.info("Incoming Buf: {}", data.rawio_incoming_buffer)
@@ -226,98 +199,36 @@ check( len( data.rawio_incoming_buffer ) == 0 )
 
 # Check contents of outgoing buffer (should have packet in loopback mode)
 logger.info("Outgoing Buf: {}", data.rawio_outgoing_buffer)
-check( len( data.rawio_outgoing_buffer ) == 1 )
+check( len( data.rawio_outgoing_buffer ) == 3 )
 check( data.rawio_outgoing_buffer[0][0].len == 62 )
 check( data.rawio_outgoing_buffer[0][0].type == 0 )
 check( data.rawio_outgoing_buffer[0][0].cont == 1 )
 check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
 check( len( data.rawio_outgoing_buffer[0][2] ) == 60 )
 check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
+check( data.rawio_outgoing_buffer[1][0].len == 62 )
+check( data.rawio_outgoing_buffer[1][0].type == 4 )
+check( data.rawio_outgoing_buffer[1][0].cont == 1 )
+check( data.rawio_outgoing_buffer[1][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[1][2] ) == 60 )
+check( data.rawio_outgoing_buffer[1][2][0] == 0xAC ) # Payload check
+check( data.rawio_outgoing_buffer[2][0].len == 42 )
+check( data.rawio_outgoing_buffer[2][0].type == 4 )
+check( data.rawio_outgoing_buffer[2][0].cont == 0 )
+check( data.rawio_outgoing_buffer[2][1] == 2 ) # Id check
+check( len( data.rawio_outgoing_buffer[2][2] ) == 40 )
+check( data.rawio_outgoing_buffer[2][2][0] == 0xAC ) # Payload check
 
 
 # A single processing loop (receives, then sends packets)
 i.control.loop(1)
-logger.info(header("Check data packet 1 ACK"))
+logger.info(header("Check packet 1-3 ACK"))
 
 # Check contents of incoming buffer (should be empty in loopback mode)
 logger.info("Incoming Buf: {}", data.rawio_incoming_buffer)
 check( len( data.rawio_incoming_buffer ) == 0 )
 
 # Check contents of outgoing buffer (should have an ACK packet in loopback mode)
-logger.info("Outgoing Buf: {}", data.rawio_outgoing_buffer)
-check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 2 )
-check( data.rawio_outgoing_buffer[0][0].type == 1 )
-check( data.rawio_outgoing_buffer[0][0].cont == 0 )
-check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
-check( len( data.rawio_outgoing_buffer[0][2] ) == 0 )
-
-
-# A single processing loop (receives, then sends packets)
-i.control.loop(1)
-logger.info(header("Check data packet 2"))
-
-# Check contents of incoming buffer (should be empty in loopback mode)
-logger.info("Incoming Buf: {}", data.rawio_incoming_buffer)
-check( len( data.rawio_incoming_buffer ) == 0 )
-
-# Check contents of outgoing buffer (should have packet in loopback mode)
-logger.info("Outgoing Buf: {}", data.rawio_outgoing_buffer)
-check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 62 )
-check( data.rawio_outgoing_buffer[0][0].type == 4 )
-check( data.rawio_outgoing_buffer[0][0].cont == 1 )
-check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
-check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
-check( len( data.rawio_outgoing_buffer[0][2] ) == 60 )
-
-
-# A single processing loop (receives, then sends packets)
-i.control.loop(1)
-logger.info(header("Check data packet 2 ACK"))
-
-# Check contents of incoming buffer (should be empty in loopback mode)
-logger.info("Incoming Buf: {}", data.rawio_incoming_buffer)
-check( len( data.rawio_incoming_buffer ) == 0 )
-
-# Check contents of outgoing buffer (should have an ACK packet in loopback mode)
-logger.info("Outgoing Buf: {}", data.rawio_outgoing_buffer)
-check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 2 )
-check( data.rawio_outgoing_buffer[0][0].type == 1 )
-check( data.rawio_outgoing_buffer[0][0].cont == 0 )
-check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
-check( len( data.rawio_outgoing_buffer[0][2] ) == 0 )
-
-
-# A single processing loop (receives, then sends packets)
-i.control.loop(1)
-logger.info(header("Check continued data packet 3"))
-
-# Check contents of incoming buffer (should be empty in loopback mode)
-logger.info("Incoming Buf: {}", data.rawio_incoming_buffer)
-check( len( data.rawio_incoming_buffer ) == 0 )
-
-# Check contents of outgoing buffer (should have packet in loopback mode)
-logger.info("Outgoing Buf: {}", data.rawio_outgoing_buffer)
-check( len( data.rawio_outgoing_buffer ) == 1 )
-check( data.rawio_outgoing_buffer[0][0].len == 42 )
-check( data.rawio_outgoing_buffer[0][0].type == 4 )
-check( data.rawio_outgoing_buffer[0][0].cont == 0 )
-check( data.rawio_outgoing_buffer[0][1] == 2 ) # Id check
-check( len( data.rawio_outgoing_buffer[0][2] ) == 40 )
-check( data.rawio_outgoing_buffer[0][2][0] == 0xAC ) # Payload check
-
-
-# A single processing loop (receives, then sends packets)
-i.control.loop(1)
-logger.info(header("Check ACK packets"))
-
-# Check contents of incoming buffer (should be empty in loopback mode)
-logger.info("Incoming Buf: {}", data.rawio_incoming_buffer)
-check( len( data.rawio_incoming_buffer ) == 0 )
-
-# Check contents of outgoing buffer (should have ACK packet in loopback mode)
 logger.info("Outgoing Buf: {}", data.rawio_outgoing_buffer)
 check( len( data.rawio_outgoing_buffer ) == 3 )
 check( data.rawio_outgoing_buffer[0][0].len == 62 )
@@ -505,21 +416,12 @@ while time.time() < time_end:
 	i.control.loop(1)
 
 	# Check packet
-	check( len( data.rawio_outgoing_buffer ) == 1 )
+	check( len( data.rawio_outgoing_buffer ) == 2 )
 	bytes_sent += data.rawio_outgoing_buffer[0][0].len
+	bytes_sent += data.rawio_outgoing_buffer[1][0].len
 	i.control.loop(1)
 
-	# Check initial ACK
-	check( len( data.rawio_outgoing_buffer ) == 1 )
-	bytes_rcvd += data.rawio_outgoing_buffer[0][0].len
-	i.control.loop(1)
-
-	# Check packet
-	check( len( data.rawio_outgoing_buffer ) == 1 )
-	bytes_sent += data.rawio_outgoing_buffer[0][0].len
-	i.control.loop(1)
-
-	# Check ACKs
+	# Check ACK
 	check( len( data.rawio_outgoing_buffer ) == 2 )
 	bytes_rcvd += data.rawio_outgoing_buffer[0][0].len
 	bytes_rcvd += data.rawio_outgoing_buffer[1][0].len
@@ -555,31 +457,13 @@ while time.time() < time_end:
 	i.control.loop(1)
 
 	# Check packet
-	check( len( data.rawio_outgoing_buffer ) == 1 )
+	check( len( data.rawio_outgoing_buffer ) == 3 )
 	bytes_sent += data.rawio_outgoing_buffer[0][0].len
+	bytes_sent += data.rawio_outgoing_buffer[1][0].len
+	bytes_sent += data.rawio_outgoing_buffer[2][0].len
 	i.control.loop(1)
 
-	# Check initial ACK
-	check( len( data.rawio_outgoing_buffer ) == 1 )
-	bytes_rcvd += data.rawio_outgoing_buffer[0][0].len
-	i.control.loop(1)
-
-	# Check packet
-	check( len( data.rawio_outgoing_buffer ) == 1 )
-	bytes_sent += data.rawio_outgoing_buffer[0][0].len
-	i.control.loop(1)
-
-	# Check initial ACK
-	check( len( data.rawio_outgoing_buffer ) == 1 )
-	bytes_rcvd += data.rawio_outgoing_buffer[0][0].len
-	i.control.loop(1)
-
-	# Check packet
-	check( len( data.rawio_outgoing_buffer ) == 1 )
-	bytes_sent += data.rawio_outgoing_buffer[0][0].len
-	i.control.loop(1)
-
-	# Check ACKs
+	# Check ACK
 	check( len( data.rawio_outgoing_buffer ) == 3 )
 	bytes_rcvd += data.rawio_outgoing_buffer[0][0].len
 	bytes_rcvd += data.rawio_outgoing_buffer[1][0].len

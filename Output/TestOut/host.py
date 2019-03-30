@@ -52,11 +52,11 @@ class HIDIO_Packet( Structure ):
     See hidio_com.h in Output/HID-IO
     '''
     _fields_ = [
-        ( 'type',      c_uint8, 3 ),
-        ( 'cont',      c_uint8, 1 ),
-        ( 'id_width',  c_uint8, 1 ),
-        ( 'reserved',  c_uint8, 1 ),
         ( 'upper_len', c_uint8, 2 ),
+        ( 'reserved',  c_uint8, 1 ),
+        ( 'id_width',  c_uint8, 1 ),
+        ( 'cont',      c_uint8, 1 ),
+        ( 'type',      c_uint8, 3 ),
         ( 'len',       c_uint8 ),
     ]
 
