@@ -49,7 +49,7 @@ OutputModule="USBxUART"
 DebugModule="full"
 
 # Microcontroller
-Chip="mk20dx128vlf5"
+Chip="mk20dx256vlh7"
 
 # Compiler Selection
 Compiler="gcc"

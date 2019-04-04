@@ -47,3 +47,7 @@ ScanCodeSenseList = "
 # Debug LED
 ledDebugPin = "gpio(A,19)";
 
+# Disable Raw I/O Endpoint
+# Needs to be optimized for mk20dx128vlf5
+enableRawIO = 0;
+
