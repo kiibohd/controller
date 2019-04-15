@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2018 by Jacob Alexander
+/* Copyright (C) 2014-2019 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,10 +96,10 @@ typedef enum GPIO_Type {
 
 // Sense/Strobe configuration
 typedef enum GPIO_Config {
-	GPIO_Config_None,      // No configuration (ok for drive high/low)
-	GPIO_Config_Pullup,    // Internal pull-up
-	GPIO_Config_Pulldown,  // Internal pull-down
-	GPIO_Config_Opendrain, // External pull resistor
+	GPIO_Config_None      = 0, // No configuration (ok for drive high/low)
+	GPIO_Config_Pullup    = 1, // Internal pull-up
+	GPIO_Config_Pulldown  = 2, // Internal pull-down
+	GPIO_Config_Opendrain = 3, // External pull resistor
 } GPIO_Config;
 
 

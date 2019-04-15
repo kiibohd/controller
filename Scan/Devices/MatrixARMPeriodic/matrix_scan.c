@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2018 by Jacob Alexander
+/* Copyright (C) 2014-2019 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -265,7 +265,11 @@ uint8_t Matrix_single_scan()
 	for ( uint8_t sense = 0; sense < Matrix_rowsNum; sense++ )
 	{
 		GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_DriveSetup, Matrix_type );
+#if ScanCodeRemapping_define == 2 // GPIO_Config_Pulldown
 		GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_DriveLow, Matrix_type );
+#elif ScanCodeRemapping_define == 1 // GPIO_Config_Pullup
+		GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_DriveHigh, Matrix_type );
+#endif
 		GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_ReadSetup, Matrix_type );
 	}
 
@@ -304,7 +308,8 @@ uint8_t Matrix_single_scan()
 		// Somewhat longer with switch bounciness
 		// The advantage of this is that the count is ongoing and never needs to be reset
 		// State still needs to be kept track of to deal with what to send to the Macro module
-		if ( GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_Read, Matrix_type ) )
+		// Compared against the default state value (ScanCodeMatrixInvert_define), usually 0
+		if ( GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_Read, Matrix_type ) != ScanCodeMatrixInvert_define )
 		{
 			// Only update if not going to wrap around
 			if ( state->activeCount < DebounceDivThreshold ) state->activeCount += 1;

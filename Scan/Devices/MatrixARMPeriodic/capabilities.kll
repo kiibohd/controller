@@ -1,10 +1,10 @@
 # MatrixARMPeriodic
 Name = MatrixARMPeriodicCapabilities;
-Version = 0.3;
-Author = "HaaTa (Jacob Alexander) 2017-2018";
+Version = 0.4;
+Author = "HaaTa (Jacob Alexander) 2017-2019";
 
 # Modified Date
-Date = 2018-11-13;
+Date = 2019-04-14;
 
 # Defines available to the MatrixArmPeriodic sub-module
 
@@ -62,6 +62,13 @@ ScanCodeSenseList = "";
 # GPIO_Config_Opendrain - External pull resistor on sense
 ScanCodeMatrixType => ScanCodeMatrixType_define;
 ScanCodeMatrixType = "GPIO_Config_Pulldown";
+
+# Invert Sense Value
+# When using a pull-up resistor, the sensed values will be inverted
+# Press will be 0 instead of 1, and 1 will be off
+# Set to 1 to invert, 0 to disable
+ScanCodeMatrixInvert => ScanCodeMatrixInvert_define;
+ScanCodeMatrixInvert = 0;
 
 # ScanCode Remapping
 # This is useful when a matrix is laid out convenient for pcb routing; however,
