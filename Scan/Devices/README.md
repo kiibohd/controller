@@ -9,11 +9,16 @@ Brief descriptions of each of the sub-modules.
 
 ### Input Club Supported
 
-* [ISSILed](ISSILed) - ISSI LED Driver support module
+* [ISSILed](ISSILed) - ISSI LED Driver support module (I2C)
 
-    - ISSI 31FL371
-    - ISSI 31FL372
-    - ISSI 31FL373
+    - ISSI 31FL3731
+    - ISSI 31FL3732
+    - ISSI 31FL3733
+    - ISSI 31FL3736
+
+* [ISSILedSPI](ISSILedSPI) - ISSI LED Driver support module (SPI)
+
+    - ISSI 31FL3743B
 
 * [MatrixARMPeriodic](MatrixARMPeriodic) - ARM scan module for key matrices
 * [PortSwap](PortSwap) - Handles port swapping functionality (e.g. K-Type USB and Interconnect)

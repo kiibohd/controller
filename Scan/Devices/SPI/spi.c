@@ -1,0 +1,282 @@
+/*
+ * Copyright (C) 2019 Jacob Alexander
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files ( the "Software" ), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
+// ----- Includes ----
+
+// Compiler Includes
+#include <Lib/ScanLib.h>
+
+// Project Includes
+#include <print.h>
+#include <kll_defs.h>
+
+// Local Includes
+#include "spi.h"
+
+
+
+// ----- Defines -----
+
+// Size of transaction buffer (stores pointers)
+#define TransactionBuffer_Size 10
+
+
+
+// ----- Structs -----
+
+typedef struct TransactionBuffer {
+	SPI_Transaction *buf[TransactionBuffer_Size];
+	uint8_t head;
+	uint8_t tail;
+} TransactionBuffer;
+
+
+
+// ----- Variables -----
+
+static volatile TransactionBuffer Transaction_buffer;
+
+
+
+// ----- Functions -----
+
+// Calculates the current size of the Transaction buffer
+static uint8_t TransactionBuffer_current_size()
+{
+	// Wrap-around (tail less than head)
+	if ( Transaction_buffer.tail < Transaction_buffer.head )
+	{
+		return TransactionBuffer_Size - Transaction_buffer.head + Transaction_buffer.tail + 1;
+	}
+
+	return Transaction_buffer.tail - Transaction_buffer.head;
+}
+
+
+// Retrieves the TransactionTimedEntry from the head of the Transaction buffer
+static volatile TransactionBuffer *TransactionBuffer_head()
+{
+	return Transaction_buffer.buf[Transaction_buffer.head];
+}
+
+
+// Check if valid head
+static uint8_t TransactionBuffer_valid_head()
+{
+	// Buffer is empty, cannot increment head
+	if (TransactionBuffer_current_size() == 0)
+	{
+		return 0;
+	}
+
+	// Make sure we don't pass tail pointer
+	if (Transaction_buffer.head == Transaction_buffer.tail)
+	{
+		return 0;
+	}
+
+	uint16_t new_head = Transaction_buffer.head + 1;
+
+	// Wrap-around case
+	if (new_head == TransactionBuffer_Size)
+	{
+		// Make sure we don't pass tail pointer
+		if (Transaction_buffer.tail == 0)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+
+// Increments TransactionBuffer head pointer
+// Returns 1 if successful, 0 if buffer empty and cannot increment
+static uint8_t TransactionBuffer_increment_head()
+{
+	// Check if a valid head pointer first
+	if (!TransactionBuffer_valid_head())
+	{
+		return 0;
+	}
+
+	uint16_t new_head = Transaction_buffer.head + 1;
+
+	// Wrap-around case
+	if (new_head == TransactionBuffer_Size)
+	{
+		new_head = 0;
+	}
+
+	// Don't set head until we are sure we're ready to commit
+	Transaction_buffer.head = new_head;
+
+	return 1;
+}
+
+
+// Queues next transmission
+// Returns 1 if successfully queued, 0 if there was nothing to queue
+static uint8_t queue_next_transaction(Pdc *pdc)
+{
+	// Make sure there are transactions
+	if (TransactionBuffer_current_size() == 0)
+	{
+		// PDC isn't needed, disable
+		pdc_disable_transfer(pdc, PERIPH_PTCR_RXTEN | PERIPH_PTCR_TXTEN);
+
+		return 0;
+	}
+
+	// Get next transaction
+	Transaction *transaction = TransactionBuffer_head();
+
+	// Load PDC
+	pdx_rx_init(pdc, &transaction->rx_buffer);
+	pdx_tx_init(pdc, &transaction->tx_buffer);
+	transaction->status = SPI_Transaction_Status_Running;
+
+	// Start PDC
+	pdc_enable_transfer(pdc, PERIPH_PTCR_RXTEN | PERIPH_PTCR_TXTEN);
+}
+
+
+// Increments TransactionBuffer
+// Returns 1 if successful, 0 if buffer full and cannot increment
+uint8_t spi_add_transaction(SPI_Transaction *transaction)
+{
+	// Buffer is full, cannot increment tail
+	if (TransactionBuffer_current_size() >= TransactionBuffer_Size)
+	{
+		return 0;
+	}
+
+	uint16_t new_tail = Transaction_buffer.tail + 1;
+
+	// Make sure we don't collide with head pointer
+	if (new_tail == Transaction_buffer.head)
+	{
+		return 0;
+	}
+
+	// Wrap-around case
+	if (new_tail >= TransactionBuffer_Size)
+	{
+		// Make sure we don't collide with head pointer
+		if (Transaction_buffer.head == 0)
+		{
+			return 0;
+		}
+
+		new_tail = 0;
+	}
+
+	// Check if buffer is currently empty
+	uint8_t empty = TransactionBuffer_current_size() == 0 ? 1 : 0;
+
+	// Set transaction
+	Transaction_buffer.buf[new_tail] = transaction;
+	transaction->status = SPI_Transaction_Status_Queued;
+
+	// Set tail
+	Transaction_buffer.tail = new_tail;
+
+	// Enable PDC if buffer previously empty, starting the transaction
+	if (empty)
+	{
+		Pdc *pdc = spi_get_pdc_base(SPI_MASTER_BASE);
+		queue_next_transaction(pdc);
+	}
+
+	return 1;
+}
+
+
+// SPI Interrupt Handler
+void SPI_Handler()
+{
+	uint32_t status = spi_read_status(SPI_SLAVE_BASE) ;
+
+	// Check for status
+	if(status & SPI_SR_ENDRX || status & SPI_SR_ENDTX)
+	{
+		Pdc *pdc = spi_get_pdc_base(SPI_MASTER_BASE);
+
+		// Only something to do if both Rx and Tx are finished
+		if (pdc_read_rx_counter(pdc) == 0 && pdc_read_tx_counter(pdc) == 0)
+		{
+			// First set transaction as complete
+			TransactionBuffer_head()->status = SPI_Transaction_Status_Finished;
+
+			// Next pop head transaction
+			// No need for a callback as the caller has everything they need and polls it periodically
+			TransactionBuffer_increment_head();
+
+			// Attempt to queue next transaction
+			// If none available, pdc is disabled
+			queue_next_transaction(pdc);
+		}
+	}
+}
+
+
+// SPI Setup
+void spi_setup()
+{
+	// Reset transaction buffer
+	Transaction_buffer.head = 0;
+	Transaction_buffer.tail = 0;
+
+	// Get pointer to SPI master PDC register base
+	Pdc *pdc = spi_get_pdc_base(SPI_MASTER_BASE);
+
+	// Configure an SPI peripheral
+	pmc_enable_periph_clk(SPI_ID);
+
+	// Reset SPI settings
+	spi_disable(SPI_MASTER_BASE);
+	spi_reset(SPI_MASTER_BASE);
+	spi_set_lastxfer(SPI_MASTER_BASE);
+	spi_set_master_mode(SPI_MASTER_BASE);
+	spi_disable_mode_fault_detect(SPI_MASTER_BASE);
+
+	// Enable SPI
+	spi_enable(SPI_MASTER_BASE);
+
+	// Make sure PDC is disabled until we're ready to use it
+	pdc_disable_transfer(pdc, PERIPH_PTCR_RXTDIS | PERIPH_PTCR_TXTDIS);
+
+	// Enable PDC channel interrupt
+	spi_enable_interrupt(SPI_MASTER_BASE, SPI_IER_ENDRX | SPI_IER_ENDTX);
+
+	// Enable SPI interrupt
+	NVIC_EnableIRQ(SPI_IRQn);
+	NVIC_SetPriority(SPI_IRQn, SPI_Priority_define);
+}
+
+// Write all channel settings in one shot using a packet structure
+void spi_cs_setup(uint8_t cs, SPI_Channel settings)
+{
+	SPI_MASTER_BASE->SPI_CSR[cs] = settings;
+}
+

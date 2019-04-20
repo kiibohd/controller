@@ -1,11 +1,13 @@
 # SAM
 
 Name = SAMCapabilities;
-Version = 0.1;
+Version = 0.2;
 Author = "HaaTa (Jacob Alexander) 2019";
 
 # Modified Date
-Date = 2019-01-28;
+Date = 2019-04-20;
+
+spiPriority = 111;
 
 # 0 is most urgent
 # See arm_cortex.kll for defaults

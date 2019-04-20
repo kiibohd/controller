@@ -1,16 +1,17 @@
 # ARM Cortex
 
 Name = ARMCapabilities;
-Version = 0.1;
+Version = 0.2;
 Author = "Smasher816 (Rowan Decker) 2019";
 
 # Modified Date
-Date = 2019-01-29;
+Date = 2019-04-20;
 
 # NVIC Interrupt priorities
 uartPriority => UART_Priority_define;
 usbPriority => USB_Priority_define;
 defaultPriority => Default_Priority_define;
+spiPriority => SPI_Priority_define;
 i2cPriority => I2C_Priority_define;
 entropyPriority => Entropy_Priority_define;
 periodicPriority => Periodic_Priority_define;
@@ -19,6 +20,7 @@ periodicPriority => Periodic_Priority_define;
 uartPriority = 111;
 usbPriority = 112;
 defaultPriority = 128;
+spiPriority = 130
 i2cPriority = 150;
 entropyPriority = 200;
 periodicPriority = 200;
