@@ -438,6 +438,7 @@ typedef struct Capability {
 // Define_TM( index, result );
 //  * index   - Trigger Macro index number
 //  * result  - Result Macro index number which is triggered by this Trigger Macro
+//  * type    - Type of macro trigger
 #define Guide_TM( index ) const uint8_t tm##index##_guide[]
 #define Define_TM( index, result, type ) { tm##index##_guide, result, type }
 
