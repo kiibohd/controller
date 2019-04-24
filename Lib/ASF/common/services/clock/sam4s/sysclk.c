@@ -34,7 +34,7 @@
  * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
 
-#include <sysclk.h>
+#include <common/services/clock/sysclk.h>
 
 /// @cond 0
 /**INDENT-OFF**/

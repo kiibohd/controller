@@ -164,8 +164,8 @@ void dfu_usb_poll()
 }
 
 #if defined(_sam_)
-#include <usb_protocol.h>
-#include <udd.h>
+#include <common/services/usb/usb_protocol.h>
+#include <common/services/usb/udc/udd.h>
 
 /*! \brief Example of extra USB string management
  * This feature is available for single or composite device

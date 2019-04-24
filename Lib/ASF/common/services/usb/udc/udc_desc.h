@@ -38,7 +38,7 @@
 #define _UDC_DESC_H_
 
 #include "conf_usb.h"
-#include "usb_protocol.h"
+#include "../usb_protocol.h"
 #include "udi.h"
 
 #ifdef __cplusplus

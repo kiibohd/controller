@@ -35,11 +35,11 @@
  */
 
 #include "conf_usb.h"
-#include "sysclk.h"
+#include <common/services/clock/sysclk.h>
 #if SAMG55
 #include "matrix.h"
 #endif
-#include "udd.h"
+#include <common/services/usb/udc/udd.h>
 #include "udp_device.h"
 #include <string.h>
 

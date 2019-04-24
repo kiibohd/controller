@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2017 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2019 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 #include "dfu.desc.h"
 
 #if defined(_sam_)
-#include "osc.h"
+#include <common/services/clock/osc.h>
 #define WDT_TICK_US (128 * 1000000 / BOARD_FREQ_SLCK_XTAL)
 #define WDT_MAX_VALUE 4095
 #endif

@@ -38,11 +38,11 @@
 #define _UDI_CDC_H_
 
 #include "conf_usb.h"
-#include "usb_protocol.h"
-#include "usb_protocol_cdc.h"
-#include "udd.h"
-#include "udc_desc.h"
-#include "udi.h"
+#include <common/services/usb/usb_protocol.h>
+#include "../usb_protocol_cdc.h"
+#include <common/services/usb/udc/udd.h>
+#include <common/services/usb/udc/udc_desc.h>
+#include <common/services/usb/udc/udi.h>
 
 // Check the number of port
 #ifndef  UDI_CDC_PORT_NB

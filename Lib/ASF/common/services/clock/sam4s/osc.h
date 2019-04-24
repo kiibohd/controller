@@ -38,7 +38,8 @@
 #define CHIP_OSC_H_INCLUDED
 
 #include "board.h"
-#include "pmc.h"
+
+#include <sam/drivers/pmc/pmc.h>
 
 /// @cond 0
 /**INDENT-OFF**/

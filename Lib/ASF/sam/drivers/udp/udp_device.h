@@ -43,9 +43,9 @@
 /* Get USB VBus pin configuration in board configuration */
 #include "conf_board.h"
 #include "board.h"
-#include "ioport.h"
-#include "pio.h"
-#include "pio_handler.h"
+#include <common/services/ioport/ioport.h>
+#include <sam/drivers/pio/pio.h>
+#include <sam/drivers/pio/pio_handler.h>
 
 extern bool udd_b_idle;
 

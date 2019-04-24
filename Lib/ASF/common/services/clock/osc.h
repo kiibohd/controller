@@ -36,7 +36,7 @@
 #ifndef OSC_H_INCLUDED
 #define OSC_H_INCLUDED
 
-#include "parts.h"
+#include <common/utils/parts.h>
 #include "conf_clock.h"
 
 #if SAM3S

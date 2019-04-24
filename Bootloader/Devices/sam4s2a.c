@@ -27,9 +27,11 @@
 #include <Lib/storage.h>
 #include "debug.h"
 
+// ASF Includes
+#include <sam/services/flash_efc/flash_efc.h>
+#include <common/services/usb/udc/udc.h>
+
 // Local Includes
-#include "flash_efc.h"
-#include "udc.h"
 #include "../dfu.desc.h"
 
 

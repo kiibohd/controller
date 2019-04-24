@@ -18,7 +18,7 @@
 #pragma once
 
 #if defined(_sam_)
-#include "flash_efc.h"
+#include <sam/services/flash_efc/flash_efc.h>
 #endif
 
 // ----- Defines -----

@@ -48,7 +48,7 @@
 #endif
 
 // ASF Includes
-#include <flash_efc.h>
+#include <sam/services/flash_efc/flash_efc.h>
 
 // Local Includes
 #include "sam.h"

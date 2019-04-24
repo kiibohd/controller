@@ -37,7 +37,7 @@
 #ifndef CHIP_PLL_H_INCLUDED
 #define CHIP_PLL_H_INCLUDED
 
-#include <osc.h>
+#include <common/services/clock/osc.h>
 
 /// @cond 0
 /**INDENT-OFF**/

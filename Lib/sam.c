@@ -32,11 +32,13 @@
 
 // Local Includes
 #include "entropy.h"
-#include "efc.h"
 #include "sam.h"
-#include "osc.h"
-#include "udc.h"
 #include "sysview.h"
+
+// ASF Includes
+#include <sam/drivers/efc/efc.h>
+#include <common/services/clock/osc.h>
+#include <common/services/usb/udc/udc.h>
 
 #define WDT_TICK_US (128 * 1000000 / BOARD_FREQ_SLCK_XTAL)
 #define WDT_MAX_VALUE 4095

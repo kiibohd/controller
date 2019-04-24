@@ -38,7 +38,8 @@
 #define FLASH_H_INCLUDED
 
 #include "compiler.h"
-#include "efc.h"
+
+#include <sam/drivers/efc/efc.h>
 
 /// @cond 0
 /**INDENT-OFF**/
@@ -60,7 +61,7 @@ typedef enum flash_rc {
 } flash_rc_t;
 //! @}
 
-/*! \name Flash erase page num in FARG[1:0] 
+/*! \name Flash erase page num in FARG[1:0]
   \note The erase page commands should be cautiouly used as EPA4/EPA32 will not
   take effect according to errata and EPA8/EPA16 must module 8/16 page addresses.*/
 //! @{

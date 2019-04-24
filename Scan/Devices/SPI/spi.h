@@ -25,7 +25,7 @@
 // ----- Includes ----
 
 // ASF Includes
-#include <sam/driver/pdc/pdc.h>
+#include <sam/drivers/pdc/pdc.h>
 
 // Compiler Includes
 #include <Lib/ScanLib.h>

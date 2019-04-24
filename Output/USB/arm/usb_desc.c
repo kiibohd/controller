@@ -43,7 +43,7 @@
 
 #if defined(_sam_)
 #include <print.h>
-#include <udi_cdc.h>
+#include <common/services/usb/class/cdc/device/udi_cdc.h>
 #endif
 
 

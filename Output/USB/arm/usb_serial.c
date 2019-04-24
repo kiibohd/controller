@@ -323,7 +323,7 @@ void usb_serial_flush_callback()
 // ----- Includes -----
 
 // ASF Includes
-#include <udi_cdc.h>
+#include <common/services/usb/class/cdc/device/udi_cdc.h>
 #include <arm/usb_desc.h>
 
 // Local Includes

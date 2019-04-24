@@ -29,8 +29,8 @@
 #include <Lib/gpio.h>
 #include <delay.h>
 
-#include "udc.h"
-#include "udp_device.h"
+#include <common/services/usb/udc/udc.h>
+#include <sam/drivers/udp/udp_device.h>
 
 // Local Includes
 #include "../device.h"

@@ -36,7 +36,7 @@
 #ifndef IOPORT_SAM_H
 #define IOPORT_SAM_H
 
-#include <sysclk.h>
+#include <common/services/clock/sysclk.h>
 
 #define IOPORT_CREATE_PIN(port, pin) ((IOPORT_ ## port) * 32 + (pin))
 #define IOPORT_BASE_ADDRESS (uintptr_t)PIOA

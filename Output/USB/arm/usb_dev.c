@@ -46,8 +46,8 @@
 #endif
 
 #if defined(_sam_)
-#include "udc.h"
-#include "udp_device.h"
+#include <common/services/usb/udc/udc.h>
+#include <sam/drivers/udp/udp_device.h>
 #endif
 
 

@@ -41,7 +41,7 @@
 extern "C" {
 #endif
 
-#include <parts.h>
+#include <common/utils/parts.h>
 #include <compiler.h>
 
 /**

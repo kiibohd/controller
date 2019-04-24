@@ -35,10 +35,10 @@
  */
 
 #include "conf_usb.h"
-#include "usb_protocol.h"
-#include "usb_protocol_cdc.h"
-#include "udd.h"
-#include "udc.h"
+#include <common/services/usb/usb_protocol.h>
+#include "../usb_protocol_cdc.h"
+#include <common/services/usb/udc/udd.h>
+#include <common/services/usb/udc/udc.h>
 #include "udi_cdc.h"
 #include <string.h>
 

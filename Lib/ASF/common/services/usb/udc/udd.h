@@ -37,7 +37,7 @@
 #ifndef _UDD_H_
 #define _UDD_H_
 
-#include "usb_protocol.h"
+#include "../usb_protocol.h"
 #include "udc_desc.h"
 
 #ifdef __cplusplus

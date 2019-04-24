@@ -52,7 +52,7 @@
 #include "boot.h"
 #include "sam.h"
 #include "sam4s.h"
-#include "flash_efc.h"
+#include <sam/services/flash_efc/flash_efc.h>
 
 /**
  * \ingroup isp

@@ -151,7 +151,7 @@ extern bool main_extra_string();
 
 // ===== Firmware =====
 #else
-#include "udi_cdc_conf.h"
+#include <common/services/usb/class/cdc/device/udi_cdc_conf.h>
 
 // - Last Include -
 #include "Output/USB/arm/usb_dev.h"

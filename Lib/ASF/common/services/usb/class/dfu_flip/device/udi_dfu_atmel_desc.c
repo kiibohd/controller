@@ -35,9 +35,9 @@
  */
 
 #include "conf_usb.h"
-#include "udd.h"
-#include "udi.h"
-#include "udc_desc.h"
+#include <common/services/usb/udc/udd.h>
+#include <common/services/usb/udc/udi.h>
+#include <common/services/usb/udc/udc_desc.h>
 #include "udi_dfu_atmel.h"
 
 /**

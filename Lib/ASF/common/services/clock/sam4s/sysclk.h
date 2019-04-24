@@ -37,8 +37,8 @@
 #ifndef CHIP_SYSCLK_H_INCLUDED
 #define CHIP_SYSCLK_H_INCLUDED
 
-#include <osc.h>
-#include <pll.h>
+#include <common/services/clock/osc.h>
+#include <common/services/clock/pll.h>
 
 /**
  * \page sysclk_quickstart Quick Start Guide for the System Clock Management service (SAM4S)

@@ -37,7 +37,8 @@
 #include <string.h>
 #include <assert.h>
 #include "flash_efc.h"
-#include "sysclk.h"
+
+#include <common/services/clock/sysclk.h>
 
 /// @cond 0
 /**INDENT-OFF**/
