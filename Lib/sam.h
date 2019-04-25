@@ -135,7 +135,7 @@ extern uint32_t sam_UniqueId[4];
 #define ID_HSMCI  (18) /**< \brief Multimedia Card Interface (HSMCI) */
 #define ID_TWI0   (19) /**< \brief Two Wire Interface 0 (TWI0) */
 #define ID_TWI1   (20) /**< \brief Two Wire Interface 1 (TWI1) */
-#define ID_SPI0   (21) /**< \brief Serial Peripheral Interface (SPI0) */
+#define ID_SPI    (21) /**< \brief Serial Peripheral Interface (SPI0) */
 #define ID_SSC    (22) /**< \brief Synchronous Serial Controller (SSC) */
 #define ID_TC0    (23) /**< \brief Timer/Counter 0 (TC0) */
 #define ID_TC1    (24) /**< \brief Timer/Counter 1 (TC1) */

@@ -29,6 +29,10 @@
 #include <print.h>
 #include <kll_defs.h>
 
+// ASF Includes
+#include <sam/drivers/pmc/pmc.h>
+#include <sam/drivers/spi/spi.h>
+
 // Local Includes
 #include "spi.h"
 
@@ -72,8 +76,8 @@ static uint8_t TransactionBuffer_current_size()
 }
 
 
-// Retrieves the TransactionTimedEntry from the head of the Transaction buffer
-static volatile TransactionBuffer *TransactionBuffer_head()
+// Retrieves the head of the Transaction buffer
+static volatile SPI_Transaction *TransactionBuffer_head()
 {
 	return Transaction_buffer.buf[Transaction_buffer.head];
 }
@@ -149,21 +153,23 @@ static uint8_t queue_next_transaction(Pdc *pdc)
 	}
 
 	// Get next transaction
-	Transaction *transaction = TransactionBuffer_head();
+	volatile SPI_Transaction *transaction = TransactionBuffer_head();
 
 	// Load PDC
-	pdx_rx_init(pdc, &transaction->rx_buffer);
-	pdx_tx_init(pdc, &transaction->tx_buffer);
+	pdc_rx_init(pdc, (pdc_packet_t*)&transaction->rx_buffer, NULL);
+	pdc_tx_init(pdc, (pdc_packet_t*)&transaction->tx_buffer, NULL);
 	transaction->status = SPI_Transaction_Status_Running;
 
 	// Start PDC
 	pdc_enable_transfer(pdc, PERIPH_PTCR_RXTEN | PERIPH_PTCR_TXTEN);
+
+	return 1;
 }
 
 
 // Increments TransactionBuffer
 // Returns 1 if successful, 0 if buffer full and cannot increment
-uint8_t spi_add_transaction(SPI_Transaction *transaction)
+uint8_t spi_add_transaction(volatile SPI_Transaction *transaction)
 {
 	// Buffer is full, cannot increment tail
 	if (TransactionBuffer_current_size() >= TransactionBuffer_Size)
@@ -195,7 +201,7 @@ uint8_t spi_add_transaction(SPI_Transaction *transaction)
 	uint8_t empty = TransactionBuffer_current_size() == 0 ? 1 : 0;
 
 	// Set transaction
-	Transaction_buffer.buf[new_tail] = transaction;
+	Transaction_buffer.buf[new_tail] = (SPI_Transaction*)transaction;
 	transaction->status = SPI_Transaction_Status_Queued;
 
 	// Set tail
@@ -204,7 +210,7 @@ uint8_t spi_add_transaction(SPI_Transaction *transaction)
 	// Enable PDC if buffer previously empty, starting the transaction
 	if (empty)
 	{
-		Pdc *pdc = spi_get_pdc_base(SPI_MASTER_BASE);
+		Pdc *pdc = spi_get_pdc_base(SPI);
 		queue_next_transaction(pdc);
 	}
 
@@ -215,12 +221,12 @@ uint8_t spi_add_transaction(SPI_Transaction *transaction)
 // SPI Interrupt Handler
 void SPI_Handler()
 {
-	uint32_t status = spi_read_status(SPI_SLAVE_BASE) ;
+	uint32_t status = spi_read_status(SPI) ;
 
 	// Check for status
 	if(status & SPI_SR_ENDRX || status & SPI_SR_ENDTX)
 	{
-		Pdc *pdc = spi_get_pdc_base(SPI_MASTER_BASE);
+		Pdc *pdc = spi_get_pdc_base(SPI);
 
 		// Only something to do if both Rx and Tx are finished
 		if (pdc_read_rx_counter(pdc) == 0 && pdc_read_tx_counter(pdc) == 0)
@@ -248,26 +254,26 @@ void spi_setup()
 	Transaction_buffer.tail = 0;
 
 	// Get pointer to SPI master PDC register base
-	Pdc *pdc = spi_get_pdc_base(SPI_MASTER_BASE);
+	Pdc *pdc = spi_get_pdc_base(SPI);
 
 	// Configure an SPI peripheral
-	pmc_enable_periph_clk(SPI_ID);
+	pmc_enable_periph_clk(ID_SPI);
 
 	// Reset SPI settings
-	spi_disable(SPI_MASTER_BASE);
-	spi_reset(SPI_MASTER_BASE);
-	spi_set_lastxfer(SPI_MASTER_BASE);
-	spi_set_master_mode(SPI_MASTER_BASE);
-	spi_disable_mode_fault_detect(SPI_MASTER_BASE);
+	spi_disable(SPI);
+	spi_reset(SPI);
+	spi_set_lastxfer(SPI);
+	spi_set_master_mode(SPI);
+	spi_disable_mode_fault_detect(SPI);
 
 	// Enable SPI
-	spi_enable(SPI_MASTER_BASE);
+	spi_enable(SPI);
 
 	// Make sure PDC is disabled until we're ready to use it
 	pdc_disable_transfer(pdc, PERIPH_PTCR_RXTDIS | PERIPH_PTCR_TXTDIS);
 
 	// Enable PDC channel interrupt
-	spi_enable_interrupt(SPI_MASTER_BASE, SPI_IER_ENDRX | SPI_IER_ENDTX);
+	spi_enable_interrupt(SPI, SPI_IER_ENDRX | SPI_IER_ENDTX);
 
 	// Enable SPI interrupt
 	NVIC_EnableIRQ(SPI_IRQn);
@@ -277,6 +283,6 @@ void spi_setup()
 // Write all channel settings in one shot using a packet structure
 void spi_cs_setup(uint8_t cs, SPI_Channel settings)
 {
-	SPI_MASTER_BASE->SPI_CSR[cs] = settings;
+	SPI->SPI_CSR[cs] = *((uint32_t*)&settings);
 }
 

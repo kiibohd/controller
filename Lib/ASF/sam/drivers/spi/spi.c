@@ -35,7 +35,7 @@
  */
 
 #include "spi.h"
-#include "sysclk.h"
+#include <common/services/clock/sysclk.h>
 
 /**
  * \defgroup sam_drivers_spi_group Serial Peripheral Interface (SPI)

@@ -109,5 +109,5 @@ void spi_cs_setup(uint8_t cs, SPI_Channel settings);
 // Also applies to writes vs. reads
 //
 // Returns 1 if queued correctly, 0 if unable to queue
-uint8_t spi_add_transaction(SPI_Transaction *transaction);
+uint8_t spi_add_transaction(volatile SPI_Transaction *transaction);
 

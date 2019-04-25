@@ -20,6 +20,13 @@ set ( Module_SRCS
 	spi.c
 )
 
+if ( "${CHIP}" MATCHES "^sam.*$" )
+list(APPEND Module_SRCS
+	../../../Lib/ASF/sam/drivers/pdc/pdc.c
+	../../../Lib/ASF/sam/drivers/spi/spi.c
+)
+endif ( )
+
 
 ###
 # Compiler Family Compatibility

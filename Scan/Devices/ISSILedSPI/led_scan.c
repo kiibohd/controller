@@ -56,6 +56,7 @@
 #define ISSI_LEDScalePage      0x51
 #define ISSI_LEDPwmPage        0x50
 #define ISSI_PageLength        0xC6
+#define ISSI_SendDelay         70
 
 #else
 #error "ISSI Driver Chip not defined in Scan scancode_map.kll..."
@@ -74,6 +75,38 @@
 		{ ISSILedMask##ch##_define }, \
 	}
 
+#define LED_RegisterWrite(cs, page, reg, val) \
+	{ \
+		{ \
+			.lastxfer = 0, \
+			.pcs = cs, \
+			.data = page, \
+		}, \
+		{ \
+			.lastxfer = 0, \
+			.pcs = cs, \
+			.data = reg, \
+		}, \
+		{ \
+			.lastxfer = 1, \
+			.pcs = cs, \
+			.data = val, \
+		}, \
+	}
+
+#define SPI_TransactionSetup(rx_addr, rx_size, tx_addr, tx_size) \
+	{ \
+		.status = SPI_Transaction_Status_None, \
+		.rx_buffer = { \
+			.ul_addr = (uint32_t)rx_addr, \
+			.ul_size = rx_size, \
+		}, \
+		.tx_buffer = { \
+			.ul_addr = (uint32_t)tx_addr, \
+			.ul_size = tx_size, \
+		}, \
+	}
+
 
 
 // ----- Structs -----
@@ -82,9 +115,9 @@ typedef struct LED_Buffer {
 	uint8_t buffer[LED_BufferLength];
 } LED_Buffer;
 
-typedef struct LED_EnableBuffer {
-	uint8_t buffer[LED_EnableBufferLength];
-} LED_EnableBuffer;
+typedef struct LED_ScalingBuffer {
+	uint8_t buffer[LED_ScalingLength];
+} LED_ScalingBuffer;
 
 
 
@@ -166,7 +199,7 @@ Time LED_timePrev; // Last frame processed
 
 
 // Enable mask and default brightness for ISSI chip channel
-const LED_EnableBuffer LED_ledEnableMask[ISSI_Chips_define] = {
+const LED_ScalingBuffer LED_ledScalingMask[ISSI_Chips_define] = {
 	LED_MaskDefine( 1 ),
 #if ISSI_Chips_define >= 2
 	LED_MaskDefine( 2 ),
@@ -202,42 +235,32 @@ static uint8_t ledLatencyResource;
 void LED_syncReg(uint8_t page, uint8_t reg, uint8_t val)
 {
 	// Setup packet sequence for writing
-	SPI_Packet buffer[3] = {
-		{
-			.lastxfer = 0,
-			.pcs = cs,
-			.data = page,
-		},
-		{
-			.lastxfer = 0,
-			.pcs = cs,
-			.data = reg,
-		},
-		{
-			.lastxfer = 1,
-			.pcs = cs,
-			.data = val,
-		},
+	const SPI_Packet buffer[ISSI_Chips_define][3] = {
+		LED_RegisterWrite(0, page, reg, val),
+#if ISSI_Chips_define >= 2
+		LED_RegisterWrite(1, page, reg, val),
+#elif ISSI_Chips_define >= 3
+		LED_RegisterWrite(2, page, reg, val),
+#elif ISSI_Chips_define >= 4
+		LED_RegisterWrite(3, page, reg, val),
+#endif
 	};
 
 	// Build each of the transactions
-	volatile SPI_Transaction transaction[ISSI_Chips_define];
+	volatile SPI_Transaction transaction[ISSI_Chips_define] = {
+		SPI_TransactionSetup(NULL, 0, buffer[0], 3),
+#if ISSI_Chips_define >= 2
+		SPI_TransactionSetup(NULL, 0, buffer[1], 3),
+#elif ISSI_Chips_define >= 3
+		SPI_TransactionSetup(NULL, 0, buffer[2], 3),
+#elif ISSI_Chips_define >= 4
+		SPI_TransactionSetup(NULL, 0, buffer[3], 3),
+#endif
+	};
+
+	// Queue transactions
 	for (uint8_t ch = 0; ch < ISSI_Chips_define; ch++)
 	{
-		// Setup transaction
-		transaction[ch] = {
-			.status = SPI_Transaction_Status_None,
-			.rx_buffer = {
-				.ul_addr = NULL,
-				.ul_size = 0,
-			},
-			.tx_buffer = {
-				.ul_addr = (uint32_t)buffer,
-				.ul_size = 3,
-			},
-		};
-
-		// Queue transaction
 		spi_add_transaction(&transaction[ch]);
 	}
 
@@ -266,36 +289,10 @@ void LED_writeReg(uint8_t cs, uint8_t page, uint8_t reg, uint8_t val)
 	*/
 
 	// Setup packet sequence for writing
-	SPI_Packet buffer[3] = {
-		{
-			.lastxfer = 0,
-			.pcs = cs,
-			.data = page,
-		},
-		{
-			.lastxfer = 0,
-			.pcs = cs,
-			.data = reg,
-		},
-		{
-			.lastxfer = 1,
-			.pcs = cs,
-			.data = val,
-		},
-	};
+	SPI_Packet buffer[3] = LED_RegisterWrite(cs, page, reg, val);
 
 	// Setup transaction
-	volatile SPI_Transaction transaction = {
-		.status = SPI_Transaction_Status_None,
-		.rx_buffer = {
-			.ul_addr = NULL,
-			.ul_size = 0,
-		},
-		.tx_buffer = {
-			.ul_addr = (uint32_t)buffer,
-			.ul_size = 3,
-		},
-	};
+	volatile SPI_Transaction transaction = SPI_TransactionSetup(NULL, 0, buffer, 3);
 
 	// Queue transaction
 	spi_add_transaction( &transaction );
@@ -340,11 +337,11 @@ uint8_t LED_readReg(uint8_t cs, uint8_t page, uint8_t reg)
 	volatile SPI_Transaction transaction = {
 		.status = SPI_Transaction_Status_None,
 		.rx_buffer = {
-			.ul_addr = (uint32_t)rxbuffer,
+			.ul_addr = (uint32_t)&rxbuffer,
 			.ul_size = 1,
 		},
 		.tx_buffer = {
-			.ul_addr = (uint32_t)txbuffer,
+			.ul_addr = (uint32_t)&txbuffer,
 			.ul_size = 2,
 		},
 	};
@@ -387,8 +384,8 @@ void LED_reset()
 	{
 		for (uint16_t pkt = 0; pkt < LED_BufferLength; pkt++)
 		{
-			SPI_Packet *pos = &LED_spi_buffer[cs * pkt];
-			pos->data = LED_ledEnableMask[cs].buffer[pkt];
+			volatile SPI_Packet *pos = &LED_spi_buffer[cs * pkt];
+			pos->data = LED_ledScalingMask[cs].buffer[pkt];
 		}
 	}
 
@@ -396,17 +393,11 @@ void LED_reset()
 	LED_spi_buffer[ISSI_Chips_define * LED_BufferLength - 1].lastxfer = 1;
 
 	// Setup spi transaction
-	LED_spi_transaction = {
-		.status = SPI_Transaction_Status_None,
-		.rx_buffer = {
-			.ul_addr = NULL,
-			.ul_size = 0,
-		},
-		.tx_buffer = {
-			.ul_addr = (uint32_t)&LED_spi_buffer,
-			.ul_size = ISSI_Chips_define * LED_BufferLength,
-		},
-	};
+	LED_spi_transaction.status = SPI_Transaction_Status_None;
+	LED_spi_transaction.rx_buffer.ul_addr = (uint32_t)NULL;
+	LED_spi_transaction.rx_buffer.ul_size = 0;
+	LED_spi_transaction.tx_buffer.ul_addr = (uint32_t)&LED_spi_buffer;
+	LED_spi_transaction.tx_buffer.ul_size = ISSI_Chips_define * LED_BufferLength;
 
 	// Send scaling setup via spi
 	// XXX (HaaTa): No need to wait as the next register set will wait for us
@@ -547,7 +538,7 @@ inline void LED_setup()
 	{
 		for (uint16_t pkt = 0; pkt < LED_BufferLength; pkt++)
 		{
-			SPI_Packet *pos = &LED_spi_buffer[cs * pkt];
+			volatile SPI_Packet *pos = &LED_spi_buffer[cs * pkt];
 			pos->lastxfer = 0;
 			pos->pcs = cs;
 			pos->data = 0;
@@ -680,23 +671,17 @@ inline void LED_scan()
 	{
 		for (uint16_t pkt = 0; pkt < LED_BufferLength; pkt++)
 		{
-			SPI_Packet *pos = &LED_spi_buffer[cs * pkt];
+			volatile SPI_Packet *pos = &LED_spi_buffer[cs * pkt];
 			pos->data = LED_pageBuffer[cs].buffer[pkt];
 		}
 	}
 
 	// Setup spi transaction
-	LED_spi_transaction = {
-		.status = SPI_Transaction_Status_None,
-		.rx_buffer = {
-			.ul_addr = NULL,
-			.ul_size = 0,
-		},
-		.tx_buffer = {
-			.ul_addr = (uint32_t)&LED_spi_buffer,
-			.ul_size = ISSI_Chips_define * LED_BufferLength,
-		},
-	};
+	LED_spi_transaction.status = SPI_Transaction_Status_None;
+	LED_spi_transaction.rx_buffer.ul_addr = (uint32_t)NULL;
+	LED_spi_transaction.rx_buffer.ul_size = 0;
+	LED_spi_transaction.tx_buffer.ul_addr = (uint32_t)&LED_spi_buffer;
+	LED_spi_transaction.tx_buffer.ul_size = ISSI_Chips_define * LED_BufferLength;
 
 	// Send scaling setup via spi
 	// Purposefully not waiting, this will send in the background without interrupts or CPU interference
