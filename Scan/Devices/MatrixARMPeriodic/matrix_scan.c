@@ -265,9 +265,9 @@ uint8_t Matrix_single_scan()
 	for ( uint8_t sense = 0; sense < Matrix_rowsNum; sense++ )
 	{
 		GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_DriveSetup, Matrix_type );
-#if ScanCodeRemapping_define == 2 // GPIO_Config_Pulldown
+#if ScanCodeMatrixInvert_define == 2 // GPIO_Config_Pulldown
 		GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_DriveLow, Matrix_type );
-#elif ScanCodeRemapping_define == 1 // GPIO_Config_Pullup
+#elif ScanCodeMatrixInvert_define == 1 // GPIO_Config_Pullup
 		GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_DriveHigh, Matrix_type );
 #endif
 		GPIO_Ctrl( Matrix_rows[ sense ], GPIO_Type_ReadSetup, Matrix_type );
