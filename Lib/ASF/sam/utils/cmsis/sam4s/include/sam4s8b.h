@@ -93,6 +93,9 @@ typedef enum IRQn
   TC0_IRQn             = 23, /**< 23 SAM4S8B Timer/Counter 0 (TC0) */
   TC1_IRQn             = 24, /**< 24 SAM4S8B Timer/Counter 1 (TC1) */
   TC2_IRQn             = 25, /**< 25 SAM4S8B Timer/Counter 2 (TC2) */
+  TC3_IRQn             = 26, /**< 25 SAM4S8B Timer/Counter 2 (TC2) */
+  TC4_IRQn             = 27, /**< 25 SAM4S8B Timer/Counter 2 (TC2) */
+  TC5_IRQn             = 28, /**< 25 SAM4S8B Timer/Counter 2 (TC2) */
   ADC_IRQn             = 29, /**< 29 SAM4S8B Analog To Digital Converter (ADC) */
   DACC_IRQn            = 30, /**< 30 SAM4S8B Digital To Analog Converter (DACC) */
   PWM_IRQn             = 31, /**< 31 SAM4S8B Pulse Width Modulation (PWM) */

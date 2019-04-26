@@ -91,6 +91,9 @@ typedef enum IRQn
   TC0_IRQn             = 23, /**< 23 SAM4S2A Timer/Counter 0 (TC0) */
   TC1_IRQn             = 24, /**< 24 SAM4S2A Timer/Counter 1 (TC1) */
   TC2_IRQn             = 25, /**< 25 SAM4S2A Timer/Counter 2 (TC2) */
+  TC3_IRQn             = 26, /**< 25 SAM4S2A Timer/Counter 2 (TC2) */
+  TC4_IRQn             = 27, /**< 25 SAM4S2A Timer/Counter 2 (TC2) */
+  TC5_IRQn             = 28, /**< 25 SAM4S2A Timer/Counter 2 (TC2) */
   ADC_IRQn             = 29, /**< 29 SAM4S2A Analog To Digital Converter (ADC) */
   PWM_IRQn             = 31, /**< 31 SAM4S2A Pulse Width Modulation (PWM) */
   CRCCU_IRQn           = 32, /**< 32 SAM4S2A CRC Calculation Unit (CRCCU) */
@@ -190,6 +193,9 @@ void SUPC_Handler       ( void );
 void TC0_Handler        ( void );
 void TC1_Handler        ( void );
 void TC2_Handler        ( void );
+void TC3_Handler        ( void );
+void TC4_Handler        ( void );
+void TC5_Handler        ( void );
 void TWI0_Handler       ( void );
 void TWI1_Handler       ( void );
 void UART0_Handler      ( void );

@@ -273,33 +273,33 @@ void rand_initialize()
 	gWDT_pool_end = 0;
 	gWDT_pool_count = 0;
 
-	// Enable clock for timer TC0 (Channel 1)
-	PMC->PMC_PCER0 |= (1 << ID_TC1);
+	// Enable clock for timer TC1 (Channel 4)
+	PMC->PMC_PCER0 |= (1 << ID_TC2);
 
 	// Setup Timer Counter to MCK/128, compare resets counter
-	TC0->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_CPCTRG;
+	TC1->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_CPCTRG;
 
 	// Timer Count-down value
 	// Number of cycles to count from CPU clock before calling interrupt
-	TC0->TC_CHANNEL[1].TC_RC = TC_RC_RC(937); // Approx. ~1 kHz @ 120 MHz MCK
+	TC1->TC_CHANNEL[1].TC_RC = TC_RC_RC(937); // Approx. ~1 kHz @ 120 MHz MCK
 
 	// Enable Timer, Enable interrupt
-	TC0->TC_CHANNEL[1].TC_IER = TC_IER_CPCS;
-	TC0->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
+	TC1->TC_CHANNEL[1].TC_IER = TC_IER_CPCS;
+	TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
 
 	// Enable TC1 interrupt
-	NVIC_EnableIRQ( TC1_IRQn );
+	NVIC_EnableIRQ( TC4_IRQn );
 
 	// Set TC1 interrupt to a low priority
-	NVIC_SetPriority( TC1_IRQn, Entropy_Priority_define );
+	NVIC_SetPriority( TC4_IRQn, Entropy_Priority_define );
 }
 
 // Disables interrupt, thus stopping CPU usage generating entropy
 void rand_disable()
 {
-	TC0->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKDIS;
-	TC0->TC_CHANNEL[1].TC_IDR = 0xFF;
-	NVIC_DisableIRQ( TC1_IRQn );
+	TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKDIS;
+	TC1->TC_CHANNEL[1].TC_IDR = 0xFF;
+	NVIC_DisableIRQ( TC4_IRQn );
 }
 
 // This function returns a unsigned char (8-bit) with the number of unsigned long values
@@ -375,9 +375,9 @@ static void isr_hardware_neutral( uint8_t val )
 	}
 }
 
-void TC1_Handler()
+void TC4_Handler()
 {
-	uint32_t status = TC0->TC_CHANNEL[1].TC_SR;
+	uint32_t status = TC1->TC_CHANNEL[1].TC_SR;
 	if ( status & TC_SR_CPCS )
 	{
 		// Use the current state of systick for seeding
