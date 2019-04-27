@@ -1,0 +1,24 @@
+# Solenoid
+Name = SolenoidCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2019";
+
+# Modified Date
+Date = 2019-04-28;
+
+# PWM Mode
+# This mode allows for more efficient multi-pulse drive triggers
+# XXX (HaaTa): Not all keyboards will support PWM mode, so it's disabled by default
+Solenoid_PWM_Mode => Solenoid_PWM_Mode_define;
+Solenoid_PWM_Mode = 0;
+
+# Pin selection
+Solenoid_Pin_GPIO => Solenoid_Pin_GPIO_define;
+Solenoid_Pin_GPIO = "gpio(A,0)";
+Solenoid_Pin_PWM => Solenoid_Pin_PWM_define;
+Solenoid_Pin_PWM = "periph_io(A, 0, A)";
+
+# PWM Channel selection
+Solenoid_PWM_Channel => Solenoid_PWM_Channel_define;
+Solenoid_PWM_Channel = "PWM_CHANNEL_0";
+

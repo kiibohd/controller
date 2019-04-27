@@ -1,0 +1,18 @@
+# PWMLed
+Name = PWMLedCapabilities;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2019";
+
+# Modified Date
+Date = 2019-04-23;
+
+# Pins used for PWM
+PWMLed_Ch1_pin => PWMLed_Ch1_pin_define;
+PWMLed_Ch1_pin = ""
+PWMLed_Ch2_pin => PWMLed_Ch2_pin_define;
+PWMLed_Ch2_pin = ""
+PWMLed_Ch3_pin => PWMLed_Ch3_pin_define;
+PWMLed_Ch3_pin = ""
+PWMLed_Ctrl_pin => PWMLed_Ctrl_pin_define;
+PWMLed_Ctrl_pin = ""
+

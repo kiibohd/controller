@@ -99,7 +99,7 @@ uint32_t dacc_set_timing(Dacc *p_dacc, uint32_t ul_startup,
 #endif
 
 #if (SAM4E)
-uint32_t dacc_set_timing(Dacc *p_dacc, 
+uint32_t dacc_set_timing(Dacc *p_dacc,
 		uint32_t ul_maxs,uint32_t ul_startup);
 #endif
 

@@ -47,6 +47,8 @@ ISSI_SPI_CS1 => ISSI_SPI_CS1_define;
 ISSI_SPI_CS1 = "periph_io(A, 31, A)";
 ISSI_SPI_CS2 => ISSI_SPI_CS2_define;
 ISSI_SPI_CS2 = "periph_io(A, 30, B)";
+ISSI_SPI_CS3 => ISSI_SPI_CS3_define;
+ISSI_SPI_CS3 = "periph_io(A, 3, B)";
 
 # GPIO Pin Assignment
 # Hardware Shutdown Pin (SDB)
@@ -64,11 +66,7 @@ ISSI_Global_Brightness = 255;
 ISSI_Chips => ISSI_Chips_define;
 ISSI_Chips = 1; # 1 by default
 
-# I2C Buses
-ISSI_SPI_Chips => ISSI_SPI_Chips_define;
-ISSI_SPI_Chips = 1; # 1 by default
-
-# I2C LED Struct Definition
+# LED Struct Definition
 LED_BufferStruct = "
 typedef struct LED_Buffer {
 	uint8_t buffer[198];
