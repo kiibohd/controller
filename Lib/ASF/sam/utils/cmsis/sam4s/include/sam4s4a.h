@@ -32,11 +32,11 @@
  * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
 
-#ifndef _SAM4S2A_
-#define _SAM4S2A_
+#ifndef _SAM4S4A_
+#define _SAM4S4A_
 
-/** \addtogroup SAM4S2A_definitions SAM4S2A definitions
-  This file defines all structures and symbols for SAM4S2A:
+/** \addtogroup SAM4S4A_definitions SAM4S4A definitions
+  This file defines all structures and symbols for SAM4S4A:
     - registers and bitfields
     - peripheral base address
     - peripheral ID
@@ -53,9 +53,9 @@
 #endif
 
 /* ************************************************************************** */
-/*   CMSIS DEFINITIONS FOR SAM4S2A */
+/*   CMSIS DEFINITIONS FOR SAM4S4A */
 /* ************************************************************************** */
-/** \addtogroup SAM4S2A_cmsis CMSIS Definitions */
+/** \addtogroup SAM4S4A_cmsis CMSIS Definitions */
 /*@{*/
 
 /**< Interrupt Number Definition */
@@ -70,35 +70,35 @@ typedef enum IRQn
   DebugMonitor_IRQn     = -4,  /**< 12 Cortex-M4 Debug Monitor Interrupt     */
   PendSV_IRQn           = -2,  /**< 14 Cortex-M4 Pend SV Interrupt           */
   SysTick_IRQn          = -1,  /**< 15 Cortex-M4 System Tick Interrupt       */
-/******  SAM4S2A specific Interrupt Numbers *********************************/
+/******  SAM4S4A specific Interrupt Numbers *********************************/
 
-  SUPC_IRQn            =  0, /**<  0 SAM4S2A Supply Controller (SUPC) */
-  RSTC_IRQn            =  1, /**<  1 SAM4S2A Reset Controller (RSTC) */
-  RTC_IRQn             =  2, /**<  2 SAM4S2A Real Time Clock (RTC) */
-  RTT_IRQn             =  3, /**<  3 SAM4S2A Real Time Timer (RTT) */
-  WDT_IRQn             =  4, /**<  4 SAM4S2A Watchdog Timer (WDT) */
-  PMC_IRQn             =  5, /**<  5 SAM4S2A Power Management Controller (PMC) */
-  EFC0_IRQn            =  6, /**<  6 SAM4S2A Enhanced Embedded Flash Controller 0 (EFC0) */
-  UART0_IRQn           =  8, /**<  8 SAM4S2A UART 0 (UART0) */
-  UART1_IRQn           =  9, /**<  9 SAM4S2A UART 1 (UART1) */
-  PIOA_IRQn            = 11, /**< 11 SAM4S2A Parallel I/O Controller A (PIOA) */
-  PIOB_IRQn            = 12, /**< 12 SAM4S2A Parallel I/O Controller B (PIOB) */
-  USART0_IRQn          = 14, /**< 14 SAM4S2A USART 0 (USART0) */
-  TWI0_IRQn            = 19, /**< 19 SAM4S2A Two Wire Interface 0 (TWI0) */
-  TWI1_IRQn            = 20, /**< 20 SAM4S2A Two Wire Interface 1 (TWI1) */
-  SPI_IRQn             = 21, /**< 21 SAM4S2A Serial Peripheral Interface (SPI) */
-  SSC_IRQn             = 22, /**< 22 SAM4S2A Synchronous Serial Controller (SSC) */
-  TC0_IRQn             = 23, /**< 23 SAM4S2A Timer/Counter 0 (TC0) */
-  TC1_IRQn             = 24, /**< 24 SAM4S2A Timer/Counter 1 (TC1) */
-  TC2_IRQn             = 25, /**< 25 SAM4S2A Timer/Counter 2 (TC2) */
+  SUPC_IRQn            =  0, /**<  0 SAM4S4A Supply Controller (SUPC) */
+  RSTC_IRQn            =  1, /**<  1 SAM4S4A Reset Controller (RSTC) */
+  RTC_IRQn             =  2, /**<  2 SAM4S4A Real Time Clock (RTC) */
+  RTT_IRQn             =  3, /**<  3 SAM4S4A Real Time Timer (RTT) */
+  WDT_IRQn             =  4, /**<  4 SAM4S4A Watchdog Timer (WDT) */
+  PMC_IRQn             =  5, /**<  5 SAM4S4A Power Management Controller (PMC) */
+  EFC0_IRQn            =  6, /**<  6 SAM4S4A Enhanced Embedded Flash Controller 0 (EFC0) */
+  UART0_IRQn           =  8, /**<  8 SAM4S4A UART 0 (UART0) */
+  UART1_IRQn           =  9, /**<  9 SAM4S4A UART 1 (UART1) */
+  PIOA_IRQn            = 11, /**< 11 SAM4S4A Parallel I/O Controller A (PIOA) */
+  PIOB_IRQn            = 12, /**< 12 SAM4S4A Parallel I/O Controller B (PIOB) */
+  USART0_IRQn          = 14, /**< 14 SAM4S4A USART 0 (USART0) */
+  TWI0_IRQn            = 19, /**< 19 SAM4S4A Two Wire Interface 0 (TWI0) */
+  TWI1_IRQn            = 20, /**< 20 SAM4S4A Two Wire Interface 1 (TWI1) */
+  SPI_IRQn             = 21, /**< 21 SAM4S4A Serial Peripheral Interface (SPI) */
+  SSC_IRQn             = 22, /**< 22 SAM4S4A Synchronous Serial Controller (SSC) */
+  TC0_IRQn             = 23, /**< 23 SAM4S4A Timer/Counter 0 (TC0) */
+  TC1_IRQn             = 24, /**< 24 SAM4S4A Timer/Counter 1 (TC1) */
+  TC2_IRQn             = 25, /**< 25 SAM4S4A Timer/Counter 2 (TC2) */
   TC3_IRQn             = 26, /**< 25 SAM4S2A Timer/Counter 2 (TC2) */
   TC4_IRQn             = 27, /**< 25 SAM4S2A Timer/Counter 2 (TC2) */
   TC5_IRQn             = 28, /**< 25 SAM4S2A Timer/Counter 2 (TC2) */
-  ADC_IRQn             = 29, /**< 29 SAM4S2A Analog To Digital Converter (ADC) */
-  PWM_IRQn             = 31, /**< 31 SAM4S2A Pulse Width Modulation (PWM) */
-  CRCCU_IRQn           = 32, /**< 32 SAM4S2A CRC Calculation Unit (CRCCU) */
-  ACC_IRQn             = 33, /**< 33 SAM4S2A Analog Comparator (ACC) */
-  UDP_IRQn             = 34, /**< 34 SAM4S2A USB Device Port (UDP) */
+  ADC_IRQn             = 29, /**< 29 SAM4S4A Analog To Digital Converter (ADC) */
+  PWM_IRQn             = 31, /**< 31 SAM4S4A Pulse Width Modulation (PWM) */
+  CRCCU_IRQn           = 32, /**< 32 SAM4S4A CRC Calculation Unit (CRCCU) */
+  ACC_IRQn             = 33, /**< 33 SAM4S4A Analog Comparator (ACC) */
+  UDP_IRQn             = 34, /**< 34 SAM4S4A USB Device Port (UDP) */
 
   PERIPH_COUNT_IRQn    = 35  /**< Number of peripheral IDs */
 } IRQn_Type;
@@ -193,9 +193,6 @@ void SUPC_Handler       ( void );
 void TC0_Handler        ( void );
 void TC1_Handler        ( void );
 void TC2_Handler        ( void );
-void TC3_Handler        ( void );
-void TC4_Handler        ( void );
-void TC5_Handler        ( void );
 void TWI0_Handler       ( void );
 void TWI1_Handler       ( void );
 void UART0_Handler      ( void );
@@ -208,10 +205,10 @@ void WDT_Handler        ( void );
  * \brief Configuration of the Cortex-M4 Processor and Core Peripherals
  */
 
-#define __CM4_REV              0x0001 /**< SAM4S2A core revision number ([15:8] revision number, [7:0] patch number) */
-#define __MPU_PRESENT          1      /**< SAM4S2A does provide a MPU */
-#define __FPU_PRESENT          0      /**< SAM4S2A does not provide a FPU */
-#define __NVIC_PRIO_BITS       4      /**< SAM4S2A uses 4 Bits for the Priority Levels */
+#define __CM4_REV              0x0001 /**< SAM4S4A core revision number ([15:8] revision number, [7:0] patch number) */
+#define __MPU_PRESENT          1      /**< SAM4S4A does provide a MPU */
+#define __FPU_PRESENT          0      /**< SAM4S4A does not provide a FPU */
+#define __NVIC_PRIO_BITS       4      /**< SAM4S4A uses 4 Bits for the Priority Levels */
 #define __Vendor_SysTickConfig 0      /**< Set to 1 if different SysTick Config is used */
 
 /*
@@ -226,9 +223,9 @@ void WDT_Handler        ( void );
 /*@}*/
 
 /* ************************************************************************** */
-/**  SOFTWARE PERIPHERAL API DEFINITION FOR SAM4S2A */
+/**  SOFTWARE PERIPHERAL API DEFINITION FOR SAM4S4A */
 /* ************************************************************************** */
-/** \addtogroup SAM4S2A_api Peripheral Software API */
+/** \addtogroup SAM4S4A_api Peripheral Software API */
 /*@{*/
 
 //#include "component/component_acc.h"
@@ -257,9 +254,9 @@ void WDT_Handler        ( void );
 /*@}*/
 
 /* ************************************************************************** */
-/*   REGISTER ACCESS DEFINITIONS FOR SAM4S2A */
+/*   REGISTER ACCESS DEFINITIONS FOR SAM4S4A */
 /* ************************************************************************** */
-/** \addtogroup SAM4S2A_reg Registers Access Definitions */
+/** \addtogroup SAM4S4A_reg Registers Access Definitions */
 /*@{*/
 
 //#include "instance/instance_ssc.h"
@@ -290,9 +287,9 @@ void WDT_Handler        ( void );
 /*@}*/
 
 /* ************************************************************************** */
-/*   PERIPHERAL ID DEFINITIONS FOR SAM4S2A */
+/*   PERIPHERAL ID DEFINITIONS FOR SAM4S4A */
 /* ************************************************************************** */
-/** \addtogroup SAM4S2A_id Peripheral Ids Definitions */
+/** \addtogroup SAM4S4A_id Peripheral Ids Definitions */
 /*@{*/
 
 #define ID_SUPC   ( 0) /**< \brief Supply Controller (SUPC) */
@@ -324,9 +321,9 @@ void WDT_Handler        ( void );
 /*@}*/
 
 /* ************************************************************************** */
-/*   BASE ADDRESS DEFINITIONS FOR SAM4S2A */
+/*   BASE ADDRESS DEFINITIONS FOR SAM4S4A */
 /* ************************************************************************** */
-/** \addtogroup SAM4S2A_base Peripheral Base Address Definitions */
+/** \addtogroup SAM4S4A_base Peripheral Base Address Definitions */
 /*@{*/
 
 #if (defined(__ASSEMBLY__) || defined(__IAR_SYSTEMS_ASM__))
@@ -407,23 +404,23 @@ void WDT_Handler        ( void );
 /*@}*/
 
 /* ************************************************************************** */
-/*   PIO DEFINITIONS FOR SAM4S2A */
+/*   PIO DEFINITIONS FOR SAM4S4A */
 /* ************************************************************************** */
-/** \addtogroup SAM4S2A_pio Peripheral Pio Definitions */
+/** \addtogroup SAM4S4A_pio Peripheral Pio Definitions */
 /*@{*/
 
-#include "pio/pio_sam4s2a.h"
+#include "pio/pio_sam4s4a.h"
 /*@}*/
 
 /* ************************************************************************** */
-/*   MEMORY MAPPING DEFINITIONS FOR SAM4S2A */
+/*   MEMORY MAPPING DEFINITIONS FOR SAM4S4A */
 /* ************************************************************************** */
 
-#define IFLASH0_SIZE             (0x20000u)
+#define IFLASH0_SIZE             (0x40000u)
 #define IFLASH0_PAGE_SIZE        (512u)
 #define IFLASH0_LOCK_REGION_SIZE (8192u)
-#define IFLASH0_NB_OF_PAGES      (256u)
-#define IFLASH0_NB_OF_LOCK_BITS  (16u)
+#define IFLASH0_NB_OF_PAGES      (512u)
+#define IFLASH0_NB_OF_LOCK_BITS  (32u)
 #define IRAM_SIZE                (0x10000u)
 #define IFLASH_SIZE              (IFLASH0_SIZE)
 
@@ -436,20 +433,18 @@ void WDT_Handler        ( void );
 #define EBI_CS3_ADDR (0x63000000u) /**< EBI Chip Select 3 base address */
 
 /* ************************************************************************** */
-/*   MISCELLANEOUS DEFINITIONS FOR SAM4S2A */
+/*   MISCELLANEOUS DEFINITIONS FOR SAM4S4A */
 /* ************************************************************************** */
 
 #define CHIP_JTAGID       (0x05B3203FUL)
-#define CHIP_CIDR         (0x288B07E0UL)
+#define CHIP_CIDR         (0x288B09E0UL)
 #define CHIP_EXID         (0x0UL)
 #define NB_CH_ADC         (7UL)
 #define NB_CH_DAC         (-UL)
-#ifndef USB_DEVICE_MAX_EP
 #define USB_DEVICE_MAX_EP (8UL)
-#endif
 
 /* ************************************************************************** */
-/*   ELECTRICAL DEFINITIONS FOR SAM4S2A */
+/*   ELECTRICAL DEFINITIONS FOR SAM4S4A */
 /* ************************************************************************** */
 
 /* Device characteristics */
@@ -483,4 +478,4 @@ void WDT_Handler        ( void );
 
 /*@}*/
 
-#endif /* _SAM4S2A_ */
+#endif /* _SAM4S4A_ */
