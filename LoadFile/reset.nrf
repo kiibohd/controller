@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Convenience script for resetting a nordic type device
+
+nrfjprog -f @CHIP_FAMILY@ --reset

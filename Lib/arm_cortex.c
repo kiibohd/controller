@@ -25,6 +25,7 @@
 #include <print.h>
 #endif
 
+#ifndef NRF52
 /**< Interrupt Number Definition */
 typedef enum IRQn
 {
@@ -48,6 +49,7 @@ typedef enum IRQn
 #define __FPU_PRESENT          0      /**< SAM4S8B does not provide a FPU */
 #define __NVIC_PRIO_BITS       4      /**< SAM4S8B uses 4 Bits for the Priority Levels */
 #define __Vendor_SysTickConfig 0      /**< Set to 1 if different SysTick Config is used */
+#endif
 #include "arm_cortex.h"
 
 void cm4_init() {

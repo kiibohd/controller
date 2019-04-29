@@ -35,7 +35,7 @@ if ( "${CHIP}" MATCHES "nrf52810_qcaa" OR "${CHIP}" MATCHES "nrf52810_qfaa" )
 	set( CHIP_SHORT "nrf52810" )
 	set( CHIP_FAMILY "nrf52" )
 	set( CHIP_SUPPORT "nrf5" )
-	set( DFU 1 )
+	set( NORDIC 1 )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
@@ -51,7 +51,7 @@ elseif ( "${CHIP}" MATCHES "nrf52832_qfaa" OR "${CHIP}" MATCHES "nrf52832_ciaa" 
 	set( CHIP_SHORT "nrf52832" )
 	set( CHIP_FAMILY "nrf52" )
 	set( CHIP_SUPPORT "nrf5" )
-	set( DFU 1 )
+	set( NORDIC 1 )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
@@ -67,7 +67,7 @@ elseif ( "${CHIP}" MATCHES "nrf52832_qfab" )
 	set( CHIP_SHORT "nRF52832" )
 	set( CHIP_FAMILY "nrf52" )
 	set( CHIP_SUPPORT "nrf5" )
-	set( DFU 1 )
+	set( NORDIC 1 )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
@@ -83,7 +83,7 @@ elseif ( "${CHIP}" MATCHES "nrf52840_qiaa" )
 	set( CHIP_SHORT "nrf52840" )
 	set( CHIP_FAMILY "nrf52" )
 	set( CHIP_SUPPORT "nrf5" )
-	set( DFU 1 )
+	set( NORDIC 1 )
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
@@ -101,4 +101,4 @@ endif ()
 #| type "make clean" after changing this, so all files will be rebuilt
 #|
 set( CPU "cortex-m4" )
-
+set( FLOAT "-mfloat-abi=hard -mfpu=fpv4-sp-d16" )
