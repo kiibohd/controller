@@ -26,6 +26,10 @@
 // Compiler Includes
 #include <stdint.h>
 
+#if defined(__sam__)
+#include <sam/drivers/pio/pio.h>
+#endif
+
 
 
 // ----- Defines -----
@@ -33,6 +37,7 @@
 // ----- Macros -----
 
 #define gpio( port, pin ) { GPIO_Port_##port, GPIO_Pin_##pin }
+#define periph_io( port, pin, periph ) { GPIO_Port_##port, GPIO_Pin_##pin, GPIO_Peripheral_##periph }
 
 
 
@@ -102,6 +107,19 @@ typedef enum GPIO_Config {
 	GPIO_Config_Opendrain = 3, // External pull resistor
 } GPIO_Config;
 
+// Peripheral selection
+typedef enum GPIO_Peripheral {
+#if defined(__sam__)
+	GPIO_Peripheral_A = PIO_PERIPH_A,
+	GPIO_Peripheral_B = PIO_PERIPH_B,
+	GPIO_Peripheral_C = PIO_PERIPH_C,
+	GPIO_Peripheral_D = PIO_PERIPH_D,
+	GPIO_Peripheral_Input = PIO_INPUT,
+	GPIO_Peripheral_Output0 = PIO_OUTPUT_0,
+	GPIO_Peripheral_Output1 = PIO_OUTPUT_1,
+#endif
+} GPIO_Peripheral;
+
 
 
 // ----- Structs -----
@@ -112,9 +130,17 @@ typedef struct GPIO_Pin {
 	GPIO_Pin_Num pin;
 } GPIO_Pin;
 
+// Struct container for configuring a peripheral
+typedef struct GPIO_ConfigPin {
+	GPIO_Port       port;
+	GPIO_Pin_Num    pin;
+	GPIO_Peripheral peripheral;
+} GPIO_ConfigPin;
+
 
 
 // ----- Functions -----
 
-uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config );
+uint8_t GPIO_Ctrl(GPIO_Pin gpio, GPIO_Type type, GPIO_Config config);
+void PIO_Setup(GPIO_ConfigPin config);
 

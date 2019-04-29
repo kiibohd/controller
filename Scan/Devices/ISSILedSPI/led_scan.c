@@ -533,9 +533,32 @@ inline void LED_setup()
 	// Initialize SPI
 	spi_setup();
 
-	// Setup LED_spi_buffer to include needed settings on SAM4S
+	// Setup CS pins
+	PIO_Setup(ISSI_SPI_CS0_define);
+	PIO_Setup(ISSI_SPI_CS1_define);
+	PIO_Setup(ISSI_SPI_CS2_define);
+
+	// Setup both buffers and SPI settings
 	for (uint8_t cs = 0; cs < ISSI_Chips_define; cs++)
 	{
+		// Apply SPI settings
+		SPI_Channel settings = {
+			.cpol = 0,   // SPCK inactive is 0
+			.ncpha = 1,  // data capture on leading edge of SPCK
+			.csnaat = 0, // CS not active after transfer
+			.csaat = 1,  // CS active aftre transfer
+			.size = SPI_Size_8_BIT, // Transfer size
+			// SPCK bit rate
+			// 60 MHz peripheral clock
+			// 12 MHz max ISSI clock
+			// SCBR = f_per / f_issi = 5
+			.scbr = 5,
+			.dlybs = 0,
+			.dlybct = 0,
+		};
+		spi_cs_setup(cs, settings);
+
+		// Setup LED_spi_buffer to include needed settings on SAM4S
 		for (uint16_t pkt = 0; pkt < LED_BufferLength; pkt++)
 		{
 			volatile SPI_Packet *pos = &LED_spi_buffer[cs * pkt];

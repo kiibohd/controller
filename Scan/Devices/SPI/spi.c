@@ -259,6 +259,11 @@ void spi_setup()
 	// Configure an SPI peripheral
 	pmc_enable_periph_clk(ID_SPI);
 
+	// Enable pins for SPI
+	pio_set_peripheral(PIOA, PIO_PERIPH_A, 12); // MISO
+	pio_set_peripheral(PIOA, PIO_PERIPH_A, 13); // M0SI
+	pio_set_peripheral(PIOA, PIO_PERIPH_A, 14); // SPCK
+
 	// Reset SPI settings
 	spi_disable(SPI);
 	spi_reset(SPI);

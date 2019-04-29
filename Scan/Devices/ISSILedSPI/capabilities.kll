@@ -40,6 +40,14 @@ ISSI_Chip_31FL3743B = 0;
 ISSI_Enable => ISSI_Enable_define;
 ISSI_Enable = 1;
 
+# CS Pin Assignment
+ISSI_SPI_CS0 => ISSI_SPI_CS0_define;
+ISSI_SPI_CS0 = "periph_io(A, 11, A)";
+ISSI_SPI_CS1 => ISSI_SPI_CS1_define;
+ISSI_SPI_CS1 = "periph_io(A, 31, A)";
+ISSI_SPI_CS2 => ISSI_SPI_CS2_define;
+ISSI_SPI_CS2 = "periph_io(A, 30, B)";
+
 # GPIO Pin Assignment
 # Hardware Shutdown Pin (SDB)
 ISSI_HardwareShutdownPin => ISSI_HardwareShutdownPin_define;

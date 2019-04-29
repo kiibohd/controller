@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2018 by Jacob Alexander
+/* Copyright (C) 2014-2019 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -205,5 +205,26 @@ uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 #endif
 
 	return 0;
+}
+
+void PIO_Setup(GPIO_ConfigPin config)
+{
+#if defined(__sam__)
+	Pio *pio;
+	switch (config.port)
+	{
+	case GPIO_Port_A:
+		pio = PIOA;
+		break;
+	case GPIO_Port_B:
+		pio = PIOB;
+		break;
+	case GPIO_Port_C:
+		pio = PIOC;
+		break;
+	}
+
+	pio_set_peripheral(pio, config.peripheral, config.pin);
+#endif
 }
 
