@@ -26,7 +26,7 @@
 // Compiler Includes
 #include <stdint.h>
 
-#if defined(__sam__)
+#if defined(_sam_)
 #include <sam/drivers/pio/pio.h>
 #endif
 
@@ -109,7 +109,7 @@ typedef enum GPIO_Config {
 
 // Peripheral selection
 typedef enum GPIO_Peripheral {
-#if defined(__sam__)
+#if defined(_sam_)
 	GPIO_Peripheral_A = PIO_PERIPH_A,
 	GPIO_Peripheral_B = PIO_PERIPH_B,
 	GPIO_Peripheral_C = PIO_PERIPH_C,
@@ -117,6 +117,10 @@ typedef enum GPIO_Peripheral {
 	GPIO_Peripheral_Input = PIO_INPUT,
 	GPIO_Peripheral_Output0 = PIO_OUTPUT_0,
 	GPIO_Peripheral_Output1 = PIO_OUTPUT_1,
+#else
+	GPIO_Peripheral_A,
+	GPIO_Peripheral_B,
+	GPIO_Peripheral_C,
 #endif
 } GPIO_Peripheral;
 
