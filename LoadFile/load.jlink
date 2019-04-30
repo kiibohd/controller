@@ -7,6 +7,7 @@ ERASE=0
 NOSCREEN=1
 GDB=0
 NOCONNECT=0
+SET_BOOT=0
 PROG_NAME=$(basename $0)
 
 # Parse all the command line arguments
@@ -16,6 +17,10 @@ while (( "$#" >= "1" )); do
 	case $key in
 	-e|--erase)
 		ERASE=1
+		shift
+		;;
+	-b|--boot)
+		SET_BOOT=1
 		shift
 		;;
 	-a|--autoscreen)
@@ -41,6 +46,7 @@ while (( "$#" >= "1" )); do
 		echo ""
 		echo "Arguments:"
 		echo " -e, --erase                     Erase the whole chip before loading the firmware"
+		echo " -b, --boot                      Enable boot from firmware bit"
 		echo " -a, --autoscreen <SERIAL_PORT>  Use screen on the specified serial port after loading."
 		echo "                                 e.g. /dev/ttyACM0"
 		echo " -g, --gdb                       Automatically start a debug server"
@@ -66,6 +72,13 @@ if type JLinkExe &>/dev/null; then
 		echo "erase" >> flash.jlink
 	fi
 	echo "loadfile @TARGET_HEX@" >> flash.jlink
+	if [[ $SET_BOOT -eq 1 ]]; then
+		if [[ "@CHIP_SUPPORT@" == "sam" ]]; then
+			# Set GPNVM bit 1 (boot flash0)
+			echo "w4 0x400E0A04, 0x5A00010B" >> flash.jlink
+			echo "sleep 20" >> flash.jlink
+		fi
+	fi
 	echo "r" >> flash.jlink
 	if [[ $GDB -ne 1 ]]; then
 		echo "g" >> flash.jlink
