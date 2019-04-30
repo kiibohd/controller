@@ -21,7 +21,11 @@
 
 #pragma once
 #include <stdint.h>
+#ifdef NRF52
+#include <nrf52.h>
+#else
 #include <core_cm4.h>
+#endif
 
 // ----- Defines -----
 

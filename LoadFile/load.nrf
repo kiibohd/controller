@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+# Convenience script for loading firmware onto a jlink type device
+# By default, initiates JLinkExe
+
+AUTO_SCREEN_SESSION="/dev/kiibohd"
+ERASE=0
+NOSCREEN=1
+GDB=0
+NOCONNECT=0
+PROG_NAME=$(basename $0)
+
+# Parse all the command line arguments
+while (( "$#" >= "1" )); do
+	# Scan each argument
+	key="$1"
+	case $key in
+	-e|--erase)
+		ERASE=1
+		shift
+		;;
+	-a|--autoscreen)
+		NOSCREEN=0
+		if [ ! -e "$2" ]; then
+			AUTO_SCREEN_SESSION="$2"
+		fi
+		shift
+		;;
+	-g|--gdb)
+		GDB=1
+		shift
+		;;
+	-n|--noconnect)
+		NOCONNECT=1
+		shift
+		;;
+	-h|--help)
+		echo "Usage: $PROG_NAME [options...]"
+		echo ""
+		echo "Loads the most recent built firmware (@TARGET_BIN@) to the device."
+		echo "  (load.dfu)"
+		echo ""
+		echo "Arguments:"
+		echo " -e, --erase                     Erase the whole chip before loading the firmware"
+		echo " -a, --autoscreen <SERIAL_PORT>  Use screen on the specified serial port after loading."
+		echo "                                 e.g. /dev/ttyACM0"
+		echo " -g, --gdb                       Automatically start a debug server"
+		echo " -n, --noconnect                 Don't automatically connect with JLinkExe"
+		echo " -h, --help                      This message."
+		exit 1
+		;;
+	*)
+		echo "INVALID ARG: '$1'"
+		exit 2
+		;;
+	esac
+
+	# Shift to the next argument
+	shift
+done
+
+# Load via JLinkExe
+# Used for development boards
+if type nrfjprog &>/dev/null; then
+	if [[ $ERASE -eq 1 ]]; then
+		nrfjprog -f @CHIP_FAMILY@ --eraseall
+	fi
+
+	nrfjprog -f @CHIP_FAMILY@ --program @TARGET_HEX@ --sectorerase --verify --fast
+	nrfjprog -f @CHIP_FAMILY@ --reset
+	EXIT_STATUS=$?
+else
+	echo "nrfjprog is required to reprogram the device"
+	exit 3
+fi
+
+# Load Screen Session if specified
+if (( "$EXIT_STATUS" == "0" )); then
+	if [[ $GDB -eq 1 ]]; then
+		./debug -s	
+	elif [[ "$AUTO_SCREEN_SESSION" != "" ]] && [[ $NOSCREEN -ne 1 ]]; then
+		if type screen &>/dev/null; then
+			echo "Waiting for serial device..."
+			while [ ! -e $AUTO_SCREEN_SESSION ]; do
+				sleep 0.1
+			done
+			screen $AUTO_SCREEN_SESSION
+		else
+			echo "screen is not installed"
+			exit 3
+		fi
+	fi
+fi
+
+exit $EXIT_STATUS
