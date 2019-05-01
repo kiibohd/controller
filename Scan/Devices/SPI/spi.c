@@ -26,6 +26,7 @@
 #include <Lib/ScanLib.h>
 
 // Project Includes
+#include <Lib/gpio.h>
 #include <print.h>
 #include <kll_defs.h>
 
@@ -260,9 +261,12 @@ void spi_setup()
 	pmc_enable_periph_clk(ID_SPI);
 
 	// Enable pins for SPI
-	pio_set_peripheral(PIOA, PIO_PERIPH_A, 12); // MISO
-	pio_set_peripheral(PIOA, PIO_PERIPH_A, 13); // M0SI
-	pio_set_peripheral(PIOA, PIO_PERIPH_A, 14); // SPCK
+	GPIO_ConfigPin miso = periph_io(A, 12, A);
+	GPIO_ConfigPin mosi = periph_io(A, 13, A);
+	GPIO_ConfigPin spck = periph_io(A, 14, A);
+	PIO_Setup(miso);
+	PIO_Setup(mosi);
+	PIO_Setup(spck);
 
 	// Reset SPI settings
 	spi_disable(SPI);

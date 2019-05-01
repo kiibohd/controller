@@ -534,9 +534,20 @@ inline void LED_setup()
 	spi_setup();
 
 	// Setup CS pins
-	PIO_Setup(ISSI_SPI_CS0_define);
-	PIO_Setup(ISSI_SPI_CS1_define);
-	PIO_Setup(ISSI_SPI_CS2_define);
+	GPIO_ConfigPin cs0 = ISSI_SPI_CS0_define;
+	PIO_Setup(cs0);
+#if ISSI_Chips_define >= 2
+	GPIO_ConfigPin cs1 = ISSI_SPI_CS1_define;
+	PIO_Setup(cs1);
+#endif
+#if ISSI_Chips_define >= 3
+	GPIO_ConfigPin cs2 = ISSI_SPI_CS2_define;
+	PIO_Setup(cs2);
+#endif
+#if ISSI_Chips_define >= 4
+	GPIO_ConfigPin cs3 = ISSI_SPI_CS3_define;
+	PIO_Setup(cs3);
+#endif
 
 	// Setup both buffers and SPI settings
 	for (uint8_t cs = 0; cs < ISSI_Chips_define; cs++)
