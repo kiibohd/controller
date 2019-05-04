@@ -58,6 +58,9 @@ const GPIO_Pin usb_swap_pin = gpio(A,12);
 const GPIO_Pin strobe_pin = gpio(B,1);
 const GPIO_Pin sense_pin = gpio(A,26);
 
+// Debug led
+const GPIO_Pin debug_led = gpio(B,0);
+
 
 
 // ----- Functions -----
@@ -65,11 +68,18 @@ const GPIO_Pin sense_pin = gpio(A,26);
 // Called early-on during ResetHandler
 void Device_reset()
 {
+	// Make sure debug LED is off
+	GPIO_Ctrl( debug_led, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( debug_led, GPIO_Type_DriveLow, GPIO_Config_None );
 }
 
 // Called during bootloader initialization
 void Device_setup()
 {
+	// Enable Debug LED
+	GPIO_Ctrl( debug_led, GPIO_Type_DriveSetup, GPIO_Config_None );
+	GPIO_Ctrl( debug_led, GPIO_Type_DriveHigh, GPIO_Config_None );
+
 	// Setup scanning for S1
 	PMC->PMC_PCER0 = (1 << ID_PIOA) | (1 << ID_PIOB);
 

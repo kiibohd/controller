@@ -179,7 +179,7 @@ uint32_t pwm_channel_init(Pwm *p_pwm, pwm_channel_t *p_channel)
 
 	/* Channel Period Register */
 	p_pwm->PWM_CH_NUM[ch_num].PWM_CPRD = p_channel->ul_period;
-	
+
 #if (SAM3U || SAM3S || SAM3XA || SAM4S || SAM4E || SAMV70 || SAMV71 || SAME70 || SAMS70)
 	/* Channel Dead Time Register */
 	if (p_channel->b_deadtime_generator) {

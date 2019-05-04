@@ -113,11 +113,6 @@ void Chip_setup()
 	// Disable WDT
 	WDT->WDT_MR = WDT_MR_WDDIS;
 
-	// Enable Debug LED
-	const GPIO_Pin debug_led = gpio(A,2);
-	GPIO_Ctrl( debug_led, GPIO_Type_DriveSetup, GPIO_Config_None );
-	GPIO_Ctrl( debug_led, GPIO_Type_DriveHigh, GPIO_Config_None );
-
 	// Initialize non-volatile storage
 	storage_init();
 
