@@ -1,4 +1,4 @@
-/* Copyright (C) 2017-2018 by Jacob Alexander
+/* Copyright (C) 2017-2019 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -222,15 +222,9 @@ void SSC_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 void TC0_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 void TC1_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 void TC2_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
-#ifdef _SAM4S_TC1_INSTANCE_
 void TC3_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
-#endif /* _SAM4S_TC1_INSTANCE_ */
-#ifdef _SAM4S_TC1_INSTANCE_
 void TC4_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
-#endif /* _SAM4S_TC1_INSTANCE_ */
-#ifdef _SAM4S_TC1_INSTANCE_
 void TC5_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
-#endif /* _SAM4S_TC1_INSTANCE_ */
 void ADC_Handler    ( void ) __attribute__ ((weak, alias("unused_isr")));
 #ifdef _SAM4S_DACC_INSTANCE_
 void DACC_Handler   ( void ) __attribute__ ((weak, alias("unused_isr")));
@@ -323,21 +317,9 @@ const DeviceVectors exception_table = {
         .pfnTC0_Handler    = (void*) TC0_Handler,    /* 23 Timer/Counter 0 */
         .pfnTC1_Handler    = (void*) TC1_Handler,    /* 24 Timer/Counter 1 */
         .pfnTC2_Handler    = (void*) TC2_Handler,    /* 25 Timer/Counter 2 */
-#ifdef _SAM4S_TC1_INSTANCE_
         .pfnTC3_Handler    = (void*) TC3_Handler,    /* 26 Timer/Counter 3 */
-#else
-        .pvReserved26      = (void*) (0UL),          /* 26 Reserved */
-#endif /* _SAM4S_TC1_INSTANCE_ */
-#ifdef _SAM4S_TC1_INSTANCE_
         .pfnTC4_Handler    = (void*) TC4_Handler,    /* 27 Timer/Counter 4 */
-#else
-        .pvReserved27      = (void*) (0UL),          /* 27 Reserved */
-#endif /* _SAM4S_TC1_INSTANCE_ */
-#ifdef _SAM4S_TC1_INSTANCE_
         .pfnTC5_Handler    = (void*) TC5_Handler,    /* 28 Timer/Counter 5 */
-#else
-        .pvReserved28      = (void*) (0UL),          /* 28 Reserved */
-#endif /* _SAM4S_TC1_INSTANCE_ */
         .pfnADC_Handler    = (void*) ADC_Handler,    /* 29 Analog To Digital Converter */
 #ifdef _SAM4S_DACC_INSTANCE_
         .pfnDACC_Handler   = (void*) DACC_Handler,   /* 30 Digital To Analog Converter */

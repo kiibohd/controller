@@ -219,9 +219,13 @@ void PIO_Setup(GPIO_ConfigPin config)
 	case GPIO_Port_B:
 		pio = PIOB;
 		break;
+#if defined(_sam4s_c_)
 	case GPIO_Port_C:
 		pio = PIOC;
 		break;
+#endif
+	default:
+		return;
 	}
 
 	pio_set_peripheral(pio, config.peripheral, config.pin);

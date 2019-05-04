@@ -110,6 +110,66 @@ void pit0_isr()
 }
 
 
+#elif defined(_sam4s_a_)
+void Periodic_init( uint32_t cycles )
+{
+	// Enable clock for timer
+	// Using Timer Module 1, Channel 3 (TC5)
+	PMC->PMC_PCER0 |= (1 << ID_TC2);
+
+	// Setup Timer Counter to MCK/32
+	TC0->TC_CHANNEL[2].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK3 | TC_CMR_CPCTRG;
+
+	// Timer Count-down value
+	// Number of cycles to count from CPU clock before calling interrupt
+	TC0->TC_CHANNEL[2].TC_RC = TC_RA_RA(cycles/2);
+
+	// Enable Timer, Enable interrupt
+	TC0->TC_CHANNEL[2].TC_IER = TC_IER_CPCS;
+	TC0->TC_CHANNEL[2].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
+
+	// Enable TC0 interrupt
+	NVIC_EnableIRQ( TC2_IRQn );
+
+	// Set TC0 interrupt to a low priority
+	NVIC_SetPriority( TC2_IRQn, Periodic_Priority_define );
+}
+
+void Periodic_function( void *func )
+{
+	// Set function pointer
+	periodic_func = func;
+}
+
+void Periodic_enable()
+{
+	// Used to re-enable IRQ
+	NVIC_EnableIRQ( TC2_IRQn );
+}
+
+void Periodic_disable()
+{
+	// Used to disable IRQ
+	NVIC_DisableIRQ( TC2_IRQn );
+}
+
+uint32_t Periodic_cycles()
+{
+	return TC0->TC_CHANNEL[2].TC_CV;
+}
+
+void TC2_Handler()
+{
+	SEGGER_SYSVIEW_RecordEnterISR();
+	uint32_t status = TC0->TC_CHANNEL[2].TC_SR;
+	if ( status & TC_SR_CPCS )
+	{
+		(*periodic_func)();
+	}
+	SEGGER_SYSVIEW_RecordExitISRToScheduler();
+}
+
+
 #elif defined(_sam_)
 void Periodic_init( uint32_t cycles )
 {

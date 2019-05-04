@@ -152,9 +152,9 @@ typedef struct _DeviceVectors
   void* pfnTC0_Handler;    /* 23 Timer/Counter 0 */
   void* pfnTC1_Handler;    /* 24 Timer/Counter 1 */
   void* pfnTC2_Handler;    /* 25 Timer/Counter 2 */
-  void* pvReserved26;
-  void* pvReserved27;
-  void* pvReserved28;
+  void* pfnTC3_Handler;    /* 26 Timer/Counter 3 */
+  void* pfnTC4_Handler;    /* 27 Timer/Counter 4 */
+  void* pfnTC5_Handler;    /* 28 Timer/Counter 5 */
   void* pfnADC_Handler;    /* 29 Analog To Digital Converter */
   void* pvReserved30;
   void* pfnPWM_Handler;    /* 31 Pulse Width Modulation */
@@ -265,6 +265,7 @@ void WDT_Handler        ( void );
 //#include "instance/instance_ssc.h"
 #include "instance/instance_spi.h"
 #include "instance/instance_tc0.h"
+#include "instance/instance_tc1.h"
 #include "instance/instance_twi0.h"
 #include "instance/instance_twi1.h"
 #include "instance/instance_pwm.h"
@@ -314,6 +315,9 @@ void WDT_Handler        ( void );
 #define ID_TC0    (23) /**< \brief Timer/Counter 0 (TC0) */
 #define ID_TC1    (24) /**< \brief Timer/Counter 1 (TC1) */
 #define ID_TC2    (25) /**< \brief Timer/Counter 2 (TC2) */
+#define ID_TC3    (26) /**< \brief Timer/Counter 3 (TC3) */
+#define ID_TC4    (27) /**< \brief Timer/Counter 4 (TC4) */
+#define ID_TC5    (28) /**< \brief Timer/Counter 5 (TC5) */
 #define ID_ADC    (29) /**< \brief Analog To Digital Converter (ADC) */
 #define ID_PWM    (31) /**< \brief Pulse Width Modulation (PWM) */
 #define ID_CRCCU  (32) /**< \brief CRC Calculation Unit (CRCCU) */

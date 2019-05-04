@@ -25,7 +25,7 @@
 // ----- Includes ----
 
 // ASF Includes
-#include <sam/driver/pwm/pwm.h>
+#include <sam/drivers/pwm/pwm.h>
 
 // Compiler Includes
 #include <Lib/ScanLib.h>
@@ -40,5 +40,6 @@
 
 // ----- Functions -----
 
-void pwmled_setup();
+void PWMLED_setup();
+void PWMLED_scan();
 

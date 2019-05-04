@@ -4,15 +4,23 @@ Version = 0.1;
 Author = "HaaTa (Jacob Alexander) 2019";
 
 # Modified Date
-Date = 2019-04-23;
+Date = 2019-05-03;
+
+# Configuration
+PWMLed_Channels => PWMLed_Channels_define;
+PWMLed_Channels = 4;
+PWMLed_Ctrls => PWMLed_Ctrls_define;
+PWMLed_Ctrls = 1;
 
 # Pins used for PWM
 PWMLed_Ch1_pin => PWMLed_Ch1_pin_define;
-PWMLed_Ch1_pin = ""
+PWMLed_Ch1_pin = "periph_io(A,0,A)"; # PWMH0
 PWMLed_Ch2_pin => PWMLed_Ch2_pin_define;
-PWMLed_Ch2_pin = ""
+PWMLed_Ch2_pin = "periph_io(A,1,A)"; # PWMH1
 PWMLed_Ch3_pin => PWMLed_Ch3_pin_define;
-PWMLed_Ch3_pin = ""
+PWMLed_Ch3_pin = "periph_io(A,2,A)"; # PWMH2
+PWMLed_Ch4_pin => PWMLed_Ch4_pin_define;
+PWMLed_Ch4_pin = "periph_io(A,15,C)"; # PWML3
 PWMLed_Ctrl_pin => PWMLed_Ctrl_pin_define;
-PWMLed_Ctrl_pin = ""
+PWMLed_Ctrl_pin = "periph_io(A,26,B)"; # TIOA2
 

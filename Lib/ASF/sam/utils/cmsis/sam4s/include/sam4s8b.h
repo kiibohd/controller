@@ -274,6 +274,7 @@ void WDT_Handler        ( void );
 //#include "instance/instance_ssc.h"
 #include "instance/instance_spi.h"
 #include "instance/instance_tc0.h"
+#include "instance/instance_tc1.h"
 #include "instance/instance_twi0.h"
 #include "instance/instance_twi1.h"
 #include "instance/instance_pwm.h"

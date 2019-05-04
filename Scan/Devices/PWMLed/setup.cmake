@@ -20,6 +20,13 @@ set ( Module_SRCS
 	pwmled.c
 )
 
+if ( "${CHIP}" MATCHES "^sam.*$" )
+list(APPEND Module_SRCS
+	../../../Lib/ASF/sam/drivers/pdc/pdc.c
+	../../../Lib/ASF/sam/drivers/pwm/pwm.c
+)
+endif ( )
+
 
 ###
 # Compiler Family Compatibility
