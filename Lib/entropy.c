@@ -274,7 +274,7 @@ void rand_initialize()
 	gWDT_pool_count = 0;
 
 	// Enable clock for timer TC1 (Channel 4)
-	PMC->PMC_PCER0 |= (1 << ID_TC2);
+	PMC->PMC_PCER0 |= (1 << ID_TC4);
 
 	// Setup Timer Counter to MCK/128, compare resets counter
 	TC1->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_CPCTRG;
