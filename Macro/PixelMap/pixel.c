@@ -1195,6 +1195,11 @@ PixelBuf *Pixel_bufferMap( uint16_t channel )
 	if      ( channel < 192 ) return &Pixel_Buffers[0];
 	else if ( channel < 384 ) return &Pixel_Buffers[1];
 	else if ( channel < 576 ) return &Pixel_Buffers[2];
+#elif ISSI_Chip_31FL3743B_define == 1
+	if      ( channel < 198 ) return &Pixel_Buffers[0];
+	else if ( channel < 396 ) return &Pixel_Buffers[1];
+	else if ( channel < 594 ) return &Pixel_Buffers[2];
+	else if ( channel < 792 ) return &Pixel_Buffers[3];
 #else
 	if      ( channel < 192 ) return &Pixel_Buffers[0];
 	else if ( channel < 384 ) return &Pixel_Buffers[1];
@@ -1222,6 +1227,11 @@ PixelBuf *LED_bufferMap( uint16_t channel )
 	if      ( channel < 192 ) return &LED_Buffers[0];
 	else if ( channel < 384 ) return &LED_Buffers[1];
 	else if ( channel < 576 ) return &LED_Buffers[2];
+#elif ISSI_Chip_31FL3743B_define == 1
+	if      ( channel < 198 ) return &LED_Buffers[0];
+	else if ( channel < 396 ) return &LED_Buffers[1];
+	else if ( channel < 594 ) return &LED_Buffers[2];
+	else if ( channel < 792 ) return &LED_Buffers[3];
 #else
 	if      ( channel < 192 ) return &LED_Buffers[0];
 	else if ( channel < 384 ) return &LED_Buffers[1];
@@ -2354,7 +2364,81 @@ void Pixel_SecondaryProcessing()
 			uint32_t val;
 			switch (buf->width)
 			{
-			// TODO (HaaTa): Handle non-16bit arrays of 8-bit values
+			case 8:
+				switch ( profile->period_conf )
+				{
+				// Off -> On
+				case PixelPeriodIndex_Off_to_On:
+				// On -> Off
+				case PixelPeriodIndex_On_to_Off:
+					// If start and end are set to 0, ignore
+					if ( period->end == 0 && period->start == 0 )
+					{
+						val = (uint8_t)((uint8_t*)buf->data)[chan - buf->offset];
+						val = Pixel_ApplyFadeBrightness(profile->brightness, val);
+						if (gamma_enabled) {
+							val = gamma_table[val];
+						}
+						((uint8_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
+						break;
+					}
+
+					val = (uint8_t)((uint8_t*)buf->data)[chan - buf->offset];
+					val = Pixel_ApplyFadeBrightness(profile->brightness, val);
+					if (gamma_enabled) {
+						val = gamma_table[val];
+					}
+					val *= profile->pos;
+					val >>= period->end;
+					((uint8_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
+					break;
+				// On hold time
+				case PixelPeriodIndex_On:
+					val = (uint8_t)((uint8_t*)buf->data)[chan - buf->offset];
+					val = Pixel_ApplyFadeBrightness(profile->brightness, val);
+					if (gamma_enabled) {
+						val = gamma_table[val];
+					}
+					((uint8_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
+					break;
+				// Off hold time
+				case PixelPeriodIndex_Off:
+				{
+					PixelPeriodConfig *prev = &profile->conf[PixelPeriodIndex_On_to_Off];
+
+					// If the previous config was disabled, do not set to 0
+					if ( prev->start == 0 && prev->end == 0 )
+					{
+						val = (uint8_t)((uint8_t*)buf->data)[chan - buf->offset];
+						val = Pixel_ApplyFadeBrightness(profile->brightness, val);
+						if (gamma_enabled) {
+							val = gamma_table[val];
+						}
+						((uint8_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
+						break;
+					}
+
+					// If the previous On->Off change didn't go to fully off
+					// Calculate the value based off the previous config
+					val = 0;
+					if ( prev->start != 0 )
+					{
+						val = (uint8_t)((uint8_t*)buf->data)[chan - buf->offset];
+						val = Pixel_ApplyFadeBrightness(profile->brightness, val);
+						if (gamma_enabled) {
+							val = gamma_table[val];
+						}
+						val *= (1 << prev->start) - 1;
+						val >>= prev->end;
+					}
+
+					// Set to 0
+					((uint8_t*)buf->data)[chan - buf->offset] = (uint8_t)val;
+					break;
+				}
+				}
+				break;
+
 			case 16:
 				switch ( profile->period_conf )
 				{

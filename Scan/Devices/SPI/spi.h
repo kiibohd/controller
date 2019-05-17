@@ -34,6 +34,23 @@
 
 // ----- Defines -----
 
+// ----- Macros -----
+
+#define SPI_TransactionSetup(rx_addr, rx_size, tx_addr, tx_size) \
+	(SPI_Transaction){ \
+		.status = SPI_Transaction_Status_None, \
+		.rx_buffer = { \
+			.ul_addr = (uint32_t)rx_addr, \
+			.ul_size = rx_size, \
+		}, \
+		.tx_buffer = { \
+			.ul_addr = (uint32_t)tx_addr, \
+			.ul_size = tx_size, \
+		}, \
+	}
+
+
+
 // ----- Enumerations -----
 
 typedef enum SPI_Transaction_Status {
@@ -60,14 +77,15 @@ typedef enum SPI_Size {
 
 // ----- Structs -----
 
-// TODO Validate structure
+// SPI Packets on SAM4S must be 32-bit aligned or will not load correctly
+// (this is when using variable pcs selection)
 typedef struct SPI_Packet {
-	uint8_t lastxfer:1;
-	uint8_t unused1:7;
-	uint8_t pcs:4;
-	uint8_t unused2:4;
 	uint16_t data;
-} __attribute__((packed)) SPI_Packet;
+	uint8_t pcs:4;
+	uint8_t unused1:4;
+	uint8_t lastxfer:1;
+	uint8_t unused2:7;
+} __attribute__((packed)) __attribute__((aligned(4))) SPI_Packet;
 
 typedef struct SPI_Transaction {
 	SPI_Transaction_Status status;

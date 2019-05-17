@@ -123,6 +123,7 @@ if ( "${CHIP_SUPPORT}" MATCHES "sam" )
 		Lib/ASF/common/services/clock/sam4s/sysclk.c
 		Lib/ASF/common/utils/interrupt/interrupt_sam_nvic.c
 		Lib/ASF/sam/drivers/efc/efc.c
+		Lib/ASF/sam/drivers/pio/pio.c
 		Lib/ASF/sam/drivers/pmc/pmc.c
 		Lib/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.c
 		Lib/ASF/sam/services/flash_efc/flash_efc.c

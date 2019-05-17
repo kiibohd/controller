@@ -139,6 +139,7 @@ void pdc_tx_init(Pdc *p_pdc, pdc_packet_t *p_packet,
 void pdc_rx_init(Pdc *p_pdc, pdc_packet_t *p_packet,
 		pdc_packet_t *p_next_packet);
 void pdc_rx_clear_cnt(Pdc *p_pdc);
+void pdc_tx_clear_cnt(Pdc *p_pdc);
 void pdc_enable_transfer(Pdc *p_pdc, uint32_t ul_controls);
 void pdc_disable_transfer(Pdc *p_pdc, uint32_t ul_controls);
 uint32_t pdc_read_status(Pdc *p_pdc);

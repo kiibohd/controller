@@ -32,6 +32,7 @@
 
 // ASF Includes
 #include <sam/drivers/pmc/pmc.h>
+#include <common/services/clock/sysclk.h>
 #include <sam/drivers/spi/spi.h>
 
 // Local Includes
@@ -49,7 +50,7 @@
 // ----- Structs -----
 
 typedef struct TransactionBuffer {
-	SPI_Transaction *buf[TransactionBuffer_Size];
+	volatile SPI_Transaction *buf[TransactionBuffer_Size];
 	uint8_t head;
 	uint8_t tail;
 } TransactionBuffer;
@@ -105,7 +106,7 @@ static uint8_t TransactionBuffer_valid_head()
 	if (new_head == TransactionBuffer_Size)
 	{
 		// Make sure we don't pass tail pointer
-		if (Transaction_buffer.tail == 0)
+		if (Transaction_buffer.tail == TransactionBuffer_Size)
 		{
 			return 0;
 		}
@@ -148,7 +149,8 @@ static uint8_t queue_next_transaction(Pdc *pdc)
 	if (TransactionBuffer_current_size() == 0)
 	{
 		// PDC isn't needed, disable
-		pdc_disable_transfer(pdc, PERIPH_PTCR_RXTEN | PERIPH_PTCR_TXTEN);
+		pdc_disable_transfer(pdc, PERIPH_PTCR_RXTDIS | PERIPH_PTCR_TXTDIS);
+		NVIC_DisableIRQ(SPI_IRQn);
 
 		return 0;
 	}
@@ -157,11 +159,13 @@ static uint8_t queue_next_transaction(Pdc *pdc)
 	volatile SPI_Transaction *transaction = TransactionBuffer_head();
 
 	// Load PDC
-	pdc_rx_init(pdc, (pdc_packet_t*)&transaction->rx_buffer, NULL);
-	pdc_tx_init(pdc, (pdc_packet_t*)&transaction->tx_buffer, NULL);
+	pdc_rx_init(pdc, (pdc_packet_t*)&(transaction->rx_buffer), NULL);
+	pdc_tx_init(pdc, (pdc_packet_t*)&(transaction->tx_buffer), NULL);
 	transaction->status = SPI_Transaction_Status_Running;
 
 	// Start PDC
+	spi_enable_interrupt(SPI, SPI_IER_ENDRX | SPI_IER_ENDTX);
+	NVIC_EnableIRQ(SPI_IRQn);
 	pdc_enable_transfer(pdc, PERIPH_PTCR_RXTEN | PERIPH_PTCR_TXTEN);
 
 	return 1;
@@ -178,7 +182,8 @@ uint8_t spi_add_transaction(volatile SPI_Transaction *transaction)
 		return 0;
 	}
 
-	uint16_t new_tail = Transaction_buffer.tail + 1;
+	uint16_t tail = Transaction_buffer.tail;
+	uint16_t new_tail = tail + 1;
 
 	// Make sure we don't collide with head pointer
 	if (new_tail == Transaction_buffer.head)
@@ -202,7 +207,7 @@ uint8_t spi_add_transaction(volatile SPI_Transaction *transaction)
 	uint8_t empty = TransactionBuffer_current_size() == 0 ? 1 : 0;
 
 	// Set transaction
-	Transaction_buffer.buf[new_tail] = (SPI_Transaction*)transaction;
+	Transaction_buffer.buf[tail] = transaction;
 	transaction->status = SPI_Transaction_Status_Queued;
 
 	// Set tail
@@ -222,12 +227,23 @@ uint8_t spi_add_transaction(volatile SPI_Transaction *transaction)
 // SPI Interrupt Handler
 void SPI_Handler()
 {
-	uint32_t status = spi_read_status(SPI) ;
+	uint32_t status = spi_read_status(SPI);
+	Pdc *pdc = spi_get_pdc_base(SPI);
 
 	// Check for status
-	if(status & SPI_SR_ENDRX || status & SPI_SR_ENDTX)
+	if (status & SPI_SR_ENDRX || status & SPI_SR_ENDTX)
 	{
-		Pdc *pdc = spi_get_pdc_base(SPI);
+		// Disable Rx interrupt, re-enable when needed
+		if (status & SPI_SR_ENDRX)
+		{
+			spi_disable_interrupt(SPI, SPI_IER_ENDRX);
+		}
+
+		// Disable Tx interrupt, re-enable when needed
+		if (status & SPI_SR_ENDTX)
+		{
+			spi_disable_interrupt(SPI, SPI_IER_ENDTX);
+		}
 
 		// Only something to do if both Rx and Tx are finished
 		if (pdc_read_rx_counter(pdc) == 0 && pdc_read_tx_counter(pdc) == 0)
@@ -257,9 +273,6 @@ void spi_setup()
 	// Get pointer to SPI master PDC register base
 	Pdc *pdc = spi_get_pdc_base(SPI);
 
-	// Configure an SPI peripheral
-	pmc_enable_periph_clk(ID_SPI);
-
 	// Enable pins for SPI
 	GPIO_ConfigPin miso = periph_io(A, 12, A);
 	GPIO_ConfigPin mosi = periph_io(A, 13, A);
@@ -270,10 +283,15 @@ void spi_setup()
 
 	// Reset SPI settings
 	spi_disable(SPI);
+	spi_enable_clock(SPI);
 	spi_reset(SPI);
-	spi_set_lastxfer(SPI);
+	spi_set_writeprotect(SPI, 0); // Disable write-protect
 	spi_set_master_mode(SPI);
+	spi_set_lastxfer(SPI);
+	spi_set_variable_peripheral_select(SPI);
 	spi_disable_mode_fault_detect(SPI);
+	spi_disable_loopback(SPI);
+	spi_disable_peripheral_select_decode(SPI);
 
 	// Enable SPI
 	spi_enable(SPI);
@@ -281,11 +299,7 @@ void spi_setup()
 	// Make sure PDC is disabled until we're ready to use it
 	pdc_disable_transfer(pdc, PERIPH_PTCR_RXTDIS | PERIPH_PTCR_TXTDIS);
 
-	// Enable PDC channel interrupt
-	spi_enable_interrupt(SPI, SPI_IER_ENDRX | SPI_IER_ENDTX);
-
-	// Enable SPI interrupt
-	NVIC_EnableIRQ(SPI_IRQn);
+	// Set SPI interrupt priority
 	NVIC_SetPriority(SPI_IRQn, SPI_Priority_define);
 }
 

@@ -114,6 +114,21 @@ void pdc_rx_clear_cnt(
 }
 
 /**
+ * \brief Clear PDC buffer transmit counter.
+ *
+ * \param[out] p_pdc Device structure pointer
+ */
+void pdc_tx_clear_cnt(
+		Pdc *p_pdc)
+{
+	/* Validate inputs. */
+	Assert(p_pdc);
+
+	p_pdc->PERIPH_TNCR = 0;
+	p_pdc->PERIPH_TCR = 0;
+}
+
+/**
  * \brief Enable PDC transfers (TX and/or RX).
  *
  * \note It is forbidden to set both TXTEN and RXTEN for a half duplex

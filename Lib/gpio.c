@@ -209,7 +209,7 @@ uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 
 void PIO_Setup(GPIO_ConfigPin config)
 {
-#if defined(__sam__)
+#if defined(_sam_)
 	Pio *pio;
 	switch (config.port)
 	{
@@ -229,6 +229,7 @@ void PIO_Setup(GPIO_ConfigPin config)
 	}
 
 	pio_set_peripheral(pio, config.peripheral, config.pin);
+	pio->PIO_PDR |= (1 << config.pin);
 #endif
 }
 

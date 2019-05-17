@@ -54,15 +54,17 @@
 #define ISSI_ConfigPage        0x52
 #define ISSI_ConfigPageLength  0x2F
 #define ISSI_LEDScalePage      0x51
+#define ISSI_LEDScalePageStart 0x01
 #define ISSI_LEDPwmPage        0x50
+#define ISSI_LEDPwmPageStart   0x01
 #define ISSI_PageLength        0xC6
-#define ISSI_SendDelay         70
 
 #else
 #error "ISSI Driver Chip not defined in Scan scancode_map.kll..."
 #endif
 
 #define LED_TotalChannels     (LED_BufferLength * ISSI_Chips_define)
+#define LED_TransferSize      ((LED_BufferLength + 2) * ISSI_Chips_define)
 
 
 
@@ -75,36 +77,21 @@
 		{ ISSILedMask##ch##_define }, \
 	}
 
-#define LED_RegisterWrite(cs, page, reg, val) \
+#define LED_SPIWrite(cs, _data, _lastxfer) \
 	{ \
-		{ \
-			.lastxfer = 0, \
-			.pcs = cs, \
-			.data = page, \
-		}, \
-		{ \
-			.lastxfer = 0, \
-			.pcs = cs, \
-			.data = reg, \
-		}, \
-		{ \
-			.lastxfer = 1, \
-			.pcs = cs, \
-			.data = val, \
-		}, \
+		.lastxfer = _lastxfer, \
+		.pcs = cs, \
+		.data = _data, \
 	}
 
-#define SPI_TransactionSetup(rx_addr, rx_size, tx_addr, tx_size) \
+#define LED_RegisterWriteSetup(cs, page, reg, val) \
+	LED_SPIWrite(cs, page, 0), \
+	LED_SPIWrite(cs, reg, 0), \
+	LED_SPIWrite(cs, val, 1)
+
+#define LED_RegisterWrite(cs, page, reg, val) \
 	{ \
-		.status = SPI_Transaction_Status_None, \
-		.rx_buffer = { \
-			.ul_addr = (uint32_t)rx_addr, \
-			.ul_size = rx_size, \
-		}, \
-		.tx_buffer = { \
-			.ul_addr = (uint32_t)tx_addr, \
-			.ul_size = tx_size, \
-		}, \
+		LED_RegisterWriteSetup(cs, page, reg, val) \
 	}
 
 
@@ -182,7 +169,7 @@ static StorageModule LedStorage = {
 #endif
 
 // Output buffer used for SPI
-volatile SPI_Packet LED_spi_buffer[ISSI_Chips_define * LED_BufferLength];
+volatile SPI_Packet LED_spi_buffer[LED_TransferSize];
 volatile SPI_Transaction LED_spi_transaction;
 
 extern LED_Buffer LED_pageBuffer[ISSI_Chips_define];
@@ -234,39 +221,36 @@ static uint8_t ledLatencyResource;
 // val - Value to write
 void LED_syncReg(uint8_t page, uint8_t reg, uint8_t val)
 {
+	/*
+	info_msg("SPI Sync page(");
+	printHex( page );
+	print(")reg(");
+	printHex( reg );
+	print(")val(");
+	printHex( val );
+	print(")" NL);
+	*/
+
 	// Setup packet sequence for writing
-	const SPI_Packet buffer[ISSI_Chips_define][3] = {
-		LED_RegisterWrite(0, page, reg, val),
+	const SPI_Packet buffer[] = {
+		LED_RegisterWriteSetup(0, page, reg, val),
 #if ISSI_Chips_define >= 2
-		LED_RegisterWrite(1, page, reg, val),
+		LED_RegisterWriteSetup(1, page, reg, val),
 #elif ISSI_Chips_define >= 3
-		LED_RegisterWrite(2, page, reg, val),
+		LED_RegisterWriteSetup(2, page, reg, val),
 #elif ISSI_Chips_define >= 4
-		LED_RegisterWrite(3, page, reg, val),
+		LED_RegisterWriteSetup(3, page, reg, val),
 #endif
 	};
 
 	// Build each of the transactions
-	volatile SPI_Transaction transaction[ISSI_Chips_define] = {
-		SPI_TransactionSetup(NULL, 0, buffer[0], 3),
-#if ISSI_Chips_define >= 2
-		SPI_TransactionSetup(NULL, 0, buffer[1], 3),
-#elif ISSI_Chips_define >= 3
-		SPI_TransactionSetup(NULL, 0, buffer[2], 3),
-#elif ISSI_Chips_define >= 4
-		SPI_TransactionSetup(NULL, 0, buffer[3], 3),
-#endif
-	};
+	volatile SPI_Transaction transaction = SPI_TransactionSetup(NULL, 0, buffer, ISSI_Chips_define * 3);
 
 	// Queue transactions
-	for (uint8_t ch = 0; ch < ISSI_Chips_define; ch++)
-	{
-		spi_add_transaction(&transaction[ch]);
-	}
+	spi_add_transaction(&transaction);
 
 	// Wait for final transaction to complete
-	while (transaction[ISSI_Chips_define - 1].status != SPI_Transaction_Status_Finished)
-		delay_us(ISSI_SendDelay);
+	while (transaction.status != SPI_Transaction_Status_Finished);
 }
 
 // Write address
@@ -298,8 +282,7 @@ void LED_writeReg(uint8_t cs, uint8_t page, uint8_t reg, uint8_t val)
 	spi_add_transaction( &transaction );
 
 	// Wait for transaction to complete
-	while (transaction.status != SPI_Transaction_Status_Finished)
-		delay_us( ISSI_SendDelay );
+	while (transaction.status != SPI_Transaction_Status_Finished);
 }
 
 // Read address
@@ -350,8 +333,7 @@ uint8_t LED_readReg(uint8_t cs, uint8_t page, uint8_t reg)
 	spi_add_transaction( &transaction );
 
 	// Wait for transaction to complete
-	while ( transaction.status != SPI_Transaction_Status_Finished )
-		delay_us( ISSI_SendDelay );
+	while ( transaction.status != SPI_Transaction_Status_Finished );
 
 	return (uint8_t)rxbuffer.data;
 }
@@ -367,7 +349,6 @@ void LED_reset()
 	// Enable Hardware shutdown (pull low)
 	GPIO_Ctrl(hardware_shutdown_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup);
 	GPIO_Ctrl(hardware_shutdown_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup);
-	delay_us(50);
 
 	// Disable Hardware shutdown of ISSI chips (pull high)
 	if ( LED_enable && LED_enable_current )
@@ -382,22 +363,31 @@ void LED_reset()
 	// Setup enable mask/scaling per channel
 	for (uint8_t cs = 0; cs < ISSI_Chips_define; cs++)
 	{
+		// Setup command byte
+		volatile SPI_Packet *cmd = &LED_spi_buffer[cs * (LED_BufferLength + 2)];
+		cmd->data = ISSI_LEDScalePage; // Scaling Page
+		cmd->pcs = cs;
+
+		// Setup register byte (always 0x01)
+		volatile SPI_Packet *reg = &LED_spi_buffer[cs * (LED_BufferLength + 2) + 1];
+		reg->data = ISSI_LEDPwmPageStart;
+		reg->pcs = cs;
+
 		for (uint16_t pkt = 0; pkt < LED_BufferLength; pkt++)
 		{
-			volatile SPI_Packet *pos = &LED_spi_buffer[cs * pkt];
+			volatile SPI_Packet *pos = &LED_spi_buffer[cs * (LED_BufferLength + 2) + pkt + 2];
 			pos->data = LED_ledScalingMask[cs].buffer[pkt];
+			pos->pcs = cs;
+			pos->lastxfer = 0;
 		}
+
+		// Set lastxfer
+		volatile SPI_Packet *final = &LED_spi_buffer[cs * (LED_BufferLength + 2) + LED_BufferLength - 1 + 2];
+		final->lastxfer = 1;
 	}
 
-	// Set the final pkt as the last packet
-	LED_spi_buffer[ISSI_Chips_define * LED_BufferLength - 1].lastxfer = 1;
-
 	// Setup spi transaction
-	LED_spi_transaction.status = SPI_Transaction_Status_None;
-	LED_spi_transaction.rx_buffer.ul_addr = (uint32_t)NULL;
-	LED_spi_transaction.rx_buffer.ul_size = 0;
-	LED_spi_transaction.tx_buffer.ul_addr = (uint32_t)&LED_spi_buffer;
-	LED_spi_transaction.tx_buffer.ul_size = ISSI_Chips_define * LED_BufferLength;
+	LED_spi_transaction = SPI_TransactionSetup(NULL, 0, LED_spi_buffer, LED_TransferSize);
 
 	// Send scaling setup via spi
 	// XXX (HaaTa): No need to wait as the next register set will wait for us
@@ -518,7 +508,7 @@ inline void LED_setup()
 	// Register Scan CLI dictionary
 	CLI_registerDictionary(ledCLIDict, ledCLIDictName);
 #if Storage_Enable_define == 1
-	Storage_registerModule(&LedStorage);
+	//Storage_registerModule(&LedStorage);
 #endif
 
 	// Zero out FPS time
@@ -554,47 +544,26 @@ inline void LED_setup()
 	{
 		// Apply SPI settings
 		SPI_Channel settings = {
-			.cpol = 0,   // SPCK inactive is 0
-			.ncpha = 1,  // data capture on leading edge of SPCK
+			// Mode 3 (cpol = 1, ncpha = 0)
+			.cpol = 1,   // SPCK
+			.ncpha = 0,  // data capture
 			.csnaat = 0, // CS not active after transfer
-			.csaat = 1,  // CS active aftre transfer
+			.csaat = 1,  // CS active after transfer
 			.size = SPI_Size_8_BIT, // Transfer size
 			// SPCK bit rate
 			// 60 MHz peripheral clock
 			// 12 MHz max ISSI clock
-			// SCBR = f_per / f_issi = 5
+			// SCBR = f_per / f_issi = 5 (4, 15 MHz has also been tested to work)
 			.scbr = 5,
-			.dlybs = 0,
-			.dlybct = 0,
+			.dlybs = 0, // Delay between CS and first SPCK
+			.dlybct = 0, // Delay between consecutive transfer (no CS change)
 		};
 		spi_cs_setup(cs, settings);
-
-		// Setup LED_spi_buffer to include needed settings on SAM4S
-		for (uint16_t pkt = 0; pkt < LED_BufferLength; pkt++)
-		{
-			volatile SPI_Packet *pos = &LED_spi_buffer[cs * pkt];
-			pos->lastxfer = 0;
-			pos->pcs = cs;
-			pos->data = 0;
-		}
 	}
 
 	// LED default setting
 	LED_enable = ISSI_Enable_define;
 	LED_enable_current = ISSI_Enable_define; // Needs a default setting, almost always unset immediately
-
-	// Enable Hardware shutdown (pull low)
-	GPIO_Ctrl(hardware_shutdown_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup);
-	GPIO_Ctrl(hardware_shutdown_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup);
-
-	// Call reset to clear all registers
-	LED_syncReg(ISSI_ConfigPage, 0x2F, 0xAE);
-
-	// Disable Hardware shutdown of ISSI chips (pull high)
-	if (LED_enable && LED_enable_current)
-	{
-		GPIO_Ctrl(hardware_shutdown_pin, GPIO_Type_DriveHigh, GPIO_Config_Pullup);
-	}
 
 	// Reset LED sequencing
 	LED_reset();
@@ -703,21 +672,22 @@ inline void LED_scan()
 	// Do a sparse copy from the LED Buffer to the SPI Buffer
 	for (uint8_t cs = 0; cs < ISSI_Chips_define; cs++)
 	{
+		// Setup command byte
+		// Register byte is already setup (always 0x01)
+		volatile SPI_Packet *cmd = &LED_spi_buffer[cs * (LED_BufferLength + 2)];
+		cmd->data = ISSI_LEDPwmPage; // PWM Page
+
 		for (uint16_t pkt = 0; pkt < LED_BufferLength; pkt++)
 		{
-			volatile SPI_Packet *pos = &LED_spi_buffer[cs * pkt];
+			volatile SPI_Packet *pos = &LED_spi_buffer[cs * (LED_BufferLength + 2) + pkt + 2];
 			pos->data = LED_pageBuffer[cs].buffer[pkt];
 		}
 	}
 
 	// Setup spi transaction
-	LED_spi_transaction.status = SPI_Transaction_Status_None;
-	LED_spi_transaction.rx_buffer.ul_addr = (uint32_t)NULL;
-	LED_spi_transaction.rx_buffer.ul_size = 0;
-	LED_spi_transaction.tx_buffer.ul_addr = (uint32_t)&LED_spi_buffer;
-	LED_spi_transaction.tx_buffer.ul_size = ISSI_Chips_define * LED_BufferLength;
+	LED_spi_transaction = SPI_TransactionSetup(NULL, 0, &LED_spi_buffer, LED_TransferSize);
 
-	// Send scaling setup via spi
+	// Send via spi
 	// Purposefully not waiting, this will send in the background without interrupts or CPU interference
 	// An interrupt is only used to move onto the next transaction if any are queued
 	spi_add_transaction(&LED_spi_transaction);
