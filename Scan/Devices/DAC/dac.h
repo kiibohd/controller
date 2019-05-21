@@ -59,5 +59,6 @@ typedef struct DAC_Sample {
 
 void dac_setup();
 
+uint8_t dac_next_sample(volatile DAC_Sample *sample);
 uint8_t dac_set_sample(volatile DAC_Sample *sample);
 

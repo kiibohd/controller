@@ -42,11 +42,134 @@
 
 // ----- Defines -----
 
+// Size of transaction buffer (stores pointers)
+#define TransactionBuffer_Size 10
+
+
+
 // ----- Structs -----
+
+typedef struct TransactionBuffer {
+	DAC_Sample *buf[TransactionBuffer_Size];
+	uint8_t head;
+	uint8_t tail;
+} TransactionBuffer;
+
+
 
 // ----- Variables -----
 
+static volatile TransactionBuffer Transaction_buffer;
+
+
+
 // ----- Functions -----
+
+// Calculates the current size of the Transaction buffer
+static uint8_t TransactionBuffer_current_size()
+{
+	// Wrap-around (tail less than head)
+	if ( Transaction_buffer.tail < Transaction_buffer.head )
+	{
+		return TransactionBuffer_Size - Transaction_buffer.head + Transaction_buffer.tail + 1;
+	}
+
+	return Transaction_buffer.tail - Transaction_buffer.head;
+}
+
+
+// Retrieves the head of the Transaction buffer
+static volatile DAC_Sample *TransactionBuffer_head()
+{
+	return Transaction_buffer.buf[Transaction_buffer.head];
+}
+
+
+// Check if valid head
+static uint8_t TransactionBuffer_valid_head()
+{
+	// Buffer is empty, cannot increment head
+	if (TransactionBuffer_current_size() == 0)
+	{
+		return 0;
+	}
+
+	// Make sure we don't pass tail pointer
+	if (Transaction_buffer.head == Transaction_buffer.tail)
+	{
+		return 0;
+	}
+
+	uint16_t new_head = Transaction_buffer.head + 1;
+
+	// Wrap-around case
+	if (new_head == TransactionBuffer_Size)
+	{
+		// Make sure we don't pass tail pointer
+		if (Transaction_buffer.tail == TransactionBuffer_Size)
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+
+// Increments TransactionBuffer head pointer
+// Returns 1 if successful, 0 if buffer empty and cannot increment
+static uint8_t TransactionBuffer_increment_head()
+{
+	// Check if a valid head pointer first
+	if (!TransactionBuffer_valid_head())
+	{
+		return 0;
+	}
+
+	uint16_t new_head = Transaction_buffer.head + 1;
+
+	// Wrap-around case
+	if (new_head == TransactionBuffer_Size)
+	{
+		new_head = 0;
+	}
+
+	// Don't set head until we are sure we're ready to commit
+	Transaction_buffer.head = new_head;
+
+	return 1;
+}
+
+
+// Queues next transmission
+// Returns 1 if successfully queued, 0 if there was nothing to queue
+static uint8_t queue_next_transaction(Pdc *pdc)
+{
+	// Make sure there are transactions
+	if (TransactionBuffer_current_size() == 0)
+	{
+		// PDC isn't needed, disable
+		pdc_disable_transfer(pdc, PERIPH_PTCR_TXTDIS);
+		NVIC_DisableIRQ(DACC_IRQn);
+
+		return 0;
+	}
+
+	// Get next transaction
+	volatile DAC_Sample *sample = TransactionBuffer_head();
+
+	// Load PDC
+	pdc_tx_init(pdc, (pdc_packet_t*)&sample->tx_buffer, NULL);
+	sample->status = DAC_Sample_Status_Started;
+
+	// Start PDC
+	dacc_enable_interrupt(DACC, DACC_ISR_ENDTX);
+	NVIC_EnableIRQ(DACC_IRQn);
+	pdc_enable_transfer(pdc, PERIPH_PTCR_TXTEN);
+
+	return 1;
+}
+
 
 // Sets the current DAC sample
 // Will disable the pdc of a currently running sample (even if it's the same incoming sample)
@@ -56,9 +179,23 @@
 //  1: Sample was set
 uint8_t dac_set_sample(volatile DAC_Sample *sample)
 {
-	// TODO
-	return 0;
+	Pdc *pdc = dacc_get_pdc_base(DACC);
+
+	// First disable the pdc and interrupt
+	pdc_disable_transfer(pdc, PERIPH_PTCR_TXTDIS);
+	NVIC_DisableIRQ(DACC_IRQn);
+
+	// Next mark the currently running samples as errored (if one was running)
+	while (TransactionBuffer_current_size() > 0)
+	{
+		TransactionBuffer_head()->status = DAC_Sample_Status_Stopped;
+		TransactionBuffer_increment_head();
+	}
+
+	// Now that the samples have been cleared, add the sample
+	return dac_next_sample(sample);
 }
+
 
 // Appends the next sample
 // If no sample is running, start sample.
@@ -67,10 +204,66 @@ uint8_t dac_set_sample(volatile DAC_Sample *sample)
 // Returns
 //  0: Could not add sample
 //  1: Sample queued
+//  2: Already queued
 uint8_t dac_next_sample(volatile DAC_Sample *sample)
 {
-	// TODO
-	return 0;
+	// Check if sample is already in the queue
+	uint16_t pos = 0;
+	while (pos < TransactionBuffer_current_size())
+	{
+		uint16_t pos_adj = pos > TransactionBuffer_Size ? pos - TransactionBuffer_current_size() : pos;
+		if (sample == Transaction_buffer.buf[pos_adj])
+		{
+			return 2;
+		}
+		pos++;
+	}
+
+	// Buffer is full, cannot increment tail
+	if (TransactionBuffer_current_size() >= TransactionBuffer_Size)
+	{
+		return 0;
+	}
+
+	uint16_t tail = Transaction_buffer.tail;
+	uint16_t new_tail = tail + 1;
+
+	// Make sure we don't collide with head pointer
+	if (new_tail == Transaction_buffer.head)
+	{
+		return 0;
+	}
+
+	// Wrap-around case
+	if (new_tail >= TransactionBuffer_Size)
+	{
+		// Make sure we don't collide with head pointer
+		if (Transaction_buffer.head == 0)
+		{
+			return 0;
+		}
+
+		new_tail = 0;
+	}
+
+	// Check if buffer is currently empty
+	uint8_t empty = TransactionBuffer_current_size() == 0 ? 1 : 0;
+
+	// Set transaction
+	Transaction_buffer.buf[tail] = (DAC_Sample*)sample;
+	sample->status = DAC_Sample_Status_Queued;
+
+	// Set tail
+	Transaction_buffer.tail = new_tail;
+
+	// Enable PDC if buffer previously empty, starting the transaction
+	if (empty)
+	{
+		Pdc *pdc = dacc_get_pdc_base(DACC);
+		queue_next_transaction(pdc);
+	}
+
+	return 1;
 }
 
 void dac_setup()
@@ -253,34 +446,35 @@ void dac_setup()
 	Pdc *pdc = dacc_get_pdc_base(DACC);
 	pdc_disable_transfer(pdc, PERIPH_PTCR_TXTDIS);
 
-	// Enable the DACC end of transmit buffer interrupt
-	dacc_enable_interrupt(DACC, DACC_IMR_ENDTX);
-
-	// Enable DACC interrupts
-	NVIC_EnableIRQ(DACC_IRQn);
+	// Set DACC interrupts
 	NVIC_SetPriority(DACC_IRQn, DAC_Priority_define);
 }
 
+// DAC Interrupt Handler
 void DACC_Handler()
 {
 	uint32_t status = dacc_get_interrupt_status(DACC);
+	Pdc *pdc = dacc_get_pdc_base(DACC);
 
 	// Check end of tx for dac buffer
 	if (status & DACC_ISR_ENDTX)
 	{
-		Pdc *pdc = dacc_get_pdc_base(DACC);
+		// Disable interrupt, re-enable when needed
+		dacc_disable_interrupt(DACC, DACC_IER_ENDTX);
 
-		// Check if there is still a buffer left to send
-		// TODO
-		if ( 0 )
+		// Check if the buffer has finished sending
+		if (pdc_read_tx_counter(pdc) == 0)
 		{
-			// Re-configure PDC to point to next buffer
-			pdc_tx_init(pdc, NULL, NULL); // TODO
-		}
-		// Disable pdc until a new buffer arrives
-		else
-		{
-			pdc_disable_transfer(pdc, PERIPH_PTCR_TXTDIS);
+			// First set transaction as complete
+			TransactionBuffer_head()->status = DAC_Sample_Status_Finished;
+
+			// Next pop head transaction
+			// No need for a callback as the caller has everything they need and polls it periodically
+			TransactionBuffer_increment_head();
+
+			// Attempt to queue next transaction
+			// If none available, pdc is disabled
+			queue_next_transaction(pdc);
 		}
 	}
 }
