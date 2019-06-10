@@ -47,6 +47,7 @@ cmd_cpy "bash ./ergodox.bash"         kiibohd${isuffix} bootloader/ergodox${suff
 cmd_cpy "bash ./geminiduskdawn.bash"  kiibohd${isuffix} bootloader/geminiduskdawn${suffix}
 cmd_cpy "bash ./infinity.bash"        kiibohd${isuffix} bootloader/infinity${suffix}
 cmd_cpy "bash ./infinity_led.bash"    kiibohd${isuffix} bootloader/infinity_led${suffix}
+cmd_cpy "bash ./keystone.bash"        kiibohd${isuffix} bootloader/keystone${suffix}
 cmd_cpy "bash ./kira.bash"            kiibohd${isuffix} bootloader/kira${suffix}
 cmd_cpy "bash ./ktype.bash"           kiibohd${isuffix} bootloader/ktype${suffix}
 cmd_cpy "bash ./whitefox.bash"        kiibohd${isuffix} bootloader/whitefox${suffix}
