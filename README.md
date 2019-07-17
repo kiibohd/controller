@@ -41,7 +41,7 @@ However, the recommended method is using a [Dockerfile](Dockerfiles).
 
 Then, once you have a docker environment, you can select a build script [here](Keyboards).
 
-To compile natively for your platform, refer to the [wiki](../../wiki).
+To compile natively for your platform, refer to the [wiki](https://kiibohd.github.io/wiki/#/Setup).
 
 
 
@@ -95,6 +95,13 @@ Data       | +---------+ |  | +--------+  |  |              |      Data
 * [Output Modules](Output) - Defines what the keyboard talks over (e.g. USB)
 
 General Code can be found in [Lib](Lib).
+
+
+
+KLL
+---
+
+![KLL Overview](Documentation/images/KLL_Overview.png)
 
 
 
