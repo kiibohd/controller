@@ -8,7 +8,7 @@
  *     http://code.google.com/p/avr-hardware-random-number-generation/wiki/WikiAVRentropy
  *
  * Copyright 2014 by Walter Anderson
- * Modifications 2017-2018 by Jacob Alexander
+ * Modifications 2017-2019 by Jacob Alexander
  *
  * Entropy is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -262,73 +262,6 @@ volatile uint32_t gWDT_entropy_pool[WDT_POOL_SIZE];
 
 // ----- Functions -----
 
-// This function initializes the global variables needed to implement the circular entropy pool and
-// the buffer that holds the raw Timer 1 values that are used to create the entropy pool.  It then
-// Initializes tc0 (channel 1), to perform an interrupt every 2048 clock cycles.
-// NOTE: Atmel is dumb and uses the range TC{0..5} to refer to TC{0,1}->TC_CHANNEL{0..2}
-void rand_initialize()
-{
-	gWDT_buffer_position = 0;
-	gWDT_pool_start = 0;
-	gWDT_pool_end = 0;
-	gWDT_pool_count = 0;
-
-	// Enable clock for timer TC1 (Channel 4)
-	PMC->PMC_PCER0 |= (1 << ID_TC4);
-
-	// Setup Timer Counter to MCK/128, compare resets counter
-	TC1->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_CPCTRG;
-
-	// Timer Count-down value
-	// Number of cycles to count from CPU clock before calling interrupt
-	TC1->TC_CHANNEL[1].TC_RC = TC_RC_RC(937); // Approx. ~1 kHz @ 120 MHz MCK
-
-	// Enable Timer, Enable interrupt
-	TC1->TC_CHANNEL[1].TC_IER = TC_IER_CPCS;
-	TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
-
-	// Enable TC1 interrupt
-	NVIC_EnableIRQ( TC4_IRQn );
-
-	// Set TC1 interrupt to a low priority
-	NVIC_SetPriority( TC4_IRQn, Entropy_Priority_define );
-}
-
-// Disables interrupt, thus stopping CPU usage generating entropy
-void rand_disable()
-{
-	TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKDIS;
-	TC1->TC_CHANNEL[1].TC_IDR = 0xFF;
-	NVIC_DisableIRQ( TC4_IRQn );
-}
-
-// This function returns a unsigned char (8-bit) with the number of unsigned long values
-// in the entropy pool
-uint8_t rand_available()
-{
-	return gWDT_pool_count;
-}
-
-// Pseudo-random value using clock
-uint32_t rand_value32()
-{
-	uint32_t retVal = 0;
-	uint8_t waiting;
-	while ( gWDT_pool_count < 1 )
-	{
-		waiting += 1;
-	}
-
-	ATOMIC_BLOCK( ATOMIC_RESTORESTATE )
-	{
-		retVal = gWDT_entropy_pool[gWDT_pool_start];
-		gWDT_pool_start = (gWDT_pool_start + 1) % WDT_POOL_SIZE;
-		--gWDT_pool_count;
-	}
-
-	return retVal;
-}
-
 // This interrupt service routine is called every time the TC1 interrupt is triggered.
 // With the default configuration that is approximately once every 16ms, producing
 // approximately two 32-bit integer values every second.
@@ -375,6 +308,93 @@ static void isr_hardware_neutral( uint8_t val )
 	}
 }
 
+// This function initializes the global variables needed to implement the circular entropy pool and
+// the buffer that holds the raw Timer 1 values that are used to create the entropy pool.  It then
+// Initializes tc0 (channel 1), to perform an interrupt every 2048 clock cycles.
+// NOTE: Atmel is dumb and uses the range TC{0..5} to refer to TC{0,1}->TC_CHANNEL{0..2}
+#if defined(_sam4s_a_) || defined(_sam4s_b_)
+void rand_initialize()
+{
+	gWDT_buffer_position = 0;
+	gWDT_pool_start = 0;
+	gWDT_pool_end = 0;
+	gWDT_pool_count = 0;
+
+	// Enable clock for timer TC0 (Channel 1)
+	PMC->PMC_PCER0 |= (1 << ID_TC1);
+
+	// Setup Timer Counter to MCK/128, compare resets counter
+	TC0->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_CPCTRG;
+
+	// Timer Count-down value
+	// Number of cycles to count from CPU clock before calling interrupt
+	TC0->TC_CHANNEL[1].TC_RC = TC_RC_RC(937); // Approx. ~1 kHz @ 120 MHz MCK
+
+	// Enable Timer, Enable interrupt
+	TC0->TC_CHANNEL[1].TC_IER = TC_IER_CPCS;
+	TC0->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
+
+	// Enable TC0 interrupt
+	NVIC_EnableIRQ( TC1_IRQn );
+
+	// Set TC0 interrupt to a low priority
+	NVIC_SetPriority( TC1_IRQn, Entropy_Priority_define );
+}
+
+// Disables interrupt, thus stopping CPU usage generating entropy
+void rand_disable()
+{
+	TC0->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKDIS;
+	TC0->TC_CHANNEL[1].TC_IDR = 0xFF;
+	NVIC_DisableIRQ( TC1_IRQn );
+}
+
+void TC1_Handler()
+{
+	uint32_t status = TC0->TC_CHANNEL[1].TC_SR;
+	if ( status & TC_SR_CPCS )
+	{
+		// Use the current state of systick for seeding
+		isr_hardware_neutral(SysTick->VAL & SysTick_VAL_CURRENT_Msk);
+	}
+}
+#elif defined(_sam4s_)
+void rand_initialize()
+{
+	gWDT_buffer_position = 0;
+	gWDT_pool_start = 0;
+	gWDT_pool_end = 0;
+	gWDT_pool_count = 0;
+
+	// Enable clock for timer TC1 (Channel 4)
+	PMC->PMC_PCER0 |= (1 << ID_TC4);
+
+	// Setup Timer Counter to MCK/128, compare resets counter
+	TC1->TC_CHANNEL[1].TC_CMR = TC_CMR_TCCLKS_TIMER_CLOCK4 | TC_CMR_CPCTRG;
+
+	// Timer Count-down value
+	// Number of cycles to count from CPU clock before calling interrupt
+	TC1->TC_CHANNEL[1].TC_RC = TC_RC_RC(937); // Approx. ~1 kHz @ 120 MHz MCK
+
+	// Enable Timer, Enable interrupt
+	TC1->TC_CHANNEL[1].TC_IER = TC_IER_CPCS;
+	TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKEN | TC_CCR_SWTRG;
+
+	// Enable TC1 interrupt
+	NVIC_EnableIRQ( TC4_IRQn );
+
+	// Set TC1 interrupt to a low priority
+	NVIC_SetPriority( TC4_IRQn, Entropy_Priority_define );
+}
+
+// Disables interrupt, thus stopping CPU usage generating entropy
+void rand_disable()
+{
+	TC1->TC_CHANNEL[1].TC_CCR = TC_CCR_CLKDIS;
+	TC1->TC_CHANNEL[1].TC_IDR = 0xFF;
+	NVIC_DisableIRQ( TC4_IRQn );
+}
+
 void TC4_Handler()
 {
 	uint32_t status = TC1->TC_CHANNEL[1].TC_SR;
@@ -383,6 +403,34 @@ void TC4_Handler()
 		// Use the current state of systick for seeding
 		isr_hardware_neutral(SysTick->VAL & SysTick_VAL_CURRENT_Msk);
 	}
+}
+#endif
+
+// This function returns a unsigned char (8-bit) with the number of unsigned long values
+// in the entropy pool
+uint8_t rand_available()
+{
+	return gWDT_pool_count;
+}
+
+// Pseudo-random value using clock
+uint32_t rand_value32()
+{
+	uint32_t retVal = 0;
+	uint8_t waiting;
+	while ( gWDT_pool_count < 1 )
+	{
+		waiting += 1;
+	}
+
+	ATOMIC_BLOCK( ATOMIC_RESTORESTATE )
+	{
+		retVal = gWDT_entropy_pool[gWDT_pool_start];
+		gWDT_pool_start = (gWDT_pool_start + 1) % WDT_POOL_SIZE;
+		--gWDT_pool_count;
+	}
+
+	return retVal;
 }
 
 
