@@ -384,17 +384,6 @@ void LED_zeroPages( uint8_t bus, uint8_t addr, uint8_t startPage, uint8_t numPag
 		delay_us( ISSI_SendDelay );
 }
 
-// Zero control ISSI pages
-void LED_zeroControlPages()
-{
-	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
-	{
-		uint8_t addr = LED_ChannelMapping[ ch ].addr;
-		uint8_t bus = LED_ChannelMapping[ ch ].bus;
-		LED_zeroPages( bus, addr, ISSI_ConfigPage, 1, 0x00, ISSI_ConfigPageLength ); // Control Registers
-	}
-}
-
 // Write ISSI page
 void LED_sendPage( uint8_t bus, uint8_t addr, uint16_t *buffer, uint32_t len, uint8_t page )
 {
@@ -566,6 +555,7 @@ void LED_reset()
 		// POR (Power-on-Reset)
 		// Clears all registers to default value (i.e. zeros)
 		LED_readReg( bus, addr, 0x11, ISSI_ConfigPage );
+		delay_us(50); // Give some time for the ISSI chip to reset
 
 		// Set the enable mask
 		LED_sendPage(
@@ -794,29 +784,6 @@ inline void LED_setup()
 	// LED default setting
 	LED_enable = ISSI_Enable_define;
 	LED_enable_current = ISSI_Enable_define; // Needs a default setting, almost always unset immediately
-
-	// Enable Hardware shutdown (pull low)
-	GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
-	GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
-
-#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
-	// Reset I2C bus (pull high, then low)
-	// NOTE: This GPIO may be shared with the debug LED
-	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
-	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveHigh, GPIO_Config_Pullup );
-	delay_us(50);
-	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
-#endif
-
-	// Zero out Frame Registers
-	// This needs to be done before disabling the hardware shutdown (or the leds will do undefined things)
-	LED_zeroControlPages();
-
-	// Disable Hardware shutdown of ISSI chips (pull high)
-	if ( LED_enable && LED_enable_current )
-	{
-		GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveHigh, GPIO_Config_Pullup );
-	}
 
 	// Reset LED sequencing
 	LED_reset();
@@ -1231,9 +1198,6 @@ void cliFunc_ledReset( char* args )
 	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
 #endif
 	i2c_reset();
-
-	// Clear control registers
-	LED_zeroControlPages();
 
 	// Clear buffers
 	for ( uint8_t buf = 0; buf < ISSI_Chips_define; buf++ )
