@@ -593,7 +593,7 @@ void Pixel_FadeLayerHighlight_capability( TriggerMacro *trigger, uint8_t state, 
 
 	// Add keys not in layer
 	uint8_t key = 1; // Scan Codes start at 1
-	for ( ; key <= layer_map->first; key++ )
+	for ( ; key < layer_map->first; key++ )
 	{
 		// If we've exceeded the pixel lookup, ignore
 		if ( key > MaxPixelToScanCode_KLL )
