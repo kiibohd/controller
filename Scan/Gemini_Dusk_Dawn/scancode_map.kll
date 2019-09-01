@@ -1,11 +1,11 @@
 # Gemini Dusk/Dawn Base Configuration
 
 Name = GeminiDuskDawn;
-Version = 0.4;
-Author = "HaaTa (Jacob Alexander) 2015-2018";
+Version = 0.5;
+Author = "HaaTa (Jacob Alexander) 2015-2019";
 
 # Modified Date
-Date = 2018-12-01;
+Date = 2019-08-31;
 
 
 # ScanCode Strobe List
@@ -175,7 +175,7 @@ S102 : None;
 S103 : None;
 S104 : None;
 S105 : U"RAlt";
-S106 : U"RGui";
+S106 : U"App";
 S107 : None;
 S108 : Layer[1];
 S109 : U"RCtrl";
