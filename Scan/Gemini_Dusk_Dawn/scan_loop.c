@@ -50,7 +50,9 @@
 inline void Scan_setup()
 {
 	// Setup Port Swap module
+	/* XXX (HaaTa) Disabled in the shipping hardware
 	Port_setup();
+	*/
 
 	// Setup GPIO pins for matrix scanning
 	Matrix_setup();
@@ -72,7 +74,9 @@ inline void Scan_setup()
 void Scan_poll()
 {
 	// Port Swap detection
+	/* XXX (HaaTa) Disabled in the shipping hardware
 	Port_scan();
+	*/
 
 	// Prepare any LED events
 	Pixel_process();
