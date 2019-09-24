@@ -92,10 +92,8 @@ void Device_setup()
 
 	// PA12 - USB Swap
 	// Start, disabled
-	/* XXX (HaaTa) This function is disabled in hardware on the shipping hardware
 	GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveSetup, GPIO_Config_None );
 	GPIO_Ctrl( usb_swap_pin, GPIO_Type_DriveLow, GPIO_Config_None );
-	*/
 
 	// Setup parameters for USB port swap
 	last_ms = 0;
@@ -127,7 +125,6 @@ void Device_process()
 	// For keyboards with dual usb ports, doesn't do anything on keyboards without them
 	// If a USB connection is not detected in 2 seconds, switch to the other port to see if it's plugged in there
 	// USB not initialized, attempt to swap
-	/* XXX (HaaTa) This function is disabled in hardware on the shipping hardware
 	uint32_t wait_ms = systick_millis_count - last_ms;
 	if ( wait_ms > USBPortSwapDelay_ms + attempt / 2 * USBPortSwapDelay_ms )
 	{
@@ -149,6 +146,5 @@ void Device_process()
 			attempt++;
 		}
 	}
-	*/
 }
 
