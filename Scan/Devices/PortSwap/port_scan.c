@@ -70,6 +70,7 @@ void cliFunc_portUSB  ( char* args );
 // ----- Variables -----
 
 uint32_t Port_lastcheck_ms;
+uint32_t Port_attempt;
 
 // GPIOs used for swapping
 #if Port_SwapMode_define == USBSwap || Port_SwapMode_define == USBInterSwap
@@ -185,6 +186,7 @@ inline void Port_setup()
 
 	// Starting point for automatic port swapping
 	Port_lastcheck_ms = systick_millis_count;
+	Port_attempt = 0;
 
 	// Allocate latency measurement resource
 	portLatencyResource = Latency_add_resource("PortSwap", LatencyOption_Ticks);
@@ -202,7 +204,7 @@ inline uint8_t Port_scan()
 	// Wait 1000 ms before checking
 	// Only check for swapping after delay
 	uint32_t wait_ms = systick_millis_count - Port_lastcheck_ms;
-	if ( wait_ms > USBPortSwapDelay_ms )
+	if ( wait_ms > USBPortSwapDelay_ms + Port_attempt * USBPortSwapDelay_ms / 4 )
 	{
 		// Update timeout
 		Port_lastcheck_ms = systick_millis_count;
@@ -211,6 +213,7 @@ inline uint8_t Port_scan()
 		if ( !usb_configured() )
 		{
 			Port_usb_swap();
+			Port_attempt++;
 		}
 	}
 
