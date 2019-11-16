@@ -485,16 +485,6 @@ nat_ptr_t *Layer_layerLookup( TriggerEvent *event, uint8_t latch_expire )
 		if ( latch && latch_expire )
 		{
 			Layer_layerStateSet( 0, 0, 0, cachedLayer, LayerStateType_Latch );
-#if defined(ConnectEnabled_define) && defined(LCDEnabled_define)
-			// Evaluate the layerStack capability if available (LCD + Interconnect)
-			extern void LCD_layerStack_capability(
-				TriggerMacro *trigger,
-				uint8_t state,
-				uint8_t stateType,
-				uint8_t *args
-			);
-			LCD_layerStack_capability( 0, 0, 0, 0 );
-#endif
 		}
 
 		return trigger_list;
