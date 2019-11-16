@@ -24,9 +24,9 @@ Some Examples:
 * **Version**:
 <!-- bcdDevice, this can tell us the firmware version (it's the git commit number). The bootloader also has a bcdDevice if you're having issues there.
 e.g. bcdDevice 2.da
-Linux: lsusb -d 1c11: -v
-macOS: ??
-Windows: ??
+Linux: lsusb -d 308f: -v
+macOS: ioreg -r -c IOUSBHostDevice
+Windows: Theyscon USB Descriptor Dumper https://www.thesycon.de/eng/usb_descriptordumper.shtml
 -->
 
 * **Reproduction Steps**:
