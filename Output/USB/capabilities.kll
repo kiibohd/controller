@@ -1,11 +1,11 @@
 # USB
 
 Name = USBCapabilities;
-Version = 0.12;
-Author = "HaaTa (Jacob Alexander) 2014-2018";
+Version = 0.13;
+Author = "HaaTa (Jacob Alexander) 2014-2019";
 
 # Modified Date
-Date = 2018-04-08;
+Date = 2019-12-07;
 
 
 # Output capabilities
@@ -106,11 +106,6 @@ enableUSBResume = 1;
 # But you'll lose functionality for that feature
 # Disabling endpoints will save RAM and Flash on the target MCU
 
-# Joystick Endpoint
-# *Currently Unused*
-enableJoystick => enableJoystick_define;
-enableJoystick = 0;
-
 # Mouse Endpoint
 enableMouse => enableMouse_define;
 enableMouse = 1;
@@ -118,10 +113,6 @@ enableMouse = 1;
 # Keyboard Endpoint
 enableKeyboard => enableKeyboard_define;
 enableKeyboard = 1;
-
-# CDC / Serial Port Endpoint
-enableVirtualSerialPort => enableVirtualSerialPort_define;
-enableVirtualSerialPort = 1;
 
 # Raw I/O Endpoint
 enableRawIO => enableRawIO_define;

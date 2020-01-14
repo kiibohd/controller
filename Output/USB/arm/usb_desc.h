@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modified by Jacob Alexander (2013-2018)
+ * Modified by Jacob Alexander (2013-2020)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -41,9 +41,6 @@
 // Project Includes
 #include <Lib/mcu_compat.h>
 
-// Local Includes
-//#include <output_usb.h>
-
 
 
 // ----- Defines -----
@@ -58,17 +55,15 @@
 #define DEVICE_SUBCLASS         0x00
 #define DEVICE_PROTOCOL         0x00
 #define EP0_SIZE                64
-#define NUM_ENDPOINTS           10 // XXX Can save some space if this can be calculated using KLL
-#define NUM_INTERFACES          8 // XXX Should be calculated at build time
+#define NUM_ENDPOINTS           6 // XXX Can save some space if this can be calculated using KLL
+#define NUM_INTERFACES          5 // XXX Should be calculated at build time
 #define NUM_USB_BUFFERS         30
 
 // XXX Remember to update total interface count, if it isn't correct some OSs will not initialize USB
 //     Linux warns in dmesg
 //     Mac OSX login screen will not initialize
 #define KEYBOARD_INTERFACES     3 // Boot, NKRO, SysCtrl
-#define CDC_INTERFACES          2
 #define MOUSE_INTERFACES        1
-#define JOYSTICK_INTERFACES     1
 #define RAWIO_INTERFACES        1
 
 
@@ -90,40 +85,22 @@
 #define SYS_CTRL_INTERVAL       1
 #define SYS_CTRL_NAME           L"Media Keys"
 
-#define CDC_IAD_DESCRIPTOR      1
-#define CDC_STATUS_INTERFACE    3
-#define CDC_DATA_INTERFACE      4 // Serial
-#define CDC_ACM_ENDPOINT        4
-#define CDC_RX_ENDPOINT         5
-#define CDC_TX_ENDPOINT         6
-#define CDC_ACM_SIZE            16
-#define CDC_RX_SIZE             64
-#define CDC_TX_SIZE             64
-#define CDC_STATUS_NAME         L"Virtual Serial Port - Status"
-#define CDC_DATA_NAME           L"Virtual Serial Port - Data"
-
-#define MOUSE_INTERFACE         5 // Mouse
-#define MOUSE_ENDPOINT          7
+#define MOUSE_INTERFACE         3 // Mouse
+#define MOUSE_ENDPOINT          4
 #define MOUSE_SIZE              8
 #define MOUSE_INTERVAL          1
 #define MOUSE_NAME              L"Mouse"
 
-#define RAWIO_INTERFACE         6 // RawIO
-#define RAWIO_TX_ENDPOINT       9
+#define RAWIO_INTERFACE         4 // RawIO
+#define RAWIO_TX_ENDPOINT       5
 #define RAWIO_TX_SIZE           64
 #define RAWIO_TX_INTERVAL       1
-#define RAWIO_RX_ENDPOINT       8
+#define RAWIO_RX_ENDPOINT       6
 #define RAWIO_RX_SIZE           64
 #define RAWIO_RX_INTERVAL       1
 #define RAWIO_USAGE_PAGE        0xFF1C
 #define RAWIO_USAGE             0x1100
-#define RAWIO_NAME              L"RawIO API Interface"
-
-#define JOYSTICK_INTERFACE      7 // Joystick
-#define JOYSTICK_ENDPOINT       10
-#define JOYSTICK_SIZE           16
-#define JOYSTICK_INTERVAL       1
-#define JOYSTICK_NAME           L"Joystick"
+#define RAWIO_NAME              L"HID-IO Interface"
 
 
 // Descriptor sizes
@@ -131,40 +108,23 @@
 #define KEYBOARD_DESC_SIZE        (9+9+7)
 #define NKRO_KEYBOARD_DESC_SIZE   (9+9+7)
 #define SYS_CTRL_DESC_SIZE        (9+9+7)
-#define SERIAL_CDC_DESC_SIZE      (8+9+5+5+4+5+7+9+7+7)
-#define RAWIO_DESC_SIZE           (9+9+7+7)
 #define MOUSE_DESC_SIZE           (9+9+7)
-#define JOYSTICK_DESC_SIZE        (9+9+7)
+#define RAWIO_DESC_SIZE           (9+9+7+7)
 
 // Descriptor offsets
 #define KEYBOARD_DESC_BASE_OFFSET ( \
 	BASE_DESC_SIZE + \
 	9 \
 )
-#define SERIAL_CDC_DESC_BASE_OFFSET ( \
-	BASE_DESC_SIZE + \
-	KEYBOARD_DESC_TOTAL_OFFSET + \
-	8 \
-)
 #define RAWIO_DESC_BASE_OFFSET ( \
 	BASE_DESC_SIZE + \
 	KEYBOARD_DESC_TOTAL_OFFSET + \
-	SERIAL_CDC_DESC_TOTAL_OFFSET + \
+	MOUSE_DESC_BASE_OFFSET + \
 	9 \
 )
 #define MOUSE_DESC_BASE_OFFSET ( \
 	BASE_DESC_SIZE + \
 	KEYBOARD_DESC_TOTAL_OFFSET + \
-	SERIAL_CDC_DESC_TOTAL_OFFSET + \
-	RAWIO_DESC_TOTAL_OFFSET + \
-	9 \
-)
-#define JOYSTICK_DESC_BASE_OFFSET ( \
-	BASE_DESC_SIZE + \
-	KEYBOARD_DESC_TOTAL_OFFSET + \
-	SERIAL_CDC_DESC_TOTAL_OFFSET + \
-	RAWIO_DESC_TOTAL_OFFSET + \
-	MOUSE_DESC_TOTAL_OFFSET + \
 	9 \
 )
 
@@ -173,23 +133,23 @@
 #define ENDPOINT2_CONFIG        ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT3_CONFIG        ENDPOINT_TRANSIMIT_ONLY
 #define ENDPOINT4_CONFIG        ENDPOINT_TRANSIMIT_ONLY
-#define ENDPOINT5_CONFIG        ENDPOINT_RECEIVE_ONLY
-#define ENDPOINT6_CONFIG        ENDPOINT_TRANSIMIT_ONLY
-#define ENDPOINT7_CONFIG        ENDPOINT_TRANSIMIT_ONLY
-#define ENDPOINT8_CONFIG        ENDPOINT_RECEIVE_ONLY
-#define ENDPOINT9_CONFIG        ENDPOINT_TRANSIMIT_ONLY
-#define ENDPOINT10_CONFIG       ENDPOINT_TRANSIMIT_ONLY
+#define ENDPOINT5_CONFIG        ENDPOINT_TRANSIMIT_ONLY
+#define ENDPOINT6_CONFIG        ENDPOINT_RECEIVE_ONLY
 
 #if defined(_sam_)
-#define USB_DEVICE_EP_CTRL_SIZE    64
+#define USB_DEVICE_EP_CTRL_SIZE EP0_SIZE
 
 #undef  USB_DEVICE_MAX_EP
-#define USB_DEVICE_MAX_EP 7
+#define USB_DEVICE_MAX_EP NUM_ENDPOINTS
 
-#undef  UDI_CDC_COMM_IFACE_NUMBER_0
-#undef  UDI_CDC_DATA_IFACE_NUMBER_0
-#define UDI_CDC_COMM_IFACE_NUMBER_0 3
-#define UDI_CDC_DATA_IFACE_NUMBER_0 4
+#define UDI_HID_REPORT_IN_SIZE RAWIO_TX_SIZE
+#define UDI_HID_REPORT_OUT_SIZE RAWIO_RX_SIZE
+#define UDI_HID_GENERIC_EP_IN RAWIO_TX_ENDPOINT
+#define UDI_HID_GENERIC_EP_OUT RAWIO_RX_ENDPOINT
+
+#define UDI_HID_GENERIC_REPORT_OUT(ptr) HIDIO_rawio_rx_callback(ptr)
+#define UDI_HID_GENERIC_ENABLE_EXT() HIDIO_rawio_enable()
+#define UDI_HID_GENERIC_DISABLE_EXT() HIDIO_rawio_disable()
 #endif
 
 // ----- Structs -----

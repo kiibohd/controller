@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2019 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -98,7 +98,7 @@ void prompt()
 {
 	print("\033[2K\r"); // Erases the current line and resets cursor to beginning of line
 	print("\033[1;34m:\033[0m "); // Blue bold prompt
-#if Output_HIDIOEnabled == 1
+#if Output_HIDIOEnabled_define == 1
 	HIDIO_print_flush();
 #endif
 }
@@ -325,7 +325,7 @@ int CLI_process()
 
 	if (dirty)
 	{
-#if Output_HIDIOEnabled == 1
+#if Output_HIDIOEnabled_define == 1
 		HIDIO_print_flush();
 #endif
 	}
@@ -563,7 +563,7 @@ void cliFunc_exit( char* args )
 
 void cliFunc_help( char* args )
 {
-#if Output_HIDIOEnabled == 1
+#if Output_HIDIOEnabled_define == 1
 	HIDIO_print_flush();
 	HIDIO_print_mode( HIDIO_PRINT_BUFFER_BULK );
 #endif
@@ -590,7 +590,7 @@ void cliFunc_help( char* args )
 			print( NL );
 		}
 	}
-#if Output_HIDIOEnabled == 1
+#if Output_HIDIOEnabled_define == 1
 	HIDIO_print_flush();
 	HIDIO_print_mode( HIDIO_PRINT_BUFFER_LINE );
 #endif

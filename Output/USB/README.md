@@ -10,8 +10,6 @@ Key features of this module:
   - KLL define to set which mode is enable on power-on (NKRO as per the USB spec is the default)
   - Supports System Control codes (e.g. Sleep key)
   - Supports Consumer Control codes (e.g. Play, Next, Pause)
-* USB CDC Virtual Serial debug CLI
-  - If enabled, this module exposes a Tx/Rx virtual serial port that works on all OSs
 * USB Suspend support
   - Detects when the USB bus goes into suspend/low power mode and can trigger other modules
 * USB Mouse support
@@ -19,6 +17,7 @@ Key features of this module:
   - Vertical and horizontal mouse wheel movement
 * RawIO support
   - USB virtual Tx/Rx interface used for HID-IO
+  - Debug cli
 
 
 ## KLL Features
@@ -40,10 +39,8 @@ List here are KLL options/capabilities available, see [capabilities.kll](capabil
 ### USB Descriptor Enable/Disable
 
 * Output_USBEnabled
-* enableJoystick
 * enableMouse
 * enableKeyboard
-* enableVirtualSerialPort
 * enableRawIO
 
 
@@ -101,7 +98,6 @@ This does not affect typing, but will disable mouse control and the debug cli.
 
 ```
 enableMouse = 0;
-enableVirtualSerialPort = 0;
 enableRawIO = 0;
 ```
 

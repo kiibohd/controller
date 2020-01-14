@@ -1,12 +1,20 @@
 # Blank / None Scan Module (does nothing)
 
 Name = "None";
-Version = 0.1;
-Author = "HaaTa (Jacob Alexander) 2017";
+Version = 0.2;
+Author = "HaaTa (Jacob Alexander) 2017-2020";
 
 # Modified Date
-Date = 2017-12-26;
+Date = 2020-01-04;
 
 
-# N/A - Nothing needed in this file (for now)
+# This defines the number of clock cycles between periodic scans
+# i.e. Between each strobe of the matrix there is a delay to allow for other system processing
+# It is highly dependent on the MCU clock speed; however, debounce time is handled in absolute time
+# so there is generally little worry about scanning too quickly other than starving other functions.
+# If you scan too slowly, keypresses may be slow/delayed, or even dropped.
+PeriodicCycles => PeriodicCycles_define;
+PeriodicCycles = 1000; # 1000 cycles
 
+# Don't warn about 0 scancodes defined
+NoneScanModule = 1;

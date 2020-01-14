@@ -1541,8 +1541,8 @@ static bool udd_ep_interrupt(void)
 			if (ptr_job->b_buf_end) {
 				ptr_job->b_buf_end = false;
 				ptr_job->buf_size = ptr_job->buf_cnt; // buf_size is passed to callback as XFR count
-                udd_disable_endpoint_interrupt(ep);
-                udd_ep_finish_job(ptr_job, UDD_EP_TRANSFER_OK, ep);
+				udd_disable_endpoint_interrupt(ep);
+				udd_ep_finish_job(ptr_job, UDD_EP_TRANSFER_OK, ep);
 			}
 			if (ptr_job->buf_cnt >= ptr_job->buf_size &&
 					!ptr_job->b_shortpacket &&
@@ -1565,8 +1565,8 @@ static bool udd_ep_interrupt(void)
 				if (!udd_ep_in_sent(ep, true)) {
 					ptr_job->b_buf_end = false;
 					ptr_job->buf_size = ptr_job->buf_cnt; // buf_size is passed to callback as XFR count
-                    udd_disable_endpoint_interrupt(ep);
-                    udd_ep_finish_job(ptr_job, UDD_EP_TRANSFER_OK, ep);
+					udd_disable_endpoint_interrupt(ep);
+					udd_ep_finish_job(ptr_job, UDD_EP_TRANSFER_OK, ep);
 				}
 				udd_ack_in_sent(ep);
 				udd_ep_in_sent(ep, false);

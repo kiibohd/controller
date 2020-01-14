@@ -26,8 +26,8 @@
 #include <output_com.h>
 #include <print.h>
 
-#if enableVirtualSerialPort_define == 1
-#include <arm/usb_serial.h>
+#if Output_UARTEnabled_define == 1
+#include <arm/uart_serial.h>
 #endif
 
 // KLL
@@ -359,7 +359,9 @@ uint16_t HIDIO_buffer_generate_packet(
 	uint32_t id             // Packet id
 )
 {
-	/*
+#if HIDIO_DEBUG
+	uint16_t connected = HIDIO_VT_Connected;
+	HIDIO_VT_Connected = 0;
 	print("head: ");
 	printInt16( buf->head );
 	print(" tail: ");
@@ -369,7 +371,8 @@ uint16_t HIDIO_buffer_generate_packet(
 	print(" request: ");
 	printInt16( data_len );
 	print(NL);
-	*/
+	HIDIO_VT_Connected = connected;
+#endif
 
 	// Determine payload max
 	uint8_t width = HIDIO_id_width( id );
@@ -1047,14 +1050,20 @@ void HIDIO_flush()
 	HIDIO_assembly_buf.head = 0;
 	HIDIO_assembly_buf.tail = 0;
 	HIDIO_assembly_buf.cur_buf_head = 0;
+	HIDIO_assembly_buf.packets_ready = 0;
+	HIDIO_assembly_buf.waiting = 0;
 
 	HIDIO_ack_send_buf.head = 0;
 	HIDIO_ack_send_buf.tail = 0;
 	HIDIO_ack_send_buf.cur_buf_head = 0;
+	HIDIO_ack_send_buf.packets_ready = 0;
+	HIDIO_ack_send_buf.waiting = 0;
 
 	HIDIO_tx_buf.head = 0;
 	HIDIO_tx_buf.tail = 0;
 	HIDIO_tx_buf.cur_buf_head = 0;
+	HIDIO_tx_buf.packets_ready = 0;
+	HIDIO_tx_buf.waiting = 0;
 }
 
 // HID-IO Module Setup
@@ -1072,8 +1081,6 @@ inline void HIDIO_setup()
 
 	// Setup Assembly Buffer
 	HIDIO_assembly_buf.len = sizeof(HIDIO_assembly_buf_data);
-	HIDIO_assembly_buf.packets_ready = 0;
-	HIDIO_assembly_buf.waiting = 0;
 	HIDIO_assembly_buf.data = HIDIO_assembly_buf_data;
 
 	// Setup ACK Buffer
@@ -1084,14 +1091,10 @@ inline void HIDIO_setup()
 
 	// Setup ACK Send Buffer
 	HIDIO_ack_send_buf.len = sizeof(HIDIO_ack_send_data);
-	HIDIO_ack_send_buf.packets_ready = 0;
-	HIDIO_ack_send_buf.waiting = 0;
 	HIDIO_ack_send_buf.data = HIDIO_ack_send_data;
 
 	// Setup Tx Buffer
 	HIDIO_tx_buf.len = sizeof(HIDIO_tx_buf_data);
-	HIDIO_tx_buf.packets_ready = 0;
-	HIDIO_tx_buf.waiting = 0;
 	HIDIO_tx_buf.data = HIDIO_tx_buf_data;
 
 	// Register Output CLI dictionary
@@ -1117,6 +1120,8 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 	HIDIO_Packet *packet = (HIDIO_Packet*)buf;
 
 #ifdef HIDIO_DEBUG
+	uint16_t connected = HIDIO_VT_Connected;
+	HIDIO_VT_Connected = 0;
 	print("Type: ");
 	printInt8(packet->type);
 	print(NL);
@@ -1132,6 +1137,7 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 	print("lower_len: ");
 	printInt16(packet->len);
 	print(NL);
+	HIDIO_VT_Connected = connected;
 #endif
 
 	// Check header packet type to see if a valid packet
@@ -1339,7 +1345,9 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 	}
 
 	// Debug
-	/*
+#ifdef HIDIO_DEBUG
+	uint16_t connected = HIDIO_VT_Connected;
+	HIDIO_VT_Connected = 0;
 	print("(");
 	printInt32( id );
 	print(":");
@@ -1350,8 +1358,30 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 		printChar( (char)(data[ pos ]) );
 	}
 	print( NL );
-	*/
+	HIDIO_VT_Connected = connected;
+#endif
 }
+
+#if defined(_sam4s_)
+// Callback whenever a packet is received
+// This is only used with drivers that don't have a USB packet buffer and can do just-in-time process (e.g. SAM4S)
+void HIDIO_rawio_rx_callback(uint8_t *report)
+{
+	// Process Packet
+	HIDIO_process_incoming_packet(report, 0);
+}
+
+// Callback whenever the USB interface is enabled
+uint8_t HIDIO_rawio_enable()
+{
+	return 1;
+}
+
+// Callback whenever the USB interface is disabled
+void HIDIO_rawio_disable()
+{
+}
+#endif
 
 // HID-IO Processing Loop
 inline void HIDIO_process()
@@ -1362,6 +1392,8 @@ inline void HIDIO_process()
 	// TODO (HaaTa): Handle timeouts and lost packets
 
 	// Retrieve incoming packets
+	// XXX (HaaTa): This only applies to RawIO implementations that enqueue incoming packets (e.g. Kinetis)
+	//              SAM4S has an interrupt per incoming packet, so each packet is processed as it comes in.
 	while ( Output_rawio_availablechar() )
 	{
 		// XXX Double copy is done here with getbuffer
@@ -1685,7 +1717,7 @@ void HIDIO_print_capability( TriggerMacro *trigger, uint8_t state, uint8_t state
 void HIDIO_print_flush()
 {
 #ifdef HIDIO_DEBUG
-	usb_serial_write("<FLUSH>", 7);
+	//uart_serial_write("<FLUSH>", 7);
 #endif
 
 	// TODO: Handle bulk vs. chunk
@@ -1715,8 +1747,8 @@ void HIDIO_print_mode( uint8_t mode )
 
 void HIDIO_print_enque( char* str, uint16_t count )
 {
-#if enableVirtualSerialPort_define == 1
-	usb_serial_write(str, count);
+#if Output_UARTEnabled_define == 1
+	uart_serial_write(str, count);
 #endif
 	memcpy(&HIDIO_print_buf_data[HIDIO_print_buf_count], str, count);
 	HIDIO_print_buf_count += count;

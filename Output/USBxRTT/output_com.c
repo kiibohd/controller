@@ -89,24 +89,18 @@ void Output_firmwareReload()
 // USB Input buffer available
 inline unsigned int Output_availablechar()
 {
-#if enableVirtualSerialPort_define == 1
 	return USB_availablechar() + RTT_availablechar();
-#else
-	return RTT_availablechar();
-#endif
 }
 
 
 // USB Get Character from input buffer
 inline int Output_getchar()
 {
-#if enableVirtualSerialPort_define == 1
 	// XXX Make sure to check output_availablechar() first! Information is lost with the cast (error codes) (AVR)
 	if ( USB_availablechar() > 0 )
 	{
 		return USB_getchar();
 	}
-#endif
 
 	if ( RTT_availablechar() > 0 )
 	{
@@ -120,30 +114,22 @@ inline int Output_getchar()
 // USB Send Character to output buffer
 inline int Output_putchar( char c )
 {
-#if enableVirtualSerialPort_define == 1
 	// First send to RTT
 	RTT_putchar( c );
 
 	// Then send to USB
 	return USB_putchar( c );
-#else
-	return RTT_putchar( c );
-#endif
 }
 
 
 // USB Send String to output buffer, null terminated
 inline int Output_putstr( char* str )
 {
-#if enableVirtualSerialPort_define == 1
 	// First send to RTT
 	RTT_putstr( str );
 
 	// Then send to USB
 	return USB_putstr( str );
-#else
-	return RTT_putstr( str );
-#endif
 }
 
 

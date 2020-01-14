@@ -112,6 +112,12 @@ void HIDIO_setup();
 void HIDIO_process();
 void HIDIO_packet_interrupt( uint8_t* buf );
 
+#if defined(_sam4s_)
+void HIDIO_rawio_rx_callback(uint8_t *report);
+uint8_t HIDIO_rawio_enable();
+void HIDIO_rawio_disable();
+#endif
+
 #define HIDIO_PRINT_BUFFER_NONE  0 // Flush each print
 #define HIDIO_PRINT_BUFFER_LINE  1 // Flush each line
 #define HIDIO_PRINT_BUFFER_CHUNK 2 // Flush every X bytes

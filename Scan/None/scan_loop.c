@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 #include <Lib/ScanLib.h>
 
 // Project Includes
+#include <Lib/periodic.h>
 #include <print.h>
 #include <macro.h>
 
@@ -45,6 +46,8 @@
 // Setup
 void Scan_setup()
 {
+	// Set number of cycles to wait between scans
+	Periodic_init( PeriodicCycles_define );
 }
 
 

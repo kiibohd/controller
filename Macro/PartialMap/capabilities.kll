@@ -1,10 +1,10 @@
 # PartialMap
 Name = PartialMapCapabilities;
-Version = 0.10;
-Author = "HaaTa (Jacob Alexander) 2014-2019";
+Version = 0.11;
+Author = "HaaTa (Jacob Alexander) 2014-2020";
 
 # Modified Date
-Date = 2019-02-17;
+Date = 2020-01-04;
 
 
 # Capabilties available to the PartialMap module
@@ -55,3 +55,6 @@ DelayedCapabilitiesStackSize = 10;
 ResultMacroBufferSize => ResultMacroBufferSize_define;
 ResultMacroBufferSize = 50;
 
+# Don't warn about 0 Scancodes defined if set to 1
+NoneScanModule => NoneScanModule_define;
+NoneScanModule = 0;

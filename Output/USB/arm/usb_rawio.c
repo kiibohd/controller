@@ -1,4 +1,4 @@
-/* Copyright (C) 2016-2017 by Jacob Alexander
+/* Copyright (C) 2016-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,6 +31,10 @@
 #include <Lib/OutputLib.h>
 #include <print.h>
 
+#if defined(_sam4s_)
+#include <common/services/usb/class/hid/device/generic/udi_hid_generic.h>
+#endif
+
 // Local Includes
 #include "usb_dev.h"
 #include "usb_rawio.h"
@@ -46,6 +50,7 @@
 
 // ----- Functions -----
 
+#if defined(_kinetis_)
 // Check for packets available from host
 uint32_t usb_rawio_available()
 {
@@ -136,6 +141,53 @@ int32_t usb_rawio_tx( const void *buf, uint32_t timeout )
 
 	return RAWIO_TX_SIZE;
 }
+#elif defined(_sam4s_)
+// Check for packets available from host
+// XXX (HaaTa): This is always 0, SAM4S has a callback function UDI_HID_GENERIC_REPORT_OUT to handle each packet
+uint32_t usb_rawio_available()
+{
+	return 0;
+}
+
+// Retrieve packets from host
+// XXX (HaaTa): This is always -1, SAM4S has a callback function UDI_HID_GENERIC_REPORT_OUT to handle each packet
+int32_t usb_rawio_rx(void *buf, uint32_t timeout)
+{
+	return -1;
+}
+
+// Send packet to host
+// XXX Only transfers RAWIO_TX_SIZE on each call (likely 64 bytes)
+// Always returns RAWIO_TX_SIZE, unless there is a timeout or USB isn't configured
+int32_t usb_rawio_tx(const void *buf, uint32_t timeout)
+{
+	Time start = Time_now();
+
+	while (1)
+	{
+		// Error if USB isn't configured
+		if (!usb_configuration)
+			return -1;
+
+		// Make sure the buffer is available and send
+		if (udi_hid_generic_send_report_in((uint8_t*)buf))
+		{
+			break;
+		}
+
+		// Check for timeout
+		if ( Time_duration_ms( start ) > timeout || !timeout )
+		{
+			warn_print("RAWIO Tx - Timeout, dropping packet.");
+			return 0;
+		}
+
+		yield();
+	}
+
+	return RAWIO_TX_SIZE;
+}
+#endif
 
 #endif
 

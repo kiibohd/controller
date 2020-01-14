@@ -3,6 +3,9 @@
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
 # Jacob Alexander 2015-2018
 
+# TODO REMOVEME
+VENDOR_ID="0x308F"
+PRODUCT_ID="0x0015"
 
 
 #################
@@ -43,7 +46,7 @@ DefaultMap=""
 # Keyboard Module Configuration
 ScanModule="None"
 MacroModule="PartialMap"
-OutputModule="None"
+OutputModule="USBxUART"
 DebugModule="full"
 
 # Microcontroller

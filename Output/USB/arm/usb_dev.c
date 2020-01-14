@@ -1,7 +1,7 @@
 /* Teensyduino Core Library
  * http://www.pjrc.com/teensy/
  * Copyright (c) 2013 PJRC.COM, LLC.
- * Modifications by Jacob Alexander (2013-2019)
+ * Modifications by Jacob Alexander (2013-2020)
  *
  * Permission is hereby granted, free of charge, to any person obtaining
  * a copy of this software and associated documentation files (the
@@ -40,10 +40,6 @@
 #include "output_usb.h"
 #include "usb_dev.h"
 #include "usb_mem.h"
-
-#if enableVirtualSerialPort_define == 1
-#include "usb_serial.h"
-#endif
 
 #if defined(_sam_)
 #include <common/services/usb/udc/udc.h>
@@ -741,23 +737,6 @@ void usb_setup()
 		endpoint0_stall();
 		return;
 
-#if enableVirtualSerialPort_define == 1 && defined(_kinetis_)
-	case 0x2221: // CDC_SET_CONTROL_LINE_STATE
-		usb_cdc_line_rtsdtr = setup.wValue;
-		//info_print("set control line state");
-		goto send;
-
-	case 0x21A1: // CDC_GET_LINE_CODING
-		data = (uint8_t*)&usb_cdc_line_coding;
-		datalen = sizeof( usb_cdc_line_coding );
-		goto send;
-
-	case 0x2021: // CDC_SET_LINE_CODING
-		// ZLP Reply
-		// Settings are applied in PID=OUT
-		goto send;
-#endif
-
 	case 0x0921: // HID SET_REPORT
 		// ZLP Reply
 		// Settings are applied in PID=OUT
@@ -1012,6 +991,9 @@ void keyboard_control(uint8_t *buf) {
 			// Already set with the control sequence
 			USBKeys_LEDs = buf[0];
 			break;
+		// Mouse Interface
+		case MOUSE_INTERFACE:
+			break;
 		default:
 			warn_msg("(SET_REPORT, BULK) Unknown interface - ");
 			printHex( setup.wIndex );
@@ -1137,34 +1119,6 @@ static void usb_control( uint32_t stat )
 		print(NL);
 		#endif
 
-		// CDC Interface
-		#if enableVirtualSerialPort_define == 1
-		// CDC_SET_LINE_CODING - PID=OUT
-		// XXX - Getting lots of NAKs in Linux
-		if ( setup.wRequestAndType == 0x2021 )
-		{
-			// Copy over new line coding
-			memcpy( (void*)&usb_cdc_line_coding, buf, 7 );
-
-			#ifdef UART_DEBUG
-			// - Unused, but for the readers info -
-			print("dwDTERate(");
-			printInt32( usb_cdc_line_coding.dwDTERate );
-			print(")bCharFormat(");
-			printHex( usb_cdc_line_coding.bCharFormat );
-			print(")bParityType(");
-			printHex( usb_cdc_line_coding.bParityType );
-			print(")bDataBits(");
-			printHex( usb_cdc_line_coding.bDataBits );
-			print(")");
-			print( NL );
-			#endif
-
-			// XXX ZLP causes timeout/delay, why? -HaaTa
-			//endpoint0_transmit( NULL, 0 );
-		}
-		#endif
-
 		keyboard_control(buf);
 
 		// give the buffer back
@@ -1219,15 +1173,6 @@ static void usb_control( uint32_t stat )
 			#endif
 			USB0_ADDR = setup.wValue;
 		}
-
-		// CDC_SET_LINE_CODING - PID=IN
-		#if enableVirtualSerialPort_define == 1
-		if ( setup.wRequestAndType == 0x2021 )
-		{
-			// XXX ZLP causes timeout/delay, why? -HaaTa
-			//endpoint0_transmit( NULL, 0 );
-		}
-		#endif
 
 		// Keyboard HID SET_REPORT - PID=IN
 		#if enableKeyboard_define == 1
@@ -1432,7 +1377,7 @@ uint8_t usb_resume()
 	// If we have been sleeping, try to wake up host
 	if ( usb_suspended() && usb_configured() && usb_remote_wakeup )
 	{
-#if enableVirtualSerialPort_define != 1
+#if enableRawIO_define != 1
 		info_print("Attempting to resume the host");
 #endif
 
@@ -1578,18 +1523,6 @@ restart:
 				if ( !t )
 					usb_device_reload();
 			}
-
-			// CDC Interface
-#if enableVirtualSerialPort_define == 1
-			t = usb_cdc_transmit_flush_timer;
-			if ( t )
-			{
-				usb_cdc_transmit_flush_timer = --t;
-				if ( t == 0 )
-					usb_serial_flush_callback();
-			}
-#endif
-
 		}
 
 		// SOF tokens are used for keepalive, consider the system awake when we're receiving them
@@ -1850,12 +1783,12 @@ restart:
 
 void usb_set_sleep_state(bool sleep) {
 	if (sleep) {
-#if enableVirtualSerialPort_define != 1
+#if enableRawIO_define != 1
 		info_print("Host has requested USB sleep/suspend state");
 #endif
 		Output_update_usb_current( 100 ); // Set to 100 mA
 	} else {
-#if enableVirtualSerialPort_define != 1
+#if enableRawIO_define != 1
 		info_print("Host has woken-up/resumed from sleep/suspend state");
 #endif
 		Output_update_usb_current( *usb_bMaxPower * 2 );

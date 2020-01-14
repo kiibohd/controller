@@ -1113,7 +1113,9 @@ void Macro_periodic()
 		// No scancodes defined
 		if ( MaxScanCode_KLL == 0 )
 		{
+#if NoneScanModule_define == 0
 			warn_print("No scancodes defined! Check your BaseMap!");
+#endif
 		}
 		// Bug!
 		else

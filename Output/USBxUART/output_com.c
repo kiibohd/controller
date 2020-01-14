@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2017 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@
 #include <Lib/OutputLib.h>
 
 // Project Includes
+#include <hidio_com.h>
 #include <print.h>
 
 // KLL
@@ -89,24 +90,18 @@ void Output_firmwareReload()
 // USB Input buffer available
 inline unsigned int Output_availablechar()
 {
-#if enableVirtualSerialPort_define == 1
 	return USB_availablechar() + UART_availablechar();
-#else
-	return UART_availablechar();
-#endif
 }
 
 
 // USB Get Character from input buffer
 inline int Output_getchar()
 {
-#if enableVirtualSerialPort_define == 1
 	// XXX Make sure to check output_availablechar() first! Information is lost with the cast (error codes) (AVR)
 	if ( USB_availablechar() > 0 )
 	{
 		return USB_getchar();
 	}
-#endif
 
 	if ( UART_availablechar() > 0 )
 	{
@@ -120,30 +115,36 @@ inline int Output_getchar()
 // USB Send Character to output buffer
 inline int Output_putchar( char c )
 {
-#if enableVirtualSerialPort_define == 1
 	// First send to UART
+#if enableRawIO_define != 1
 	UART_putchar( c );
+#else
+	if (!HIDIO_VT_Connected)
+	{
+		UART_putchar( c );
+	}
+#endif
 
 	// Then send to USB
 	return USB_putchar( c );
-#else
-	return UART_putchar( c );
-#endif
 }
 
 
 // USB Send String to output buffer, null terminated
 inline int Output_putstr( char* str )
 {
-#if enableVirtualSerialPort_define == 1
 	// First send to UART
+#if enableRawIO_define != 1
 	UART_putstr( str );
+#else
+	if (!HIDIO_VT_Connected)
+	{
+		UART_putstr( str );
+	}
+#endif
 
 	// Then send to USB
 	return USB_putstr( str );
-#else
-	return UART_putstr( str );
-#endif
 }
 
 

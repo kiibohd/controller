@@ -40,6 +40,7 @@
 #include "udc_desc.h"
 #include "udi.h"
 #include "udc.h"
+#include <print.h>
 
 /**
  * \ingroup udc_group
