@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This script runs each of the firmware build scripts
 # Input Club supported keyboard targets
-# Jacob Alexander 2017-2018
+# Jacob Alexander 2017-2020
 
 ###########
 # Options #
@@ -72,12 +72,6 @@ if [[ "${1}" != "win" ]] && ${EnableHostOnlyBuild}; then
 	cmd "bash ./whitefox.truefox.bash"
 	cmd "bash ./whitefox.vanilla.bash"
 	cmd "bash ./whitefox.winkeyless.bash"
-	cmd "bash ./whitefox_sam4s.aria.bash"
-	cmd "bash ./whitefox_sam4s.iso.bash"
-	cmd "bash ./whitefox_sam4s.jackofalltrades.bash"
-	cmd "bash ./whitefox_sam4s.truefox.bash"
-	cmd "bash ./whitefox_sam4s.vanilla.bash"
-	cmd "bash ./whitefox_sam4s.winkeyless.bash"
 
 	# Tally results
 	result
@@ -105,12 +99,6 @@ if [ "${1}" != "win" ]; then
 	cmd_cpy "bash ./whitefox.truefox.bash"         kiibohd${isuffix} firmware/whitefox.truefox${suffix}
 	cmd_cpy "bash ./whitefox.vanilla.bash"         kiibohd${isuffix} firmware/whitefox.vanilla${suffix}
 	cmd_cpy "bash ./whitefox.winkeyless.bash"      kiibohd${isuffix} firmware/whitefox.winkeyless${suffix}
-	cmd_cpy "bash ./whitefox_sam4s.aria.bash"            kiibohd${isuffix} firmware/whitefox_sam4s.aria${suffix}
-	cmd_cpy "bash ./whitefox_sam4s.iso.bash"             kiibohd${isuffix} firmware/whitefox_sam4s.iso${suffix}
-	cmd_cpy "bash ./whitefox_sam4s.jackofalltrades.bash" kiibohd${isuffix} firmware/whitefox_sam4s.jackofalltrades${suffix}
-	cmd_cpy "bash ./whitefox_sam4s.truefox.bash"         kiibohd${isuffix} firmware/whitefox_sam4s.truefox${suffix}
-	cmd_cpy "bash ./whitefox_sam4s.vanilla.bash"         kiibohd${isuffix} firmware/whitefox_sam4s.vanilla${suffix}
-	cmd_cpy "bash ./whitefox_sam4s.winkeyless.bash"      kiibohd${isuffix} firmware/whitefox_sam4s.winkeyless${suffix}
 
 # Windows (no symlinks)
 else
@@ -126,7 +114,6 @@ else
 	cmd_cpy "bash ./k-type.bash"                   kiibohd${isuffix} firmware/k-type${suffix}
 	cmd_cpy "bash ./kira.bash"                     kiibohd${isuffix} firmware/kira${suffix}
 	cmd_cpy "bash ./whitefox.bash"                 kiibohd${isuffix} firmware/whitefox${suffix}
-	cmd_cpy "bash ./whitefox_sam4s.bash"           kiibohd${isuffix} firmware/whitefox_sam4s${suffix}
 fi
 
 # Tally results
