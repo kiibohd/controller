@@ -118,3 +118,13 @@ enableKeyboard = 1;
 enableRawIO => enableRawIO_define;
 enableRawIO = 1;
 
+
+## RawIO Configuration ##
+# 0 - Loopback mode disabled
+# 1 - Loopback mode enabled
+# Enabling loopback mode will print each hex value received from the RawIO interface
+# to the debug cli.
+# This will disable HID-IO functionality, and is used to debug the interface.
+# An alternate debug interface is required to view such as UART or RTT
+rawIOLoopbackMode => rawIOLoopbackMode_define;
+rawIOLoopbackMode = 0;

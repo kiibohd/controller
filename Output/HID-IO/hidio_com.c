@@ -1367,8 +1367,22 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 // This is only used with drivers that don't have a USB packet buffer and can do just-in-time process (e.g. SAM4S)
 void HIDIO_rawio_rx_callback(uint8_t *report)
 {
+#if rawIOLoopbackMode_define == 1
+	// Loopback mode
+	// Print report
+	for (uint8_t c = 0; c < HIDIO_Packet_Size; c++)
+	{
+		printHex(report[c]);
+		print(" ");
+	}
+
+	// Send report back
+	usb_rawio_tx(report, 0);
+#else
+	// HID-IO Mode
 	// Process Packet
 	HIDIO_process_incoming_packet(report, 0);
+#endif
 }
 
 // Callback whenever the USB interface is enabled
