@@ -217,6 +217,33 @@ void PIO_Setup(GPIO_ConfigPin config)
 		pio = PIOA;
 		break;
 	case GPIO_Port_B:
+		switch (config.pin)
+		{
+		case GPIO_Pin_4: // TDI->PB4
+			MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO4;
+			break;
+		case GPIO_Pin_5: // TDO/TRACESWO->PB5
+			MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO5;
+			break;
+		case GPIO_Pin_6: // TMS/SWDIO->PB6
+			MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO6;
+			break;
+		case GPIO_Pin_7: // TCK/SWCLK->PB7
+			MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO7;
+			break;
+		case GPIO_Pin_10: // DDM->PB10
+			MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO10;
+			break;
+		case GPIO_Pin_11: // DDP->PB11
+			MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO11;
+			break;
+		case GPIO_Pin_12: // ERASE->PB12
+			MATRIX->CCFG_SYSIO |= CCFG_SYSIO_SYSIO12;
+			break;
+
+		default:
+			break;
+		}
 		pio = PIOB;
 		break;
 #if defined(_sam4s_c_)
@@ -228,8 +255,7 @@ void PIO_Setup(GPIO_ConfigPin config)
 		return;
 	}
 
-	pio_set_peripheral(pio, config.peripheral, config.pin);
-	pio->PIO_PDR |= (1 << config.pin);
+	pio_set_peripheral(pio, config.peripheral, (1 << config.pin));
 #endif
 }
 
