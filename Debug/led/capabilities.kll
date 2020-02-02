@@ -1,10 +1,10 @@
 # led
 Name = led;
-Version = 0.1;
-Author = "HaaTa (Jacob Alexander) 2018";
+Version = 0.2;
+Author = "HaaTa (Jacob Alexander) 2018-2019";
 
 # Modified Date
-Date = 2018-11-16;
+Date = 2019-12-06;
 
 
 # Debug LED GPIO
@@ -18,3 +18,7 @@ Date = 2018-11-16;
 ledDebugPin => DebugLED_ErrorPin_define;
 ledDebugPin = "{}";
 
+# Inverse LED
+# Some debug LEDs are pull-down instead of pull-up to turn on
+ledDebugInverse => DebugLED_Inverse_define;
+ledDebugInverse = 0;

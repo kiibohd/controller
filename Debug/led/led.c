@@ -50,6 +50,8 @@ inline void init_errorLED()
 // Error LED Control
 inline void errorLED( uint8_t on )
 {
+#if DebugLED_Inverse_define == 0
+	// Drive high to enable LED
 	// Error LED On
 	if (on)
 	{
@@ -60,6 +62,19 @@ inline void errorLED( uint8_t on )
 	{
 		GPIO_Ctrl( led_pin, GPIO_Type_DriveLow, GPIO_Config_None );
 	}
+#else
+	// Pull low to enable LED
+	// Error LED On
+	if (on)
+	{
+		GPIO_Ctrl( led_pin, GPIO_Type_DriveLow, GPIO_Config_None );
+	}
+	// Error LED Off
+	else
+	{
+		GPIO_Ctrl( led_pin, GPIO_Type_DriveHigh, GPIO_Config_None );
+	}
+#endif
 }
 
 // Error LED Toggle
