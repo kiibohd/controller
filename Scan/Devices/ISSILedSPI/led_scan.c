@@ -824,6 +824,7 @@ void LED_control_capability( TriggerMacro *trigger, uint8_t state, uint8_t state
 	switch ( cstate )
 	{
 	case CapabilityState_Initial:
+	case CapabilityState_Any:
 		// Only use capability on press
 		break;
 	case CapabilityState_Debug:

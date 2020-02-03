@@ -1,0 +1,28 @@
+# QuadratureDial
+Name = QuadratureDial;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2020";
+
+# Modified Date
+Date = 2020-02-10;
+
+# Pin Configuration
+DialPin1 => Dial_Pin1_define;
+DialPin1 = "gpio(A,0)";
+DialPin2 => Dial_Pin2_define;
+DialPin2 = "gpio(A,1)";
+
+# Quadrature Dial Divider
+# Generates an event every N number of detents in a given direction
+# 1 - Every rotation event
+# 2 - Every 2 rotation events
+# 3 - etc.
+DialDivider => Dial_Divider_define;
+DialDivider = "1";
+
+# Direction mirroring
+# Used to swap positive vs. negative
+# 0 - Normal
+# 1 - Mirrored
+DialMirror => DialMirror_define;
+DialMirror = "0";
