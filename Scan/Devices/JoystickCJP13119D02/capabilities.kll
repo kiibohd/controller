@@ -1,0 +1,68 @@
+# JoystickCPJ13119D02
+Name = JoystickCPJ13119D02;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2020";
+
+# Modified Date
+Date = 2020-02-01;
+
+
+# ADC Gain
+# sam4s has 4 different gain settings
+# However, in single-ended mode, only 3 of the options are useful
+# See page 1093 (Section 42.6.10 Input Gain and Offset) of the datasheet for more details
+# This setting will multiply the input voltage by the multiplier, this is useful to boost weak voltages.
+# XXX (HaaTa) - It's always better to have your target voltage closer to ADVRef voltage.
+#               But remember, for sam4s ADVRef must be no lower than +2.4 V otherwise ADC performance will suffer.
+# 0 - 1x gain
+# 1 - 1x gain
+# 2 - 2x gain
+# 3 - 4x gain
+ADCGain => ADCGain_define;
+ADCGain = 0;
+
+# ADC Offset
+# sam4s has an optional offset for the ADC when certain conditions are met.
+# This offset calculates the new reference voltage by:
+#  (Gain - 1) * ADVRef / 2
+# The ADC offset can only be used if ADC Gain is set to 2 or 3 (ignored otherwise)
+# 0 - Disabled
+# 1 - Enabled
+ADCOffset => ADCOffset_define;
+ADCOffset = 0;
+
+# ADC Readings per period
+# Maximum number of readings per period (stop accepting new readings once hit)
+ADCMaxReadings => ADCMaxReadings_define;
+ADCMaxReadings = 32;
+
+# ADC Voltage Reference
+# This should be set to the number of mV seen on ADVRef
+# Changing this value will affect some calculations from the ADC
+ADCVRef => ADCVRef_define;
+ADCVRef = 3300;
+
+# Analog Indices
+JoystickXIndex => Joystick_x_index_define;
+JoystickXIndex = 0;
+JoystickYIndex => Joystick_y_index_define;
+JoystickYIndex = 1;
+
+JoystickXChannel => Joystick_x_channel_define;
+JoystickXChannel = "ADC_CHANNEL_5";
+JoystickYChannel => Joystick_y_channel_define;
+JoystickYChannel = "ADC_CHANNEL_4";
+
+# Function Indicies
+JoystickFuncIndex => Joystick_func_index_define;
+JoystickFuncIndex = 200;
+
+# Default joystick configuration
+# - JoystickMode_Mouse    - Mouse control
+# - JoystickMode_Analog   - Analog control
+# - JoystickMode_Function - Function control (8 mappable directions)
+# - JoystickMode_Joystick - Joystick control
+JoystickMode => JoystickMode_default_define;
+JoystickMode = "JoystickMode_Function";
+#JoystickMode = "JoystickMode_Mouse";
+
