@@ -8,9 +8,11 @@ Author = "Smasher816 (Rowan Decker) 2019";
 Date = 2019-05-03;
 
 # NVIC Interrupt priorities
+adcPriority => ADC_Priority_define;
 dacPriority => DAC_Priority_define;
 defaultPriority => Default_Priority_define;
 entropyPriority => Entropy_Priority_define;
+gpioPriority => GPIO_Priority_define;
 i2cPriority => I2C_Priority_define;
 periodicPriority => Periodic_Priority_define;
 spiPriority => SPI_Priority_define;
@@ -18,6 +20,8 @@ uartPriority => UART_Priority_define;
 usbPriority => USB_Priority_define;
 
 # 0 is most urgent
+adcPriority = 100;
+gpioPriority = 108;
 uartPriority = 111;
 usbPriority = 112;
 defaultPriority = 128;
