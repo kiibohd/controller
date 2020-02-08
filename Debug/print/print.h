@@ -31,6 +31,7 @@
 #endif
 
 // Project Includes
+#include <Lib/time.h>
 #include <output_com.h>
 
 
@@ -113,6 +114,8 @@ void printInt32Pad( uint32_t in );
 // Any value greater than the mul, is before the decimal
 // in * mul must not exceed the maximum size of in
 void printDecimal32( uint32_t in, uint32_t mul );
+
+void printTime( Time time );
 
 
 // String Functions

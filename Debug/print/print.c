@@ -247,6 +247,13 @@ void printHex32_op( uint32_t in, uint8_t op )
 	dPrintStr( tmpStr );
 }
 
+void printTime( Time time )
+{
+	printInt32( time.ms );
+	print(":");
+	printInt32( time.ticks );
+}
+
 
 
 // String Functions
