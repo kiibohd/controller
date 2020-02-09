@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This script runs each of the firmware build scripts
 # Input Club produced keyboard targets
-# Jacob Alexander 2017-2018
+# Jacob Alexander 2017-2020
 
 
 
@@ -38,6 +38,7 @@ cmd "bash ./nrf52832.bash"
 cmd "bash ./rttout.bash"
 cmd "bash ./sam4s2a.bash"
 cmd "bash ./sam4s4a.bash"
+cmd "bash ./sam4s4b.bash"
 cmd "bash ./sam4s8b.bash"
 cmd "bash ./sam4s8c.bash"
 cmd "bash ./sam4sd32c.bash"

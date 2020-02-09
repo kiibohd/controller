@@ -38,6 +38,8 @@ source "common.bash"
 test -d bootloader && rm -rf bootloader
 cmd_cpy "bash ./mk20dx128vlf5.bash"   kiibohd${isuffix} bootloader/mk20dx128vlf5${suffix}
 cmd_cpy "bash ./mk20dx256vlh7.bash"   kiibohd${isuffix} bootloader/mk20dx256vlh7${suffix}
+cmd_cpy "bash ./sam4s2a.bash"         kiibohd${isuffix} bootloader/sam4s8b${suffix}
+cmd_cpy "bash ./sam4s4b.bash"         kiibohd${isuffix} bootloader/sam4s8b${suffix}
 cmd_cpy "bash ./sam4s8b.bash"         kiibohd${isuffix} bootloader/sam4s8b${suffix}
 cmd_cpy "bash ./sam4s8c.bash"         kiibohd${isuffix} bootloader/sam4s8c${suffix}
 cmd_cpy "bash ./60v2.bash"            kiibohd${isuffix} bootloader/60v2${suffix}
@@ -48,7 +50,6 @@ cmd_cpy "bash ./infinity_led.bash"    kiibohd${isuffix} bootloader/infinity_led$
 cmd_cpy "bash ./kira.bash"            kiibohd${isuffix} bootloader/kira${suffix}
 cmd_cpy "bash ./ktype.bash"           kiibohd${isuffix} bootloader/ktype${suffix}
 cmd_cpy "bash ./whitefox.bash"        kiibohd${isuffix} bootloader/whitefox${suffix}
-cmd_cpy "bash ./whitefox_sam4s.bash"  kiibohd${isuffix} bootloader/whitefox_sam4s${suffix}
 
 # Tally results
 result
