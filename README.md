@@ -7,6 +7,9 @@ The [KLL](https://github.com/kiibohd/kll) compiler is automatically retrieved du
 
 Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](http://kiibohd.com) for details on the KLL (Keyboard Layout Language) Spec.
 
+
+[![GitHub Action Status](https://github.com/kiibohd/controller/workflows/Linux%20Build%20Environment/badge.svg)](https://github.com/kiibohd/controller/actions)
+[![GitHub Action Status](https://github.com/kiibohd/controller/workflows/macOS%20Build%20Environment/badge.svg)](https://github.com/kiibohd/controller/actions)
 [![Travis Status](https://travis-ci.org/kiibohd/controller.svg?branch=master)](https://travis-ci.org/kiibohd/controller) [![Appveyor Status](https://ci.appveyor.com/api/projects/status/67yk8tiyt88xmd15?svg=true)](https://ci.appveyor.com/project/kiibohd/controller/branch/master)
 
 [![Visit our IRC channel](https://kiwiirc.com/buttons/irc.freenode.net/input.club.png)](https://kiwiirc.com/client/irc.freenode.net/#input.club)
