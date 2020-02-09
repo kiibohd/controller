@@ -4,6 +4,7 @@ on: [push, pull_request]
 
 env:
   PIPENV_ACTIVE: 1
+  DYLD_INSERT_LIBRARIES: /Applications/Xcode_11.3.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.0/lib/darwin/libclang_rt.asan_osx_dynamic.dylib
 
 jobs:
   firmware:
@@ -84,6 +85,10 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
+        brew update
+        brew install tree ctags dfu-util binutils gnu-sed ninja
+        brew tap armmbed/formulae
+        brew install armmbed/formulae/arm-none-eabi-gcc
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
