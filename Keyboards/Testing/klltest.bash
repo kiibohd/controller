@@ -57,7 +57,7 @@ Chip="host"
 Compiler="gcc"
 
 # Enable run-time sanitizers
-EnableSaniziter=true
+EnableSanitizer=true
 CMakeExtraArgs="-DSANITIZER=1"
 
 

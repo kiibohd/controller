@@ -10,6 +10,9 @@
 # Enables host-build tests
 export EnableHostOnlyBuild=${EnableHostOnlyBuild:-false}
 
+# Option to forceably disable the address sanitizer
+DisableSanitizer=${DisableSanitizer:-false}
+
 # If git tag is set, append to each copied firmware file
 git_tag=${git_tag:-""}
 isuffix=".dfu.bin"
@@ -45,14 +48,20 @@ source "common.bash"
 # Run test builds
 if [[ "${1}" != "win" ]] && ${EnableHostOnlyBuild}; then
 	# Enable run-time sanitizers
-	export EnableSaniziter=true
+	export EnableSanitizer=true
 	export CMakeExtraArgs="-DSANITIZER=1"
 	if $TRAVIS; then
 		if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-			export EnableSaniziter=false
+			export EnableSanitizer=false
 			export CMakeExtraArgs=""
 			echo "macOS builds on Travis-CI don't seem to like the DYLD_INSERT_LIBRARIES preload, disabling sanitization."
 		fi
+	fi
+	# Force disable the sanitizer
+	if ${DisableSanitizer}; then
+		export EnableSanitizer=false
+		export CMakeExtraArgs=""
+		echo "Sanitizers disabled!"
 	fi
 
 	# NOTE: Infinity Ergodox is not tested as Interconnect and LCD needs more infrastructure to test

@@ -13,7 +13,8 @@ BuildPath=${BuildPath}.${Compiler}
 EnableHostBuild=${EnableHostBuild:-false}
 EnableHostOnlyBuild=${EnableHostOnlyBuild:-false}
 HostTest=${HostTest:-""}
-EnableSaniziter=${EnableSaniziter:-false}
+EnableSanitizer=${EnableSanitizer:-false}
+DisableSanitizer=${DisableSanitizer:-false}
 
 # Default VID:PIDs
 VENDOR_ID=${VENDOR_ID:-0x1C11}
@@ -194,18 +195,22 @@ done
 # If EnableHostOnlyBuild is enabled, EnableHostBuild should be set
 if ${EnableHostOnlyBuild}; then
 	EnableHostBuild=true
-	EnableSaniziter=true
+	EnableSanitizer=true
 fi
 
 # Sanitizer lookup
 if $TRAVIS; then
 	if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-		export EnableSaniziter=false
+		export EnableSanitizer=false
 		export CMakeExtraArgs=""
 		echo "macOS builds on Travis-CI don't seem to like the DYLD_INSERT_LIBRARIES preload, disabling sanitization."
 	fi
 fi
-if $EnableSaniziter; then
+if $DisableSanitizer; then
+	export EnableSanitizer=false
+	export CMakeExtraArgs=""
+fi
+if $EnableSanitizer; then
 	export CMakeExtraArgs="-DSANITIZER=1"
 
 	case "$OSTYPE" in

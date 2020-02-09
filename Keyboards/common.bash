@@ -1,6 +1,6 @@
 #!/bin/bash
 # Common functions for running kiibohd unit tests
-# Jacob Alexander 2016-2018
+# Jacob Alexander 2016-2020
 
 PASSED=0
 FAILED=0
@@ -11,16 +11,20 @@ COLOR_GREEN="\e[1;92m"
 COLOR_YELLOW="\e[1;93m"
 COLOR_CYAN="\e[1;96m"
 COLOR_NORMAL="\e[0m"
-EnableSaniziter=${EnableSaniziter:-false}
+EnableSanitizer=${EnableSanitizer:-false}
+DisableSanitizer=${DisableSanitizer:-false}
 
 # Sanitizer lookup
 if $TRAVIS; then
 	if [ "$TRAVIS_OS_NAME" = "osx" ]; then
-		EnableSaniziter=false
+		EnableSanitizer=false
 		echo "macOS builds on Travis-CI don't seem to like the DYLD_INSERT_LIBRARIES preload, disabling sanitization."
 	fi
 fi
-if $EnableSaniziter; then
+if $DisableSanitizer; then
+	EnableSanitizer=false
+fi
+if $EnableSanitizer; then
 	case "$OSTYPE" in
 	# Linux
 	"linux-gnu")

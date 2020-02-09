@@ -41,7 +41,8 @@ jobs:
         python3 -m pip install kll
     - name: Test
       working-directory: Keyboards
-      run: EnableHostOnlyBuild=true HostTest=kll.py ./ic_keyboards.bash
+      # AddressSanitizer doesn't seem to work in macOS CI environments for some reason
+      run: EnableHostOnlyBuild=true HostTest=kll.py DisableSanitizer=true ./ic_keyboards.bash
 
   other-firmware:
     runs-on: macOS-latest
@@ -77,7 +78,8 @@ jobs:
         python3 -m pip install kll
     - name: Build
       working-directory: Keyboards/Testing
-      run: ./all_tests.bash
+      # AddressSanitizer doesn't seem to work in macOS CI environments for some reason
+      run: DisableSanitizer=true ./all_tests.bash
 
   bootloaders:
     runs-on: macOS-latest

@@ -9,7 +9,7 @@ export BuildPathPrepend="Extra/"
 export CMakeListsPath="../../.."
 
 # Enable run-time sanitizers
-export EnableSaniziter=true
+export EnableSanitizer=true
 export CMakeExtraArgs="-DSANITIZER=1"
 
 # Change working directory
