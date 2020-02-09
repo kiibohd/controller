@@ -1,4 +1,4 @@
-name: Build Environment
+name: Linux Build Environment
 
 on: [push, pull_request]
 
@@ -6,54 +6,102 @@ env:
   PIPENV_ACTIVE: 1
 
 jobs:
-  build:
-
-    runs-on: ${{ matrix.os }}
-    strategy:
-      max-parallel: 4
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macOS-latest]
-    
+  firmware:
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Install dependencies (Linux)
-      if: matrix.os == ubuntu-latest
+    - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y software-properties-common
         sudo add-apt-repository universe -y
         sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
         sudo apt-get update
-        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build
-    - name: Install dependencies (macOS)
-      if: matrix.os == macOS-latest
-      run: |
-        brew update
-        brew install tree ctags dfu-util binutils gnu-sed
-        brew tap armmbed/formulae
-        brew install armmbed/formulae/arm-none-eabi-gcc
+        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build python3-setuptools
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
         python3 -m pip install kll
-        pip install -r requirements.txt
-    - name: Keyboard Tests
+    - name: Build
       working-directory: Keyboards
+      run: ./ic_keyboards.bash
+
+  firmware-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
       run: |
-        # Input Club Keyboards
-        ./ic_keyboards.bash
-        # Input Club Keyboards - Host-Side Builds
-        EnableHostOnlyBuild=true HostTest=kll.py ./ic_keyboards.bash
-    - name: Misc Keyboard Tests
-      working-directory: Keyboard/Others
+        sudo apt-get update
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository universe -y
+        sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
+        sudo apt-get update
+        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build python3-setuptools
+    - name: Install kll compiler
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install kll
+    - name: Test
+      working-directory: Keyboards
+      run: EnableHostOnlyBuild=true HostTest=kll.py ./ic_keyboards.bash
+
+  other-firmware:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository universe -y
+        sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
+        sudo apt-get update
+        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build python3-setuptools
+    - name: Install kll compiler
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install kll
+    - name: Build
+      working-directory: Keyboards/Others
       run: ./others.bash
-    - name: Debug Build Tests
+
+  test-builds:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository universe -y
+        sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
+        sudo apt-get update
+        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build python3-setuptools
+    - name: Install kll compiler
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install kll
+    - name: Build
       working-directory: Keyboards/Testing
       run: ./all_tests.bash
-    - name: Bootloader Build Tests
+
+  bootloaders:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository universe -y
+        sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
+        sudo apt-get update
+        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build python3-setuptools
+    - name: Install kll compiler
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install kll
+    - name: Build
       working-directory: Bootloader/Builds
-      run: ./all.bash
-    - name: Dockerfile Tests
-      working-directory: Dockerfiles
       run: ./all.bash
