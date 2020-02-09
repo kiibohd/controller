@@ -1,6 +1,8 @@
 # travis-ci integration for the kiibohd controller firmware
 # XXX Using Ubuntu 14.04 Trusty in root mode (we need universe repo, means we can't use container infra yet)
-# Jacob Alexander 2016-2018
+# Jacob Alexander 2016-2020
+# XXX (HaaTa): Travis-CI is being deprecated in favour of GitHub Actions
+#              This script is being kept around until the tagged deploy has be ported
 
 sudo: required
 dist: xenial
@@ -10,10 +12,8 @@ language:
 
 os:
   - linux
-  - osx
 
 compiler:
-  #- clang
   - gcc
 
 # Build Scripts
@@ -22,43 +22,11 @@ env:
   - DIR=Keyboards SCRIPT=ic_keyboards.bash # Input Club Keyboards
   - DIR=Keyboards SCRIPT=ic_keyboards.bash EnableHostOnlyBuild=true HostTest=kll.py # Input Club Keyboards - Host-Side Build
 
-  # Misc Keyboard Tests
-  - DIR=Keyboards/Others SCRIPT=others.bash
-
-  # Debug Build Tests
-  - DIR=Keyboards/Testing SCRIPT=all_tests.bash
-
   # Bootloader Build Tests
   - DIR=Bootloader/Builds SCRIPT=all.bash
 
-  # Dockerfile Tests
-  - DIR=Dockerfiles SCRIPT=all.bash
-
   # Deployment Build
   - DIR=Lib/CMake SCRIPT=travis_deploy.bash DEPLOY_NAME=All
-
-# Exclusions
-matrix:
-  # TODO - Still some travis clang issues
-  allow_failures:
-    - compiler: clang
-    # XXX (HaaTa): Docker environment creation is slow causing Travis-CI to halt jobs
-    # This will need to get fixed
-    - env: DIR=Dockerfiles SCRIPT=all.bash
-
-  exclude:
-    # Bootloader doesn't support clang yet
-    - compiler: clang
-      env: DIR=Bootloader/Builds SCRIPT=all.bash
-    # xcode *and* brew don't support clang ARMCCompiler for arm-none-eabi, sigh, useless Apple
-    - compiler: clang
-      os: osx
-    # No need to build deployment for macOS
-    - env: DIR=Lib/CMake SCRIPT=travis_deploy.bash DEPLOY_NAME=All
-      os: osx
-    # No need to test dockerfiles on macOS
-    - env: DIR=Dockerfiles SCRIPT=all.bash
-      os: osx
 
 # Package Setup
 before_install:
@@ -68,12 +36,6 @@ before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update -qq; fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded python3-pip python3-setuptools -y; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew upgrade python; fi # Homebrew defaults to Python 3 now, but we have to upgrade
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install tree ctags dfu-util binutils gnu-sed; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]]; then brew tap armmbed/formulae; fi
-  # This fails to download sometimes, just retry till it works
-  - while [[ "$TRAVIS_OS_NAME" == "osx" ]] && [[ "$CC" == "gcc" ]] && [[ "$EnableHostOnlyBuild" != "true" ]] && ! type arm-none-eabi-gcc &> /dev/null; do brew install armmbed/formulae/arm-none-eabi-gcc; done
 
 # System setup
 install:

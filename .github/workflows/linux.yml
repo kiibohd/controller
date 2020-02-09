@@ -25,6 +25,11 @@ jobs:
     - name: Build
       working-directory: Keyboards
       run: ./ic_keyboards.bash
+    - uses: actions/upload-artifact@v1
+      if: always()
+      with:
+        name: Firmware
+        path: Keyboards
 
   firmware-test:
     runs-on: ubuntu-latest
@@ -104,4 +109,17 @@ jobs:
         python3 -m pip install kll
     - name: Build
       working-directory: Bootloader/Builds
+      run: ./all.bash
+    - uses: actions/upload-artifact@v1
+      if: always()
+      with:
+        name: Bootloaders
+        path: Bootloader/Builds
+
+  dockerfiles:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build
+      working-directory: Dockerfiles
       run: ./all.bash
