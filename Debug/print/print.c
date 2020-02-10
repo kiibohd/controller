@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2019 by Jacob Alexander
+/* Copyright (C) 2011-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -171,6 +171,18 @@ void printInt32( uint32_t in )
 	dPrintStr( tmpStr );
 }
 
+void printSInt32( int32_t in )
+{
+	// Max number of characters is 11 + 1 for null
+	char tmpStr[12];
+
+	// Convert number
+	sint32ToStr( in, tmpStr );
+
+	// Print number
+	dPrintStr( tmpStr );
+}
+
 void printInt32Pad( uint32_t in )
 {
 	// Max number of characters is 10 + 1 for null
@@ -311,6 +323,41 @@ void int32ToStr( uint32_t in, char* out )
 		out[pos++] = in % 10 + '0';
 	}
 	while ( (in /= 10) > 0 );
+
+	// Append null
+	out[pos] = '\0';
+
+	// Reverse the string to the correct order
+	revsStr(out);
+}
+
+
+void sint32ToStr( int32_t in, char* out )
+{
+	// Position and sign containers
+	uint32_t pos;
+	pos = 0;
+
+	// Check if negative
+	uint8_t neg = 0;
+	if ( in < 0 )
+	{
+		neg = 1;
+		in = -in; // Convert number to positive
+	}
+
+	// Evaluate through digits as decimal
+	do
+	{
+		out[pos++] = in % 10 + '0';
+	}
+	while ( (in /= 10) > 0 );
+
+	// Append - if negative
+	if ( neg )
+	{
+		out[pos++] = '-';
+	}
 
 	// Append null
 	out[pos] = '\0';

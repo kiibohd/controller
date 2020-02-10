@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2019 by Jacob Alexander
+/* Copyright (C) 2011-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -102,6 +102,7 @@ void printChar( char c );
 void printInt8    ( uint8_t  in );
 void printInt16   ( uint16_t in );
 void printInt32   ( uint32_t in );
+void printSInt32  ( int32_t in );
 void printHex_op  ( uint16_t in, uint8_t op );
 void printHex32_op( uint32_t in, uint8_t op );
 
@@ -124,6 +125,7 @@ void printTime( Time time );
 void int8ToStr    ( uint8_t  in, char*  out );
 void int16ToStr   ( uint16_t in, char*  out );
 void int32ToStr   ( uint32_t in, char*  out );
+void sint32ToStr  ( int32_t in, char*  out );
 void hexToStr_op  ( uint16_t in, char*  out, uint8_t op );
 void hex32ToStr_op( uint32_t in, char*  out, uint8_t op );
 void revsStr      ( char*  in );
