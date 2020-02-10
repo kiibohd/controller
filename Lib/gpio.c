@@ -259,3 +259,26 @@ void PIO_Setup(GPIO_ConfigPin config)
 #endif
 }
 
+void GPIO_IrqSetup(GPIO_Pin gpio, uint8_t enable)
+{
+#if defined(_sam_)
+#if defined(_sam4s_c_)
+	volatile Pio *ports[] = {PIOA, PIOB, PIOC};
+#else
+	volatile Pio *ports[] = {PIOA, PIOB};
+#endif
+	volatile Pio *pio = ports[gpio.port];
+
+	// Enable IRQ
+	if (enable)
+	{
+		pio->PIO_IER |= (1 << gpio.pin);
+	}
+	// Disable IRQ
+	else
+	{
+		pio->PIO_IDR |= (1 << gpio.pin);
+	}
+#endif
+}
+

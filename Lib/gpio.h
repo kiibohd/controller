@@ -147,4 +147,4 @@ typedef struct GPIO_ConfigPin {
 
 uint8_t GPIO_Ctrl(GPIO_Pin gpio, GPIO_Type type, GPIO_Config config);
 void PIO_Setup(GPIO_ConfigPin config);
-
+void GPIO_IrqSetup(GPIO_Pin gpio, uint8_t enable);
