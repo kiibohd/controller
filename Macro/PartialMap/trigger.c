@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2019 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -346,6 +346,26 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 		vote = TriggerMacroVote_DoNothing;
 		break;
 
+	// Dial State Type
+	case TriggerType_Dial1:
+		// Dial triggers encode the direction of the event
+		// There is only "activated" state for dials, which is only sent once
+		// This makes dials not so useful for long macros
+		// (though it may be possible to implement it if there is demand)
+		if (
+			guide_index == event_index &&
+			guide->type == event->type &&
+			guide->state == event->state
+		)
+		{
+			// Only ever "Pressed", other states are not used with rotations
+			vote = Trigger_evalShortTriggerMacroVote_PHRO( ScheduleType_P );
+			break;
+		}
+
+		vote = TriggerMacroVote_DoNothing;
+		break;
+
 	// Invalid State Type
 	default:
 		erro_printNL("Invalid State Type. This is a bug.");
@@ -536,6 +556,17 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 		// (though it may be possible to implement it if there is demand)
 		// TODO
 		erro_printNL("Rotation State Type (Long Macros) - Not implemented...");
+		break;
+
+	// Dial State Type
+	case TriggerType_Dial1:
+		// Dial triggers are single shot events
+		// The Off event is not sent (though it does exist)
+		// So all events must be single shot
+		// This make dials not so useful when constructing long macros
+		// (though it may be possible to implement it if there is demand)
+		// TODO
+		erro_printNL("Dial State Type (Long Macros) - Not implemented...");
 		break;
 
 	// Invalid State Type

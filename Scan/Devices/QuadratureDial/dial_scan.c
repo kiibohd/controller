@@ -313,7 +313,7 @@ void cliFunc_dialDebug(char* args)
 	}
 
 	print(NL);
-	info_msg("Dial Debug Mode: ");
+	info_print("Dial Debug Mode: ");
 	printInt8(dialDebugMode);
 }
 
@@ -334,6 +334,6 @@ void cliFunc_dialDivider(char *args)
 	}
 
 	print(NL);
-	info_msg("Dial Divider: ");
+	info_print("Dial Divider: ");
 	printInt32(dial_divider);
 }

@@ -1,4 +1,4 @@
-/* Copyright (C) 2018-2019 by Jacob Alexander
+/* Copyright (C) 2018-2020 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -64,6 +64,7 @@ var_uint_t KLL_TriggerIndex_loopkup( TriggerType type, uint8_t index )
 	case TriggerType_Inactive1:
 	case TriggerType_Active1:
 	case TriggerType_Rotation1:
+	case TriggerType_Dial1:
 	default:
 		break;
 	}
@@ -219,6 +220,24 @@ CapabilityState KLL_CapabilityState( ScheduleState state, TriggerType type )
 	// Rotation
 	case TriggerType_Rotation1:
 		return CapabilityState_Initial;
+
+	// Dial
+	case TriggerType_Dial1:
+		switch ( state )
+		{
+		// Increase
+		case ScheduleType_Inc:
+			return CapabilityState_Any;
+
+		// Decrease
+		case ScheduleType_Dec:
+			return CapabilityState_Any;
+
+		// Invalid
+		default:
+			break;
+		}
+		break;
 
 	// Debug
 	case TriggerType_Debug:

@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2019 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -35,6 +35,7 @@ void Macro_layerState( uint16_t layerIndex, uint8_t state );
 void Macro_ledState( uint16_t ledCode, uint8_t state );
 void Macro_timeState( uint8_t type, uint16_t cur_time, uint8_t state );
 void Macro_rotationState( uint8_t index, int8_t increment );
+void Macro_dialState( uint8_t index, uint8_t state );
 
 uint8_t Macro_tick_update( TickStore *store, uint8_t type );
 

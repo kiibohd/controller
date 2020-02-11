@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2018 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -434,6 +434,11 @@ void Macro_showTriggerType( TriggerType type )
 		print("Rotation");
 		break;
 
+	// Dial
+	case TriggerType_Dial1:
+		print("Dial");
+		break;
+
 	// Invalid
 	default:
 		print("INVALID");
@@ -461,6 +466,7 @@ void Macro_showTriggerEvent( TriggerEvent *event )
 	case TriggerType_Analog3:
 	case TriggerType_Analog4:
 	case TriggerType_Rotation1:
+	case TriggerType_Dial1:
 		printInt8( event->state );
 		break;
 
@@ -529,6 +535,7 @@ uint8_t Macro_pressReleaseAdd( void *trigger_ptr )
 	case TriggerType_Analog3:
 	case TriggerType_Analog4:
 	case TriggerType_Rotation1:
+	case TriggerType_Dial1:
 		break;
 
 	case TriggerType_Animation1:
@@ -952,6 +959,30 @@ void Macro_rotationState( uint8_t index, int8_t increment )
 }
 
 
+// Dial state update
+// Queues up a dial trigger event
+// States:
+//  * 0x00 - Off
+//  * 0x01 - Increase
+//  * 0x02 - Decrease
+void Macro_dialState( uint8_t index, uint8_t state )
+{
+	uint8_t type = TriggerType_Dial1;
+
+	// Queue event
+	switch ( state )
+	{
+	case ScheduleType_Inc: // Increment
+	case ScheduleType_Dec: // Decrement
+		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].index = index;
+		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].state = state;
+		macroTriggerEventBuffer[ macroTriggerEventBufferSize ].type  = type;
+		macroTriggerEventBufferSize++;
+		break;
+	}
+}
+
+
 // [In]Activity detected, do TickStore update and signal generation
 // Returns 1 if a signal is sent
 uint8_t Macro_tick_update( TickStore *store, uint8_t type )
@@ -1068,6 +1099,7 @@ void Macro_periodic()
 				break;
 
 			case TriggerType_Rotation1:
+			case TriggerType_Dial1:
 			case TriggerType_Animation1:
 			case TriggerType_Animation2:
 			case TriggerType_Animation3:

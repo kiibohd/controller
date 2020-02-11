@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2019 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -105,6 +105,7 @@ typedef uint8_t state_uint_t;
 // States:
 //   * Press/Hold/Release/Off - PHRO
 //   * Start/On/Stop/Off      - AODO
+//   * Increase/Descrease/Off - IDO
 //   * Done/Repeat/Off        - DRO
 //   * Threshold (Range)      - 0x01 (Released), 0x02 (Pressed), 0x10 (Light press), 0xFF (Max press) (Threashold)
 //   * Layer Info             - 0x10 (Shift), 0x20 (Latch), 0x40 (Lock) -> May be activated simultaneously with AODO
@@ -125,6 +126,9 @@ typedef enum ScheduleState {
 	ScheduleType_On     = 0x02, // On
 	ScheduleType_D      = 0x03, // Deactivate
 	ScheduleType_Off    = 0x00, // Off
+
+	ScheduleType_Inc    = 0x01, // Increase
+	ScheduleType_Dec    = 0x02, // Decrease
 
 	ScheduleType_Done   = 0x06, // Done
 	ScheduleType_Repeat = 0x07, // Repeat
@@ -244,7 +248,8 @@ typedef struct ResultGuide {
 //   * 0x13 Inactive Bank 1  (   0- 255) [AODO]
 //   * 0x14 Active Bank 1    (   0- 255) [AODO]
 //   * 0x15 Rotation Bank 1  (   0- 255) [AODO]
-//   * 0x16-0xFE Reserved
+//   * 0x16 Dial Bank 1      (   0- 255) [IDO]
+//   * 0x17-0xFE Reserved
 //   * 0xFF Debug State
 //
 // States:
@@ -283,8 +288,9 @@ typedef enum TriggerType {
 	TriggerType_Inactive1  = 0x13,
 	TriggerType_Active1    = 0x14,
 	TriggerType_Rotation1  = 0x15,
+	TriggerType_Dial1      = 0x16,
 
-	/* Reserved 0x15-0xFE */
+	/* Reserved 0x17-0xFE */
 
 	TriggerType_Debug   = 0xFF,
 } TriggerType;

@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2019 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -312,6 +312,10 @@ void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 			break;
 		// Rotation State Type
 		case TriggerType_Rotation1:
+			// TODO (HaaTa) Just selects the first trigger for now
+			break;
+		// Dial State Type
+		case TriggerType_Dial1:
 			// TODO (HaaTa) Just selects the first trigger for now
 			break;
 		}
