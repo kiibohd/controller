@@ -18,8 +18,19 @@ storage_control => Storage_StorageControl_capability( func : 1 );
 # LED Options
 #
 
-# Available ISSI Chips
+# ISSI Defines
 ISSI_Chips => ISSI_Chips_define;
+ISSI_Chip_31FL3731 => ISSI_Chip_31FL3731_define;
+ISSI_Chip_31FL3732 => ISSI_Chip_31FL3732_define;
+ISSI_Chip_31FL3733 => ISSI_Chip_31FL3733_define;
+ISSI_Chip_31FL3736 => ISSI_Chip_31FL3736_define;
+ISSI_Chip_31FL3743B => ISSI_Chip_31FL3743B_define;
+
+ISSI_Chip_31FL3731 = 0;
+ISSI_Chip_31FL3732 = 0;
+ISSI_Chip_31FL3733 = 0;
+ISSI_Chip_31FL3736 = 0;
+ISSI_Chip_31FL3743B = 0;
 
 
 
