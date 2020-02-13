@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (C) 2015 by Jacob Alexander
+# Copyright (C) 2015-2020 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,8 +16,6 @@
 # along with this file.  If not, see <http://www.gnu.org/licenses/>.
 
 # Imports
-import sys
-
 from array import *
 from PIL import Image # Use pillow instead of PIL, it works with Python 3
 import argparse
@@ -112,6 +110,12 @@ class STLcdGraphic:
 		return display
 
 
+class StandardError(ValueError):
+	'''
+	General Error
+	'''
+
+
 class ImageToStruct(object):
 
     def __init__(self, filename):
@@ -127,8 +131,8 @@ class ImageToStruct(object):
         # Load the input filename and convert to black & white
         try:
             input_image = Image.open( self.filename ).convert('1')
-        except:
-            StandardError( "Unable to load image '{0}'".format( self.filename ) )
+        except Exception:
+            raise StandardError( "Unable to load image '{0}'".format( self.filename ) )
         return input_image
 
     def check_boundries(self, input_image):
@@ -180,7 +184,6 @@ class ImageToStruct(object):
                                         disp_test += " "
                         except IndexError:
                                 print( (x - width_start,y - height_start) )
-                                pass
 
                 disp_test += "|\n"
 

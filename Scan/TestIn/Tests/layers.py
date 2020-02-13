@@ -3,7 +3,7 @@
 Layers test case for Host-side KLL
 '''
 
-# Copyright (C) 2018-2019 by Jacob Alexander
+# Copyright (C) 2018-2020 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -29,15 +29,11 @@ import kiilogger
 
 from common import (
     check,
-    fail_tests,
-    header,
-    pass_tests,
     result,
     EvalBase,
     KLLTest,
     KLLTestUnitResult,
     KLLTestRunner,
-    TriggerResultEval,
 )
 
 

@@ -3,7 +3,7 @@
 HID-IO Python Interface
 '''
 
-# Copyright (C) 2017-2019 by Jacob Alexander
+# Copyright (C) 2017-2020 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -20,7 +20,6 @@ HID-IO Python Interface
 
 ### Imports ###
 
-import os
 import sys
 
 

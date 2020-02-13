@@ -2,7 +2,7 @@
 Common functions for Host-side KLL tests
 '''
 
-# Copyright (C) 2016-2019 by Jacob Alexander
+# Copyright (C) 2016-2020 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -1150,7 +1150,7 @@ class LayerVerification(CapabilityVerification):
                 state,
                 cur.state[expected_layer],
             ))
-        except:
+        except Exception:
             return check(False, "test:{} expectedlayer:{} expectedtype:{} state:{}".format(
                 self.parent.parent.parent.parent.cur_test,
                 expected_layer,

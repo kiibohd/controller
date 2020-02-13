@@ -5,7 +5,7 @@ Selt-test unit test for Host-side KLL
 Uses the trigger:result syntax to self-test KLL file.
 '''
 
-# Copyright (C) 2016-2019 by Jacob Alexander
+# Copyright (C) 2016-2020 by Jacob Alexander
 #
 # This file is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -24,16 +24,12 @@ Uses the trigger:result syntax to self-test KLL file.
 
 import logging
 import os
-import sys
 
 import interface as i
 import kiilogger
 
 from common import (
-    check,
-    fail_tests,
     header,
-    pass_tests,
     result,
     KLLTest,
     KLLTestUnitResult,
