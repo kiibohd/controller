@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2019 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2020 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -306,7 +306,7 @@ void main()
 			(&VBAT)[ pos ] = sys_reset_to_loader_magic[ pos ];
 
 		// Firmware mode
-		print( NL "==> Booting Firmware..." );
+		print( NL "==> Booting Firmware..." NL );
 		uint32_t addr = (uintptr_t)&_app_rom;
 		SCB_VTOR = addr; // relocate vector table
 		jump_to_app( addr );
@@ -341,7 +341,7 @@ void main()
 			GPBR->SYS_GPBR[ pos ] = ((uint32_t*)sys_reset_to_loader_magic)[ pos ];
 
 		// Firmware mode
-		print( NL "==> Booting Firmware..." );
+		print( NL "==> Booting Firmware..." NL );
 		uint32_t addr = (uintptr_t)&_app_rom;
 		SCB->VTOR = ((uint32_t) addr); // relocate vector table
 		jump_to_app( addr );
