@@ -29,14 +29,26 @@ Linker scripts can be found in the [ld](ld) directory.
 * [chip_version.h](chip_version.h) - Lookup dictionaries useful for auto-detecting MCUs.
 * [clang.c](clang.c) - Clang specific functions.
 * delay.[c](delay.c)/[h](delay.h) - Delay functionality.
+* entropy.[c](entropy.c)/[h](entropy.h) - Random number seeding and generation.
 * host.[c](host.c)/[h](host.h)/[py](host.py) - Host-side KLL build support.
 * [mcu_compat.h](mcu_compat.h) - MCU compatibility defines.
 * periodic.[c](periodic.c)/[h](periodic.h) - Periodic timer support.
+* storage.[c](storage.c)/[h](storage.h) - Non-volatile storage driver.
+* [sysview.h](sysview.h) - Segger defines for supported MCUs.
 * time.[c](time.c)/[h](time.h) - Time calculation support.
+* utf8.[c](utf8.c)/[h](utf8.h) - UTF-8 functions.
+
+
+## Libraries
+
+* [ASF](ASF) - Microchip/Atmel Advanced Software Framework
+* [CMSIS](CMSIS) - Cortex Microcontroller Software Interface Standard from Microchip/Atmel
+* [nRF5_SDK](nRF5_SDK) - Nordic nRF5 SDK
 
 
 ## MCU Specific
 
+* arm_cortex.[c](arm_cortex.c)/[h](arm_cortex.h)/[kll](arm_cortex.kll) - ARM Cortex specific functions, registers and configuration.
 * [kinetis.c](kinetis.c) - Kinetis-based MCU initialization and IRQ setup.
 * [kinetis.h](kinetis.h) - Register definitions for Kinetis-based MCUs.
 * [nrf5.c](nrf5.c) - nRF5-based MCU initialization and IRQ setup.
