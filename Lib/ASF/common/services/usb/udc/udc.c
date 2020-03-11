@@ -602,7 +602,7 @@ static bool udc_req_std_dev_set_address(void)
 static bool udc_req_std_dev_get_str_desc(void)
 {
 	uint8_t i;
-	const uint8_t *str;
+	const uint8_t *str = 0;
 	uint8_t str_length = 0;
 
 	// Link payload pointer to the string corresponding at request
@@ -639,7 +639,7 @@ static bool udc_req_std_dev_get_str_desc(void)
 		return false;
 	}
 
-	if (str_length) {
+	if (str_length && str) {
 		for(i = 0; i < str_length; i++) {
 			udc_string_desc.string[i] = cpu_to_le16((le16_t)str[i]);
 		}

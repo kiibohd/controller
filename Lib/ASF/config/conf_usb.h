@@ -38,7 +38,7 @@
 
 #include <buildvars.h>
 #include <kll_defs.h>
-#include "compiler.h"
+#include <sam/utils/compiler.h>
 
 /**
  * USB Device Configuration
@@ -105,7 +105,7 @@ extern bool main_extra_string();
 #define UDC_GET_EXTRA_STRING() main_extra_string()
 #define USB_DEVICE_MAX_EP 1
 #define  USB_DEVICE_POWER                 100 // Consumption on Vbus line (mA)
-#include "udi_dfu_atmel_conf.h"
+#include <common/services/usb/class/dfu_flip/device/udi_dfu_atmel_conf.h>
 
 // ===== Firmware =====
 #else

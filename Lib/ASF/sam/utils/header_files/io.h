@@ -67,7 +67,7 @@
 
 /* SAM4S series */
 #if (SAM4S)
-#  include "sam4s.h"
+#  include <sam/utils/cmsis/sam4s/include/sam4s.h>
 #endif
 
 /* SAM4L series */

@@ -37,7 +37,7 @@
 #ifndef EFC_H_INCLUDED
 #define EFC_H_INCLUDED
 
-#include "compiler.h"
+#include "sam/utils/compiler.h"
 
 /// @cond 0
 /**INDENT-OFF**/

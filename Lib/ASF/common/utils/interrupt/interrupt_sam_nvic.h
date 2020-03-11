@@ -37,7 +37,7 @@
 #ifndef UTILS_INTERRUPT_INTERRUPT_H
 #define UTILS_INTERRUPT_INTERRUPT_H
 
-#include <compiler.h>
+#include <sam/utils/compiler.h>
 #include <common/utils/parts.h>
 
 #ifdef __cplusplus

@@ -37,7 +37,7 @@
 #ifndef PIO_H_INCLUDED
 #define PIO_H_INCLUDED
 
-#include "compiler.h"
+#include <sam/utils/compiler.h>
 
 #ifdef __cplusplus
 extern "C" {

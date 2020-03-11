@@ -44,14 +44,13 @@
  * Support and FAQ: visit <a href="http://www.atmel.com/design-support/">Atmel Support</a>
  */
 
-#include "conf_isp.h"
-#include "isp.h"
+#include <common/services/isp/flip/module_config/conf_isp.h>
+#include <common/services/isp/flip/isp.h>
 #include "string.h"
 
-//#include "asf.h"
 #include "boot.h"
-#include "sam.h"
-#include "sam4s.h"
+#include <Lib/sam.h>
+#include <sam/utils/cmsis/sam4s/include/sam4s.h>
 #include <sam/services/flash_efc/flash_efc.h>
 
 /**

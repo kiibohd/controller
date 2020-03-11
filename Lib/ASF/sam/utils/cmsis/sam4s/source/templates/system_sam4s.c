@@ -35,7 +35,7 @@
  * Support and FAQ: visit <a href="https://www.microchip.com/support/">Microchip Support</a>
  */
 
-#include "sam4s.h"
+#include <sam/utils/cmsis/sam4s/include/sam4s.h>
 
 /* @cond 0 */
 /**INDENT-OFF**/

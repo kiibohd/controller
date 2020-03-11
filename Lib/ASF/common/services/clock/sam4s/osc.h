@@ -37,7 +37,7 @@
 #ifndef CHIP_OSC_H_INCLUDED
 #define CHIP_OSC_H_INCLUDED
 
-#include "board.h"
+#include <common/boards/board.h>
 
 #include <sam/drivers/pmc/pmc.h>
 

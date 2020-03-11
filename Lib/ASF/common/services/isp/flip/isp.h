@@ -37,9 +37,9 @@
 #ifndef _ISP_H_
 #define _ISP_H_
 
-#include "compiler.h"
+#include <sam/utils/compiler.h>
 
-#include "conf_isp.h"
+#include <common/services/isp/flip/module_config/conf_isp.h>
 
 #ifdef __cplusplus
 extern "C" {

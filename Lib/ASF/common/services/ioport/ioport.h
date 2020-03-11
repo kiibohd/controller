@@ -42,7 +42,7 @@ extern "C" {
 #endif
 
 #include <common/utils/parts.h>
-#include <compiler.h>
+#include <sam/utils/compiler.h>
 
 /**
  * \defgroup ioport_group Common IOPORT API

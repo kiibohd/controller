@@ -39,7 +39,7 @@
 #define _UDI_DFU_ATMEL_CONF_H_
 
 #include "conf_usb.h"
-#include "flip_protocol.h"
+#include <common/services/isp/flip/flip_protocol.h>
 
 /**
  * \addtogroup udi_dfu_atmel_group_single_desc

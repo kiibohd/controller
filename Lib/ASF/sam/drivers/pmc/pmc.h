@@ -37,7 +37,7 @@
 #ifndef PMC_H_INCLUDED
 #define PMC_H_INCLUDED
 
-#include "compiler.h"
+#include "sam/utils/compiler.h"
 
 /// @cond 0
 /**INDENT-OFF**/

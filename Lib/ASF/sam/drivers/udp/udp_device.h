@@ -37,12 +37,12 @@
 #ifndef UDP_DEVICE_H_INCLUDED
 #define UDP_DEVICE_H_INCLUDED
 
-#include "compiler.h"
-#include "preprocessor.h"
+#include <sam/utils/compiler.h>
+#include <sam/utils/preprocessor/preprocessor.h>
 
 /* Get USB VBus pin configuration in board configuration */
 #include "conf_board.h"
-#include "board.h"
+#include <common/boards/board.h>
 #include <common/services/ioport/ioport.h>
 #include <sam/drivers/pio/pio.h>
 #include <sam/drivers/pio/pio_handler.h>

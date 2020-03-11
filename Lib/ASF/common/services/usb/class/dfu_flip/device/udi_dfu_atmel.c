@@ -40,9 +40,9 @@
 #include <common/services/usb/udc/udd.h>
 #include <common/services/usb/udc/udc.h>
 #include "udi_dfu_atmel.h"
-#include "conf_isp.h"
-#include "isp.h"
-#include "flip_protocol.h"
+#include <common/services/isp/flip/module_config/conf_isp.h>
+#include <common/services/isp/flip/isp.h>
+#include <common/services/isp/flip/flip_protocol.h>
 #include "string.h"
 
 #ifndef FLIP_PROTOCOL_VERSION

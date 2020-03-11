@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2017 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2020 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,13 +27,13 @@
 
 // ----- Project Includes -----
 
-#include <mcu_compat.h>
+#include <Lib/mcu_compat.h>
 
 #if defined(_kinetis_)
-#include <kinetis.h>
+#include <Lib/kinetis.h>
 
 #elif defined(_sam_)
-#include <sam.h>
+#include <Lib/sam.h>
 
 #endif
 

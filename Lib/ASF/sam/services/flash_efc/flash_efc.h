@@ -37,7 +37,7 @@
 #ifndef FLASH_H_INCLUDED
 #define FLASH_H_INCLUDED
 
-#include "compiler.h"
+#include "sam/utils/compiler.h"
 
 #include <sam/drivers/efc/efc.h>
 

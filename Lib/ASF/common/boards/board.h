@@ -49,7 +49,7 @@
  * \{
  */
 
-#include "compiler.h"
+#include <sam/utils/compiler.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -329,7 +329,7 @@ extern "C" {
 #elif BOARD == STK600_RCUC3L3
 #  include "stk600/rcuc3l3/stk600_rcuc3l3.h"
 #elif BOARD == SAM4S_XPLAINED_PRO
-#  include "sam4s_xplained_pro/sam4s_xplained_pro.h"
+#  include <sam/boards/sam4s_xplained_pro/sam4s_xplained_pro.h>
 #elif BOARD == SAM4L_XPLAINED_PRO
 #  include "sam4l_xplained_pro/sam4l_xplained_pro.h"
 #elif BOARD == SAM4L8_XPLAINED_PRO

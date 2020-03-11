@@ -1,0 +1,58 @@
+#
+# Compilers
+#
+[binaries]
+ar = 'arm-none-eabi-ar'
+c = ['ccache', 'arm-none-eabi-gcc']
+cpp = ['ccache', 'arm-none-eabi-g++']
+nm = 'arm-none-eabi-nm'
+objcopy = 'arm-none-eabi-objcopy'
+objdump = 'arm-none-eabi-objdump'
+size = 'arm-none-eabi-size'
+strip = 'arm-none-eabi-strip'
+
+
+#
+# Host Machine (ARM MCU)
+#
+[host_machine]
+system = 'none'
+cpu_family = 'arm'
+cpu = 'cortex-m4'
+endian = 'little'
+
+
+#
+# Host Properties and Flags
+#
+[properties]
+c_args = [
+    '-fdata-sections',
+    '-ffunction-sections',
+    '-fno-builtin',
+    '-fshort-wchar',
+    '-fstrict-volatile-bitfields',
+    '-mcpu=cortex-m4',
+    '-mthumb',
+    '-nostartfiles',
+    '-Wno-main',
+    '-fno-use-linker-plugin'
+    ]
+    #'-msoft-float', # NOTE: Was specified by bootloader, needed?
+    #'-fuse-linker-plugin', # TODO Enabling this with LTO is better
+c_link_args = [
+    '-Wl,--gc-sections',
+    '-Wl,--no-wchar-size-warning',
+    '-nostdlib',
+    ]
+
+#set ( TUNING "-D_bootloader_ -fplan9-extensions" )
+
+#set( TUNING "-fstack-protector-all ${FLOAT}" )
+
+
+#set( LINKER_FLAGS "-fwhole-program -L${CMAKE_CURRENT_SOURCE_DIR}/../Lib/ld -T${CHIP}.bootloader.ld " )
+
+#set( LINKER_FLAGS " -L${CMAKE_CURRENT_SOURCE_DIR}/Lib/ld -T${CHIP}.ld" )
+
+
