@@ -13,7 +13,7 @@ Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](
 [![Release Environment](https://github.com/kiibohd/controller/workflows/Release%20Environment/badge.svg)](https://github.com/kiibohd/controller/actions)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/kiibohd/controller.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kiibohd/controller/alerts/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/kiibohd/controller.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kiibohd/controller/context:python)
-![Release Version](https://img.shields.io/github/v/release/kiibohd/controller.svg)
+[![Release Version](https://img.shields.io/github/v/release/kiibohd/controller.svg)](https://github.com/kiibohd/controller/releases)
 
 [![Visit our IRC channel](https://kiwiirc.com/buttons/irc.freenode.net/input.club.png)](https://kiwiirc.com/client/irc.freenode.net/#input.club)
 
