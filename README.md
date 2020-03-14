@@ -10,8 +10,10 @@ Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](
 
 [![GitHub Action Status](https://github.com/kiibohd/controller/workflows/Linux%20Build%20Environment/badge.svg)](https://github.com/kiibohd/controller/actions)
 [![GitHub Action Status](https://github.com/kiibohd/controller/workflows/macOS%20Build%20Environment/badge.svg)](https://github.com/kiibohd/controller/actions)
+[![Release Environment](https://github.com/kiibohd/controller/workflows/Release%20Environment/badge.svg)](https://github.com/kiibohd/controller/actions)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/kiibohd/controller.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kiibohd/controller/alerts/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/kiibohd/controller.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kiibohd/controller/context:python)
+![Release Version](https://img.shields.io/github/v/release/kiibohd/controller.svg)
 
 [![Visit our IRC channel](https://kiwiirc.com/buttons/irc.freenode.net/input.club.png)](https://kiwiirc.com/client/irc.freenode.net/#input.club)
 
