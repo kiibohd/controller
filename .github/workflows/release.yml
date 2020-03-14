@@ -1,0 +1,51 @@
+name: Release Environment
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+env:
+  PIPENV_ACTIVE: 1
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y software-properties-common
+        sudo add-apt-repository universe -y
+        sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
+        sudo apt-get update
+        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build python3-setuptools
+    - name: Install kll compiler
+      run: |
+        python3 -m pip install --upgrade pip
+        python3 -m pip install kll
+    - name: Build
+      working-directory: Lib/CMake
+      run: ./githubaction_deploy.bash
+    - uses: actions/upload-artifact@v1
+      if: always()
+      with:
+        name: Release Firmware
+        path: Keyboards/firmware
+    - uses: actions/upload-artifact@v1
+      if: always()
+      with:
+        name: Release Bootloader
+        path: Bootloader/Builds/bootloader
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        draft: true
+        prerelease: true
+        files: |
+          Keyboards/firmware/*.dfu.bin
+          Bootloader/Builds/bootloader/*.bootloader.bin
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

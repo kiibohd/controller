@@ -42,14 +42,14 @@ jobs:
         sudo add-apt-repository universe -y
         sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
         sudo apt-get update
-        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build python3-setuptools
+        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build python3-setuptools libubsan0
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
         python3 -m pip install kll
     - name: Test
       working-directory: Keyboards
-      run: EnableHostOnlyBuild=true HostTest=kll.py ./ic_keyboards.bash
+      run: DisableSanitizer=true EnableHostOnlyBuild=true HostTest=kll.py ./ic_keyboards.bash
 
   other-firmware:
     runs-on: ubuntu-latest
@@ -82,14 +82,14 @@ jobs:
         sudo add-apt-repository universe -y
         sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
         sudo apt-get update
-        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build python3-setuptools
+        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build python3-setuptools libubsan0
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
         python3 -m pip install kll
     - name: Build
       working-directory: Keyboards/Testing
-      run: ./all_tests.bash
+      run: DisableSanitizer=true ./all_tests.bash
 
   bootloaders:
     runs-on: ubuntu-latest

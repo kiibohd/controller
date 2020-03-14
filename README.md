@@ -10,7 +10,6 @@ Please refer to the [KLL](https://github.com/kiibohd/kll) repo or [kiibohd.com](
 
 [![GitHub Action Status](https://github.com/kiibohd/controller/workflows/Linux%20Build%20Environment/badge.svg)](https://github.com/kiibohd/controller/actions)
 [![GitHub Action Status](https://github.com/kiibohd/controller/workflows/macOS%20Build%20Environment/badge.svg)](https://github.com/kiibohd/controller/actions)
-[![Travis Status](https://travis-ci.org/kiibohd/controller.svg?branch=master)](https://travis-ci.org/kiibohd/controller) [![Appveyor Status](https://ci.appveyor.com/api/projects/status/67yk8tiyt88xmd15?svg=true)](https://ci.appveyor.com/project/kiibohd/controller/branch/master)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/kiibohd/controller.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kiibohd/controller/alerts/)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/kiibohd/controller.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/kiibohd/controller/context:python)
 
