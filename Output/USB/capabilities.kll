@@ -1,11 +1,11 @@
 # USB
 
 Name = USBCapabilities;
-Version = 0.13;
-Author = "HaaTa (Jacob Alexander) 2014-2019";
+Version = 0.14;
+Author = "HaaTa (Jacob Alexander) 2014-2020";
 
 # Modified Date
-Date = 2019-12-07;
+Date = 2020-03-14;
 
 
 # Output capabilities
@@ -15,6 +15,11 @@ sysCtrlOut    => Output_sysCtrlSend_capability( sysCode : 1 );
 usbKeyOut     => Output_usbCodeSend_capability( usbCode : 1 );
 mouseOut      => Output_usbMouse_capability( mouseCode : 2, relative_x : 2, relative_y : 2 );
 mouseWheelOut => Output_usbMouseWheel_capability( vertWheel : 1, horiWheel : 1 );
+
+# Releases a given usb code
+# Useful when wanting to block a specific key from functioning
+# e.g. Releasing RCtrl and RShift when activating a Kira function layer to use media keys in Windows
+releaseUSBKey => Output_usbCodeRelease_capability( usbCode : 1 );
 
 # Configuration capabilities
 kbdProtocolBoot => Output_kbdProtocolBoot_capability();
@@ -28,6 +33,11 @@ Output_USBEnabled => Output_USBEnabled_define;
 # Locale Settings
 keyboardLocale => KeyboardLocale_define;
 keyboardLocale = 0;
+
+# Disable releaseUSBkey capability
+# Useful when the feature is not desireable
+releaseUSBKeyDisable => disable_usbCodeRelease_define;
+releaseUSBKeyDisable = 0;
 
 # USB Idle Timeout
 # After a USB HID packet is sent (Keyboard only), send another packet after n * 4 ms

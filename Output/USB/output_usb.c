@@ -590,6 +590,43 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 #endif
 }
 
+
+void Output_usbCodeRelease_capability(TriggerMacro *trigger, uint8_t state, uint8_t stateType, uint8_t *args)
+{
+#if enableKeyboard_define == 1 && disable_usbCodeRelease_define == 0
+	CapabilityState cstate = KLL_CapabilityState(state, stateType);
+
+	// Release, only on initial trigger
+	switch (cstate)
+	{
+	case CapabilityState_Initial:
+		break;
+	case CapabilityState_Debug:
+		// Display capability name
+		print("Output_usbCodeRelease(usbCode)");
+
+		// Read arg if not set to 0
+		if (args != 0)
+		{
+			uint8_t key = args[0];
+			print(" -> ");
+			printInt8(key);
+		}
+		return;
+	case CapabilityState_Last:
+	default:
+		return;
+	}
+
+	// Force release
+	state = ScheduleType_R;
+
+	// Use capability to release key
+	Output_usbCodeSend_capability(trigger, state, stateType, args);
+#endif
+}
+
+
 #if enableMouse_define == 1
 // Sends a mouse command over the USB Output buffer
 // XXX This function *will* be changing in the future
