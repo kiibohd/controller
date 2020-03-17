@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2019 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -397,7 +397,7 @@ void LED_sendPage( uint8_t bus, uint8_t addr, uint16_t *buffer, uint32_t len, ui
 	print(")page(");
 	printHex( page );
 	print(")data[](");
-	for ( uint8_t c = 0; c < 9; c++ )
+	for ( uint8_t c = 0; c < len; c++ )
 	{
 		printHex( buffer[c] );
 		print(" ");
@@ -519,30 +519,47 @@ uint8_t LED_readReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t page )
 
 void LED_reset()
 {
+	// Initialize I2C in fast mode
+	i2c_setup(1);
+
 	// Force PixelMap to stop during reset
 	Pixel_FrameState = FrameState_Sending;
 
 	// Disable FPS by default
 	LED_displayFPS = 0;
 
-	// Enable Hardware shutdown (pull low)
+	// Hardware shutdown (pull low)
 	GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
 	GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
-	delay_us(50);
+	delay_us(200);
 
 #if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
 	// Reset I2C bus
-	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveSetup, GPIO_Config_Pullup );
-	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveHigh, GPIO_Config_Pullup );
-	delay_us(50);
-	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveLow, GPIO_Config_Pullup );
+	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveSetup, GPIO_Config_Pulldown );
+	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveLow, GPIO_Config_Pulldown );
+	delay_us(200);
+	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveHigh, GPIO_Config_Pulldown );
+	delay_us(200);
+	GPIO_Ctrl( iirst_pin, GPIO_Type_DriveLow, GPIO_Config_Pulldown );
+	delay_us(500);
 #endif
 
-	// Disable Hardware shutdown of ISSI chips (pull high)
-	if ( LED_enable && LED_enable_current )
+#if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
+	// Clear LED Pages
+	// Software shutdown
+	for ( uint8_t ch = 0; ch < ISSI_Chips_define; ch++ )
 	{
-		GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveHigh, GPIO_Config_Pullup );
+		uint8_t addr = LED_ChannelMapping[ ch ].addr;
+		uint8_t bus = LED_ChannelMapping[ ch ].bus;
+
+		// POR (Power-on-Reset)
+		LED_readReg( bus, addr, 0x11, ISSI_ConfigPage );
+		delay_us(200);
+
+		// Software shutdown
+		LED_writeReg( bus, addr, 0x00, 0x00, ISSI_ConfigPage );
 	}
+#endif
 
 	// Clear LED Pages
 	// Enable LEDs based upon mask
@@ -552,11 +569,6 @@ void LED_reset()
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
 
 #if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
-		// POR (Power-on-Reset)
-		// Clears all registers to default value (i.e. zeros)
-		LED_readReg( bus, addr, 0x11, ISSI_ConfigPage );
-		delay_us(50); // Give some time for the ISSI chip to reset
-
 		// Set the enable mask
 		LED_sendPage(
 			bus,
@@ -610,11 +622,12 @@ void LED_reset()
 		uint8_t bus = LED_ChannelMapping[ ch ].bus;
 
 #if ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
+		// Disable software shutdown
+		LED_writeReg( bus, addr, 0x00, 0x01, ISSI_ConfigPage );
+		delay_us(200);
+
 		// Enable master sync for the last chip and disable software shutdown
-		// XXX (HaaTa); The last chip is used as it is the last chip all of the frame data is sent to
-		// This is imporant as it may take more time to send the packet than the ISSI chip can handle
-		// between frames.
-		if ( ch == ISSI_Chips_define - 1 )
+		if ( ch == 0 )
 		{
 			LED_writeReg( bus, addr, 0x00, 0x41, ISSI_ConfigPage );
 		}
@@ -646,6 +659,15 @@ void LED_reset()
 		LED_writeReg( bus, addr, 0x0A, 0x01, ISSI_ConfigPage );
 #endif
 	}
+
+	// Disable Hardware shutdown of ISSI chips (pull high)
+	if ( LED_enable && LED_enable_current )
+	{
+		GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveHigh, GPIO_Config_Pullup );
+	}
+
+	// Initialize I2C in slow mode
+	i2c_setup(0);
 
 	// Force PixelMap to be ready for the next frame
 	Pixel_FrameState = FrameState_Update;
@@ -742,9 +764,6 @@ inline void LED_setup()
 
 	// Initialize I2C error counters
 	i2c_initial();
-
-	// Initialize I2C
-	i2c_setup();
 
 	// Setup LED_pageBuffer addresses and brightness section
 	LED_pageBuffer[0].i2c_addr = LED_MapCh1_Addr_define;

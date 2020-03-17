@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Jan Rychter
- * Modifications (C) 2015-2018 Jacob Alexander
+ * Modifications (C) 2015-2020 Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files ( the "Software" ), to deal
@@ -65,7 +65,7 @@ void i2c_initial()
 	}
 }
 
-void i2c_setup()
+void i2c_setup(uint8_t fast)
 {
 	for ( uint8_t ch = ISSI_I2C_FirstBus_define; ch < ISSI_I2C_Buses_define + ISSI_I2C_FirstBus_define; ch++ )
 	{
@@ -165,11 +165,26 @@ void i2c_setup()
 #elif defined(_sam_)
 
 #if ISSI_Chip_31FL3731_define == 1
+#define BAUD_FAST 400000
+#define CK_FAST 1
 #define BAUD 400000
 #define CK 1
 #elif ISSI_Chip_31FL3732_define == 1 || ISSI_Chip_31FL3733_define == 1 || ISSI_Chip_31FL3736_define == 1
-#define BAUD 800000
-#define CK 0
+// XXX (HaaTa): ATSAM4S seems to have a limitation of about 400 kHz
+//              This is the maximum the datasheet supports.
+//              ASF errors out when specifying over 400 kHz.
+//              Setting the Clock Divider at 1, allows for a safe 460 kHz on ATSAM4S.
+//              If you're reading this, please use an SPI ISSI chip, SPI works great on ATSAM4S.
+//              Going much above 460 kHz is going to require serious tuning and pcb adjustments.
+//              Just make sure you run a lot of USB traffic to test for flickering.
+//
+// XXX (HaaTa): The purpose of BAUD_FAST is for initialization of the ISSI controller
+//              as some ISSI chips are buggy when intialized too slowly.
+//              Speeding up this section (which will not have any flickering) seems to reduce errors.
+#define BAUD_FAST 900000
+#define CK_FAST 1
+#define BAUD 460000
+#define CK 1
 #endif
 
 		switch ( ch )
@@ -188,10 +203,20 @@ void i2c_setup()
 		}
 
 		Twi *twi_dev = twi_devs[ch];
-		uint16_t div = (F_CPU/BAUD - 4) / (2<<CK);
+		if (fast)
+		{
+			uint16_t div = (F_CPU/BAUD_FAST - 4) / (2<<CK_FAST);
 
-		// Set clock
-		twi_dev->TWI_CWGR = TWI_CWGR_CLDIV(div) + TWI_CWGR_CHDIV(div) + TWI_CWGR_CKDIV(CK);
+			// Set clock
+			twi_dev->TWI_CWGR = TWI_CWGR_CLDIV(div) + TWI_CWGR_CHDIV(div) + TWI_CWGR_CKDIV(CK_FAST);
+		}
+		else
+		{
+			uint16_t div = (F_CPU/BAUD - 4) / (2<<CK);
+
+			// Set clock
+			twi_dev->TWI_CWGR = TWI_CWGR_CLDIV(div) + TWI_CWGR_CHDIV(div) + TWI_CWGR_CKDIV(CK);
+		}
 
 		// Enable master mode
 		twi_dev->TWI_CR = TWI_CR_MSDIS | TWI_CR_SVDIS;
@@ -237,7 +262,7 @@ void i2c_reset()
 		channel->status = I2C_AVAILABLE;
 	}
 
-	i2c_setup();
+	i2c_setup(0);
 }
 
 uint8_t i2c_busy( uint8_t ch )

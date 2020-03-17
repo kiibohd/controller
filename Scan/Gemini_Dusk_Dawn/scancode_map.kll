@@ -1,11 +1,11 @@
 # Gemini Dusk/Dawn Base Configuration
 
 Name = GeminiDuskDawn;
-Version = 0.6;
-Author = "HaaTa (Jacob Alexander) 2015-2019";
+Version = 0.7;
+Author = "HaaTa (Jacob Alexander) 2015-2020";
 
 # Modified Date
-Date = 2019-12-06;
+Date = 2020-03-17;
 
 
 # ScanCode Strobe List
@@ -235,7 +235,7 @@ Pixel_HardCode_Channels = 3;
 # So the framerate will not go above this amount.
 # If the framerate goes below, ledFPS cli will issue warnings when enabled.
 ISSI_FrameRate_ms => ISSI_FrameRate_ms_define;
-ISSI_FrameRate_ms = 10; # 1000 / <ISSI_FrameRate_ms> = 100 fps
+ISSI_FrameRate_ms = 12; # 1000 / <ISSI_FrameRate_ms> = 83.33 fps
 
 
 

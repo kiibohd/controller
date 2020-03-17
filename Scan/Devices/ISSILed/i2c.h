@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2014 Jan Rychter
- * Modifications (C) 2015-2018 Jacob Alexander
+ * Modifications (C) 2015-2020 Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -71,7 +71,7 @@ void i2c_initial();
  * I2C Module Setup
  */
 
-void i2c_setup();
+void i2c_setup(uint8_t fast);
 
 
 /*
