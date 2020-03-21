@@ -666,9 +666,6 @@ void LED_reset()
 		GPIO_Ctrl( hardware_shutdown_pin, GPIO_Type_DriveHigh, GPIO_Config_Pullup );
 	}
 
-	// Initialize I2C in slow mode
-	i2c_setup(0);
-
 	// Force PixelMap to be ready for the next frame
 	Pixel_FrameState = FrameState_Update;
 
@@ -818,11 +815,17 @@ inline void LED_setup()
 uint8_t LED_chipSend;
 void LED_linkedSend()
 {
+	// Initialize I2C in slow mode
+	i2c_setup(0);
+
 	// Check if we've updated all the ISSI chips for this frame
 	if ( LED_chipSend >= ISSI_Chips_define )
 	{
 		// Now ready to update the frame buffer
 		Pixel_FrameState = FrameState_Update;
+
+		// Initialize I2C in fast mode
+		i2c_setup(1);
 
 		// Finished sending the buffer, exit linked send
 		return;

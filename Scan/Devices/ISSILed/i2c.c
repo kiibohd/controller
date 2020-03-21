@@ -650,7 +650,6 @@ void i2c_isr( uint8_t ch )
 #if defined(_kinetis_)
 				*I2C_D = element;
 #elif defined(_sam_)
-				// while (! (status & TWI_SR_TXRDY));
 				if (!(status & TWI_SR_TXRDY)) return;
 				twi_dev->TWI_THR = element;
 #endif
