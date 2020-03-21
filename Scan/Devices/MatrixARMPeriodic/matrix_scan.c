@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2019 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,6 +36,10 @@
 #include <Lib/gpio.h>
 #include <Lib/periodic.h>
 #include <Lib/time.h>
+
+#if enableRawIO_define == 1
+#include <hidio_com.h>
+#endif
 
 // Local Includes
 #include "matrix_scan.h"
@@ -428,6 +432,9 @@ uint8_t Matrix_single_scan()
 				print(":");
 				printHex( key_disp );
 				print(" ");
+#if enableRawIO_define == 1
+				HIDIO_print_flush();
+#endif
 			}
 			// State transition debug output
 			else if ( matrixDebugMode == 2 )
@@ -435,6 +442,9 @@ uint8_t Matrix_single_scan()
 				printInt16( key_disp );
 				Matrix_keyPositionDebug( state->curState );
 				print(" ");
+#if enableRawIO_define == 1
+				HIDIO_print_flush();
+#endif
 			}
 			else if ( matrixDebugMode == 3 )
 			{
