@@ -157,15 +157,31 @@ void Matrix_setup()
 #endif
 
 	// Setup Strobe Pins
-	for ( uint8_t pin = 0; pin < Matrix_colsNum; pin++ )
+	for ( uint8_t c = 0; c < Matrix_colsNum; c++ )
 	{
-		GPIO_Ctrl( Matrix_cols[ pin ], GPIO_Type_DriveSetup, Matrix_type );
+		GPIO_ConfigPin pin = {
+			.port = Matrix_cols[c].port,
+			.pin = Matrix_cols[c].pin,
+#if defined(_sam_)
+			.peripheral = GPIO_Peripheral_Output0,
+#endif
+		};
+		PIO_Setup(pin); // Enables GPIO controlled by system mux
+		GPIO_Ctrl(Matrix_cols[c], GPIO_Type_DriveSetup, Matrix_type);
 	}
 
 	// Setup Sense Pins
-	for ( uint8_t pin = 0; pin < Matrix_rowsNum; pin++ )
+	for ( uint8_t c = 0; c < Matrix_rowsNum; c++ )
 	{
-		GPIO_Ctrl( Matrix_rows[ pin ], GPIO_Type_ReadSetup, Matrix_type );
+		GPIO_ConfigPin pin = {
+			.port = Matrix_rows[c].port,
+			.pin = Matrix_rows[c].pin,
+#if defined(_sam_)
+			.peripheral = GPIO_Peripheral_Input,
+#endif
+		};
+		PIO_Setup(pin); // Enables GPIO controlled by system mux
+		GPIO_Ctrl(Matrix_rows[c], GPIO_Type_ReadSetup, Matrix_type);
 	}
 
 	// Clear out Debounce Array
