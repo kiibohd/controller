@@ -9,6 +9,7 @@ Refer to the [wiki](../../../wiki) on setting up your system for compiling.
 
 ## Build Steps
 
+* Enable the pipenv `pipenv install` then `pipenv shell`. You'll get an error complaining about kll missing if you do not do this. There are other ways to get kll in your path (e.g. `pip install kll`). You will have to remember to keep kll up to date as well (the pipenv will handle this for you).
 * Try to build once to make sure your system is setup correctly
 * Add any .kll files in the build directory you want
 * Edit `<script>` to include the new .kll files
