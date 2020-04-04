@@ -338,11 +338,99 @@ const DeviceVectors exception_table = {
 
 void *memset( void *addr, int val, unsigned int len )
 {
+#if defined(_cortex_m4_)
+	// Optimized version of memset we split up the region into several segments
+	// Adapted from: https://stackoverflow.com/a/57241273/9357160
+	//
+	// addr
+	// * store single bytes
+	// mid1
+	// * store words, 4 at a time
+	// mid2
+	// * store words, 1 at a time
+	// mid3
+	// * store single bytes
+	// end
+	//
+	// For large buffers, most of the time is spent between mid1 and mid2 which is
+	// highly optimized.
+	const uint32_t int_size = sizeof(uint32_t);
+
+	// find first word-aligned address
+	uint32_t ptr = (uint32_t) addr;
+
+	// get end of memory to set
+	uint32_t end = ptr + len;
+
+	// get location of first word-aligned address at/after the start, but not
+	// after the end
+	uint32_t mid1 = (ptr + int_size - 1) / int_size * int_size;
+	if (mid1 > end)
+	{
+		mid1 = end;
+	}
+
+	// get location of last word-aligned address at/before the end
+	uint32_t mid3 = end / int_size * int_size;
+
+	// get end location of optimized section
+	uint32_t mid2 = mid1 + (mid3 - mid1) / (4 * int_size) * (4 * int_size);
+
+	// create a word-sized integer
+	uint32_t value = 0;
+	for (uint16_t i = 0; i < int_size; ++i)
+	{
+		value <<= 8;
+		value |= (uint8_t) val;
+	}
+	__ASM volatile (
+		// store bytes
+		"b Compare1%=\n"
+		"Store1%=:\n"
+		"strb %[value], [%[ptr]], #1\n"
+		"Compare1%=:\n"
+		"cmp %[ptr], %[mid1]\n"
+		"bcc Store1%=\n"
+		// store words optimized
+		"b Compare2%=\n"
+		"Store2%=:\n"
+		"str %[value], [%[ptr]], #4\n"
+		"str %[value], [%[ptr]], #4\n"
+		"str %[value], [%[ptr]], #4\n"
+		"str %[value], [%[ptr]], #4\n"
+		"Compare2%=:\n"
+		"cmp %[ptr], %[mid2]\n"
+		"bcc Store2%=\n"
+		// store words
+		"b Compare3%=\n"
+		"Store3%=:\n"
+		"str %[value], [%[ptr]], #4\n"
+		"Compare3%=:\n"
+		"cmp %[ptr], %[mid3]\n"
+		"bcc Store3%=\n"
+		// store bytes
+		"b Compare4%=\n"
+		"Store4%=:\n"
+		"strb %[value], [%[ptr]], #1\n"
+		"Compare4%=:\n"
+		"cmp %[ptr], %[end]\n"
+		"bcc Store4%=\n"
+		: // no outputs
+		: [value] "r"(value),
+		[ptr] "r"(ptr),
+		[mid1] "r"(mid1),
+		[mid2] "r"(mid2),
+		[mid3] "r"(mid3),
+		[end] "r"(end)
+	);
+	return addr;
+#else
 	char *buf = addr;
 
 	for (; len > 0; --len, ++buf)
 		*buf = val;
 	return (addr);
+#endif
 }
 
 int memcmp( const void *a, const void *b, unsigned int len )
