@@ -100,18 +100,6 @@ static uint8_t TransactionBuffer_valid_head()
 		return 0;
 	}
 
-	uint16_t new_head = Transaction_buffer.head + 1;
-
-	// Wrap-around case
-	if (new_head == TransactionBuffer_Size)
-	{
-		// Make sure we don't pass tail pointer
-		if (Transaction_buffer.tail == TransactionBuffer_Size)
-		{
-			return 0;
-		}
-	}
-
 	return 1;
 }
 
@@ -154,6 +142,9 @@ static uint8_t queue_next_transaction(Pdc *pdc)
 
 		return 0;
 	}
+
+	// Read the Rx buffer to clear the buffer just in case
+	spi_get(SPI);
 
 	// Get next transaction
 	volatile SPI_Transaction *transaction = TransactionBuffer_head();
@@ -250,6 +241,9 @@ void SPI_Handler()
 		{
 			// First set transaction as complete
 			TransactionBuffer_head()->status = SPI_Transaction_Status_Finished;
+
+			// Read the Rx buffer in case an extra byte was received
+			spi_get(SPI);
 
 			// Next pop head transaction
 			// No need for a callback as the caller has everything they need and polls it periodically
