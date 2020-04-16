@@ -1,5 +1,5 @@
 // Originally Generated from MCHCK Toolkit
-/* Copyright (c) Jacob Alexander 2014-2017 <haata@kiibohd.com>
+/* Copyright (c) Jacob Alexander 2014-2020 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@ static const struct usb_config_1 usb_config_1 = {
 		.one = 1,
 		.bMaxPower = 50
 	},
+#if !defined(_sam_)
 	.usb_function_0 = {
 		.iface = {
 			.bLength = sizeof(struct usb_desc_iface_t),
@@ -80,7 +81,7 @@ static const struct usb_config_1 usb_config_1 = {
 			.bcdDFUVersion = { .maj = 1, .min = 1 }
 		}
 	},
-
+#endif
 };
 
 static const struct usbd_config usbd_config_1 = {

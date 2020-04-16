@@ -82,7 +82,6 @@ typedef struct {
 COMPILER_PACK_RESET()
 
 #define FLASH_SECTOR_SIZE (128*IFLASH0_PAGE_SIZE)
-//#define USB_DFU_TRANSFER_SIZE (FLASH_SECTOR_SIZE-1)
 #define USB_DFU_TRANSFER_SIZE (8*IFLASH0_PAGE_SIZE) //4096
 
 //! USB Device Configuration Descriptor filled for FS
