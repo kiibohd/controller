@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2018 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2020 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,14 +15,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// ----- Local Includes -----
+// ----- Includes -----
 
+// Project Includes
+#include <Lib/mcu_compat.h>
+#include <Lib/gpio.h>
+
+#if defined(_sam_)
+#include <common/services/usb/udc/udc.h>
+#endif
+
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+#include "swd/swd_host.h"
+#endif
+
+// Local Includes
 #include "usb.h"
 #include "dfu.h"
 #include "debug.h"
 #include "weak.h"
 
 
+
+// ----- Variables -----
 
 // ----- Functions -----
 
@@ -45,7 +60,7 @@ void dfu_write_done( enum dfu_status err, struct dfu_ctx *ctx )
 	}
 }
 
-static void dfu_dnload_complete( void *buf, ssize_t len, void *cbdata )
+static void dfu_dnload_complete(void *buf, ssize_t len, void *cbdata )
 {
 	struct dfu_ctx *ctx = cbdata;
 
@@ -57,7 +72,20 @@ static void dfu_dnload_complete( void *buf, ssize_t len, void *cbdata )
 	{
 		ctx->state = DFU_STATE_dfuMANIFEST;
 	}
-	ctx->status = ctx->finish_write( buf, ctx->off, len );
+
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1 && defined(_sam_)
+	// Retrieve active bAlternateSetting
+	uint8_t bAlternateSetting = udc_get_interface_desc()->bAlternateSetting;
+#ifdef FLASH_DEBUG
+	print("bAlternateSetting: ");
+	printHex(bAlternateSetting);
+	print(NL);
+#endif
+#else
+	uint8_t bAlternateSetting = 0;
+#endif
+
+	ctx->status = ctx->finish_write(buf, ctx->off, len, bAlternateSetting);
 
 	// If this is the first block (and was used for key validation), don't increment offset
 	switch ( ctx->verified )
@@ -97,7 +125,21 @@ int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 	struct dfu_ctx *ctx = data;
 	int fail = 1;
 
-	if ( req->bRequest == MS_VENDOR_CODE) {
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1 && defined(_sam_)
+	// Retrieve active bAlternateSetting
+	uint8_t bAlternateSetting = udc_get_interface_desc()->bAlternateSetting;
+#ifdef FLASH_DEBUG
+	print("bAlternateSetting: ");
+	printHex(bAlternateSetting);
+	print(NL);
+#endif
+#else
+	uint8_t bAlternateSetting = 0;
+#endif
+
+	switch (req->bRequest)
+	{
+	case MS_VENDOR_CODE:
 		/* Microsoft extensions */
 		switch (req->wIndex) {
 			case USB_CTRL_REQ_MSFT_COMPAT_ID:
@@ -105,14 +147,38 @@ int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		}
 
 		goto out_no_status;
+	default:
+		break;
 	}
 
 	switch ( (enum dfu_ctrl_req_code)req->bRequest )
 	{
-	// On Detach, just reset MCU and (attempt to) boot to firmware
 	case USB_CTRL_REQ_DFU_DETACH:
 		ctx->state = DFU_STATE_dfuIDLE;
-		usb_handle_control_status_cb(dfu_reset_system);
+
+		switch (bAlternateSetting)
+		{
+		case 0: // Reset MCU and (attempt to) boot to firmware
+#if defined(BOOT_DEBUG) && defined(_sam_)
+			// Reset GPNVM bits to jump back to SAM-BA
+			print("Enabling ROM bootloader..." NL);
+			flash_clear_gpnvm(1);
+			Reset_FullReset();
+#else
+			usb_handle_control_status_cb(dfu_reset_system);
+#endif
+			break;
+
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+		case 1: // Reset BLE device using SWD
+			print("Resetting BLE via SWD..." NL);
+			Reset_AssertExternal(10, true);
+			Reset_CleanupExternal();
+			swd_off();
+			break;
+#endif
+		}
+
 		goto out_no_status;
 
 	case USB_CTRL_REQ_DFU_DNLOAD:
@@ -134,7 +200,7 @@ int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		 * XXX we are not allowed to STALL here, and we need to eat all transferred data.
 		 * better not allow setup_write to break the protocol.
 		 */
-		ctx->status = ctx->setup_write( ctx->off, req->wLength, &buf );
+		ctx->status = ctx->setup_write(ctx->off, req->wLength, &buf, bAlternateSetting);
 		if ( ctx->status != DFU_STATUS_OK )
 		{
 			ctx->state = DFU_STATE_dfuERROR;
@@ -170,7 +236,8 @@ int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		ctx->off = USB_DFU_TRANSFER_SIZE * req->wValue;
 
 		// Find which sector to read
-		ctx->status = ctx->setup_read( ctx->off, &len, &buf );
+		ctx->status = ctx->setup_read(ctx->off, &len, &buf, bAlternateSetting);
+
 #ifdef FLASH_DEBUG
 		print("UPLOAD req:");
 		printHex( req->wValue );
@@ -182,6 +249,8 @@ int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		printHex( req->wLength );
 		print(" addr:");
 		printHex( (uint32_t)buf );
+		print(" bAlternateSetting:");
+		printHex(bAlternateSetting);
 #endif
 
 		if ( ctx->status != DFU_STATUS_OK || len > req->wLength )
@@ -204,6 +273,7 @@ int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		{
 			ctx->state = DFU_STATE_dfuERROR;
 		}
+
 #ifdef FLASH_DEBUG
 		print(" state:");
 		printHex( ctx->state );
@@ -232,11 +302,26 @@ int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 		case DFU_STATE_dfuMANIFEST:
 			ctx->state = DFU_STATE_dfuMANIFEST_WAIT_RESET;
 			// Download finished, just waiting for reset now
-			Chip_download_complete();
+			if (bAlternateSetting == 0)
+			{
+				Chip_download_complete();
+			}
 			break;
 		case DFU_STATE_dfuMANIFEST_WAIT_RESET:
 			ctx->state = DFU_STATE_dfuIDLE;
-			usb_handle_control_status_cb(dfu_reset_system);
+			switch (bAlternateSetting)
+			{
+			case 0: // MCU Flashing
+				usb_handle_control_status_cb(dfu_reset_system);
+				break;
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+			case 1: // SWD Flashing
+				Reset_AssertExternal(10, true);
+				Reset_CleanupExternal();
+				swd_off();
+				break;
+#endif
+			}
 			goto out_no_status;
 		default:
 			break;

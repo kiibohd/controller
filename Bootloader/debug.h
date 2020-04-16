@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2017 by Jacob Alexander
+/* Copyright (C) 2015-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -35,6 +35,7 @@
 
 #define NL "\r\n"
 //#define FLASH_DEBUG // XXX: Use when there are USB flashing issues
+//#define BOOT_DEBUG // XXX: Use when wanting to fault back to SAM-BA
 
 
 

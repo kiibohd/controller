@@ -37,6 +37,7 @@
 #define STR_SERIAL              u"00000000000000000000000000000000 - @CHIP@"
 #define STR_CONFIG_NAME         u"@FLASHING_STATION_ID@"
 #define STR_ALTNAME             u"@BOOT_DFU_ALTNAME@"
+#define STR_ALTNAME2            u"@BOOT_DFU_ALTNAME2@"
 
 
 // Mac OS-X and Linux automatically load the correct drivers.  On

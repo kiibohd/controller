@@ -18,8 +18,13 @@
 // ----- Includes -----
 
 // Project Includes
+#include <Lib/gpio.h>
 #include <delay.h>
 #include <Lib/gpio.h>
+
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+#include "swd/swd_host.h"
+#endif
 
 // Local Includes
 #include "weak.h"
@@ -41,10 +46,14 @@
 /**
  * Unfortunately we can't DMA directly to FlexRAM, so we'll have to stage here.
  */
-static char staging[ USB_DFU_TRANSFER_SIZE ];
+static uint8_t staging[USB_DFU_TRANSFER_SIZE];
 
 // DFU State
 struct dfu_ctx dfu_ctx;
+
+extern uint32_t swd_flash_size;
+extern uint32_t swd_part;
+
 
 
 // ----- Functions -----
@@ -101,20 +110,74 @@ int sector_print( void* buf, size_t sector, size_t chunks )
 	return retval;
 }
 
-static enum dfu_status setup_read( size_t off, size_t *len, void **buf )
+static enum dfu_status setup_read(size_t off, size_t *len, void **buf, uint8_t bAlternateSetting)
 {
-	// Calculate starting address from offset
-	*buf = (void*)&_app_rom + off;
+	switch (bAlternateSetting)
+	{
+	case 0: // DFU Upload for *this* MCU's flash
+		// Calculate starting address from offset
+		*buf = (void*)&_app_rom + off;
 
-	// Calculate length of transfer
-	*len = *buf + USB_DFU_TRANSFER_SIZE > (void*)(&_app_rom_end)
-		? (void*)(&_app_rom_end) - *buf + 1
-		: USB_DFU_TRANSFER_SIZE;
+		// Calculate length of transfer
+		*len = *buf + USB_DFU_TRANSFER_SIZE > (void*)(&_app_rom_end)
+			? (void*)(&_app_rom_end) - *buf + 1
+			: USB_DFU_TRANSFER_SIZE;
+		break;
 
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+	case 1: // SWD Upload for BLE MCU
+		// Don't even try if part is unknown
+		if (!swd_part)
+		{
+			printNL("SWD Part Unknown!");
+			return DFU_STATE_dfuERROR;
+		}
+
+		// Make sure we haven't already sent everything
+		if (off >= swd_flash_size)
+		{
+			return DFU_STATE_dfuIDLE;
+		}
+
+		// Compute length of segment, the last segment may not be the full size
+		*len = USB_DFU_TRANSFER_SIZE;
+		if ((int32_t)swd_flash_size - off < USB_DFU_TRANSFER_SIZE)
+		{
+			*len = swd_flash_size - off + 1;
+		}
+
+		// Halt (to make sure this part is reliable)
+		if (!swd_set_target_state_hw(HALT))
+		{
+			// SWD Halt failed
+			printNL("HALT failed!");
+			return DFU_STATE_dfuERROR;
+		}
+
+		// Read memory block
+		if (!swd_read_memory(off, staging, *len))
+		{
+			printNL("Read failed!");
+			return DFU_STATE_dfuERROR;
+		}
+
+		// Run
+		if (!swd_set_target_state_hw(RUN))
+		{
+			// SWD Run failed
+			printNL("RUN failed!");
+			return DFU_STATE_dfuERROR;
+		}
+
+		// Set buffer
+		*buf = staging;
+		break;
+#endif
+	}
 	return DFU_STATUS_OK;
 }
 
-static enum dfu_status setup_write( size_t off, size_t len, void **buf )
+static enum dfu_status setup_write(size_t off, size_t len, void **buf, uint8_t bAlternateSetting)
 {
 	static int last = 0;
 
@@ -126,6 +189,8 @@ static enum dfu_status setup_write( size_t off, size_t len, void **buf )
 	printHex( len );
 	print(") last(");
 	printHex( last );
+	print(") bAlternateSetting(");
+	printHex(bAlternateSetting);
 	printNL(")");
 #endif
 
@@ -153,7 +218,18 @@ static enum dfu_status setup_write( size_t off, size_t len, void **buf )
 	return DFU_STATUS_OK;
 }
 
-static enum dfu_status finish_write( void *buf, size_t off, size_t len )
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+static void swd_wait_for_nvmc()
+{
+	uint32_t tmp = 0;
+	while (tmp == 0)
+	{
+		swd_read_word(0x4001E400, &tmp); // Wait for 0x1 from NVMC_READY
+	}
+}
+#endif
+
+static enum dfu_status finish_write(void *buf, size_t off, size_t len, uint8_t bAlternateSetting)
 {
 	// If nothing left to flash, this is still ok
 	if ( len == 0 )
@@ -190,78 +266,142 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 		}
 	}
 
-#if defined(_sam_)
-	// If this is the first block (or 2nd block after secure key), we might have the jump to SAM-BA bootloader sequence
-	// This key is the chip unique id
-	// It is also not allowed to jump to bootloader if the chip is in secure mode unless the one-time-key is prepended
-	if (dfu_ctx.off == 0)
+	switch (bAlternateSetting)
 	{
-		uint32_t *key = (uint32_t*)buf;
-		bool full_reset = false;
-		for (uint8_t pos = 0; pos < 4; pos++)
+	case 0: // DFU Flashing *this* MCU's flash
+#if defined(_sam_)
+		// If this is the first block (or 2nd block after secure key), we might have the jump to SAM-BA bootloader sequence
+		// This key is the chip unique id
+		// It is also not allowed to jump to bootloader if the chip is in secure mode unless the one-time-key is prepended
+		if (dfu_ctx.off == 0)
 		{
-			if (key[pos] == sam_UniqueId[pos] || __builtin_bswap32(key[pos]) == sam_UniqueId[pos])
+			uint32_t *key = (uint32_t*)buf;
+			bool full_reset = false;
+			for (uint8_t pos = 0; pos < 4; pos++)
 			{
-				if (pos == 3)
+				if (key[pos] == sam_UniqueId[pos] || __builtin_bswap32(key[pos]) == sam_UniqueId[pos])
 				{
-					full_reset = true;
-					break;
+					if (pos == 3)
+					{
+						full_reset = true;
+						break;
+					}
+					continue;
 				}
-				continue;
+				break;
 			}
-			break;
-		}
 
-		if (full_reset)
-		{
-			// Reset GPNVM bits to jump back to SAM-BA
-			print("Setting ROM bootloader..." NL);
-			flash_clear_gpnvm(1);
-			Reset_FullReset();
+			if (full_reset)
+			{
+				// Reset GPNVM bits to jump back to SAM-BA
+				print("Enabling ROM bootloader..." NL);
+				flash_clear_gpnvm(1);
+				Reset_FullReset();
+			}
 		}
-	}
 #endif
 
-	// If the binary is larger than the internal flash, error
-	if ( off + (uintptr_t)&_app_rom + len > (uintptr_t)&_app_rom_end )
-	{
-		return DFU_STATUS_errADDRESS;
-	}
+		// If the binary is larger than the internal flash, error
+		if ( off + (uintptr_t)&_app_rom + len > (uintptr_t)&_app_rom_end )
+		{
+			return DFU_STATUS_errADDRESS;
+		}
 
 #if defined(_kinetis_)
-	void *target = flash_get_staging_area( off + (uintptr_t)&_app_rom, USB_DFU_TRANSFER_SIZE );
-	if ( !target )
-	{
-		return DFU_STATUS_errADDRESS;
-	}
-	memcpy( target, buf, len );
+		void *target = flash_get_staging_area( off + (uintptr_t)&_app_rom, USB_DFU_TRANSFER_SIZE );
+		if ( !target )
+		{
+			return DFU_STATUS_errADDRESS;
+		}
+		memcpy( target, buf, len );
 
-	// Depending on the error return a different status
-	switch ( flash_program_sector( off + (uintptr_t)&_app_rom, USB_DFU_TRANSFER_SIZE ) )
-	{
-	case FTFL_FSTAT_RDCOLERR: // Flash Read Collision Error
-	case FTFL_FSTAT_ACCERR:   // Flash Access Error
-	case FTFL_FSTAT_FPVIOL:   // Flash Protection Violation Error
-		return DFU_STATUS_errADDRESS;
-	case FTFL_FSTAT_MGSTAT0:  // Memory Controller Command Completion Error
-		return DFU_STATUS_errADDRESS;
+		// Depending on the error return a different status
+		switch ( flash_program_sector( off + (uintptr_t)&_app_rom, USB_DFU_TRANSFER_SIZE ) )
+		{
+		case FTFL_FSTAT_RDCOLERR: // Flash Read Collision Error
+		case FTFL_FSTAT_ACCERR:   // Flash Access Error
+		case FTFL_FSTAT_FPVIOL:   // Flash Protection Violation Error
+			return DFU_STATUS_errADDRESS;
+		case FTFL_FSTAT_MGSTAT0:  // Memory Controller Command Completion Error
+			return DFU_STATUS_errADDRESS;
 
-	case 0:
-	default: // No error
-		return DFU_STATUS_OK;
-	}
+		case 0:
+		default: // No error
+			break;
+		}
 #elif defined(_sam_)
-	switch ( flash_program_sector( off + (uintptr_t)&_app_rom, staging, USB_DFU_TRANSFER_SIZE ) )
-	{
-	case FLASH_RC_OK:  // No error
-		return DFU_STATUS_OK;
-	case FLASH_RC_ERROR:
-	case FLASH_RC_INVALID:
-	case FLASH_RC_NOT_SUPPORT:
-	default:
-		return DFU_STATUS_errADDRESS;
-	}
+		switch ( flash_program_sector( off + (uintptr_t)&_app_rom, staging, USB_DFU_TRANSFER_SIZE ) )
+		{
+		case FLASH_RC_OK:  // No error
+			break;
+		case FLASH_RC_ERROR:
+		case FLASH_RC_INVALID:
+		case FLASH_RC_NOT_SUPPORT:
+		default:
+			return DFU_STATUS_errADDRESS;
+		}
 #endif
+		break;
+
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+	case 1: // SWD Flashing for BLE MCU
+		// Don't even try if part is unknown
+		if (!swd_part)
+		{
+			printNL("SWD Part Unknown!");
+			return DFU_STATE_dfuERROR;
+		}
+
+		// If the binary is larger than the writable flash, error
+		if (off + len > swd_flash_size)
+		{
+			return DFU_STATUS_errADDRESS;
+		}
+
+		// Halt (Needed for nRF52 flash reliability)
+		if (!swd_set_target_state_hw(HALT))
+		{
+			// SWD Halt failed
+			printNL("HALT failed!");
+			return DFU_STATE_dfuERROR;
+		}
+
+		// If this is the first packet, erase the flash
+		if (off == 0)
+		{
+			// Erase flash
+			// Enable erase mode
+			swd_write_word(0x4001E504, 0x2); // Write EEN to NVMC_CONFIG - Enables erase
+			swd_wait_for_nvmc();
+
+			// Erase all
+			swd_write_word(0x4001E50C, 0x1); // Write 0x1 to NVMC_ERASEALL
+			swd_wait_for_nvmc();
+		}
+
+		// Enable write mode
+		swd_write_word(0x4001E504, 0x1); // Write WEN to NVMC_CONFIG - Enables write mode
+		swd_wait_for_nvmc();
+
+		// Write block
+		swd_write_memory(off, buf, len);
+
+		// Enable read mode
+		swd_write_word(0x4001E504, 0x0); // Write REN to NVMC_CONFIG - Enables read mode
+		swd_wait_for_nvmc();
+
+		// Run
+		if (!swd_set_target_state_hw(RUN))
+		{
+			// SWD Run failed
+			printNL("RUN failed!");
+			return DFU_STATE_dfuERROR;
+		}
+		break;
+#endif
+	}
+
+	return DFU_STATUS_OK;
 }
 
 void init_usb_bootloader( int config )
@@ -373,8 +513,25 @@ void main()
 		for ( int pos = 0; pos <= sizeof(sys_reset_to_loader_magic)/4; pos++ )
 			GPBR->SYS_GPBR[ pos ] = ((uint32_t*)sys_reset_to_loader_magic)[ pos ];
 
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+		// Cleanup external reset
+		Reset_CleanupExternal();
+
+		// Disable debug interface
+		// Halt (to make sure this part is reliable)
+		swd_set_target_state_hw(HALT);
+		swd_write_dp(DP_SELECT, 0);
+		swd_write_dp(DP_CTRL_STAT, 0);
+
+		// Turn off SWD port
+		swd_off();
+
+		// Reset System Mux
+		MATRIX->CCFG_SYSIO = 0;
+#endif
+
 		// Firmware mode
-		print( NL "==> Booting Firmware..." NL );
+		printNL(NL "==> Booting Firmware...");
 		uint32_t addr = (uintptr_t)&_app_rom;
 		SCB->VTOR = ((uint32_t) addr); // relocate vector table
 		jump_to_app( addr );

@@ -230,6 +230,7 @@ if ( DFU )
 
 	# The | symbol is replaced by a space if in secure mode, or a \0 if not (at runtime)
 	set( BOOT_DFU_ALTNAME "Kiibohd DFU|Secure" )
+	set( BOOT_DFU_ALTNAME2 "Kiibohd DFU (BLE)|Secure" )
 
 	message( "dfu" )
 elseif ( TEENSY )

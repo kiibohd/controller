@@ -279,6 +279,7 @@ const char *ChipVersion_package[] = {
 // Mark reserved as --
 const char *ChipVersion_ramsize[] = {
 	"K16",  // 0x010      -  16 kB RAM
+	"K24",  // 0x018      -  24 kB RAM
 	"K32",  // 0x020      -  32 kB RAM
 	"K64",  // 0x040      -  64 kB RAM
 	"K128", // 0x080      - 128 kB RAM
@@ -293,6 +294,7 @@ const char *ChipVersion_ramsize[] = {
 // Mark reserved as --
 const char *ChipVersion_flashsize[] = {
 	"K128",  // 0x080      -  128 kByte Flash
+	"K192",  // 0x0C0      -  192 kByte Flash
 	"K256",  // 0x100      -  256 kByte Flash
 	"K512",  // 0x200      -  512 kByte Flash
 	"K1024", // 0x400      - 1024 kByte Flash

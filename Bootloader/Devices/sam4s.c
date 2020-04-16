@@ -29,6 +29,7 @@
 #include <Lib/entropy.h>
 #include <Lib/gpio.h>
 #include <Lib/storage.h>
+#include <swd/swd_host.h>
 #include "debug.h"
 
 // ASF Includes
@@ -45,6 +46,13 @@
 
 uint32_t Chip_secure1;
 uint32_t Chip_secure2;
+
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+uint32_t swd_flash_size;
+uint32_t swd_part;
+uint32_t ble_uniqueid[2];
+FirmwareInfo ble_firmware_info;
+#endif
 
 
 
@@ -69,11 +77,82 @@ static void modify_indicator_string(uint16_t *indicator_string, uint16_t replace
 	}
 }
 
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+// Setup SWD interface
+static void swd_setup()
+{
+	// Setup SWDIO pins
+	const GPIO_ConfigPin swdio_pin = periph_io(B,6,Input);
+	const GPIO_ConfigPin swclk_pin = periph_io(B,7,Input);
+
+	// Setup DAP and SWD
+	PIO_Setup(swclk_pin);
+	PIO_Setup(swdio_pin);
+
+	// Halt (to make sure this part is reliable)
+	if (!swd_set_target_state_hw(HALT))
+	{
+		// SWD Halt failed
+		printNL("HALT failed!");
+		swd_part = 0;
+		goto cleanup;
+	}
+
+	// Determine device part (nRF52)
+	uint32_t tmp = 0;
+	if (swd_read_word(0x10000100, &tmp))
+	{
+		print("SWD Part: ");
+		printHex(tmp);
+		printNL();
+		swd_part = tmp;
+	}
+
+	// Determine flash size (nRF52)
+	if (swd_read_word(0x10000110, &tmp))
+	{
+		swd_flash_size = tmp * 1024;
+		print("SWD Flash: ");
+		printHex(swd_flash_size);
+		printNL();
+	}
+
+	// Retrieve unique id (8 bytes)
+	if (swd_read_memory(0x10000060, (uint8_t*)ble_uniqueid, 8))
+	{
+		print("BLE UniqueId: ");
+		printHex(ble_uniqueid[0]);
+		print(" ");
+		printHex(ble_uniqueid[1]);
+		printNL();
+	}
+
+	// Retrieve ble firmware revision (UICR Customer)
+	if (swd_read_memory(0x10001080, (uint8_t*)&ble_firmware_info, sizeof(FirmwareInfo)))
+	{
+		print("BLE Firmware Rev: ");
+		printHex(ble_firmware_info.revision);
+		printNL();
+	}
+
+	// Run (we may not want to reset the SWD device)
+	if (!swd_set_target_state_hw(RUN))
+	{
+		// SWD Run failed
+		printNL("RUN failed!");
+	}
+
+cleanup:
+	Reset_CleanupExternal();
+	swd_off();
+}
+#endif
+
 // Called early-on during ResetHandler
 void Chip_reset()
 {
 	// Generating Secure Key
-	print( "Generating Secure Key..." NL );
+	printNL("Generating Secure Key...");
 
 	// Read current 64 bit secure number
 	Chip_secure1 = GPBR_SECURE1;
@@ -102,7 +181,7 @@ void Chip_reset()
 		|| (Chip_secure1 == 0 && Chip_secure2 == 0)
         )
 	{
-		print( "Secure Key Bypassed." NL );
+		printNL( "Secure Key Bypassed.");
 		Chip_secure1 = 0;
 		Chip_secure2 = 0;
 
@@ -112,8 +191,11 @@ void Chip_reset()
 
 	// Modify iInterface delimiter
 	modify_indicator_string(dfu_device_str_desc[4]->bString, replacement);
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+	modify_indicator_string(dfu_device_str_desc[6]->bString, replacement);
+#endif
 
-	print( "Secure Key Generated." NL );
+	printNL("Secure Key Generated.");
 }
 
 // Called during bootloader initialization
@@ -130,6 +212,11 @@ void Chip_setup()
 
 	// Start USB stack
 	udc_start();
+
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+	// Setup SWD link and gather some basic information
+	swd_setup();
+#endif
 }
 
 // Called during each loop of the main bootloader sequence
@@ -184,10 +271,10 @@ void Chip_download_complete()
 	switch ( storage_clear_page() )
 	{
 	case 0:
-		print("Flash was not cleared." NL);
+		printNL("Flash was not cleared.");
 		break;
 	default:
-		print("Flashed cleared!" NL);
+		printNL("Flashed cleared!");
 		break;
 	}
 	print(" Page: ");
@@ -198,3 +285,12 @@ void Chip_download_complete()
 }
 
 
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+	// Set BLE unique id
+	uint32ToHex16(ble_uniqueid[0], &(dfu_device_str_desc[3]->bString[58]));
+	uint32ToHex16(ble_uniqueid[1], &(dfu_device_str_desc[3]->bString[66]));
+
+	// Set BLE revision
+	uint32ToHex16(ble_firmware_info.revision, &(dfu_device_str_desc[3]->bString[82]));
+#endif
+}

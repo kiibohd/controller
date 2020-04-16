@@ -85,6 +85,16 @@
   #define __ASM            __asm                                      /*!< asm keyword for GNU Compiler          */
   #define __INLINE         inline                                     /*!< inline keyword for GNU Compiler       */
   #define __STATIC_INLINE  static inline
+  #define __STATIC_FORCEINLINE __attribute__((always_inline)) static inline
+  #define __WEAK           __attribute__((weak))
+  #define __weak           __attribute__((weak))
+  #define __USED           __attribute__((used))
+  #define __PACKED         __attribute__((packed, aligned(1)))
+  #define __PACKED_STRUCT  struct __attribute__((packed, aligned(1)))
+  #define __PACKED_UNION   union __attribute__((packed, aligned(1)))
+  #define __ALIGNED(x)     __attribute__((aligned(x)))
+  #define __RESTRICT       __restrict
+  #define __COMPILER_BARRIER() __ASM volatile("":::"memory")
 
 #elif defined ( __ICCARM__ )
   #define __ASM            __asm                                      /*!< asm keyword for IAR Compiler          */

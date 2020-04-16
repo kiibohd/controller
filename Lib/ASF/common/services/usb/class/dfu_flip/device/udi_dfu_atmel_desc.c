@@ -78,6 +78,9 @@ COMPILER_PACK_SET(1)
 typedef struct {
 	usb_conf_desc_t conf;
 	udi_dfu_atmel_desc_t udi_dfu_atmel;
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+	udi_dfu_atmel_desc_t udi_dfu_atmel2;
+#endif
 } udc_desc_t;
 COMPILER_PACK_RESET()
 
@@ -121,8 +124,38 @@ UDC_DESC_STORAGE udc_desc_t udc_desc_fs = {
 			.wDetachTimeOut = 0,
 			.wTransferSize = USB_DFU_TRANSFER_SIZE,
 			.bcdDFUVersion = { .maj = 1, .min = 1 }
-		}
-	}
+		},
+	},
+#if DFU_EXTRA_BLE_SWD_SUPPORT == 1
+	.udi_dfu_atmel2            = {
+		.iface = {
+			.bLength             = sizeof(usb_iface_desc_t),
+			.bDescriptorType     = USB_DT_INTERFACE,
+			.bInterfaceNumber    = UDI_DFU_ATMEL_IFACE_NUMBER,
+			.bAlternateSetting   = 1,
+			.bNumEndpoints       = 0,
+			.bInterfaceClass     = USB_DEV_CLASS_APP,
+			.bInterfaceSubClass  = USB_DEV_SUBCLASS_APP_DFU,
+			.bInterfaceProtocol  = USB_DEV_PROTO_DFU_DFU,
+			.iInterface          = 6,
+		},
+		.dfu = {
+			.bLength = sizeof(struct dfu_desc_functional),
+			.bDescriptorType = {
+				.id = 0x1,
+				.type_type = USB_DESC_TYPE_CLASS
+			},
+			.will_detach = 1,
+			.manifestation_tolerant = 0,
+			.can_upload = 0,
+			.can_upload = 1,
+			.can_download = 1,
+			.wDetachTimeOut = 0,
+			.wTransferSize = USB_DFU_TRANSFER_SIZE,
+			.bcdDFUVersion = { .maj = 1, .min = 1 }
+		},
+	},
+#endif
 };
 
 #ifdef USB_DEVICE_HS_SUPPORT

@@ -180,7 +180,7 @@ int flash_program_sector( uintptr_t addr, const void *data, size_t len )
 		}
 
 		/* The EWP command is not supported for non-8KByte sectors in all devices
-		 *  SAM4 series, so an erase command is requried before the write operation.
+		 *  SAM4 series, so an erase command is required before the write operation.
 		 */
 		ul_rc = flash_erase_page(addr, IFLASH_ERASE_PAGES_16);
 		if (ul_rc != FLASH_RC_OK) {

@@ -42,16 +42,7 @@
 #include "udi_dfu_atmel.h"
 #include "conf_isp.h"
 #include "isp.h"
-#include "flip_protocol.h"
 #include "string.h"
-
-#ifndef FLIP_PROTOCOL_VERSION
-#  error FLIP_PROTOCOL_VERSION must be define in conf_usb.h
-#endif
-#if ((FLIP_PROTOCOL_VERSION != FLIP_PROTOCOL_VERSION_2) \
-    &&  (FLIP_PROTOCOL_VERSION != FLIP_PROTOCOL_VERSION_1))
-#  error Bootloader protocol not supported (FLIP_PROTOCOL_VERSION)
-#endif
 
 /**
  * \ingroup udi_dfu_atmel_group
@@ -106,22 +97,14 @@ static void udi_dfu_atmel_reset_protocol(void);
 //! Status of DFU process
 static dfu_status_t udi_dfu_atmel_status;
 
-#if (FLIP_PROTOCOL_VERSION == FLIP_PROTOCOL_VERSION_2)
-#  ifdef UDI_DFU_SMALL_RAM
-#    define DFU_ATMEL_BUF_TRANS_SIZE     (FLIP_V2_BUF_TRANS_SIZE/2)
-#  else
-#    define DFU_ATMEL_BUF_TRANS_SIZE     FLIP_V2_BUF_TRANS_SIZE
-#  endif
-#else // V1
-#  define DFU_ATMEL_BUF_TRANS_SIZE     FLIP_V1_BUF_TRANS_SIZE
-#endif
-
 
 //! Notify a reset request to start
 static bool udi_dfu_atmel_reset;
 
 //! Store the current security level
 static bool udi_dfu_atmel_security;
+
+static uint8_t dfu_alternate_setting;
 
 /**
  * \name To manage memories
@@ -139,8 +122,8 @@ bool udi_dfu_atmel_enable(void)
 	udi_dfu_atmel_reset = false;
 	udi_dfu_atmel_reset_protocol();
 
-
 	udi_dfu_atmel_mem_sel = *isp_memories.list.flash;
+	dfu_alternate_setting = udc_get_interface_desc()->bAlternateSetting;
 
 	// Load chip information
 	isp_init();
@@ -151,6 +134,7 @@ bool udi_dfu_atmel_enable(void)
 
 void udi_dfu_atmel_disable(void)
 {
+	dfu_alternate_setting = 0;
 	UDI_DFU_DISABLE_EXT();
 }
 
@@ -165,7 +149,7 @@ bool udi_dfu_atmel_setup(void)
 
 uint8_t udi_dfu_atmel_getsetting(void)
 {
-	return 0;
+	return dfu_alternate_setting;
 }
 
 

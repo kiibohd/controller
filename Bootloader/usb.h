@@ -260,7 +260,9 @@ struct usb_ctrl_req_t {
 				USB_CTRL_REQ_SET_CONFIGURATION = 9,
 				USB_CTRL_REQ_GET_INTERFACE = 10,
 				USB_CTRL_REQ_SET_INTERFACE = 11,
-				USB_CTRL_REQ_SYNC_FRAME = 12
+				USB_CTRL_REQ_SYNC_FRAME = 12,
+
+				USB_CTRL_REQ_MS_VENDOR_CODE = 32,
 			} bRequest : 8;
 		}; /* struct */
 		uint16_t type_and_req;

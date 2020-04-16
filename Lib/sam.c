@@ -85,6 +85,13 @@ void fault_isr()
 {
 	print("Fault!" NL );
 
+#if defined(FLASH_DEBUG)
+	// Reset GPNVM bits to jump back to SAM-BA
+	flash_clear_gpnvm(1);
+	Reset_CleanupExternal();
+	RSTC->RSTC_CR = RSTC_CR_KEY_PASSWD | RSTC_CR_EXTRST;
+#else
+
 #if defined(DEBUG) && defined(JLINK)
 	asm volatile("BKPT #01");
 #else
@@ -97,6 +104,7 @@ void fault_isr()
 		if ( SIM_SCGC4 & SIM_SCGC4_UART1 )  uart1_status_isr();
 		if ( SIM_SCGC4 & SIM_SCGC4_UART2 )  uart2_status_isr();*/
 	}
+#endif
 #endif
 }
 

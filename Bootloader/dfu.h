@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2018 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2020 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -137,9 +137,9 @@ struct dfu_status_t {
 CTASSERT_SIZE_BYTE(struct dfu_status_t, 6);
 
 
-typedef enum dfu_status (*dfu_setup_read_t)(size_t off, size_t *len, void **buf);
-typedef enum dfu_status (*dfu_setup_write_t)(size_t off, size_t len, void **buf);
-typedef enum dfu_status (*dfu_finish_write_t)(void *, size_t off, size_t len);
+typedef enum dfu_status (*dfu_setup_read_t)(size_t off, size_t *len, void **buf, uint8_t bAlternateSetting);
+typedef enum dfu_status (*dfu_setup_write_t)(size_t off, size_t len, void **buf, uint8_t bAlternateSetting);
+typedef enum dfu_status (*dfu_finish_write_t)(void *, size_t off, size_t len, uint8_t bAlternateSetting);
 typedef void (*dfu_detach_t)(void);
 
 struct dfu_ctx {

@@ -137,6 +137,11 @@ set ( SRCS
 	../Lib/ASF/sam/services/flash_efc/flash_efc.c
 	../Lib/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.c
 
+	swd/DAP.c
+	swd/SW_DP.c
+	swd/swd_host.c
+	swd/target_reset_nrf52.c
+
 	main.c
 	debug.c
 	dfu.c
@@ -149,6 +154,7 @@ set ( SRCS
 add_definitions(
 	-D__SAM4S8C__
 	-DBOARD=SAM4S_XPLAINED_PRO
+	-DDFU_EXTRA_BLE_SWD_SUPPORT=${DFU_EXTRA_BLE_SWD_SUPPORT}
 )
 
 else ( )
