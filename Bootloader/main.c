@@ -189,6 +189,38 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 		}
 	}
 
+#if defined(_sam_)
+	// If this is the first block (or 2nd block after secure key), we might have the jump to SAM-BA bootloader sequence
+	// This key is the chip unique id
+	// It is also not allowed to jump to bootloader if the chip is in secure mode unless the one-time-key is prepended
+	if (dfu_ctx.off == 0)
+	{
+		uint32_t *key = (uint32_t*)buf;
+		bool full_reset = false;
+		for (uint8_t pos = 0; pos < 4; pos++)
+		{
+			if (key[pos] == sam_UniqueId[pos] || __builtin_bswap32(key[pos]) == sam_UniqueId[pos])
+			{
+				if (pos == 3)
+				{
+					full_reset = true;
+					break;
+				}
+				continue;
+			}
+			break;
+		}
+
+		if (full_reset);
+		{
+			// Reset GPNVM bits to jump back to SAM-BA
+			print("Setting ROM bootloader..." NL);
+			flash_clear_gpnvm(1);
+			Reset_FullReset();
+		}
+	}
+#endif
+
 	// If the binary is larger than the internal flash, error
 	if ( off + (uintptr_t)&_app_rom + len > (uintptr_t)&_app_rom_end )
 	{
