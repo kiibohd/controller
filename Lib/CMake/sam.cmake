@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2018
+# Jacob Alexander 2011-2020
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -60,7 +60,9 @@ if ( "${CHIP}" MATCHES "sam4s2a" OR "${CHIP}" MATCHES "sam4s2b" OR "${CHIP}" MAT
 # http://www.microchip.com/wwwproducts/en/ATSAM4S4C
 elseif ( "${CHIP}" MATCHES "sam4s4a" OR "${CHIP}" MATCHES "sam4s4b" OR "${CHIP}" MATCHES "sam4s4c" )
 	set( SIZE_RAM     65536 )
-	set( SIZE_FLASH  237568 ) # 16kB bootloader + 8kB nvstorage (262144 bytes)
+	# Extended bootloader size
+	set( SIZE_FLASH  229376 ) # 24kB bootloader + 8kB nvstorage (262144 bytes)
+	#set( SIZE_FLASH  237568 ) # 16kB bootloader + 8kB nvstorage (262144 bytes)
 	set( F_CPU    120000000 )
 	set( CHIP_SHORT "sam4s4" )
 	set( CHIP_FAMILY "sam4s" )
@@ -69,7 +71,9 @@ elseif ( "${CHIP}" MATCHES "sam4s4a" OR "${CHIP}" MATCHES "sam4s4b" OR "${CHIP}"
 
 	# Bootloader has a lower flash restriction to fit inside protected area
 	if ( BOOTLOADER )
-		set( SIZE_FLASH 16384 )
+		# Extended bootloader size
+		set( SIZE_FLASH 24576 )
+		#set( SIZE_FLASH 16384 )
 	endif ()
 
 
