@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2019 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,7 +24,11 @@
 // ----- Includes -----
 
 // Compiler Includes
+#include <stdbool.h>
 #include <stdint.h>
+
+// Project Includes
+#include <Lib/mcu_compat.h>
 
 #if defined(_sam_)
 #include <sam/drivers/pio/pio.h>
@@ -149,3 +153,7 @@ typedef struct GPIO_ConfigPin {
 uint8_t GPIO_Ctrl(GPIO_Pin gpio, GPIO_Type type, GPIO_Config config);
 void PIO_Setup(GPIO_ConfigPin config);
 void GPIO_IrqSetup(GPIO_Pin gpio, uint8_t enable);
+void Reset_AssertExternal(uint8_t length, bool wait);
+void Reset_CleanupExternal();
+void Reset_DisableExternal();
+void Reset_FullReset();

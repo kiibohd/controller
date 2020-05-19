@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2019 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@
 #elif defined(_sam_)
 #include <Lib/sam.h>
 #endif
+#include <Lib/delay.h>
 
 // Local Includes
 #include "gpio.h"
@@ -288,3 +289,54 @@ void GPIO_IrqSetup(GPIO_Pin gpio, uint8_t enable)
 #endif
 }
 
+void Reset_AssertExternal(uint8_t length, bool wait)
+{
+#if defined(_sam_)
+	// Disable user reset and set external reset duration
+	RSTC->RSTC_MR = RSTC_MR_KEY_PASSWD;
+	RSTC->RSTC_MR = RSTC_MR_KEY_PASSWD | RSTC_MR_ERSTL(length);
+
+	// Assert external reset
+	RSTC->RSTC_CR = RSTC_CR_KEY_PASSWD | RSTC_CR_EXTRST;
+
+	// Make sure that the reset has started
+	while (RSTC->RSTC_SR & RSTC_SR_SRCMP);
+
+	// Wait for reset to finish
+	if (wait)
+	{
+		// Wait for reset to deassert
+		while (!(RSTC->RSTC_SR & RSTC_SR_NRSTL));
+	}
+#endif
+}
+
+void Reset_FullReset()
+{
+#if defined(_sam_)
+	// Clear any nrst blocking
+	RSTC->RSTC_MR = RSTC_MR_KEY_PASSWD;
+
+	// Trigger all resets, nrst, processor and peripheral
+	RSTC->RSTC_CR = RSTC_CR_KEY_PASSWD | RSTC_CR_EXTRST | RSTC_CR_PROCRST | RSTC_CR_PERRST;
+
+	// Wait for reset to settle (usually won't get very far)
+	while (RSTC->RSTC_SR & RSTC_SR_SRCMP);
+	while (!(RSTC->RSTC_SR & RSTC_SR_NRSTL));
+#endif
+}
+
+void Reset_CleanupExternal()
+{
+#if defined(_sam_)
+	// Re-enable user reset
+	RSTC->RSTC_MR = RSTC_MR_KEY_PASSWD | RSTC_MR_URSTEN;
+#endif
+}
+
+void Reset_DisableExternal()
+{
+#if defined(_sam_)
+	RSTC->RSTC_MR = RSTC_MR_KEY_PASSWD;
+#endif
+}
