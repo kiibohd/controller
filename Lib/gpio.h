@@ -104,7 +104,8 @@ typedef enum GPIO_Config {
 	GPIO_Config_None      = 0, // No configuration (ok for drive high/low)
 	GPIO_Config_Pullup    = 1, // Internal pull-up
 	GPIO_Config_Pulldown  = 2, // Internal pull-down
-	GPIO_Config_Opendrain = 3, // External pull resistor
+	GPIO_Config_Pulloff   = 3, // Disable both pull resistors (used with inputs), equivalent to N/C
+	GPIO_Config_Opendrain = 4, // External pull resistor
 } GPIO_Config;
 
 // Peripheral selection

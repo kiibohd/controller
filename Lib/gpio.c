@@ -191,6 +191,12 @@ uint8_t GPIO_Ctrl( GPIO_Pin gpio, GPIO_Type type, GPIO_Config config )
 			pio->PIO_PPDER |= (1 << gpio.pin);
 			break;
 
+		case GPIO_Config_Pulloff:
+			// Disable pull resistors
+			pio->PIO_PPDDR |= (1 << gpio.pin);
+			pio->PIO_PUDR |= (1 << gpio.pin);
+			break;
+
 		// Do nothing otherwise
 		default:
 			break;
