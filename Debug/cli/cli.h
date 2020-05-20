@@ -84,24 +84,24 @@ typedef struct CLIDictItem {
 
 // ----- Variables -----
 
-char    CLILineBuffer[CLILineBufferMaxSize+1]; // +1 for an additional NULL
-uint8_t CLILineBufferPrev;
-uint8_t CLILineBufferCurrent;
+extern char    CLILineBuffer[CLILineBufferMaxSize+1]; // +1 for an additional NULL
+extern uint8_t CLILineBufferPrev;
+extern uint8_t CLILineBufferCurrent;
 
 // Main command dictionary
-CLIDictItem *CLIDict     [CLIMaxDictionaries];
-char*        CLIDictNames[CLIMaxDictionaries];
-uint8_t      CLIDictionariesUsed;
+extern CLIDictItem *CLIDict     [CLIMaxDictionaries];
+extern char*        CLIDictNames[CLIMaxDictionaries];
+extern uint8_t      CLIDictionariesUsed;
 
 // History
-char CLIHistoryBuffer[CLIMaxHistorySize][CLILineBufferMaxSize];
-uint8_t CLIHistoryHead;
-uint8_t CLIHistoryTail;
-int8_t CLIHistoryCurrent;
+extern char CLIHistoryBuffer[CLIMaxHistorySize][CLILineBufferMaxSize];
+extern uint8_t CLIHistoryHead;
+extern uint8_t CLIHistoryTail;
+extern int8_t CLIHistoryCurrent;
 
 // Debug
-uint8_t CLILEDState;
-uint8_t CLIHexDebugMode;
+extern uint8_t CLILEDState;
+extern uint8_t CLIHexDebugMode;
 
 
 

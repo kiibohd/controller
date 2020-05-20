@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2019 by Jacob Alexander
+/* Copyright (C) 2014-2020 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -298,6 +298,10 @@ void Layer_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 	switch ( cstate )
 	{
 	case CapabilityState_Initial:
+		// Ignore if layer does not exist or trying to manipulate layer 0/Default layer
+		if ( layer >= LayerNum || layer == 0 )
+			return;
+
 		// Press
 		// Only set the layer if it is disabled
 		if ( (LayerState[ layer ] & LayerStateType_Shift) != LayerStateType_Off )
@@ -307,6 +311,10 @@ void Layer_layerShift_capability( TriggerMacro *trigger, uint8_t state, uint8_t 
 		}
 		break;
 	case CapabilityState_Last:
+		// Ignore if layer does not exist or trying to manipulate layer 0/Default layer
+		if ( layer >= LayerNum || layer == 0 )
+			return;
+
 		// Release
 		// Only unset the layer if it is enabled
 		if ( (LayerState[ layer ] & LayerStateType_Shift) == LayerStateType_Off )

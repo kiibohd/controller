@@ -126,11 +126,13 @@ HIDIO_Buffer HIDIO_tx_buf;
 char HIDIO_print_buf_data[50]; // TODO: Figure out >64
 uint8_t HIDIO_print_buf_count;
 uint8_t HIDIO_print_buffer_mode;
+uint8_t HIDIO_VT_Connected;
 
 // Incoming Trigger Event Buffer
 extern TriggerEvent macroTriggerEventBuffer[];
 extern var_uint_t macroTriggerEventBufferSize;
 extern var_uint_t macroTriggerEventLayerCache[];
+
 
 
 // ----- Capabilities -----

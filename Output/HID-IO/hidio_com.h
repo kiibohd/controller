@@ -1,4 +1,4 @@
-/* Copyright (C) 2017-2019 by Jacob Alexander
+/* Copyright (C) 2017-2020 by Jacob Alexander
  *
  * This file is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Lesser General Public License as published by
@@ -106,6 +106,10 @@ typedef struct HIDIO_Buffer_Entry {
 
 // ----- Variables -----
 
+extern uint8_t HIDIO_VT_Connected;
+
+
+
 // ----- Functions -----
 
 void HIDIO_setup();
@@ -129,4 +133,3 @@ void HIDIO_print_flush();
 int HIDIO_putchar( char c );
 int HIDIO_putstr( char* str, uint16_t count );
 void HIDIO_flush();
-uint8_t HIDIO_VT_Connected;

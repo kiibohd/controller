@@ -91,6 +91,26 @@ int CLI_exit = 0; // When 1, cli signals library to exit (Host-side KLL only)
 #endif
 
 
+char    CLILineBuffer[CLILineBufferMaxSize+1]; // +1 for an additional NULL
+uint8_t CLILineBufferPrev;
+uint8_t CLILineBufferCurrent;
+
+// Main command dictionary
+CLIDictItem *CLIDict     [CLIMaxDictionaries];
+char*        CLIDictNames[CLIMaxDictionaries];
+uint8_t      CLIDictionariesUsed;
+
+// History
+char CLIHistoryBuffer[CLIMaxHistorySize][CLILineBufferMaxSize];
+uint8_t CLIHistoryHead;
+uint8_t CLIHistoryTail;
+int8_t CLIHistoryCurrent;
+
+// Debug
+uint8_t CLILEDState;
+uint8_t CLIHexDebugMode;
+
+
 
 // ----- Functions -----
 
