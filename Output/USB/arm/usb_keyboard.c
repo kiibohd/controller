@@ -235,7 +235,7 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 	case 1:
 		if ( Output_DebugMode )
 		{
-			dbug_msg("NKRO USB: ");
+			dbug_print("NKRO USB: ");
 		}
 
 		// Standard HID Keyboard

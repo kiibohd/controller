@@ -388,7 +388,7 @@ void LED_zeroPages( uint8_t bus, uint8_t addr, uint8_t startPage, uint8_t numPag
 void LED_sendPage( uint8_t bus, uint8_t addr, uint16_t *buffer, uint32_t len, uint8_t page )
 {
 	/*
-	info_msg("I2C Send Page: bus(");
+	info_print("I2C Send Page: bus(");
 	printHex( bus );
 	print(")addr(");
 	printHex( addr );
@@ -450,7 +450,7 @@ void LED_syncReg( uint8_t reg, uint8_t val, uint8_t page )
 void LED_writeReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t val, uint8_t page )
 {
 	/*
-	info_msg("I2C Write bus(");
+	info_print("I2C Write bus(");
 	printHex( bus );
 	print(")addr(");
 	printHex( addr );
@@ -482,7 +482,7 @@ void LED_writeReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t val, uint8_t 
 uint8_t LED_readReg( uint8_t bus, uint8_t addr, uint8_t reg, uint8_t page )
 {
 	/*
-	info_msg("I2C Read Bus: ");
+	info_print("I2C Read Bus: ");
 	printHex( bus );
 	print(" Addr: ");
 	printHex( addr );
@@ -707,7 +707,7 @@ void LED_shortOpenDetect()
 		delay_us(3300);
 
 		// Read registers
-		info_msg("Bus: ");
+		info_print("Bus: ");
 		printHex( bus );
 		print(" Addr: ");
 		printHex( addr );
@@ -839,7 +839,7 @@ void LED_linkedSend()
 
 	/*
 	// Debug
-	dbug_msg("Linked Send: chip(");
+	dbug_print("Linked Send: chip(");
 	printHex( LED_chipSend );
 	print(")addr(");
 	printHex( LED_pageBuffer[ LED_chipSend ].i2c_addr );
@@ -956,7 +956,7 @@ inline void LED_scan()
 	if ( LED_displayFPS )
 	{
 		// Show frame calculation
-		dbug_msg("1frame/");
+		dbug_print("1frame/");
 		printInt32( Time_ms( duration ) );
 		print("ms + ");
 		printInt32( duration.ticks );
@@ -1246,7 +1246,7 @@ void cliFunc_ledFPS( char* args )
 	// Just toggling FPS display
 	if ( *arg1Ptr == '\0' )
 	{
-		info_msg("FPS Toggle");
+		info_print("FPS Toggle");
 		LED_displayFPS = !LED_displayFPS;
 		return;
 	}
@@ -1265,7 +1265,7 @@ void cliFunc_ledFPS( char* args )
 	}
 
 	// Show result
-	info_msg("Setting framerate to: ");
+	info_print("Setting framerate to: ");
 	printInt32( LED_framerate );
 	print("ms");
 }
@@ -1273,7 +1273,7 @@ void cliFunc_ledFPS( char* args )
 void cliFunc_ledToggle( char* args )
 {
 	print( NL ); // No \r\n by default after the command is entered
-	info_msg("LEDs Toggle");
+	info_print("LEDs Toggle");
 	LED_enable = !LED_enable;
 }
 
@@ -1320,7 +1320,7 @@ void cliFunc_ledSet( char* args )
 		LED_setBrightness( numToInt(arg1Ptr) );
 	}
 
-	info_msg("LED Brightness Set");
+	info_print("LED Brightness Set");
 }
 
 #if Storage_Enable_define == 1

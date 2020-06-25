@@ -223,7 +223,7 @@ uint8_t HIDIO_buffer_pop_bytes( HIDIO_Buffer *buffer, uint16_t len )
 	{
 		uint16_t connected = HIDIO_VT_Connected;
 		HIDIO_VT_Connected = 0;
-			erro_msg("Requested HIDIO buffer pop larger than entire buffer: ");
+			erro_print("Requested HIDIO buffer pop larger than entire buffer: ");
 			printInt16( len );
 			print(":");
 			printInt16( buffer->len );
@@ -399,7 +399,7 @@ uint16_t HIDIO_buffer_generate_packet(
 	{
 		uint16_t connected = HIDIO_VT_Connected;
 		HIDIO_VT_Connected = 0;
-			erro_msg("Not enough bytes in HIDIO buffer: ");
+			erro_print("Not enough bytes in HIDIO buffer: ");
 			printInt16( HIDIO_buffer_free_bytes( buf ) );
 			print(" bytes left, ");
 			printInt16( buf->len );
@@ -863,7 +863,7 @@ void HIDIO_register_id( uint32_t id, void* incoming_call_func, void* incoming_re
 	// Check if there is any room left in the list
 	if ( HIDIO_Id_List_Size >= HIDIO_Id_List_MaxSize )
 	{
-		erro_msg("HIDIO_Id_List is full, cannot register Id: ");
+		erro_print("HIDIO_Id_List is full, cannot register Id: ");
 		printInt32( id );
 		print( NL );
 		return;

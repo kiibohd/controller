@@ -206,7 +206,7 @@ void Connect_addBytes( uint8_t *buffer, uint8_t count, uint8_t uart )
 	// Too big to fit into buffer
 	if ( count > UART_Buffer_Size )
 	{
-		erro_msg("Too big of a command to fit into the buffer...");
+		erro_print("Too big of a command to fit into the buffer...");
 		return;
 	}
 
@@ -220,7 +220,7 @@ void Connect_addBytes( uint8_t *buffer, uint8_t count, uint8_t uart )
 	// Delay UART copy until there's some space left
 	while ( uart_tx_buf[ uart ].items + count > UART_Buffer_Size )
 	{
-		warn_msg("Too much data to send on UART");
+		warn_print("Too much data to send on UART");
 		printInt8( uart );
 		print( ", waiting..." NL );
 		delay_ms( 1 );
@@ -444,7 +444,7 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 
 		if ( Connect_debug )
 		{
-			dbug_msg("PENDING SET -> ");
+			dbug_print("PENDING SET -> ");
 			printHex( byte );
 			print(" ");
 			printHex( *pending_bytes );
@@ -522,7 +522,7 @@ uint8_t Connect_receive_CableCheck( uint8_t byte, uint16_t *pending_bytes, uint8
 
 	if ( Connect_debug )
 	{
-		dbug_msg("CABLECHECK RECEIVE - ");
+		dbug_print("CABLECHECK RECEIVE - ");
 		printHex( byte );
 		print(" ");
 		printHex( *pending_bytes );
@@ -601,7 +601,7 @@ uint8_t Connect_receive_IdReport( uint8_t id, uint16_t *pending_bytes, uint8_t u
 	// Track Id response if master
 	if ( Connect_master )
 	{
-		info_msg("Id Reported: ");
+		info_print("Id Reported: ");
 		printHex( id );
 		print( NL );
 
@@ -666,7 +666,7 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 				// Check if this node is too large
 				if ( Connect_receive_ScanCodeDeviceId >= InterconnectNodeMax )
 				{
-					warn_msg("Not enough interconnect layout nodes configured: ");
+					warn_print("Not enough interconnect layout nodes configured: ");
 					printHex( Connect_receive_ScanCodeDeviceId );
 					print( NL );
 					break;
@@ -680,7 +680,7 @@ uint8_t Connect_receive_ScanCode( uint8_t byte, uint16_t *pending_bytes, uint8_t
 			// ScanCode receive debug
 			if ( Connect_debug )
 			{
-				dbug_msg("");
+				dbug_print("");
 				printHex( Connect_receive_ScanCodeBuffer.type );
 				print(" ");
 				printHex( Connect_receive_ScanCodeBuffer.state );
@@ -1208,7 +1208,7 @@ void Connect_rx_process( uint8_t uartNum )
 
 		// Unknown status, should never get here
 		default:
-			erro_msg("Invalid UARTStatus...");
+			erro_print("Invalid UARTStatus...");
 			uart_rx_status[ uartNum ].status = UARTStatus_Wait;
 			continue;
 		}
@@ -1369,7 +1369,7 @@ void cliFunc_connectCmd( char* args )
 void cliFunc_connectDbg( char* args )
 {
 	print( NL );
-	info_msg("Connect Debug Mode Toggle");
+	info_print("Connect Debug Mode Toggle");
 	Connect_debug = !Connect_debug;
 }
 
@@ -1382,7 +1382,7 @@ void cliFunc_connectIdl( char* args )
 	CLI_argumentIsolation( args, &arg1Ptr, &arg2Ptr );
 
 	print( NL );
-	info_msg("Sending Sync Idles...");
+	info_print("Sending Sync Idles...");
 
 	uint8_t count = numToInt( &arg1Ptr[0] );
 	// Default to 2 idles
@@ -1407,7 +1407,7 @@ void cliFunc_connectLst( char* args )
 	};
 
 	print( NL );
-	info_msg("List of UARTConnect commands");
+	info_print("List of UARTConnect commands");
 	for ( uint8_t cmd = 0; cmd < Command_TOP; cmd++ )
 	{
 		print( NL );
@@ -1438,7 +1438,7 @@ void cliFunc_connectMst( char* args )
 		Connect_override = 0;
 	case 's':
 	case 'S':
-		info_msg("Setting device as slave.");
+		info_print("Setting device as slave.");
 		Connect_master = 0;
 		Connect_id = DEFAULT_SLAVE_ID;
 		break;
@@ -1446,7 +1446,7 @@ void cliFunc_connectMst( char* args )
 	case 'm':
 	case 'M':
 	default:
-		info_msg("Setting device as master.");
+		info_print("Setting device as master.");
 		Connect_master = 1;
 		Connect_id = 0;
 		break;
@@ -1456,7 +1456,7 @@ void cliFunc_connectMst( char* args )
 void cliFunc_connectRst( char* args )
 {
 	print( NL );
-	info_msg("Resetting UARTConnect state...");
+	info_print("Resetting UARTConnect state...");
 	Connect_reset();
 
 	// Reset node id
@@ -1466,7 +1466,7 @@ void cliFunc_connectRst( char* args )
 void cliFunc_connectSts( char* args )
 {
 	print( NL );
-	info_msg("UARTConnect Status");
+	info_print("UARTConnect Status");
 	print( NL "Device Type:\t" );
 	print( Connect_master ? "Master" : "Slave" );
 	print( NL "Device Id:\t" );

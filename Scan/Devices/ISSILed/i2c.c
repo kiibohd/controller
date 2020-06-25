@@ -321,7 +321,7 @@ int32_t i2c_send_sequence(
 	// in succession
 	if ( channel->last_error > 5 )
 	{
-		warn_msg("I2C Bus Error: ");
+		warn_print("I2C Bus Error: ");
 		printInt8( ch );
 		print(" errors: ");
 		printInt32( channel->error_count );
@@ -437,7 +437,7 @@ void i2c_isr( uint8_t ch )
 	if ( status & I2C_S_ARBL )
 	{
 		/* XXX (HaaTa) I2C Debugging
-		warn_msg("Arbitration error. Bus: ");
+		warn_print("Arbitration error. Bus: ");
 		printHex( ch );
 		print(NL);
 		*/
@@ -451,7 +451,7 @@ void i2c_isr( uint8_t ch )
 	// Arbitration problem
 	if ( status & TWI_SR_ARBLST )
 	{
-		warn_msg("Arbitration error. Bus: ");
+		warn_print("Arbitration error. Bus: ");
 		printHex( ch );
 		print(NL);
 		goto i2c_isr_error;

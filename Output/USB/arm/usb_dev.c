@@ -255,7 +255,7 @@ void usb_device_check()
 			// This generally points to a USB bug (host or device?)
 			if ( *usb_bMaxPower == 50 )
 			{
-				warn_msg("Power negotiation delay detected again, likely a system/device USB bug");
+				warn_print("Power negotiation delay detected again, likely a system/device USB bug");
 				return;
 			}
 
@@ -269,7 +269,7 @@ void usb_device_check()
 			// Re-initialize USB
 			usb_reinit();
 #else
-			warn_msg("USB Low Power Negotation Disabled, condition detected.");
+			warn_print("USB Low Power Negotation Disabled, condition detected.");
 #endif
 		}
 	}
@@ -503,7 +503,7 @@ void usb_setup()
 			break;
 		}
 
-		warn_msg("SET_FEATURE - Device wValue(");
+		warn_print("SET_FEATURE - Device wValue(");
 		printHex( setup.wValue );
 		print( ")" NL );
 		endpoint0_stall();
@@ -511,7 +511,7 @@ void usb_setup()
 
 	case 0x0101: // CLEAR_FEATURE (interface)
 		// XXX (HaaTa): Not used for USB 2.0
-		warn_msg("CLEAR_FEATURE - Interface wValue(");
+		warn_print("CLEAR_FEATURE - Interface wValue(");
 		printHex( setup.wValue );
 		print(") wIndex(");
 		printHex( setup.wIndex );
@@ -578,7 +578,7 @@ void usb_setup()
 
 	case 0x0301: // SET_FEATURE (interface)
 		// XXX (HaaTa): Not used for USB 2.0
-		warn_msg("SET_FEATURE - Interface wValue(");
+		warn_print("SET_FEATURE - Interface wValue(");
 		printHex( setup.wValue );
 		print(") wIndex(");
 		printHex( setup.wIndex );
@@ -773,7 +773,7 @@ void usb_setup()
 		case MOUSE_INTERFACE:
 			break;
 		default:
-			warn_msg("(SET_REPORT, SETUP) Unknown interface - ");
+			warn_print("(SET_REPORT, SETUP) Unknown interface - ");
 			printHex( setup.wIndex );
 			print( NL );
 			endpoint0_stall();
@@ -995,7 +995,7 @@ void keyboard_control(uint8_t *buf) {
 		case MOUSE_INTERFACE:
 			break;
 		default:
-			warn_msg("(SET_REPORT, BULK) Unknown interface - ");
+			warn_print("(SET_REPORT, BULK) Unknown interface - ");
 			printHex( setup.wIndex );
 			print( NL );
 			break;
@@ -1357,7 +1357,7 @@ uint8_t usb_resume()
 	usb_remote_wakeup = udc_device_status & CPU_TO_LE16(USB_DEV_STATUS_REMOTEWAKEUP) ? 1 : 0;
 #endif
 
-	/*warn_msg("resume: usb_remote_wakeup = ");
+	/*warn_print("resume: usb_remote_wakeup = ");
 	printHex( usb_remote_wakeup );
 	print( NL );
 

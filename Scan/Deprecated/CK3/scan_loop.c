@@ -138,7 +138,7 @@ void CustomAction_blockHold_capability( uint8_t state, uint8_t stateType, uint8_
 			&& CustomAction_blockHold_storage == 0 )
 		{
 			CustomAction_blockHold_storage = key;
-			info_msg("Blocking Key: ");
+			info_print("Blocking Key: ");
 			printHex( key );
 			print( NL );
 		}
@@ -146,7 +146,7 @@ void CustomAction_blockHold_capability( uint8_t state, uint8_t stateType, uint8_
 		else if ( ( state == 0x00 || state == 0x03 )
 			&& key == CustomAction_blockHold_storage )
 		{
-			info_msg("Unblocking Key: ");
+			info_print("Unblocking Key: ");
 			printHex( CustomAction_blockHold_storage );
 			print( NL );
 			CustomAction_blockHold_storage = 0;

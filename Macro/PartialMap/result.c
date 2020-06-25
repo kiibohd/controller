@@ -126,7 +126,7 @@ void Result_evalResultMacroCombo(
 			// Capability debug
 			if ( capDebugMode )
 			{
-				dbug_msg("Safe: ");
+				dbug_print("Safe: ");
 				capability( resultElem->trigger, ScheduleType_Debug, TriggerType_Debug, &guide->args );
 				print( NL );
 			}
@@ -436,7 +436,7 @@ void Result_process_delayed()
 		// Capability debug
 		if ( capDebugMode )
 		{
-			dbug_msg("Un-safe: ");
+			dbug_print("Un-safe: ");
 			capability( item->trigger, ScheduleType_Debug, TriggerType_Debug, item->args );
 			print( NL );
 		}

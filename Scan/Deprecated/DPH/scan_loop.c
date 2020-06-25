@@ -218,7 +218,7 @@ inline void Scan_setup()
 	//       This means, the strobe GPIO can be set to Tri-State pull-up to detect which strobe lines are not used.
 	// NOTE2: This will *NOT* detect floating strobes.
 	// NOTE3: Rev 0.4, the strobe numbers are reversed, so D0 is actually strobe 0 and C7 is strobe 17
-	info_msg("Detecting Strobes...");
+	info_print("Detecting Strobes...");
 
 	DDRC  = 0;
 	PORTC = C_MASK;
@@ -440,7 +440,7 @@ inline void capsense_scan()
 		// First loop
 		case 1:
 			// Show msg at first iteration only
-			info_msg("Warming up the voltage references");
+			info_print("Warming up the voltage references");
 			break;
 		// Middle iterations
 		case 300:
@@ -452,12 +452,12 @@ inline void capsense_scan()
 		// Last loop
 		case WARMUP_STOP:
 			print( NL );
-			info_msg("Warmup finished using ");
+			info_print("Warmup finished using ");
 			printInt16( WARMUP_LOOPS );
 			print(" iterations" NL );
 
 			// Display the final calculated averages of all the sensed strobes
-			info_msg("Full average (");
+			info_print("Full average (");
 			printInt8( total_strobes * MUXES_COUNT );
 			print("): ");
 			printHex( full_avg );
@@ -481,7 +481,7 @@ inline void capsense_scan()
 			{
 				if ( keys_problem[key] )
 				{
-					warn_msg("Problem key detected: ");
+					warn_print("Problem key detected: ");
 					printHex( key );
 					print(" (");
 					printHex( keys_problem[key] );
@@ -776,7 +776,7 @@ void testColumn( uint8_t strobe )
 			if ( (db_sample = samples[strobe][mux] >> 1) > keys_problem[key] + threshold )
 			//if ( (db_sample = samples[strobe][mux] >> 1) < high_avg )
 			{
-				info_msg("Re-enabling problem key: ");
+				info_print("Re-enabling problem key: ");
 				printHex( key );
 				print( NL );
 
@@ -828,7 +828,7 @@ void testColumn( uint8_t strobe )
 			{
 				// Debug message
 				// <key> [<strobe>:<mux>] : <sense val> : <delta + threshold> : <margin>
-				dbug_msg("");
+				dbug_print("");
 				printHex_op( key, 1 );
 				print(" [");
 				printInt8( strobe );
@@ -1010,7 +1010,7 @@ void cliFunc_problemKeys( char* args )
 		{
 			if ( count++ == 0 )
 			{
-				warn_msg("Problem keys: ");
+				warn_print("Problem keys: ");
 			}
 			printHex( key );
 			print(" (");

@@ -316,7 +316,7 @@ void cliFunc_adcInit( char* args )
 	ADC0_PG = sum;
 
 	print( NL );
-	info_msg("Calibration ADC0_PG (Plus-Side Gain Register)  set to: ");
+	info_print("Calibration ADC0_PG (Plus-Side Gain Register)  set to: ");
 	printInt16( sum );
 
 	// ADC Minus-Side Gain Register
@@ -327,7 +327,7 @@ void cliFunc_adcInit( char* args )
 	ADC0_MG = sum;
 
 	print( NL );
-	info_msg("Calibration ADC0_MG (Minus-Side Gain Register) set to: ");
+	info_print("Calibration ADC0_MG (Minus-Side Gain Register) set to: ");
 	printInt16( sum );
 	__enable_irq(); // Re-enable interrupts
 }

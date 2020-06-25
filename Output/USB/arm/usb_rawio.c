@@ -84,7 +84,7 @@ int32_t usb_rawio_rx( void *buf, uint32_t timeout )
 		// Check for timeout
 		if ( Time_duration_ms( start ) > timeout || !timeout )
 		{
-			//warn_msg("RAWIO Rx - Timeout, dropping packet.");
+			//warn_print("RAWIO Rx - Timeout, dropping packet.");
 			return 0;
 		}
 
@@ -125,7 +125,7 @@ int32_t usb_rawio_tx( const void *buf, uint32_t timeout )
 		// Check for timeout
 		if ( Time_duration_ms( start ) > timeout || !timeout )
 		{
-			warn_msg("RAWIO Tx - Timeout, dropping packet.");
+			warn_print("RAWIO Tx - Timeout, dropping packet.");
 			return 0;
 		}
 

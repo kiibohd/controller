@@ -448,7 +448,7 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 
 				case KeyState_Invalid:
 				default:
-					erro_msg("Matrix scan bug!! Report me! - ");
+					erro_print("Matrix scan bug!! Report me! - ");
 					printHex( state->prevState );
 					print(" Col: ");
 					printHex( strobe );
@@ -602,15 +602,15 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 
 		// Output stats on number of scans being done per USB send
 		print( NL );
-		info_msg("Max scans:      ");
+		info_print("Max scans:      ");
 		printHex( matrixMaxScans );
 		print( NL );
-		info_msg("Previous scans: ");
+		info_print("Previous scans: ");
 		printHex( matrixPrevScans );
 		print( NL );
 
 		// Output current scan number
-		info_msg("Scan Number:    ");
+		info_print("Scan Number:    ");
 		printHex( scanNum );
 		print( NL );
 
@@ -654,15 +654,15 @@ void Matrix_currentChange( unsigned int current )
 void cliFunc_matrixInfo( char* args )
 {
 	print( NL );
-	info_msg("Columns:  ");
+	info_print("Columns:  ");
 	printHex( Matrix_colsNum );
 
 	print( NL );
-	info_msg("Rows:     ");
+	info_print("Rows:     ");
 	printHex( Matrix_rowsNum );
 
 	print( NL );
-	info_msg("Max Keys: ");
+	info_print("Max Keys: ");
 	printHex( Matrix_maxKeys );
 }
 
@@ -696,7 +696,7 @@ void cliFunc_matrixDebug( char* args )
 	}
 
 	print( NL );
-	info_msg("Matrix Debug Mode: ");
+	info_print("Matrix Debug Mode: ");
 	printInt8( matrixDebugMode );
 }
 

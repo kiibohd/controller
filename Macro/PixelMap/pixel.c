@@ -317,7 +317,7 @@ void Pixel_AnimationIndex_capability( TriggerMacro *trigger, uint8_t state, uint
 	// Check if a valid setting
 	if ( index >= Pixel_AnimationSettingsNum_KLL )
 	{
-		warn_msg("Invalid AnimationSetting index: ");
+		warn_print("Invalid AnimationSetting index: ");
 		printInt16( index );
 		print( NL );
 		return;
@@ -895,7 +895,7 @@ uint8_t Pixel_addDefaultAnimation( uint32_t index )
 {
 	if ( index >= Pixel_AnimationSettingsNum_KLL )
 	{
-		warn_msg("Invalid AnimationSetting index: ");
+		warn_print("Invalid AnimationSetting index: ");
 		printInt32( index );
 		print( NL );
 		return 0;
@@ -1207,7 +1207,7 @@ PixelBuf *Pixel_bufferMap( uint16_t channel )
 #endif
 
 	// Invalid channel, return first channel and display error
-	erro_msg("Invalid channel: ");
+	erro_print("Invalid channel: ");
 	printHex( channel );
 	print( NL );
 	return 0;
@@ -1239,7 +1239,7 @@ PixelBuf *LED_bufferMap( uint16_t channel )
 #endif
 
 	// Invalid channel, return first channel and display error
-	erro_msg("Invalid channel (LED): ");
+	erro_print("Invalid channel (LED): ");
 	printHex( channel );
 	print( NL );
 	return 0;
@@ -1473,7 +1473,7 @@ uint16_t Pixel_fillPixelLookup(
 		if ( mod->rect.col >= Pixel_DisplayMapping_Cols_KLL
 			&& mod->rect.row >= Pixel_DisplayMapping_Rows_KLL )
 		{
-			erro_msg("Invalid row,column index: ");
+			erro_print("Invalid row,column index: ");
 			printInt16( mod->rect.row );
 			print(",");
 			printInt16( mod->rect.col );
@@ -1544,7 +1544,7 @@ uint16_t Pixel_fillPixelLookup(
 		// Make sure ScanCode exists
 		if ( mod->index > MaxScanCode_KLL )
 		{
-			erro_msg("Invalid ScanCode: ");
+			erro_print("Invalid ScanCode: ");
 			printInt16( mod->index );
 			print( NL );
 			break;
@@ -1602,7 +1602,7 @@ uint16_t Pixel_fillPixelLookup(
 		// Make sure column exists
 		if ( position >= Pixel_DisplayMapping_Cols_KLL * Pixel_DisplayMapping_Rows_KLL )
 		{
-			erro_msg("Invalid position index (relcol): ");
+			erro_print("Invalid position index (relcol): ");
 			printInt16( position );
 			print( NL );
 			break;
@@ -1650,7 +1650,7 @@ uint16_t Pixel_fillPixelLookup(
 		// Make sure column exists
 		if ( position >= Pixel_DisplayMapping_Cols_KLL * Pixel_DisplayMapping_Rows_KLL )
 		{
-			erro_msg("Invalid position index (relrow): ");
+			erro_print("Invalid position index (relrow): ");
 			printInt16( position );
 			print( NL );
 			break;
@@ -1883,7 +1883,7 @@ void Pixel_pixelTweenInterpolation( const uint8_t *frame, AnimationStackElement 
 #endif
 		if ( data_size > data_max_size )
 		{
-			warn_msg("Bad data size for this frame: ");
+			warn_print("Bad data size for this frame: ");
 			printInt8( data_size );
 			print(" instead of ");
 			printInt8( data_max_size );
@@ -2171,7 +2171,7 @@ void Pixel_channelSet( uint16_t channel, uint32_t value )
 	{
 	// Invalid width, default to 8
 	default:
-		warn_msg("ChanSet Unknown width: ");
+		warn_print("ChanSet Unknown width: ");
 		printInt8( pixbuf->width );
 		print(" Ch: ");
 		printHex( channel );
@@ -2206,7 +2206,7 @@ void Pixel_channelToggle( uint16_t channel )
 	{
 	// Invalid width, default to 8
 	default:
-		warn_msg("ChanToggle Unknown width: ");
+		warn_print("ChanToggle Unknown width: ");
 		printInt8( pixbuf->width );
 		print(" Ch: ");
 		printHex( channel );
@@ -3112,7 +3112,7 @@ void cliFunc_pixelList( char* args )
 	{
 	case 'b':
 	case 'B':
-		info_msg("Buffer List");
+		info_print("Buffer List");
 
 		// List all buffers
 		for ( uint8_t buf = 0; buf < Pixel_BuffersLen_KLL; buf++ )
@@ -3130,7 +3130,7 @@ void cliFunc_pixelList( char* args )
 		break;
 
 	default:
-		info_msg("Pixel List - <num>[<ch1>,...]<width>:...");
+		info_print("Pixel List - <num>[<ch1>,...]<width>:...");
 
 		// List all pixels
 		for ( uint16_t pixel = 0; pixel < Pixel_TotalPixels_KLL; pixel++ )
@@ -3179,34 +3179,34 @@ void cliFunc_pixelTest( char* args )
 	{
 	case 'a':
 	case 'A':
-		info_msg("All pixel test");
+		info_print("All pixel test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Pixel_All;
 		return;
 
 	case 'r':
 	case 'R':
-		info_msg("Pixel roll test");
+		info_print("Pixel roll test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Pixel_Roll;
 		return;
 
 	case 's':
 	case 'S':
-		info_msg("Stopping pixel test");
+		info_print("Stopping pixel test");
 		Pixel_testMode = PixelTest_Off;
 		return;
 
 	case 'f':
 	case 'F':
-		info_msg("Enable all pixels");
+		info_print("Enable all pixels");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Pixel_Full;
 		return;
 
 	case 'o':
 	case 'O':
-		info_msg("Disable all pixels");
+		info_print("Disable all pixels");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Pixel_Off;
 		return;
@@ -3231,7 +3231,7 @@ void cliFunc_pixelTest( char* args )
 
 	// Debug info
 	print( NL );
-	info_msg("Pixel: ");
+	info_print("Pixel: ");
 	printInt16( Pixel_testPos );
 	print(" ");
 }
@@ -3253,34 +3253,34 @@ void cliFunc_chanTest( char* args )
 	{
 	case 'a':
 	case 'A':
-		info_msg("All channel test");
+		info_print("All channel test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Chan_All;
 		return;
 
 	case 'r':
 	case 'R':
-		info_msg("Channel roll test");
+		info_print("Channel roll test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Chan_Roll;
 		return;
 
 	case 's':
 	case 'S':
-		info_msg("Stopping channel test");
+		info_print("Stopping channel test");
 		Pixel_testMode = PixelTest_Off;
 		return;
 
 	case 'f':
 	case 'F':
-		info_msg("Enable all pixels");
+		info_print("Enable all pixels");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Chan_Full;
 		return;
 
 	case 'o':
 	case 'O':
-		info_msg("Disable all pixels");
+		info_print("Disable all pixels");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Chan_Off;
 		return;
@@ -3298,7 +3298,7 @@ void cliFunc_chanTest( char* args )
 
 	// Debug info
 	print( NL );
-	info_msg("Channel: ");
+	info_print("Channel: ");
 	printInt16( Pixel_testPos );
 	print( NL );
 }
@@ -3320,21 +3320,21 @@ void cliFunc_pixelSCTest( char* args )
 	{
 	case 'a':
 	case 'A':
-		info_msg("All scancode pixel test");
+		info_print("All scancode pixel test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Scan_All;
 		return;
 
 	case 'r':
 	case 'R':
-		info_msg("Scancode pixel roll test");
+		info_print("Scancode pixel roll test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_Scan_Roll;
 		return;
 
 	case 's':
 	case 'S':
-		info_msg("Stopping scancode pixel test");
+		info_print("Stopping scancode pixel test");
 		Pixel_testMode = PixelTest_Off;
 		return;
 
@@ -3361,7 +3361,7 @@ void cliFunc_pixelSCTest( char* args )
 
 	// Debug info
 	print( NL );
-	info_msg("ScanCode: ");
+	info_print("ScanCode: ");
 	printInt16( Pixel_testPos + 1 );
 	print(" Pixel: ");
 	printInt16( pixel );
@@ -3385,21 +3385,21 @@ void cliFunc_pixelXYTest( char* args )
 	{
 	case 'a':
 	case 'A':
-		info_msg("All x,y pixel test");
+		info_print("All x,y pixel test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_XY_All;
 		return;
 
 	case 'r':
 	case 'R':
-		info_msg("x,y pixel roll test");
+		info_print("x,y pixel roll test");
 		Pixel_testPos = 0;
 		Pixel_testMode = PixelTest_XY_Roll;
 		return;
 
 	case 's':
 	case 'S':
-		info_msg("Stopping x,y pixel test");
+		info_print("Stopping x,y pixel test");
 		Pixel_testMode = PixelTest_Off;
 		return;
 
@@ -3411,7 +3411,7 @@ void cliFunc_pixelXYTest( char* args )
 			Pixel_testPos = 0;
 		}
 
-		info_msg("Horizontal: ");
+		info_print("Horizontal: ");
 		printInt16( Pixel_testPos );
 
 		// Iterate over the row
@@ -3439,7 +3439,7 @@ void cliFunc_pixelXYTest( char* args )
 			Pixel_testPos = 0;
 		}
 
-		info_msg("Vertical: ");
+		info_print("Vertical: ");
 		printInt16( Pixel_testPos );
 
 		// Iterate over the column
@@ -3471,7 +3471,7 @@ void cliFunc_pixelXYTest( char* args )
 
 	// Debug info
 	print( NL );
-	info_msg("Position (x,y): ");
+	info_print("Position (x,y): ");
 	printInt16( Pixel_testPos % Pixel_DisplayMapping_Cols_KLL );
 	print(",");
 	printInt16( Pixel_testPos / Pixel_DisplayMapping_Cols_KLL );
@@ -3527,7 +3527,7 @@ void cliFunc_aniDel( char* args )
 void cliFunc_aniStack( char* args )
 {
 	print(NL);
-	info_msg("Stack Size: ");
+	info_print("Stack Size: ");
 	printInt16( Pixel_AnimationStack.size );
 	for ( uint8_t pos = 0; pos < Pixel_AnimationStack.size; pos++ )
 	{

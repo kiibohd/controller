@@ -154,7 +154,7 @@ void Output_update_usb_current( unsigned int current )
 
 	/* XXX Affects sleep states due to USB messages
 	unsigned int total_current = Output_current_available();
-	info_msg("USB Available Current Changed. Total Available: ");
+	info_print("USB Available Current Changed. Total Available: ");
 	printInt32( total_current );
 	print(" mA" NL);
 	*/
@@ -176,7 +176,7 @@ void Output_update_external_current( unsigned int current )
 	Output_ExtCurrent_Available = current;
 
 	unsigned int total_current = Output_current_available();
-	info_msg("External Available Current Changed. Total Available: ");
+	info_print("External Available Current Changed. Total Available: ");
 	printInt32( total_current );
 	print(" mA" NL);
 
@@ -225,7 +225,7 @@ void cliFunc_current( char* args )
 	}
 
 	print( NL );
-	info_msg("Current available: ");
+	info_print("Current available: ");
 	printInt16( Output_current_available() );
 	print(" mA");
 }

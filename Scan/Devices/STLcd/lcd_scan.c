@@ -776,7 +776,7 @@ void cliFunc_lcdCmd( char* args )
 	// Single Arg
 	if ( *arg2Ptr == '\0' )
 	{
-        info_msg("Sending- ");
+        info_print("Sending- ");
 		printHex( cmd );
 		print( NL );
 		LCD_writeControlReg( cmd );
@@ -785,7 +785,7 @@ void cliFunc_lcdCmd( char* args )
 
 	if ( *arg2Ptr != '\0' )
 	{
-		info_msg("Sending WITH A0 FLAG SET- ");
+		info_print("Sending WITH A0 FLAG SET- ");
 		printHex( cmd );
 		print( NL );
 		LCD_writeDataReg( cmd );

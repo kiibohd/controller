@@ -689,7 +689,7 @@ void cliFunc_periodic( char* args )
 	}
 
 	// Show number of clock cycles between periods
-	info_msg("Period Clock Cycles: ");
+	info_print("Period Clock Cycles: ");
 	printInt32( Periodic_cycles() );
 }
 
@@ -704,7 +704,7 @@ void cliFunc_rand( char* args )
 		return;
 	}
 
-	info_msg("Rand: ");
+	info_print("Rand: ");
 	printHex32( rand_value32() );
 }
 
@@ -714,7 +714,7 @@ void cliFunc_reload( char* args )
 	{
 		print( NL );
 		warn_printNL("flashModeEnabled not set, cancelling firmware reload...");
-		info_msg("Set flashModeEnabled to 1 in your kll configuration.");
+		info_print("Set flashModeEnabled to 1 in your kll configuration.");
 		return;
 	}
 
@@ -741,7 +741,7 @@ void cliFunc_tick( char* args )
 	Time now = Time_now();
 
 	// Display <systick>:<cycleticks since systick>
-	info_msg("ns per cycletick: ");
+	info_print("ns per cycletick: ");
 	print( Time_ticksPer_ns_str );
 	print( NL );
 	info_printNL("<systick ms>:<cycleticks since systick>");

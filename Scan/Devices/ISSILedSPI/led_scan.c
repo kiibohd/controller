@@ -222,7 +222,7 @@ static uint8_t ledLatencyResource;
 void LED_syncReg(uint8_t page, uint8_t reg, uint8_t val)
 {
 	/*
-	info_msg("SPI Sync page(");
+	info_print("SPI Sync page(");
 	printHex( page );
 	print(")reg(");
 	printHex( reg );
@@ -261,7 +261,7 @@ void LED_syncReg(uint8_t page, uint8_t reg, uint8_t val)
 void LED_writeReg(uint8_t cs, uint8_t page, uint8_t reg, uint8_t val)
 {
 	/*
-	info_msg("SPI Write cs(");
+	info_print("SPI Write cs(");
 	printHex( cs );
 	print(")page(");
 	printHex( page );
@@ -292,7 +292,7 @@ void LED_writeReg(uint8_t cs, uint8_t page, uint8_t reg, uint8_t val)
 uint8_t LED_readReg(uint8_t cs, uint8_t page, uint8_t reg)
 {
 	/*
-	info_msg("SPI Read cs(");
+	info_print("SPI Read cs(");
 	printHex( cs );
 	print(")page(");
 	printHex( page );
@@ -650,7 +650,7 @@ inline void LED_scan()
 	if ( LED_displayFPS )
 	{
 		// Show frame calculation
-		dbug_msg("1frame/");
+		dbug_print("1frame/");
 		printInt32( Time_ms( duration ) );
 		print("ms + ");
 		printInt32( duration.ticks );
@@ -895,7 +895,7 @@ void cliFunc_ledFPS( char* args )
 	// Just toggling FPS display
 	if ( *arg1Ptr == '\0' )
 	{
-		info_msg("FPS Toggle");
+		info_print("FPS Toggle");
 		LED_displayFPS = !LED_displayFPS;
 		return;
 	}
@@ -914,7 +914,7 @@ void cliFunc_ledFPS( char* args )
 	}
 
 	// Show result
-	info_msg("Setting framerate to: ");
+	info_print("Setting framerate to: ");
 	printInt32( LED_framerate );
 	print("ms");
 }
@@ -922,7 +922,7 @@ void cliFunc_ledFPS( char* args )
 void cliFunc_ledToggle( char* args )
 {
 	print( NL ); // No \r\n by default after the command is entered
-	info_msg("LEDs Toggle");
+	info_print("LEDs Toggle");
 	LED_enable = !LED_enable;
 }
 
@@ -955,7 +955,7 @@ void cliFunc_ledSet( char* args )
 		LED_setBrightness( numToInt(arg1Ptr) );
 	}
 
-	info_msg("LED Brightness Set");
+	info_print("LED Brightness Set");
 }
 
 #if Storage_Enable_define == 1

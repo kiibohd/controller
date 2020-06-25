@@ -401,7 +401,7 @@ uint8_t Matrix_single_scan()
 
 		case KeyState_Invalid:
 		default:
-			erro_msg("Matrix scan bug!! Report me! - ");
+			erro_print("Matrix scan bug!! Report me! - ");
 			printHex( state->prevState );
 			print(" Col: ");
 			printHex( strobe );
@@ -606,7 +606,7 @@ void cliFunc_debounce( char* args )
 	}
 
 	print( NL );
-	info_msg("Debounce Timer: ");
+	info_print("Debounce Timer: ");
 	printInt8( debounceExpiryTime );
 	print("ms");
 }
@@ -614,15 +614,15 @@ void cliFunc_debounce( char* args )
 void cliFunc_matrixInfo( char* args )
 {
 	print( NL );
-	info_msg("Columns:  ");
+	info_print("Columns:  ");
 	printInt8( Matrix_colsNum );
 
 	print( NL );
-	info_msg("Rows:     ");
+	info_print("Rows:     ");
 	printInt8( Matrix_rowsNum );
 
 	print( NL );
-	info_msg("Max Keys: ");
+	info_print("Max Keys: ");
 	printInt8( Matrix_maxKeys );
 }
 
@@ -662,7 +662,7 @@ void cliFunc_matrixDebug( char* args )
 	}
 
 	print( NL );
-	info_msg("Matrix Debug Mode: ");
+	info_print("Matrix Debug Mode: ");
 	printInt8( matrixDebugMode );
 }
 
@@ -697,7 +697,7 @@ void cliFunc_strobeDelay( char* args )
 	}
 
 	print( NL );
-	info_msg("Strobe Delay: ");
+	info_print("Strobe Delay: ");
 	printInt8( strobeDelayTime );
 	print("us");
 }
