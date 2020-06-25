@@ -248,19 +248,19 @@ ISR(USART1_RX_vect)
 	{
 	case 0xC3: // Keypad Enter
 		print("\n");
-		info_print("BEEEEP! - Clicker on");
+		info_printNL("BEEEEP! - Clicker on");
 		scan_sendData( cmd_clickON );
 		break;
 
 	case 0xB2: // Keypad Decimal
 		print("\n");
-		info_print("BEEP! - Clicker off");
+		info_printNL("BEEP! - Clicker off");
 		scan_sendData( cmd_clickOFF );
 		break;
 
 	case 0x0A: // Line Feed
 		print("\n");
-		info_print("ACK!!");
+		info_printNL("ACK!!");
 		scan_sendData( cmd_ACK_AA );
 		break;
 	}

@@ -270,7 +270,7 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 			}
 
 			// TODO (HaaTa) Implement state scheduling
-			erro_print("State Scheduling not implemented yet...");
+			erro_printNL("State Scheduling not implemented yet...");
 		}
 
 		vote = TriggerMacroVote_DoNothing;
@@ -304,7 +304,7 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 	case TriggerType_Analog2:
 	case TriggerType_Analog3:
 	case TriggerType_Analog4:
-		erro_print("Analog State Type - Not implemented...");
+		erro_printNL("Analog State Type - Not implemented...");
 		break;
 
 	// Animation State Type
@@ -348,7 +348,7 @@ TriggerMacroVote Trigger_evalShortTriggerMacroVote( TriggerEvent *event, Trigger
 
 	// Invalid State Type
 	default:
-		erro_print("Invalid State Type. This is a bug.");
+		erro_printNL("Invalid State Type. This is a bug.");
 		break;
 	}
 
@@ -502,7 +502,7 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 	case TriggerType_Analog2:
 	case TriggerType_Analog3:
 	case TriggerType_Analog4:
-		erro_print("Analog State Type - Not implemented...");
+		erro_printNL("Analog State Type - Not implemented...");
 		break;
 
 	// Animation State Type
@@ -535,12 +535,12 @@ TriggerMacroVote Trigger_evalLongTriggerMacroVote( TriggerEvent *event, TriggerG
 		// This makes rotations not so useful for long macros
 		// (though it may be possible to implement it if there is demand)
 		// TODO
-		erro_print("Rotation State Type (Long Macros) - Not implemented...");
+		erro_printNL("Rotation State Type (Long Macros) - Not implemented...");
 		break;
 
 	// Invalid State Type
 	default:
-		erro_print("Invalid State Type. This is a bug.");
+		erro_printNL("Invalid State Type. This is a bug.");
 		break;
 	}
 

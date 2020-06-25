@@ -190,7 +190,7 @@ void Result_evalResultMacroCombo(
 		}
 		else
 		{
-			warn_print("Delayed capability stack full!");
+			warn_printNL("Delayed capability stack full!");
 		}
 
 		// Increment counters
@@ -251,7 +251,7 @@ void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 		if ( cur_event == 0 )
 		{
 
-			erro_print("Could not find event in event buffer for activated trigger! This is a bug!");
+			erro_printNL("Could not find event in event buffer for activated trigger! This is a bug!");
 			continue;
 		}
 
@@ -320,7 +320,7 @@ void Result_appendResultMacroToPendingList( const TriggerMacro *triggerMacro )
 	// If event was not set, ignore
 	if ( !event )
 	{
-		erro_print("No event found! Bug!");
+		erro_printNL("No event found! Bug!");
 		return;
 	}
 

@@ -796,7 +796,7 @@ HIDIO_Return HIDIO_terminal_call( uint16_t buf_pos, uint8_t irq )
 		if ( CLILineBufferCurrent >= CLILineBufferMaxSize ) {
 			uint16_t connected = HIDIO_VT_Connected;
 			HIDIO_VT_Connected = 0;
-			erro_print("Serial line buffer is full, dropping character and resetting...");
+			erro_printNL("Serial line buffer is full, dropping character and resetting...");
 			HIDIO_VT_Connected = connected;
 
 			// This will automatically NAK for us
@@ -1144,14 +1144,14 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 
 	// Check header packet type to see if a valid packet
 	if ( packet->type > HIDIO_Packet_Type__Continued ) {
-		warn_print("Reserved packet type. Bug?");
+		warn_printNL("Reserved packet type. Bug?");
 		return;
 	}
 
 	// Check if the length is valid
 	uint16_t packet_len = (packet->upper_len << 8) | packet->len;
 	if ( packet_len > HIDIO_Packet_Size ) {
-		warn_print("Unsupported length");
+		warn_printNL("Unsupported length");
 		print("length: ");
 		printInt16(packet_len);
 		print(NL);
@@ -1209,7 +1209,7 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 			// If this is a continued packet, we drop, because we weren't waiting for one
 			if ( packet->type == HIDIO_Packet_Type__Continued )
 			{
-				warn_print("Dropping incoming Continued Data packet...");
+				warn_printNL("Dropping incoming Continued Data packet...");
 				return;
 			}
 
@@ -1219,7 +1219,7 @@ void HIDIO_process_incoming_packet( uint8_t *buf, uint8_t irq )
 			{
 				uint16_t connected = HIDIO_VT_Connected;
 				HIDIO_VT_Connected = 0;
-					warn_print("Dropping incoming Data packet, not enough buffer space...");
+					warn_printNL("Dropping incoming Data packet, not enough buffer space...");
 					print("head: ");
 					printInt16( HIDIO_assembly_buf.head );
 					print(" tail: ");

@@ -416,7 +416,7 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 						// Keep previous state
 						if ( lastTransition < MinDebounceTime_define )
 						{
-							//warn_print("FAST Release stopped");
+							//warn_printNL("FAST Release stopped");
 							state->curState = state->prevState;
 							continue;
 						}
@@ -433,7 +433,7 @@ void Matrix_scan( uint16_t scanNum, uint8_t *position, uint8_t count )
 						// Keep previous state
 						if ( lastTransition < MinDebounceTime_define )
 						{
-							//warn_print("FAST Press stopped");
+							//warn_printNL("FAST Press stopped");
 							state->curState = state->prevState;
 							continue;
 						}

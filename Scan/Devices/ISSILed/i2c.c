@@ -359,7 +359,7 @@ int32_t i2c_send_sequence(
 	status = *I2C_S;
 	if ( status & I2C_S_ARBL )
 	{
-		warn_print("Arbitration lost");
+		warn_printNL("Arbitration lost");
 		result = -1;
 		goto i2c_send_sequence_cleanup;
 	}
@@ -557,13 +557,13 @@ void i2c_isr( uint8_t ch )
 #if defined(_kinetis_)
 		if ( status & I2C_S_RXAK )
 		{
-			warn_print("NACK Received");
+			warn_printNL("NACK Received");
 			goto i2c_isr_error;
 		}
 #elif defined(_sam_)
 		if ( status & TWI_SR_NACK )
 		{
-			warn_print("NACK Received");
+			warn_printNL("NACK Received");
 			goto i2c_isr_error;
 		}
 #endif
@@ -693,7 +693,7 @@ i2c_isr_error:
 	channel->last_error++;
 
 	// Generate STOP and disable further interrupts.
-	warn_print("ISR error");
+	warn_printNL("ISR error");
 #if defined(_kinetis_)
 	*I2C_C1 &= ~( I2C_C1_MST | I2C_C1_IICIE );
 #elif defined(_sam_)

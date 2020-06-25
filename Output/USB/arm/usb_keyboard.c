@@ -116,7 +116,7 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 	{
 		if ( !usb_configuration )
 		{
-			erro_print("USB not configured...");
+			erro_printNL("USB not configured...");
 			return;
 		}
 
@@ -164,10 +164,10 @@ void usb_keyboard_send( USBKeys *buffer, uint8_t protocol )
 			transmit_previous_timeout = 1;
 			buffer->changed = USBKeyChangeState_None; // Indicate packet lost
 			#if enableDeviceRestartOnUSBTimeout == 1
-			warn_print("USB Transmit Timeout...restarting device");
+			warn_printNL("USB Transmit Timeout...restarting device");
 			usb_device_software_reset();
 			#else
-			warn_print("USB Transmit Timeout...auto-restart disabled");
+			warn_printNL("USB Transmit Timeout...auto-restart disabled");
 			#endif
 			// Try to wakeup
 			return;

@@ -1114,7 +1114,7 @@ void Macro_periodic()
 		if ( MaxScanCode_KLL == 0 )
 		{
 #if NoneScanModule_define == 0
-			warn_print("No scancodes defined! Check your BaseMap!");
+			warn_printNL("No scancodes defined! Check your BaseMap!");
 #endif
 		}
 		// Bug!
@@ -1135,7 +1135,7 @@ void Macro_periodic()
 
 		// Proceed, decrementing the step counter
 		macroStepCounter--;
-		dbug_print("Macro Step");
+		dbug_printNL("Macro Step");
 	}
 
 	// Process Trigger Macros
@@ -1310,7 +1310,7 @@ void cliFunc_capSelect( char* args )
 				if ( CapabilitiesList[ cap ].func == (const void*)Output_flashMode_capability )
 				{
 					print( NL );
-					warn_print("flashModeEnabled not set, cancelling firmware reload...");
+					warn_printNL("flashModeEnabled not set, cancelling firmware reload...");
 					info_msg("Set flashModeEnabled to 1 in your kll configuration.");
 					return;
 				}

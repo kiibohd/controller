@@ -111,7 +111,7 @@ void processKeyValue( uint8_t keyValue )
 	switch ( keyValue )
 	{
 	case 0x40: // Clear buffer command
-		info_print("CLEAR!");
+		info_printNL("CLEAR!");
 
 		BufferReadyToClear = 1;
 		break;

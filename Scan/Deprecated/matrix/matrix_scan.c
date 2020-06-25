@@ -151,8 +151,8 @@ void matrix_debugPins(void);
 inline void matrix_debugPins()
 {
 	char tmpStr[6];
-	info_print("Initial Matrix Pin Setup");
-	info_print(" ddrA  ddrB  ddrC  ddrD  ddrE  ddrF");
+	info_printNL("Initial Matrix Pin Setup");
+	info_printNL(" ddrA  ddrB  ddrC  ddrD  ddrE  ddrF");
 	print("      ");
 	hexToStr_op( ddrA, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
 	hexToStr_op( ddrB, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
@@ -161,7 +161,7 @@ inline void matrix_debugPins()
 	hexToStr_op( ddrE, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
 	hexToStr_op( ddrF, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
 	print("\n");
-	info_print("portA portB portC portD portE portF");
+	info_printNL("portA portB portC portD portE portF");
 	print("      ");
 	hexToStr_op( portA, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );
 	hexToStr_op( portB, tmpStr, 2 ); dPrintStrs( "  0x", tmpStr );

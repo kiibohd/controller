@@ -481,7 +481,7 @@ void Output_usbCodeSend_capability( TriggerMacro *trigger, uint8_t state, uint8_
 			// USB Key limit reached
 			if ( USBKeys_Sent >= USB_BOOT_MAX_KEYS )
 			{
-				warn_print("USB Key limit reached");
+				warn_printNL("USB Key limit reached");
 				break;
 			}
 

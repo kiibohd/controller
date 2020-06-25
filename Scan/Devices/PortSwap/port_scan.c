@@ -114,7 +114,7 @@ static uint8_t portLatencyResource;
 void Port_usb_swap()
 {
 #if Port_SwapMode_define == USBSwap || Port_SwapMode_define == USBInterSwap
-	info_print("USB Port Swap");
+	info_printNL("USB Port Swap");
 
 	// USB Swap
 	GPIO_Ctrl( usb_swap_pin1, GPIO_Type_DriveToggle, GPIO_Config_None );
@@ -123,26 +123,26 @@ void Port_usb_swap()
 	// Call usb_configured() to check if usb is ready
 	usb_reinit();
 #else
-	warn_print("Unsupported");
+	warn_printNL("Unsupported");
 #endif
 }
 
 void Port_uart_swap()
 {
 #if Port_SwapMode_define == USBInterSwap
-	info_print("Interconnect Line Swap");
+	info_printNL("Interconnect Line Swap");
 
 	// UART Swap
 	GPIO_Ctrl( uart_swap_pin1, GPIO_Type_DriveToggle, GPIO_Config_None );
 #else
-	warn_print("Unsupported");
+	warn_printNL("Unsupported");
 #endif
 }
 
 void Port_cross()
 {
 #if Port_SwapMode_define == USBInterSwap
-	info_print("Interconnect Line Cross");
+	info_printNL("Interconnect Line Cross");
 
 	// UART Tx/Rx cross-over
 	GPIO_Ctrl( uart_cross_pin1, GPIO_Type_DriveToggle, GPIO_Config_None );
@@ -150,7 +150,7 @@ void Port_cross()
 	// Reset interconnects
 	Connect_reset();
 #else
-	warn_print("Unsupported");
+	warn_printNL("Unsupported");
 #endif
 }
 
@@ -181,7 +181,7 @@ inline void Port_setup()
 	GPIO_Ctrl( uart_swap_pin1, GPIO_Type_DriveSetup, GPIO_Config_None );
 	GPIO_Ctrl( uart_swap_pin1, GPIO_Type_DriveLow, GPIO_Config_None );
 #else
-	warn_print("Unsupported");
+	warn_printNL("Unsupported");
 #endif
 
 	// Starting point for automatic port swapping

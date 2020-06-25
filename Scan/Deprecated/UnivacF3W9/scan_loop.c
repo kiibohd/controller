@@ -100,14 +100,14 @@ inline void Scan_setup()
 	PORTD &= ~(1 << 4);
 
 	// Message
-	info_print("Pins Setup");
+	info_printNL("Pins Setup");
 
 	// Reset the keyboard before scanning, we might be in a wierd state
 	_delay_ms( 50 );
 	//Scan_resetKeyboard();
 
 	// Message
-	info_print("Keyboard Buffer Flushed");
+	info_printNL("Keyboard Buffer Flushed");
 }
 
 

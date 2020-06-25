@@ -269,7 +269,7 @@ void Scan_unlockKeyboard( void )
 // Reset Keyboard
 void Scan_resetKeyboard( void )
 {
-	info_print("Attempting to synchronize the keyboard, do not press any keys...");
+	info_printNL("Attempting to synchronize the keyboard, do not press any keys...");
 	errorLED( 1 );
 
 	// Do a proper keyboard reset (flushes the ripple counters)
@@ -307,6 +307,6 @@ void Scan_resetKeyboard( void )
 		}
 	}
 
-	info_print("Keyboard Synchronized!");
+	info_printNL("Keyboard Synchronized!");
 }
 

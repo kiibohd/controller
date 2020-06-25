@@ -82,7 +82,7 @@ inline void usb_keyboard_send()
 		// has the USB gone offline? or exceeded timeout?
 		if ( !usb_configuration || UDFNUML == timeout )
 		{
-			erro_print("USB Offline? Timeout?");
+			erro_printNL("USB Offline? Timeout?");
 			return;
 		}
 

@@ -234,7 +234,7 @@ inline uint8_t Scan_loop()
 		}
 		break;
 	default:
-		erro_print("Invalid key scan index");
+		erro_printNL("Invalid key scan index");
 		break;
 	}
 
@@ -504,7 +504,7 @@ uint8_t Scan_sendData( uint8_t dataPayload )
 		LED2_PORT ^= (1 << LED2_POS);
 		break;
 	default:
-		erro_print("Invalid data send attempt");
+		erro_printNL("Invalid data send attempt");
 		break;
 	}
 	return 0;

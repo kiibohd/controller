@@ -114,7 +114,7 @@ void CustomAction_action1_capability( uint8_t state, uint8_t stateType, uint8_t 
 	}
 
 	// Prints Action1 info message to the debug cli
-	info_print("Action1");
+	info_printNL("Action1");
 }
 
 uint8_t CustomAction_blockHold_storage = 0;

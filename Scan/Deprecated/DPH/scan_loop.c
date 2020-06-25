@@ -489,8 +489,8 @@ inline void capsense_scan()
 				}
 			}
 
-			info_print("If problem keys were detected, and were being held down, they will be reset as soon as let go.");
-			info_print("Some keys have unusually high sense values, on the first press they should be re-enabled.");
+			info_printNL("If problem keys were detected, and were being held down, they will be reset as soon as let go.");
+			info_printNL("Some keys have unusually high sense values, on the first press they should be re-enabled.");
 			break;
 		}
 	}
@@ -952,12 +952,12 @@ void cliFunc_avgDebug( char* args )
 	// Args ignored, just toggling
 	if ( enableAvgDebug )
 	{
-		info_print("Cap Sense averaging debug disabled.");
+		info_printNL("Cap Sense averaging debug disabled.");
 		enableAvgDebug = 0;
 	}
 	else
 	{
-		info_print("Cap Sense averaging debug enabled.");
+		info_printNL("Cap Sense averaging debug enabled.");
 		enableAvgDebug = 1;
 	}
 }
@@ -969,12 +969,12 @@ void cliFunc_keyDebug( char* args )
 	// Args ignored, just toggling
 	if ( enableKeyDebug )
 	{
-		info_print("Cap Sense key long debug disabled - pre debounce.");
+		info_printNL("Cap Sense key long debug disabled - pre debounce.");
 		enableKeyDebug = 0;
 	}
 	else
 	{
-		info_print("Cap Sense key long debug enabled - pre debounce.");
+		info_printNL("Cap Sense key long debug enabled - pre debounce.");
 		enableKeyDebug = 1;
 	}
 }
@@ -986,12 +986,12 @@ void cliFunc_pressDebug( char* args )
 	// Args ignored, just toggling
 	if ( enablePressDebug )
 	{
-		info_print("Cap Sense key debug disabled - post debounce.");
+		info_printNL("Cap Sense key debug disabled - post debounce.");
 		enablePressDebug = 0;
 	}
 	else
 	{
-		info_print("Cap Sense key debug enabled - post debounce.");
+		info_printNL("Cap Sense key debug enabled - post debounce.");
 		enablePressDebug = 1;
 	}
 }

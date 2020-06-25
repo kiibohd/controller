@@ -1027,7 +1027,7 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState csta
 	// Make sure there is room left on the stack
 	if ( Pixel_AnimationStack.size >= Pixel_AnimationStackSize )
 	{
-		warn_print("Animation stack is full...");
+		warn_printNL("Animation stack is full...");
 		return 0;
 	}
 
@@ -1048,7 +1048,7 @@ uint8_t Pixel_addAnimation( AnimationStackElement *element, CapabilityState csta
 	// XXX This shouldn't happen
 	if ( pos >= Pixel_AnimationStackSize )
 	{
-		erro_print("Animation Stack memory leak...this is a bug!");
+		erro_printNL("Animation Stack memory leak...this is a bug!");
 		return 0;
 	}
 
@@ -1256,7 +1256,7 @@ PixelBuf *LED_bufferMap( uint16_t channel )
 	case 32: /* 32 bit mapping */ \
 		PixelBuf32( pixbuf, ch_pos ) op (uint32_t)mod_value; break; \
 	default: \
-		warn_print("Invalid width mapping for "#op ); \
+		warn_printNL("Invalid width mapping for "#op ); \
 		break; \
 	}
 
@@ -1319,7 +1319,7 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 			break;
 
 		default:
-			warn_print("Invalid PixelElement width mapping");
+			warn_printNL("Invalid PixelElement width mapping");
 			break;
 		}
 
@@ -1381,7 +1381,7 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 			}
 
 			default:
-				warn_print("Invalid width mapping on set");
+				warn_printNL("Invalid width mapping on set");
 				break;
 			}
 			break;
@@ -1416,13 +1416,13 @@ void Pixel_pixelEvaluation( PixelModElement *mod, PixelElement *elem )
 			}
 
 			default:
-				warn_print("Invalid width mapping on set");
+				warn_printNL("Invalid width mapping on set");
 				break;
 			}
 			break;
 
 		default:
-			warn_print("Unimplemented pixel modifier");
+			warn_printNL("Unimplemented pixel modifier");
 			break;
 		}
 	}
@@ -1731,7 +1731,7 @@ uint16_t Pixel_pixelTweenNextPos( PixelElement *elem, PixelElement *prev )
 
 	// BAD BAD BAD
 	// TODO - This is BAD, will break in most cases, except for K-Type like keyboards.
-	erro_print("Pixel Tween Bug!");
+	erro_printNL("Pixel Tween Bug!");
 	ret = ( ( 8 / 8 + sizeof( PixelChange ) ) * 3 ) + sizeof( PixelModElement );
 #endif
 
@@ -2514,7 +2514,7 @@ void Pixel_SecondaryProcessing()
 				}
 				break;
 			default:
-				erro_print("Unsupported buffer width");
+				erro_printNL("Unsupported buffer width");
 				break;
 			}
 		}

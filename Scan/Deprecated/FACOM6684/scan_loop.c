@@ -272,7 +272,7 @@ void Scan_finishedWithBuffer( uint8_t sentKeys )
 	for ( ; key < prevBuffer; key++ )
 	{
 		Macro_bufferAdd( KeyIndex_Buffer[key] );
-		info_print("Re-appending lost key after USB send...");
+		info_printNL("Re-appending lost key after USB send...");
 	}
 
 	// Only "re-add" the latched keys if they weren't used

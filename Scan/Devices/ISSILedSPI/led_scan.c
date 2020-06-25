@@ -460,7 +460,7 @@ void LED_shortOpenDetect()
 	delay_us(1000);
 
 	// TODO Validation
-	info_print("Open Detection");
+	info_printNL("Open Detection");
 	for (uint8_t cs = 0; cs < ISSI_Chips_define; cs++)
 	{
 		for (uint8_t reg = 0x03; reg <= 0x23; reg++)
@@ -485,7 +485,7 @@ void LED_shortOpenDetect()
 	delay_us(1000);
 
 	// TODO Validation
-	info_print("Short Detection");
+	info_printNL("Short Detection");
 	for (uint8_t cs = 0; cs < ISSI_Chips_define; cs++)
 	{
 		for (uint8_t reg = 0x03; reg <= 0x23; reg++)

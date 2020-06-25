@@ -69,7 +69,7 @@ uint8_t Latency_add_resource( const char* name, LatencyOption option )
 	// Make sure there are resources left to allocate
 	if ( index >= LatencyMeasurementCount_define )
 	{
-		erro_print("No more latency resources available...");
+		erro_printNL("No more latency resources available...");
 		return 0;
 	}
 

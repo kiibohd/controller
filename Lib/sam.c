@@ -166,7 +166,7 @@ void systick_default_isr()
 	if ( DWT->CYCCNT > F_CPU / 1000 + 30 )
 	{
 		/* XXX (HaaTa) The printing of this message is causing LED buffers to get clobbered (likely due to frame overflows)
-		erro_print("SysTick is being starved by another IRQ...");
+		erro_printNL("SysTick is being starved by another IRQ...");
 		printInt32( DWT->CYCCNT );
 		print(" vs. ");
 		printInt32( F_CPU / 1000 );

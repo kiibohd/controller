@@ -1378,7 +1378,7 @@ uint8_t usb_resume()
 	if ( usb_suspended() && usb_configured() && usb_remote_wakeup )
 	{
 #if enableRawIO_define != 1
-		info_print("Attempting to resume the host");
+		info_printNL("Attempting to resume the host");
 #endif
 
 #if defined(_kinetis_)
@@ -1399,7 +1399,7 @@ uint8_t usb_resume()
 	}
 
 #else
-	warn_print("Host Resume Disabled");
+	warn_printNL("Host Resume Disabled");
 #endif
 
 	return 0;
@@ -1753,7 +1753,7 @@ restart:
 			usb_dev_sleep = 1;
 		}
 #else
-		info_print("USB Suspend Detected - Firmware USB Suspend Disabled");
+		info_printNL("USB Suspend Detected - Firmware USB Suspend Disabled");
 #endif
 		// Enable USB resume interrupt
 		// Only allowed to be enabled while suspended
@@ -1784,12 +1784,12 @@ restart:
 void usb_set_sleep_state(bool sleep) {
 	if (sleep) {
 #if enableRawIO_define != 1
-		info_print("Host has requested USB sleep/suspend state");
+		info_printNL("Host has requested USB sleep/suspend state");
 #endif
 		Output_update_usb_current( 100 ); // Set to 100 mA
 	} else {
 #if enableRawIO_define != 1
-		info_print("Host has woken-up/resumed from sleep/suspend state");
+		info_printNL("Host has woken-up/resumed from sleep/suspend state");
 #endif
 		Output_update_usb_current( *usb_bMaxPower * 2 );
 	}

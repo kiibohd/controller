@@ -169,7 +169,7 @@ inline void keyPressDetection( uint8_t *keys, uint8_t numberOfKeys, uint8_t *mod
 			// Too many keys
 			if ( USBKeys_Sent >= USBKeys_MaxSize )
 			{
-				info_print("USB Key limit reached");
+				info_printNL("USB Key limit reached");
 				errorLED( 1 );
 				break;
 			}
@@ -353,7 +353,7 @@ void keyPressBufferRead( uint8_t *modifiers, uint8_t numberOfModifiers, uint8_t 
 		// Too many keys
 		if ( USBKeys_Sent >= USBKeys_MaxSize )
 		{
-			info_print("USB Key limit reached");
+			info_printNL("USB Key limit reached");
 			errorLED( 1 );
 			break;
 		}
