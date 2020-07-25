@@ -9,9 +9,6 @@ SUBSYSTEM=="tty" ATTRS{idVendor}=="308f" SYMLINK+="kiibohd" MODE:="0666"
 # Kiibohd Device
 SUBSYSTEM=="usb" ATTR{idVendor}=="1c11" ATTR{idProduct}=="b04d" MODE:="0666"
 
-# Kiibohd Device (Official VID)
-SUBSYSTEM=="usb" ATTR{idVendor}=="308f" MODE:="0666"
-
 # DFU Bootloader (MCHCK)
 SUBSYSTEM=="usb" ATTR{idVendor}=="2323" ATTR{idProduct}=="0001" ENV{ID_MM_DEVICE_IGNORE}="1" ENV{MTP_NO_PROBE}="1" MODE:="0666"
 
@@ -19,15 +16,7 @@ SUBSYSTEM=="usb" ATTR{idVendor}=="2323" ATTR{idProduct}=="0001" ENV{ID_MM_DEVICE
 SUBSYSTEM=="usb" ATTR{idVendor}=="1c11" ATTR{idProduct}=="b007" ENV{ID_MM_DEVICE_IGNORE}="1" ENV{MTP_NO_PROBE}="1" MODE:="0666"
 
 # Kiibohd DFU Bootloaders (Official VID)
-SUBSYSTEM=="usb" ATTR{idVendor}=="308f" ATTR{idProduct}=="0000" ENV{MTP_NO_PROBE}="1" ENV{ID_MM_DEVICE_IGNORE}="1" MODE:="0666"
-SUBSYSTEM=="usb" ATTR{idVendor}=="308f" ATTR{idProduct}=="0003" ENV{MTP_NO_PROBE}="1" ENV{ID_MM_DEVICE_IGNORE}="1" MODE:="0666"
-SUBSYSTEM=="usb" ATTR{idVendor}=="308f" ATTR{idProduct}=="0005" ENV{MTP_NO_PROBE}="1" ENV{ID_MM_DEVICE_IGNORE}="1" MODE:="0666"
-SUBSYSTEM=="usb" ATTR{idVendor}=="308f" ATTR{idProduct}=="000C" ENV{MTP_NO_PROBE}="1" ENV{ID_MM_DEVICE_IGNORE}="1" MODE:="0666"
-SUBSYSTEM=="usb" ATTR{idVendor}=="308f" ATTR{idProduct}=="0010" ENV{MTP_NO_PROBE}="1" ENV{ID_MM_DEVICE_IGNORE}="1" MODE:="0666"
-SUBSYSTEM=="usb" ATTR{idVendor}=="308f" ATTR{idProduct}=="0012" ENV{MTP_NO_PROBE}="1" ENV{ID_MM_DEVICE_IGNORE}="1" MODE:="0666"
-SUBSYSTEM=="usb" ATTR{idVendor}=="308f" ATTR{idProduct}=="0014" ENV{MTP_NO_PROBE}="1" ENV{ID_MM_DEVICE_IGNORE}="1" MODE:="0666"
-SUBSYSTEM=="usb" ATTR{idVendor}=="308f" ATTR{idProduct}=="0016" ENV{MTP_NO_PROBE}="1" ENV{ID_MM_DEVICE_IGNORE}="1" MODE:="0666"
-SUBSYSTEM=="usb" ATTR{idVendor}=="308f" ATTR{idProduct}=="0019" ENV{MTP_NO_PROBE}="1" ENV{ID_MM_DEVICE_IGNORE}="1" MODE:="0666"
+SUBSYSTEM=="usb" ATTR{idVendor}=="308f" ATTR{idProduct}=="0000|0003|0005|000c|0010|0012|0014|0016|0019|0020|0022|0024|0026|0028|002a|002c|002e|0032|0034" ENV{MTP_NO_PROBE}="1" ENV{ID_MM_DEVICE_IGNORE}="1" MODE:="0666"
 
 # Kiibohd Force Gauge
 # e.g. udevadm info -a -p /sys/bus/usb/devices/3-5
