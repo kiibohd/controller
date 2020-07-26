@@ -19,6 +19,7 @@
 
 // Project Includes
 #include <delay.h>
+#include <Lib/gpio.h>
 
 // Local Includes
 #include "weak.h"
@@ -211,7 +212,7 @@ static enum dfu_status finish_write( void *buf, size_t off, size_t len )
 			break;
 		}
 
-		if (full_reset);
+		if (full_reset)
 		{
 			// Reset GPNVM bits to jump back to SAM-BA
 			print("Setting ROM bootloader..." NL);
