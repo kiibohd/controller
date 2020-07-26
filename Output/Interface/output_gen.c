@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2018 by Jacob Alexander
+/* Copyright (C) 2011-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,6 +22,7 @@
 // ----- Includes -----
 
 // Compiler Includes
+#include <stdbool.h>
 #include <Lib/OutputLib.h>
 
 // Project Includes
@@ -75,6 +76,11 @@ uint16_t Output_ExtCurrent_Available;
 // mA - Set by USB module (if exists)
 // Initially 100 mA, but may be negotiated higher (e.g. 500 mA)
 uint16_t Output_USBCurrent_Available;
+
+// Sleep mode
+// Generally false, but is set to true when attempting to enter deep sleep
+// Initialization will be run again, so no need to unset
+bool Output_SleepMode;
 
 
 
@@ -133,6 +139,7 @@ inline void OutputGen_setup()
 	Output_DebugMode = 0;
 	Output_ExtCurrent_Available = 0;
 	Output_USBCurrent_Available = 0;
+	Output_SleepMode = false;
 
 #if defined(_sam_)
 	// HACK: Will be corrected when usb support is added
@@ -185,6 +192,20 @@ void Output_update_external_current( unsigned int current )
 }
 
 
+// Update and prepare for sleep mode
+// There is no undo for this, the MCU must be reinitialized
+void Output_prepare_sleep_mode()
+{
+	// Set USB and external current to 0
+	Output_USBCurrent_Available = 0;
+	Output_ExtCurrent_Available = 0;
+
+	info_printNL("Preparing Sleep Mode...");
+	Scan_currentChange( Output_current_available() );
+	info_printNL("Sleep Mode Preparations Complete.");
+}
+
+
 // Power/Current Available
 unsigned int Output_current_available()
 {
@@ -199,7 +220,7 @@ unsigned int Output_current_available()
 	// XXX If the total available current is still 0
 	// Set to 100 mA, which is generally a safe assumption at startup
 	// before we've been able to determine actual available current
-	if ( total_current == 0 )
+	if ( total_current == 0 && !Output_SleepMode)
 	{
 		total_current = 100;
 	}

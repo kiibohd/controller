@@ -1,4 +1,4 @@
-/* Copyright (C) 2017-2019 by Jacob Alexander
+/* Copyright (C) 2017-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -33,10 +33,12 @@
 // Local Includes
 #include "entropy.h"
 #include "sam.h"
+#include "sleep.h"
 #include "sysview.h"
 
 // ASF Includes
 #include <sam/drivers/efc/efc.h>
+#include <sam/services/flash_efc/flash_efc.h>
 #include <common/services/clock/osc.h>
 #include <common/services/usb/udc/udc.h>
 
@@ -502,6 +504,54 @@ uint32_t ReadUniqueID()
 	return efc_perform_read_sequence( EFC0, EEFC_FCR_FCMD_STUI, EEFC_FCR_FCMD_SPUI, sam_UniqueId, 4 );
 }
 
+// Check user signature
+// When a new firmware is flashed we need to update the user signature
+// This signature is used by the bootloader to determine the firmware version
+// The bootloader is responsible for erasing these fields (this way the bootloader can also detect failed flashes)
+bool CheckUserSignature()
+{
+	// Read signature, and verify it
+	FirmwareInfo info;
+	flash_read_user_signature((uint32_t*)&info, sizeof(FirmwareInfo) / sizeof(uint32_t));
+
+	// First check if user signature is empty
+	// If so, we need to write a new signature
+	if (info.revision == 0xFFFF)
+	{
+		info.revision = BCD_VERSION;
+
+		// Write user signature
+		flash_write_user_signature((uint32_t*)&info, sizeof(FirmwareInfo) / sizeof(uint32_t));
+		return true;
+	}
+
+	// Next check if the signature is correct
+	if (info.revision != BCD_VERSION)
+	{
+		return false;
+	}
+
+	// All fields are correct
+	return true;
+}
+
+// Read user signature
+FirmwareInfo ReadUserSignature()
+{
+	FirmwareInfo info;
+	flash_read_user_signature((uint32_t*)&info, sizeof(FirmwareInfo) / sizeof(uint32_t));
+	return info;
+}
+
+// Clear user signature
+// The user signature should be erased each time a new firmware is flashed
+// This is also a way to determine if the firmware has successfully booted
+uint32_t EraseUserSignature()
+{
+	return flash_erase_user_signature();
+}
+
+
 
 // ----- Chip Entry Point -----
 
@@ -651,6 +701,12 @@ void ResetHandler()
 
 	for ( int pos = 0; pos <= sizeof(sys_reset_to_loader_magic)/sizeof(GPBR->SYS_GPBR[0]); pos++ )
 		GPBR->SYS_GPBR[ pos ] = 0x00000000;
+
+	// Read wake reason
+	wake_status = REG_SUPC_SR;
+
+	// Check User Signature
+	CheckUserSignature();
 #endif
 	// Read Unique ID from flash
 	ReadUniqueID();

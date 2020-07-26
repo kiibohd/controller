@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2011-2019
+# Jacob Alexander 2011-2020
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -104,6 +104,7 @@ set( COMPILER_SRCS
 	Lib/entropy.c
 	Lib/gpio.c
 	Lib/periodic.c
+	Lib/sleep.c
 	Lib/storage.c
 	Lib/time.c
 	Lib/utf8.c
@@ -116,6 +117,7 @@ if ( "${CPU}" MATCHES "cortex-m4" )
 	# KLL Options
 	set( Device_KLL "${CMAKE_CURRENT_SOURCE_DIR}/Lib/arm_cortex.kll" )
 endif ()
+set( Device_KLL ${Device_KLL} "${CMAKE_CURRENT_SOURCE_DIR}/Lib/sleep.kll" )
 
 #| SAM Sources
 if ( "${CHIP_SUPPORT}" MATCHES "sam" )
@@ -125,6 +127,8 @@ if ( "${CHIP_SUPPORT}" MATCHES "sam" )
 		Lib/ASF/sam/drivers/efc/efc.c
 		Lib/ASF/sam/drivers/pio/pio.c
 		Lib/ASF/sam/drivers/pmc/pmc.c
+		Lib/ASF/sam/drivers/supc/supc.c
+		Lib/ASF/sam/drivers/wdt/wdt.c
 		Lib/ASF/sam/utils/cmsis/sam4s/source/templates/system_sam4s.c
 		Lib/ASF/sam/services/flash_efc/flash_efc.c
 	)

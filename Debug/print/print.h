@@ -88,6 +88,7 @@
 #define print(s) _print(PSTR(s))
 #else
 #define print(s) _print(s)
+#define printNL(s) _print(s NL)
 #endif
 
 void _print( const char *s );

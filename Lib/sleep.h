@@ -1,4 +1,4 @@
-/* Copyright (C) 2014-2020 by Jacob Alexander
+/* Copyright (C) 2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,62 +21,28 @@
 
 #pragma once
 
+// ----- Defines -----
+
 // ----- Includes -----
 
 // Compiler Includes
+#include <stdbool.h>
 #include <stdint.h>
-
-// KLL Generated Defines
-#include <kll_defs.h>
-
-
-
-// ----- Defines -----
-
-#define DebounceCounter uint8_t
-#define DebounceDivThreshold 0xFF
-
-#if   ( MinDebounceTime_define > 0xFF )
-#error "MinDebounceTime is a maximum of 255 ms"
-#elif ( MinDebounceTime_define < 0x00 )
-#error "MinDebounceTime is a minimum 0 ms"
-#endif
-
-
-
-// ----- Enums -----
-
-// Keypress States
-typedef enum KeyPosition {
-	KeyState_Off     = 0,
-	KeyState_Press   = 1,
-	KeyState_Hold    = 2,
-	KeyState_Release = 3,
-	KeyState_Invalid,
-} KeyPosition;
 
 
 
 // ----- Structs -----
 
-// Debounce Element
-typedef struct KeyState {
-	DebounceCounter activeCount;
-	DebounceCounter inactiveCount;
-	KeyPosition     prevState;
-	KeyPosition     curState;
-	uint32_t        prevDecisionTime;
-} KeyState;
+// ----- Variables -----
+
+extern uint32_t wake_status;
 
 
 
 // ----- Functions -----
 
-void Matrix_setup();
-void Matrix_start();
-
-uint8_t Matrix_single_scan();
-uint8_t Matrix_totalColumns();
-
-void Matrix_currentChange( unsigned int current );
-
+void deep_sleep();
+bool deep_sleep_ready(bool ignore_usb);
+void sleep_set_all_floats();
+void sleep_set_strobes(bool drive_high);
+void sleep_set_senses(bool pullup);

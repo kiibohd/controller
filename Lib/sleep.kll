@@ -1,0 +1,13 @@
+# Sleep
+
+Name = Sleep;
+Version = 0.1;
+Author = "HaaTa (Jacob Alexander) 2020";
+
+# Modified Date
+Date = 2020-06-21;
+
+# This defines sets which pins will be used to wakeup the MCU when the MCU is in a sleep state
+# These pins do nothing and are not configured during normal MCU operation
+WakeupPinList => WakeupPinList_define;
+WakeupPinList = "";

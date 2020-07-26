@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2018 by Jacob Alexander
+/* Copyright (C) 2013-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -86,6 +86,7 @@ int Output_rawio_sendbuffer( char* buffer );
 // Returns the total mA available (total, if used in a chain, each device will have to use a slice of it)
 unsigned int Output_current_available();
 
+void Output_prepare_sleep_mode();
 void Output_update_external_current( unsigned int current ); // Callback to update current from interconnect
 void Output_update_usb_current( unsigned int current );      // Callback to update current
 

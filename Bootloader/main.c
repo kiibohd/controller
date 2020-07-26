@@ -295,6 +295,7 @@ static enum dfu_status finish_write(void *buf, size_t off, size_t len, uint8_t b
 			{
 				// Reset GPNVM bits to jump back to SAM-BA
 				print("Enabling ROM bootloader..." NL);
+				EraseUserSignature(); // Make sure signature is erased to handle re-flash testing
 				flash_clear_gpnvm(1);
 				Reset_FullReset();
 			}
@@ -590,7 +591,7 @@ void main()
 	printHex( (uint32_t)_app_rom );
 	print( NL " Soft Rst - " );
 	printHex( memcmp( (uint8_t*)GPBR, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 );
-	print( NL );
+	printNL();
 #endif
 
 	// Device/Chip specific setup

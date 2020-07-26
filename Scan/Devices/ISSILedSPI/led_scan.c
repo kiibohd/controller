@@ -705,6 +705,14 @@ void LED_currentChange( unsigned int current )
 {
 	// Delay action till next LED scan loop (as this callback sometimes occurs during interrupt requests)
 	LED_currentEvent = current;
+
+	// If current available is 0 mA, we're entering sleep mode, proceed immediately
+	if (current == 0)
+	{
+		// Enter software shutdown, allows for SDB LED to be off
+		// The MCU will have to be reset to exit sleep mode, so we don't have to worry about the current state
+		LED_syncReg(ISSI_ConfigPage, 0x00, 0x00);
+	}
 }
 
 

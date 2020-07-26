@@ -1,4 +1,4 @@
-/* Copyright (C) 2011-2017 by Jacob Alexander
+/* Copyright (C) 2011-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -40,26 +40,6 @@
 // ----- Function Declarations -----
 
 // ----- Variables -----
-
-// Indicates whether the Output module is fully functional
-// 0 - Not fully functional, 1 - Fully functional
-// 0 is often used to show that a USB cable is not plugged in (but has power)
-volatile uint8_t  Output_Available = 0;
-
-// Debug control variable for Output modules
-// 0 - Debug disabled (default)
-// 1 - Debug enabled
-uint8_t  Output_DebugMode = 0;
-
-// mA - Set by outside module if not using USB (i.e. Interconnect)
-// Generally set to 100 mA (low power) or 500 mA (high power)
-uint16_t Output_ExtCurrent_Available = 0;
-
-// mA - Set by USB module (if exists)
-// Initially 100 mA, but may be negotiated higher (e.g. 500 mA)
-uint16_t Output_USBCurrent_Available = 0;
-
-
 
 // ----- Capabilities -----
 

@@ -26,6 +26,7 @@
 #include <Lib/chip_version.h>
 #include <Lib/entropy.h>
 #include <Lib/periodic.h>
+#include <Lib/sleep.h>
 #include <Lib/time.h>
 
 // General Includes
@@ -61,6 +62,7 @@ CLIDict_Entry( rand,      "If entropy available, print a random 32-bit number." 
 CLIDict_Entry( reload,    "Signals microcontroller to reflash/reload." );
 CLIDict_Entry( reset,     "Resets the terminal back to initial settings." );
 CLIDict_Entry( restart,   "Sends a software restart, should be similar to powering on the device." );
+CLIDict_Entry( sleep,     "Force MCU and connected devices into sleep mode." );
 CLIDict_Entry( tick,      "Displays the fundamental tick size, and current ticks since last systick." );
 CLIDict_Entry( ram,       "Shows the current and max ram usage" );
 CLIDict_Entry( version,   "Version information about this firmware." );
@@ -80,6 +82,7 @@ CLIDict_Def( basicCLIDict, "General Commands" ) = {
 	CLIDict_Item( reload ),
 	CLIDict_Item( reset ),
 	CLIDict_Item( restart ),
+	CLIDict_Item( sleep ),
 	CLIDict_Item( tick ),
 	CLIDict_Item( ram ),
 	CLIDict_Item( version ),
@@ -900,13 +903,17 @@ void cliFunc_version( char* args )
 
 	print( " \033[1mChip Ext:\033[0m      " );
 	printHex32( CHIPID->CHIPID_EXID & CHIPID_EXID_EXID_Msk );
-	print( NL );
+	printNL();
 
 	print( " \033[1mUnique Id:\033[0m     " );
 	printHex32_op( sam_UniqueId[0], 8 );
 	printHex32_op( sam_UniqueId[1], 8 );
 	printHex32_op( sam_UniqueId[2], 8 );
 	printHex32_op( sam_UniqueId[3], 8 );
+	printNL();
+
+	print( " \033[1mWake Reason (SUPC_SR):\033[0m " );
+	printHex32(wake_status);
 #elif defined(_avr_at_)
 #elif defined(_host_)
 #else
@@ -947,4 +954,10 @@ extern uint32_t _sstack, _estack;
 	printInt8( 100 * stack_peak / stack_size );
 	print("%)" NL);
 #endif
+}
+
+void cliFunc_sleep( char* args )
+{
+	printNL();
+	deep_sleep();
 }

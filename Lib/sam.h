@@ -1,4 +1,4 @@
-/* Copyright (C) 2017-2018 by Jacob Alexander
+/* Copyright (C) 2017-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
 
 #pragma once
 #include "sam4s.h"
+#include <buildvars.h>
 
 // ----- Defines -----
 
@@ -970,6 +971,10 @@ extern uint32_t sam_UniqueId[4];
 void *memset( void *addr, int val, unsigned int len );
 void *memcpy( void *dst, const void *src, unsigned int len );
 int memcmp( const void *a, const void *b, unsigned int len );
+
+FirmwareInfo ReadUserSignature();
+uint32_t EraseUserSignature();
+
 
 
 // ----- Interrupts -----

@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2016 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2020 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -403,6 +403,8 @@ void vusb_main_loop(void);
 void usb_poll(void);
 #endif
 int usb_tx_serialno(size_t reqlen);
+
+void uint32ToHex16(uint32_t num, uint16_t* str);
 
 /* Provided by MI code */
 void usb_init(const struct usbd_device *);

@@ -49,10 +49,15 @@ const char* layout_strings[] = { LayoutList_define };
 // ----- Defines -----
 
 #if enableRawIO_define == 1
-#define HIDIO_Id_List_MaxSize 20
-#define HIDIO_Max_ACK_Payload 70
+#if defined(_mk20dx128vlf5_)
+#define HIDIO_Max_Payload 200
+#define HIDIO_Max_Tx_Payload 1000
+#else
 #define HIDIO_Max_Payload 200
 #define HIDIO_Max_Tx_Payload 8000
+#endif
+#define HIDIO_Id_List_MaxSize 20
+#define HIDIO_Max_ACK_Payload 70
 #else
 #define HIDIO_Id_List_MaxSize 0
 #define HIDIO_Max_ACK_Payload 0

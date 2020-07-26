@@ -1,4 +1,4 @@
-/* Copyright (C) 2013-2017 by Jacob Alexander
+/* Copyright (C) 2013-2020 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,6 +23,8 @@
 
 // ----- Includes -----
 
+#include <stdint.h>
+
 
 
 // ----- Defines -----
@@ -34,7 +36,8 @@
 // You can change these to give your code its own name.
 #define STR_MANUFACTURER        u"@MANUFACTURER@"
 #define STR_PRODUCT             u"@BOOT_PRODUCT_STR@"
-#define STR_SERIAL              u"00000000000000000000000000000000 - @CHIP@"
+#define STR_SERIAL              u"00000000000000000000000000000000 - @CHIP@:0000"
+#define STR_SERIAL_BLE          u"00000000000000000000000000000000 - @CHIP@:0000 | 0000000000000000 - nRF52810:0000"
 #define STR_CONFIG_NAME         u"@FLASHING_STATION_ID@"
 #define STR_ALTNAME             u"@BOOT_DFU_ALTNAME@"
 #define STR_ALTNAME2            u"@BOOT_DFU_ALTNAME2@"
@@ -48,4 +51,14 @@
 #define VENDOR_ID               @BOOT_VENDOR_ID@
 #define PRODUCT_ID              @BOOT_PRODUCT_ID@
 #define BCD_VERSION             @Git_Commit_Number@
+
+
+
+// ----- Structs -----
+
+// This struct is stored in the user signature area and can be accessed by the bootloader
+typedef struct FirmwareInfo {
+	uint16_t revision;      // Build revision number
+	uint16_t reserved;      // RESERVED (user signature must be written in 32-bit chunks)
+} __attribute__((packed)) __attribute__((aligned(4))) FirmwareInfo;
 

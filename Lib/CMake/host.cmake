@@ -1,6 +1,6 @@
 ###| CMAKE Kiibohd Controller |###
 #
-# Jacob Alexander 2016-2019
+# Jacob Alexander 2016-2020
 # Due to this file's usefulness:
 #
 # Released into the Public Domain
@@ -52,9 +52,11 @@ set( COMPILER_SRCS
 	Lib/gpio.c
 	Lib/host.c
 	Lib/periodic.c
+	Lib/sleep.c
 	Lib/time.c
 	Lib/utf8.c
 )
+set( Device_KLL "${CMAKE_CURRENT_SOURCE_DIR}/Lib/sleep.kll" )
 
 #| Clang needs a few more functions for linking
 if ( "${COMPILER}" MATCHES "clang" )

@@ -330,6 +330,7 @@ void Reset_CleanupExternal()
 {
 #if defined(_sam_)
 	// Re-enable user reset
+	RSTC->RSTC_CR; // Clear status register
 	RSTC->RSTC_MR = RSTC_MR_KEY_PASSWD | RSTC_MR_URSTEN;
 #endif
 }

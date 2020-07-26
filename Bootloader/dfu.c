@@ -162,6 +162,7 @@ int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 #if defined(BOOT_DEBUG) && defined(_sam_)
 			// Reset GPNVM bits to jump back to SAM-BA
 			print("Enabling ROM bootloader..." NL);
+			EraseUserSignature(); // Make sure signature is erased to handle re-flash testing
 			flash_clear_gpnvm(1);
 			Reset_FullReset();
 #else

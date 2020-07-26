@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2018 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2020 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,7 @@
 #include "usb.h"
 #include "usb-internal.h"
 #include "dfu.desc.h"
+#include "weak.h"
 
 extern uint16_t udd_ctrl_prev_payload_nb_trans;
 extern uint16_t udd_ctrl_payload_nb_trans;
@@ -81,11 +82,12 @@ void udd_set_setup_payload( const uint8_t *payload, uint16_t payload_size );
 // ----- Functions -----
 
 // XXX
-// Int32 to Hex16 UTF16LE
+// UInt32 to Hex16 UTF16LE
 // This function takes advantage of a few things to save on flash space
 // 1) Does not set anything if zero
 // 2) No padding
-void int32ToHex16( uint32_t num, uint16_t* str )
+// 3) Starts from the LSD to avoid padding
+void uint32ToHex16( uint32_t num, uint16_t* str )
 {
 	for ( ; num; num /= 16 )
 	{
@@ -714,19 +716,16 @@ void usb_init(const struct usbd_device *identity)
 {
 	// Set the device serial number to the reserved iSerial string memory
 #if defined(_kinetis_)
-	int32ToHex16( SIM_UIDH, &(dfu_device_str_desc[3]->bString[8]) );
-	int32ToHex16( SIM_UIDMH, &(dfu_device_str_desc[3]->bString[16]) );
-	int32ToHex16( SIM_UIDML, &(dfu_device_str_desc[3]->bString[24]) );
-	int32ToHex16( SIM_UIDL, &(dfu_device_str_desc[3]->bString[32]) );
+	uint32ToHex16( SIM_UIDH, &(dfu_device_str_desc[3]->bString[8]) );
+	uint32ToHex16( SIM_UIDMH, &(dfu_device_str_desc[3]->bString[16]) );
+	uint32ToHex16( SIM_UIDML, &(dfu_device_str_desc[3]->bString[24]) );
+	uint32ToHex16( SIM_UIDL, &(dfu_device_str_desc[3]->bString[32]) );
 
 	usb.identity = identity;
 	usb_enable();
 
 #elif defined(_sam_)
-	int32ToHex16( sam_UniqueId[0], &(dfu_device_str_desc[3]->bString[8]) );
-	int32ToHex16( sam_UniqueId[1], &(dfu_device_str_desc[3]->bString[16]) );
-	int32ToHex16( sam_UniqueId[2], &(dfu_device_str_desc[3]->bString[24]) );
-	int32ToHex16( sam_UniqueId[3], &(dfu_device_str_desc[3]->bString[32]) );
+	Chip_serial_number_setup();
 
 	init_usb_bootloader(0);
 #endif

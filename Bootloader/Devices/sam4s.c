@@ -28,6 +28,7 @@
 // Project Includes
 #include <Lib/entropy.h>
 #include <Lib/gpio.h>
+#include <Lib/sam.h>
 #include <Lib/storage.h>
 #include <swd/swd_host.h>
 #include "debug.h"
@@ -282,8 +283,28 @@ void Chip_download_complete()
 	print( " Block: ");
 	printHex( storage_block_position() );
 	print( NL );
+
+	// Clear the User Signature
+	EraseUserSignature();
 }
 
+// Serial Number retrieval
+void Chip_serial_number_setup()
+{
+	// MCU Serial number
+	uint32ToHex16(sam_UniqueId[0], &(dfu_device_str_desc[3]->bString[8]));
+	uint32ToHex16(sam_UniqueId[1], &(dfu_device_str_desc[3]->bString[16]));
+	uint32ToHex16(sam_UniqueId[2], &(dfu_device_str_desc[3]->bString[24]));
+	uint32ToHex16(sam_UniqueId[3], &(dfu_device_str_desc[3]->bString[32]));
+
+	// Read firmware revision from flash
+	FirmwareInfo mcu_info = ReadUserSignature();
+	print("MCU Revision: ");
+	printHex(mcu_info.revision);
+	printNL();
+
+	// Set firmware revision
+	uint32ToHex16(mcu_info.revision, &(dfu_device_str_desc[3]->bString[47]));
 
 #if DFU_EXTRA_BLE_SWD_SUPPORT == 1
 	// Set BLE unique id
