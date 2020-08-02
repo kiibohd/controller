@@ -3141,17 +3141,20 @@ void cliFunc_pixelList( char* args )
 
 			PixelElement *elem = (PixelElement*)&Pixel_Mapping[ pixel ];
 
-			printHex_op( pixel, 2 );
+			if ( elem->channels == 0 )
+				continue;
+
+			printInt16( pixel );
 			print(":");
 			printInt8( elem->width );
 			print("[");
 
 			// Display each of the channels
-			printHex_op( elem->indices[0], 2 );
+			printInt16( elem->indices[0] );
 			for ( uint8_t ch = 1; ch < elem->channels; ch++ )
 			{
 				print(",");
-				printHex_op( elem->indices[ch], 2 );
+				printInt16( elem->indices[ch] );
 			}
 
 			print("]");
