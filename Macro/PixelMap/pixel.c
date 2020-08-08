@@ -2767,10 +2767,10 @@ inline void Pixel_process()
 		// Increment channel
 		if ( Pixel_testPos >= Pixel_TotalPixels_KLL )
 			Pixel_testPos = 0;
-		Pixel_testPos++;
 
 		// Toggle channel
 		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ Pixel_testPos - 1 ] );
+		Pixel_testPos++;
 
 		// Disable test mode
 		Pixel_testMode = PixelTest_Off;
@@ -2786,10 +2786,10 @@ inline void Pixel_process()
 		// Decrement channel
 		if ( Pixel_testPos == 1 )
 			Pixel_testPos = Pixel_TotalPixels_KLL + 1;
-		Pixel_testPos--;
 
 		// Toggle channel
 		Pixel_pixelToggle( (PixelElement*)&Pixel_Mapping[ Pixel_testPos - 1 ] );
+		Pixel_testPos--;
 
 		// Disable test mode
 		Pixel_testMode = PixelTest_Off;
