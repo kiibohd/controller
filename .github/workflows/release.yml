@@ -7,6 +7,13 @@ on:
 
 env:
   PIPENV_ACTIVE: 1
+  deb_packages: >-
+    dfu-util
+    exuberant-ctags
+    gcc-arm-embedded
+    ninja-build
+    python3-setuptools
+    tree
 
 jobs:
   release:
@@ -20,7 +27,7 @@ jobs:
         sudo add-apt-repository universe -y
         sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
         sudo apt-get update
-        sudo apt-get install dfu-util tree exuberant-ctags gcc-arm-embedded ninja-build python3-setuptools
+        sudo apt-get install -y ${{ env.deb_packages }}
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip

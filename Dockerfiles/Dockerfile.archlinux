@@ -12,7 +12,7 @@ RUN pacman -Sy --noconfirm reflector rsync curl
 RUN reflector --verbose --country 'United States' -l 5 --sort rate --save /etc/pacman.d/mirrorlist
 
 RUN pacman -Sy --noconfirm \
-	git cmake ctags tmux libusb python python-pillow ninja dfu-util gcc gdb \
+	git cmake ctags tmux python python-pillow ninja dfu-util gcc gdb \
 	arm-none-eabi-binutils arm-none-eabi-gcc arm-none-eabi-gdb arm-none-eabi-newlib \
 	clang lsb-release python-pip && \
 	rm -rf /var/cache/pacman/pkg && \

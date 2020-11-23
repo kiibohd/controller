@@ -5,6 +5,13 @@ on: [push, pull_request]
 env:
   PIPENV_ACTIVE: 1
   DYLD_INSERT_LIBRARIES: /Applications/Xcode_11.3.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.0/lib/darwin/libclang_rt.asan_osx_dynamic.dylib
+  brew_packages: >-
+    binutils
+    ctags
+    dfu-util
+    gnu-sed
+    ninja
+    tree
 
 jobs:
   firmware:
@@ -14,7 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install tree ctags dfu-util binutils gnu-sed ninja
+        brew install ${{ env.brew_packages }}
         brew tap armmbed/formulae
         brew install armmbed/formulae/arm-none-eabi-gcc
     - name: Install kll compiler
@@ -32,7 +39,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install tree ctags dfu-util binutils gnu-sed ninja
+        brew install ${{ env.brew_packages }}
         brew tap armmbed/formulae
         brew install armmbed/formulae/arm-none-eabi-gcc
     - name: Install kll compiler
@@ -51,7 +58,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install tree ctags dfu-util binutils gnu-sed ninja
+        brew install ${{ env.brew_packages }}
         brew tap armmbed/formulae
         brew install armmbed/formulae/arm-none-eabi-gcc
     - name: Install kll compiler
@@ -69,7 +76,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install tree ctags dfu-util binutils gnu-sed ninja
+        brew install ${{ env.brew_packages }}
         brew tap armmbed/formulae
         brew install armmbed/formulae/arm-none-eabi-gcc
     - name: Install kll compiler
@@ -88,7 +95,7 @@ jobs:
     - name: Install dependencies
       run: |
         brew update
-        brew install tree ctags dfu-util binutils gnu-sed ninja
+        brew install ${{ env.brew_packages }}
         brew tap armmbed/formulae
         brew install armmbed/formulae/arm-none-eabi-gcc
     - name: Install kll compiler
