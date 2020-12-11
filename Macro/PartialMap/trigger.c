@@ -156,7 +156,7 @@ void Trigger_showTriggerMacroVote( TriggerMacroVote vote, uint8_t long_trigger_m
 
 // -- General --
 
-// Determine if long ResultMacro (more than 1 seqence element)
+// Determine if long ResultMacro (more than 1 sequence element)
 uint8_t Trigger_isLongResultMacro( const ResultMacro *macro )
 {
 	// Check the second sequence combo length
