@@ -59,8 +59,7 @@ if (
 elseif (
 	"${CHIP}" MATCHES "^mk2.*$" OR
 	"${CHIP}" MATCHES "^mk6.*$" OR
-	"${CHIP}" MATCHES "^sam.*$" OR
-	"${CHIP}" MATCHES "^nrf.*$"
+	"${CHIP}" MATCHES "^sam.*$"
 )
 	set( COMPILER_FAMILY "arm" )
 

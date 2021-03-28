@@ -30,62 +30,6 @@ add_definitions(
 )
 endif ( )
 
-if ( "${CHIP_SUPPORT}" MATCHES "nrf5" )
-link_directories(
-	"${CMAKE_SOURCE_DIR}/Lib/nRF5_SDK/components/toolchain/gcc"
-	"${CMAKE_SOURCE_DIR}/Lib/nRF5_SDK/modules/nrfx/mdk"
-)
-
-include_directories(
-	"Lib/nRF5_SDK/components"
-	"Lib/nRF5_SDK/components/boards"
-	"Lib/nRF5_SDK/components/drivers_nrf/nrf_soc_nosd"
-	"Lib/nRF5_SDK/components/libraries/atomic"
-	"Lib/nRF5_SDK/components/libraries/balloc"
-	"Lib/nRF5_SDK/components/libraries/bsp"
-	"Lib/nRF5_SDK/components/libraries/button"
-	"Lib/nRF5_SDK/components/libraries/delay"
-	"Lib/nRF5_SDK/components/libraries/experimental_section_vars"
-	"Lib/nRF5_SDK/components/libraries/gfx"
-	"Lib/nRF5_SDK/components/libraries/log"
-	"Lib/nRF5_SDK/components/libraries/log/src"
-	"Lib/nRF5_SDK/components/libraries/memobj"
-	"Lib/nRF5_SDK/components/libraries/mutex"
-	"Lib/nRF5_SDK/components/libraries/pwr_mgmt"
-	"Lib/nRF5_SDK/components/libraries/queue"
-	"Lib/nRF5_SDK/components/libraries/ringbuf"
-	"Lib/nRF5_SDK/components/libraries/scheduler"
-	"Lib/nRF5_SDK/components/libraries/spi_mngr"
-	"Lib/nRF5_SDK/components/libraries/strerror"
-	"Lib/nRF5_SDK/components/libraries/timer"
-	"Lib/nRF5_SDK/components/libraries/util"
-	"Lib/nRF5_SDK/components/toolchain/cmsis/include"
-	"Lib/nRF5_SDK/config"
-	"Lib/nRF5_SDK/external/fprintf"
-	"Lib/nRF5_SDK/external/segger_rtt"
-	"Lib/nRF5_SDK/external/thedotfactory_fonts"
-	"Lib/nRF5_SDK/integration/nrfx"
-	"Lib/nRF5_SDK/integration/nrfx/legacy"
-	"Lib/nRF5_SDK/modules/nrfx"
-	"Lib/nRF5_SDK/modules/nrfx/drivers/include"
-	"Lib/nRF5_SDK/modules/nrfx/hal"
-	"Lib/nRF5_SDK/modules/nrfx/mdk"
-)
-
-add_definitions(
-	-DBOARD_PCA10040
-	-DCONFIG_GPIO_AS_PINRESET
-	-DFLOAT_ABI_HARD
-	-DNRF52
-	-DNRF52832_XXAA
-	-DNRF52_PAN_74
-	-D__HEAP_SIZE=8192
-	-D__STACK_SIZE=8192
-	-D__START=main
-	-D__STARTUP_CLEAR_BSS
-	--specs=nano.specs
-)
-endif ( )
 
 
 ###

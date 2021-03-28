@@ -78,10 +78,6 @@ if ( "${CHIP}" MATCHES "^mk.*$" )
 elseif ( "${CHIP}" MATCHES "^sam.*$" )
 	include( sam )
 
-#| nRF
-elseif ( "${CHIP}" MATCHES "^nrf5.*$" )
-	include( nrf5 )
-
 #| Unknown
 else ()
 	message( FATAL_ERROR "CHIP: ${CHIP} - Unknown ARM microcontroller" )
@@ -135,75 +131,6 @@ if ( "${CHIP_SUPPORT}" MATCHES "sam" )
 
 	# KLL Options
 	set( Device_KLL ${Device_KLL} "${CMAKE_CURRENT_SOURCE_DIR}/Lib/sam.kll" )
-endif ()
-
-#| NRF5 Sources
-if ( "${CHIP_SUPPORT}" MATCHES "nrf5" )
-	list( APPEND COMPILER_SRCS
-		Lib/nRF5_SDK/components/boards/boards.c
-		Lib/nRF5_SDK/components/libraries/atomic/nrf_atomic.c
-		Lib/nRF5_SDK/components/libraries/balloc/nrf_balloc.c
-		Lib/nRF5_SDK/components/libraries/experimental_section_vars/nrf_section_iter.c
-		Lib/nRF5_SDK/components/libraries/log/src/nrf_log_backend_rtt.c
-		Lib/nRF5_SDK/components/libraries/log/src/nrf_log_backend_serial.c
-		Lib/nRF5_SDK/components/libraries/log/src/nrf_log_backend_uart.c
-		Lib/nRF5_SDK/components/libraries/log/src/nrf_log_default_backends.c
-		Lib/nRF5_SDK/components/libraries/log/src/nrf_log_frontend.c
-		Lib/nRF5_SDK/components/libraries/log/src/nrf_log_str_formatter.c
-		Lib/nRF5_SDK/components/libraries/memobj/nrf_memobj.c
-		Lib/nRF5_SDK/components/libraries/pwr_mgmt/nrf_pwr_mgmt.c
-		Lib/nRF5_SDK/components/libraries/ringbuf/nrf_ringbuf.c
-		Lib/nRF5_SDK/components/libraries/strerror/nrf_strerror.c
-		Lib/nRF5_SDK/components/libraries/util/app_error.c
-		Lib/nRF5_SDK/components/libraries/util/app_error_handler_gcc.c
-		Lib/nRF5_SDK/components/libraries/util/app_error_weak.c
-		Lib/nRF5_SDK/components/libraries/util/app_util_platform.c
-		Lib/nRF5_SDK/components/libraries/util/nrf_assert.c
-		Lib/nRF5_SDK/external/fprintf/nrf_fprintf.c
-		Lib/nRF5_SDK/external/fprintf/nrf_fprintf_format.c
-		Lib/nRF5_SDK/external/segger_rtt/SEGGER_RTT.c
-		Lib/nRF5_SDK/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c
-		Lib/nRF5_SDK/external/segger_rtt/SEGGER_RTT_printf.c
-		Lib/nRF5_SDK/integration/nrfx/legacy/nrf_drv_ppi.c
-		Lib/nRF5_SDK/integration/nrfx/legacy/nrf_drv_uart.c
-		Lib/nRF5_SDK/modules/nrfx/drivers/src/nrfx_ppi.c
-		Lib/nRF5_SDK/modules/nrfx/drivers/src/nrfx_saadc.c
-		Lib/nRF5_SDK/modules/nrfx/drivers/src/nrfx_timer.c
-		Lib/nRF5_SDK/modules/nrfx/drivers/src/nrfx_uart.c
-		Lib/nRF5_SDK/modules/nrfx/drivers/src/nrfx_uarte.c
-		Lib/nRF5_SDK/modules/nrfx/drivers/src/prs/nrfx_prs.c
-		Lib/nRF5_SDK/modules/nrfx/mdk/gcc_startup_nrf52.S
-		Lib/nRF5_SDK/modules/nrfx/mdk/system_nrf52.c
-		Lib/nRF5_SDK/modules/nrfx/soc/nrfx_atomic.c
-		Lib/nRF5_SDK/components/drivers_nrf/nrf_soc_nosd/nrf_nvic.c
-		Lib/nRF5_SDK/components/drivers_nrf/nrf_soc_nosd/nrf_soc.c
-		Lib/nRF5_SDK/components/libraries/bsp/bsp.c
-		Lib/nRF5_SDK/components/libraries/button/app_button.c
-		Lib/nRF5_SDK/components/libraries/gfx/nrf_gfx.c
-		Lib/nRF5_SDK/components/libraries/queue/nrf_queue.c
-		Lib/nRF5_SDK/components/libraries/scheduler/app_scheduler.c
-		Lib/nRF5_SDK/components/libraries/spi_mngr/nrf_spi_mngr.c
-		Lib/nRF5_SDK/components/libraries/timer/app_timer.c
-		Lib/nRF5_SDK/components/libraries/util/nrf_assert.c
-		Lib/nRF5_SDK/external/fprintf/nrf_fprintf.c
-		Lib/nRF5_SDK/external/fprintf/nrf_fprintf_format.c
-		Lib/nRF5_SDK/external/segger_rtt/SEGGER_RTT.c
-		Lib/nRF5_SDK/external/segger_rtt/SEGGER_RTT_Syscalls_GCC.c
-		Lib/nRF5_SDK/external/segger_rtt/SEGGER_RTT_printf.c
-		Lib/nRF5_SDK/external/thedotfactory_fonts/orkney24pts.c
-		Lib/nRF5_SDK/external/thedotfactory_fonts/orkney8pts.c
-		Lib/nRF5_SDK/integration/nrfx/legacy/nrf_drv_clock.c
-		Lib/nRF5_SDK/integration/nrfx/legacy/nrf_drv_spi.c
-		Lib/nRF5_SDK/modules/nrfx/drivers/src/nrfx_clock.c
-		Lib/nRF5_SDK/modules/nrfx/drivers/src/nrfx_gpiote.c
-		Lib/nRF5_SDK/modules/nrfx/drivers/src/nrfx_spi.c
-		Lib/nRF5_SDK/modules/nrfx/drivers/src/nrfx_spim.c
-	)
-
-	set_property(SOURCE Lib/nRF5_SDK/modules/nrfx/mdk/gcc_startup_nrf52.S PROPERTY LANGUAGE C)
-
-	# KLL Options
-	set( Device_KLL ${Device_KLL} "${CMAKE_CURRENT_SOURCE_DIR}/Lib/nrf5.kll" )
 endif ()
 
 #| Kinetis Sources
