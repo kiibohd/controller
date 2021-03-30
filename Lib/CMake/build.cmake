@@ -65,10 +65,6 @@ if ( NOT HOST )
 	# .ELF Binary
 	add_executable ( ${TARGET} ${SRCS} generatedKeymap.h )
 
-	# Static Library
-	set ( TARGET_STATIC ${TARGET}_static )
-	add_library ( ${TARGET_STATIC} STATIC ${SRCS} generatedKeymap.h )
-
 	# .ELF Properties
 	set_target_properties ( ${TARGET} PROPERTIES
 		LINK_FLAGS ${LINKER_FLAGS}
@@ -82,15 +78,16 @@ else ()
 	# Shared Library
 	add_library ( ${TARGET} SHARED ${SRCS} generatedKeymap.h )
 
-	# Static Library
-	set ( TARGET_STATIC ${TARGET}_static )
-	add_library ( ${TARGET_STATIC} STATIC ${SRCS} generatedKeymap.h )
-
 	# Shared Library Properties
 	set_target_properties ( ${TARGET} PROPERTIES
 		LINK_FLAGS ${LINKER_FLAGS}
 	)
 endif ()
+
+#| Static Library
+set ( TARGET_STATIC ${TARGET}_static )
+add_library ( ${TARGET_STATIC} STATIC ${SRCS} generatedKeymap.h )
+install ( TARGETS ${TARGET_STATIC} )
 
 #| llvm-clang does not have an objcopy equivalent
 if ( "${COMPILER}" MATCHES "clang" )
