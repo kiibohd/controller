@@ -923,7 +923,7 @@ void cliFunc_version( char* args )
 
 void cliFunc_ram( char* args )
 {
-#if defined(_kinetis_) || defined(_host_) || (_nrf_)
+#if defined(_kinetis_) || defined(_host_) || (_nrf_) || defined(_rustlib_)
 	print("Not implemented");
 #else
 extern uint32_t _sstack, _estack;
