@@ -115,6 +115,7 @@ void CLI_argumentIsolation( char* string, char** first, char** second );
 int CLI_wrap( int x, int low, int high );
 void CLI_commandLookup();
 void CLI_tabCompletion();
+void CLI_pushInput(const uint8_t *buf, uint8_t len);
 void CLI_saveHistory( char *buff );
 void CLI_retreiveHistory( int index );
 

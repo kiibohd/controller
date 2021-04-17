@@ -817,7 +817,7 @@ inline void USB_setup()
 
 #if enableRawIO_define == 1
 	// Setup HID-IO
-	HIDIO_setup();
+	//HIDIO_setup();
 #endif
 
 	// Latency resource allocation
@@ -842,7 +842,7 @@ inline void USB_poll()
 
 #if enableRawIO_define == 1
 	// HID-IO Process
-	HIDIO_process();
+	//HIDIO_process();
 #endif
 
 	// End latency measurement

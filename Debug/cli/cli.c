@@ -117,6 +117,23 @@ uint8_t CLIHexDebugMode;
 
 // ----- Functions -----
 
+void CLI_pushInput(const uint8_t *buf, uint8_t len)
+{
+	uint8_t prev_buf_pos = CLILineBufferCurrent;
+	for ( uint16_t pos = 0; pos < len; pos++ )
+	{
+		if ( CLILineBufferCurrent >= CLILineBufferMaxSize ) {
+			erro_printNL("Serial line buffer is full, dropping character and resetting...");
+			return;
+		}
+
+		CLILineBuffer[CLILineBufferCurrent++] = buf[pos];
+	}
+
+	// Flag CLI as updated
+	CLILineBufferPrev = prev_buf_pos;
+}
+
 void prompt()
 {
 	print("\033[2K\r"); // Erases the current line and resets cursor to beginning of line
@@ -339,7 +356,9 @@ int CLI_process()
 			CLILineBuffer[CLILineBufferCurrent] = '\0';
 
 			// Output buffer to screen
+#if !defined(_rustlib_)
 			printChar( CLILineBuffer[prev_buf_pos] );
+#endif
 
 			// Buffer reset
 			prev_buf_pos++;

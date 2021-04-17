@@ -32,7 +32,7 @@
 #include <matrix_scan.h>
 #include <macro.h>
 #include <output_com.h>
-#include <port_scan.h>
+//#include <port_scan.h>
 #include <pixel.h>
 
 // Local Includes
@@ -50,19 +50,19 @@
 inline void Scan_setup()
 {
 	// Setup Port Swap module
-	Port_setup();
+	//Port_setup();
 
 	// Setup GPIO pins for matrix scanning
 	Matrix_setup();
 
 	// Setup ISSI chip to control the leds
-	LED_setup();
+	//LED_setup();
 
 	// Setup Pixel Map
-	Pixel_setup();
+	//Pixel_setup();
 
 	// Start Matrix Scanner
-	Matrix_start();
+	//Matrix_start();
 }
 
 
@@ -72,13 +72,13 @@ inline void Scan_setup()
 void Scan_poll()
 {
 	// Port Swap detection
-	Port_scan();
+	//Port_scan();
 
 	// Prepare any LED events
-	Pixel_process();
+	//Pixel_process();
 
 	// Process any LED events
-	LED_scan();
+	//LED_scan();
 }
 
 
@@ -87,8 +87,11 @@ void Scan_poll()
 // Useful for matrix scanning and anything that requires consistent attention
 uint8_t Scan_periodic()
 {
+	/*
 	// Scan Matrix
 	return Matrix_single_scan();
+	*/
+	return 1;
 }
 
 

@@ -1208,7 +1208,7 @@ void Macro_periodic()
 inline void Macro_setup()
 {
 	// Register Macro CLI dictionary
-	CLI_registerDictionary( macroCLIDict, macroCLIDictName );
+	//CLI_registerDictionary( macroCLIDict, macroCLIDictName );
 
 	// Disable Macro debug mode
 	macroDebugMode = 0;

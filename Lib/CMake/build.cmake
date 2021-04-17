@@ -63,7 +63,7 @@ if ( NOT HOST )
 	set ( TARGET_OUT ${TARGET}.elf )
 
 	# .ELF Binary
-	add_executable ( ${TARGET} ${SRCS} generatedKeymap.h )
+	add_executable ( ${TARGET} ${SRCS} ${CMAKE_SOURCE_DIR}/Lib/norust.c generatedKeymap.h )
 
 	# .ELF Properties
 	set_target_properties ( ${TARGET} PROPERTIES
@@ -76,7 +76,7 @@ else ()
 	set ( TARGET_OUT ${CMAKE_SHARED_LIBRARY_PREFIX}${TARGET}${CMAKE_SHARED_LIBRARY_SUFFIX} )
 
 	# Shared Library
-	add_library ( ${TARGET} SHARED ${SRCS} generatedKeymap.h )
+	add_library ( ${TARGET} SHARED ${SRCS} ${CMAKE_SOURCE_DIR}/Lib/norust.c generatedKeymap.h )
 
 	# Shared Library Properties
 	set_target_properties ( ${TARGET} PROPERTIES

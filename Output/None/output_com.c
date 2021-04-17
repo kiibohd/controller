@@ -94,13 +94,16 @@ int Output_getchar()
 // UART Send Character to output buffer
 int Output_putchar( char c )
 {
+	erro_printNL("Output_putchar not implemented!");
 	return 0;
 }
 
+void output_putstr(const char *buf);
 
 // UART Send String to output buffer, null terminated
-int Output_putstr( char* str )
+int Output_putstr(char* str)
 {
+	output_putstr((const char*)str);
 	return 0;
 }
 

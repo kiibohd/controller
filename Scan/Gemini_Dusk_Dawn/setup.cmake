@@ -18,7 +18,7 @@ set ( MANUFACTURER "Input Club" PARENT_SCOPE )
 #
 AddModule ( Scan Devices/ISSILed )
 AddModule ( Scan Devices/MatrixARMPeriodic )
-AddModule ( Scan Devices/PortSwap )
+#AddModule ( Scan Devices/PortSwap )
 AddModule ( Scan Devices/Storage )
 
 
