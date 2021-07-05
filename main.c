@@ -46,6 +46,7 @@ typedef enum PeriodicStage {
 	PeriodicStage_Scan,
 	PeriodicStage_Macro,
 	PeriodicStage_Output,
+	PeriodicStage_Screensaver,
 } PeriodicStage;
 
 
@@ -54,6 +55,9 @@ typedef enum PeriodicStage {
 
 // Periodic Stage Tracker
 static volatile PeriodicStage stage_tracker;
+
+//Number of times a complete periodic function rotation need to be run to try to check screensaver timing
+static volatile uint8_t screensaver_div;
 
 
 
@@ -92,8 +96,16 @@ int main_periodic()
 		// Send periodic USB results
 		SEGGER_SYSVIEW_OnTaskStartExec(TASK_OUTPUT_PERIODIC);
 		Output_periodic();
-		stage_tracker = PeriodicStage_Scan;
+		stage_tracker = PeriodicStage_Screensaver;
 		SEGGER_SYSVIEW_OnTaskTerminate(TASK_OUTPUT_PERIODIC);
+		break;
+
+	case PeriodicStage_Screensaver:
+		if ( !screensaver_div-- ) {
+			screensaver_div = 100;
+			Screensaver_periodic();
+		}
+		stage_tracker = PeriodicStage_Scan;
 
 		// Full rotation
 		return 1;
@@ -142,6 +154,9 @@ int main()
 
 	// Start scanning on first periodic loop
 	stage_tracker = PeriodicStage_Scan;
+
+	// Fill defautl screensaver div value
+	screensaver_div = 100;
 
 #if DEBUG_RESETS
 	// Blink to indicate a reset happened
