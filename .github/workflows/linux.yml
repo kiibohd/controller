@@ -5,9 +5,10 @@ on: [push, pull_request]
 env:
   PIPENV_ACTIVE: 1
   deb_packages: >-
+    binutils-arm-none-eabi
     dfu-util
     exuberant-ctags
-    gcc-arm-embedded
+    gcc-arm-none-eabi
     ninja-build
     python3-setuptools
     tree
@@ -19,10 +20,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository universe -y
-        sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
         sudo apt-get update
         sudo apt-get install -y ${{ env.deb_packages }}
     - name: Install kll compiler
@@ -45,10 +42,6 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository universe -y
-        sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
-        sudo apt-get update
         sudo apt-get install -y ${{ env.deb_packages }} libubsan0
     - name: Install kll compiler
       run: |
@@ -64,10 +57,6 @@ jobs:
     - uses: actions/checkout@v2
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository universe -y
-        sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
         sudo apt-get update
         sudo apt-get install -y ${{ env.deb_packages }}
     - name: Install kll compiler
@@ -85,10 +74,6 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository universe -y
-        sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
-        sudo apt-get update
         sudo apt-get install -y ${{ env.deb_packages }} libubsan0
     - name: Install kll compiler
       run: |
@@ -105,10 +90,6 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y software-properties-common
-        sudo add-apt-repository universe -y
-        sudo add-apt-repository ppa:team-gcc-arm-embedded/ppa -y
-        sudo apt-get update
         sudo apt-get install -y ${{ env.deb_packages }}
     - name: Install kll compiler
       run: |
@@ -123,10 +104,10 @@ jobs:
         name: Bootloaders
         path: Bootloader/Builds
 
-  dockerfiles:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      working-directory: Dockerfiles
-      run: ./all.bash
+# dockerfiles:
+#   runs-on: ubuntu-latest
+#   steps:
+#   - uses: actions/checkout@v2
+#   - name: Build
+#     working-directory: Dockerfiles
+#     run: ./all.bash
