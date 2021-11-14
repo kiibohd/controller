@@ -4,13 +4,15 @@ on: [push, pull_request]
 
 env:
   PIPENV_ACTIVE: 1
-  DYLD_INSERT_LIBRARIES: /Applications/Xcode_11.3.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.0/lib/darwin/libclang_rt.asan_osx_dynamic.dylib
+  # DYLD_INSERT_LIBRARIES: /Applications/Xcode_11.3.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.0/lib/darwin/libclang_rt.asan_osx_dynamic.dylib
 
 jobs:
   firmware:
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v2
+    - name: test
+      run: brew install tree && tree /Applications/Xcode_11.3.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang
     - name: Install dependencies
       run: brew update && brew bundle
     - name: Install kll compiler
