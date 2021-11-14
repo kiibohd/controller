@@ -10,10 +10,8 @@ jobs:
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v2
-    - name: switch xcode
-      run: sudo xcode-select -s /Applications/Xcode_11.3.1.app
     - name: Install dependencies
-      run: brew update && brew bundle
+      run: brew bundle
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
@@ -26,10 +24,8 @@ jobs:
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v2
-    - name: switch xcode
-      run: sudo xcode-select -s /Applications/Xcode_11.3.1.app
     - name: Install dependencies
-      run: brew update && brew bundle
+      run: brew bundle
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
@@ -43,10 +39,8 @@ jobs:
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v2
-    - name: switch xcode
-      run: sudo xcode-select -s /Applications/Xcode_11.3.1.app
     - name: Install dependencies
-      run: brew update && brew bundle
+      run: brew bundle
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
@@ -59,10 +53,8 @@ jobs:
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v2
-    - name: switch xcode
-      run: sudo xcode-select -s /Applications/Xcode_11.3.1.app
     - name: Install dependencies
-      run: brew update && brew bundle
+      run: brew bundle
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
@@ -76,10 +68,8 @@ jobs:
     runs-on: macOS-latest
     steps:
     - uses: actions/checkout@v2
-    - name: switch xcode
-      run: sudo xcode-select -s /Applications/Xcode_11.3.1.app
     - name: Install dependencies
-      run: brew update && brew bundle
+      run: brew bundle
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
