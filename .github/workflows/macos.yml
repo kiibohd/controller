@@ -5,13 +5,6 @@ on: [push, pull_request]
 env:
   PIPENV_ACTIVE: 1
   DYLD_INSERT_LIBRARIES: /Applications/Xcode_11.3.1.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/11.0.0/lib/darwin/libclang_rt.asan_osx_dynamic.dylib
-  brew_packages: >-
-    binutils
-    ctags
-    dfu-util
-    gnu-sed
-    ninja
-    tree
 
 jobs:
   firmware:
@@ -19,11 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
-      run: |
-        brew update
-        brew install ${{ env.brew_packages }}
-        brew tap armmbed/formulae
-        brew install armmbed/formulae/arm-none-eabi-gcc
+      run: brew update && brew bundle
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
@@ -37,11 +26,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
-      run: |
-        brew update
-        brew install ${{ env.brew_packages }}
-        brew tap armmbed/formulae
-        brew install armmbed/formulae/arm-none-eabi-gcc
+      run: brew update && brew bundle
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
@@ -56,11 +41,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
-      run: |
-        brew update
-        brew install ${{ env.brew_packages }}
-        brew tap armmbed/formulae
-        brew install armmbed/formulae/arm-none-eabi-gcc
+      run: brew update && brew bundle
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
@@ -74,11 +55,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
-      run: |
-        brew update
-        brew install ${{ env.brew_packages }}
-        brew tap armmbed/formulae
-        brew install armmbed/formulae/arm-none-eabi-gcc
+      run: brew update && brew bundle
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
@@ -93,11 +70,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Install dependencies
-      run: |
-        brew update
-        brew install ${{ env.brew_packages }}
-        brew tap armmbed/formulae
-        brew install armmbed/formulae/arm-none-eabi-gcc
+      run: brew update && brew bundle
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip

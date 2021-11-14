@@ -1,0 +1,8 @@
+brew 'binutils'
+brew 'ctags'
+brew 'dfu-util'
+brew 'gnu-sed'
+brew 'ninja'
+brew 'tree'
+tap 'armmbed/formulae'
+brew 'armmbed/formulae/arm-none-eabi-gcc'
