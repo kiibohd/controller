@@ -93,6 +93,12 @@
 	| ((0 << MPU_RASR_B_Pos) & MPU_RASR_B_Msk) \
 	| ((0 << MPU_RASR_S_Pos) & MPU_RASR_S_Msk))
 
+// DHCSR
+#define C_DHCSR ((uint32_t*)0xE000EDF0)
+#define DHCSR_C_DEBUGEN_Pos (0)
+#define DHCSR_C_DEBUGEN_Msk (1 << DHCSR_C_DEBUGEN_Pos)
+#define C_DEBUGEN ((1 << DHCSR_C_DEBUGEN_Pos) & DHCSR_C_DEBUGEN_Msk)
+
 // ----- Types -----
 
 /*

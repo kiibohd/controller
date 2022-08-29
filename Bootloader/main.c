@@ -1,5 +1,5 @@
 /* Copyright (c) 2011,2012 Simon Schubert <2@0x2c.org>.
- * Modifications by Jacob Alexander 2014-2020 <haata@kiibohd.com>
+ * Modifications by Jacob Alexander 2014-2022 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 // Project Includes
 #include <Lib/gpio.h>
 #include <delay.h>
-#include <Lib/gpio.h>
 
 #if DFU_EXTRA_BLE_SWD_SUPPORT == 1
 #include "swd/swd_host.h"
@@ -440,6 +439,9 @@ void main()
 	// Bootloader Section
 	extern uint32_t _app_rom;
 
+	// Whether or not to enter the bootloader
+	bool bootloader = false;
+
 	// Prepared debug output (when supported)
 	uart_serial_setup();
 	printNL( NL "==> Bootloader" );
@@ -447,6 +449,87 @@ void main()
 	// Early setup
 	Chip_reset();
 	Device_reset();
+
+#if defined(_kinetis_)
+	// Detected CPU
+	print("CPU Id: ");
+	printHex( SCB_CPUID );
+	print( NL "Device Id: ");
+	printHex( SIM_SDID );
+	print( NL "Flash CFG: ");
+	printHex( SIM_FCFG1 & 0xFFFFFFF0 );
+	print( NL "RAM: ");
+	printHex( SIM_SOPT1_RAMSIZE );
+
+	// Bootloader Entry Reasons
+	print( NL " RCM_SRS0 - ");
+	printHex( RCM_SRS0 & 0x60 );
+	print( NL " RCM_SRS1 - ");
+	printHex( RCM_SRS1 & 0x02 );
+	print( NL " _app_rom - ");
+	printHex( (uint32_t)_app_rom );
+	print( NL " Soft Rst - " );
+	printHex( memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 );
+	print( NL );
+#elif defined(_sam_)
+	// Detected CPU
+	print("CPU Id: ");
+	printHex( SCB->CPUID );
+	print( NL "Chip Id: ");
+	printHex( CHIPID->CHIPID_CIDR );
+	print( NL "Chip Ext: ");
+	printHex( CHIPID->CHIPID_EXID );
+
+	// Display DHCSR, see: https://developer.arm.com/documentation/ddi0337/e/CEGCJAHJ
+	print( NL "DHCSR: ");
+	printHex( *C_DHCSR );
+
+	// Bootloader Entry Reasons
+	switch ( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk ) {
+	case RSTC_SR_RSTTYP_GeneralReset:
+		// First power-up reset
+		print( NL " GeneralReset");
+		break;
+	case RSTC_SR_RSTTYP_BackupReset:
+		// Return from Backup Mode
+		print( NL " BackupReset");
+		break;
+	case RSTC_SR_RSTTYP_WatchdogReset:
+		// Watchdog fault occurred
+		print( NL " WatchdogReset");
+
+		// Check if we have the special reset to loader magic
+		bootloader = memcmp( (uint8_t*)GPBR, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0;
+		// Set the loader magic that we've already had a watchdog reset
+		// Cleared by valid firmware
+		for ( int pos = 0; pos <= sizeof(sys_reset_to_loader_magic)/4; pos++ )
+			GPBR->SYS_GPBR[ pos ] = ((uint32_t*)sys_reset_to_loader_magic)[ pos ];
+		break;
+	case RSTC_SR_RSTTYP_SoftwareReset:
+		// Processor reset required by the software
+		print( NL " SoftwareReset");
+
+		// Check if we have the special reset to loader magic
+		bootloader = memcmp( (uint8_t*)GPBR, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0;
+		break;
+	case RSTC_SR_RSTTYP_UserReset:
+		// NRST pin detected low
+		print( NL " UserReset");
+		bootloader = true;
+
+		break;
+	}
+	print( NL " _app_rom - ");
+	printHex( (uint32_t)_app_rom );
+	// Check for unflashed firmware (always jump to bootloader)
+	if ( _app_rom == 0xFFFFFFFF )
+	{
+		bootloader = true;
+	}
+	print( NL " Soft Rst - " );
+	printHex( memcmp( (uint8_t*)GPBR, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 );
+	printNL();
+#endif
 
 #if defined(_kinetis_)
 	// We treat _app_rom as pointer to directly read the stack
@@ -486,13 +569,7 @@ void main()
 		jump_to_app( addr );
 	}
 #elif defined(_sam_)
-	if (    // PIN  (External Reset Pin/Switch)
-		(REG_RSTC_SR & RSTC_SR_RSTTYP_Msk) == RSTC_SR_RSTTYP_UserReset
-		// Blank flash check
-		|| _app_rom == 0xffffffff
-		// Software reset
-		|| memcmp( (uint8_t*)GPBR, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0
-	)
+	if (bootloader)
 	{
 		printNL("-> DFU-Mode");
 		// Bootloader mode
@@ -502,6 +579,7 @@ void main()
 	else
 	{
 		// Enable Watchdog before jumping
+		/*
 		// XXX (HaaTa) This watchdog cannot trigger an IRQ, as we're relocating the vector table
 #if defined(DEBUG) && defined(JLINK)
 		WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDFIEN | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
@@ -509,10 +587,8 @@ void main()
 #else
 		WDT->WDT_MR = WDT_MR_WDV(1000000 / WDT_TICK_US) | WDT_MR_WDD(WDT_MAX_VALUE) | WDT_MR_WDRSTEN | WDT_MR_WDRPROC | WDT_MR_WDDBGHLT | WDT_MR_WDIDLEHLT;
 #endif
-
-		// Cleared by valid firmware
-		for ( int pos = 0; pos <= sizeof(sys_reset_to_loader_magic)/4; pos++ )
-			GPBR->SYS_GPBR[ pos ] = ((uint32_t*)sys_reset_to_loader_magic)[ pos ];
+		*/
+		WDT->WDT_MR = WDT_MR_WDDIS;
 
 #if DFU_EXTRA_BLE_SWD_SUPPORT == 1
 		// Cleanup external reset
@@ -537,61 +613,6 @@ void main()
 		SCB->VTOR = ((uint32_t) addr); // relocate vector table
 		jump_to_app( addr );
 	}
-#endif
-
-#if defined(_kinetis_)
-	// Detected CPU
-	print("CPU Id: ");
-	printHex( SCB_CPUID );
-	print( NL "Device Id: ");
-	printHex( SIM_SDID );
-	print( NL "Flash CFG: ");
-	printHex( SIM_FCFG1 & 0xFFFFFFF0 );
-	print( NL "RAM: ");
-	printHex( SIM_SOPT1_RAMSIZE );
-
-	// Bootloader Entry Reasons
-	print( NL " RCM_SRS0 - ");
-	printHex( RCM_SRS0 & 0x60 );
-	print( NL " RCM_SRS1 - ");
-	printHex( RCM_SRS1 & 0x02 );
-	print( NL " _app_rom - ");
-	printHex( (uint32_t)_app_rom );
-	print( NL " Soft Rst - " );
-	printHex( memcmp( (uint8_t*)&VBAT, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 );
-	print( NL );
-#elif defined(_sam_)
-	// Detected CPU
-	print("CPU Id: ");
-	printHex( SCB->CPUID );
-	print( NL "Chip Id: ");
-	printHex( CHIPID->CHIPID_CIDR );
-	print( NL "Chip Ext: ");
-	printHex( CHIPID->CHIPID_EXID );
-
-	// Bootloader Entry Reasons
-	switch ( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk ) {
-	case RSTC_SR_RSTTYP_GeneralReset:
-		print( NL " GeneralReset");
-		break;
-	case RSTC_SR_RSTTYP_BackupReset:
-		print( NL " BackupReset");
-		break;
-	case RSTC_SR_RSTTYP_WatchdogReset:
-		print( NL " WatchdogReset");
-		break;
-	case RSTC_SR_RSTTYP_SoftwareReset:
-		print( NL " SoftwareReset");
-		break;
-	case RSTC_SR_RSTTYP_UserReset:
-		print( NL " UserReset");
-		break;
-	}
-	print( NL " _app_rom - ");
-	printHex( (uint32_t)_app_rom );
-	print( NL " Soft Rst - " );
-	printHex( memcmp( (uint8_t*)GPBR, sys_reset_to_loader_magic, sizeof(sys_reset_to_loader_magic) ) == 0 );
-	printNL();
 #endif
 
 	// Device/Chip specific setup
