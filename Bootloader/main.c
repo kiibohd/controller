@@ -483,6 +483,9 @@ void main()
 	// Display DHCSR, see: https://developer.arm.com/documentation/ddi0337/e/CEGCJAHJ
 	print( NL "DHCSR: ");
 	printHex( *C_DHCSR );
+	// Display DEMCR, see: https://developer.arm.com/documentation/ddi0337/e/CEGCHHJF
+	print( NL "DEMCR: ");
+	printHex( *C_DEMCR );
 
 	// Bootloader Entry Reasons
 	switch ( REG_RSTC_SR & RSTC_SR_RSTTYP_Msk ) {

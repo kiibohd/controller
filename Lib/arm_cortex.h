@@ -97,7 +97,9 @@
 #define C_DHCSR ((uint32_t*)0xE000EDF0)
 #define DHCSR_C_DEBUGEN_Pos (0)
 #define DHCSR_C_DEBUGEN_Msk (1 << DHCSR_C_DEBUGEN_Pos)
-#define C_DEBUGEN ((1 << DHCSR_C_DEBUGEN_Pos) & DHCSR_C_DEBUGEN_Msk)
+
+// DEMCR
+#define C_DEMCR ((uint32_t*)0xE000EDFC)
 
 // ----- Types -----
 
