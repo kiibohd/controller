@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is bash lib file for the convenience build scripts
 # Don't call this script directly
-# Jacob Alexander 2015-2018
+# Jacob Alexander 2015-2022
 
 # Check if compiler has been overridden by the environment
 Compiler=${COMPILER:-${Compiler}}
@@ -149,8 +149,10 @@ echo "${BuildPath}"
 # Info
 echo "Manufacturer: ${MANUFACTURER}"
 echo "Boot Product Str: ${BOOT_PRODUCT_STR}"
+echo "Boot Alternate Product Str: ${BOOT_ALT_PRODUCT_STR}"
 echo "Boot VID: ${BOOT_VENDOR_ID}"
 echo "Boot PID: ${BOOT_PRODUCT_ID}"
+echo "Boot Alternate PID: ${BOOT_ALT_PRODUCT_ID}"
 
 
 # Run CMake commands
@@ -164,11 +166,11 @@ if [[ $(uname -s) == MINGW32_NT* ]] || [[ $(uname -s) == CYGWIN* ]]; then
 		exit 1
 	fi
 	echo "Cygwin Build"
-	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" -DBOOT_VENDOR_ID="${BOOT_VENDOR_ID}" -DBOOT_PRODUCT_ID="${BOOT_PRODUCT_ID}" -DDFU_EXTRA_BLE_SWD_SUPPORT="${BLE_SWD:-0}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
+	PATH="$wincmake_path":"${PATH}" cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DBOOT_ALT_PRODUCT_STR="${BOOT_ALT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" -DBOOT_VENDOR_ID="${BOOT_VENDOR_ID}" -DBOOT_PRODUCT_ID="${BOOT_PRODUCT_ID}" -DBOOT_ALT_PRODUCT_ID="${BOOT_ALT_PRODUCT_ID}" -DDFU_EXTRA_BLE_SWD_SUPPORT="${BLE_SWD:-0}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 
 # Linux / Mac (and everything else)
 else
-	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" -DBOOT_VENDOR_ID="${BOOT_VENDOR_ID}" -DBOOT_PRODUCT_ID="${BOOT_PRODUCT_ID}" -DDFU_EXTRA_BLE_SWD_SUPPORT="${BLE_SWD:-0}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
+	cmake -DCHIP="${Chip}" -DCOMPILER="${Compiler}" -DBOOT_PRODUCT_STR="${BOOT_PRODUCT_STR}" -DBOOT_ALT_PRODUCT_STR="${BOOT_ALT_PRODUCT_STR}" -DMANUFACTURER="${MANUFACTURER}" -DBOOT_VENDOR_ID="${BOOT_VENDOR_ID}" -DBOOT_PRODUCT_ID="${BOOT_PRODUCT_ID}" -DBOOT_ALT_PRODUCT_ID="${BOOT_ALT_PRODUCT_ID}" -DDFU_EXTRA_BLE_SWD_SUPPORT="${BLE_SWD:-0}" "${CMakeListsPath}" -G "${CMAKE_GENERATOR}"
 	return_code=$?
 
 fi

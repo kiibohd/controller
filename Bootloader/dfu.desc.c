@@ -109,6 +109,24 @@ static const struct usb_desc_dev_t dfu_device_dev_desc = {
 	.bNumConfigurations = 1,
 };
 
+// Secondary USB descriptor when alt device detected
+static const struct usb_desc_dev_t alt_dfu_device_dev_desc = {
+	.bLength = sizeof(struct usb_desc_dev_t),
+	.bDescriptorType = USB_DESC_DEV,
+	.bcdUSB = { .maj = 2 },
+	.bDeviceClass = USB_DEV_CLASS_SEE_IFACE,
+	.bDeviceSubClass = USB_DEV_SUBCLASS_SEE_IFACE,
+	.bDeviceProtocol = USB_DEV_PROTO_SEE_IFACE,
+	.bMaxPacketSize0 = EP0_BUFSIZE,
+	.idVendor = VENDOR_ID,
+	.idProduct = ALT_PRODUCT_ID,
+	.bcdDevice = { .maj = MSB( BCD_VERSION ), .min = LSB( BCD_VERSION ) },
+	.iManufacturer = 1,
+	.iProduct = 6,
+	.iSerialNumber = 3,
+	.bNumConfigurations = 1,
+};
+
 // Enables Microsoft specefic setup requests with bmRequestType set to bMS_VendorCode
 // LanguageID must be 0, not english (0x0409)
 #if defined(_sam_)
@@ -144,6 +162,7 @@ struct usb_desc_string_t * const dfu_device_str_desc[] = {
 #endif
 	USB_DESC_STRING(STR_ALTNAME),
 	USB_DESC_STRING(STR_CONFIG_NAME),
+	USB_DESC_STRING(STR_ALT_PRODUCT),
 #if DFU_EXTRA_BLE_SWD_SUPPORT == 1
 	USB_DESC_STRING(STR_ALTNAME2),
 #endif
@@ -159,10 +178,25 @@ const struct usbd_device dfu_device = {
 	}
 };
 
+const struct usbd_device alt_dfu_device = {
+	.dev_desc = &alt_dfu_device_dev_desc,
+	.string_descs = dfu_device_str_desc,
+	.configs = {
+		&usbd_config_1,
+		NULL
+	}
+};
+
 // Initialize DFU USB descriptor
-void dfu_usb_init()
+void dfu_usb_init(bool alt_device)
 {
-	usb_init( &dfu_device );
+	if (alt_device) {
+		// Set alternate device descriptor
+		usb_init(&alt_dfu_device);
+	} else {
+		// Set default device descriptor
+		usb_init(&dfu_device);
+	}
 }
 
 // Poll USB for changes in DFU status

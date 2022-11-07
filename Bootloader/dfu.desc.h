@@ -1,5 +1,5 @@
 // Originally Generated from MCHCK Toolkit
-/* Copyright (c) Jacob Alexander 2014-2017 <haata@kiibohd.com>
+/* Copyright (c) Jacob Alexander 2014-2022 <haata@kiibohd.com>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -62,6 +62,6 @@ struct usb_config_1 {
 
 // ----- Functions -----
 
-void dfu_usb_init();
+void dfu_usb_init(bool alt_device);
 void dfu_usb_poll();
 

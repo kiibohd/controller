@@ -1,4 +1,4 @@
-/* Copyright (C) 2017-2019 by Jacob Alexander
+/* Copyright (C) 2017-2022 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -85,7 +85,7 @@ void Device_setup()
 }
 
 // Called during each loop of the main bootloader sequence
-void Device_process()
+void Device_process(bool *alt_device)
 {
 	// For keyboards with dual usb ports, doesn't do anything on keyboards without them
 	// If a USB connection is not detected in 2 seconds, switch to the other port to see if it's plugged in there

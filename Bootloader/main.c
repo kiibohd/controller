@@ -620,7 +620,8 @@ void main()
 
 	// Device/Chip specific setup
 	Chip_setup();
-	Device_setup();
+	bool alt_device = false;
+	Device_setup(&alt_device);
 
 #ifdef FLASH_DEBUG
 	for ( uint8_t sector = 0; sector < 3; sector++ )
@@ -633,7 +634,7 @@ void main()
 #if defined(_kinetis_)
 	flash_prepare_flashing();
 #endif
-	dfu_usb_init(); // Initialize USB and dfu
+	dfu_usb_init(alt_device); // Initialize USB and dfu
 
 	// Main Loop
 	for (;;)

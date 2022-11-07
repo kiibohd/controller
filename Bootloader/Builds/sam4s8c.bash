@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is a build script template
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2015-2017
+# Jacob Alexander 2015-2022
 
 
 
@@ -14,6 +14,7 @@ SubBuild=${BOOT_PRODUCT_STR}
 BOOT_PRODUCT_STR=${BOOT_PRODUCT_STR:-Kiibohd DFU Bootloader}
 BOOT_VENDOR_ID=${BOOT_VENDOR_ID:-0x1C11}
 BOOT_PRODUCT_ID=${BOOT_PRODUCT_ID:-0xB007}
+BOOT_ALT_PRODUCT_ID=${BOOT_ALT_PRODUCT_ID:-0xB007}
 MANUFACTURER=${MANUFACTURER:-Kiibohd}
 
 if [[ ! -z ${SubBuild} ]]; then

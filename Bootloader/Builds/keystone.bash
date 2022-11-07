@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # This is a build script template
 # These build scripts are just a convenience for configuring your keyboard (less daunting than CMake)
-# Jacob Alexander 2017-2019
+# Jacob Alexander 2017-2022
 
 
 
@@ -10,9 +10,12 @@
 #################
 
 # Should be empty if not set
-BOOT_PRODUCT_STR=Keystone
+MANUFACTURER="Input Club"
+BOOT_PRODUCT_STR="Keystone"
+BOOT_ALT_PRODUCT_STR="Keystone TKL"
 BOOT_VENDOR_ID="0x308F"
-BOOT_PRODUCT_ID="0x0026"
+BOOT_PRODUCT_ID="0x0026" # Fullsize
+BOOT_ALT_PRODUCT_ID="0x0028" # TKL
 
 
 

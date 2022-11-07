@@ -1,4 +1,4 @@
-/* Copyright (C) 2017-2020 by Jacob Alexander
+/* Copyright (C) 2017-2022 by Jacob Alexander
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,6 +51,9 @@ const GPIO_Pin debug_led = gpio(A,15);
 const GPIO_Pin cfg1_pin = gpio(C,25);
 const GPIO_Pin cfg2_pin = gpio(C,26);
 
+// Model Check Pin
+const GPIO_Pin model_check_strobe = gpio(A,28);
+
 // Disable strobes
 const GPIO_Pin Matrix_cols[] = {
 	gpio(B,0),
@@ -93,7 +96,7 @@ void Device_reset()
 }
 
 // Called during bootloader initialization
-void Device_setup()
+void Device_setup(bool *alt_device)
 {
 	// Enable Debug LED
 	GPIO_Ctrl( debug_led, GPIO_Type_DriveSetup, GPIO_Config_None );
@@ -125,6 +128,21 @@ void Device_setup()
 	else
 	{
 		// TODO ANSI
+	}
+
+	// Check Fullsize vs TKL using fullsize-only strobes
+	// Strobes are wired to a 1k pullup, so if the pin is high, it's fullsize
+	if (GPIO_Ctrl( model_check_strobe, GPIO_Type_ReadSetup, GPIO_Config_Pulldown ) != 0)
+	{
+		// Fullsize
+		print("Fullsize detected" NL);
+		*alt_device = false;
+	}
+	else
+	{
+		// TKL
+		print("TKL detected" NL);
+		*alt_device = true;
 	}
 
 	// TODO Basic hall scanning for keypress (is GPIO possible?)
