@@ -317,8 +317,10 @@ int dfu_handle_control( struct usb_ctrl_req_t *req, void *data )
 				//              We should only reset when host sends DFU_DETACH request or reset request.
 				//usb_handle_control_status_cb(dfu_reset_system);
 
+#if defined(_sam_)
 				// Make sure we aren't going to halt on reset
 				*C_DEMCR = 0;
+#endif
 				break;
 #if DFU_EXTRA_BLE_SWD_SUPPORT == 1
 			case 1: // SWD Flashing
