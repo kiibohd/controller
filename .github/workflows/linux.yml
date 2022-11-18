@@ -42,7 +42,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ${{ env.deb_packages }} libubsan0
+        sudo apt-get install -y ${{ env.deb_packages }} libubsan1
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
@@ -74,7 +74,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y ${{ env.deb_packages }} libubsan0
+        sudo apt-get install -y ${{ env.deb_packages }} libubsan1
     - name: Install kll compiler
       run: |
         python3 -m pip install --upgrade pip
