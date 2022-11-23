@@ -207,9 +207,23 @@ void Chip_setup()
 
 	// Initialize non-volatile storage
 	storage_init();
+}
 
+// Called during bootloader initialization after Device_setup()
+void Chip_setup_delayed(bool alt_device)
+{
 	// Make sure USB transceiver is reset (in case we didn't do a full reset)
 	udc_stop();
+
+	// Check if this is an alt device
+	if ( alt_device )
+	{
+		udc_ptr_top_conf = &udc_config_alt;
+	}
+	else
+	{
+		udc_ptr_top_conf = &udc_config;
+	}
 
 	// Start USB stack
 	udc_start();

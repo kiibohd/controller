@@ -622,6 +622,9 @@ void main()
 	Chip_setup();
 	bool alt_device = false;
 	Device_setup(&alt_device);
+#if defined(_sam_)
+	Chip_setup_delayed(alt_device);
+#endif
 
 #ifdef FLASH_DEBUG
 	for ( uint8_t sector = 0; sector < 3; sector++ )

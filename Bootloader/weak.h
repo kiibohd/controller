@@ -27,6 +27,7 @@ int8_t Chip_validation(uint8_t* key) __attribute__ ((weak));
 void   Chip_process()             __attribute__ ((weak));
 void   Chip_reset()               __attribute__ ((weak));
 void   Chip_setup()               __attribute__ ((weak));
+void   Chip_setup_delayed()       __attribute__ ((weak));
 void   Chip_download_complete()   __attribute__ ((weak));
 void   Chip_serial_number_setup() __attribute__ ((weak));
 void   Device_process()           __attribute__ ((weak));

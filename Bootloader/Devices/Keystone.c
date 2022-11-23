@@ -27,6 +27,7 @@
 
 // Project Includes
 #include <Lib/gpio.h>
+#include <delay.h>
 
 // Local Includes
 #include "../device.h"
@@ -130,9 +131,15 @@ void Device_setup(bool *alt_device)
 		// TODO ANSI
 	}
 
+	// TODO Basic hall scanning for keypress (is GPIO possible?)
+	// Setup scanning for S1
+	PMC->PMC_PCER0 = (1 << ID_PIOA) | (1 << ID_PIOB);
+
 	// Check Fullsize vs TKL using fullsize-only strobes
 	// Strobes are wired to a 1k pullup, so if the pin is high, it's fullsize
-	if (GPIO_Ctrl( model_check_strobe, GPIO_Type_ReadSetup, GPIO_Config_Pulldown ) != 0)
+	GPIO_Ctrl( model_check_strobe, GPIO_Type_ReadSetup, GPIO_Config_Pulldown );
+	delay_ms(10);
+	if (GPIO_Ctrl( model_check_strobe, GPIO_Type_Read, GPIO_Config_None ) == 1)
 	{
 		// Fullsize
 		print("Fullsize detected" NL);
@@ -144,10 +151,6 @@ void Device_setup(bool *alt_device)
 		print("TKL detected" NL);
 		*alt_device = true;
 	}
-
-	// TODO Basic hall scanning for keypress (is GPIO possible?)
-	// Setup scanning for S1
-	PMC->PMC_PCER0 = (1 << ID_PIOA) | (1 << ID_PIOB);
 
 	// Cols (strobe)
 	GPIO_Ctrl( strobe_pin, GPIO_Type_DriveSetup, GPIO_Config_None );

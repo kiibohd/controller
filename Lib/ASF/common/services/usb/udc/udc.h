@@ -54,6 +54,8 @@
 extern "C" {
 #endif
 
+extern udc_config_t UDC_DESC_STORAGE *udc_ptr_top_conf;
+
 /**
  * \ingroup usb_device_group
  * \defgroup udc_group USB Device Controller (UDC)

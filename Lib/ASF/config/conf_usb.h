@@ -48,6 +48,7 @@
 //! Device definition (mandatory)
 #define  USB_DEVICE_VENDOR_ID             VENDOR_ID
 #define  USB_DEVICE_PRODUCT_ID            PRODUCT_ID
+#define  USB_DEVICE_ALT_PRODUCT_ID        ALT_PRODUCT_ID
 #define  USB_DEVICE_VERSION               BCD_VERSION
 #define  USB_DEVICE_ATTR                  (USB_CONFIG_ATTR_REMOTE_WAKEUP|USB_CONFIG_ATTR_BUS_POWERED)
 

@@ -69,6 +69,8 @@ static udc_config_speed_t UDC_DESC_STORAGE *udc_ptr_conf;
 //! Pointer on interface descriptor used by SETUP request.
 static usb_iface_desc_t UDC_DESC_STORAGE *udc_ptr_iface;
 
+udc_config_t UDC_DESC_STORAGE *udc_ptr_top_conf;
+
 //! @}
 
 
@@ -359,6 +361,7 @@ void udc_stop(void)
 {
 	udd_disable();
 	udc_reset();
+	udc_ptr_top_conf = &udc_config;
 }
 
 /**
@@ -671,14 +674,14 @@ static bool udc_req_std_dev_get_descriptor(void)
 #ifdef USB_DEVICE_HS_SUPPORT
 		if (!udd_is_high_speed()) {
 			udd_set_setup_payload(
-				(uint8_t *) udc_config.confdev_hs,
-				udc_config.confdev_hs->bLength);
+				(uint8_t *) (*udc_ptr_top_conf).confdev_hs,
+				(*udc_ptr_top_conf).confdev_hs->bLength);
 		} else
 #endif
 		{
 			udd_set_setup_payload(
-				(uint8_t *) udc_config.confdev_lsfs,
-				udc_config.confdev_lsfs->bLength);
+				(uint8_t *) (*udc_ptr_top_conf).confdev_lsfs,
+				(*udc_ptr_top_conf).confdev_lsfs->bLength);
 		}
 		break;
 
@@ -687,24 +690,24 @@ static bool udc_req_std_dev_get_descriptor(void)
 #ifdef USB_DEVICE_HS_SUPPORT
 		if (udd_is_high_speed()) {
 			// HS descriptor
-			if (conf_num >= udc_config.confdev_hs->
+			if (conf_num >= (*udc_ptr_top_conf).confdev_hs->
 					bNumConfigurations) {
 				return false;
 			}
 			udd_set_setup_payload(
-				(uint8_t *)udc_config.conf_hs[conf_num].desc,
-				le16_to_cpu(udc_config.conf_hs[conf_num].desc->wTotalLength));
+				(uint8_t *)(*udc_ptr_top_conf).conf_hs[conf_num].desc,
+				le16_to_cpu((*udc_ptr_top_conf).conf_hs[conf_num].desc->wTotalLength));
 		} else
 #endif
 		{
 			// FS descriptor
-			if (conf_num >= udc_config.confdev_lsfs->
+			if (conf_num >= (*udc_ptr_top_conf).confdev_lsfs->
 					bNumConfigurations) {
 				return false;
 			}
 			udd_set_setup_payload(
-				(uint8_t *)udc_config.conf_lsfs[conf_num].desc,
-				le16_to_cpu(udc_config.conf_lsfs[conf_num].desc->wTotalLength));
+				(uint8_t *)(*udc_ptr_top_conf).conf_lsfs[conf_num].desc,
+				le16_to_cpu((*udc_ptr_top_conf).conf_lsfs[conf_num].desc->wTotalLength));
 		}
 		((usb_conf_desc_t *) udd_g_ctrlreq.payload)->bDescriptorType =
 				USB_DT_CONFIGURATION;
@@ -712,14 +715,14 @@ static bool udc_req_std_dev_get_descriptor(void)
 
 	case USB_DT_DEVICE_QUALIFIER:
 		// Device qualifier descriptor requested
-		udd_set_setup_payload( (uint8_t *) udc_config.qualifier,
-				udc_config.qualifier->bLength);
+		udd_set_setup_payload( (uint8_t *) (*udc_ptr_top_conf).qualifier,
+				(*udc_ptr_top_conf).qualifier->bLength);
 		break;
 
 	case USB_DT_DEBUG:
 		// Debug descriptor requested
-		udd_set_setup_payload( (uint8_t *) udc_config.debug,
-				udc_config.debug->bLength);
+		udd_set_setup_payload( (uint8_t *) (*udc_ptr_top_conf).debug,
+				(*udc_ptr_top_conf).debug->bLength);
 		break;
 
 #ifdef USB_DEVICE_HS_SUPPORT
@@ -727,22 +730,22 @@ static bool udc_req_std_dev_get_descriptor(void)
 		// Other configuration descriptor requested
 		if (!udd_is_high_speed()) {
 			// HS descriptor
-			if (conf_num >= udc_config.confdev_hs->
+			if (conf_num >= (*udc_ptr_top_conf).confdev_hs->
 					bNumConfigurations) {
 				return false;
 			}
 			udd_set_setup_payload(
-				(uint8_t *)udc_config.conf_hs[conf_num].desc,
-				le16_to_cpu(udc_config.conf_hs[conf_num].desc->wTotalLength));
+				(uint8_t *)(*udc_ptr_top_conf).conf_hs[conf_num].desc,
+				le16_to_cpu((*udc_ptr_top_conf).conf_hs[conf_num].desc->wTotalLength));
 		} else {
 			// FS descriptor
-			if (conf_num >= udc_config.confdev_lsfs->
+			if (conf_num >= (*udc_ptr_top_conf).confdev_lsfs->
 					bNumConfigurations) {
 				return false;
 			}
 			udd_set_setup_payload(
-				(uint8_t *)udc_config.conf_lsfs[conf_num].desc,
-				le16_to_cpu(udc_config.conf_lsfs[conf_num].desc->wTotalLength));
+				(uint8_t *)(*udc_ptr_top_conf).conf_lsfs[conf_num].desc,
+				le16_to_cpu((*udc_ptr_top_conf).conf_lsfs[conf_num].desc->wTotalLength));
 		}
 		((usb_conf_desc_t *) udd_g_ctrlreq.payload)->bDescriptorType =
 				USB_DT_OTHER_SPEED_CONFIGURATION;
@@ -751,11 +754,11 @@ static bool udc_req_std_dev_get_descriptor(void)
 
 	case USB_DT_BOS:
 		// Device BOS descriptor requested
-		if (udc_config.conf_bos == NULL) {
+		if ((*udc_ptr_top_conf).conf_bos == NULL) {
 			return false;
 		}
-		udd_set_setup_payload( (uint8_t *) udc_config.conf_bos,
-				udc_config.conf_bos->wTotalLength);
+		udd_set_setup_payload( (uint8_t *) (*udc_ptr_top_conf).conf_bos,
+				(*udc_ptr_top_conf).conf_bos->wTotalLength);
 		break;
 
 	case USB_DT_STRING:
@@ -813,7 +816,7 @@ static bool udc_req_std_dev_set_configuration(void)
 	if (udd_is_high_speed()) {
 		// HS descriptor
 		if ((udd_g_ctrlreq.req.wValue & 0xFF) >
-				udc_config.confdev_hs->bNumConfigurations) {
+				(*udc_ptr_top_conf).confdev_hs->bNumConfigurations) {
 			return false;
 		}
 	} else
@@ -821,7 +824,7 @@ static bool udc_req_std_dev_set_configuration(void)
 	{
 		// FS descriptor
 		if ((udd_g_ctrlreq.req.wValue & 0xFF) >
-				udc_config.confdev_lsfs->bNumConfigurations) {
+				(*udc_ptr_top_conf).confdev_lsfs->bNumConfigurations) {
 			return false;
 		}
 	}
@@ -841,12 +844,12 @@ static bool udc_req_std_dev_set_configuration(void)
 #ifdef USB_DEVICE_HS_SUPPORT
 	if (udd_is_high_speed()) {
 		// HS descriptor
-		udc_ptr_conf = &udc_config.conf_hs[udc_num_configuration - 1];
+		udc_ptr_conf = &(*udc_ptr_top_conf).conf_hs[udc_num_configuration - 1];
 	} else
 #endif
 	{
 		// FS descriptor
-		udc_ptr_conf = &udc_config.conf_lsfs[udc_num_configuration - 1];
+		udc_ptr_conf = &(*udc_ptr_top_conf).conf_lsfs[udc_num_configuration - 1];
 	}
 	// Enable all interfaces of the selected configuration
 	for (iface_num = 0; iface_num < udc_ptr_conf->desc->bNumInterfaces;

@@ -72,6 +72,25 @@ UDC_DESC_STORAGE usb_dev_desc_t udc_device_desc = {
 	.bNumConfigurations        = 1
 };
 
+//! USB Device Descriptor
+COMPILER_WORD_ALIGNED
+UDC_DESC_STORAGE usb_dev_desc_t udc_device_desc_alt = {
+	.bLength                   = sizeof(usb_dev_desc_t),
+	.bDescriptorType           = USB_DT_DEVICE,
+	.bcdUSB                    = LE16(USB_V2_0),
+	.bDeviceClass              = NO_CLASS,
+	.bDeviceSubClass           = NO_SUBCLASS,
+	.bDeviceProtocol           = NO_PROTOCOL,
+	.bMaxPacketSize0           = USB_DEVICE_EP_CTRL_SIZE,
+	.idVendor                  = LE16(USB_DEVICE_VENDOR_ID),
+	.idProduct                 = LE16(USB_DEVICE_ALT_PRODUCT_ID),
+	.bcdDevice                 = LE16(USB_DEVICE_VERSION),
+	.iManufacturer             = 1,
+	.iProduct                  = 6,
+	.iSerialNumber             = 3,
+	.bNumConfigurations        = 1
+};
+
 
 //! Structure for USB Device Configuration Descriptor
 COMPILER_PACK_SET(1)
@@ -194,6 +213,14 @@ UDC_DESC_STORAGE usb_dev_debug_desc_t udc_device_debug = {
 //! Add all information about USB Device in global structure for UDC
 UDC_DESC_STORAGE udc_config_t udc_config = {
 	.confdev_lsfs = &udc_device_desc,
+	.conf_lsfs = udc_config_lsfs,
+	.qualifier = &udc_device_qual,
+	.debug = &udc_device_debug,
+};
+
+//! Add all information about USB Device in global structure for UDC
+UDC_DESC_STORAGE udc_config_t udc_config_alt = {
+	.confdev_lsfs = &udc_device_desc_alt,
 	.conf_lsfs = udc_config_lsfs,
 	.qualifier = &udc_device_qual,
 	.debug = &udc_device_debug,

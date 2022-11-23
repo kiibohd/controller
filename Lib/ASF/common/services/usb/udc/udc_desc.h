@@ -118,6 +118,7 @@ typedef struct {
 
 //! Global variables of USB Device Descriptor and UDI links
 extern UDC_DESC_STORAGE udc_config_t udc_config;
+extern UDC_DESC_STORAGE udc_config_t udc_config_alt;
 
 //@}
 
