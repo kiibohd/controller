@@ -129,6 +129,7 @@ set ( SRCS
 	../Lib/ASF/common/services/usb/class/dfu_flip/device/udi_dfu_atmel_desc.c
 	../Lib/ASF/common/services/usb/udc/udc.c
 	../Lib/ASF/common/utils/interrupt/interrupt_sam_nvic.c
+	../Lib/ASF/sam/drivers/adc/adc.c
 	../Lib/ASF/sam/drivers/efc/efc.c
 	../Lib/ASF/sam/drivers/matrix/matrix.c
 	../Lib/ASF/sam/drivers/pmc/pmc.c
