@@ -40,6 +40,8 @@ void Macro_dialState( uint8_t index, uint8_t state );
 uint8_t Macro_tick_update( TickStore *store, uint8_t type );
 
 void Macro_periodic();
+void Screensaver_periodic();
+
 void Macro_poll();
 void Macro_setup();
 
